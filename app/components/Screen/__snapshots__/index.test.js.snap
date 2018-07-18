@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Screen should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "backgroundColor": "#2f3542",
+        "height": 1334,
+        "left": 0,
+        "position": "absolute",
+        "top": 0,
+        "width": 750,
+      }
+    }
+  >
+    <StatusBar
+      animated={false}
+      backgroundColor="#2f3542"
+      barStyle="light-content"
+      showHideTransition="fade"
+    />
+  </Component>
+  <SafeAreaView
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Component>
+      Foobar
+    </Component>
+  </SafeAreaView>
+</Component>
+`;

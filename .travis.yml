@@ -1,0 +1,10 @@
+language: node_js
+node_js: "node"
+install:
+- travis_retry npm install -g codecov
+- travis_retry npm install
+script:
+- npm run prettier
+- npm run lint
+- npm run test
+- codecov

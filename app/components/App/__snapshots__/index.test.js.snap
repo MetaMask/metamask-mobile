@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App should render correctly 1`] = `
+<Navigator
+  navigation={
+    Object {
+      "actions": Object {},
+      "addListener": [Function],
+      "dangerouslyGetParent": [Function],
+      "dispatch": [Function],
+      "getChildNavigation": [Function],
+      "getScreenProps": [Function],
+      "goBack": [Function],
+      "isFocused": [Function],
+      "navigate": [Function],
+      "router": Object {
+        "childRouters": Object {
+          "Home": null,
+        },
+        "getActionCreators": [Function],
+        "getActionForPathAndParams": [Function],
+        "getComponentForRouteName": [Function],
+        "getComponentForState": [Function],
+        "getPathAndParamsForState": [Function],
+        "getScreenOptions": [Function],
+        "getStateForAction": [Function],
+      },
+      "setParams": [Function],
+      "state": Object {
+        "index": 0,
+        "isTransitioning": false,
+        "routes": Array [
+          Object {
+            "key": "Home",
+            "params": undefined,
+            "routeName": "Home",
+          },
+        ],
+      },
+    }
+  }
+/>
+`;

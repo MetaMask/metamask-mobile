@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Browser should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "alignItems": "stretch",
+        "backgroundColor": "#f1f2f6",
+        "flexDirection": "row",
+        "paddingVertical": 8,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      disabled={true}
+      name="angle-left"
+      onPress={[Function]}
+      size={30}
+      style={
+        Object {
+          "color": "#ced6e0",
+          "flex": 0,
+          "height": 28,
+          "lineHeight": 28,
+          "paddingTop": 2,
+          "textAlign": "center",
+          "width": 36,
+        }
+      }
+    />
+    <Icon
+      allowFontScaling={false}
+      disabled={true}
+      name="angle-right"
+      onPress={[Function]}
+      size={30}
+      style={
+        Object {
+          "color": "#ced6e0",
+          "flex": 0,
+          "height": 28,
+          "lineHeight": 28,
+          "paddingTop": 2,
+          "textAlign": "center",
+          "width": 36,
+        }
+      }
+    />
+    <TextInput
+      allowFontScaling={true}
+      autoCapitalize="none"
+      autoCorrect={false}
+      clearButtonMode="while-editing"
+      keyboardType="url"
+      onChangeText={[Function]}
+      onSubmitEditing={[Function]}
+      placeholder="Enter website address"
+      placeholderTextColor="#747d8c"
+      returnKeyType="go"
+      style={
+        Object {
+          "backgroundColor": "#dfe4ea",
+          "borderRadius": 3,
+          "flex": 1,
+          "fontSize": 14,
+          "padding": 8,
+        }
+      }
+      underlineColorAndroid="transparent"
+      value="http://metamask.io"
+    />
+    <Icon
+      allowFontScaling={false}
+      disabled={true}
+      name="refresh"
+      onPress={[Function]}
+      size={20}
+      style={
+        Object {
+          "color": "#2f3542",
+          "flex": 0,
+          "height": 28,
+          "lineHeight": 28,
+          "paddingTop": 2,
+          "textAlign": "center",
+          "width": 36,
+        }
+      }
+    />
+  </Component>
+  <WebView
+    onNavigationStateChange={[Function]}
+    originWhitelist={
+      Array [
+        "http://*",
+        "https://*",
+      ]
+    }
+    scalesPageToFit={true}
+    source={
+      Object {
+        "uri": "http://metamask.io",
+      }
+    }
+    style={
+      Object {
+        "width": 750,
+      }
+    }
+  />
+</Component>
+`;

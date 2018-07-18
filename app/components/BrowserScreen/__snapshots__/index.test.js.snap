@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BrowserScreen should render correctly 1`] = `
+<Screen>
+  <Browser
+    defaultProtocol="https://"
+    defaultURL="http://metamask.io"
+  />
+</Screen>
+`;

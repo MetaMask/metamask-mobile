@@ -1,12 +1,38 @@
 {
-  "name": "MetaMask",
+  "name": "metamask",
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "lint": "eslint **/*.js --ignore-path=.prettierignore",
+    "format": "prettier **/*.{js,json} --write",
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "jest"
+    "test": "jest",
+    "test:update": "jest -u"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "singleQuote": true,
+    "tabWidth": 4,
+    "useTabs": true
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "eslint --ignore-path=.prettierignore",
+      "git add"
+    ],
+    "*.json": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "dependencies": {
+    "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
     "react-native-vector-icons": "^4.6.0",
@@ -15,10 +41,61 @@
   "devDependencies": {
     "babel-jest": "23.4.0",
     "babel-preset-react-native": "5.0.2",
+    "enzyme": "^3.0.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "enzyme-to-json": "^3.3.4",
+    "eslint-config-react-native": "^3.0.0",
+    "husky": "^1.0.0-rc.13",
     "jest": "23.4.1",
-    "react-test-renderer": "16.4.1"
+    "lint-staged": "^7.2.0",
+    "prettier": "1.13.7",
+    "react-dom": "^16.4.1"
+  },
+  "babel": {
+    "presets": [
+      "react-native"
+    ]
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "extends": [
+      "react-native"
+    ],
+    "globals": {
+      "describe": true,
+      "expect": true,
+      "it": true,
+      "spyOn": true
+    },
+    "rules": {
+      "class-methods-use-this": 0,
+      "no-invalid-this": 0,
+      "react/jsx-handler-names": 0,
+      "react/prefer-stateless-function": 0
+    }
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "setupFiles": [
+      "<rootDir>/app/common/testSetup.js"
+    ],
+    "transform": {
+      "^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(jest-)?react-native|react-navigation|react-navigation-redux-helpers)"
+    ],
+    "snapshotSerializers": [
+      "enzyme-to-json/serializer"
+    ],
+    "collectCoverage": true,
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
   }
 }

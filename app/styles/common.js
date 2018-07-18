@@ -1,3 +1,10 @@
+/**
+ * Common styles and variables
+ */
+
+/**
+ * Map of color names to HEX values
+ */
 export const colors = {
 	ash: '#ced6e0',
 	asphalt: '#747d8c',
@@ -6,7 +13,10 @@ export const colors = {
 	tar: '#2f3542'
 };
 
-export const common = {
+/**
+ * Map of reusable base styles
+ */
+export const baseStyles = {
 	flexGrow: {
 		flex: 1
 	},

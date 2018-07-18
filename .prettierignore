@@ -1,0 +1,7 @@
+__snapshots__
+android
+coverage
+ios
+node_modules
+package-lock.json
+package.json

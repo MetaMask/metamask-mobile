@@ -2,11 +2,14 @@ import React, { Component } from 'react';
 import Browser from '../Browser';
 import Screen from '../Screen';
 
-export default class BrowserView extends Component {
+/**
+ * Main view component for the browser screen
+ */
+export default class BrowserScreen extends Component {
 	render() {
 		return (
 			<Screen>
-				<Browser defaultUrl="http://metamask.io" />
+				<Browser defaultURL="http://metamask.io" />
 			</Screen>
 		);
 	}
