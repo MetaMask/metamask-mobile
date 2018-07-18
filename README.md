@@ -1,0 +1,9 @@
+- [ ] i18n
+- [ ] design systems
+- [ ] android
+- [ ] ci
+- [ ] integration testing
+- [ ] repo structure
+- [ ] documentation
+- [ ] changelog
+- [ ] enable http (not just https)
