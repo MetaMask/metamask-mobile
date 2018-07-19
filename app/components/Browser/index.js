@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import { Dimensions, StyleSheet, TextInput, View, WebView } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+import RNFS from 'react-native-fs';
+import WKWebView from 'react-native-wkwebview-reborn';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -29,6 +31,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 14,
 		padding: 8
+	},
+	webview: {
+		flex: 1
 	}
 });
 
@@ -51,14 +56,26 @@ export default class Browser extends Component {
 		defaultURL: PropTypes.string.isRequired
 	};
 
-	state = {
-		canGoBack: false,
-		canGoForward: false,
-		inputValue: this.props.defaultURL,
-		url: this.props.defaultURL
-	};
+	constructor(props) {
+		super(props);
 
-	webview = React.createRef();
+		this.state = {
+			canGoBack: false,
+			canGoForward: false,
+			inputValue: this.props.defaultURL,
+			url: this.props.defaultURL,
+			inPageJS: null
+		};
+
+		this.webview = React.createRef();
+
+		this.loadInpageJS();
+	}
+
+	loadInpageJS = async () => {
+		const inPageJS = await RNFS.readFile(`${RNFS.MainBundlePath}/inpage.js`, 'utf8');
+		this.setState({ inPageJS });
+	};
 
 	go = () => {
 		const url = this.state.inputValue;
@@ -88,8 +105,7 @@ export default class Browser extends Component {
 	};
 
 	render() {
-		const { canGoBack, canGoForward, inputValue, url } = this.state;
-
+		const { canGoBack, canGoForward, inputValue, url, inPageJS } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -122,12 +138,16 @@ export default class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
-				<WebView
-					onNavigationStateChange={this.onPageChange}
-					ref={this.webview}
-					source={{ uri: url }}
-					style={{ width: Dimensions.get('window').width }}
-				/>
+				{inPageJS && (
+					<WKWebView
+						onNavigationStateChange={this.onPageChange}
+						ref={this.webview}
+						source={{ uri: url }}
+						style={styles.webview}
+						injectedJavaScript={inPageJS}
+						injectedJavaScriptForMainFrameOnly
+					/>
+				)}
 			</View>
 		);
 	}
