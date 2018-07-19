@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View, ActivityIndicator } from 'react-native';
 import RNFS from 'react-native-fs';
 import WKWebView from 'react-native-wkwebview-reborn';
 import { colors, baseStyles } from '../../styles/common';
@@ -34,6 +34,12 @@ const styles = StyleSheet.create({
 	},
 	webview: {
 		flex: 1
+	},
+	loading: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: colors.slate
 	}
 });
 
@@ -104,8 +110,30 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
+	renderWebview() {
+		const { inPageJS, url } = this.state;
+		if (inPageJS) {
+			return (
+				<WKWebView
+					onNavigationStateChange={this.onPageChange}
+					ref={this.webview}
+					source={{ uri: url }}
+					style={styles.webview}
+					injectedJavaScript={inPageJS}
+					injectedJavaScriptForMainFrameOnly
+				/>
+			);
+		}
+
+		return (
+			<View style={styles.loading}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	}
+
 	render() {
-		const { canGoBack, canGoForward, inputValue, url, inPageJS } = this.state;
+		const { canGoBack, canGoForward, inputValue } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -138,16 +166,7 @@ export default class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
-				{inPageJS && (
-					<WKWebView
-						onNavigationStateChange={this.onPageChange}
-						ref={this.webview}
-						source={{ uri: url }}
-						style={styles.webview}
-						injectedJavaScript={inPageJS}
-						injectedJavaScriptForMainFrameOnly
-					/>
-				)}
+				{this.renderWebview()}
 			</View>
 		);
 	}
