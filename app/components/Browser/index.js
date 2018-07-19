@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import { StyleSheet, TextInput, View, ActivityIndicator } from 'react-native';
 import RNFS from 'react-native-fs';
 import WKWebView from 'react-native-wkwebview-reborn';
+import { StyleSheet, TextInput, View, ActivityIndicator } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -35,11 +35,11 @@ const styles = StyleSheet.create({
 	webview: {
 		flex: 1
 	},
-	loading: {
-		flex: 1,
+	loadingIndicator: {
 		alignItems: 'center',
-		justifyContent: 'center',
-		backgroundColor: colors.slate
+		backgroundColor: colors.slate,
+		flex: 1,
+		justifyContent: 'center'
 	}
 });
 
@@ -62,25 +62,24 @@ export default class Browser extends Component {
 		defaultURL: PropTypes.string.isRequired
 	};
 
+	state = {
+		canGoBack: false,
+		canGoForward: false,
+		entryScript: null,
+		inputValue: this.props.defaultURL,
+		url: this.props.defaultURL
+	};
+
+	webview = React.createRef();
+
 	constructor(props) {
 		super(props);
-
-		this.state = {
-			canGoBack: false,
-			canGoForward: false,
-			inputValue: this.props.defaultURL,
-			url: this.props.defaultURL,
-			inPageJS: null
-		};
-
-		this.webview = React.createRef();
-
-		this.loadInpageJS();
+		this.loadEntryScript();
 	}
 
-	loadInpageJS = async () => {
-		const inPageJS = await RNFS.readFile(`${RNFS.MainBundlePath}/inpage.js`, 'utf8');
-		this.setState({ inPageJS });
+	loadEntryScript = async () => {
+		const entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/inpage.js`, 'utf8');
+		this.setState({ entryScript });
 	};
 
 	go = () => {
@@ -91,15 +90,18 @@ export default class Browser extends Component {
 	};
 
 	goBack = () => {
-		this.webview.current.goBack();
+		const { current } = this.webview;
+		current && current.goBack();
 	};
 
 	goForward = () => {
-		this.webview.current.goForward();
+		const { current } = this.webview;
+		current && current.goForward();
 	};
 
 	reload = () => {
-		this.webview.current.reload();
+		const { current } = this.webview;
+		current && current.reload();
 	};
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
@@ -111,23 +113,25 @@ export default class Browser extends Component {
 	};
 
 	renderWebview() {
-		const { inPageJS, url } = this.state;
-		if (inPageJS) {
+		const { entryScript, url } = this.state;
+
+		if (entryScript) {
 			return (
 				<WKWebView
+					injectedJavaScript={entryScript}
+					injectedJavaScriptForMainFrameOnly
 					onNavigationStateChange={this.onPageChange}
+					openNewWindowInWebView
 					ref={this.webview}
 					source={{ uri: url }}
 					style={styles.webview}
-					injectedJavaScript={inPageJS}
-					injectedJavaScriptForMainFrameOnly
 				/>
 			);
 		}
 
 		return (
-			<View style={styles.loading}>
-				<ActivityIndicator size="small" />
+			<View style={styles.loadingIndicator}>
+				<ActivityIndicator color={colors.asphalt} size="large" />
 			</View>
 		);
 	}

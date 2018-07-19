@@ -71,6 +71,7 @@
       "spyOn": true
     },
     "rules": {
+      "eol-last": 1,
       "class-methods-use-this": 0,
       "no-invalid-this": 0,
       "react/jsx-handler-names": 0,
