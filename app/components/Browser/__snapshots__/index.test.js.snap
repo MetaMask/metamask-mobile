@@ -96,20 +96,20 @@ exports[`Browser should render correctly 1`] = `
       }
     />
   </Component>
-  <Component
-    style={
+  <WKWebView
+    injectedJavaScriptForMainFrameOnly={true}
+    onNavigationStateChange={[Function]}
+    openNewWindowInWebView={true}
+    source={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#dfe4ea",
-        "flex": 1,
-        "justifyContent": "center",
+        "uri": "http://metamask.io",
       }
     }
-  >
-    <Component
-      color="#747d8c"
-      size="large"
-    />
-  </Component>
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  />
 </Component>
 `;

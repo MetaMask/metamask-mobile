@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import RNFS from 'react-native-fs';
 import WKWebView from 'react-native-wkwebview-reborn';
-import { StyleSheet, TextInput, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -34,12 +33,6 @@ const styles = StyleSheet.create({
 	},
 	webview: {
 		flex: 1
-	},
-	loadingIndicator: {
-		alignItems: 'center',
-		backgroundColor: colors.slate,
-		flex: 1,
-		justifyContent: 'center'
 	}
 });
 
@@ -65,17 +58,11 @@ export default class Browser extends Component {
 	state = {
 		canGoBack: false,
 		canGoForward: false,
-		entryScript: null,
 		inputValue: this.props.defaultURL,
 		url: this.props.defaultURL
 	};
 
 	webview = React.createRef();
-
-	async componentDidMount() {
-		const entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/inpage.js`, 'utf8');
-		this.setState({ entryScript });
-	}
 
 	go = () => {
 		const url = this.state.inputValue;
@@ -107,32 +94,8 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
-	renderWebview() {
-		const { entryScript, url } = this.state;
-
-		if (entryScript) {
-			return (
-				<WKWebView
-					injectedJavaScript={entryScript}
-					injectedJavaScriptForMainFrameOnly
-					onNavigationStateChange={this.onPageChange}
-					openNewWindowInWebView
-					ref={this.webview}
-					source={{ uri: url }}
-					style={styles.webview}
-				/>
-			);
-		}
-
-		return (
-			<View style={styles.loadingIndicator}>
-				<ActivityIndicator color={colors.asphalt} size="large" />
-			</View>
-		);
-	}
-
 	render() {
-		const { canGoBack, canGoForward, inputValue } = this.state;
+		const { canGoBack, canGoForward, inputValue, url } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -165,7 +128,14 @@ export default class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
-				{this.renderWebview()}
+				<WKWebView
+					injectedJavaScriptForMainFrameOnly
+					onNavigationStateChange={this.onPageChange}
+					openNewWindowInWebView
+					ref={this.webview}
+					source={{ uri: url }}
+					style={styles.webview}
+				/>
 			</View>
 		);
 	}
