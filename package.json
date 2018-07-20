@@ -95,7 +95,6 @@
       "enzyme-to-json/serializer"
     ],
     "collectCoverage": true,
-    "coveragePathIgnorePatterns": ["<rootDir>/app/components/Browser/"],
     "coverageThreshold": {
       "global": {
         "branches": 100,
