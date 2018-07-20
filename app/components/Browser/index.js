@@ -97,9 +97,17 @@ export default class Browser extends Component {
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
-		if (!data || !data.type || data.type !== 'ETHEREUM_PROVIDER_REQUEST') {
+		if (!data || !data.type) {
 			return;
 		}
+		switch (data.type) {
+			case 'ETHEREUM_PROVIDER_REQUEST':
+				this.handleProviderRequest();
+				break;
+		}
+	};
+
+	handleProviderRequest() {
 		Alert.alert(
 			'Ethereum access',
 			`The domain "${
@@ -108,7 +116,7 @@ export default class Browser extends Component {
 			[{ text: 'Reject', style: 'cancel' }, { text: 'Approve', onPress: this.injectEntryScript }],
 			{ cancelable: false }
 		);
-	};
+	}
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		this.setState({ canGoBack, canGoForward, inputValue: url });
