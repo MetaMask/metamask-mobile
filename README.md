@@ -19,16 +19,13 @@ $ react-native run-ios
 ## TODOs
 
 - [ ] Inject provider
+- [ ] Create MetaMaskController instance
+- [ ] Verify basic communication
 - [ ] Wire up Redux
 - [ ] Figure out persistence
+- [ ] Wallet UI
+- [ ] Settings UI
 - [ ] i18n
-- [ ] Proper UI
-- [ ] Basic wallet
-- [ ] Turn on CI once public
-- [ ] Add integration tests
-- [ ] Turn on generated changelogs once public
-- [ ] Historical URL bar
-- [ ] Settings pane
 
 ## License
 
