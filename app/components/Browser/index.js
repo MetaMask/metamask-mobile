@@ -93,7 +93,8 @@ export default class Browser extends Component {
 
 	injectEntryScript = () => {
 		const { current } = this.webview;
-		current && current.evaluateJavaScript('window.alert("party on");');
+		const { entryScript } = this.state;
+		entryScript && current && current.evaluateJavaScript(entryScript);
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
