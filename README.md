@@ -16,6 +16,20 @@ $ npm i
 $ react-native run-ios
 ```
 
+## TODOs
+
+- [ ] Inject provider
+- [ ] Wire up Redux
+- [ ] Figure out persistence
+- [ ] i18n
+- [ ] Proper UI
+- [ ] Basic wallet
+- [ ] Turn on CI once public
+- [ ] Add integration tests
+- [ ] Turn on generated changelogs once public
+- [ ] Historical URL bar
+- [ ] Settings pane
+
 ## License
 
 [MIT](./LICENSE)
