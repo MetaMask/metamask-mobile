@@ -39,7 +39,7 @@
     "react-native": "0.56.0",
     "react-native-fs": "^2.10.14",
     "react-native-vector-icons": "^4.6.0",
-    "react-native-wkwebview-reborn": "^1.21.0",
+    "react-native-wkwebview-reborn": "1.21.0",
     "react-navigation": "^2.6.2"
   },
   "devDependencies": {
