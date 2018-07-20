@@ -23,7 +23,6 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		140ED2AC1D01E1AD002B40FF /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
-		15A2E624210007B600A1F331 /* inpage.js in Resources */ = {isa = PBXBuildFile; fileRef = 15A2E623210007B600A1F331 /* inpage.js */; };
 		2348DAE74F344434A57B334F /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7FF1597C0ACA4902B86140B2 /* Zocial.ttf */; };
 		2D02E4BC1E0B4A80006451C7 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		2D02E4BD1E0B4A84006451C7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -379,7 +378,6 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MetaMask/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = MetaMask/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
-		15A2E623210007B600A1F331 /* inpage.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = inpage.js; path = ../app/inpage/inpage.js; sourceTree = "<group>"; };
 		1C516951C09F43CB97129B66 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		2D02E47B1E0B4A5D006451C7 /* MetaMask-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MetaMask-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* MetaMask-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MetaMask-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -546,7 +544,6 @@
 		13B07FAE1A68108700A75B9A /* MetaMask */ = {
 			isa = PBXGroup;
 			children = (
-				15A2E6222100078200A1F331 /* inpage */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -606,14 +603,6 @@
 				15A2E61E2100077800A1F331 /* libRNFS.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		15A2E6222100078200A1F331 /* inpage */ = {
-			isa = PBXGroup;
-			children = (
-				15A2E623210007B600A1F331 /* inpage.js */,
-			);
-			name = inpage;
 			sourceTree = "<group>";
 		};
 		15C1F69E2100D06E00DEA29E /* Products */ = {
@@ -1230,7 +1219,6 @@
 				3EA7CE27B8AB49009E49CFE6 /* MaterialCommunityIcons.ttf in Resources */,
 				F0C672CC75F549ABBA1CF52A /* MaterialIcons.ttf in Resources */,
 				5992255DBD134582AE0C5AA5 /* Octicons.ttf in Resources */,
-				15A2E624210007B600A1F331 /* inpage.js in Resources */,
 				F34655B90A524BB3B87EAB00 /* SimpleLineIcons.ttf in Resources */,
 				2348DAE74F344434A57B334F /* Zocial.ttf in Resources */,
 			);
