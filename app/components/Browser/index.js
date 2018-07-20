@@ -72,15 +72,10 @@ export default class Browser extends Component {
 
 	webview = React.createRef();
 
-	constructor(props) {
-		super(props);
-		this.loadEntryScript();
-	}
-
-	loadEntryScript = async () => {
+	async componentDidMount() {
 		const entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/inpage.js`, 'utf8');
 		this.setState({ entryScript });
-	};
+	}
 
 	go = () => {
 		const url = this.state.inputValue;
