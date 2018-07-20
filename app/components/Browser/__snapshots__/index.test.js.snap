@@ -96,15 +96,10 @@ exports[`Browser should render correctly 1`] = `
       }
     />
   </Component>
-  <WebView
+  <WKWebView
+    injectedJavaScriptForMainFrameOnly={true}
     onNavigationStateChange={[Function]}
-    originWhitelist={
-      Array [
-        "http://*",
-        "https://*",
-      ]
-    }
-    scalesPageToFit={true}
+    openNewWindowInWebView={true}
     source={
       Object {
         "uri": "http://metamask.io",
@@ -112,7 +107,7 @@ exports[`Browser should render correctly 1`] = `
     }
     style={
       Object {
-        "width": 750,
+        "flex": 1,
       }
     }
   />

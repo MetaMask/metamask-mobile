@@ -4,7 +4,7 @@ exports[`BrowserScreen should render correctly 1`] = `
 <Screen>
   <Browser
     defaultProtocol="https://"
-    defaultURL="http://metamask.io"
+    defaultURL="https://metamask.io"
   />
 </Screen>
 `;

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint **/*.js --ignore-path=.prettierignore",
+    "lint:fix": "eslint **/*.js --fix --ignore-path=.prettierignore",
     "format": "prettier **/*.{js,json} --write",
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "test": "jest",
@@ -35,7 +36,9 @@
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
+    "react-native-fs": "^2.10.14",
     "react-native-vector-icons": "^4.6.0",
+    "react-native-wkwebview-reborn": "^1.21.0",
     "react-navigation": "^2.6.2"
   },
   "devDependencies": {
@@ -65,12 +68,15 @@
       "describe": true,
       "expect": true,
       "it": true,
+      "jest": true,
       "spyOn": true
     },
     "rules": {
       "class-methods-use-this": 0,
+      "eol-last": 1,
       "no-invalid-this": 0,
       "react/jsx-handler-names": 0,
+      "react/no-did-mount-set-state": 0,
       "react/prefer-stateless-function": 0
     }
   },

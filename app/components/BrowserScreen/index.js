@@ -9,7 +9,7 @@ export default class BrowserScreen extends Component {
 	render() {
 		return (
 			<Screen>
-				<Browser defaultURL="http://metamask.io" />
+				<Browser defaultURL="https://metamask.io" />
 			</Screen>
 		);
 	}

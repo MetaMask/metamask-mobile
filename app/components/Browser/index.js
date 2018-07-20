@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import { Dimensions, StyleSheet, TextInput, View, WebView } from 'react-native';
+import WKWebView from 'react-native-wkwebview-reborn';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -29,6 +30,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 14,
 		padding: 8
+	},
+	webview: {
+		flex: 1
 	}
 });
 
@@ -68,15 +72,18 @@ export default class Browser extends Component {
 	};
 
 	goBack = () => {
-		this.webview.current.goBack();
+		const { current } = this.webview;
+		current && current.goBack();
 	};
 
 	goForward = () => {
-		this.webview.current.goForward();
+		const { current } = this.webview;
+		current && current.goForward();
 	};
 
 	reload = () => {
-		this.webview.current.reload();
+		const { current } = this.webview;
+		current && current.reload();
 	};
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
@@ -89,7 +96,6 @@ export default class Browser extends Component {
 
 	render() {
 		const { canGoBack, canGoForward, inputValue, url } = this.state;
-
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -122,11 +128,13 @@ export default class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
-				<WebView
+				<WKWebView
+					injectedJavaScriptForMainFrameOnly
 					onNavigationStateChange={this.onPageChange}
+					openNewWindowInWebView
 					ref={this.webview}
 					source={{ uri: url }}
-					style={{ width: Dimensions.get('window').width }}
+					style={styles.webview}
 				/>
 			</View>
 		);
