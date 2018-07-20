@@ -8,7 +8,8 @@
     "format": "prettier **/*.{js,json} --write",
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "test": "jest",
-    "test:update": "jest -u"
+    "test:update": "jest -u",
+    "postinstall": "./scripts/postinstall.sh"
   },
   "prettier": {
     "printWidth": 120,
