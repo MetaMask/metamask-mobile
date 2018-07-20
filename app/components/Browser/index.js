@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
+import RNFS from 'react-native-fs';
 import WKWebView from 'react-native-wkwebview-reborn';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -30,9 +31,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 14,
 		padding: 8
-	},
-	webview: {
-		flex: 1
 	}
 });
 
@@ -56,13 +54,20 @@ export default class Browser extends Component {
 	};
 
 	state = {
+		approvedOrigin: false,
 		canGoBack: false,
 		canGoForward: false,
+		entryScript: null,
 		inputValue: this.props.defaultURL,
 		url: this.props.defaultURL
 	};
 
 	webview = React.createRef();
+
+	async componentDidMount() {
+		const entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
+		this.setState({ entryScript });
+	}
 
 	go = () => {
 		const url = this.state.inputValue;
@@ -85,6 +90,34 @@ export default class Browser extends Component {
 		const { current } = this.webview;
 		current && current.reload();
 	};
+
+	injectEntryScript = () => {
+		const { current } = this.webview;
+		const { entryScript } = this.state;
+		entryScript && current && current.evaluateJavaScript(entryScript);
+	};
+
+	onMessage = ({ nativeEvent: { data } }) => {
+		if (!data || !data.type) {
+			return;
+		}
+		switch (data.type) {
+			case 'ETHEREUM_PROVIDER_REQUEST':
+				this.handleProviderRequest();
+				break;
+		}
+	};
+
+	handleProviderRequest() {
+		Alert.alert(
+			'Ethereum access',
+			`The domain "${
+				this.state.url
+			}" is requesting access to the Ethereum blockchain and to view your current account. Always double check that you're on the correct site before approving access.`,
+			[{ text: 'Reject', style: 'cancel' }, { text: 'Approve', onPress: this.injectEntryScript }],
+			{ cancelable: false }
+		);
+	}
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		this.setState({ canGoBack, canGoForward, inputValue: url });
@@ -129,12 +162,17 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<WKWebView
+					injectJavaScript={
+						'window.originalPostMessage = window.postMessage; window.postMessage = function (data) { window.webkit.messageHandlers.reactNative.postMessage(data); }'
+					}
 					injectedJavaScriptForMainFrameOnly
+					javaScriptEnabled
+					onMessage={this.onMessage}
 					onNavigationStateChange={this.onPageChange}
 					openNewWindowInWebView
 					ref={this.webview}
 					source={{ uri: url }}
-					style={styles.webview}
+					style={baseStyles.flexGrow}
 				/>
 			</View>
 		);
