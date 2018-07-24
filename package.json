@@ -8,7 +8,8 @@
     "format": "prettier **/*.{js,json} --write",
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "test": "jest",
-    "test:update": "jest -u"
+    "test:update": "jest -u",
+    "postinstall": "./scripts/postinstall.sh"
   },
   "prettier": {
     "printWidth": 120,
@@ -38,7 +39,7 @@
     "react-native": "0.56.0",
     "react-native-fs": "^2.10.14",
     "react-native-vector-icons": "^4.6.0",
-    "react-native-wkwebview-reborn": "^1.21.0",
+    "react-native-wkwebview-reborn": "1.21.0",
     "react-navigation": "^2.6.2"
   },
   "devDependencies": {
