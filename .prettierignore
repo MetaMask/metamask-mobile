@@ -1,7 +1,10 @@
 __snapshots__
 android
 coverage
+app/core
 ios
 node_modules
 package-lock.json
 package.json
+shim.js
+index.js
