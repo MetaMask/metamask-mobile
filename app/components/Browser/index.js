@@ -162,9 +162,6 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<WKWebView
-					injectJavaScript={
-						'window.originalPostMessage = window.postMessage; window.postMessage = function (data) { window.webkit.messageHandlers.reactNative.postMessage(data); }'
-					}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					onMessage={this.onMessage}
