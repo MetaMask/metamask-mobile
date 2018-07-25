@@ -96,7 +96,7 @@
   "jest": {
     "preset": "react-native",
     "setupFiles": [
-      "<rootDir>/app/common/testSetup.js"
+      "<rootDir>/app/util/testSetup.js"
     ],
     "transform": {
       "^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"

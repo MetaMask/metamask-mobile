@@ -47,3 +47,6 @@ buck-out/
 
 # testing
 coverage
+
+# app-specific
+shim.js
