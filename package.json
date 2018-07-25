@@ -55,10 +55,7 @@
   },
   "devDependencies": {
     "babel-jest": "23.4.0",
-    "babel-plugin-transform-imports": "^1.5.0",
     "babel-preset-react-native": "5.0.2",
-    "babel-preset-react-native-stage-0": "^1.0.1",
-    "babel-preset-stage-2": "^6.24.1",
     "enzyme": "^3.0.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "enzyme-to-json": "^3.3.4",
