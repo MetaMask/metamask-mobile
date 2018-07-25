@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import initBackground from 'metamask-core';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
 		alignItems: 'center',
-		justifyContent: 'center',
-		backgroundColor: colors.slate
+		backgroundColor: colors.slate,
+		flex: 1,
+		justifyContent: 'center'
 	}
 });
 
