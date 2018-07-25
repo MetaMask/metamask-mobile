@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import initBackground from '../../core/scripts/background-react-native';
+import initBackground from 'metamask-core';
 import { colors } from '../../styles/common';
 
 const styles = StyleSheet.create({
