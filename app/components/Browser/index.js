@@ -3,7 +3,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import WKWebView from 'react-native-wkwebview-reborn';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View, Platform } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -65,8 +65,12 @@ export default class Browser extends Component {
 	webview = React.createRef();
 
 	async componentDidMount() {
-		// TODO: The presence of this async statement breaks Jest code coverage
-		const entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
+		let entryScript;
+		if (Platform.OS === 'ios') {
+			entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
+		} else {
+			entryScript = await RNFS.readFileAssets(`entry.js`);
+		}
 		this.setState({ entryScript });
 	}
 
@@ -129,7 +133,7 @@ export default class Browser extends Component {
 	};
 
 	render() {
-		const { canGoBack, canGoForward, inputValue, url } = this.state;
+		const { canGoBack, canGoForward, inputValue, url, entryScript } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -163,6 +167,7 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<WKWebView
+					injectedJavascript={entryScript}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					onMessage={this.onMessage}

@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "ios": "./scripts/build-and-run-ios.sh",
+    "android": "./scripts/build-and-run-android.sh",
     "lint": "eslint **/*.js --ignore-path=.prettierignore",
     "lint:fix": "eslint **/*.js --fix --ignore-path=.prettierignore",
     "format": "prettier **/*.{js,json} --write",
