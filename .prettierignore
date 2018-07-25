@@ -6,5 +6,5 @@ ios
 node_modules
 package-lock.json
 package.json
-shim.js
-index.js
+/shim.js
+/index.js
