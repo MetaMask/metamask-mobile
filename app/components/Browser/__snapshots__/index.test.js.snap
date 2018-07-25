@@ -98,6 +98,8 @@ exports[`Browser should render correctly 1`] = `
   </Component>
   <WKWebView
     injectedJavaScriptForMainFrameOnly={true}
+    javaScriptEnabled={true}
+    onMessage={[Function]}
     onNavigationStateChange={[Function]}
     openNewWindowInWebView={true}
     source={
