@@ -3,7 +3,7 @@ echo "PostInstall script:"
 
 # Submitted a PR for this one: https://github.com/CRAlpha/react-native-wkwebview/pull/174
 # We should remove this once it gets merged
-echo "1, Fixing WKWebView..."
+echo "1. Fixing WKWebView..."
 WKWEBVIEW_FILE=$(find . -name RCTWKWebView.m);
 sed -i '' -e '143s/WKUserScriptInjectionTimeAtDocumentEnd/WKUserScriptInjectionTimeAtDocumentStart/' $WKWEBVIEW_FILE;
 echo "Done"
@@ -31,9 +31,8 @@ sed -i '' -e 's/compileSdkVersion 23/compileSdkVersion 26/' $TARGET;
 sed -i '' -e 's/23.0.1/26.0.1/' $TARGET;
 echo "Done"
 
-# Submitted a PR for this one: https://github.com/mvayngrib/react-native-randombytes/pull/29
-# We should remove this once it gets merged
-# or we can also switch to https://github.com/brunobar79/react-native-randombytes
+# This one has been fixed on master
+# we can remove once they release a new version
 
 echo "5. Fix react-native-fs buildTools version..."
 TARGET="node_modules/react-native-fs/android/build.gradle"
