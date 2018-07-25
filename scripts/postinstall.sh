@@ -30,3 +30,13 @@ TARGET="node_modules/react-native-randombytes/android/build.gradle"
 sed -i '' -e 's/compileSdkVersion 23/compileSdkVersion 26/' $TARGET;
 sed -i '' -e 's/23.0.1/26.0.1/' $TARGET;
 echo "Done"
+
+# Submitted a PR for this one: https://github.com/mvayngrib/react-native-randombytes/pull/29
+# We should remove this once it gets merged
+# or we can also switch to https://github.com/brunobar79/react-native-randombytes
+
+echo "5 - Fix react-native-fs buildTools version..."
+TARGET="node_modules/react-native-fs/android/build.gradle"
+sed -i '' -e 's/compileSdkVersion 25/compileSdkVersion 26/' $TARGET;
+sed -i '' -e 's/25.0.0/26.0.1/' $TARGET;
+echo "Done"
