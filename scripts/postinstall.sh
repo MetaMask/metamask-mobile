@@ -1,6 +1,8 @@
 #!/bin/bash
 echo "PostInstall script:"
 
+# Submitted a PR for this one: https://github.com/CRAlpha/react-native-wkwebview/pull/174
+# We should remove this once it gets merged
 echo "1 - Fixing WKWebView..."
 WKWEBVIEW_FILE=$(find . -name RCTWKWebView.m);
 sed -i '' -e '143s/WKUserScriptInjectionTimeAtDocumentEnd/WKUserScriptInjectionTimeAtDocumentStart/' $WKWEBVIEW_FILE;
@@ -11,13 +13,17 @@ node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,v
 
 sed -i '' -e '143s/WKUserScriptInjectionTimeAtDocumentEnd/WKUserScriptInjectionTimeAtDocumentStart/' $WKWEBVIEW_FILE;
 
+# This one has been updated but no release in the last 2 years
+# Tried it with the current master but it breaks and it looks really different
+# Keeping it for now until we have time to investigate deeper
 echo "3 - Fixing ethereumjs-wallet dependency (aes-js)..."
 TARGET="node_modules/ethereumjs-wallet/node_modules/aes-js/index.js"
 sed -i '' -e 's/var previous_mymodule/\/\/var previous_mymodule/' $TARGET;
 echo "Done"
 
-# Submitted a PR for this one. We should remove this
-# once it gets merged
+# Submitted a PR for this one: https://github.com/mvayngrib/react-native-randombytes/pull/29
+# We should remove this once it gets merged
+# or we can also switch to https://github.com/brunobar79/react-native-randombytes
 
 echo "4 - Fix react-native-randombytes buildTools version..."
 TARGET="node_modules/react-native-randombytes/android/build.gradle"
