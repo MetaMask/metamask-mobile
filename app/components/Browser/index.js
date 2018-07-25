@@ -65,6 +65,7 @@ export default class Browser extends Component {
 	webview = React.createRef();
 
 	async componentDidMount() {
+		// TODO: The presence of this async statement breaks Jest code coverage
 		const entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
 		this.setState({ entryScript });
 	}

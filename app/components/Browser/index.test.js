@@ -1,6 +1,6 @@
 import React from 'react';
 import WKWebView from 'react-native-wkwebview-reborn';
-import { TextInput } from 'react-native';
+import { Alert, TextInput } from 'react-native';
 import { shallow } from 'enzyme';
 import Browser from './';
 
@@ -76,6 +76,29 @@ describe('Browser', () => {
 		wrapper.find(WKWebView).simulate('NavigationStateChange', {});
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="refresh"]').simulate('press');
+		expect(stub).toBeCalled();
+	});
+
+	it('should show injection approval dialog', () => {
+		jest.mock('Alert', () => ({ alert: jest.fn() }));
+		const wrapper = shallow(<Browser defaultURL="http://metamask.io" />);
+		wrapper.find(WKWebView).simulate('Message', { nativeEvent: {} });
+		wrapper.find(WKWebView).simulate('Message', {
+			nativeEvent: {
+				data: { type: 'ETHEREUM_PROVIDER_REQUEST' }
+			}
+		});
+		expect(Alert.alert).toHaveBeenCalled();
+		jest.unmock('Alert');
+	});
+
+	it('should inject entry script after approval', () => {
+		const MockWebView = { evaluateJavaScript() {} }; // eslint-disable-line no-empty-function
+		const stub = spyOn(MockWebView, 'evaluateJavaScript');
+		const wrapper = shallow(<Browser defaultURL="http://metamask.io" />);
+		wrapper.instance().webview = { current: MockWebView };
+		wrapper.setState({ entryScript: 'console.log()' });
+		wrapper.instance().injectEntryScript();
 		expect(stub).toBeCalled();
 	});
 });
