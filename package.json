@@ -34,13 +34,24 @@
     ]
   },
   "dependencies": {
+    "buffer": "^4.9.1",
+    "metamask-core": "github:brunobar79/metamask-core#master",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
+    "react-native-browser-polyfill": "^0.1.2",
+    "react-native-crypto": "^2.1.2",
     "react-native-fs": "^2.10.14",
+    "react-native-level-fs": "^3.0.1",
+    "react-native-os": "^1.2.1",
+    "react-native-randombytes": "^3.4.0",
+    "react-native-tcp": "^3.3.0",
+    "react-native-udp": "^2.3.1",
     "react-native-vector-icons": "^4.6.0",
     "react-native-wkwebview-reborn": "1.21.0",
-    "react-navigation": "^2.6.2"
+    "react-navigation": "^2.6.2",
+    "readable-stream": "^1.0.33",
+    "stream": "0.0.2"
   },
   "devDependencies": {
     "babel-jest": "23.4.0",
@@ -53,7 +64,8 @@
     "jest": "23.4.1",
     "lint-staged": "^7.2.0",
     "prettier": "1.13.7",
-    "react-dom": "^16.4.1"
+    "react-dom": "^16.4.1",
+    "rn-nodeify": "github:tradle/rn-nodeify"
   },
   "babel": {
     "presets": [
@@ -84,7 +96,7 @@
   "jest": {
     "preset": "react-native",
     "setupFiles": [
-      "<rootDir>/app/common/testSetup.js"
+      "<rootDir>/app/util/testSetup.js"
     ],
     "transform": {
       "^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"
@@ -104,5 +116,25 @@
         "statements": 100
       }
     }
+  },
+  "react-native": {
+    "crypto": "react-native-crypto",
+    "_stream_transform": "readable-stream/transform",
+    "_stream_readable": "readable-stream/readable",
+    "_stream_writable": "readable-stream/writable",
+    "_stream_duplex": "readable-stream/duplex",
+    "_stream_passthrough": "readable-stream/passthrough",
+    "stream": "stream-browserify",
+    "vm": "vm-browserify"
+  },
+  "browser": {
+    "crypto": "react-native-crypto",
+    "_stream_transform": "readable-stream/transform",
+    "_stream_readable": "readable-stream/readable",
+    "_stream_writable": "readable-stream/writable",
+    "_stream_duplex": "readable-stream/duplex",
+    "_stream_passthrough": "readable-stream/passthrough",
+    "stream": "stream-browserify",
+    "vm": "vm-browserify"
   }
 }

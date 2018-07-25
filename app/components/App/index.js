@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from 'react-navigation';
 import BrowserScreen from '../BrowserScreen';
+import WalletScreen from '../WalletScreen';
 
 /**
  * Root application component responsible for configuring the tab navigator
@@ -7,5 +8,8 @@ import BrowserScreen from '../BrowserScreen';
 export default createBottomTabNavigator({
 	Home: {
 		screen: BrowserScreen
+	},
+	Wallet: {
+		screen: WalletScreen
 	}
 });
