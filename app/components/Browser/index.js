@@ -71,6 +71,7 @@ export default class Browser extends Component {
 		} else {
 			entryScript = await RNFS.readFileAssets(`entry.js`);
 		}
+		// TODO: The presence of this async statement breaks Jest code coverage
 		this.setState({ entryScript });
 	}
 
@@ -96,13 +97,25 @@ export default class Browser extends Component {
 		current && current.reload();
 	};
 
+	test = true;
+
 	injectEntryScript = () => {
 		const { current } = this.webview;
 		const { entryScript } = this.state;
-		entryScript && current && current.evaluateJavaScript(entryScript);
+		if (Platform.OS === 'ios') {
+			entryScript && current && current.evaluateJavaScript(entryScript);
+		} else {
+			entryScript && current && current.injectJavaScript(entryScript);
+		}
 	};
 
-	onMessage = ({ nativeEvent: { data } }) => {
+	onMessage = event => {
+		let { data } = event.nativeEvent;
+
+		if (typeof data === 'string') {
+			data = JSON.parse(data);
+		}
+
 		if (!data || !data.type) {
 			return;
 		}
@@ -133,7 +146,7 @@ export default class Browser extends Component {
 	};
 
 	render() {
-		const { canGoBack, canGoForward, inputValue, url, entryScript } = this.state;
+		const { canGoBack, canGoForward, inputValue, url } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -167,7 +180,6 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<WKWebView
-					injectedJavascript={entryScript}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					onMessage={this.onMessage}
