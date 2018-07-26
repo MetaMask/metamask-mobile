@@ -37,8 +37,9 @@
   },
   "dependencies": {
     "buffer": "^4.9.1",
-    "metamask-core": "github:brunobar79/metamask-core#master",
+    "metamask-core": "github:brunobar79/metamask-core#bc05f3b3785863217d11ca156519249027f0ffc5",
     "prop-types": "^15.6.2",
+    "proxy-polyfill": "^0.3.0",
     "react": "16.4.1",
     "react-native": "0.56.0",
     "react-native-browser-polyfill": "^0.1.2",
