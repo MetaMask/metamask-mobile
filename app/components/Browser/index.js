@@ -111,7 +111,6 @@ export default class Browser extends Component {
 
 	onMessage = event => {
 		let { data } = event.nativeEvent;
-
 		if (typeof data === 'string') {
 			data = JSON.parse(data);
 		}
@@ -145,8 +144,24 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
+	getJavascriptToInject = () => {
+		let injectedJavascript = '';
+		if (Platform.OS === 'android') {
+			injectedJavascript =
+				'' +
+				'setTimeout(_ => {' +
+				'const originalToString = window.postMessage.toString.bind(window.postMessage);' +
+				'window.postMessage =  function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)) };' +
+				'window.postMessage.toString = originalToString;' +
+				'}, 1000);' +
+				'';
+		}
+		return injectedJavascript;
+	};
+
 	render() {
 		const { canGoBack, canGoForward, inputValue, url } = this.state;
+		const injectedJavascript = this.getJavascriptToInject();
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -180,6 +195,7 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<WKWebView
+					injectedJavaScript={injectedJavascript}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					onMessage={this.onMessage}
