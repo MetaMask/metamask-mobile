@@ -5,7 +5,7 @@ import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	underlay: {
-		backgroundColor: colors.tar,
+		backgroundColor: colors.concrete,
 		left: 0,
 		position: 'absolute',
 		top: 0
@@ -29,7 +29,7 @@ export default class Screen extends Component {
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={{ ...styles.underlay, ...{ width, height } }}>
-					<StatusBar backgroundColor={colors.tar} barStyle="light-content" />
+					<StatusBar backgroundColor={colors.tar} barStyle="dark-content" />
 				</View>
 				<SafeAreaView style={baseStyles.flexGrow}>{this.props.children}</SafeAreaView>
 			</View>
