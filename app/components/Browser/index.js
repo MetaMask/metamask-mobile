@@ -97,8 +97,6 @@ export default class Browser extends Component {
 		current && current.reload();
 	};
 
-	test = true;
-
 	injectEntryScript = () => {
 		const { current } = this.webview;
 		const { entryScript } = this.state;

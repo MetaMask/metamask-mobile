@@ -75,7 +75,7 @@ exports[`Browser should render correctly 1`] = `
         }
       }
       underlineColorAndroid="transparent"
-      value="http://metamask.io"
+      value="https://metamask.io"
     />
     <Icon
       allowFontScaling={false}
@@ -97,6 +97,7 @@ exports[`Browser should render correctly 1`] = `
     />
   </Component>
   <WKWebView
+    injectedJavaScript=""
     injectedJavaScriptForMainFrameOnly={true}
     javaScriptEnabled={true}
     onMessage={[Function]}
@@ -104,7 +105,7 @@ exports[`Browser should render correctly 1`] = `
     openNewWindowInWebView={true}
     source={
       Object {
-        "uri": "http://metamask.io",
+        "uri": "https://metamask.io",
       }
     }
     style={
