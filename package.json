@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "ios": "./scripts/build-and-run-ios.sh",
-    "android": "./scripts/build-and-run-android.sh",
+    "ios": "react-native run-ios",
+    "android": "cp ./app/entry.js ./android/app/src/main/assets/entry.js && react-native run-android",
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
     "lint": "eslint **/*.js --ignore-path=.prettierignore",
     "lint:fix": "eslint **/*.js --fix --ignore-path=.prettierignore",
