@@ -109,8 +109,8 @@ export default class Browser extends Component {
 		}
 	};
 
-	onMessage = event => {
-		let { data } = event.nativeEvent;
+	onMessage = ({ nativeEvent: { data } }) => {
+		// Android will send a string that we need to parse
 		if (typeof data === 'string') {
 			data = JSON.parse(data);
 		}
@@ -144,17 +144,18 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
+	// Polyfill postMessage for android so we send objects as strings
+	// by using JSON.stringify
+	// Also replaces toString() to avoid web3 / eth browser detection
 	getJavascriptToInject = () => {
 		let injectedJavascript = '';
 		if (Platform.OS === 'android') {
 			injectedJavascript =
-				'' +
 				'setTimeout(_ => {' +
-				'const originalToString = window.postMessage.toString.bind(window.postMessage);' +
-				'window.postMessage =  function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)) };' +
-				'window.postMessage.toString = originalToString;' +
-				'}, 1000);' +
-				'';
+				'	const originalToString = window.postMessage.toString.bind(window.postMessage);' +
+				'	window.postMessage =  function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)) };' +
+				'	window.postMessage.toString = originalToString;' +
+				'}, 1000);';
 		}
 		return injectedJavascript;
 	};
