@@ -10,7 +10,9 @@ export const colors = {
 	asphalt: '#747d8c',
 	concrete: '#f1f2f6',
 	slate: '#dfe4ea',
-	tar: '#2f3542'
+	tar: '#2f3542',
+	primary: '#f76c20',
+	inactive: '#808080'
 };
 
 /**
