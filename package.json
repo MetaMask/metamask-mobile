@@ -5,6 +5,8 @@
   "scripts": {
     "ios": "./scripts/build-and-run-ios.sh",
     "android": "./scripts/build-and-run-android.sh",
+    "restart-packager": "npm start",
+    "restart-packager-clear": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
     "lint": "eslint **/*.js --ignore-path=.prettierignore",
     "lint:fix": "eslint **/*.js --fix --ignore-path=.prettierignore",
     "format": "prettier **/*.{js,json} --write",
