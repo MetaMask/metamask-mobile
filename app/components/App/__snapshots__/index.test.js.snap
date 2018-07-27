@@ -16,6 +16,7 @@ exports[`App should render correctly 1`] = `
       "router": Object {
         "childRouters": Object {
           "Home": null,
+          "Wallet": null,
         },
         "getActionCreators": [Function],
         "getActionForPathAndParams": [Function],
@@ -34,6 +35,11 @@ exports[`App should render correctly 1`] = `
             "key": "Home",
             "params": undefined,
             "routeName": "Home",
+          },
+          Object {
+            "key": "Wallet",
+            "params": undefined,
+            "routeName": "Wallet",
           },
         ],
       },

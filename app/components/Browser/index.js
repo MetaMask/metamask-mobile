@@ -3,7 +3,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import WKWebView from 'react-native-wkwebview-reborn';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View, Platform } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -65,8 +65,13 @@ export default class Browser extends Component {
 	webview = React.createRef();
 
 	async componentDidMount() {
+		let entryScript;
+		if (Platform.OS === 'ios') {
+			entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
+		} else {
+			entryScript = await RNFS.readFileAssets(`entry.js`);
+		}
 		// TODO: The presence of this async statement breaks Jest code coverage
-		const entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
 		this.setState({ entryScript });
 	}
 
@@ -95,10 +100,19 @@ export default class Browser extends Component {
 	injectEntryScript = () => {
 		const { current } = this.webview;
 		const { entryScript } = this.state;
-		entryScript && current && current.evaluateJavaScript(entryScript);
+		if (Platform.OS === 'ios') {
+			entryScript && current && current.evaluateJavaScript(entryScript);
+		} else {
+			entryScript && current && current.injectJavaScript(entryScript);
+		}
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
+		// Android will send a string that we need to parse
+		if (typeof data === 'string') {
+			data = JSON.parse(data);
+		}
+
 		if (!data || !data.type) {
 			return;
 		}
@@ -128,8 +142,25 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
+	// Polyfill postMessage for android so we send objects as strings
+	// by using JSON.stringify
+	// Also replaces toString() to avoid web3 / eth browser detection
+	getJavascriptToInject = () => {
+		let injectedJavascript = '';
+		if (Platform.OS === 'android') {
+			injectedJavascript =
+				'setTimeout(_ => {' +
+				'	const originalToString = window.postMessage.toString.bind(window.postMessage);' +
+				'	window.postMessage =  function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)) };' +
+				'	window.postMessage.toString = originalToString;' +
+				'}, 1000);';
+		}
+		return injectedJavascript;
+	};
+
 	render() {
 		const { canGoBack, canGoForward, inputValue, url } = this.state;
+		const injectedJavascript = this.getJavascriptToInject();
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -163,6 +194,7 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<WKWebView
+					injectedJavaScript={injectedJavascript}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					onMessage={this.onMessage}

@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "ios": "react-native run-ios",
+    "android": "cp ./app/entry.js ./android/app/src/main/assets/entry.js && react-native run-android",
+    "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
     "lint": "eslint **/*.js --ignore-path=.prettierignore",
     "lint:fix": "eslint **/*.js --fix --ignore-path=.prettierignore",
     "format": "prettier **/*.{js,json} --write",
@@ -35,7 +38,7 @@
   },
   "dependencies": {
     "buffer": "^4.9.1",
-    "metamask-core": "github:brunobar79/metamask-core#master",
+    "metamask-core": "github:brunobar79/metamask-core#bc05f3b3785863217d11ca156519249027f0ffc5",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
