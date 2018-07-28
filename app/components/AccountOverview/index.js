@@ -3,17 +3,21 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../../styles/common';
 import Button from '../Button';
 import Image from 'react-native-remote-svg';
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import FoundationIcon from 'react-native-vector-icons/Foundation';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.slate,
 		flex: 1,
 		padding: 20,
 		alignItems: 'center'
 	},
 	profile: {
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
+		marginBottom: 20,
+		marginTop: 10
 	},
 	ethLogo: {
 		flex: 1,
@@ -21,8 +25,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderRadius: 500,
-		padding: 10,
-		width: 90,
+		padding: 15,
+		marginBottom: 10,
+		width: 80,
 		height: 70,
 		backgroundColor: colors.white,
 		borderWidth: StyleSheet.hairlineWidth,
@@ -40,7 +45,8 @@ const styles = StyleSheet.create({
 	},
 	buttons: {
 		flex: 1,
-		flexDirection: 'row'
+		flexDirection: 'row',
+		marginTop: 30
 	},
 	accountInfo: {
 		alignItems: 'center'
@@ -53,11 +59,13 @@ const styles = StyleSheet.create({
 		fontSize: 30
 	},
 	amountFiat: {
-		fontSize: 20,
+		fontSize: 18,
 		color: colors.fontSecondary
 	},
 	button: {
-		color: colors.white
+		color: colors.white,
+		flex: 1,
+		flexDirection: 'row'
 	},
 	leftButton: {
 		marginRight: 10
@@ -66,6 +74,7 @@ const styles = StyleSheet.create({
 		marginLeft: 10
 	},
 	buttonText: {
+		marginLeft: 10,
 		fontSize: 15,
 		fontWeight: 'bold',
 		color: colors.white
@@ -78,7 +87,7 @@ export default class AccountOverview extends Component {
 
 	render() {
 		return (
-			<View style={styles.wrapper}>
+			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.profile}>
 					<View style={styles.accountInfo}>
 						<Text style={styles.label}>Account 1</Text>
@@ -94,13 +103,15 @@ export default class AccountOverview extends Component {
 				</View>
 				<View style={styles.buttons}>
 					<Button onPress={this.onDeposit} styles={[styles.button, styles.leftButton]}>
+						<FoundationIcon name={'dollar'} size={20} color={colors.white} />
 						<Text style={styles.buttonText}>DEPOSIT</Text>
 					</Button>
 					<Button onPress={this.onSend} styles={[styles.button, styles.rightButton]}>
+						<MaterialIcon name={'send'} size={15} color={colors.white} />
 						<Text style={styles.buttonText}>SEND</Text>
 					</Button>
 				</View>
-			</View>
+			</LinearGradient>
 		);
 	}
 }

@@ -46,6 +46,7 @@
     "react-native-crypto": "^2.1.2",
     "react-native-fs": "^2.10.14",
     "react-native-level-fs": "^3.0.1",
+    "react-native-linear-gradient": "^2.4.0",
     "react-native-os": "^1.2.1",
     "react-native-randombytes": "^3.4.0",
     "react-native-remote-svg": "^1.2.0",
