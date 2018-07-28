@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "ios": "react-native run-ios",
+    "ios": "react-native run-ios  --simulator='iPhone X'",
     "android": "./scripts/copy-android-assets.sh && react-native run-android",
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
     "lint": "eslint **/*.js --ignore-path=.prettierignore",
@@ -48,6 +48,8 @@
     "react-native-level-fs": "^3.0.1",
     "react-native-os": "^1.2.1",
     "react-native-randombytes": "^3.4.0",
+    "react-native-remote-svg": "^1.2.0",
+    "react-native-scrollable-tab-view": "^0.8.0",
     "react-native-tcp": "^3.3.0",
     "react-native-udp": "^2.3.1",
     "react-native-vector-icons": "^4.6.0",

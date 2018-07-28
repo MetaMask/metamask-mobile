@@ -11,8 +11,13 @@ export const colors = {
 	concrete: '#f1f2f6',
 	slate: '#dfe4ea',
 	tar: '#2f3542',
-	primary: '#f76c20',
-	inactive: '#808080'
+	primary: '#2f9ae0',
+	inactive: '#808080',
+	white: '#FFFFFF',
+	fontPrimary: '#333333',
+	fontSecondary: '#999999',
+	fontTertiary: '#AAAAAA',
+	borderColor: '#CCCCCC'
 };
 
 /**

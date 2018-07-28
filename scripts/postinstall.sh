@@ -37,3 +37,15 @@ TARGET="node_modules/react-native-fs/android/build.gradle"
 sed -i '' -e 's/compileSdkVersion 25/compileSdkVersion 26/' $TARGET;
 sed -i '' -e 's/25.0.0/26.0.1/' $TARGET;
 echo "Done"
+
+# Reported here https://github.com/skv-headless/react-native-scrollable-tab-view/issues/910
+echo "6. Fix react-native-scrollable-tab-view"
+TARGET="node_modules/react-native-scrollable-tab-view/SceneComponent.js"
+sed -i '' -e 's/...props,/...props/' $TARGET;
+echo "Done"
+
+# Waiting for PR to get merged: https://github.com/seekshiva/react-native-remote-svg/pull/18
+echo "7. Fix react-native-remove-svg"
+TARGET="node_modules/react-native-remote-svg/SvgImage.js"
+sed -i '' 's/<WebView/<WebView originWhitelist={["*"]}/' $TARGET;
+echo "Done"
