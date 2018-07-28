@@ -21,9 +21,8 @@ export default class Settings extends Component {
 	static navigationOptions = {
 		title: 'Settings',
 		headerTitleStyle: {
-			fontWeight: '500',
 			fontSize: 20,
-			...fontStyles.bold
+			...fontStyles.normal
 		}
 	};
 

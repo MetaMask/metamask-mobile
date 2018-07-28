@@ -34,9 +34,8 @@ const styles = StyleSheet.create({
 	},
 	titleText: {
 		marginLeft: 10,
-		fontWeight: '500',
 		fontSize: 20,
-		...fontStyles.bold
+		...fontStyles.normal
 	},
 	tabUnderlineStyle: {
 		height: 2,
