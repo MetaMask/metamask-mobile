@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors } from '../../styles/common';
 import AccountOverview from '../AccountOverview';
 import Transactions from '../Transactions';
 import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
-import WalletTabBar from '../WalletTabBar';
 import Identicon from '../Identicon';
 import Image from 'react-native-remote-svg';
 
@@ -29,14 +29,19 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	logo: {
-		width: 32,
-		height: 32
+		width: 30,
+		height: 30
 	},
 	titleText: {
 		marginLeft: 10,
 		fontWeight: '500',
 		fontSize: 20
-	}
+	},
+	tabUnderlineStyle: {
+		height: 2,
+		backgroundColor: colors.primary
+	},
+	tabStyle: { paddingBottom: 0 }
 });
 
 export default class Wallet extends Component {
@@ -54,13 +59,23 @@ export default class Wallet extends Component {
 			</TouchableOpacity>
 		)
 	});
-	renderTabBar = () => <WalletTabBar />;
 
 	render() {
 		return (
 			<View style={styles.wrapper}>
 				<AccountOverview />
-				<ScrollableTabView renderTabBar={this._renderTabBar}>
+				<ScrollableTabView
+					renderTabBar={() => (
+						// eslint-disable-line react/jsx-no-bind
+						<DefaultTabBar
+							underlineStyle={styles.tabUnderlineStyle}
+							activeTextColor={colors.primary}
+							inactiveTextColor={colors.fontTertiary}
+							backgroundColor={colors.white}
+							tabStyle={styles.tabStyle}
+						/>
+					)}
+				>
 					<Transactions tabLabel="TRANSACTIONS" />
 					<Tokens tabLabel="TOKENS" />
 					<Collectibles tabLabel="COLLECTIBLES" />
