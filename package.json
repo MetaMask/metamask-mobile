@@ -142,5 +142,10 @@
     "_stream_passthrough": "readable-stream/passthrough",
     "stream": "stream-browserify",
     "vm": "vm-browserify"
+  },
+  "rnpm": {
+    "assets": [
+      "./app/fonts"
+    ]
   }
 }

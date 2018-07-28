@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
@@ -17,25 +17,32 @@ const styles = StyleSheet.create({
 	date: {
 		color: colors.fontSecondary,
 		fontSize: 12,
-		marginBottom: 10
+		marginBottom: 10,
+		...fontStyles.normal
 	},
 	info: {
 		flex: 1,
 		marginLeft: 15
 	},
 	address: {
-		fontSize: 15
+		fontSize: 15,
+		color: colors.fontPrimary,
+		...fontStyles.normal
 	},
 	status: {
 		color: colors.fontSecondary,
-		fontSize: 12
+		fontSize: 12,
+		...fontStyles.normal
 	},
 	amount: {
-		fontSize: 15
+		fontSize: 15,
+		color: colors.fontPrimary,
+		...fontStyles.normal
 	},
 	amountFiat: {
 		fontSize: 12,
-		color: colors.fontSecondary
+		color: colors.fontSecondary,
+		...fontStyles.normal
 	},
 	amounts: {
 		alignItems: 'flex-end'

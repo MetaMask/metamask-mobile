@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import AccountOverview from '../AccountOverview';
 import Transactions from '../Transactions';
 import Tokens from '../Tokens';
@@ -35,13 +35,19 @@ const styles = StyleSheet.create({
 	titleText: {
 		marginLeft: 10,
 		fontWeight: '500',
-		fontSize: 20
+		fontSize: 20,
+		...fontStyles.bold
 	},
 	tabUnderlineStyle: {
 		height: 2,
 		backgroundColor: colors.primary
 	},
-	tabStyle: { paddingBottom: 0 }
+	tabStyle: {
+		paddingBottom: 0
+	},
+	textStyle: {
+		...fontStyles.bold
+	}
 });
 
 export default class Wallet extends Component {
@@ -73,6 +79,7 @@ export default class Wallet extends Component {
 							inactiveTextColor={colors.fontTertiary}
 							backgroundColor={colors.white}
 							tabStyle={styles.tabStyle}
+							textStyle={styles.textStyle}
 						/>
 					)}
 				>

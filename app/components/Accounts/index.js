@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
@@ -11,9 +11,10 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 25,
-		fontWeight: 'bold',
 		marginVertical: 30,
-		marginHorizontal: 20
+		marginHorizontal: 20,
+		color: colors.fontPrimary,
+		...fontStyles.bold
 	},
 	account: {
 		flexDirection: 'row',
@@ -24,11 +25,15 @@ const styles = StyleSheet.create({
 		marginLeft: 15
 	},
 	accountLabel: {
-		fontSize: 18
+		fontSize: 18,
+		color: colors.fontPrimary,
+		...fontStyles.normal
 	},
 	accountBalance: {
 		paddingTop: 5,
-		fontSize: 12
+		fontSize: 12,
+		color: colors.fontSecondary,
+		...fontStyles.normal
 	},
 	selected: {
 		width: 30,
@@ -61,7 +66,7 @@ export default class Accounts extends Component {
 
 		return accounts.map((account, i) => {
 			const selected =
-				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color="blue" /> : null;
+				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
 			return (
 				<TouchableOpacity
 					style={styles.account}

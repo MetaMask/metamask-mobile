@@ -31,3 +31,25 @@ export const baseStyles = {
 		flex: 0
 	}
 };
+
+/**
+ * Map of reusable fonts
+ */
+export const fontStyles = {
+	normal: {
+		fontFamily: 'Roboto',
+		fontWeight: '400'
+	},
+	light: {
+		fontFamily: 'Roboto',
+		fontWeight: '300'
+	},
+	thin: {
+		fontFamily: 'Roboto',
+		fontWeight: '100'
+	},
+	bold: {
+		fontFamily: 'Roboto',
+		fontWeight: '500'
+	}
+};

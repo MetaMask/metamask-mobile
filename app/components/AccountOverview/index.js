@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import Button from '../Button';
 import Image from 'react-native-remote-svg';
 import LinearGradient from 'react-native-linear-gradient';
@@ -52,15 +52,20 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	label: {
-		fontSize: 25
+		fontSize: 25,
+		...fontStyles.bold
 	},
-	address: {},
+	address: {
+		...fontStyles.light
+	},
 	amount: {
-		fontSize: 30
+		fontSize: 30,
+		...fontStyles.normal
 	},
 	amountFiat: {
 		fontSize: 18,
-		color: colors.fontSecondary
+		color: colors.fontSecondary,
+		...fontStyles.light
 	},
 	button: {
 		color: colors.white,
@@ -74,10 +79,10 @@ const styles = StyleSheet.create({
 		marginLeft: 10
 	},
 	buttonText: {
-		marginLeft: 10,
+		marginLeft: 8,
 		fontSize: 15,
-		fontWeight: 'bold',
-		color: colors.white
+		color: colors.white,
+		...fontStyles.bold
 	}
 });
 

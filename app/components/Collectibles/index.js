@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -12,7 +12,8 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 20,
-		color: colors.fontTertiary
+		color: colors.fontTertiary,
+		...fontStyles.normal
 	},
 	add: {
 		marginTop: 20,
@@ -20,7 +21,8 @@ const styles = StyleSheet.create({
 	},
 	addText: {
 		fontSize: 15,
-		color: colors.primary
+		color: colors.primary,
+		...fontStyles.normal
 	}
 });
 
