@@ -3,16 +3,17 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "ios": "react-native run-ios",
-    "android": "cp ./app/entry.js ./android/app/src/main/assets/entry.js && react-native run-android",
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
-    "lint": "eslint **/*.js --ignore-path=.prettierignore",
-    "lint:fix": "eslint **/*.js --fix --ignore-path=.prettierignore",
-    "format": "prettier **/*.{js,json} --write",
     "start": "node node_modules/react-native/local-cli/cli.js start",
+    "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
+    "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
+    "format": "prettier '**/*.{js,json}' --write",
+    "build": "browserify app/entry.node.js -o app/entry.js && browserify app/entry-web3.node.js -o app/entry-web3.js && cp app/entry.js android/app/src/main/assets/. && cp app/entry-web3.js android/app/src/main/assets/.",
+    "start:ios": "npm run build && react-native run-ios",
+    "start:android": "npm run build && react-native run-android",
     "test": "jest",
     "test:update": "jest -u",
-    "postinstall": "./scripts/postinstall.sh"
+    "postinstall": "./scripts/postinstall.sh npm run build"
   },
   "prettier": {
     "printWidth": 120,
@@ -38,7 +39,6 @@
   },
   "dependencies": {
     "buffer": "^4.9.1",
-    "metamask-core": "github:brunobar79/metamask-core#bc05f3b3785863217d11ca156519249027f0ffc5",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
@@ -54,14 +54,18 @@
     "react-native-wkwebview-reborn": "1.21.0",
     "react-navigation": "^2.6.2",
     "readable-stream": "^1.0.33",
-    "stream": "0.0.2"
+    "stream": "0.0.2",
+    "stream-browserify": "^1.0.0",
+    "vm-browserify": "0.0.4"
   },
   "devDependencies": {
     "babel-jest": "23.4.0",
     "babel-preset-react-native": "5.0.2",
+    "browserify": "^16.2.2",
     "enzyme": "^3.0.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "enzyme-to-json": "^3.3.4",
+    "eslint": "^5.2.0",
     "eslint-config-react-native": "^3.0.0",
     "husky": "^1.0.0-rc.13",
     "jest": "23.4.1",
