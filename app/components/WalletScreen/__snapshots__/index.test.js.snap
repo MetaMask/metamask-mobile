@@ -2,6 +2,8 @@
 
 exports[`WalletScreen should render correctly 1`] = `
 <Screen>
-  <Wallet />
+  <Wallet
+    engine={Object {}}
+  />
 </Screen>
 `;

@@ -35,3 +35,10 @@ TARGET="node_modules/react-native-fs/android/build.gradle"
 sed -i '' -e 's/compileSdkVersion 25/compileSdkVersion 26/' $TARGET;
 sed -i '' -e 's/25.0.0/26.0.1/' $TARGET;
 echo "Done"
+
+# 6. The build output from aes-js breaks the metro bundler. Until we safely upgrade
+# to a new version of aes-js, we patch it by removing the erroneous line.
+echo "6. Fix aes-js build ouput..."
+AES_OUTPUT_FILE="node_modules/aes-js/index.js";
+sed -i '' -e 's/var previous_mymodule = root.mymodule;//g' $AES_OUTPUT_FILE;
+echo "Done"

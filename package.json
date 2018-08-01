@@ -40,6 +40,8 @@
   "dependencies": {
     "buffer": "^4.9.1",
     "events": "^3.0.0",
+    "eth-block-tracker": "^3.0.1",
+    "gaba": "^1.0.0-beta.16",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
@@ -93,6 +95,7 @@
     "rules": {
       "class-methods-use-this": 0,
       "eol-last": 1,
+      "import/no-named-as-default": 0,
       "no-invalid-this": 0,
       "react/jsx-handler-names": 0,
       "react/no-did-mount-set-state": 0,
