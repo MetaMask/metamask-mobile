@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.facebook.react.ReactApplication;
 import com.bitgo.randombytes.RandomBytesPackage;
+import com.metamask.CustomWebview.CustomWebviewPackage;
 import com.rnfs.RNFSPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.facebook.react.ReactNativeHost;
@@ -28,7 +29,8 @@ public class MainApplication extends Application implements ReactApplication {
           new MainReactPackage(),
             new RandomBytesPackage(),
             new RNFSPackage(),
-            new VectorIconsPackage()
+            new VectorIconsPackage(),
+            new CustomWebviewPackage()
       );
     }
 
