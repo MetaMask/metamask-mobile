@@ -112,9 +112,9 @@ export default class Browser extends Component {
 		const code = includeWeb3 ? entryScriptWeb3 : entryScript;
 
 		if (Platform.OS === 'ios') {
-			code && current && current.evaluateJavaScript(code);
+			code && current && current.evaluateJavaScript(code).catch(e => console.error(e)); // eslint-disable-line no-console
 		} else {
-			code && current && current.injectJavaScript(code);
+			code && current && current.injectJavaScript(code).catch(e => console.error(e)); // eslint-disable-line no-console
 		}
 	};
 

@@ -9,7 +9,7 @@ export default class BrowserScreen extends Component {
 	render() {
 		return (
 			<Screen>
-				<Browser defaultURL="https://eip1102.herokuapp.com/?onload=1" />
+				<Browser defaultURL="https://eip1102.herokuapp.com/?onload=1&web3=1" />
 			</Screen>
 		);
 	}
