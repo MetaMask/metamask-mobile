@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
-import WKWebView from 'react-native-wkwebview-reborn';
-import { Alert, StyleSheet, TextInput, View, Platform } from 'react-native';
+import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-unresolved
+import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -57,22 +57,31 @@ export default class Browser extends Component {
 		approvedOrigin: false,
 		canGoBack: false,
 		canGoForward: false,
-		entryScript: null,
 		inputValue: this.props.defaultURL,
 		url: this.props.defaultURL
+	};
+
+	injection = {
+		entryScript: null,
+		entryScriptWeb3: null,
+		includeWeb3: false
 	};
 
 	webview = React.createRef();
 
 	async componentDidMount() {
-		let entryScript;
-		if (Platform.OS === 'ios') {
-			entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
-		} else {
-			entryScript = await RNFS.readFileAssets(`entry.js`);
-		}
-		// TODO: The presence of this async statement breaks Jest code coverage
-		this.setState({ entryScript });
+		// TODO: The presence of these async statement breaks Jest code coverage
+		const entryScript =
+			Platform.OS === 'ios'
+				? await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8')
+				: await RNFS.readFileAssets(`entry.js`);
+
+		const entryScriptWeb3 =
+			Platform.OS === 'ios'
+				? await RNFS.readFile(`${RNFS.MainBundlePath}/entry-web3.js`, 'utf8')
+				: await RNFS.readFileAssets(`entry-web3.js`);
+
+		this.injection = { ...this.injection, entryScript, entryScriptWeb3 };
 	}
 
 	go = () => {
@@ -99,25 +108,25 @@ export default class Browser extends Component {
 
 	injectEntryScript = () => {
 		const { current } = this.webview;
-		const { entryScript } = this.state;
+		const { entryScript, entryScriptWeb3, includeWeb3 } = this.injection;
+		const code = includeWeb3 ? entryScriptWeb3 : entryScript;
+
 		if (Platform.OS === 'ios') {
-			entryScript && current && current.evaluateJavaScript(entryScript);
+			code && current && current.evaluateJavaScript(code).catch(e => console.log(e)); // eslint-disable-line no-console
 		} else {
-			entryScript && current && current.injectJavaScript(entryScript);
+			code && current && current.injectJavaScript(code);
 		}
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
-		// Android will send a string that we need to parse
-		if (typeof data === 'string') {
-			data = JSON.parse(data);
-		}
+		data = typeof data === 'string' ? JSON.parse(data) : data;
 
 		if (!data || !data.type) {
 			return;
 		}
 		switch (data.type) {
 			case 'ETHEREUM_PROVIDER_REQUEST':
+				this.injection.includeWeb3 = !!data.web3;
 				this.handleProviderRequest();
 				break;
 		}
@@ -142,25 +151,8 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
-	// Polyfill postMessage for android so we send objects as strings
-	// by using JSON.stringify
-	// Also replaces toString() to avoid web3 / eth browser detection
-	getJavascriptToInject = () => {
-		let injectedJavascript = '';
-		if (Platform.OS === 'android') {
-			injectedJavascript =
-				'setTimeout(_ => {' +
-				'	const originalToString = window.postMessage.toString.bind(window.postMessage);' +
-				'	window.postMessage =  function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)) };' +
-				'	window.postMessage.toString = originalToString;' +
-				'}, 1000);';
-		}
-		return injectedJavascript;
-	};
-
 	render() {
 		const { canGoBack, canGoForward, inputValue, url } = this.state;
-		const injectedJavascript = this.getJavascriptToInject();
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -193,10 +185,10 @@ export default class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
-				<WKWebView
-					injectedJavaScript={injectedJavascript}
+				<CustomWebview
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
+					messagingEnabled
 					onMessage={this.onMessage}
 					onNavigationStateChange={this.onPageChange}
 					openNewWindowInWebView

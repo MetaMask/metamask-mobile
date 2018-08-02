@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TouchableNativeFeedback } from 'react-native';
+import { View, TouchableNativeFeedback } from 'react-native';
 
 const GenericButton = props => (
 	<TouchableNativeFeedback
@@ -8,7 +8,7 @@ const GenericButton = props => (
 		background={TouchableNativeFeedback.SelectableBackground()} // eslint-disable-line new-cap
 		{...props}
 	>
-		{props.children}
+		<View>{props.children}</View>
 	</TouchableNativeFeedback>
 );
 
