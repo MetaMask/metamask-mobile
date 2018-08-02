@@ -1,4 +1,7 @@
+/app/entry.js
 /app/entry-web3.js
+/android/app/src/main/assets/entry.js
+/android/app/src/main/assets/entry-web3.js
 /app/entry.js
 /shim.js
 /shim.js
