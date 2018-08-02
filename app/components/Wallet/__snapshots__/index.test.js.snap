@@ -11,8 +11,8 @@ exports[`Wallet should render correctly 1`] = `
     }
   }
 >
-  <Component
-    size="small"
-  />
+  <Component>
+    Wallet
+  </Component>
 </Component>
 `;

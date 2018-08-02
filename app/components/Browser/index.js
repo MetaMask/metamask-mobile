@@ -3,7 +3,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import WKWebView from 'react-native-wkwebview-reborn';
-import { Alert, StyleSheet, TextInput, View, Platform } from 'react-native';
+import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -58,6 +58,8 @@ export default class Browser extends Component {
 		canGoBack: false,
 		canGoForward: false,
 		entryScript: null,
+		entryScriptWeb3: null,
+		injectWeb3: false,
 		inputValue: this.props.defaultURL,
 		url: this.props.defaultURL
 	};
@@ -65,14 +67,18 @@ export default class Browser extends Component {
 	webview = React.createRef();
 
 	async componentDidMount() {
-		let entryScript;
-		if (Platform.OS === 'ios') {
-			entryScript = await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8');
-		} else {
-			entryScript = await RNFS.readFileAssets(`entry.js`);
-		}
-		// TODO: The presence of this async statement breaks Jest code coverage
-		this.setState({ entryScript });
+		// TODO: The presence of these async statement breaks Jest code coverage
+		const entryScript =
+			Platform.OS === 'ios'
+				? await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8')
+				: await RNFS.readFileAssets(`entry.js`);
+
+		const entryScriptWeb3 =
+			Platform.OS === 'ios'
+				? await RNFS.readFile(`${RNFS.MainBundlePath}/entry-web3.js`, 'utf8')
+				: await RNFS.readFileAssets(`entry-web3.js`);
+
+		this.setState({ entryScript, entryScriptWeb3 });
 	}
 
 	go = () => {
@@ -97,27 +103,44 @@ export default class Browser extends Component {
 		current && current.reload();
 	};
 
+	getPolyfills() {
+		let injectedJavascript = '';
+		if (Platform.OS === 'android') {
+			// See https://github.com/facebook/react-native/issues/20400
+			injectedJavascript += `
+				setTimeout(() => {
+					const originalToString = window.postMessage.toString.bind(window.postMessage);
+					window.postMessage = function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)); };
+					window.postMessage.toString = originalToString;
+				}, 1000);`;
+		}
+		return injectedJavascript;
+	}
+
 	injectEntryScript = () => {
 		const { current } = this.webview;
-		const { entryScript } = this.state;
-		if (Platform.OS === 'ios') {
-			entryScript && current && current.evaluateJavaScript(entryScript);
-		} else {
-			entryScript && current && current.injectJavaScript(entryScript);
-		}
+		const { entryScript, entryScriptWeb3, injectWeb3 } = this.state;
+		const code = injectWeb3 ? entryScriptWeb3 : entryScript;
+		code &&
+			current &&
+			current.evaluateJavaScript(`
+			(function() {
+				${code}
+				window.originalPostMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
+			})();
+		`);
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
-		// Android will send a string that we need to parse
-		if (typeof data === 'string') {
-			data = JSON.parse(data);
-		}
+		// See https://github.com/facebook/react-native/issues/20400
+		data = Platform.OS === 'android' && typeof data === 'string' ? JSON.parse(data) : data;
 
 		if (!data || !data.type) {
 			return;
 		}
 		switch (data.type) {
 			case 'ETHEREUM_PROVIDER_REQUEST':
+				this.setState({ injectWeb3: data.web3 });
 				this.handleProviderRequest();
 				break;
 		}
@@ -142,25 +165,9 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
-	// Polyfill postMessage for android so we send objects as strings
-	// by using JSON.stringify
-	// Also replaces toString() to avoid web3 / eth browser detection
-	getJavascriptToInject = () => {
-		let injectedJavascript = '';
-		if (Platform.OS === 'android') {
-			injectedJavascript =
-				'setTimeout(_ => {' +
-				'	const originalToString = window.postMessage.toString.bind(window.postMessage);' +
-				'	window.postMessage =  function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)) };' +
-				'	window.postMessage.toString = originalToString;' +
-				'}, 1000);';
-		}
-		return injectedJavascript;
-	};
-
 	render() {
 		const { canGoBack, canGoForward, inputValue, url } = this.state;
-		const injectedJavascript = this.getJavascriptToInject();
+		const polyfills = this.getPolyfills();
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -194,7 +201,7 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<WKWebView
-					injectedJavaScript={injectedJavascript}
+					injectedJavaScript={polyfills}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					onMessage={this.onMessage}
