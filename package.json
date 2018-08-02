@@ -8,7 +8,7 @@
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
-    "build": "browserify app/entry.node.js -o app/entry.js && browserify app/entry-web3.node.js -o app/entry-web3.js && cp app/entry.js android/app/src/main/assets/. && cp app/entry-web3.js android/app/src/main/assets/.",
+    "build": "browserify app/entry.node.js -o app/entry.js && browserify app/entry-web3.node.js -o app/entry-web3.js && ./scripts/copy-android-assets.sh",
     "start:ios": "npm run build && react-native run-ios",
     "start:android": "npm run build && react-native run-android",
     "test": "jest",
