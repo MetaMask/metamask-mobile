@@ -1,2 +1,2 @@
 window.ethereum = true;
-window.alert('party on'); // eslint-disable-line
+window.alert('party on');
