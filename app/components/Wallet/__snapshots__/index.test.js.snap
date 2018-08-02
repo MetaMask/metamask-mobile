@@ -14,5 +14,40 @@ exports[`Wallet should render correctly 1`] = `
   <Component>
     Wallet
   </Component>
+  <Component>
+    ETH: $
+    0
+  </Component>
+  <Component>
+    NETWORK CODE: 
+  </Component>
+  <Component>
+    NETWORK NAME: 
+    foo
+  </Component>
+  <Component>
+    STATUS: 
+    ok
+  </Component>
+  <Component>
+    BLOCK: 
+    1
+  </Component>
+  <Component>
+    GAS PRICE: 
+    1000000000
+  </Component>
+  <Button
+    onPress={[Function]}
+    title="MAINNET"
+  />
+  <Button
+    onPress={[Function]}
+    title="RINKEBY"
+  />
+  <Button
+    onPress={[Function]}
+    title="ROPSTEN"
+  />
 </Component>
 `;

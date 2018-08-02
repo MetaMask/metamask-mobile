@@ -1,15 +1,20 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from 'react-navigation';
-import BrowserScreen from '../BrowserScreen';
-import WalletScreen from '../WalletScreen';
 import { createIconSetFromFontello } from 'react-native-vector-icons';
+import BrowserScreen from '../BrowserScreen';
+import Engine from '../../core/Engine';
+import WalletScreen from '../WalletScreen';
 import fontelloConfig from '../../fonts/config.json';
+import { colors } from '../../styles/common';
+
 const Icon = createIconSetFromFontello(fontelloConfig);
 
-import { colors } from '../../styles/common';
+const engine = new Engine();
+
 /**
- * Root application component responsible for configuring the tab navigator
+ * Root application component responsible for configuring app navigation
+ * and instantiating the core Engine module
  */
 export default createBottomTabNavigator(
 	{
@@ -21,7 +26,9 @@ export default createBottomTabNavigator(
 			})
 		},
 		Wallet: {
-			screen: WalletScreen,
+			screen: function Home() {
+				return <WalletScreen engine={engine} />;
+			},
 			navigationOptions: () => ({
 				title: 'Wallet',
 				tabBarIcon: ico => <Icon name="wallet" size={20} color={ico.tintColor} /> // eslint-disable-line react/display-name
