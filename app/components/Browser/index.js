@@ -114,7 +114,7 @@ export default class Browser extends Component {
 		if (Platform.OS === 'ios') {
 			code && current && current.evaluateJavaScript(code).catch(e => console.log(e)); // eslint-disable-line no-console
 		} else {
-			code && current && current.injectJavaScript(code).catch(e => console.log(e)); // eslint-disable-line no-console
+			code && current && current.injectJavaScript(code);
 		}
 	};
 
