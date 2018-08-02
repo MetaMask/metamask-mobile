@@ -255,13 +255,15 @@ export default class WebView extends React.Component {
 		startInLoadingState: true
 	};
 
-	webview = React.createRef();
-
 	UNSAFE_componentWillMount() {
 		if (this.props.startInLoadingState) {
 			this.setState({ viewState: WebViewState.LOADING });
 		}
 	}
+
+	setWebviewRef = ref => {
+		this.webview = ref;
+	};
 
 	render() {
 		let otherView = null;
@@ -296,6 +298,7 @@ export default class WebView extends React.Component {
 
 		const webView = (
 			<NativeWebView
+				ref={this.setWebviewRef}
 				key="webViewKey"
 				style={webViewStyles}
 				source={resolveAssetSource(source)}
@@ -386,7 +389,7 @@ export default class WebView extends React.Component {
 		}
 	};
 
-	getWebViewHandle = () => findNodeHandle(this.webview.current);
+	getWebViewHandle = () => findNodeHandle(this.webview);
 
 	onLoadingStart = event => {
 		const onLoadStart = this.props.onLoadStart;
