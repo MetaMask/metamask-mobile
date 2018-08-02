@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/Feather';
 
 import BrowserScreen from '../BrowserScreen';
 import WalletScreen from '../WalletScreen';
-import SettingsScreen from '../SettingsScreen';
+import TransferScreen from '../TransferScreen';
 
 import fontelloConfig from '../../fonts/config.json';
 const CustomIcon = createIconSetFromFontello(fontelloConfig);
@@ -28,11 +28,11 @@ export default createBottomTabNavigator(
 				tabBarIcon: ico => <CustomIcon name="wallet" size={20} color={ico.tintColor} /> // eslint-disable-line react/display-name
 			})
 		},
-		Settings: {
-			screen: SettingsScreen,
+		Transfer: {
+			screen: TransferScreen,
 			navigationOptions: () => ({
-				title: 'Settings',
-				tabBarIcon: ico => <Icon name="settings" size={20} color={ico.tintColor} /> // eslint-disable-line react/display-name
+				title: 'Transfer',
+				tabBarIcon: ico => <Icon name="repeat" size={20} color={ico.tintColor} /> // eslint-disable-line react/display-name
 			})
 		}
 	},

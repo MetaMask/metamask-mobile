@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors, fontStyles } from '../../styles/common';
@@ -8,7 +8,7 @@ import Transactions from '../Transactions';
 import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
 import Identicon from '../Identicon';
-import Image from 'react-native-remote-svg';
+import Icon from 'react-native-vector-icons/Feather';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -22,20 +22,10 @@ const styles = StyleSheet.create({
 		marginLeft: 12,
 		marginBottom: 12
 	},
-	title: {
-		flex: 1,
-		alignItems: 'center',
-		flexDirection: 'row',
-		justifyContent: 'center'
-	},
-	logo: {
-		width: 30,
-		height: 30
-	},
-	titleText: {
-		marginLeft: 10,
-		fontSize: 20,
-		...fontStyles.normal
+	rightButton: {
+		marginTop: 12,
+		marginRight: 12,
+		marginBottom: 12
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -52,15 +42,21 @@ const styles = StyleSheet.create({
 export default class Wallet extends Component {
 	static navigationOptions = ({ navigation }) => ({
 		title: 'Wallet',
-		headerTitle: (
-			<View style={styles.title}>
-				<Image source={require('../../images/metamask-logo.svg')} style={styles.logo} />
-				<Text style={styles.titleText}>MetaMask</Text>
-			</View>
-		),
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		},
 		headerLeft: (
 			<TouchableOpacity style={styles.leftButton} onPress={navigation.openDrawer}>
 				<Identicon diameter={30} address="0xe7E125654064EEa56229f273dA586F10DF96B0a1" />
+			</TouchableOpacity>
+		),
+		headerRight: (
+			<TouchableOpacity
+				style={styles.rightButton}
+				onPress={() => navigation.navigate('Settings')} // eslint-disable-line react/jsx-no-bind
+			>
+				<Icon name="settings" size={20} color={'grey'} />
 			</TouchableOpacity>
 		)
 	});
