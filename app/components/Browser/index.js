@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
-import WKWebView from 'react-native-wkwebview-reborn';
+import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-unresolved
 import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
@@ -57,11 +57,14 @@ export default class Browser extends Component {
 		approvedOrigin: false,
 		canGoBack: false,
 		canGoForward: false,
-		entryScript: null,
-		entryScriptWeb3: null,
-		injectWeb3: false,
 		inputValue: this.props.defaultURL,
 		url: this.props.defaultURL
+	};
+
+	injection = {
+		entryScript: null,
+		entryScriptWeb3: null,
+		includeWeb3: false
 	};
 
 	webview = React.createRef();
@@ -78,7 +81,7 @@ export default class Browser extends Component {
 				? await RNFS.readFile(`${RNFS.MainBundlePath}/entry-web3.js`, 'utf8')
 				: await RNFS.readFileAssets(`entry-web3.js`);
 
-		this.setState({ entryScript, entryScriptWeb3 });
+		this.injection = { ...this.injection, entryScript, entryScriptWeb3 };
 	}
 
 	go = () => {
@@ -103,44 +106,27 @@ export default class Browser extends Component {
 		current && current.reload();
 	};
 
-	getPolyfills() {
-		let injectedJavascript = '';
-		if (Platform.OS === 'android') {
-			// See https://github.com/facebook/react-native/issues/20400
-			injectedJavascript += `
-				setTimeout(() => {
-					const originalToString = window.postMessage.toString.bind(window.postMessage);
-					window.postMessage = function (data) { __REACT_WEB_VIEW_BRIDGE.postMessage(JSON.stringify(data)); };
-					window.postMessage.toString = originalToString;
-				}, 1000);`;
-		}
-		return injectedJavascript;
-	}
-
 	injectEntryScript = () => {
 		const { current } = this.webview;
-		const { entryScript, entryScriptWeb3, injectWeb3 } = this.state;
-		const code = injectWeb3 ? entryScriptWeb3 : entryScript;
-		code &&
-			current &&
-			current.evaluateJavaScript(`
-			(function() {
-				${code}
-				window.originalPostMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
-			})();
-		`);
+		const { entryScript, entryScriptWeb3, includeWeb3 } = this.injection;
+		const code = includeWeb3 ? entryScriptWeb3 : entryScript;
+
+		if (Platform.OS === 'ios') {
+			code && current && current.evaluateJavaScript(code).catch(e => console.log(e)); // eslint-disable-line no-console
+		} else {
+			code && current && current.injectJavaScript(code);
+		}
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
-		// See https://github.com/facebook/react-native/issues/20400
-		data = Platform.OS === 'android' && typeof data === 'string' ? JSON.parse(data) : data;
+		data = typeof data === 'string' ? JSON.parse(data) : data;
 
 		if (!data || !data.type) {
 			return;
 		}
 		switch (data.type) {
 			case 'ETHEREUM_PROVIDER_REQUEST':
-				this.setState({ injectWeb3: data.web3 });
+				this.injection.includeWeb3 = !!data.web3;
 				this.handleProviderRequest();
 				break;
 		}
@@ -167,7 +153,6 @@ export default class Browser extends Component {
 
 	render() {
 		const { canGoBack, canGoForward, inputValue, url } = this.state;
-		const polyfills = this.getPolyfills();
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -200,10 +185,10 @@ export default class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
-				<WKWebView
-					injectedJavaScript={polyfills}
+				<CustomWebview
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
+					messagingEnabled
 					onMessage={this.onMessage}
 					onNavigationStateChange={this.onPageChange}
 					openNewWindowInWebView
