@@ -10,7 +10,6 @@ echo "Done"
 
 echo "2. React Native nodeify..."
 node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream' --hack
-
 sed -i '' -e '143s/WKUserScriptInjectionTimeAtDocumentEnd/WKUserScriptInjectionTimeAtDocumentStart/' $WKWEBVIEW_FILE;
 
 # This pkg has been updated but no release in the last 2 years

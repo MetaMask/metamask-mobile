@@ -49,4 +49,8 @@ buck-out/
 coverage
 
 # app-specific
-shim.js
+/android/app/src/main/assets/entry-web3.js
+/android/app/src/main/assets/entry.js
+/app/entry-web3.js
+/app/entry.js
+/shim.js
