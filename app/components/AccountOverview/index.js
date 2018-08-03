@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, fontStyles } from '../../styles/common';
+import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode';
+import { colors, fontStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -20,24 +21,20 @@ const styles = StyleSheet.create({
 	},
 	right: {
 		flex: 1,
-		alignItems: 'flex-end'
+		alignItems: 'flex-end',
+		paddingTop: 5
 	},
 
 	label: {
-		fontSize: 15,
-		...fontStyles.normal
-	},
-	amount: {
-		flex: 1,
-		marginTop: 10,
-		fontSize: 15,
+		paddingTop: 7,
+		fontSize: 20,
 		...fontStyles.normal
 	},
 	amountFiat: {
 		flex: 1,
-		fontSize: 40,
-		lineHeight: 40,
-		paddingTop: 10,
+		fontSize: 43,
+		lineHeight: 43,
+		paddingTop: 15,
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
@@ -50,29 +47,26 @@ const styles = StyleSheet.create({
 });
 
 export default class AccountOverview extends Component {
-	state = {
-		address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
+	static propTypes = {
+		account: PropTypes.string
 	};
 	onDeposit = () => true;
 	onSend = () => true;
 
 	render() {
+		const { account } = this.props;
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.row}>
 					<View style={styles.left}>
-						<Text style={styles.label}>Account 1</Text>
-						<Text style={styles.amountFiat}>$1.95</Text>
-						<Text style={styles.amount}>0.04 ETH</Text>
+						<Text style={styles.label}>{account.label}</Text>
+						<Text style={styles.amountFiat}>${account.balanceFiat}</Text>
 					</View>
 					<View style={styles.right}>
-						<QRCode
-							value={this.state.address}
-							size={70}
-							bgColor={colors.fontPrimary}
-							fgColor={colors.white}
-						/>
-						<Text style={styles.address}>0xe7...6B0a1</Text>
+						<QRCode value={account.address} size={60} bgColor={colors.fontPrimary} fgColor={colors.white} />
+						<Text style={styles.address}>{`${account.address.substr(0, 4)}...${account.address.substr(
+							-4
+						)}`}</Text>
 					</View>
 				</View>
 			</View>

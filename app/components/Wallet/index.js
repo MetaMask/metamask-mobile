@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, View } from 'react-native';
+import PropTypes from 'prop-types';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors, fontStyles } from '../../styles/common';
@@ -27,13 +28,42 @@ const styles = StyleSheet.create({
 	}
 });
 
+// This should be coming from redux / GABA store
+
+const tokens = [
+	{
+		balance: 4,
+		balanceFiat: 1500,
+		logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+		symbol: 'ETH',
+		name: 'Ethereum'
+	},
+	{
+		balance: 20,
+		balanceFiat: 104.2,
+		logo: 'https://cdn.freebiesupply.com/logos/large/2x/omisego-logo-png-transparent.png',
+		symbol: 'OMG',
+		name: 'OmiseGo'
+	}
+];
+
+const account = {
+	address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+	balanceFiat: 1604.2,
+	label: 'Account 1'
+};
+
 export default class Wallet extends Component {
 	static navigationOptions = ({ navigation }) => getNavbar('Wallet', navigation);
+
+	static propTypes = {
+		navigation: PropTypes.object
+	};
 
 	render() {
 		return (
 			<View style={styles.wrapper}>
-				<AccountOverview />
+				<AccountOverview account={account} />
 				<ScrollableTabView
 					renderTabBar={() => (
 						// eslint-disable-line react/jsx-no-bind
@@ -47,8 +77,8 @@ export default class Wallet extends Component {
 						/>
 					)}
 				>
-					<Tokens tabLabel="TOKENS" />
-					<Collectibles tabLabel="COLLECTIBLES" />
+					<Tokens navigation={this.props.navigation} tabLabel="TOKENS" assets={tokens} />
+					<Collectibles navigation={this.props.navigation} tabLabel="COLLECTIBLES" assets={[]} />
 				</ScrollableTabView>
 			</View>
 		);

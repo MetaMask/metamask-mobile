@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import SettingsScreen from './';
+import Asset from './';
 
-describe('SettingsScreen', () => {
+describe('Asset', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<SettingsScreen />);
+		const wrapper = shallow(<Asset />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

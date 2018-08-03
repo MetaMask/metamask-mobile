@@ -1,39 +1,28 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, fontStyles } from '../../styles/common';
-import Button from '../Button';
+import PropTypes from 'prop-types';
 import Image from 'react-native-remote-svg';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
+import Button from '../Button';
+import { colors, fontStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		padding: 20,
-		alignItems: 'center'
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomColor: colors.borderColor
 	},
-	profile: {
-		flex: 1,
-		flexDirection: 'row',
-		marginBottom: 20,
-		marginTop: 10
-	},
-	ethLogo: {
-		flex: 1,
-		textAlign: 'center',
+	assetLogo: {
+		marginTop: 15,
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 500,
-		padding: 15,
-		marginBottom: 10,
-		width: 80,
-		height: 70,
-		backgroundColor: colors.white,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderRadius: 10,
+		marginBottom: 10
 	},
-	ethLogoImage: {
+	assetLogoImage: {
 		width: 60,
 		height: 60
 	},
@@ -48,18 +37,9 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginTop: 30
 	},
-	accountInfo: {
-		alignItems: 'center'
-	},
-	label: {
-		fontSize: 25,
-		...fontStyles.bold
-	},
-	address: {
-		...fontStyles.light
-	},
 	amount: {
 		fontSize: 30,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
 	amountFiat: {
@@ -68,7 +48,6 @@ const styles = StyleSheet.create({
 		...fontStyles.light
 	},
 	button: {
-		color: colors.white,
 		flex: 1,
 		flexDirection: 'row'
 	},
@@ -87,33 +66,35 @@ const styles = StyleSheet.create({
 });
 
 export default class AssetOverview extends Component {
+	static propTypes = {
+		asset: PropTypes.object
+	};
 	onDeposit = () => true;
 	onSend = () => true;
 
 	render() {
+		const { asset } = this.props;
+
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
-				<View style={styles.profile}>
-					<View style={styles.accountInfo}>
-						<Text style={styles.label}>Account 1</Text>
-						<Text style={styles.address}>0x12...1234</Text>
-					</View>
-				</View>
-				<View style={styles.ethLogo}>
-					<Image source={require('../../images/eth-logo.svg')} style={styles.ethLogoImage} />
+				<View style={styles.assetLogo}>
+					<Image source={{ uri: asset.logo }} style={styles.assetLogoImage} />
 				</View>
 				<View style={styles.balance}>
-					<Text style={styles.amount}>0.04 ETH</Text>
-					<Text style={styles.amountFiat}>$1.95</Text>
+					<Text style={styles.amount}>
+						{' '}
+						{asset.balance} {asset.symbol}
+					</Text>
+					<Text style={styles.amountFiat}>${asset.balanceFiat} USD</Text>
 				</View>
 				<View style={styles.buttons}>
-					<Button onPress={this.onDeposit} styles={[styles.button, styles.leftButton]}>
-						<FoundationIcon name={'dollar'} size={20} color={colors.white} />
-						<Text style={styles.buttonText}>DEPOSIT</Text>
-					</Button>
-					<Button onPress={this.onSend} styles={[styles.button, styles.rightButton]}>
+					<Button onPress={this.onSend} style={[styles.button, styles.leftButton]}>
 						<MaterialIcon name={'send'} size={15} color={colors.white} />
 						<Text style={styles.buttonText}>SEND</Text>
+					</Button>
+					<Button onPress={this.onDeposit} style={[styles.button, styles.rightButton]}>
+						<FoundationIcon name={'download'} size={20} color={colors.white} />
+						<Text style={styles.buttonText}>RECEIVE</Text>
 					</Button>
 				</View>
 			</LinearGradient>
