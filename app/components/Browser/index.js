@@ -5,6 +5,7 @@ import RNFS from 'react-native-fs';
 import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-unresolved
 import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
+import BackgroundBridge from '../../core/BackgroundBridge';
 
 const styles = StyleSheet.create({
 	urlBar: {
@@ -50,7 +51,11 @@ export default class Browser extends Component {
 		/**
 		 * Initial URL to load in the WebView
 		 */
-		defaultURL: PropTypes.string.isRequired
+		defaultURL: PropTypes.string.isRequired,
+		/**
+		 * Instance of a core engine object
+		 */
+		engine: PropTypes.object.isRequired
 	};
 
 	state = {
@@ -70,16 +75,18 @@ export default class Browser extends Component {
 	webview = React.createRef();
 
 	async componentDidMount() {
+		this.backgroundBridge = new BackgroundBridge(this.props.engine, this.webview);
+
 		// TODO: The presence of these async statement breaks Jest code coverage
 		const entryScript =
 			Platform.OS === 'ios'
-				? await RNFS.readFile(`${RNFS.MainBundlePath}/entry.js`, 'utf8')
-				: await RNFS.readFileAssets(`entry.js`);
+				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridge.js`, 'utf8')
+				: await RNFS.readFileAssets(`InpageBridge.js`);
 
 		const entryScriptWeb3 =
 			Platform.OS === 'ios'
-				? await RNFS.readFile(`${RNFS.MainBundlePath}/entry-web3.js`, 'utf8')
-				: await RNFS.readFileAssets(`entry-web3.js`);
+				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
+				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
 		this.injection = { ...this.injection, entryScript, entryScriptWeb3 };
 	}
@@ -128,6 +135,9 @@ export default class Browser extends Component {
 			case 'ETHEREUM_PROVIDER_REQUEST':
 				this.injection.includeWeb3 = !!data.web3;
 				this.handleProviderRequest();
+				break;
+			case 'INPAGE_REQUEST':
+				this.backgroundBridge.onMessage(data);
 				break;
 		}
 	};
