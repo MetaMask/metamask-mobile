@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { util } from 'gaba';
@@ -13,7 +15,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Settings extends Component {
+class Settings extends Component {
 	static navigationOptions = {
 		title: 'Settings',
 		headerTitleStyle: {
@@ -22,23 +24,16 @@ export default class Settings extends Component {
 		}
 	};
 
-	componentDidMount() {
-		// This is a brute-force way to refresh the wallet anytime the
-		// datamodel changes for demonstration purposes. We should probably
-		// link the datamodel to redux and go that route instead.
-		Engine.datamodel.subscribe(() => {
-			this.forceUpdate();
-		});
-	}
+	static propTypes = {
+		backgroundState: PropTypes.object
+	};
 
 	changeNetwork(type) {
 		Engine.api.network.setProviderType(type);
 	}
 
 	render() {
-		const {
-			datamodel: { state }
-		} = Engine;
+		const state = this.props.backgroundState;
 
 		return (
 			<View style={styles.wrapper}>
@@ -47,23 +42,31 @@ export default class Settings extends Component {
 				<Text>NETWORK CODE: {state.network.network}</Text>
 				<Text>NETWORK NAME: {state.network.provider.type}</Text>
 				<Text>STATUS: {state.networkStatus.networkStatus.infura[state.network.provider.type]}</Text>
-				<Text>BLOCK: {parseInt(state.blockHistory.recentBlocks[0].number, 16)}</Text>
+				<Text>
+					BLOCK:{' '}
+					{state.blockHistory.recentBlocks &&
+						state.blockHistory.recentBlocks.length &&
+						parseInt(state.blockHistory.recentBlocks[0].number, 16)}
+				</Text>
 				<Text>GAS PRICE: {parseInt(util.getGasPrice(state.blockHistory.recentBlocks), 16)}</Text>
 				<Button
 					title="MAINNET"
 					onPress={() => {
+						// eslint-disable-line react/jsx-no-bind
 						this.changeNetwork('mainnet');
 					}}
 				/>
 				<Button
 					title="RINKEBY"
 					onPress={() => {
+						// eslint-disable-line react/jsx-no-bind
 						this.changeNetwork('rinkeby');
 					}}
 				/>
 				<Button
 					title="ROPSTEN"
 					onPress={() => {
+						// eslint-disable-line react/jsx-no-bind
 						this.changeNetwork('ropsten');
 					}}
 				/>
@@ -71,3 +74,6 @@ export default class Settings extends Component {
 		);
 	}
 }
+
+const mapStateToProps = state => ({ backgroundState: state.backgroundState });
+export default connect(mapStateToProps)(Settings);
