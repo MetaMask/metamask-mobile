@@ -3,7 +3,8 @@ import Main from '../Main';
 import Accounts from '../Accounts';
 
 /**
- * Root application component responsible for configuring the tab navigator
+ * Root application component responsible for configuring app navigation
+ * and instantiating the core Engine module
  */
 
 export default createDrawerNavigator(
