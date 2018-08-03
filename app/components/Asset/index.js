@@ -32,7 +32,7 @@ export default class Asset extends Component {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.assetOverviewWrapper}>
-					<AssetOverview asset={this.props.navigation.state.params} />
+					<AssetOverview asset={this.props.navigation && this.props.navigation.state.params} />
 				</View>
 				<View>
 					<Transactions />

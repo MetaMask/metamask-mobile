@@ -30,6 +30,7 @@ exports[`Main should render correctly 1`] = `
           },
           "Wallet": Object {
             "childRouters": Object {
+              "Asset": null,
               "Settings": null,
               "Wallet": null,
             },

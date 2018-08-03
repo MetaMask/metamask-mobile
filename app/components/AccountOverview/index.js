@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 
 export default class AccountOverview extends Component {
 	static propTypes = {
-		account: PropTypes.string
+		account: PropTypes.object
 	};
 	onDeposit = () => true;
 	onSend = () => true;

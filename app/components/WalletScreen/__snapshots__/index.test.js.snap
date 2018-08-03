@@ -28,6 +28,7 @@ exports[`WalletScreen should render correctly 1`] = `
       "reset": [Function],
       "router": Object {
         "childRouters": Object {
+          "Asset": null,
           "Settings": null,
           "Wallet": null,
         },

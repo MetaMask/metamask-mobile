@@ -1,33 +1,45 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Tokens should render correctly 1`] = `
-<Component
+<ScrollView
   style={
     Object {
-      "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "flex": 1,
-      "justifyContent": "center",
     }
   }
 >
   <Component
     style={
       Object {
-        "color": "#AAAAAA",
-        "fontFamily": "Roboto",
-        "fontSize": 20,
-        "fontWeight": "400",
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+        "justifyContent": "center",
+        "marginTop": 80,
       }
     }
   >
-    You don't have any tokens!
+    <Component
+      style={
+        Object {
+          "color": "#AAAAAA",
+          "fontFamily": "Roboto",
+          "fontSize": 20,
+          "fontWeight": "400",
+        }
+      }
+    >
+      You don't have any tokens!
+    </Component>
   </Component>
   <TouchableOpacity
     activeOpacity={0.2}
     style={
       Object {
+        "alignItems": "center",
         "flexDirection": "row",
+        "justifyContent": "center",
         "marginTop": 20,
       }
     }
@@ -51,5 +63,5 @@ exports[`Tokens should render correctly 1`] = `
       ADD TOKENS
     </Component>
   </TouchableOpacity>
-</Component>
+</ScrollView>
 `;

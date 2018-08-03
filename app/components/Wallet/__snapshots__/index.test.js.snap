@@ -9,7 +9,15 @@ exports[`Wallet should render correctly 1`] = `
     }
   }
 >
-  <AccountOverview />
+  <AccountOverview
+    account={
+      Object {
+        "address": "0xe7E125654064EEa56229f273dA586F10DF96B0a1",
+        "balanceFiat": 1604.2,
+        "label": "Account 1",
+      }
+    }
+  />
   <ScrollableTabView
     contentProps={Object {}}
     initialPage={0}
@@ -22,10 +30,29 @@ exports[`Wallet should render correctly 1`] = `
     scrollWithoutAnimation={false}
     tabBarPosition="top"
   >
-    <Collectibles
+    <Tokens
+      assets={
+        Array [
+          Object {
+            "balance": 4,
+            "balanceFiat": 1500,
+            "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          Object {
+            "balance": 20,
+            "balanceFiat": 104.2,
+            "logo": "https://cdn.freebiesupply.com/logos/large/2x/omisego-logo-png-transparent.png",
+            "name": "OmiseGo",
+            "symbol": "OMG",
+          },
+        ]
+      }
       tabLabel="TOKENS"
     />
     <Collectibles
+      assets={Array []}
       tabLabel="COLLECTIBLES"
     />
   </ScrollableTabView>
