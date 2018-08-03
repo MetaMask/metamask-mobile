@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { util } from 'gaba';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -14,13 +14,6 @@ const styles = StyleSheet.create({
 });
 
 export default class Settings extends Component {
-	static propTypes = {
-		/**
-		 * Instance of a core engine object
-		 */
-		screenProps: PropTypes.object.isRequired
-	};
-
 	static navigationOptions = {
 		title: 'Settings',
 		headerTitleStyle: {
@@ -33,21 +26,19 @@ export default class Settings extends Component {
 		// This is a brute-force way to refresh the wallet anytime the
 		// datamodel changes for demonstration purposes. We should probably
 		// link the datamodel to redux and go that route instead.
-		this.props.screenProps.engine.datamodel.subscribe(() => {
+		Engine.datamodel.subscribe(() => {
 			this.forceUpdate();
 		});
 	}
 
 	changeNetwork(type) {
-		this.props.screenProps.engine.api.network.setProviderType(type);
+		Engine.api.network.setProviderType(type);
 	}
 
 	render() {
 		const {
-			engine: {
-				datamodel: { state }
-			}
-		} = this.props.screenProps;
+			datamodel: { state }
+		} = Engine;
 
 		return (
 			<View style={styles.wrapper}>
