@@ -11,7 +11,7 @@ export const colors = {
 	concrete: '#f1f2f6',
 	slate: '#dfe4ea',
 	tar: '#2f3542',
-	primary: '#2f9ae0',
+	primary: '#007aff',
 	inactive: '#808080',
 	white: '#FFFFFF',
 	fontPrimary: '#333333',

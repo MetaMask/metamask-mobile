@@ -1,31 +1,17 @@
 import React, { Component } from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors, fontStyles } from '../../styles/common';
 import AccountOverview from '../AccountOverview';
-import Transactions from '../Transactions';
 import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
-import Identicon from '../Identicon';
-import Icon from 'react-native-vector-icons/Feather';
+import getNavbar from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		alignItems: 'center',
-		backgroundColor: colors.slate,
 		flex: 1,
-		justifyContent: 'center'
-	},
-	leftButton: {
-		marginTop: 12,
-		marginLeft: 12,
-		marginBottom: 12
-	},
-	rightButton: {
-		marginTop: 12,
-		marginRight: 12,
-		marginBottom: 12
+		backgroundColor: colors.slate
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -35,31 +21,14 @@ const styles = StyleSheet.create({
 		paddingBottom: 0
 	},
 	textStyle: {
+		fontSize: 16,
+		letterSpacing: 0.5,
 		...fontStyles.bold
 	}
 });
 
 export default class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => ({
-		title: 'Wallet',
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		},
-		headerLeft: (
-			<TouchableOpacity style={styles.leftButton} onPress={navigation.openDrawer}>
-				<Identicon diameter={30} address="0xe7E125654064EEa56229f273dA586F10DF96B0a1" />
-			</TouchableOpacity>
-		),
-		headerRight: (
-			<TouchableOpacity
-				style={styles.rightButton}
-				onPress={() => navigation.navigate('Settings')} // eslint-disable-line react/jsx-no-bind
-			>
-				<Icon name="settings" size={20} color={'grey'} />
-			</TouchableOpacity>
-		)
-	});
+	static navigationOptions = ({ navigation }) => getNavbar('Wallet', navigation);
 
 	render() {
 		return (
@@ -78,7 +47,6 @@ export default class Wallet extends Component {
 						/>
 					)}
 				>
-					<Transactions tabLabel="TRANSACTIONS" />
 					<Tokens tabLabel="TOKENS" />
 					<Collectibles tabLabel="COLLECTIBLES" />
 				</ScrollableTabView>

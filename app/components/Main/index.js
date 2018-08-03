@@ -18,21 +18,24 @@ export default createBottomTabNavigator(
 			screen: BrowserScreen,
 			navigationOptions: () => ({
 				title: 'ÐApps',
-				tabBarIcon: ico => <CustomIcon name="dapp" size={18} color={ico.tintColor} /> // eslint-disable-line react/display-name
+				tabBarIcon: ico => <CustomIcon name="dapp" size={18} color={ico.tintColor} />, // eslint-disable-line react/display-name
+				tintColor: colors.primary
 			})
 		},
 		Wallet: {
 			screen: WalletScreen,
 			navigationOptions: () => ({
 				title: 'Wallet',
-				tabBarIcon: ico => <CustomIcon name="wallet" size={20} color={ico.tintColor} /> // eslint-disable-line react/display-name
+				tabBarIcon: ico => <CustomIcon name="wallet" size={20} color={ico.tintColor} />, // eslint-disable-line react/display-name
+				tintColor: colors.primary
 			})
 		},
 		Transfer: {
 			screen: TransferScreen,
 			navigationOptions: () => ({
 				title: 'Transfer',
-				tabBarIcon: ico => <Icon name="repeat" size={20} color={ico.tintColor} /> // eslint-disable-line react/display-name
+				tabBarIcon: ico => <Icon name="repeat" size={20} color={ico.tintColor} />, // eslint-disable-line react/display-name
+				tintColor: colors.primary
 			})
 		}
 	},
