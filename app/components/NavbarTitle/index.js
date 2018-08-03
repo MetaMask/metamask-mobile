@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
+import Networks from '../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,7 +31,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class NavbarTitle extends Component {
+class NavbarTitle extends Component {
 	static propTypes = {
 		network: PropTypes.object.isRequired,
 		title: PropTypes.string.isRequired
@@ -37,19 +39,20 @@ export default class NavbarTitle extends Component {
 
 	render() {
 		const { network, title } = this.props;
+		const networkInfo = Networks[network.provider.type];
 		return (
 			<View style={styles.wrapper}>
 				<Text style={styles.title}>{title}</Text>
 				<View style={styles.network}>
 					<View
-						style={[
-							styles.networkIcon,
-							network && network.color ? { backgroundColor: network.color } : null
-						]}
+						style={[styles.networkIcon, networkInfo.color ? { backgroundColor: networkInfo.color } : null]}
 					/>
-					<Text style={styles.networkName}>{network && network.name}</Text>
+					<Text style={styles.networkName}>{networkInfo.name}</Text>
 				</View>
 			</View>
 		);
 	}
 }
+
+const mapStateToProps = state => ({ network: state.backgroundState.network });
+export default connect(mapStateToProps)(NavbarTitle);

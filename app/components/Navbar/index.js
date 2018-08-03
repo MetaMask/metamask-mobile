@@ -7,12 +7,6 @@ import { colors } from '../../styles/common';
 
 const address = '0xe7E125654064EEa56229f273dA586F10DF96B0a1';
 
-const network = {
-	name: 'Ethereum Main Network',
-	networkId: 1,
-	color: '#3cc29e'
-};
-
 const styles = StyleSheet.create({
 	leftButton: {
 		marginTop: 12,
@@ -28,7 +22,7 @@ const styles = StyleSheet.create({
 
 export default (title, navigation) => ({
 	title,
-	headerTitle: <NavbarTitle title={title} network={network} />,
+	headerTitle: <NavbarTitle title={title} />,
 	headerLeft: (
 		<TouchableOpacity style={styles.leftButton} onPress={navigation.openDrawer}>
 			<Identicon diameter={30} address={address} />

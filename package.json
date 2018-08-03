@@ -61,6 +61,7 @@
     "react-redux": "^5.0.7",
     "readable-stream": "^1.0.33",
     "redux": "^4.0.0",
+    "redux-mock-store": "^1.5.3",
     "stream": "0.0.2",
     "stream-browserify": "^1.0.0",
     "vm-browserify": "0.0.4"
