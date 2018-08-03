@@ -419,7 +419,7 @@ export default class WebView extends React.Component {
 		this.updateNavigationState(event);
 	};
 
-	onMessage = (event: Event) => {
+	onMessage = event => {
 		const { onMessage } = this.props;
 		onMessage && onMessage(event);
 	};

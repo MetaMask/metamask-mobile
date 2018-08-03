@@ -31,8 +31,8 @@ const styles = StyleSheet.create({
 
 export default class NavbarTitle extends Component {
 	static propTypes = {
-		network: PropTypes.object,
-		title: PropTypes.string
+		network: PropTypes.object.isRequired,
+		title: PropTypes.string.isRequired
 	};
 
 	render() {
@@ -41,8 +41,13 @@ export default class NavbarTitle extends Component {
 			<View style={styles.wrapper}>
 				<Text style={styles.title}>{title}</Text>
 				<View style={styles.network}>
-					<View style={[styles.networkIcon, { backgroundColor: network.color }]} />
-					<Text style={styles.networkName}>{network.name}</Text>
+					<View
+						style={[
+							styles.networkIcon,
+							network && network.color ? { backgroundColor: network.color } : null
+						]}
+					/>
+					<Text style={styles.networkName}>{network && network.name}</Text>
 				</View>
 			</View>
 		);

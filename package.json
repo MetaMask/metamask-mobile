@@ -118,6 +118,12 @@
       "enzyme-to-json/serializer"
     ],
     "collectCoverage": true,
+    "collectCoverageFrom": [
+      "<rootDir>/app/**/*.{js,jsx}",
+      "!<rootDir>/node_modules/",
+      "!<rootDir>/app/util/*.{js,jsx}",
+      "!<rootDir>/app/entry*.js"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 100,

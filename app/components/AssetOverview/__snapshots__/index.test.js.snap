@@ -1,0 +1,206 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetOverview should render correctly 1`] = `
+<LinearGradient
+  colors={
+    Array [
+      "#dfe4ea",
+      "#FFFFFF",
+    ]
+  }
+  style={
+    Object {
+      "alignItems": "center",
+      "flex": 1,
+      "padding": 20,
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "row",
+        "marginBottom": 20,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "alignItems": "center",
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 25,
+            "fontWeight": "500",
+          }
+        }
+      >
+        Account 1
+      </Component>
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "300",
+          }
+        }
+      >
+        0x12...1234
+      </Component>
+    </Component>
+  </Component>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#CCCCCC",
+        "borderRadius": 500,
+        "borderWidth": 0.5,
+        "flex": 1,
+        "height": 70,
+        "justifyContent": "center",
+        "marginBottom": 10,
+        "padding": 15,
+        "textAlign": "center",
+        "width": 80,
+      }
+    }
+  >
+    <MyImage
+      source={
+        Object {
+          "testUri": "../../../app/images/eth-logo.svg",
+        }
+      }
+      style={
+        Object {
+          "height": 60,
+          "width": 60,
+        }
+      }
+    />
+  </Component>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "fontFamily": "Roboto",
+          "fontSize": 30,
+          "fontWeight": "400",
+        }
+      }
+    >
+      0.04 ETH
+    </Component>
+    <Component
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "300",
+        }
+      }
+    >
+      $1.95
+    </Component>
+  </Component>
+  <Component
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "row",
+        "marginTop": 30,
+      }
+    }
+  >
+    <Button
+      onPress={[Function]}
+      styles={
+        Array [
+          Object {
+            "color": "#FFFFFF",
+            "flex": 1,
+            "flexDirection": "row",
+          },
+          Object {
+            "marginRight": 10,
+          },
+        ]
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="dollar"
+        size={20}
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "Roboto",
+            "fontSize": 15,
+            "fontWeight": "500",
+            "marginLeft": 8,
+          }
+        }
+      >
+        DEPOSIT
+      </Component>
+    </Button>
+    <Button
+      onPress={[Function]}
+      styles={
+        Array [
+          Object {
+            "color": "#FFFFFF",
+            "flex": 1,
+            "flexDirection": "row",
+          },
+          Object {
+            "marginLeft": 10,
+          },
+        ]
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="send"
+        size={15}
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "Roboto",
+            "fontSize": 15,
+            "fontWeight": "500",
+            "marginLeft": 8,
+          }
+        }
+      >
+        SEND
+      </Component>
+    </Button>
+  </Component>
+</LinearGradient>
+`;

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`WalletScreen should render correctly 1`] = `
+exports[`SettingsScreen should render correctly 1`] = `
 <KeyboardAwareNavigator
   navigation={
     Object {
@@ -29,7 +29,6 @@ exports[`WalletScreen should render correctly 1`] = `
       "router": Object {
         "childRouters": Object {
           "Settings": null,
-          "Wallet": null,
         },
         "getActionCreators": [Function],
         "getActionForPathAndParams": [Function],
@@ -47,7 +46,7 @@ exports[`WalletScreen should render correctly 1`] = `
         "routes": Array [
           Object {
             "key": "id-123-0",
-            "routeName": "Wallet",
+            "routeName": "Settings",
           },
         ],
       },

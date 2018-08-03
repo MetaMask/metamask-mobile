@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavbarTitle should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "alignItems": "center",
+      "flex": 1,
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "fontFamily": "Roboto",
+        "fontSize": 18,
+        "fontWeight": "400",
+      }
+    }
+  >
+    Test
+  </Component>
+  <Component
+    style={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Component
+      style={
+        Array [
+          Object {
+            "borderRadius": 100,
+            "height": 5,
+            "marginRight": 5,
+            "marginTop": 5,
+            "width": 5,
+          },
+          Object {
+            "backgroundColor": "#3cc29e",
+          },
+        ]
+      }
+    />
+    <Component
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 11,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Ethereum Main Network
+    </Component>
+  </Component>
+</Component>
+`;

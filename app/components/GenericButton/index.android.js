@@ -6,7 +6,6 @@ const GenericButton = props => (
 	<TouchableNativeFeedback
 		delayPressIn={0}
 		background={TouchableNativeFeedback.SelectableBackground()} // eslint-disable-line new-cap
-		{...props}
 	>
 		<View style={props.style}>{props.children}</View>
 	</TouchableNativeFeedback>

@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity } from 'react-native';
+import { ViewPropTypes, TouchableOpacity } from 'react-native';
 
-const GenericButton = props => <TouchableOpacity {...props}>{props.children}</TouchableOpacity>;
+const GenericButton = props => <TouchableOpacity style={props.style}>{props.children}</TouchableOpacity>;
 
 GenericButton.propTypes = {
-	children: PropTypes.any
+	children: PropTypes.any,
+	style: ViewPropTypes.style
 };
 
 export default GenericButton;

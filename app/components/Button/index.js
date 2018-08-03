@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet } from 'react-native';
+import { ViewPropTypes, StyleSheet } from 'react-native';
 import GenericButton from '../GenericButton'; // eslint-disable-line import/no-unresolved
 import { colors } from '../../styles/common';
 
@@ -17,11 +17,11 @@ const styles = StyleSheet.create({
 	}
 });
 
-const Button = props => <GenericButton style={[styles.button, ...props.styles]}>{props.children}</GenericButton>;
+const Button = props => <GenericButton style={[styles.button, props.style]}>{props.children}</GenericButton>;
 
 Button.propTypes = {
 	children: PropTypes.any,
-	styles: PropTypes.any
+	style: ViewPropTypes.style
 };
 
 export default Button;
