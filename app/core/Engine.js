@@ -14,6 +14,7 @@ import {
 } from 'gaba';
 
 import BlockTracker from 'eth-block-tracker';
+import Encryptor from './Encryptor';
 
 /**
  * Core controller responsible for composing other GABA controllers together
@@ -28,7 +29,15 @@ export class Engine {
 		addressBook: new AddressBookController(),
 		blockHistory: new BlockHistoryController(),
 		currencyRate: new CurrencyRateController(),
-		keyring: new KeyringController(),
+		keyring: new KeyringController(
+			{},
+			{
+				encryptor: {
+					encrypt: Encryptor.encrypt,
+					decrypt: Encryptor.decrypt
+				}
+			}
+		),
 		network: new NetworkController(undefined, {
 			providerConfig: {}
 		}),

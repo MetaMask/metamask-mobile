@@ -53,7 +53,8 @@ export default class App extends Component {
 	state = {
 		locked: true,
 		newUser: true,
-		appState: 'active'
+		appState: 'active',
+		loading: false
 	};
 	componentDidMount() {
 		Keychain.resetGenericPassword();
@@ -88,17 +89,19 @@ export default class App extends Component {
 		}
 	}
 
-	onPasswordSaved = pass => {
-		this.setState({ locked: false, newUser: false });
+	onPasswordSaved = async pass => {
 		// Here we should create the new vault
-		engine.api.keyring.createNewVaultAndKeychain(pass);
+		this.setState({ loading: true });
+		await engine.api.keyring.createNewVaultAndKeychain(pass);
+		//const accounts = await engine.api.keyring.keyring.getAccounts();
+		this.setState({ locked: false, newUser: false, loading: false });
 	};
 
 	render() {
 		if (this.state.locked) {
 			return <LockScreen />;
 		} else if (this.state.newUser) {
-			return <CreatePassword onPasswordSaved={this.onPasswordSaved} />;
+			return <CreatePassword onPasswordSaved={this.onPasswordSaved} loading={this.state.loading} />;
 		}
 
 		return <Nav />;

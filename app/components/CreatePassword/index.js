@@ -1,6 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { KeyboardAvoidingView, Switch, Alert, Button, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
+import {
+	ActivityIndicator,
+	KeyboardAvoidingView,
+	Switch,
+	Alert,
+	Button,
+	Text,
+	View,
+	TextInput,
+	StyleSheet,
+	Platform
+} from 'react-native';
 import { colors } from '../../styles/common';
 import Screen from '../Screen';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
@@ -40,7 +51,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.primary,
 		padding: 10,
 		color: colors.white,
-		borderRadius: 4
+		borderRadius: 4,
+		height: 60,
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	footer: {
 		marginTop: 40
@@ -54,7 +68,8 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  */
 export default class CreatePassword extends Component {
 	static propTypes = {
-		onPasswordSaved: PropTypes.func
+		onPasswordSaved: PropTypes.func,
+		loading: PropTypes.bool
 	};
 
 	state = {
@@ -147,7 +162,11 @@ export default class CreatePassword extends Component {
 							</View>
 						)}
 						<View style={styles.cta}>
-							<Button style={styles.cta} title="CREATE" onPress={this.onPressCreate} color="#FFF" />
+							{this.props.loading ? (
+								<ActivityIndicator size="small" color="white" />
+							) : (
+								<Button style={styles.cta} title="CREATE" onPress={this.onPressCreate} color="#FFF" />
+							)}
 						</View>
 
 						<View style={styles.footer}>
