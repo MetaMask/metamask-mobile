@@ -65,27 +65,37 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * View that displays the information of a specific asset (Token or ETH)
+ * including the overview (Amount, Balance, Symbol, Logo)
+ */
+
 export default class AssetOverview extends Component {
 	static propTypes = {
+		/**
+		 * Object that represents the asset to be displayed
+		 */
 		asset: PropTypes.object
 	};
 	onDeposit = () => true;
 	onSend = () => true;
 
 	render() {
-		const { asset } = this.props;
+		const {
+			asset: { logo, symbol, balance, balanceFiat }
+		} = this.props;
 
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>
-					<Image source={{ uri: asset.logo }} style={styles.assetLogoImage} />
+					<Image source={{ uri: logo }} style={styles.assetLogoImage} />
 				</View>
 				<View style={styles.balance}>
 					<Text style={styles.amount}>
 						{' '}
-						{asset.balance} {asset.symbol}
+						{balance} {symbol}
 					</Text>
-					<Text style={styles.amountFiat}>${asset.balanceFiat} USD</Text>
+					<Text style={styles.amountFiat}>${balanceFiat} USD</Text>
 				</View>
 				<View style={styles.buttons}>
 					<Button onPress={this.onSend} style={[styles.button, styles.leftButton]}>

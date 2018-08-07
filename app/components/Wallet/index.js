@@ -53,6 +53,10 @@ const account = {
 	label: 'Account 1'
 };
 
+/**
+ * Main view for the wallet
+ */
+
 export default class Wallet extends Component {
 	static navigationOptions = ({ navigation }) => getNavbar('Wallet', navigation);
 

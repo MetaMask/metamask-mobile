@@ -71,17 +71,20 @@ export default class AccountList extends Component {
 		return accounts.map((account, i) => {
 			const selected =
 				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
+
+			const { address, label, balance } = account;
+
 			return (
 				<TouchableOpacity
 					style={styles.account}
-					key={`account-${account.address}`}
+					key={`account-${address}`}
 					onPress={() => this.onAccountPress(i)} // eslint-disable-line
 				>
 					<View style={styles.selected}>{selected}</View>
-					<Identicon address={account.address} diameter={38} />
+					<Identicon address={address} diameter={38} />
 					<View style={styles.accountInfo}>
-						<Text style={styles.accountLabel}>{account.label}</Text>
-						<Text style={styles.accountBalance}>{account.balance} ETH</Text>
+						<Text style={styles.accountLabel}>{label}</Text>
+						<Text style={styles.accountBalance}>{balance} ETH</Text>
 					</View>
 				</TouchableOpacity>
 			);

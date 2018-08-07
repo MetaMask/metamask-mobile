@@ -15,8 +15,18 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * View that displays a specific asset (Token or ETH)
+ * including the overview (Amount, Balance, Symbol, Logo)
+ * and also the transaction list
+ */
+
 export default class Asset extends Component {
 	static propTypes = {
+		/**
+		/* navigation object required to access the props
+		/* passed by the parent component
+		*/
 		navigation: PropTypes.object
 	};
 
@@ -29,10 +39,16 @@ export default class Asset extends Component {
 	});
 
 	render() {
+		const {
+			navigation: {
+				state: { params }
+			},
+			navigation
+		} = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.assetOverviewWrapper}>
-					<AssetOverview asset={this.props.navigation && this.props.navigation.state.params} />
+					<AssetOverview asset={navigation && params} />
 				</View>
 				<View>
 					<Transactions />
