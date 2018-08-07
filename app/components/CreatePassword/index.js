@@ -92,7 +92,7 @@ export default class CreatePassword extends Component {
 
 	onPressCreate = async () => {
 		let error = null;
-		if (this.state.password.length < 0) {
+		if (this.state.password.length < 8) {
 			error = 'The password needs to be at least 8 chars long';
 		} else if (this.state.password !== this.state.confirmPassword) {
 			error = "Password doesn't match";

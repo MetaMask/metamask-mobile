@@ -65,7 +65,6 @@ export default class App extends Component {
 	mounted = true;
 
 	async componentDidMount() {
-		Keychain.resetGenericPassword();
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
 			this.setState({ existingUser: true });
@@ -96,7 +95,6 @@ export default class App extends Component {
 			if (credentials) {
 				// Restore vault with existing credentials
 				await engine.api.keyring.submitPassword(credentials.password);
-				//const accounts = await engine.api.keyring.keyring.getAccounts();
 				this.mounted && this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 			} else {
 				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
@@ -114,7 +112,6 @@ export default class App extends Component {
 			await engine.api.keyring.createNewVaultAndKeychain(pass);
 			// mark the user as existing so it doesn't see the create password screen again
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
-			//const accounts = await engine.api.keyring.keyring.getAccounts();
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
 		} catch (e) {
 			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
