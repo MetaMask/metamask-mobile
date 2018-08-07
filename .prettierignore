@@ -1,8 +1,6 @@
-/app/entry.js
-/app/entry-web3.js
-/android/app/src/main/assets/entry.js
-/android/app/src/main/assets/entry-web3.js
-/app/entry.js
+/android/app/src/main/assets/InpageBridge.js
+/android/app/src/main/assets/InpageBridgeWeb3.js
+/app/core/InpageBridgeWeb3.js
 /shim.js
 /shim.js
 __snapshots__
