@@ -29,7 +29,7 @@
   "lint-staged": {
     "*.js": [
       "prettier --write",
-      "eslint --ignore-path=.eslintignore",
+      "eslint --ignore-path=.prettierignore",
       "git add"
     ],
     "*.json": [
