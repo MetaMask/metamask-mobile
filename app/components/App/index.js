@@ -1,6 +1,6 @@
 import { createDrawerNavigator } from 'react-navigation';
 import Main from '../Main';
-import Accounts from '../Accounts';
+import AccountList from '../AccountList';
 
 /**
  * Root application component responsible for configuring app navigation
@@ -14,6 +14,6 @@ export default createDrawerNavigator(
 		}
 	},
 	{
-		contentComponent: Accounts
+		contentComponent: AccountList
 	}
 );

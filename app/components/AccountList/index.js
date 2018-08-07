@@ -41,7 +41,11 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Accounts extends Component {
+/**
+ * View contains the list of all the available accounts
+ */
+
+export default class AccountList extends Component {
 	state = {
 		selectedAccountIndex: 0
 	};
@@ -83,6 +87,7 @@ export default class Accounts extends Component {
 			);
 		});
 	}
+
 	render() {
 		return (
 			<SafeAreaView style={styles.wrapper}>
