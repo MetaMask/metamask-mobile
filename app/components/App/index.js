@@ -54,7 +54,7 @@ const Nav = createBottomTabNavigator(
 
 export default class App extends Component {
 	state = {
-		locked: true,
+		locked: false,
 		loading: false,
 		existingUser: false,
 		loggedIn: false,
@@ -68,9 +68,9 @@ export default class App extends Component {
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
 			this.setState({ existingUser: true });
+			this.unlockKeychain();
 		}
 
-		this.unlockKeychain();
 		AppState.addEventListener('change', this._handleAppStateChange);
 	}
 
@@ -129,10 +129,10 @@ export default class App extends Component {
 	};
 
 	render() {
-		if (this.state.loggedIn) {
-			return <Nav />;
-		} else if (this.state.locked) {
+		if (this.state.locked) {
 			return <LockScreen />;
+		} else if (this.state.loggedIn) {
+			return <Nav />;
 		} else if (!this.state.existingUser) {
 			return (
 				<CreatePassword

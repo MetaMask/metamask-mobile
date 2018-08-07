@@ -28,9 +28,15 @@ export default class Wallet extends Component {
 		// This is a brute-force way to refresh the wallet anytime the
 		// datamodel changes for demonstration purposes. We should probably
 		// link the datamodel to redux and go that route instead.
+		this.mounted = true;
 		this.props.engine.datamodel.subscribe(() => {
-			this.forceUpdate();
+			this.mounted && this.forceUpdate();
 		});
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+		this.props.engine.datamodel.unsubscribe();
 	}
 
 	changeNetwork(type) {

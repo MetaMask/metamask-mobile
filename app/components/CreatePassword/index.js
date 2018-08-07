@@ -111,8 +111,7 @@ export default class CreatePassword extends Component {
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 				this.props.onPasswordSaved(this.state.password);
 			} catch (error) {
-				// We should either force people to enable passcode / biometrics
-				// or default to encryption in the same way as the extension
+				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 					Alert.alert(
 						'Security Alert',
