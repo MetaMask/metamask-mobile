@@ -8,12 +8,12 @@
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
-    "build": "browserify app/entry.node.js -o app/entry.js && browserify app/entry-web3.node.js -o app/entry-web3.js && ./scripts/copy-android-assets.sh",
+    "build": "concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js && ./scripts/copy-android-assets.sh",
     "start:ios": "npm run build && react-native run-ios",
     "start:android": "npm run build && react-native run-android",
     "test": "jest",
     "test:update": "jest -u",
-    "postinstall": "./scripts/postinstall.sh npm run build"
+    "postinstall": "./scripts/postinstall.sh && npm run build"
   },
   "prettier": {
     "printWidth": 120,
@@ -60,9 +60,10 @@
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
+    "assert": "^1.4.1",
     "babel-jest": "23.4.0",
     "babel-preset-react-native": "5.0.2",
-    "browserify": "^16.2.2",
+    "concat-cli": "^4.0.0",
     "enzyme": "^3.0.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "enzyme-to-json": "^3.3.4",
@@ -73,7 +74,8 @@
     "lint-staged": "^7.2.0",
     "prettier": "1.13.7",
     "react-dom": "^16.4.1",
-    "rn-nodeify": "github:tradle/rn-nodeify"
+    "rn-nodeify": "github:tradle/rn-nodeify",
+    "web3": "^0.20.7"
   },
   "babel": {
     "presets": [
@@ -86,6 +88,7 @@
       "react-native"
     ],
     "globals": {
+      "beforeAll": true,
       "describe": true,
       "expect": true,
       "it": true,
@@ -97,6 +100,7 @@
       "eol-last": 1,
       "import/no-named-as-default": 0,
       "no-invalid-this": 0,
+      "no-new": 0,
       "react/jsx-handler-names": 0,
       "react/no-did-mount-set-state": 0,
       "react/prefer-stateless-function": 0
