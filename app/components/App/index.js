@@ -57,8 +57,11 @@ export default class App extends Component {
 		existingUser: false,
 		loggedIn: false,
 		appState: 'active',
-		error: 'somthing went wrong'
+		error: null
 	};
+
+	mounted = true;
+
 	async componentDidMount() {
 		Keychain.resetGenericPassword();
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
@@ -71,16 +74,17 @@ export default class App extends Component {
 	}
 
 	componentWillUnmount() {
+		this.mounted = false;
 		AppState.removeEventListener('change', this._handleAppStateChange);
 	}
 
 	_handleAppStateChange = nextAppState => {
 		if (nextAppState !== 'active') {
-			this.setState({ locked: true });
+			this.mounted && this.setState({ locked: true, loggedIn: false });
 		} else if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
 			this.state.locked && this.unlockKeychain();
 		}
-		this.setState({ appState: nextAppState });
+		this.mounted && this.setState({ appState: nextAppState });
 	};
 
 	async unlockKeychain() {
@@ -91,13 +95,13 @@ export default class App extends Component {
 				// Restore vault with existing credentials
 				await engine.api.keyring.submitPassword(credentials.password);
 				//const accounts = await engine.api.keyring.keyring.getAccounts();
-				this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
+				this.mounted && this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 			} else {
-				this.setState({ locked: false, existingUser: false, loggedIn: false });
+				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
 			}
 		} catch (error) {
 			console.log("Keychain couldn't be accessed!", error); // eslint-disable-line
-			this.setState({ locked: false, existingUser: false, loggedIn: false });
+			this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
 		}
 	}
 
@@ -109,7 +113,7 @@ export default class App extends Component {
 			// mark the user as existing so it doesn't see the create password screen again
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			//const accounts = await engine.api.keyring.keyring.getAccounts();
-			this.setState({ locked: false, existingUser: false, loading: false });
+			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
 		} catch (e) {
 			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
 		}
