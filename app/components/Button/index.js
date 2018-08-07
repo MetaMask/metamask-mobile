@@ -17,10 +17,23 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * UI component that wraps GenericButton
+ * which renders the appropiate UI elements for each platform (android & iOS)
+ */
+
 const Button = props => <GenericButton style={[styles.button, props.style]}>{props.children}</GenericButton>;
 
 Button.propTypes = {
+	/**
+	 * Children components of the Button
+	 * it can be a text node, an image, or an icon
+	 * or an Array with a combination of them
+	 */
 	children: PropTypes.any,
+	/**
+	 * Styles to be applied to the Button
+	 */
 	style: ViewPropTypes.style
 };
 
