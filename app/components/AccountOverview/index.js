@@ -46,27 +46,36 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * View that's part of the <Wallet /> component
+ * which shows information about the selected account
+ */
+
 export default class AccountOverview extends Component {
 	static propTypes = {
+		/**
+		 * Object that represents the selected account
+		 */
 		account: PropTypes.object
 	};
 	onDeposit = () => true;
 	onSend = () => true;
 
 	render() {
-		const { account } = this.props;
+		const {
+			account: { label, balanceFiat, address }
+		} = this.props;
+
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.row}>
 					<View style={styles.left}>
-						<Text style={styles.label}>{account.label}</Text>
-						<Text style={styles.amountFiat}>${account.balanceFiat}</Text>
+						<Text style={styles.label}>{label}</Text>
+						<Text style={styles.amountFiat}>${balanceFiat}</Text>
 					</View>
 					<View style={styles.right}>
-						<QRCode value={account.address} size={60} bgColor={colors.fontPrimary} fgColor={colors.white} />
-						<Text style={styles.address}>{`${account.address.substr(0, 4)}...${account.address.substr(
-							-4
-						)}`}</Text>
+						<QRCode value={address} size={60} bgColor={colors.fontPrimary} fgColor={colors.white} />
+						<Text style={styles.address}>{`${address.substr(0, 4)}...${address.substr(-4)}`}</Text>
 					</View>
 				</View>
 			</View>
