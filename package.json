@@ -38,9 +38,10 @@
     ]
   },
   "dependencies": {
+    "base-64": "^0.1.0",
     "buffer": "^4.9.1",
-    "events": "^3.0.0",
     "eth-block-tracker": "^3.0.1",
+    "events": "^3.0.0",
     "gaba": "^1.0.0-beta.16",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
@@ -48,6 +49,7 @@
     "react-native-browser-polyfill": "^0.1.2",
     "react-native-crypto": "^2.1.2",
     "react-native-fs": "^2.10.14",
+    "react-native-keychain": "^3.0.0",
     "react-native-level-fs": "^3.0.1",
     "react-native-os": "^1.2.1",
     "react-native-randombytes": "^3.5.0",

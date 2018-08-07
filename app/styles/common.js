@@ -12,7 +12,9 @@ export const colors = {
 	slate: '#dfe4ea',
 	tar: '#2f3542',
 	primary: '#f76c20',
-	inactive: '#808080'
+	inactive: '#808080',
+	title: '#1B344D',
+	white: '#FFFFFF'
 };
 
 /**
