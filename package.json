@@ -88,6 +88,7 @@
       "react-native"
     ],
     "globals": {
+      "beforeAll": true,
       "describe": true,
       "expect": true,
       "it": true,

@@ -52,9 +52,7 @@ class InpageBridge {
 				break;
 
 			case 'eth_uninstallFilter':
-				this.sendAsync(payload, () => {
-					/* eslint-disable-line no-empty-function */
-				});
+				this.sendAsync(payload);
 				break;
 
 			case 'net_version':
