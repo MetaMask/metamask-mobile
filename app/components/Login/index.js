@@ -3,14 +3,13 @@ import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
 	KeyboardAvoidingView,
-	Switch,
-	Alert,
 	Button,
 	Text,
 	View,
 	TextInput,
 	StyleSheet,
-	Platform
+	Platform,
+	Image
 } from 'react-native';
 import { colors } from '../../styles/common';
 import Screen from '../Screen';
@@ -26,12 +25,23 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 20
 	},
+	logoWrapper: {
+		marginTop: 100,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	image: {
+		width: 100,
+		height: 100
+	},
 	title: {
 		fontSize: 35,
 		fontWeight: 'bold',
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title
+		color: colors.title,
+		justifyContent: 'center',
+		textAlign: 'center'
 	},
 	field: {
 		marginBottom: 10
@@ -70,9 +80,9 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 /**
  * Main view component for the wallet screen
  */
-export default class CreatePassword extends Component {
+export default class Login extends Component {
 	static propTypes = {
-		onPasswordSaved: PropTypes.func,
+		onLogin: PropTypes.func,
 		loading: PropTypes.bool,
 		error: PropTypes.string
 	};
@@ -90,35 +100,21 @@ export default class CreatePassword extends Component {
 		});
 	}
 
-	onPressCreate = async () => {
-		let error = null;
-		if (this.state.password.length < 0) {
-			error = 'The password needs to be at least 8 chars long';
-		} else if (this.state.password !== this.state.confirmPassword) {
-			error = "Password doesn't match";
-		}
-		if (error) {
-			Alert.alert('Error', error);
-		} else {
-			try {
-				const authOptions = {
-					accessControl: this.state.biometryChoice
-						? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-						: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-					accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-					authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
-				};
-				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-				this.props.onPasswordSaved(this.state.password);
-			} catch (error) {
-				// We should either force people to enable passcode / biometrics
-				// or default to encryption in the same way as the extension
-				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
-					Alert.alert(
-						'Security Alert',
-						'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
-					);
-				}
+	onLogin = async () => {
+		try {
+			const authOptions = {
+				accessControl: this.state.biometryChoice
+					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+					: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
+				accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
+				authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+			};
+			await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+			this.props.onLogin(this.state.password);
+		} catch (error) {
+			if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+				// No keychain access
+				this.props.onLogin(this.state.password);
 			}
 		}
 	};
@@ -127,18 +123,21 @@ export default class CreatePassword extends Component {
 		console.log('TODO...'); // eslint-disable-line
 	};
 
-	onBiometryChoiceChange = value => {
-		this.setState({ biometryChoice: value });
-	};
-
 	render() {
 		return (
 			<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
 				<Screen>
 					<View style={styles.wrapper}>
-						<Text style={styles.title}>Create Password</Text>
+						<View style={styles.logoWrapper}>
+							<Image
+								source={require('../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
+							/>
+						</View>
+						<Text style={styles.title}>Welcome Back!</Text>
 						<View style={styles.field}>
-							<Text style={styles.label}>New Password (min 8 chars)</Text>
+							<Text style={styles.label}>Password</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -149,34 +148,21 @@ export default class CreatePassword extends Component {
 								placeholder={''}
 							/>
 						</View>
-						<View style={styles.field}>
-							<Text style={styles.label}>Confirm Password</Text>
-							<TextInput
-								style={styles.input}
-								value={this.state.confirmPassword}
-								onChangeText={val => this.setState({ confirmPassword: val })}
-								secureTextEntry
-								placeholder={''}
-							/>
-						</View>
-
-						{this.state.biometryType && (
-							<View style={styles.field}>
-								<Text style={styles.label}>Enable {this.state.biometryType}</Text>
-								<Switch onValueChange={this.onBiometryChoiceChange} value={this.state.biometryChoice} />
-							</View>
-						)}
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 						<View style={styles.cta}>
 							{this.props.loading ? (
 								<ActivityIndicator size="small" color="white" />
 							) : (
-								<Button style={styles.cta} title="CREATE" onPress={this.onPressCreate} color="#FFF" />
+								<Button style={styles.cta} title="LOG IN	" onPress={this.onLogin} color="#FFF" />
 							)}
 						</View>
 
 						<View style={styles.footer}>
-							<Button style={styles.seed} title="Import with seed phrase" onPress={this.onPressImport} />
+							<Button
+								style={styles.seed}
+								title="Import account using seed phrase"
+								onPress={this.onPressImport}
+							/>
 						</View>
 					</View>
 				</Screen>

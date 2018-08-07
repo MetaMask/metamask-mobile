@@ -14,7 +14,8 @@ export const colors = {
 	primary: '#f76c20',
 	inactive: '#808080',
 	title: '#1B344D',
-	white: '#FFFFFF'
+	white: '#FFFFFF',
+	error: '#FF0000'
 };
 
 /**

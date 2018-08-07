@@ -2,30 +2,40 @@ import { NativeModules } from 'react-native';
 const Aes = NativeModules.Aes;
 
 export default class Encryptor {
-	static _generateSalt(byteCount = 32) {
+	key = null;
+	_generateSalt(byteCount = 32) {
 		const view = new Uint8Array(byteCount);
 		global.crypto.getRandomValues(view);
 		const b64encoded = btoa(String.fromCharCode.apply(null, view));
 		return b64encoded;
 	}
 
-	static _generateKey = (password, salt, cost, length) => Aes.pbkdf2(password, salt, cost, length);
-	static _encrypt = (text, keyBase64) => {
-		const ivBase64 = Encryptor._generateSalt(16);
+	_generateKey = (password, salt, cost, length) => Aes.pbkdf2(password, salt, cost, length);
+
+	_keyFromPassword = password => {
+		if (!this.salt) {
+			this.salt = this._generateSalt(16);
+		}
+		return this._generateKey(password, this.salt, 10000, 512);
+	};
+	_encryptWithKey = (text, keyBase64) => {
+		const ivBase64 = this._generateSalt(32);
 		return Aes.encrypt(text, keyBase64, ivBase64).then(cipher => ({ cipher, iv: ivBase64 }));
 	};
 
-	static _decrypt = (encryptedData, key) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv);
+	_decryptWithKey = (encryptedData, key) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
-	static encrypt = async (password, object) => {
-		const salt = Encryptor._generateSalt();
-		const key = await Encryptor._generateKey(password, salt, 10000, 512);
-		const result = await Encryptor._encrypt(key, JSON.stringify(object));
+	encrypt = async (password, object) => {
+		const key = await this._keyFromPassword(password);
+		const result = await this._encryptWithKey(JSON.stringify(object), key);
 		return JSON.stringify(result);
 	};
 
-	static decrypt = (password, encryptedString) => {
-		const { cipher, iv } = JSON.parse(password);
-		return Encryptor._decrypt({ cipher, iv }, encryptedString);
+	decrypt = async (password, encryptedString) => {
+		const encryptedData = JSON.parse(encryptedString);
+		const key = await this._keyFromPassword(password);
+		const data = await this._decryptWithKey(encryptedData, key);
+
+		return JSON.parse(data);
 	};
 }

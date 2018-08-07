@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, AppState } from 'react-native';
+import { StyleSheet, AppState, AsyncStorage } from 'react-native';
 import { createBottomTabNavigator } from 'react-navigation';
 import { createIconSetFromFontello } from 'react-native-vector-icons';
 import BrowserScreen from '../BrowserScreen';
@@ -8,6 +8,7 @@ import WalletScreen from '../WalletScreen';
 import fontelloConfig from '../../fonts/config.json';
 import { colors } from '../../styles/common';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import Login from '../Login';
 import CreatePassword from '../CreatePassword';
 import LockScreen from '../LockScreen';
 
@@ -52,12 +53,19 @@ const Nav = createBottomTabNavigator(
 export default class App extends Component {
 	state = {
 		locked: true,
-		newUser: true,
+		loading: false,
+		existingUser: false,
+		loggedIn: false,
 		appState: 'active',
-		loading: false
+		error: 'somthing went wrong'
 	};
-	componentDidMount() {
+	async componentDidMount() {
 		Keychain.resetGenericPassword();
+		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		if (existingUser !== null) {
+			this.setState({ existingUser: true });
+		}
+
 		this.unlockKeychain();
 		AppState.addEventListener('change', this._handleAppStateChange);
 	}
@@ -80,30 +88,58 @@ export default class App extends Component {
 			// Retreive the credentials
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
-				this.setState({ locked: false, newUser: false });
+				// Restore vault with existing credentials
+				await engine.api.keyring.submitPassword(credentials.password);
+				//const accounts = await engine.api.keyring.keyring.getAccounts();
+				this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 			} else {
-				this.setState({ locked: false, newUser: true });
+				this.setState({ locked: false, existingUser: false, loggedIn: false });
 			}
 		} catch (error) {
 			console.log("Keychain couldn't be accessed!", error); // eslint-disable-line
+			this.setState({ locked: false, existingUser: false, loggedIn: false });
 		}
 	}
 
 	onPasswordSaved = async pass => {
 		// Here we should create the new vault
 		this.setState({ loading: true });
-		await engine.api.keyring.createNewVaultAndKeychain(pass);
-		//const accounts = await engine.api.keyring.keyring.getAccounts();
-		this.setState({ locked: false, newUser: false, loading: false });
+		try {
+			await engine.api.keyring.createNewVaultAndKeychain(pass);
+			// mark the user as existing so it doesn't see the create password screen again
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			//const accounts = await engine.api.keyring.keyring.getAccounts();
+			this.setState({ locked: false, existingUser: false, loading: false });
+		} catch (e) {
+			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
+		}
+	};
+
+	onLogin = async password => {
+		try {
+			// Restore vault with user entered password
+			await engine.api.keyring.submitPassword(password);
+			this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
+		} catch (e) {
+			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
+		}
 	};
 
 	render() {
-		if (this.state.locked) {
+		if (this.state.loggedIn) {
+			return <Nav />;
+		} else if (this.state.locked) {
 			return <LockScreen />;
-		} else if (this.state.newUser) {
-			return <CreatePassword onPasswordSaved={this.onPasswordSaved} loading={this.state.loading} />;
+		} else if (!this.state.existingUser) {
+			return (
+				<CreatePassword
+					onPasswordSaved={this.onPasswordSaved}
+					loading={this.state.loading}
+					error={this.state.error}
+				/>
+			);
 		}
 
-		return <Nav />;
+		return <Login onLogin={this.onLogin} loading={this.state.loading} error={this.state.error} />;
 	}
 }

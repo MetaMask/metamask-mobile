@@ -22,7 +22,7 @@ export default class LockScreen extends Component {
 		return (
 			<Screen>
 				<View style={styles.wrapper}>
-					<Image source={require('../../images/lockscreen.png')} style={styles.image} resizeMethod={'auto'} />
+					<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
 				</View>
 			</Screen>
 		);

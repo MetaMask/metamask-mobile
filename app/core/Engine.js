@@ -20,6 +20,8 @@ import Encryptor from './Encryptor';
  * Core controller responsible for composing other GABA controllers together
  * and exposing convenience methods for common wallet operations.
  */
+
+const encryptor = new Encryptor();
 export class Engine {
 	/**
 	 * Child controller instances keyed by controller name
@@ -32,10 +34,7 @@ export class Engine {
 		keyring: new KeyringController(
 			{},
 			{
-				encryptor: {
-					encrypt: Encryptor.encrypt,
-					decrypt: Encryptor.decrypt
-				}
+				encryptor
 			}
 		),
 		network: new NetworkController(undefined, {
