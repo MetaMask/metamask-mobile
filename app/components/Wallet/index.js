@@ -7,7 +7,7 @@ import { colors, fontStyles } from '../../styles/common';
 import AccountOverview from '../AccountOverview';
 import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
-import getNavbar from '../Navbar';
+import getNavbarOptions from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -58,7 +58,7 @@ const account = {
  */
 
 export default class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => getNavbar('Wallet', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions('Wallet', navigation);
 
 	static propTypes = {
 		navigation: PropTypes.object

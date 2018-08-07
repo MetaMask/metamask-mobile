@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
-import getNavbar from '../Navbar';
+import getNavbarOptions from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 });
 
 export default class Transfer extends Component {
-	static navigationOptions = ({ navigation }) => getNavbar('Transfer', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions('Transfer', navigation);
 
 	render() {
 		return (

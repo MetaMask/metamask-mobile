@@ -3,9 +3,21 @@ import PropTypes from 'prop-types';
 import { Image } from 'react-native';
 import { toDataUrl } from '../../util/blockies.js';
 
+/**
+ * UI component that renders an Identicon
+ * for now it's just a blockie
+ * but we could add more types in the future
+ */
+
 export default class IdenticonComponent extends Component {
 	static propTypes = {
+		/**
+		 * Diameter that represents the size of the identicon
+		 */
 		diameter: PropTypes.number,
+		/**
+		 * Address used to render a specific identicon
+		 */
 		address: PropTypes.string
 	};
 

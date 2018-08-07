@@ -19,21 +19,27 @@ const styles = StyleSheet.create({
 		marginBottom: 12
 	}
 });
-
-export default (title, navigation) => ({
-	title,
-	headerTitle: <NavbarTitle title={title} />,
-	headerLeft: (
-		<TouchableOpacity style={styles.leftButton} onPress={navigation.openDrawer}>
-			<Identicon diameter={30} address={address} />
-		</TouchableOpacity>
-	),
-	headerRight: (
-		<TouchableOpacity
-			style={styles.rightButton}
-			onPress={() => navigation.navigate('Settings')} // eslint-disable-line react/jsx-no-bind
-		>
-			<Icon name="widget" size={28} color={colors.fontTertiary} />
-		</TouchableOpacity>
-	)
-});
+/**
+ * Function that returns the navigation options
+ * This is used by views that will show our custom navbar
+ * which contains accounts icon, Title and current network, and settings icon
+ */
+export default function getNavbarOptions(title, navigation) {
+	return {
+		title,
+		headerTitle: <NavbarTitle title={title} />,
+		headerLeft: (
+			<TouchableOpacity style={styles.leftButton} onPress={navigation.openDrawer}>
+				<Identicon diameter={30} address={address} />
+			</TouchableOpacity>
+		),
+		headerRight: (
+			<TouchableOpacity
+				style={styles.rightButton}
+				onPress={() => navigation.navigate('Settings')} // eslint-disable-line react/jsx-no-bind
+			>
+				<Icon name="widget" size={28} color={colors.fontTertiary} />
+			</TouchableOpacity>
+		)
+	};
+}
