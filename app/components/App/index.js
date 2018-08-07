@@ -23,7 +23,9 @@ const engine = new Engine();
 const Nav = createBottomTabNavigator(
 	{
 		Home: {
-			screen: BrowserScreen,
+			screen: function Home() {
+				return <BrowserScreen engine={engine} />;
+			},
 			navigationOptions: () => ({
 				title: 'ÐApps',
 				tabBarIcon: ico => <Icon name="dapp" size={18} color={ico.tintColor} /> // eslint-disable-line react/display-name
