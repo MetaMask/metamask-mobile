@@ -16,7 +16,9 @@ exports[`Asset should render correctly 1`] = `
       }
     }
   >
-    <AssetOverview />
+    <AssetOverview
+      asset={Object {}}
+    />
   </Component>
   <Component>
     <Transactions />

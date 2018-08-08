@@ -2,7 +2,6 @@
 
 exports[`WalletScreen should render correctly 1`] = `
 <KeyboardAwareNavigator
-  engine={Object {}}
   navigation={
     Object {
       "actions": Object {
