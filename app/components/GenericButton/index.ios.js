@@ -7,7 +7,11 @@ import { ViewPropTypes, TouchableOpacity } from 'react-native';
  * specifically for iOS
  */
 
-const GenericButton = props => <TouchableOpacity style={props.style}>{props.children}</TouchableOpacity>;
+const GenericButton = props => (
+	<TouchableOpacity onPress={props.onPress} style={props.style}>
+		{props.children}
+	</TouchableOpacity>
+);
 
 GenericButton.propTypes = {
 	/**
@@ -19,7 +23,11 @@ GenericButton.propTypes = {
 	/**
 	 * Styles to be applied to the GenericButton
 	 */
-	style: ViewPropTypes.style
+	style: ViewPropTypes.style,
+	/**
+	 * Function to be called on press
+	 */
+	onPress: PropTypes.func
 };
 
 export default GenericButton;

@@ -63,14 +63,14 @@ export default class AccountOverview extends Component {
 
 	render() {
 		const {
-			account: { label, balanceFiat, address }
+			account: { name, balanceFiat = 0, address }
 		} = this.props;
 
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.row}>
 					<View style={styles.left}>
-						<Text style={styles.label}>{label}</Text>
+						<Text style={styles.label}>{name}</Text>
 						<Text style={styles.amountFiat}>${balanceFiat}</Text>
 					</View>
 					<View style={styles.right}>

@@ -13,7 +13,7 @@ describe('NavbarLeftButton', () => {
 
 		const wrapper = shallow(
 			<Provider store={store}>
-				<NavbarLeftButton selectedAddress={address} />
+				<NavbarLeftButton address={address} />
 			</Provider>
 		);
 		expect(wrapper).toMatchSnapshot();

@@ -2,9 +2,11 @@ import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
+import Button from '../Button';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -17,6 +19,9 @@ const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
 		...fontStyles.bold
+	},
+	accountsWrapper: {
+		flex: 1
 	},
 	account: {
 		flexDirection: 'row',
@@ -40,6 +45,17 @@ const styles = StyleSheet.create({
 	selected: {
 		width: 30,
 		marginRight: 15
+	},
+	footer: {
+		height: 80,
+		justifyContent: 'flex-end',
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	icon: {
+		height: 50,
+		width: 10,
+		backgroundColor: colors.concrete
 	}
 });
 
@@ -59,23 +75,38 @@ class AccountList extends Component {
 		selectedAccountIndex: 0
 	};
 
-	onAccountPress = newIndex => {
-		this.setState({ selectedAccountIndex: newIndex });
+	onAccountChange = async newIndex => {
+		try {
+			this.setState({ selectedAccountIndex: newIndex });
+			await Engine.api.preferences.update({ selectedAddress: Object.keys(this.props.accounts)[newIndex] });
+		} catch (e) {
+			console.error('error while trying change the selected account', e); // eslint-disable-line
+		}
 	};
+
+	addAccount = async () => {
+		try {
+			await Engine.api.keyring.addNewAccount();
+			this.setState({ selectedAccountIndex: Object.keys(this.props.accounts).length - 1 });
+		} catch (e) {
+			console.error('error while trying to add a new account', e); // eslint-disable-line
+		}
+	};
+
+	accountSettings = () => false;
 
 	renderAccounts() {
 		const { accounts } = this.props;
 		return Object.keys(accounts).map((key, i) => {
-			const { name, address } = accounts[key];
+			const { name, address, balance = 0 } = accounts[key];
 			const selected =
 				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
-			const balance = 0;
 
 			return (
 				<TouchableOpacity
 					style={styles.account}
 					key={`account-${address}`}
-					onPress={() => this.onAccountPress(i)} // eslint-disable-line
+					onPress={() => this.onAccountChange(i)} // eslint-disable-line
 				>
 					<View style={styles.selected}>{selected}</View>
 					<Identicon address={address} diameter={38} />
@@ -93,6 +124,14 @@ class AccountList extends Component {
 			<SafeAreaView style={styles.wrapper}>
 				<Text style={styles.title}>My Accounts</Text>
 				<View style={styles.accountsWrapper}>{this.renderAccounts()}</View>
+				<View style={styles.footer}>
+					<Button style={[styles.icon, styles.left]} onPress={this.addAccount}>
+						<Icon name="plus" size={30} color={colors.fontSecondary} />
+					</Button>
+					<Button style={[styles.icon, styles.right]} onPress={this.accountSettings}>
+						<Icon name="cog" size={30} color={colors.fontSecondary} />
+					</Button>
+				</View>
 			</SafeAreaView>
 		);
 	}
