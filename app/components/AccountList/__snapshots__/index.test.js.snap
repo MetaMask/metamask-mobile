@@ -1,154 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Accounts should render correctly 1`] = `
-<SafeAreaView
-  style={
+<Connect(AccountList)
+  accounts={
     Object {
-      "backgroundColor": "#f1f2f6",
-      "flex": 1,
+      "0xe7E125654064EEa56229f273dA586F10DF96B0a1": Object {
+        "address": "0xe7E125654064EEa56229f273dA586F10DF96B0a1",
+        "balance": 0,
+        "name": "account 1",
+      },
     }
   }
->
-  <Component
-    style={
-      Object {
-        "color": "#333333",
-        "fontFamily": "Roboto",
-        "fontSize": 25,
-        "fontWeight": "500",
-        "marginHorizontal": 20,
-        "marginVertical": 30,
-      }
-    }
-  >
-    My Accounts
-  </Component>
-  <Component>
-    <TouchableOpacity
-      activeOpacity={0.2}
-      key="account-0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-      onPress={[Function]}
-      style={
-        Object {
-          "flexDirection": "row",
-          "marginBottom": 20,
-          "marginLeft": 20,
-        }
-      }
-    >
-      <Component
-        style={
-          Object {
-            "marginRight": 15,
-            "width": 30,
-          }
-        }
-      >
-        <Icon
-          allowFontScaling={false}
-          color="#007aff"
-          name="check"
-          size={30}
-        />
-      </Component>
-      <IdenticonComponent
-        address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-        diameter={38}
-      />
-      <Component
-        style={
-          Object {
-            "marginLeft": 15,
-          }
-        }
-      >
-        <Component
-          style={
-            Object {
-              "color": "#333333",
-              "fontFamily": "Roboto",
-              "fontSize": 18,
-              "fontWeight": "400",
-            }
-          }
-        >
-          Account 1
-        </Component>
-        <Component
-          style={
-            Object {
-              "color": "#999999",
-              "fontFamily": "Roboto",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "paddingTop": 5,
-            }
-          }
-        >
-          0.017700
-           ETH
-        </Component>
-      </Component>
-    </TouchableOpacity>
-    <TouchableOpacity
-      activeOpacity={0.2}
-      key="account-0xf4F6A83117a9D0a9cA3b9684DEDaBc69d56721D8"
-      onPress={[Function]}
-      style={
-        Object {
-          "flexDirection": "row",
-          "marginBottom": 20,
-          "marginLeft": 20,
-        }
-      }
-    >
-      <Component
-        style={
-          Object {
-            "marginRight": 15,
-            "width": 30,
-          }
-        }
-      />
-      <IdenticonComponent
-        address="0xf4F6A83117a9D0a9cA3b9684DEDaBc69d56721D8"
-        diameter={38}
-      />
-      <Component
-        style={
-          Object {
-            "marginLeft": 15,
-          }
-        }
-      >
-        <Component
-          style={
-            Object {
-              "color": "#333333",
-              "fontFamily": "Roboto",
-              "fontSize": 18,
-              "fontWeight": "400",
-            }
-          }
-        >
-          Account 2
-        </Component>
-        <Component
-          style={
-            Object {
-              "color": "#999999",
-              "fontFamily": "Roboto",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "paddingTop": 5,
-            }
-          }
-        >
-          0.4
-           ETH
-        </Component>
-      </Component>
-    </TouchableOpacity>
-  </Component>
-</SafeAreaView>
+  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+/>
 `;
