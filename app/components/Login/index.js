@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 	},
 	cta: {
 		marginTop: 30,
-		backgroundColor: colors.primary,
+		backgroundColor: colors.primaryFox,
 		padding: 10,
 		color: colors.white,
 		borderRadius: 4,
@@ -162,6 +162,7 @@ export default class Login extends Component {
 								style={styles.seed}
 								title="Import account using seed phrase"
 								onPress={this.onPressImport}
+								color={colors.fontPrimary}
 							/>
 						</View>
 					</View>

@@ -13,6 +13,7 @@ export const colors = {
 	tar: '#2f3542',
 	inactive: '#808080',
 	primary: '#007aff',
+	primaryFox: '#f7861ce6',
 	white: '#FFFFFF',
 	fontPrimary: '#333333',
 	fontSecondary: '#999999',

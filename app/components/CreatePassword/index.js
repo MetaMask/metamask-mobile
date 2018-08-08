@@ -10,7 +10,8 @@ import {
 	View,
 	TextInput,
 	StyleSheet,
-	Platform
+	Platform,
+	Image
 } from 'react-native';
 import { colors } from '../../styles/common';
 import Screen from '../Screen';
@@ -26,12 +27,23 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 20
 	},
+	logoWrapper: {
+		marginTop: 100,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	image: {
+		width: 100,
+		height: 100
+	},
 	title: {
 		fontSize: 35,
 		fontWeight: 'bold',
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title
+		color: colors.title,
+		justifyContent: 'center',
+		textAlign: 'center'
 	},
 	field: {
 		marginBottom: 10
@@ -49,7 +61,7 @@ const styles = StyleSheet.create({
 	},
 	cta: {
 		marginTop: 30,
-		backgroundColor: colors.primary,
+		backgroundColor: colors.primaryFox,
 		padding: 10,
 		color: colors.white,
 		borderRadius: 4,
@@ -128,9 +140,7 @@ export default class CreatePassword extends Component {
 		}
 	};
 
-	onPressImport = () => {
-		console.log('TODO...'); // eslint-disable-line
-	};
+	onPressImport = () => false;
 
 	onBiometryChoiceChange = value => {
 		this.setState({ biometryChoice: value });
@@ -141,6 +151,13 @@ export default class CreatePassword extends Component {
 			<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
 				<Screen>
 					<View style={styles.wrapper}>
+						<View style={styles.logoWrapper}>
+							<Image
+								source={require('../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
+							/>
+						</View>
 						<Text style={styles.title}>Create Password</Text>
 						<View style={styles.field}>
 							<Text style={styles.label}>New Password (min 8 chars)</Text>
@@ -181,7 +198,12 @@ export default class CreatePassword extends Component {
 						</View>
 
 						<View style={styles.footer}>
-							<Button style={styles.seed} title="Import with seed phrase" onPress={this.onPressImport} />
+							<Button
+								style={styles.seed}
+								title="Import with seed phrase"
+								onPress={this.onPressImport}
+								color={colors.fontPrimary}
+							/>
 						</View>
 					</View>
 				</Screen>
