@@ -138,6 +138,7 @@ android {
 
 dependencies {
     compile project(':react-native-os')
+    compile project(':react-native-linear-gradient')
     compile project(':react-native-randombytes')
     compile project(':react-native-fs')
     compile project(':react-native-vector-icons')

@@ -1,0 +1,92 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountOverview should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "height": 130,
+      "paddingBottom": 0,
+      "paddingHorizontal": 20,
+      "paddingTop": 20,
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "paddingTop": 7,
+          }
+        }
+      >
+        Account 1
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#333333",
+            "flex": 1,
+            "fontFamily": "Roboto",
+            "fontSize": 43,
+            "fontWeight": "400",
+            "lineHeight": 43,
+            "paddingTop": 15,
+          }
+        }
+      >
+        $
+        1604.2
+      </Component>
+    </Component>
+    <Component
+      style={
+        Object {
+          "alignItems": "flex-end",
+          "flex": 1,
+          "paddingTop": 5,
+        }
+      }
+    >
+      <QRCode
+        bgColor="#333333"
+        fgColor="#FFFFFF"
+        onLoad={[Function]}
+        onLoadEnd={[Function]}
+        size={60}
+        value="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+      />
+      <Component
+        style={
+          Object {
+            "flex": 1,
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "marginTop": 10,
+          }
+        }
+      >
+        0xe7...B0a1
+      </Component>
+    </Component>
+  </Component>
+</Component>
+`;

@@ -4,50 +4,57 @@ exports[`Wallet should render correctly 1`] = `
 <Component
   style={
     Object {
-      "alignItems": "center",
       "backgroundColor": "#dfe4ea",
       "flex": 1,
-      "justifyContent": "center",
     }
   }
 >
-  <Component>
-    Wallet
-  </Component>
-  <Component>
-    ETH: $
-    0
-  </Component>
-  <Component>
-    NETWORK CODE: 
-  </Component>
-  <Component>
-    NETWORK NAME: 
-    foo
-  </Component>
-  <Component>
-    STATUS: 
-    ok
-  </Component>
-  <Component>
-    BLOCK: 
-    1
-  </Component>
-  <Component>
-    GAS PRICE: 
-    1000000000
-  </Component>
-  <Button
-    onPress={[Function]}
-    title="MAINNET"
+  <AccountOverview
+    account={
+      Object {
+        "address": "0xe7E125654064EEa56229f273dA586F10DF96B0a1",
+        "balanceFiat": 1604.2,
+        "label": "Account 1",
+      }
+    }
   />
-  <Button
-    onPress={[Function]}
-    title="RINKEBY"
-  />
-  <Button
-    onPress={[Function]}
-    title="ROPSTEN"
-  />
+  <ScrollableTabView
+    contentProps={Object {}}
+    initialPage={0}
+    locked={false}
+    onChangeTab={[Function]}
+    onScroll={[Function]}
+    page={-1}
+    prerenderingSiblingsNumber={0}
+    renderTabBar={[Function]}
+    scrollWithoutAnimation={false}
+    tabBarPosition="top"
+  >
+    <Tokens
+      assets={
+        Array [
+          Object {
+            "balance": 4,
+            "balanceFiat": 1500,
+            "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          Object {
+            "balance": 20,
+            "balanceFiat": 104.2,
+            "logo": "https://cdn.freebiesupply.com/logos/large/2x/omisego-logo-png-transparent.png",
+            "name": "OmiseGo",
+            "symbol": "OMG",
+          },
+        ]
+      }
+      tabLabel="TOKENS"
+    />
+    <Collectibles
+      assets={Array []}
+      tabLabel="COLLECTIBLES"
+    />
+  </ScrollableTabView>
 </Component>
 `;

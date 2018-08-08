@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Transfer should render correctly 1`] = `
+<LinearGradient
+  colors={
+    Array [
+      "#dfe4ea",
+      "#FFFFFF",
+    ]
+  }
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#dfe4ea",
+      "flex": 1,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "color": "#999999",
+        "fontFamily": "Roboto",
+        "fontSize": 20,
+        "fontWeight": "400",
+      }
+    }
+  >
+    COMING SOON...
+  </Component>
+</LinearGradient>
+`;
