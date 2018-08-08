@@ -72,9 +72,20 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * View that renders a list of ERC-20 Tokens
+ */
+
 export default class Tokens extends Component {
 	static propTypes = {
+		/**
+		 * Navigation object required to push
+		 * the Asset detail view
+		 */
 		navigation: PropTypes.object,
+		/**
+		 * Array of assets (in this case ERC20 tokens)
+		 */
 		assets: PropTypes.array
 	};
 

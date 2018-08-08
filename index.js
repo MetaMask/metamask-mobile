@@ -1,5 +1,9 @@
 import './shim.js';
+
 // Fix for https://github.com/facebook/react-native/issues/5667
+if (typeof global.self === 'undefined') {
+	global.self = global;
+}
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs

@@ -15,6 +15,11 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * View that contains all the different
+ * app settings
+ */
+
 class Settings extends Component {
 	static navigationOptions = {
 		title: 'Settings',
@@ -25,6 +30,9 @@ class Settings extends Component {
 	};
 
 	static propTypes = {
+		/**
+		 * Object that contains the whole background state
+		 */
 		backgroundState: PropTypes.object
 	};
 
@@ -33,22 +41,24 @@ class Settings extends Component {
 	}
 
 	render() {
-		const state = this.props.backgroundState;
+		const {
+			state: { currencyRate, network, blockHistory, networkStatus }
+		} = this.props.backgroundState;
 
 		return (
 			<View style={styles.wrapper}>
 				<Text>Wallet</Text>
-				<Text>ETH: ${state.currencyRate.conversionRate}</Text>
-				<Text>NETWORK CODE: {state.network.network}</Text>
-				<Text>NETWORK NAME: {state.network.provider.type}</Text>
-				<Text>STATUS: {state.networkStatus.networkStatus.infura[state.network.provider.type]}</Text>
+				<Text>ETH: ${currencyRate.conversionRate}</Text>
+				<Text>NETWORK CODE: {network.network}</Text>
+				<Text>NETWORK NAME: {network.provider.type}</Text>
+				<Text>STATUS: {networkStatus.networkStatus.infura[network.provider.type]}</Text>
 				<Text>
 					BLOCK:{' '}
-					{state.blockHistory.recentBlocks &&
-						state.blockHistory.recentBlocks.length &&
-						parseInt(state.blockHistory.recentBlocks[0].number, 16)}
+					{blockHistory.recentBlocks &&
+						blockHistory.recentBlocks.length &&
+						parseInt(blockHistory.recentBlocks[0].number, 16)}
 				</Text>
-				<Text>GAS PRICE: {parseInt(util.getGasPrice(state.blockHistory.recentBlocks), 16)}</Text>
+				<Text>GAS PRICE: {parseInt(util.getGasPrice(blockHistory.recentBlocks), 16)}</Text>
 				<Button
 					title="MAINNET"
 					onPress={() => {

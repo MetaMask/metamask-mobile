@@ -31,23 +31,32 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * UI Component that renders inside the navbar
+ * showing the view title and the selected network
+ */
+
 class NavbarTitle extends Component {
 	static propTypes = {
+		/**
+		 * Object representing the selected the selected network
+		 */
 		network: PropTypes.object.isRequired,
+		/**
+		 * Name of the current view
+		 */
 		title: PropTypes.string.isRequired
 	};
 
 	render() {
 		const { network, title } = this.props;
-		const networkInfo = Networks[network.provider.type];
+		const { color, name } = Networks[network.provider.type];
 		return (
 			<View style={styles.wrapper}>
 				<Text style={styles.title}>{title}</Text>
 				<View style={styles.network}>
-					<View
-						style={[styles.networkIcon, networkInfo.color ? { backgroundColor: networkInfo.color } : null]}
-					/>
-					<Text style={styles.networkName}>{networkInfo.name}</Text>
+					<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
+					<Text style={styles.networkName}>{name}</Text>
 				</View>
 			</View>
 		);

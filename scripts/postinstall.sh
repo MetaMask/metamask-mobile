@@ -41,14 +41,15 @@ echo "Done"
 echo "6. Fix aes-js build ouput..."
 AES_OUTPUT_FILE="node_modules/aes-js/index.js";
 sed -i '' -e 's/var previous_mymodule = root.mymodule;//g' $AES_OUTPUT_FILE;
- # Reported here https://github.com/skv-headless/react-native-scrollable-tab-view/issues/910
+
+# Reported here https://github.com/skv-headless/react-native-scrollable-tab-view/issues/910
 echo "7. Fix react-native-scrollable-tab-view"
 TARGET="node_modules/react-native-scrollable-tab-view/SceneComponent.js"
 sed -i '' -e 's/...props,/...props/' $TARGET;
 echo "Done"
 
 # Waiting for PR to get merged: https://github.com/seekshiva/react-native-remote-svg/pull/18
-echo "7. Fix react-native-remove-svg"
+echo "8. Fix react-native-remove-svg"
 TARGET="node_modules/react-native-remote-svg/SvgImage.js"
 sed -i '' 's/<WebView/<WebView originWhitelist={["*"]}/' $TARGET;
 echo "Done"

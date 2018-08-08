@@ -76,7 +76,6 @@ class Engine {
 
 const instance = new Engine();
 
-// prevents new properties from being added to the object
 Object.freeze(instance);
 
 export default instance;

@@ -52,6 +52,9 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * View that renders a list of transactions for a specific asset
+ */
 export default class Transactions extends Component {
 	transactions = [
 		{
