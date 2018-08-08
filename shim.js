@@ -1,3 +1,7 @@
+// Fix for https://github.com/facebook/react-native/issues/5667
+if (typeof global.self === 'undefined') {
+	global.self = global;
+}
 if (typeof __dirname === 'undefined') global.__dirname = '/'
 if (typeof __filename === 'undefined') global.__filename = ''
 if (typeof process === 'undefined') {

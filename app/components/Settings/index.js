@@ -41,9 +41,7 @@ class Settings extends Component {
 	}
 
 	render() {
-		const {
-			state: { currencyRate, network, blockHistory, networkStatus }
-		} = this.props.backgroundState;
+		const { currencyRate, network, blockHistory, networkStatus } = this.props.backgroundState;
 
 		return (
 			<View style={styles.wrapper}>
