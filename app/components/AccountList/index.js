@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
@@ -47,6 +48,13 @@ const styles = StyleSheet.create({
  */
 
 class AccountList extends Component {
+	static propTypes = {
+		/**
+		 * An object containing each identity in the format addres => account
+		 */
+		accounts: PropTypes.object
+	};
+
 	state = {
 		selectedAccountIndex: 0
 	};
@@ -56,24 +64,12 @@ class AccountList extends Component {
 	};
 
 	renderAccounts() {
-		const accounts = [
-			{
-				label: 'Account 1',
-				address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-				balance: '0.017700'
-			},
-			{
-				label: 'Account 2',
-				address: '0xf4F6A83117a9D0a9cA3b9684DEDaBc69d56721D8',
-				balance: '0.4'
-			}
-		];
-
-		return accounts.map((account, i) => {
+		const { accounts } = this.props;
+		return Object.keys(accounts).map((key, i) => {
+			const { name, address } = accounts[key];
 			const selected =
 				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
-
-			const { address, label, balance } = account;
+			const balance = 0;
 
 			return (
 				<TouchableOpacity
@@ -84,7 +80,7 @@ class AccountList extends Component {
 					<View style={styles.selected}>{selected}</View>
 					<Identicon address={address} diameter={38} />
 					<View style={styles.accountInfo}>
-						<Text style={styles.accountLabel}>{label}</Text>
+						<Text style={styles.accountLabel}>{name}</Text>
 						<Text style={styles.accountBalance}>{balance} ETH</Text>
 					</View>
 				</TouchableOpacity>
@@ -102,5 +98,5 @@ class AccountList extends Component {
 	}
 }
 
-const mapStateToProps = state => ({ accounts: state.backgroundState.keyring.accounts });
+const mapStateToProps = state => ({ accounts: state.backgroundState.preferences.identities });
 export default connect(mapStateToProps)(AccountList);
