@@ -11,8 +11,13 @@ export const colors = {
 	concrete: '#f1f2f6',
 	slate: '#dfe4ea',
 	tar: '#2f3542',
-	primary: '#f76c20',
-	inactive: '#808080'
+	primary: '#007aff',
+	inactive: '#808080',
+	white: '#FFFFFF',
+	fontPrimary: '#333333',
+	fontSecondary: '#999999',
+	fontTertiary: '#AAAAAA',
+	borderColor: '#CCCCCC'
 };
 
 /**
@@ -24,5 +29,27 @@ export const baseStyles = {
 	},
 	flexStatic: {
 		flex: 0
+	}
+};
+
+/**
+ * Map of reusable fonts
+ */
+export const fontStyles = {
+	normal: {
+		fontFamily: 'Roboto',
+		fontWeight: '400'
+	},
+	light: {
+		fontFamily: 'Roboto',
+		fontWeight: '300'
+	},
+	thin: {
+		fontFamily: 'Roboto',
+		fontWeight: '100'
+	},
+	bold: {
+		fontFamily: 'Roboto',
+		fontWeight: '500'
 	}
 };

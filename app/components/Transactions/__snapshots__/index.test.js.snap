@@ -1,0 +1,222 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Transactions should render correctly 1`] = `
+<ScrollView
+  style={
+    Object {
+      "backgroundColor": "#f1f2f6",
+    }
+  }
+>
+  <Component
+    key="tx-0x45f9758855577311c91e49bc8b005a694f7f007d324290f046571819b8903a86"
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderBottomWidth": 0.5,
+        "borderColor": "#CCCCCC",
+        "flex": 1,
+        "padding": 15,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "marginBottom": 10,
+        }
+      }
+    >
+      July 22 2018 22:34
+    </Component>
+    <Component
+      style={
+        Object {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <IdenticonComponent
+        address="0xf4F6A831...21D8"
+        diameter={24}
+      />
+      <Component
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 15,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "color": "#333333",
+              "fontFamily": "Roboto",
+              "fontSize": 15,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0xf4F6A831...21D8
+        </Component>
+        <Component
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Confirmed
+        </Component>
+      </Component>
+      <Component
+        style={
+          Object {
+            "alignItems": "flex-end",
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "color": "#333333",
+              "fontFamily": "Roboto",
+              "fontSize": 15,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0.0001
+           ETH
+        </Component>
+        <Component
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0.47
+           USD
+        </Component>
+      </Component>
+    </Component>
+  </Component>
+  <Component
+    key="tx-0xed0ef23798d23b29e91c54508a31fcb03992825ba003c769fc6c219b0b9ec0f3"
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderBottomWidth": 0.5,
+        "borderColor": "#CCCCCC",
+        "flex": 1,
+        "padding": 15,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "marginBottom": 10,
+        }
+      }
+    >
+      July 13 2018 18:17
+    </Component>
+    <Component
+      style={
+        Object {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <IdenticonComponent
+        address="0xb1690C08...7d8C"
+        diameter={24}
+      />
+      <Component
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 15,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "color": "#333333",
+              "fontFamily": "Roboto",
+              "fontSize": 15,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0xb1690C08...7d8C
+        </Component>
+        <Component
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Confirmed
+        </Component>
+      </Component>
+      <Component
+        style={
+          Object {
+            "alignItems": "flex-end",
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "color": "#333333",
+              "fontFamily": "Roboto",
+              "fontSize": 15,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0.003
+           ETH
+        </Component>
+        <Component
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            }
+          }
+        >
+          1.41
+           USD
+        </Component>
+      </Component>
+    </Component>
+  </Component>
+</ScrollView>
+`;

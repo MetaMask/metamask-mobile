@@ -9,7 +9,7 @@
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
     "format": "prettier '**/*.{js,json}' --write",
     "build": "concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js && ./scripts/copy-android-assets.sh",
-    "start:ios": "npm run build && react-native run-ios",
+    "start:ios": "npm run build && react-native run-ios --simulator='iPhone X'",
     "start:android": "npm run build && react-native run-android",
     "test": "jest",
     "test:update": "jest -u",
@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "buffer": "^4.9.1",
-    "events": "^3.0.0",
     "eth-block-tracker": "^3.0.1",
+    "events": "^3.0.0",
     "gaba": "^1.0.0-beta.16",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
@@ -49,12 +49,19 @@
     "react-native-crypto": "^2.1.2",
     "react-native-fs": "^2.10.14",
     "react-native-level-fs": "^3.0.1",
+    "react-native-linear-gradient": "^2.4.0",
     "react-native-os": "^1.2.1",
+    "react-native-qrcode": "^0.2.7",
     "react-native-randombytes": "^3.5.0",
+    "react-native-remote-svg": "^1.2.0",
+    "react-native-scrollable-tab-view": "^0.8.0",
     "react-native-vector-icons": "^4.6.0",
     "react-native-wkwebview-reborn": "1.21.0",
     "react-navigation": "^2.6.2",
+    "react-redux": "^5.0.7",
     "readable-stream": "^1.0.33",
+    "redux": "^4.0.0",
+    "redux-mock-store": "^1.5.3",
     "stream": "0.0.2",
     "stream-browserify": "^1.0.0",
     "vm-browserify": "0.0.4"
@@ -121,6 +128,12 @@
       "enzyme-to-json/serializer"
     ],
     "collectCoverage": true,
+    "collectCoverageFrom": [
+      "<rootDir>/app/**/*.{js,jsx}",
+      "!<rootDir>/node_modules/",
+      "!<rootDir>/app/util/*.{js,jsx}",
+      "!<rootDir>/app/entry*.js"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 100,
@@ -149,5 +162,10 @@
     "_stream_passthrough": "readable-stream/passthrough",
     "stream": "stream-browserify",
     "vm": "vm-browserify"
+  },
+  "rnpm": {
+    "assets": [
+      "./app/fonts"
+    ]
   }
 }

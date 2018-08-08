@@ -1,24 +1,21 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import Wallet from '../Wallet';
-import Screen from '../Screen';
+import Settings from '../Settings';
+import Asset from '../Asset';
+import { createStackNavigator } from 'react-navigation';
 
 /**
- * Main view component for the wallet screen
+ * Stack navigator component that wraps the content of the Wallet tab
+ * including the viewsm that can be pushed on top of it
  */
-export default class WalletScreen extends Component {
-	static propTypes = {
-		/**
-		 * Instance of a core engine object
-		 */
-		engine: PropTypes.object.isRequired
-	};
 
-	render() {
-		return (
-			<Screen>
-				<Wallet engine={this.props.engine} />
-			</Screen>
-		);
+export default createStackNavigator({
+	Wallet: {
+		screen: Wallet
+	},
+	Settings: {
+		screen: Settings
+	},
+	Asset: {
+		screen: Asset
 	}
-}
+});

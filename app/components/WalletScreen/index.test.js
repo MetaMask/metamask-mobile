@@ -4,7 +4,7 @@ import WalletScreen from './';
 
 describe('WalletScreen', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<WalletScreen engine={{}} />);
+		const wrapper = shallow(<WalletScreen />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

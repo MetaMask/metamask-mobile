@@ -10,3 +10,4 @@ ios
 node_modules
 package-lock.json
 package.json
+app/util/blockies.js

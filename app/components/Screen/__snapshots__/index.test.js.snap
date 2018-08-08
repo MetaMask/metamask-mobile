@@ -22,7 +22,7 @@ exports[`Screen should render correctly 1`] = `
   >
     <StatusBar
       animated={false}
-      backgroundColor="#2f3542"
+      backgroundColor="#f1f2f6"
       barStyle="dark-content"
       showHideTransition="fade"
     />

@@ -49,3 +49,5 @@ jest.mock('react-native-fs', () => ({
 	write: jest.fn(),
 	writeFile: jest.fn()
 }));
+
+Date.now = jest.fn(() => 123);
