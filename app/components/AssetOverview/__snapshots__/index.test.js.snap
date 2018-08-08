@@ -1,0 +1,164 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetOverview should render correctly 1`] = `
+<LinearGradient
+  colors={
+    Array [
+      "#dfe4ea",
+      "#FFFFFF",
+    ]
+  }
+  style={
+    Object {
+      "borderBottomColor": "#CCCCCC",
+      "borderBottomWidth": 0.5,
+      "flex": 1,
+      "padding": 20,
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "borderRadius": 10,
+        "justifyContent": "center",
+        "marginBottom": 10,
+        "marginTop": 15,
+      }
+    }
+  >
+    <MyImage
+      source={
+        Object {
+          "uri": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
+        }
+      }
+      style={
+        Object {
+          "height": 60,
+          "width": 60,
+        }
+      }
+    />
+  </Component>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "color": "#333333",
+          "fontFamily": "Roboto",
+          "fontSize": 30,
+          "fontWeight": "400",
+        }
+      }
+    >
+       
+      4
+       
+      ETH
+    </Component>
+    <Component
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "300",
+        }
+      }
+    >
+      $
+      1500
+       USD
+    </Component>
+  </Component>
+  <Component
+    style={
+      Object {
+        "flex": 1,
+        "flexDirection": "row",
+        "marginTop": 30,
+      }
+    }
+  >
+    <Button
+      onPress={[Function]}
+      style={
+        Array [
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+          },
+          Object {
+            "marginRight": 10,
+          },
+        ]
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="send"
+        size={15}
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "Roboto",
+            "fontSize": 15,
+            "fontWeight": "500",
+            "marginLeft": 8,
+          }
+        }
+      >
+        SEND
+      </Component>
+    </Button>
+    <Button
+      onPress={[Function]}
+      style={
+        Array [
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+          },
+          Object {
+            "marginLeft": 10,
+          },
+        ]
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="download"
+        size={20}
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "Roboto",
+            "fontSize": 15,
+            "fontWeight": "500",
+            "marginLeft": 8,
+          }
+        }
+      >
+        RECEIVE
+      </Component>
+    </Button>
+  </Component>
+</LinearGradient>
+`;

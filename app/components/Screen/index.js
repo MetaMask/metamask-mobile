@@ -29,7 +29,7 @@ export default class Screen extends Component {
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={{ ...styles.underlay, ...{ width, height } }}>
-					<StatusBar backgroundColor={colors.tar} barStyle="dark-content" />
+					<StatusBar backgroundColor={colors.concrete} barStyle="dark-content" />
 				</View>
 				<SafeAreaView style={baseStyles.flexGrow}>{this.props.children}</SafeAreaView>
 			</View>

@@ -1,54 +1,25 @@
 import React, { Component } from 'react';
-import { StyleSheet, AppState, AsyncStorage } from 'react-native';
-import { createBottomTabNavigator } from 'react-navigation';
-import { createIconSetFromFontello } from 'react-native-vector-icons';
-import BrowserScreen from '../BrowserScreen';
-import Engine from '../../core/Engine';
-import WalletScreen from '../WalletScreen';
-import fontelloConfig from '../../fonts/config.json';
-import { colors } from '../../styles/common';
+import { AppState, AsyncStorage } from 'react-native';
+import { createDrawerNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
 import CreatePassword from '../CreatePassword';
 import LockScreen from '../LockScreen';
-
-const Icon = createIconSetFromFontello(fontelloConfig);
-
-const engine = new Engine();
-
+import Main from '../Main';
+import AccountList from '../AccountList';
+import Engine from '../../core/Engine';
 /**
- * Root application component responsible for configuring app navigation
- * and instantiating the core Engine module
+ * Root application component responsible for instantiating
+ * the two top level views: Main and AccountList
  */
-const Nav = createBottomTabNavigator(
+const Nav = createDrawerNavigator(
 	{
-		Home: {
-			screen: function Home() {
-				return <BrowserScreen engine={engine} />;
-			},
-			navigationOptions: () => ({
-				title: 'ÐApps',
-				tabBarIcon: ico => <Icon name="dapp" size={18} color={ico.tintColor} /> // eslint-disable-line react/display-name
-			})
-		},
-		Wallet: {
-			screen: function Home() {
-				return <WalletScreen engine={engine} />;
-			},
-			navigationOptions: () => ({
-				title: 'Wallet',
-				tabBarIcon: ico => <Icon name="wallet" size={20} color={ico.tintColor} /> // eslint-disable-line react/display-name
-			})
+		Main: {
+			screen: Main
 		}
 	},
 	{
-		tabBarOptions: {
-			activeTintColor: colors.primary,
-			inactiveTintColor: colors.inactive,
-			style: {
-				borderTopWidth: StyleSheet.hairlineWidth
-			}
-		}
+		contentComponent: AccountList
 	}
 );
 
@@ -94,7 +65,7 @@ export default class App extends Component {
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
-				await engine.api.keyring.submitPassword(credentials.password);
+				await Engine.api.keyring.submitPassword(credentials.password);
 				this.mounted && this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 			} else {
 				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
@@ -109,7 +80,7 @@ export default class App extends Component {
 		// Here we should create the new vault
 		this.setState({ loading: true });
 		try {
-			await engine.api.keyring.createNewVaultAndKeychain(pass);
+			await Engine.api.keyring.createNewVaultAndKeychain(pass);
 			// mark the user as existing so it doesn't see the create password screen again
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
@@ -121,7 +92,7 @@ export default class App extends Component {
 	onLogin = async password => {
 		try {
 			// Restore vault with user entered password
-			await engine.api.keyring.submitPassword(password);
+			await Engine.api.keyring.submitPassword(password);
 			this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 		} catch (e) {
 			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });

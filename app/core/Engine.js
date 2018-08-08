@@ -22,7 +22,7 @@ import Encryptor from './Encryptor';
  */
 
 const encryptor = new Encryptor();
-export class Engine {
+class Engine {
 	/**
 	 * Child controller instances keyed by controller name
 	 */
@@ -56,9 +56,13 @@ export class Engine {
 	 * Creates a CoreController instance
 	 */
 	constructor() {
-		this.datamodel = new ComposableController(this.api);
-		this.api.network.subscribe(this.refreshNetwork);
-		this.refreshNetwork();
+		if (!Engine.instance) {
+			this.datamodel = new ComposableController(this.api);
+			this.api.network.subscribe(this.refreshNetwork);
+			this.refreshNetwork();
+			Engine.instance = this;
+		}
+		return Engine.instance;
 	}
 
 	/**
@@ -78,4 +82,8 @@ export class Engine {
 	};
 }
 
-export default Engine;
+const instance = new Engine();
+
+Object.freeze(instance);
+
+export default instance;

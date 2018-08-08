@@ -6,6 +6,7 @@ import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-u
 import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 import BackgroundBridge from '../../core/BackgroundBridge';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	urlBar: {
@@ -51,11 +52,7 @@ export default class Browser extends Component {
 		/**
 		 * Initial URL to load in the WebView
 		 */
-		defaultURL: PropTypes.string.isRequired,
-		/**
-		 * Instance of a core engine object
-		 */
-		engine: PropTypes.object.isRequired
+		defaultURL: PropTypes.string.isRequired
 	};
 
 	state = {
@@ -75,7 +72,7 @@ export default class Browser extends Component {
 	webview = React.createRef();
 
 	async componentDidMount() {
-		this.backgroundBridge = new BackgroundBridge(this.props.engine, this.webview);
+		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
 		// TODO: The presence of these async statement breaks Jest code coverage
 		const entryScript =

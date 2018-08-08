@@ -6,6 +6,7 @@ import com.facebook.react.ReactApplication;
 import com.tectiv3.aes.RCTAesPackage;
 import com.oblador.keychain.KeychainPackage;
 import com.peel.react.rnos.RNOSModule;
+import com.BV.LinearGradient.LinearGradientPackage;
 import com.bitgo.randombytes.RandomBytesPackage;
 import com.metamask.CustomWebview.CustomWebviewPackage;
 import com.rnfs.RNFSPackage;
@@ -33,6 +34,7 @@ public class MainApplication extends Application implements ReactApplication {
             new RCTAesPackage(),
             new KeychainPackage(),
             new RNOSModule(),
+            new LinearGradientPackage(),
             new RandomBytesPackage(),
             new RNFSPackage(),
             new VectorIconsPackage(),

@@ -84,10 +84,16 @@ export default class CreatePassword extends Component {
 		biometryChoice: false
 	};
 
+	mounted = true;
+
 	componentDidMount() {
 		Keychain.getSupportedBiometryType().then(biometryType => {
-			this.setState({ biometryType, biometryChoice: true });
+			this.mounted && this.setState({ biometryType, biometryChoice: true });
 		});
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
 	}
 
 	onPressCreate = async () => {

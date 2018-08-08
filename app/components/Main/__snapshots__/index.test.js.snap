@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Main should render correctly 1`] = `
+<Navigator
+  navigation={
+    Object {
+      "actions": Object {},
+      "addListener": [Function],
+      "dangerouslyGetParent": [Function],
+      "dispatch": [Function],
+      "getChildNavigation": [Function],
+      "getScreenProps": [Function],
+      "goBack": [Function],
+      "isFocused": [Function],
+      "navigate": [Function],
+      "router": Object {
+        "childRouters": Object {
+          "Home": null,
+          "Transfer": Object {
+            "childRouters": Object {
+              "Transfer": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
+          "Wallet": Object {
+            "childRouters": Object {
+              "Asset": null,
+              "Settings": null,
+              "Wallet": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
+        },
+        "getActionCreators": [Function],
+        "getActionForPathAndParams": [Function],
+        "getComponentForRouteName": [Function],
+        "getComponentForState": [Function],
+        "getPathAndParamsForState": [Function],
+        "getScreenOptions": [Function],
+        "getStateForAction": [Function],
+      },
+      "setParams": [Function],
+      "state": Object {
+        "index": 1,
+        "isTransitioning": false,
+        "routes": Array [
+          Object {
+            "key": "Home",
+            "params": undefined,
+            "routeName": "Home",
+          },
+          Object {
+            "index": 0,
+            "isTransitioning": false,
+            "key": "Wallet",
+            "params": undefined,
+            "routeName": "Wallet",
+            "routes": Array [
+              Object {
+                "key": "id-123-0",
+                "routeName": "Wallet",
+              },
+            ],
+          },
+          Object {
+            "index": 0,
+            "isTransitioning": false,
+            "key": "Transfer",
+            "params": undefined,
+            "routeName": "Transfer",
+            "routes": Array [
+              Object {
+                "key": "id-123-1",
+                "routeName": "Transfer",
+              },
+            ],
+          },
+        ],
+      },
+    }
+  }
+/>
+`;
