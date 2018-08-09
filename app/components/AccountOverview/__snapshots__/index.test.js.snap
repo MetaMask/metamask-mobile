@@ -36,9 +36,7 @@ exports[`AccountOverview should render correctly 1`] = `
             "paddingTop": 7,
           }
         }
-      >
-        Account 1
-      </Component>
+      />
       <Component
         style={
           Object {

@@ -1,18 +1,11 @@
 import React from 'react';
-import Identicon from '../Identicon';
 import NavbarTitle from '../NavbarTitle';
+import NavbarLeftButton from '../NavbarLeftButton';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Foundation';
 import { colors } from '../../styles/common';
 
-const address = '0xe7E125654064EEa56229f273dA586F10DF96B0a1';
-
 const styles = StyleSheet.create({
-	leftButton: {
-		marginTop: 12,
-		marginLeft: 12,
-		marginBottom: 12
-	},
 	rightButton: {
 		marginTop: 7,
 		marginRight: 12,
@@ -28,11 +21,7 @@ export default function getNavbarOptions(title, navigation) {
 	return {
 		title,
 		headerTitle: <NavbarTitle title={title} />,
-		headerLeft: (
-			<TouchableOpacity style={styles.leftButton} onPress={navigation.openDrawer}>
-				<Identicon diameter={30} address={address} />
-			</TouchableOpacity>
-		),
+		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerRight: (
 			<TouchableOpacity
 				style={styles.rightButton}

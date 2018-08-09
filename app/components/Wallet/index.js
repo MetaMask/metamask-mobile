@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors, fontStyles } from '../../styles/common';
@@ -47,24 +48,31 @@ const tokens = [
 	}
 ];
 
-const account = {
-	address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-	balanceFiat: 1604.2,
-	label: 'Account 1'
-};
-
 /**
  * Main view for the wallet
  */
-
-export default class Wallet extends Component {
+class Wallet extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Wallet', navigation);
 
 	static propTypes = {
-		navigation: PropTypes.object
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object,
+		/**
+		 * An object containing each identity in the format addres => account
+		 */
+		accounts: PropTypes.object,
+		/**
+		 * An string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	render() {
+		const { accounts, selectedAddress } = this.props;
+		const account = accounts[selectedAddress];
+
 		return (
 			<View style={styles.wrapper}>
 				<AccountOverview account={account} />
@@ -88,3 +96,10 @@ export default class Wallet extends Component {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	accounts: state.backgroundState.preferences.identities,
+	selectedAddress: state.backgroundState.preferences.selectedAddress
+});
+
+export default connect(mapStateToProps)(Wallet);

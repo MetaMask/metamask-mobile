@@ -6,11 +6,11 @@ import { View, ViewPropTypes, TouchableNativeFeedback } from 'react-native';
  * UI component that renders a button
  * specifically for android
  */
-
 const GenericButton = props => (
 	<TouchableNativeFeedback
 		delayPressIn={0}
 		background={TouchableNativeFeedback.SelectableBackground()} // eslint-disable-line new-cap
+		onPress={props.onPress}
 	>
 		<View style={props.style}>{props.children}</View>
 	</TouchableNativeFeedback>
@@ -26,7 +26,11 @@ GenericButton.propTypes = {
 	/**
 	 * Styles to be applied to the GenericButton
 	 */
-	style: ViewPropTypes.style
+	style: ViewPropTypes.style,
+	/**
+	 * Function to be called on press
+	 */
+	onPress: PropTypes.func
 };
 
 export default GenericButton;

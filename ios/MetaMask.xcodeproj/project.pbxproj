@@ -5,7 +5,6 @@
 	};
 	objectVersion = 46;
 	objects = {
-
 /* Begin PBXBuildFile section */
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
@@ -57,10 +56,12 @@
 		7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
 		7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
+		81D9D3DB7A7244E184C9EA53 /* libRNKeychain.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4752EE200B1A49178D7871A6 /* libRNKeychain.a */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		887E75FB64A54509A08D6C50 /* Roboto-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E020F42F788744B3BCE17F05 /* Roboto-LightItalic.ttf */; };
 		900DAC87A8AB4C8092EA3682 /* libRNRandomBytes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8ABF9E3C7C334558A19A8C88 /* libRNRandomBytes.a */; };
 		AAACFD03192C40F8A1B38A8A /* libRCTWKWebView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 893E46C6BCE84DC19E928BBD /* libRCTWKWebView.a */; };
+		AB0011D0A1224FD09AB255D3 /* libRCTAes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BCC003A069E4228AE707B9A /* libRCTAes.a */; };
 		ADBDB9381DFEBF1600ED6528 /* libRCTBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ADBDB9271DFEBF0700ED6528 /* libRCTBlob.a */; };
 		C5AD5D88262D40E8AD14096C /* FontAwesome.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5E32A09A7BDC431FA403BA73 /* FontAwesome.ttf */; };
 		CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */; };
@@ -137,6 +138,27 @@
 			proxyType = 2;
 			remoteGlobalIDString = 83CBBA2E1A601D0E00E9B192;
 			remoteInfo = React;
+		};
+		1539CE7B211A810A00EC0138 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B5FBB03E6A864791BD8CF6C2 /* RCTAes.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 32D980DD1BE9F11C00FA27E5;
+			remoteInfo = RCTAes;
+		};
+		1539CE7F211A810A00EC0138 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 520898DD99AF4BABB996F00E /* RNKeychain.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5D82366F1B0CE05B005A9EF3;
+			remoteInfo = RNKeychain;
+		};
+		1539CE81211A810A00EC0138 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 520898DD99AF4BABB996F00E /* RNKeychain.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6478985F1F38BF9100DA1C12;
+			remoteInfo = "RNKeychain-tvOS";
 		};
 		158B05E8211A725000DF3C74 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -444,6 +466,7 @@
 		2D02E4901E0B4A5D006451C7 /* MetaMask-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MetaMask-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D16E6891FA4F8E400B85C8A /* libReact.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libReact.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		32DB6F5C92BA4F85979EF659 /* RCTWKWebView.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTWKWebView.xcodeproj; path = "../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView.xcodeproj"; sourceTree = "<group>"; };
+		3BCC003A069E4228AE707B9A /* libRCTAes.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTAes.a; sourceTree = "<group>"; };
 		3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-BlackItalic.ttf"; path = "../app/fonts/Roboto-BlackItalic.ttf"; sourceTree = "<group>"; };
 		417D7C2840F148F591AB0261 /* libRNOS.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNOS.a; sourceTree = "<group>"; };
 		41E97E0BCBAB4073990BFBFF /* BVLinearGradient.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = BVLinearGradient.xcodeproj; path = "../node_modules/react-native-linear-gradient/BVLinearGradient.xcodeproj"; sourceTree = "<group>"; };
@@ -451,8 +474,10 @@
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		4444176409EB42CB93AB03C5 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
 		459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Regular.ttf"; path = "../app/fonts/Roboto-Regular.ttf"; sourceTree = "<group>"; };
+		4752EE200B1A49178D7871A6 /* libRNKeychain.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNKeychain.a; sourceTree = "<group>"; };
 		4A2D27104599412CA00C35EF /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		500343D7D81046209C481A89 /* RNRandomBytes.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNRandomBytes.xcodeproj; path = "../node_modules/react-native-randombytes/RNRandomBytes.xcodeproj"; sourceTree = "<group>"; };
+		520898DD99AF4BABB996F00E /* RNKeychain.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNKeychain.xcodeproj; path = "../node_modules/react-native-keychain/RNKeychain.xcodeproj"; sourceTree = "<group>"; };
 		5D7956F8525C4A45A2A555C3 /* Roboto-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Italic.ttf"; path = "../app/fonts/Roboto-Italic.ttf"; sourceTree = "<group>"; };
 		5E32A09A7BDC431FA403BA73 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
 		5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAnimation.xcodeproj; path = "../node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj"; sourceTree = "<group>"; };
@@ -467,6 +492,7 @@
 		A498EA4CD2F8488DB666B94C /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
 		A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Bold.ttf"; path = "../app/fonts/Roboto-Bold.ttf"; sourceTree = "<group>"; };
 		ADBDB91F1DFEBF0600ED6528 /* RCTBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTBlob.xcodeproj; path = "../node_modules/react-native/Libraries/Blob/RCTBlob.xcodeproj"; sourceTree = "<group>"; };
+		B5FBB03E6A864791BD8CF6C2 /* RCTAes.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTAes.xcodeproj; path = "../node_modules/react-native-aes-crypto/ios/RCTAes.xcodeproj"; sourceTree = "<group>"; };
 		BB8BA2D3C0354D6090B56A8A /* Roboto-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Light.ttf"; path = "../app/fonts/Roboto-Light.ttf"; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
 		C752564A28B44392AEE16BD5 /* Roboto-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Medium.ttf"; path = "../app/fonts/Roboto-Medium.ttf"; sourceTree = "<group>"; };
@@ -513,6 +539,8 @@
 				131AA188550F45659821D213 /* (null) in Frameworks */,
 				76AB602000D14AA58533641D /* libBVLinearGradient.a in Frameworks */,
 				0A2ECB748D5D4A1696858CA2 /* libRNOS.a in Frameworks */,
+				AB0011D0A1224FD09AB255D3 /* libRCTAes.a in Frameworks */,
+				81D9D3DB7A7244E184C9EA53 /* libRNKeychain.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -661,6 +689,23 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1539CE76211A810A00EC0138 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1539CE7C211A810A00EC0138 /* libRCTAes.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1539CE78211A810A00EC0138 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1539CE80211A810A00EC0138 /* libRNKeychain.a */,
+				1539CE82211A810A00EC0138 /* libRNKeychain.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		158B05BA211A724E00DF3C74 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -697,6 +742,8 @@
 				14E7DBD0B81B4F6087628BA0 /* libRNRandomBytes-tvOS.a */,
 				278065D027394AD9B2906E38 /* libBVLinearGradient.a */,
 				417D7C2840F148F591AB0261 /* libRNOS.a */,
+				3BCC003A069E4228AE707B9A /* libRCTAes.a */,
+				4752EE200B1A49178D7871A6 /* libRNKeychain.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -804,6 +851,8 @@
 				500343D7D81046209C481A89 /* RNRandomBytes.xcodeproj */,
 				41E97E0BCBAB4073990BFBFF /* BVLinearGradient.xcodeproj */,
 				1DF030904DE24B189311952F /* RNOS.xcodeproj */,
+				B5FBB03E6A864791BD8CF6C2 /* RCTAes.xcodeproj */,
+				520898DD99AF4BABB996F00E /* RNKeychain.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -934,7 +983,7 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 940;
 				ORGANIZATIONNAME = Facebook;
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
@@ -971,6 +1020,10 @@
 				{
 					ProductGroup = 00C302A81ABCB8CE00DB3ED1 /* Products */;
 					ProjectRef = 00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */;
+				},
+				{
+					ProductGroup = 1539CE76211A810A00EC0138 /* Products */;
+					ProjectRef = B5FBB03E6A864791BD8CF6C2 /* RCTAes.xcodeproj */;
 				},
 				{
 					ProductGroup = 5E91572E1DD0AC6500FF2AA8 /* Products */;
@@ -1023,6 +1076,10 @@
 				{
 					ProductGroup = 15A2E6172100077700A1F331 /* Products */;
 					ProjectRef = 6EFAC8C8B451455A999A0F09 /* RNFS.xcodeproj */;
+				},
+				{
+					ProductGroup = 1539CE78211A810A00EC0138 /* Products */;
+					ProjectRef = 520898DD99AF4BABB996F00E /* RNKeychain.xcodeproj */;
 				},
 				{
 					ProductGroup = 158B0633211A726300DF3C74 /* Products */;
@@ -1102,6 +1159,27 @@
 			fileType = archive.ar;
 			path = libReact.a;
 			remoteRef = 146834031AC3E56700842450 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1539CE7C211A810A00EC0138 /* libRCTAes.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTAes.a;
+			remoteRef = 1539CE7B211A810A00EC0138 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1539CE80211A810A00EC0138 /* libRNKeychain.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNKeychain.a;
+			remoteRef = 1539CE7F211A810A00EC0138 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		1539CE82211A810A00EC0138 /* libRNKeychain.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNKeychain.a;
+			remoteRef = 1539CE81211A810A00EC0138 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		158B05E9211A725000DF3C74 /* libRNRandomBytes.a */ = {
@@ -1543,12 +1621,16 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = MetaMaskTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1584,12 +1666,16 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = MetaMaskTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1626,6 +1712,8 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1654,6 +1742,8 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1689,11 +1779,15 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1738,11 +1832,15 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1786,11 +1884,15 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -1834,11 +1936,15 @@
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
 					"$(SRCROOT)/../node_modules/react-native-linear-gradient/BVLinearGradient",
 					"$(SRCROOT)/../node_modules/react-native-os/ios",
+					"$(SRCROOT)/../node_modules/react-native-aes-crypto/ios/RCTAes/**",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",

@@ -76,7 +76,6 @@ const styles = StyleSheet.create({
  * View that renders a list of Collectibles
  * also known as ERC-721 Tokens
  */
-
 export default class Collectibles extends Component {
 	static propTypes = {
 		/**
