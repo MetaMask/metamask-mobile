@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
+import Button from '../Button';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -15,6 +19,9 @@ const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
 		...fontStyles.bold
+	},
+	accountsWrapper: {
+		flex: 1
 	},
 	account: {
 		flexDirection: 'row',
@@ -38,52 +45,76 @@ const styles = StyleSheet.create({
 	selected: {
 		width: 30,
 		marginRight: 15
+	},
+	footer: {
+		height: 80,
+		justifyContent: 'flex-end',
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	icon: {
+		height: 50,
+		width: 10,
+		backgroundColor: colors.concrete
 	}
 });
 
 /**
- * View contains the list of all the available accounts
+ * View that contains the list of all the available accounts
  */
+class AccountList extends Component {
+	static propTypes = {
+		/**
+		 * An object containing each identity in the format addres => account
+		 */
+		accounts: PropTypes.object
+	};
 
-export default class AccountList extends Component {
 	state = {
 		selectedAccountIndex: 0
 	};
 
-	onAccountPress = newIndex => {
-		this.setState({ selectedAccountIndex: newIndex });
+	onAccountChange = async newIndex => {
+		const previousIndex = this.state.selectedAccountIndex;
+		try {
+			this.setState({ selectedAccountIndex: newIndex });
+			await Engine.api.preferences.update({ selectedAddress: Object.keys(this.props.accounts)[newIndex] });
+		} catch (e) {
+			// Restore to the previous index in case anything goes wrong
+			this.setState({ selectedAccountIndex: previousIndex });
+			console.error('error while trying change the selected account', e); // eslint-disable-line
+		}
 	};
 
-	renderAccounts() {
-		const accounts = [
-			{
-				label: 'Account 1',
-				address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-				balance: '0.017700'
-			},
-			{
-				label: 'Account 2',
-				address: '0xf4F6A83117a9D0a9cA3b9684DEDaBc69d56721D8',
-				balance: '0.4'
-			}
-		];
+	addAccount = async () => {
+		try {
+			await Engine.api.keyring.addNewAccount();
+			this.setState({ selectedAccountIndex: Object.keys(this.props.accounts).length - 1 });
+		} catch (e) {
+			// Restore to the previous index in case anything goes wrong
+			console.error('error while trying to add a new account', e); // eslint-disable-line
+		}
+	};
 
-		return accounts.map((account, i) => {
+	openAccountSettings = () => false;
+
+	renderAccounts() {
+		const { accounts } = this.props;
+		return Object.keys(accounts).map((key, i) => {
+			const { name, address, balance = 0 } = accounts[key];
 			const selected =
 				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
-
-			const { address, label, balance } = account;
 
 			return (
 				<TouchableOpacity
 					style={styles.account}
 					key={`account-${address}`}
-					onPress={() => this.onAccountPress(i)} // eslint-disable-line
+					onPress={() => this.onAccountChange(i)} // eslint-disable-line
 				>
 					<View style={styles.selected}>{selected}</View>
 					<Identicon address={address} diameter={38} />
 					<View style={styles.accountInfo}>
-						<Text style={styles.accountLabel}>{label}</Text>
+						<Text style={styles.accountLabel}>{name}</Text>
 						<Text style={styles.accountBalance}>{balance} ETH</Text>
 					</View>
 				</TouchableOpacity>
@@ -96,7 +127,18 @@ export default class AccountList extends Component {
 			<SafeAreaView style={styles.wrapper}>
 				<Text style={styles.title}>My Accounts</Text>
 				<View style={styles.accountsWrapper}>{this.renderAccounts()}</View>
+				<View style={styles.footer}>
+					<Button style={[styles.icon, styles.left]} onPress={this.addAccount}>
+						<Icon name="plus" size={30} color={colors.fontSecondary} />
+					</Button>
+					<Button style={[styles.icon, styles.right]} onPress={this.openAccountSettings}>
+						<Icon name="cog" size={30} color={colors.fontSecondary} />
+					</Button>
+				</View>
 			</SafeAreaView>
 		);
 	}
 }
+
+const mapStateToProps = state => ({ accounts: state.backgroundState.preferences.identities });
+export default connect(mapStateToProps)(AccountList);

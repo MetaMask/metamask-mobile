@@ -12,6 +12,6 @@ exports[`Root should render correctly 1`] = `
     }
   }
 >
-  <NavigationContainer />
+  <App />
 </Provider>
 `;

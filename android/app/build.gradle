@@ -103,6 +103,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -137,6 +138,9 @@ android {
 }
 
 dependencies {
+	compile 'com.android.support:multidex:1.0.1'
+    compile project(':react-native-aes-crypto')
+    compile project(':react-native-keychain')
     compile project(':react-native-os')
     compile project(':react-native-linear-gradient')
     compile project(':react-native-randombytes')

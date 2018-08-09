@@ -16,7 +16,6 @@ import { colors } from '../../styles/common';
  * Navigator component that wraps the
  * three main tabs: Browser, Wallet, Transfer
  */
-
 export default createBottomTabNavigator(
 	{
 		Home: {

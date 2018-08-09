@@ -3,6 +3,8 @@ package com.metamask;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.tectiv3.aes.RCTAesPackage;
+import com.oblador.keychain.KeychainPackage;
 import com.peel.react.rnos.RNOSModule;
 import com.BV.LinearGradient.LinearGradientPackage;
 import com.bitgo.randombytes.RandomBytesPackage;
@@ -17,7 +19,10 @@ import com.facebook.soloader.SoLoader;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainApplication extends Application implements ReactApplication {
+import android.support.multidex.MultiDexApplication;
+
+
+public class MainApplication extends MultiDexApplication implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
     @Override
@@ -29,6 +34,8 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RCTAesPackage(),
+            new KeychainPackage(),
             new RNOSModule(),
             new LinearGradientPackage(),
             new RandomBytesPackage(),

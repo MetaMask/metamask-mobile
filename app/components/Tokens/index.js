@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
 /**
  * View that renders a list of ERC-20 Tokens
  */
-
 export default class Tokens extends Component {
 	static propTypes = {
 		/**

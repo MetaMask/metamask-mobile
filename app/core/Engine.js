@@ -14,11 +14,13 @@ import {
 } from 'gaba';
 
 import BlockTracker from 'eth-block-tracker';
+import Encryptor from './Encryptor';
 
 /**
  * Core controller responsible for composing other GABA controllers together
  * and exposing convenience methods for common wallet operations.
  */
+const encryptor = new Encryptor();
 class Engine {
 	/**
 	 * Child controller instances keyed by controller name
@@ -28,7 +30,12 @@ class Engine {
 		addressBook: new AddressBookController(),
 		blockHistory: new BlockHistoryController(),
 		currencyRate: new CurrencyRateController(),
-		keyring: new KeyringController(),
+		keyring: new KeyringController(
+			{},
+			{
+				encryptor
+			}
+		),
 		network: new NetworkController(undefined, {
 			providerConfig: {}
 		}),

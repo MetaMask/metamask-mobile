@@ -20,7 +20,6 @@ const styles = StyleSheet.create({
  * including the overview (Amount, Balance, Symbol, Logo)
  * and also the transaction list
  */
-
 export default class Asset extends Component {
 	static propTypes = {
 		/**
