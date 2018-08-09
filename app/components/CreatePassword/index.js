@@ -5,7 +5,6 @@ import {
 	ScrollView,
 	Switch,
 	Alert,
-	Button,
 	Text,
 	View,
 	TextInput,
@@ -13,7 +12,9 @@ import {
 	Platform,
 	Image
 } from 'react-native';
-import { colors } from '../../styles/common';
+import Button from 'react-native-button';
+
+import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
 		padding: 20
 	},
 	logoWrapper: {
-		marginTop: Platform.OS === 'android' ? 50 : 100,
+		marginTop: Platform.OS === 'android' ? 40 : 100,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
@@ -33,43 +34,50 @@ const styles = StyleSheet.create({
 		height: 100
 	},
 	title: {
-		fontSize: 35,
-		fontWeight: 'bold',
+		fontSize: Platform.OS === 'android' ? 30 : 35,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.title,
 		justifyContent: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
+		...fontStyles.bold
 	},
 	field: {
 		marginBottom: 10
 	},
 	label: {
 		fontSize: 16,
-		marginBottom: 10
+		marginBottom: Platform.OS === 'android' ? 0 : 10
 	},
 	input: {
-		borderWidth: 1,
+		borderWidth: Platform.OS === 'android' ? 0 : 1,
 		borderColor: colors.asphalt,
 		padding: 10,
 		borderRadius: 4,
-		fontSize: 20
+		fontSize: Platform.OS === 'android' ? 15 : 20,
+		...fontStyles.normal
+	},
+	ctaText: {
+		color: colors.white,
+		...fontStyles.bold
 	},
 	cta: {
-		marginTop: 30,
+		flex: 1,
 		backgroundColor: colors.primaryFox,
-		padding: 10,
-		color: colors.white,
 		borderRadius: 4,
-		height: 60,
-		alignItems: 'center',
+		height: 50,
 		justifyContent: 'center'
 	},
 	footer: {
 		marginTop: 40
 	},
 	errorMsg: {
-		color: colors.error
+		color: colors.error,
+		...fontStyles.normal
+	},
+	seed: {
+		color: colors.fontSecondary,
+		...fontStyles.normal
 	}
 });
 
@@ -158,6 +166,7 @@ export default class CreatePassword extends Component {
 							onChangeText={val => this.setState({ password: val })} // eslint-disable-line  react/jsx-no-bind
 							secureTextEntry
 							placeholder={''}
+							underlineColorAndroid={colors.borderColor}
 						/>
 					</View>
 					<View style={styles.field}>
@@ -168,6 +177,7 @@ export default class CreatePassword extends Component {
 							onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
 							secureTextEntry
 							placeholder={''}
+							underlineColorAndroid={colors.borderColor}
 						/>
 					</View>
 
@@ -182,17 +192,16 @@ export default class CreatePassword extends Component {
 						{this.props.loading ? (
 							<ActivityIndicator size="small" color="white" />
 						) : (
-							<Button style={styles.cta} title="CREATE" onPress={this.onPressCreate} color="#FFF" />
+							<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onPressCreate}>
+								CREATE
+							</Button>
 						)}
 					</View>
 
 					<View style={styles.footer}>
-						<Button
-							style={styles.seed}
-							title="Import with seed phrase"
-							onPress={this.onPressImport}
-							color={colors.fontPrimary}
-						/>
+						<Button style={styles.seed} onPress={this.onPressImport}>
+							Import with seed phrase
+						</Button>
 					</View>
 				</ScrollView>
 			</Screen>
