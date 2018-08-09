@@ -57,7 +57,7 @@ export default class App extends Component {
 		AppState.removeEventListener('change', this._handleAppStateChange);
 	}
 
-	_handleAppStateChange = nextAppState => {
+	handleAppStateChange = nextAppState => {
 		if (nextAppState !== 'active') {
 			this.mounted && this.setState({ locked: true, loggedIn: false });
 		} else if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
@@ -78,7 +78,7 @@ export default class App extends Component {
 				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
 			}
 		} catch (error) {
-			console.log("Keychain couldn't be accessed!", error); // eslint-disable-line
+			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
 			this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
 		}
 	}

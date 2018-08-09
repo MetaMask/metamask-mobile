@@ -88,12 +88,22 @@ const styles = StyleSheet.create({
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
 /**
- * Main view component for the wallet screen
+ * View where users can set their password for the first time
  */
 export default class CreatePassword extends Component {
 	static propTypes = {
+		/**
+		 * Function that will be called once the form is submitted
+		 */
 		onPasswordSaved: PropTypes.func,
+		/**
+		 * Boolean that lets the view know if the parent is doing any processing
+		 * and if that's the case, show a spinner
+		 */
 		loading: PropTypes.bool,
+		/**
+		 * String that contains any error message
+		 */
 		error: PropTypes.string
 	};
 
@@ -121,7 +131,7 @@ export default class CreatePassword extends Component {
 		if (this.state.password.length < 8) {
 			error = 'The password needs to be at least 8 chars long';
 		} else if (this.state.password !== this.state.confirmPassword) {
-			error = "Password doesn't match";
+			error = `Password doesn't match`;
 		}
 		if (error) {
 			Alert.alert('Error', error);

@@ -77,12 +77,22 @@ const styles = StyleSheet.create({
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
 /**
- * Main view component for the wallet screen
+ * View where returning users can authenticate
  */
 export default class Login extends Component {
 	static propTypes = {
+		/**
+		 * Function that will be called once the form is submitted
+		 */
 		onLogin: PropTypes.func,
+		/**
+		 * Boolean that lets the view know if the parent is doing any processing
+		 * and if that's the case, show a spinner
+		 */
 		loading: PropTypes.bool,
+		/**
+		 * String that contains any error message
+		 */
 		error: PropTypes.string
 	};
 
