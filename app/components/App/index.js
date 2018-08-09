@@ -8,8 +8,9 @@ import LockScreen from '../LockScreen';
 import Main from '../Main';
 import AccountList from '../AccountList';
 import Engine from '../../core/Engine';
+
 /**
- * Root application component responsible for instantiating
+ * Navigator object responsible for instantiating
  * the two top level views: Main and AccountList
  */
 const Nav = createDrawerNavigator(
@@ -23,6 +24,12 @@ const Nav = createDrawerNavigator(
 	}
 );
 
+/**
+ * Root application component responsible for rendering
+ * the first "guest" screens of the app:  CreatePassword, Login
+ * It will  also render <Nav> only if the user is authenticated
+ * and <LockScreen> if the app goes on background mode
+ */
 export default class App extends Component {
 	state = {
 		locked: false,

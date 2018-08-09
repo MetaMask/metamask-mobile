@@ -51,7 +51,6 @@ const defaultRenderLoading = () => (
 /**
  * Renders a native WebView.
  */
-
 const CustomWebview = requireNativeComponent('CustomWebview');
 
 export default class WebView extends React.Component {

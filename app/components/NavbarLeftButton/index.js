@@ -16,7 +16,6 @@ const styles = StyleSheet.create({
  * UI Component that renders on the top left of the navbar
  * showing an identicon for the selectedAddress
  */
-
 class NavbarLeftButton extends Component {
 	static propTypes = {
 		/**

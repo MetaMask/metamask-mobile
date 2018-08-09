@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
  * View that displays the information of a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
  */
-
 export default class AssetOverview extends Component {
 	static propTypes = {
 		/**

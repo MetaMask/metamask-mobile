@@ -22,7 +22,6 @@ const styles = StyleSheet.create({
  * View that wraps the whole Transfer Tab.
  * Which includes send and receive
  */
-
 export default class Transfer extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Transfer', navigation);
 

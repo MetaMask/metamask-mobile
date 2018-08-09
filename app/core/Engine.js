@@ -20,7 +20,6 @@ import Encryptor from './Encryptor';
  * Core controller responsible for composing other GABA controllers together
  * and exposing convenience methods for common wallet operations.
  */
-
 const encryptor = new Encryptor();
 class Engine {
 	/**

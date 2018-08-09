@@ -19,7 +19,6 @@ const styles = StyleSheet.create({
  * View that contains all the different
  * app settings
  */
-
 class Settings extends Component {
 	static navigationOptions = {
 		title: 'Settings',

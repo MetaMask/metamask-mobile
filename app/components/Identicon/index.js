@@ -8,7 +8,6 @@ import { toDataUrl } from '../../util/blockies.js';
  * for now it's just a blockie
  * but we could add more types in the future
  */
-
 export default class IdenticonComponent extends Component {
 	static propTypes = {
 		/**

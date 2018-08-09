@@ -1,6 +1,11 @@
 import { NativeModules } from 'react-native';
 const Aes = NativeModules.Aes;
 
+/**
+ * Class that exposes two public methods: Encrypt and Decrypt
+ * This is used by the KeyringController to encrypt / decrypt the state
+ * which contains sensitive seed words and addresses
+ */
 export default class Encryptor {
 	key = null;
 	_generateSalt(byteCount = 32) {
@@ -25,12 +30,19 @@ export default class Encryptor {
 
 	_decryptWithKey = (encryptedData, key) => Aes.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
+	/**
+	 * Encrypts a JS object using a password (and AES encryption with native libraries)
+	 */
 	encrypt = async (password, object) => {
 		const key = await this._keyFromPassword(password);
 		const result = await this._encryptWithKey(JSON.stringify(object), key);
 		return JSON.stringify(result);
 	};
 
+	/**
+	 * Decrypts an encrypted JS object (encryptedString)
+	 * using a password (and AES deccryption with native libraries)
+	 */
 	decrypt = async (password, encryptedString) => {
 		const encryptedData = JSON.parse(encryptedString);
 		const key = await this._keyFromPassword(password);

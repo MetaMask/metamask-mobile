@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
  * View that's part of the <Wallet /> component
  * which shows information about the selected account
  */
-
 export default class AccountOverview extends Component {
 	static propTypes = {
 		/**

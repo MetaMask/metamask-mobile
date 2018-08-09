@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
  * UI Component that renders inside the navbar
  * showing the view title and the selected network
  */
-
 class NavbarTitle extends Component {
 	static propTypes = {
 		/**

@@ -60,9 +60,8 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View contains the list of all the available accounts
+ * View that contains the list of all the available accounts
  */
-
 class AccountList extends Component {
 	static propTypes = {
 		/**
@@ -76,10 +75,13 @@ class AccountList extends Component {
 	};
 
 	onAccountChange = async newIndex => {
+		const previousIndex = this.state.selectedAccountIndex;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
 			await Engine.api.preferences.update({ selectedAddress: Object.keys(this.props.accounts)[newIndex] });
 		} catch (e) {
+			// Restore to the previous index in case anything goes wrong
+			this.setState({ selectedAccountIndex: previousIndex });
 			console.error('error while trying change the selected account', e); // eslint-disable-line
 		}
 	};
@@ -89,11 +91,12 @@ class AccountList extends Component {
 			await Engine.api.keyring.addNewAccount();
 			this.setState({ selectedAccountIndex: Object.keys(this.props.accounts).length - 1 });
 		} catch (e) {
+			// Restore to the previous index in case anything goes wrong
 			console.error('error while trying to add a new account', e); // eslint-disable-line
 		}
 	};
 
-	accountSettings = () => false;
+	openAccountSettings = () => false;
 
 	renderAccounts() {
 		const { accounts } = this.props;
@@ -128,7 +131,7 @@ class AccountList extends Component {
 					<Button style={[styles.icon, styles.left]} onPress={this.addAccount}>
 						<Icon name="plus" size={30} color={colors.fontSecondary} />
 					</Button>
-					<Button style={[styles.icon, styles.right]} onPress={this.accountSettings}>
+					<Button style={[styles.icon, styles.right]} onPress={this.openAccountSettings}>
 						<Icon name="cog" size={30} color={colors.fontSecondary} />
 					</Button>
 				</View>

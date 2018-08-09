@@ -6,7 +6,6 @@ import { View, ViewPropTypes, TouchableNativeFeedback } from 'react-native';
  * UI component that renders a button
  * specifically for android
  */
-
 const GenericButton = props => (
 	<TouchableNativeFeedback
 		delayPressIn={0}

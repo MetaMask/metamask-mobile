@@ -6,7 +6,6 @@ import { ViewPropTypes, TouchableOpacity } from 'react-native';
  * UI component that renders a button
  * specifically for iOS
  */
-
 const GenericButton = props => (
 	<TouchableOpacity onPress={props.onPress} style={props.style}>
 		{props.children}
