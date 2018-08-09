@@ -10,13 +10,13 @@ export default class Encryptor {
 		return b64encoded;
 	}
 
-	_generateKey = (password, salt, cost, length) => Aes.pbkdf2(password, salt, cost, length);
+	_generateKey = (password, salt) => Aes.pbkdf2(password, salt);
 
 	_keyFromPassword = password => {
 		if (!this.salt) {
 			this.salt = this._generateSalt(16);
 		}
-		return this._generateKey(password, this.salt, 10000, 512);
+		return this._generateKey(password, this.salt);
 	};
 	_encryptWithKey = (text, keyBase64) => {
 		const ivBase64 = this._generateSalt(32);

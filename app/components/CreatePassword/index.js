@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
-	KeyboardAvoidingView,
+	ScrollView,
 	Switch,
 	Alert,
 	Button,
@@ -18,17 +18,13 @@ import Screen from '../Screen';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'center'
-	},
 	wrapper: {
 		backgroundColor: colors.concrete,
 		flex: 1,
 		padding: 20
 	},
 	logoWrapper: {
-		marginTop: 100,
+		marginTop: Platform.OS === 'android' ? 50 : 100,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
@@ -148,66 +144,58 @@ export default class CreatePassword extends Component {
 
 	render() {
 		return (
-			<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
-				<Screen>
-					<View style={styles.wrapper}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						</View>
-						<Text style={styles.title}>Create Password</Text>
-						<View style={styles.field}>
-							<Text style={styles.label}>New Password (min 8 chars)</Text>
-							<TextInput
-								style={styles.input}
-								value={this.state.password}
-								onChangeText={val => {
-									this.setState({ password: val });
-								}}
-								secureTextEntry
-								placeholder={''}
-							/>
-						</View>
-						<View style={styles.field}>
-							<Text style={styles.label}>Confirm Password</Text>
-							<TextInput
-								style={styles.input}
-								value={this.state.confirmPassword}
-								onChangeText={val => this.setState({ confirmPassword: val })}
-								secureTextEntry
-								placeholder={''}
-							/>
-						</View>
-
-						{this.state.biometryType && (
-							<View style={styles.field}>
-								<Text style={styles.label}>Enable {this.state.biometryType}</Text>
-								<Switch onValueChange={this.onBiometryChoiceChange} value={this.state.biometryChoice} />
-							</View>
-						)}
-						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
-						<View style={styles.cta}>
-							{this.props.loading ? (
-								<ActivityIndicator size="small" color="white" />
-							) : (
-								<Button style={styles.cta} title="CREATE" onPress={this.onPressCreate} color="#FFF" />
-							)}
-						</View>
-
-						<View style={styles.footer}>
-							<Button
-								style={styles.seed}
-								title="Import with seed phrase"
-								onPress={this.onPressImport}
-								color={colors.fontPrimary}
-							/>
-						</View>
+			<Screen>
+				<ScrollView style={styles.wrapper}>
+					<View style={styles.logoWrapper}>
+						<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
 					</View>
-				</Screen>
-			</KeyboardAvoidingView>
+					<Text style={styles.title}>Create Password</Text>
+					<View style={styles.field}>
+						<Text style={styles.label}>New Password (min 8 chars)</Text>
+						<TextInput
+							style={styles.input}
+							value={this.state.password}
+							onChangeText={val => this.setState({ password: val })} // eslint-disable-line  react/jsx-no-bind
+							secureTextEntry
+							placeholder={''}
+						/>
+					</View>
+					<View style={styles.field}>
+						<Text style={styles.label}>Confirm Password</Text>
+						<TextInput
+							style={styles.input}
+							value={this.state.confirmPassword}
+							onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+							secureTextEntry
+							placeholder={''}
+						/>
+					</View>
+
+					{this.state.biometryType && (
+						<View style={styles.field}>
+							<Text style={styles.label}>Enable {this.state.biometryType}</Text>
+							<Switch onValueChange={this.onBiometryChoiceChange} value={this.state.biometryChoice} />
+						</View>
+					)}
+					{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
+					<View style={styles.cta}>
+						{this.props.loading ? (
+							<ActivityIndicator size="small" color="white" />
+						) : (
+							<Button style={styles.cta} title="CREATE" onPress={this.onPressCreate} color="#FFF" />
+						)}
+					</View>
+
+					<View style={styles.footer}>
+						<Button
+							style={styles.seed}
+							title="Import with seed phrase"
+							onPress={this.onPressImport}
+							color={colors.fontPrimary}
+						/>
+					</View>
+				</ScrollView>
+			</Screen>
 		);
 	}
 }
