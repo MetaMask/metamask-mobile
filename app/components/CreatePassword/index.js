@@ -13,10 +13,10 @@ import {
 	Image
 } from 'react-native';
 import Button from 'react-native-button';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -43,19 +43,23 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	field: {
-		marginBottom: 10
+		marginBottom: Platform.OS === 'android' ? 0 : 10
 	},
 	label: {
 		fontSize: 16,
-		marginBottom: Platform.OS === 'android' ? 0 : 10
+		marginBottom: Platform.OS === 'android' ? 0 : 10,
+		marginTop: 10
 	},
 	input: {
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.asphalt,
+		borderColor: colors.borderColor,
 		padding: 10,
 		borderRadius: 4,
 		fontSize: Platform.OS === 'android' ? 15 : 20,
 		...fontStyles.normal
+	},
+	ctaWrapper: {
+		marginTop: 20
 	},
 	ctaText: {
 		color: colors.white,
@@ -188,14 +192,10 @@ export default class CreatePassword extends Component {
 						</View>
 					)}
 					{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
-					<View style={styles.cta}>
-						{this.props.loading ? (
-							<ActivityIndicator size="small" color="white" />
-						) : (
-							<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onPressCreate}>
-								CREATE
-							</Button>
-						)}
+					<View style={styles.ctaWrapper}>
+						<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onPressCreate}>
+							{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'CREATE'}
+						</Button>
 					</View>
 
 					<View style={styles.footer}>

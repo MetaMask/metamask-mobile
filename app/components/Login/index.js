@@ -1,25 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {
-	ActivityIndicator,
-	KeyboardAvoidingView,
-	Button,
-	Text,
-	View,
-	TextInput,
-	StyleSheet,
-	Platform,
-	Image
-} from 'react-native';
-import { colors } from '../../styles/common';
-import Screen from '../Screen';
+import { ActivityIndicator, ScrollView, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import Button from 'react-native-button';
+
+import { colors, fontStyles } from '../../styles/common';
+import Screen from '../Screen';
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'center'
-	},
 	wrapper: {
 		backgroundColor: colors.concrete,
 		flex: 1,
@@ -35,43 +23,54 @@ const styles = StyleSheet.create({
 		height: 100
 	},
 	title: {
-		fontSize: 35,
-		fontWeight: 'bold',
+		fontSize: Platform.OS === 'android' ? 30 : 35,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.title,
 		justifyContent: 'center',
-		textAlign: 'center'
+		textAlign: 'center',
+		...fontStyles.bold
 	},
 	field: {
-		marginBottom: 10
+		marginBottom: Platform.OS === 'android' ? 0 : 10
 	},
 	label: {
 		fontSize: 16,
-		marginBottom: 10
+		marginBottom: Platform.OS === 'android' ? 0 : 10,
+		marginTop: 10
 	},
 	input: {
-		borderWidth: 1,
-		borderColor: colors.asphalt,
+		borderWidth: Platform.OS === 'android' ? 0 : 1,
+		borderColor: colors.borderColor,
 		padding: 10,
 		borderRadius: 4,
-		fontSize: 20
+		fontSize: Platform.OS === 'android' ? 15 : 20,
+		...fontStyles.normal
+	},
+	ctaWrapper: {
+		marginTop: 20
+	},
+	ctaText: {
+		color: colors.white,
+		...fontStyles.bold
 	},
 	cta: {
-		marginTop: 30,
+		flex: 1,
 		backgroundColor: colors.primaryFox,
-		padding: 10,
-		color: colors.white,
 		borderRadius: 4,
-		height: 60,
-		alignItems: 'center',
+		height: 50,
 		justifyContent: 'center'
 	},
 	footer: {
 		marginTop: 40
 	},
 	errorMsg: {
-		color: colors.error
+		color: colors.error,
+		...fontStyles.normal
+	},
+	seed: {
+		color: colors.fontSecondary,
+		...fontStyles.normal
 	}
 });
 
@@ -125,49 +124,39 @@ export default class Login extends Component {
 
 	render() {
 		return (
-			<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
-				<Screen>
-					<View style={styles.wrapper}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						</View>
-						<Text style={styles.title}>Welcome Back!</Text>
-						<View style={styles.field}>
-							<Text style={styles.label}>Password</Text>
-							<TextInput
-								style={styles.input}
-								value={this.state.password}
-								onChangeText={val => {
-									this.setState({ password: val });
-								}}
-								secureTextEntry
-								placeholder={''}
-							/>
-						</View>
-						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
-						<View style={styles.cta}>
-							{this.props.loading ? (
-								<ActivityIndicator size="small" color="white" />
-							) : (
-								<Button style={styles.cta} title="LOG IN	" onPress={this.onLogin} color="#FFF" />
-							)}
-						</View>
-
-						<View style={styles.footer}>
-							<Button
-								style={styles.seed}
-								title="Import account using seed phrase"
-								onPress={this.onPressImport}
-								color={colors.fontPrimary}
-							/>
-						</View>
+			<Screen>
+				<ScrollView style={styles.wrapper}>
+					<View style={styles.logoWrapper}>
+						<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
 					</View>
-				</Screen>
-			</KeyboardAvoidingView>
+					<Text style={styles.title}>Welcome Back!</Text>
+					<View style={styles.field}>
+						<Text style={styles.label}>Password</Text>
+						<TextInput
+							style={styles.input}
+							value={this.state.password}
+							onChangeText={val => {
+								this.setState({ password: val });
+							}}
+							secureTextEntry
+							placeholder={''}
+							underlineColorAndroid={colors.borderColor}
+						/>
+					</View>
+					{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
+					<View style={styles.ctaWrapper}>
+						<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onLogin}>
+							{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'LOG IN'}
+						</Button>
+					</View>
+
+					<View style={styles.footer}>
+						<Button style={styles.seed} onPress={this.onPressImport}>
+							Import with seed phrase
+						</Button>
+					</View>
+				</ScrollView>
+			</Screen>
 		);
 	}
 }
