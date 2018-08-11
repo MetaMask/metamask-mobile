@@ -7,6 +7,7 @@ import Root from './app/components/Root';
 import { name } from './app.json';
 
 YellowBox.ignoreWarnings(['Module RNOS requires']);
+
 /**
  * Application entry point responsible for registering root component
  */
