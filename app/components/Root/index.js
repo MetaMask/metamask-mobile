@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import App from '../App';
 import { Provider } from 'react-redux';
-import store from '../../store/';
+import { store } from '../../store/';
 
 /**
  * Top level of the component hierarchy
