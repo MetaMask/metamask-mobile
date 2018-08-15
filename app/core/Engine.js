@@ -10,7 +10,8 @@ import {
 	PhishingController,
 	PreferencesController,
 	ShapeShiftController,
-	TokenRatesController
+	TokenRatesController,
+	TransactionController
 } from 'gaba';
 
 import BlockTracker from 'eth-block-tracker';
@@ -24,30 +25,6 @@ const encryptor = new Encryptor();
  */
 class Engine {
 	/**
-	 * Child controller instances keyed by controller name
-	 */
-	api = {
-		accountTracker: new AccountTrackerController(),
-		addressBook: new AddressBookController(),
-		blockHistory: new BlockHistoryController(),
-		currencyRate: new CurrencyRateController(),
-		keyring: new KeyringController(
-			{},
-			{
-				encryptor
-			}
-		),
-		network: new NetworkController(undefined, {
-			providerConfig: {}
-		}),
-		networkStatus: new NetworkStatusController(),
-		phishing: new PhishingController(),
-		preferences: new PreferencesController(),
-		shapeShift: new ShapeShiftController(),
-		tokenRates: new TokenRatesController()
-	};
-
-	/**
 	 * ComposableController reference containing all child controllers
 	 */
 	datamodel;
@@ -57,18 +34,20 @@ class Engine {
 	 */
 	constructor() {
 		if (!Engine.instance) {
+			const keychain = new KeyringController({}, { encryptor });
 			this.datamodel = new ComposableController([
+				keychain,
 				new AccountTrackerController(),
 				new AddressBookController(),
 				new BlockHistoryController(),
 				new CurrencyRateController(),
-				new KeyringController({}, { encryptor }),
 				new NetworkController(undefined, { providerConfig: {} }),
 				new NetworkStatusController(),
 				new PhishingController(),
 				new PreferencesController(),
 				new ShapeShiftController(),
-				new TokenRatesController()
+				new TokenRatesController(),
+				new TransactionController(undefined, { sign: keychain.keyring.signTransaction.bind(keychain.keyring) })
 			]);
 			this.datamodel.context.NetworkController.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
@@ -84,12 +63,14 @@ class Engine {
 		const {
 			AccountTrackerController,
 			BlockHistoryController,
-			NetworkController: { provider }
+			NetworkController: { provider },
+			TransactionController
 		} = this.datamodel.context;
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
 		BlockHistoryController.configure({ provider, blockTracker });
 		AccountTrackerController.configure({ provider, blockTracker });
+		TransactionController.configure({ provider });
 		blockTracker.start();
 	};
 }
