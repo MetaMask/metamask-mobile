@@ -16,11 +16,12 @@ import {
 import BlockTracker from 'eth-block-tracker';
 import Encryptor from './Encryptor';
 
+const encryptor = new Encryptor();
+
 /**
  * Core controller responsible for composing other GABA controllers together
  * and exposing convenience methods for common wallet operations.
  */
-const encryptor = new Encryptor();
 class Engine {
 	/**
 	 * Child controller instances keyed by controller name
@@ -56,8 +57,20 @@ class Engine {
 	 */
 	constructor() {
 		if (!Engine.instance) {
-			this.datamodel = new ComposableController(this.api);
-			this.api.network.subscribe(this.refreshNetwork);
+			this.datamodel = new ComposableController([
+				new AccountTrackerController(),
+				new AddressBookController(),
+				new BlockHistoryController(),
+				new CurrencyRateController(),
+				new KeyringController({}, { encryptor }),
+				new NetworkController(undefined, { providerConfig: {} }),
+				new NetworkStatusController(),
+				new PhishingController(),
+				new PreferencesController(),
+				new ShapeShiftController(),
+				new TokenRatesController()
+			]);
+			this.datamodel.context.NetworkController.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
 			Engine.instance = this;
 		}
@@ -69,14 +82,14 @@ class Engine {
 	 */
 	refreshNetwork = () => {
 		const {
-			accountTracker,
-			blockHistory,
-			network: { provider }
-		} = this.api;
+			AccountTrackerController,
+			BlockHistoryController,
+			NetworkController: { provider }
+		} = this.datamodel.context;
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
-		blockHistory.configure({ provider, blockTracker });
-		accountTracker.configure({ provider, blockTracker });
+		BlockHistoryController.configure({ provider, blockTracker });
+		AccountTrackerController.configure({ provider, blockTracker });
 		blockTracker.start();
 	};
 }
