@@ -76,9 +76,10 @@ class AccountList extends Component {
 
 	onAccountChange = async newIndex => {
 		const previousIndex = this.state.selectedAccountIndex;
+		const { PreferencesController } = Engine.datamodel.context;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
-			await Engine.api.preferences.update({ selectedAddress: Object.keys(this.props.accounts)[newIndex] });
+			await PreferencesController.update({ selectedAddress: Object.keys(this.props.accounts)[newIndex] });
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			this.setState({ selectedAccountIndex: previousIndex });
@@ -87,8 +88,9 @@ class AccountList extends Component {
 	};
 
 	addAccount = async () => {
+		const { KeyringController } = Engine.datamodel.context;
 		try {
-			await Engine.api.keyring.addNewAccount();
+			await KeyringController.addNewAccount();
 			this.setState({ selectedAccountIndex: Object.keys(this.props.accounts).length - 1 });
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
@@ -140,5 +142,5 @@ class AccountList extends Component {
 	}
 }
 
-const mapStateToProps = state => ({ accounts: state.backgroundState.preferences.identities });
+const mapStateToProps = state => ({ accounts: state.backgroundState.PreferencesController.identities });
 export default connect(mapStateToProps)(AccountList);

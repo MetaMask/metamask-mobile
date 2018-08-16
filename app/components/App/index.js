@@ -67,12 +67,13 @@ export default class App extends Component {
 	};
 
 	async unlockKeychain() {
+		const { KeyringController } = Engine.datamodel.context;
 		try {
 			// Retreive the credentials
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
-				await Engine.api.keyring.submitPassword(credentials.password);
+				await KeyringController.submitPassword(credentials.password);
 				this.mounted && this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 			} else {
 				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
@@ -84,10 +85,11 @@ export default class App extends Component {
 	}
 
 	onPasswordSaved = async pass => {
+		const { KeyringController } = Engine.datamodel.context;
 		// Here we should create the new vault
 		this.setState({ loading: true });
 		try {
-			await Engine.api.keyring.createNewVaultAndKeychain(pass);
+			await KeyringController.createNewVaultAndKeychain(pass);
 			// mark the user as existing so it doesn't see the create password screen again
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
@@ -97,9 +99,10 @@ export default class App extends Component {
 	};
 
 	onLogin = async password => {
+		const { KeyringController } = Engine.datamodel.context;
 		try {
 			// Restore vault with user entered password
-			await Engine.api.keyring.submitPassword(password);
+			await KeyringController.submitPassword(password);
 			this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 		} catch (e) {
 			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });

@@ -8,6 +8,7 @@ const Aes = NativeModules.Aes;
  */
 export default class Encryptor {
 	key = null;
+
 	_generateSalt(byteCount = 32) {
 		const view = new Uint8Array(byteCount);
 		global.crypto.getRandomValues(view);
@@ -23,6 +24,7 @@ export default class Encryptor {
 		}
 		return this._generateKey(password, this.salt);
 	};
+
 	_encryptWithKey = (text, keyBase64) => {
 		const ivBase64 = this._generateSalt(32);
 		return Aes.encrypt(text, keyBase64, ivBase64).then(cipher => ({ cipher, iv: ivBase64 }));
@@ -32,6 +34,10 @@ export default class Encryptor {
 
 	/**
 	 * Encrypts a JS object using a password (and AES encryption with native libraries)
+	 *
+	 * @param {string} password - Password used for encryption
+	 * @param {object} object - Data object to encrypt
+	 * @returns - Promise resolving to stringified data
 	 */
 	encrypt = async (password, object) => {
 		const key = await this._keyFromPassword(password);
@@ -42,6 +48,10 @@ export default class Encryptor {
 	/**
 	 * Decrypts an encrypted JS object (encryptedString)
 	 * using a password (and AES deccryption with native libraries)
+	 *
+	 * @param {string} password - Password used for decryption
+	 * @param {string} encryptedString - String to decrypt
+	 * @returns - Promise resolving to decrypted data object
 	 */
 	decrypt = async (password, encryptedString) => {
 		const encryptedData = JSON.parse(encryptedString);

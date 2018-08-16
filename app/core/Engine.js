@@ -10,42 +10,20 @@ import {
 	PhishingController,
 	PreferencesController,
 	ShapeShiftController,
-	TokenRatesController
+	TokenRatesController,
+	TransactionController
 } from 'gaba';
 
 import BlockTracker from 'eth-block-tracker';
 import Encryptor from './Encryptor';
 
+const encryptor = new Encryptor();
+
 /**
  * Core controller responsible for composing other GABA controllers together
  * and exposing convenience methods for common wallet operations.
  */
-const encryptor = new Encryptor();
 class Engine {
-	/**
-	 * Child controller instances keyed by controller name
-	 */
-	api = {
-		accountTracker: new AccountTrackerController(),
-		addressBook: new AddressBookController(),
-		blockHistory: new BlockHistoryController(),
-		currencyRate: new CurrencyRateController(),
-		keyring: new KeyringController(
-			{},
-			{
-				encryptor
-			}
-		),
-		network: new NetworkController(undefined, {
-			providerConfig: {}
-		}),
-		networkStatus: new NetworkStatusController(),
-		phishing: new PhishingController(),
-		preferences: new PreferencesController(),
-		shapeShift: new ShapeShiftController(),
-		tokenRates: new TokenRatesController()
-	};
-
 	/**
 	 * ComposableController reference containing all child controllers
 	 */
@@ -56,8 +34,22 @@ class Engine {
 	 */
 	constructor() {
 		if (!Engine.instance) {
-			this.datamodel = new ComposableController(this.api);
-			this.api.network.subscribe(this.refreshNetwork);
+			const keychain = new KeyringController({}, { encryptor });
+			this.datamodel = new ComposableController([
+				keychain,
+				new AccountTrackerController(),
+				new AddressBookController(),
+				new BlockHistoryController(),
+				new CurrencyRateController(),
+				new NetworkController(undefined, { providerConfig: {} }),
+				new NetworkStatusController(),
+				new PhishingController(),
+				new PreferencesController(),
+				new ShapeShiftController(),
+				new TokenRatesController(),
+				new TransactionController(undefined, { sign: keychain.keyring.signTransaction.bind(keychain.keyring) })
+			]);
+			this.datamodel.context.NetworkController.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
 			Engine.instance = this;
 		}
@@ -69,14 +61,16 @@ class Engine {
 	 */
 	refreshNetwork = () => {
 		const {
-			accountTracker,
-			blockHistory,
-			network: { provider }
-		} = this.api;
+			AccountTrackerController,
+			BlockHistoryController,
+			NetworkController: { provider },
+			TransactionController
+		} = this.datamodel.context;
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
-		blockHistory.configure({ provider, blockTracker });
-		accountTracker.configure({ provider, blockTracker });
+		BlockHistoryController.configure({ provider, blockTracker });
+		AccountTrackerController.configure({ provider, blockTracker });
+		TransactionController.configure({ provider });
 		blockTracker.start();
 	};
 }

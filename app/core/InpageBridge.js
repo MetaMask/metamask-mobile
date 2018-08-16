@@ -1,3 +1,7 @@
+/**
+ * Module that listens for and responds to messages from an BackgroundBridge using postMessage
+ * and exposes an Ethereum provider API to the dapp context
+ */
 class InpageBridge {
 	_onMessage(data) {
 		try {
@@ -27,6 +31,9 @@ class InpageBridge {
 		this._network = state.network;
 	}
 
+	/**
+	 * Creates a new InpageBridge instance
+	 */
 	constructor() {
 		this._pending = {};
 		this.isMetamask = true;
@@ -35,10 +42,19 @@ class InpageBridge {
 		});
 	}
 
+	/**
+	 * Returns the connection status of this provider bridge
+	 */
 	isConnected() {
 		return true;
 	}
 
+	/**
+	 * Initiates a synchronous RPC call
+	 *
+	 * @param {object} payload - Payload object containing method name and argument(s)
+	 * @returns - Object containing RPC result and metadata
+	 */
 	send(payload) {
 		let result;
 
@@ -74,6 +90,12 @@ class InpageBridge {
 		};
 	}
 
+	/**
+	 * Initiates an asynchronous RPC call
+	 *
+	 * @param {object} payload - Payload object containing method name and argument(s)
+	 * @param {Function} callback - Function called when operation completes
+	 */
 	sendAsync(payload, callback) {
 		payload = { ...payload, ...{ __mmID: Date.now() } };
 		this._pending[payload.__mmID] = callback;
