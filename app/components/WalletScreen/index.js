@@ -3,6 +3,7 @@ import Settings from '../Settings';
 import NetworkSettings from '../NetworkSettings';
 import SeedWords from '../SeedWords';
 import Asset from '../Asset';
+import AccountDetails from '../AccountDetails';
 import { createStackNavigator } from 'react-navigation';
 
 /**
@@ -12,6 +13,9 @@ import { createStackNavigator } from 'react-navigation';
 export default createStackNavigator({
 	Wallet: {
 		screen: Wallet
+	},
+	AccountDetails: {
+		screen: AccountDetails
 	},
 	Settings: {
 		screen: Settings

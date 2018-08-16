@@ -93,7 +93,11 @@ export default class Login extends Component {
 		/**
 		 * String that contains any error message
 		 */
-		error: PropTypes.string
+		error: PropTypes.string,
+		/**
+		 * Function that will display the import from seed view
+		 */
+		toggleImportFromSeed: PropTypes.func
 	};
 
 	state = {
@@ -134,9 +138,7 @@ export default class Login extends Component {
 		}
 	};
 
-	onPressImport = () => {
-		console.log('TODO...'); // eslint-disable-line
-	};
+	onPressImport = () => this.props.toggleImportFromSeed();
 
 	setPassword = val => this.setState({ password: val });
 
