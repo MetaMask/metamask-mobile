@@ -65,14 +65,31 @@ const styles = StyleSheet.create({
 class AccountList extends Component {
 	static propTypes = {
 		/**
-		 * An object containing each identity in the format addres => account
+		 * An object containing each identity in the format address => account
 		 */
-		accounts: PropTypes.object
+		accounts: PropTypes.object,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
 		selectedAccountIndex: 0
 	};
+
+	getInitialSelectedAccountIndex = () => {
+		const { accounts, selectedAddress } = this.props;
+		Object.keys(accounts).forEach((address, i) => {
+			if (selectedAddress === address) {
+				this.setState({ selectedAccountIndex: i });
+			}
+		});
+	};
+
+	componentDidMount() {
+		this.getInitialSelectedAccountIndex();
+	}
 
 	onAccountChange = async newIndex => {
 		const previousIndex = this.state.selectedAccountIndex;
@@ -142,5 +159,8 @@ class AccountList extends Component {
 	}
 }
 
-const mapStateToProps = state => ({ accounts: state.backgroundState.PreferencesController.identities });
+const mapStateToProps = state => ({
+	accounts: state.backgroundState.PreferencesController.identities,
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+});
 export default connect(mapStateToProps)(AccountList);

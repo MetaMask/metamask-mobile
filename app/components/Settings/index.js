@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
+import { persistor } from '../../store';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -51,6 +52,10 @@ class Settings extends Component {
 		this.changeNetwork('ropsten');
 	};
 
+	logout = () => {
+		persistor.purge();
+	};
+
 	render() {
 		const {
 			BlockHistoryController,
@@ -75,6 +80,8 @@ class Settings extends Component {
 				<Button title="MAINNET" onPress={this.mainnet} />
 				<Button title="RINKEBY" onPress={this.rinkeby} />
 				<Button title="ROPSTEN" onPress={this.ropsten} />
+
+				<Button title="Logout" onPress={this.logout} />
 			</View>
 		);
 	}
