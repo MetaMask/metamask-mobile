@@ -7,8 +7,8 @@ const MOCK_ENGINE = {
 			network: 'bar'
 		}
 	},
-	api: {
-		network: {
+	context: {
+		NetworkController: {
 			provider: {
 				sendAsync(payload, callback) {
 					callback(undefined, true);
@@ -18,7 +18,7 @@ const MOCK_ENGINE = {
 				callback(true);
 			}
 		},
-		preferences: {
+		PreferencesController: {
 			subscribe(callback) {
 				callback(true);
 			}
@@ -36,9 +36,9 @@ const MOCK_WEBVIEW = {
 
 describe('BackgroundBridge', () => {
 	it('should subscribe to network store', () => {
-		const { network, preferences } = MOCK_ENGINE.api;
-		const stub1 = spyOn(network, 'subscribe');
-		const stub2 = spyOn(preferences, 'subscribe');
+		const { NetworkController, PreferencesController } = MOCK_ENGINE.context;
+		const stub1 = spyOn(NetworkController, 'subscribe');
+		const stub2 = spyOn(PreferencesController, 'subscribe');
 		new BackgroundBridge(MOCK_ENGINE);
 		expect(stub1).toBeCalled();
 		expect(stub2).toBeCalled();

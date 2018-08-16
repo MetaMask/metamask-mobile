@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import Screen from '../Screen';
 import { View, Image, StyleSheet } from 'react-native';
+import { colors } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
+		backgroundColor: colors.white,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},

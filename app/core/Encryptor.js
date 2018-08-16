@@ -18,12 +18,7 @@ export default class Encryptor {
 
 	_generateKey = (password, salt) => Aes.pbkdf2(password, salt);
 
-	_keyFromPassword = password => {
-		if (!this.salt) {
-			this.salt = this._generateSalt(16);
-		}
-		return this._generateKey(password, this.salt);
-	};
+	_keyFromPassword = (password, salt) => this._generateKey(password, salt);
 
 	_encryptWithKey = (text, keyBase64) => {
 		const ivBase64 = this._generateSalt(32);
@@ -40,8 +35,10 @@ export default class Encryptor {
 	 * @returns - Promise resolving to stringified data
 	 */
 	encrypt = async (password, object) => {
-		const key = await this._keyFromPassword(password);
+		const salt = this._generateSalt(16);
+		const key = await this._keyFromPassword(password, salt);
 		const result = await this._encryptWithKey(JSON.stringify(object), key);
+		result.salt = salt;
 		return JSON.stringify(result);
 	};
 
@@ -55,7 +52,7 @@ export default class Encryptor {
 	 */
 	decrypt = async (password, encryptedString) => {
 		const encryptedData = JSON.parse(encryptedString);
-		const key = await this._keyFromPassword(password);
+		const key = await this._keyFromPassword(password, encryptedData.salt);
 		const data = await this._decryptWithKey(encryptedData, key);
 
 		return JSON.parse(data);

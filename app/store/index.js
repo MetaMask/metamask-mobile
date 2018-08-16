@@ -1,11 +1,16 @@
 import { createStore } from 'redux';
-import Engine from '../core/Engine';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
-const store = createStore(rootReducer);
 
-// Dispatch on datamodel updates to update redux state
-Engine.datamodel.subscribe(() => {
-	store.dispatch({ type: 'UPDATE_BG_STATE' });
-});
+const persistConfig = {
+	key: 'root',
+	storage,
+	stateReconciler: autoMergeLevel2 // see "Merge Process" section for details.
+};
 
-export default store;
+const pReducer = persistReducer(persistConfig, rootReducer);
+
+export const store = createStore(pReducer);
+export const persistor = persistStore(store);

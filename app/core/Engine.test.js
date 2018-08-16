@@ -1,17 +1,17 @@
 import Engine from './Engine';
-
 describe('Engine', () => {
 	it('should expose an API', () => {
-		expect(Engine.api).toHaveProperty('accountTracker');
-		expect(Engine.api).toHaveProperty('addressBook');
-		expect(Engine.api).toHaveProperty('blockHistory');
-		expect(Engine.api).toHaveProperty('currencyRate');
-		expect(Engine.api).toHaveProperty('keyring');
-		expect(Engine.api).toHaveProperty('network');
-		expect(Engine.api).toHaveProperty('networkStatus');
-		expect(Engine.api).toHaveProperty('phishing');
-		expect(Engine.api).toHaveProperty('preferences');
-		expect(Engine.api).toHaveProperty('shapeShift');
-		expect(Engine.api).toHaveProperty('tokenRates');
+		const engine = Engine.init({});
+		expect(engine.datamodel.context).toHaveProperty('AccountTrackerController');
+		expect(engine.datamodel.context).toHaveProperty('AddressBookController');
+		expect(engine.datamodel.context).toHaveProperty('BlockHistoryController');
+		expect(engine.datamodel.context).toHaveProperty('CurrencyRateController');
+		expect(engine.datamodel.context).toHaveProperty('KeyringController');
+		expect(engine.datamodel.context).toHaveProperty('NetworkController');
+		expect(engine.datamodel.context).toHaveProperty('NetworkStatusController');
+		expect(engine.datamodel.context).toHaveProperty('PhishingController');
+		expect(engine.datamodel.context).toHaveProperty('PreferencesController');
+		expect(engine.datamodel.context).toHaveProperty('ShapeShiftController');
+		expect(engine.datamodel.context).toHaveProperty('TokenRatesController');
 	});
 });

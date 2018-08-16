@@ -103,10 +103,16 @@ export default class Login extends Component {
 		biometryChoice: false
 	};
 
+	mounted = true;
+
 	componentDidMount() {
 		Keychain.getSupportedBiometryType().then(biometryType => {
-			this.setState({ biometryType, biometryChoice: true });
+			this.mounted && this.setState({ biometryType, biometryChoice: true });
 		});
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
 	}
 
 	onLogin = async () => {
@@ -132,6 +138,8 @@ export default class Login extends Component {
 		console.log('TODO...'); // eslint-disable-line
 	};
 
+	setPassword = val => this.setState({ password: val });
+
 	render() {
 		return (
 			<Screen>
@@ -145,9 +153,7 @@ export default class Login extends Component {
 						<TextInput
 							style={styles.input}
 							value={this.state.password}
-							onChangeText={val => {
-								this.setState({ password: val });
-							}}
+							onChangeText={this.setPassword}
 							secureTextEntry
 							placeholder={''}
 							underlineColorAndroid={colors.borderColor}

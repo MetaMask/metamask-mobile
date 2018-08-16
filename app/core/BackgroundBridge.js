@@ -7,7 +7,7 @@ export class BackgroundBridge {
 
 	_onInpageRequest(payload) {
 		const { current } = this._webview;
-		const { provider } = this._engine.api.network;
+		const { provider } = this._engine.context.NetworkController;
 		provider.sendAsync(payload, (error, response) => {
 			current &&
 				current.postMessage(
@@ -38,8 +38,8 @@ export class BackgroundBridge {
 	constructor(engine, webview) {
 		this._engine = engine;
 		this._webview = webview;
-		engine.api.network.subscribe(this._sendStateUpdate);
-		engine.api.preferences.subscribe(this._sendStateUpdate);
+		engine.context.NetworkController.subscribe(this._sendStateUpdate);
+		engine.context.PreferencesController.subscribe(this._sendStateUpdate);
 	}
 
 	/**
