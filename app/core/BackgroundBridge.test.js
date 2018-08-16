@@ -5,22 +5,22 @@ const MOCK_ENGINE = {
 		flatState: {
 			selectedAddress: 'foo',
 			network: 'bar'
-		},
-		context: {
-			NetworkController: {
-				provider: {
-					sendAsync(payload, callback) {
-						callback(undefined, true);
-					}
-				},
-				subscribe(callback) {
-					callback(true);
+		}
+	},
+	context: {
+		NetworkController: {
+			provider: {
+				sendAsync(payload, callback) {
+					callback(undefined, true);
 				}
 			},
-			PreferencesController: {
-				subscribe(callback) {
-					callback(true);
-				}
+			subscribe(callback) {
+				callback(true);
+			}
+		},
+		PreferencesController: {
+			subscribe(callback) {
+				callback(true);
 			}
 		}
 	}
@@ -36,7 +36,7 @@ const MOCK_WEBVIEW = {
 
 describe('BackgroundBridge', () => {
 	it('should subscribe to network store', () => {
-		const { NetworkController, PreferencesController } = MOCK_ENGINE.datamodel.context;
+		const { NetworkController, PreferencesController } = MOCK_ENGINE.context;
 		const stub1 = spyOn(NetworkController, 'subscribe');
 		const stub2 = spyOn(PreferencesController, 'subscribe');
 		new BackgroundBridge(MOCK_ENGINE);

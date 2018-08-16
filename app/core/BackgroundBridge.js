@@ -21,7 +21,7 @@ export class BackgroundBridge {
 
 	_sendStateUpdate = () => {
 		const { current } = this._webview;
-		const { network, selectedAddress } = this._engine.flatState;
+		const { network, selectedAddress } = this._engine.datamodel.flatState;
 		current &&
 			current.postMessage({
 				type: 'STATE_UPDATE',

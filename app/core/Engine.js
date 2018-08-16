@@ -84,7 +84,27 @@ export default {
 		return instance.datamodel.context;
 	},
 	get state() {
-		return instance.datamodel.state;
+		const {
+			AccountTrackerController,
+			CurrencyRateController,
+			KeyringController,
+			NetworkController,
+			NetworkStatusController,
+			PreferencesController,
+			TokenRatesController,
+			TransactionController
+		} = instance.datamodel.state;
+
+		return {
+			AccountTrackerController,
+			CurrencyRateController,
+			KeyringController,
+			NetworkController,
+			NetworkStatusController,
+			PreferencesController,
+			TokenRatesController,
+			TransactionController
+		};
 	},
 	get datamodel() {
 		return instance.datamodel;

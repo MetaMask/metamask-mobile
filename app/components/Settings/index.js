@@ -57,12 +57,7 @@ class Settings extends Component {
 	};
 
 	render() {
-		const {
-			BlockHistoryController,
-			CurrencyRateController,
-			NetworkController,
-			NetworkStatusController
-		} = this.props.backgroundState;
+		const { CurrencyRateController, NetworkController, NetworkStatusController } = this.props.backgroundState;
 
 		return (
 			<View style={styles.wrapper}>
@@ -71,12 +66,6 @@ class Settings extends Component {
 				<Text>NETWORK CODE: {NetworkController.network}</Text>
 				<Text>NETWORK NAME: {NetworkController.provider.type}</Text>
 				<Text>STATUS: {NetworkStatusController.networkStatus.infura[NetworkController.provider.type]}</Text>
-				<Text>
-					BLOCK:{' '}
-					{BlockHistoryController.recentBlocks &&
-						BlockHistoryController.recentBlocks.length &&
-						parseInt(BlockHistoryController.recentBlocks[0].number, 16)}
-				</Text>
 				<Button title="MAINNET" onPress={this.mainnet} />
 				<Button title="RINKEBY" onPress={this.rinkeby} />
 				<Button title="ROPSTEN" onPress={this.ropsten} />

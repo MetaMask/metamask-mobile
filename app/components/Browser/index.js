@@ -72,7 +72,7 @@ export default class Browser extends Component {
 	webview = React.createRef();
 
 	async componentDidMount() {
-		this.backgroundBridge = new BackgroundBridge(Engine.datamodel(), this.webview);
+		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
 		// TODO: The presence of these async statement breaks Jest code coverage
 		const entryScript =

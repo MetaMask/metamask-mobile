@@ -11,7 +11,6 @@ function initalizeEngine(state = {}) {
 	Logger.log('Initializing engine with previous state', state);
 	Engine.init(state);
 	Engine.datamodel.subscribe(() => {
-		Logger.log('Engine datamodel updated', Engine.state.KeyringController);
 		store.dispatch({ type: 'UPDATE_BG_STATE' });
 	});
 }
