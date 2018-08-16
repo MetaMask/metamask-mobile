@@ -34,23 +34,24 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
-			const keychain = new KeyringController(initialState.KeyringController, { encryptor });
-			this.datamodel = new ComposableController([
-				keychain,
-				new AccountTrackerController(initialState.AccountTrackerController),
-				new AddressBookController(initialState.AddressBookController),
-				new BlockHistoryController(initialState.BlockHistoryController),
-				new CurrencyRateController(initialState.CurrencyRateController),
-				new NetworkController(initialState.NetworkController, { providerConfig: {} }),
-				new NetworkStatusController(initialState.NetworkStatusController),
-				new PhishingController(initialState.PhishingController),
-				new PreferencesController(initialState.PreferencesController),
-				new ShapeShiftController(initialState.ShapeShiftController),
-				new TokenRatesController(initialState.TokenRatesController),
-				new TransactionController(initialState.TransactionController, {
-					sign: keychain.keyring.signTransaction.bind(keychain.keyring)
-				})
-			]);
+			const keychain = new KeyringController({ encryptor }, initialState.KeyringController);
+			this.datamodel = new ComposableController(
+				[
+					keychain,
+					new AccountTrackerController(),
+					new AddressBookController(),
+					new BlockHistoryController(),
+					new CurrencyRateController(),
+					new NetworkController({ providerConfig: {} }),
+					new NetworkStatusController(),
+					new PhishingController(),
+					new PreferencesController(),
+					new ShapeShiftController(),
+					new TokenRatesController(),
+					new TransactionController({ sign: keychain.keyring.signTransaction.bind(keychain.keyring) })
+				],
+				initialState
+			);
 			this.datamodel.context.NetworkController.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
 			Engine.instance = this;
