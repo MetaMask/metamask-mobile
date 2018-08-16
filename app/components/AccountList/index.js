@@ -76,7 +76,7 @@ class AccountList extends Component {
 
 	onAccountChange = async newIndex => {
 		const previousIndex = this.state.selectedAccountIndex;
-		const { PreferencesController } = Engine.datamodel.context;
+		const { PreferencesController } = Engine.get().datamodel.context;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.accounts)[newIndex] });
@@ -88,7 +88,7 @@ class AccountList extends Component {
 	};
 
 	addAccount = async () => {
-		const { KeyringController } = Engine.datamodel.context;
+		const { KeyringController } = Engine.get().datamodel.context;
 		try {
 			await KeyringController.addNewAccount();
 			this.setState({ selectedAccountIndex: Object.keys(this.props.accounts).length - 1 });

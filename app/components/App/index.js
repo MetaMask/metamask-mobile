@@ -45,7 +45,7 @@ export default class App extends Component {
 	async componentDidMount() {
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
-			this.setState({ existingUser: true });
+			this.mounted && this.setState({ existingUser: true });
 			this.unlockKeychain();
 		}
 
@@ -67,9 +67,9 @@ export default class App extends Component {
 	};
 
 	async unlockKeychain() {
-		const { KeyringController } = Engine.datamodel.context;
 		try {
 			// Retreive the credentials
+			const { KeyringController } = Engine.get().datamodel.context;
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
@@ -85,7 +85,7 @@ export default class App extends Component {
 	}
 
 	onPasswordSaved = async pass => {
-		const { KeyringController } = Engine.datamodel.context;
+		const { KeyringController } = Engine.get().datamodel.context;
 		// Here we should create the new vault
 		this.setState({ loading: true });
 		try {
@@ -99,7 +99,7 @@ export default class App extends Component {
 	};
 
 	onLogin = async password => {
-		const { KeyringController } = Engine.datamodel.context;
+		const { KeyringController } = Engine.get().datamodel.context;
 		try {
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(password);
@@ -110,6 +110,7 @@ export default class App extends Component {
 	};
 
 	render() {
+		//console.log('App::render', this.state);
 		if (this.state.locked) {
 			return <LockScreen />;
 		} else if (this.state.loggedIn) {
