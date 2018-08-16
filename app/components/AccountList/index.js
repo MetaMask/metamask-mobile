@@ -65,18 +65,35 @@ const styles = StyleSheet.create({
 class AccountList extends Component {
 	static propTypes = {
 		/**
-		 * An object containing each identity in the format addres => account
+		 * An object containing each identity in the format address => account
 		 */
-		accounts: PropTypes.object
+		accounts: PropTypes.object,
+		/**
+		 * A string representing the selected address => account
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
 		selectedAccountIndex: 0
 	};
 
+	getInitialSelectedAccountIndex = () => {
+		const { accounts, selectedAddress } = this.props;
+		Object.keys(accounts).forEach((address, i) => {
+			if (selectedAddress === address) {
+				this.setState({ selectedAccountIndex: i });
+			}
+		});
+	};
+
+	componentDidMount() {
+		this.getInitialSelectedAccountIndex();
+	}
+
 	onAccountChange = async newIndex => {
 		const previousIndex = this.state.selectedAccountIndex;
-		const { PreferencesController } = Engine.datamodel.context;
+		const { PreferencesController } = Engine.context;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.accounts)[newIndex] });
@@ -88,7 +105,7 @@ class AccountList extends Component {
 	};
 
 	addAccount = async () => {
-		const { KeyringController } = Engine.datamodel.context;
+		const { KeyringController } = Engine.context;
 		try {
 			await KeyringController.addNewAccount();
 			this.setState({ selectedAccountIndex: Object.keys(this.props.accounts).length - 1 });
@@ -142,5 +159,8 @@ class AccountList extends Component {
 	}
 }
 
-const mapStateToProps = state => ({ accounts: state.backgroundState.PreferencesController.identities });
+const mapStateToProps = state => ({
+	accounts: state.backgroundState.PreferencesController.identities,
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+});
 export default connect(mapStateToProps)(AccountList);

@@ -60,7 +60,7 @@ class Wallet extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * An object containing each identity in the format addres => account
+		 * An object containing each identity in the format address => account
 		 */
 		accounts: PropTypes.object,
 		/**
