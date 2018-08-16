@@ -10,8 +10,8 @@ const initialState = {
 function initalizeEngine(state = {}) {
 	Logger.log('Initializing engine with previous state', state);
 	Engine.init(state);
-	Engine.get().datamodel.subscribe(() => {
-		Logger.log('Engine datamodel updated', Engine.get().datamodel.state.KeyringController);
+	Engine.datamodel.subscribe(() => {
+		Logger.log('Engine datamodel updated', Engine.state.KeyringController);
 		store.dispatch({ type: 'UPDATE_BG_STATE' });
 	});
 }
@@ -22,7 +22,7 @@ const rootReducer = (state = initialState, action) => {
 			initalizeEngine(action.payload && action.payload.backgroundState);
 			return { ...state, ...action.payload };
 		case 'UPDATE_BG_STATE':
-			return { ...state, backgroundState: Engine.get().datamodel.state };
+			return { ...state, backgroundState: Engine.state };
 		default:
 			return state;
 	}

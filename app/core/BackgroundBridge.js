@@ -7,7 +7,7 @@ export class BackgroundBridge {
 
 	_onInpageRequest(payload) {
 		const { current } = this._webview;
-		const { provider } = this._engine.datamodel.context.NetworkController;
+		const { provider } = this._engine.context.NetworkController;
 		provider.sendAsync(payload, (error, response) => {
 			current &&
 				current.postMessage(
@@ -21,7 +21,7 @@ export class BackgroundBridge {
 
 	_sendStateUpdate = () => {
 		const { current } = this._webview;
-		const { network, selectedAddress } = this._engine.datamodel.flatState;
+		const { network, selectedAddress } = this._engine.flatState;
 		current &&
 			current.postMessage({
 				type: 'STATE_UPDATE',
@@ -38,8 +38,8 @@ export class BackgroundBridge {
 	constructor(engine, webview) {
 		this._engine = engine;
 		this._webview = webview;
-		engine.datamodel.context.NetworkController.subscribe(this._sendStateUpdate);
-		engine.datamodel.context.PreferencesController.subscribe(this._sendStateUpdate);
+		engine.context.NetworkController.subscribe(this._sendStateUpdate);
+		engine.context.PreferencesController.subscribe(this._sendStateUpdate);
 	}
 
 	/**

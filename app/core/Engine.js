@@ -79,12 +79,18 @@ class Engine {
 
 let instance;
 
-Object.freeze(instance);
-
 export default {
-	get: () => instance,
-	init: initialState => {
-		instance = new Engine(initialState);
+	get context() {
+		return instance.datamodel.context;
+	},
+	get state() {
+		return instance.datamodel.state;
+	},
+	get datamodel() {
+		return instance.datamodel;
+	},
+	init(state) {
+		instance = new Engine(state);
 		Object.freeze(instance);
 		return instance;
 	}

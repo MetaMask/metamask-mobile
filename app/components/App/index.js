@@ -69,7 +69,7 @@ export default class App extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const { KeyringController } = Engine.get().datamodel.context;
+			const { KeyringController } = Engine.context;
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
@@ -85,7 +85,7 @@ export default class App extends Component {
 	}
 
 	onPasswordSaved = async pass => {
-		const { KeyringController } = Engine.get().datamodel.context;
+		const { KeyringController } = Engine.context;
 		// Here we should create the new vault
 		this.setState({ loading: true });
 		try {
@@ -99,7 +99,7 @@ export default class App extends Component {
 	};
 
 	onLogin = async password => {
-		const { KeyringController } = Engine.get().datamodel.context;
+		const { KeyringController } = Engine.context;
 		try {
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(password);

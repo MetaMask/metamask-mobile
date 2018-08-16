@@ -36,7 +36,7 @@ class Settings extends Component {
 	};
 
 	changeNetwork(type) {
-		const { NetworkController } = Engine.get().datamodel.context;
+		const { NetworkController } = Engine.context;
 		NetworkController.setProviderType(type);
 	}
 
