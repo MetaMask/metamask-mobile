@@ -47,13 +47,9 @@ class Engine {
 				new PreferencesController(initialState.PreferencesController),
 				new ShapeShiftController(initialState.ShapeShiftController),
 				new TokenRatesController(initialState.TokenRatesController),
-				new TransactionController(
-					initialState.TransactionController,
-					{
-						sign: keychain.keyring.signTransaction.bind(keychain.keyring)
-					},
-					initialState
-				)
+				new TransactionController(initialState.TransactionController, {
+					sign: keychain.keyring.signTransaction.bind(keychain.keyring)
+				})
 			]);
 			this.datamodel.context.NetworkController.subscribe(this.refreshNetwork);
 			this.refreshNetwork();

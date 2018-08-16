@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 
-// import the two exports from the last code snippet.
 import { store, persistor } from '../../store/';
 
 import App from '../App';
