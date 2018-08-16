@@ -69,6 +69,19 @@ class Wallet extends Component {
 		selectedAddress: PropTypes.string
 	};
 
+	renderTabBar() {
+		return (
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.textStyle}
+			/>
+		);
+	}
+
 	render() {
 		const { accounts, selectedAddress } = this.props;
 		const account = accounts[selectedAddress];
@@ -76,19 +89,7 @@ class Wallet extends Component {
 		return (
 			<View style={styles.wrapper}>
 				<AccountOverview account={account} />
-				<ScrollableTabView
-					renderTabBar={() => (
-						// eslint-disable-line react/jsx-no-bind
-						<DefaultTabBar
-							underlineStyle={styles.tabUnderlineStyle}
-							activeTextColor={colors.primary}
-							inactiveTextColor={colors.fontTertiary}
-							backgroundColor={colors.white}
-							tabStyle={styles.tabStyle}
-							textStyle={styles.textStyle}
-						/>
-					)}
-				>
+				<ScrollableTabView renderTabBar={this.renderTabBar}>
 					<Tokens navigation={this.props.navigation} tabLabel="TOKENS" assets={tokens} />
 					<Collectibles navigation={this.props.navigation} tabLabel="COLLECTIBLES" assets={[]} />
 				</ScrollableTabView>
@@ -98,8 +99,8 @@ class Wallet extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.backgroundState.preferences.identities,
-	selectedAddress: state.backgroundState.preferences.selectedAddress
+	accounts: state.backgroundState.PreferencesController.identities,
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(Wallet);

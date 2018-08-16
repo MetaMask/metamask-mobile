@@ -11,5 +11,4 @@ YellowBox.ignoreWarnings(['Module RNOS requires']);
 /**
  * Application entry point responsible for registering root component
  */
-
 AppRegistry.registerComponent(name, () => Root);
