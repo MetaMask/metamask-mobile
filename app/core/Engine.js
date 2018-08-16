@@ -34,10 +34,9 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
-			const keychain = new KeyringController({ encryptor }, initialState.KeyringController);
 			this.datamodel = new ComposableController(
 				[
-					keychain,
+					new KeyringController({ encryptor }, initialState.KeyringController),
 					new AccountTrackerController(),
 					new AddressBookController(),
 					new BlockHistoryController(),
@@ -48,11 +47,19 @@ class Engine {
 					new PreferencesController(),
 					new ShapeShiftController(),
 					new TokenRatesController(),
-					new TransactionController({ sign: keychain.keyring.signTransaction.bind(keychain.keyring) })
+					new TransactionController()
 				],
 				initialState
 			);
-			this.datamodel.context.NetworkController.subscribe(this.refreshNetwork);
+
+			const {
+				KeyringController: { keyring },
+				NetworkController: network,
+				TransactionController: transaction
+			} = this.datamodel.context;
+
+			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
+			network.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
 			Engine.instance = this;
 		}
