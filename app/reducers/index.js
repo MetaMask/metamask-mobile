@@ -8,10 +8,10 @@ const initialState = {
 };
 
 function initalizeEngine(state = {}) {
-	Logger.log('INITIALIZING THE ENGINE WITH PREVIOUS STATE', state);
+	Logger.log('Initializing engine with previous state', state);
 	Engine.init(state);
 	Engine.get().datamodel.subscribe(() => {
-		//Logger.log('ENGINE DATAMODEL UPDATED', Engine.get().datamodel.state.KeyringController);
+		Logger.log('Engine datamodel updated', Engine.get().datamodel.state.KeyringController);
 		store.dispatch({ type: 'UPDATE_BG_STATE' });
 	});
 }

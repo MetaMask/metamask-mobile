@@ -32,7 +32,7 @@ const Nav = createDrawerNavigator(
  */
 export default class App extends Component {
 	state = {
-		locked: false,
+		locked: true,
 		loading: false,
 		existingUser: false,
 		loggedIn: false,
@@ -110,7 +110,6 @@ export default class App extends Component {
 	};
 
 	render() {
-		//console.log('App::render', this.state);
 		if (this.state.locked) {
 			return <LockScreen />;
 		} else if (this.state.loggedIn) {
