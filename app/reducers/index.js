@@ -20,7 +20,7 @@ const rootReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case REHYDRATE:
 			initalizeEngine(action.payload && action.payload.backgroundState);
-			return { ...state, backgroundState: Engine.get().datamodel.state };
+			return { ...state, ...action.payload };
 		case 'UPDATE_BG_STATE':
 			return { ...state, backgroundState: Engine.get().datamodel.state };
 		default:
