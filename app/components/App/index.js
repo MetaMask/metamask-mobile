@@ -49,12 +49,12 @@ export default class App extends Component {
 			this.unlockKeychain();
 		}
 
-		AppState.addEventListener('change', this._handleAppStateChange);
+		AppState.addEventListener('change', this.handleAppStateChange);
 	}
 
 	componentWillUnmount() {
 		this.mounted = false;
-		AppState.removeEventListener('change', this._handleAppStateChange);
+		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
 	handleAppStateChange = nextAppState => {
