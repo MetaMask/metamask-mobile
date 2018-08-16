@@ -1,4 +1,7 @@
-export class InpageBridge {
+/**
+ * Module that listens for and responds to messages from an InpageBridge using postMessage
+ */
+export class BackgroundBridge {
 	_engine;
 	_webview;
 
@@ -26,6 +29,12 @@ export class InpageBridge {
 			});
 	};
 
+	/**
+	 * Creates a new BackgroundBridge instance
+	 *
+	 * @param {Engine} engine - An Engine instance
+	 * @param {object} webview - React ref pointing to a WebView
+	 */
 	constructor(engine, webview) {
 		this._engine = engine;
 		this._webview = webview;
@@ -33,6 +42,12 @@ export class InpageBridge {
 		engine.api.preferences.subscribe(this._sendStateUpdate);
 	}
 
+	/**
+	 * Called when a new message is received from the InpageBridge
+	 *
+	 * @param {string} type - Type associated with this message
+	 * @param {object} payload - Data sent with this message
+	 */
 	onMessage({ type, payload }) {
 		switch (type) {
 			case 'INPAGE_REQUEST':
@@ -42,4 +57,4 @@ export class InpageBridge {
 	}
 }
 
-export default InpageBridge;
+export default BackgroundBridge;

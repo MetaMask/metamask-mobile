@@ -40,9 +40,9 @@
   "dependencies": {
     "base-64": "^0.1.0",
     "buffer": "^4.9.1",
-    "eth-block-tracker": "^3.0.1",
+    "eth-block-tracker": "git://github.com/metamask/eth-block-tracker.git#3.0.1-subscription-fix",
     "events": "^3.0.0",
-    "gaba": "^1.0.0-beta.17",
+    "gaba": "1.0.0-beta.20",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
