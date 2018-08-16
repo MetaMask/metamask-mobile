@@ -54,9 +54,9 @@ class Engine {
 	/**
 	 * Creates a CoreController instance
 	 */
-	constructor() {
+	constructor(_initialState = {}) {
 		if (!Engine.instance) {
-			this.datamodel = new ComposableController(this.api);
+			this.datamodel = new ComposableController(this.api, _initialState);
 			this.api.network.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
 			Engine.instance = this;

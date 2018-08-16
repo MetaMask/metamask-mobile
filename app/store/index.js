@@ -17,5 +17,6 @@ export const store = createStore(pReducer);
 export const persistor = persistStore(store);
 
 Engine.datamodel.subscribe(() => {
+	//console.log('ENGINE DATAMODEL UPDATED', Engine.datamodel.state.keyring);
 	store.dispatch({ type: 'UPDATE_BG_STATE' });
 });

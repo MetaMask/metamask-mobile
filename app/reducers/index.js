@@ -1,3 +1,4 @@
+import { REHYDRATE } from 'redux-persist';
 import Engine from '../core/Engine';
 
 const {
@@ -10,6 +11,10 @@ const initialState = {
 
 const rootReducer = (state = initialState, action) => {
 	switch (action.type) {
+		case REHYDRATE:
+			//console.log('REHYDRATING THE ENGINE', action.payload);
+			Engine.datamodel.state = action.payload.backgroundState;
+			return { ...state, backgroundState: Engine.datamodel.state };
 		case 'UPDATE_BG_STATE':
 			return { ...state, backgroundState: Engine.datamodel.state };
 		default:
