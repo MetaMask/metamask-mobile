@@ -5,22 +5,22 @@ const MOCK_ENGINE = {
 		flatState: {
 			selectedAddress: 'foo',
 			network: 'bar'
-		}
-	},
-	api: {
-		network: {
-			provider: {
-				sendAsync(payload, callback) {
-					callback(undefined, true);
+		},
+		context: {
+			NetworkController: {
+				provider: {
+					sendAsync(payload, callback) {
+						callback(undefined, true);
+					}
+				},
+				subscribe(callback) {
+					callback(true);
 				}
 			},
-			subscribe(callback) {
-				callback(true);
-			}
-		},
-		preferences: {
-			subscribe(callback) {
-				callback(true);
+			PreferencesController: {
+				subscribe(callback) {
+					callback(true);
+				}
 			}
 		}
 	}
