@@ -12,6 +12,23 @@ exports[`Root should render correctly 1`] = `
     }
   }
 >
-  <App />
+  <PersistGate
+    loading={<LockScreen />}
+    persistor={
+      Object {
+        "dispatch": [Function],
+        "flush": [Function],
+        "getState": [Function],
+        "pause": [Function],
+        "persist": [Function],
+        "purge": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+        Symbol(observable): [Function],
+      }
+    }
+  >
+    <App />
+  </PersistGate>
 </Provider>
 `;

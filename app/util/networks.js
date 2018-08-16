@@ -5,7 +5,6 @@
  * This values are used in certain places like
  * navbar and the network switcher.
  */
-
 export default {
 	mainnet: {
 		name: 'Ethereum Main Network',
