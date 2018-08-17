@@ -1,5 +1,6 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
+import Engine from '../core/Engine';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -50,4 +51,21 @@ jest.mock('react-native-fs', () => ({
 	writeFile: jest.fn()
 }));
 
-Date.now = jest.fn(() => 123);
+jest.useFakeTimers();
+
+jest.mock('../core/Engine', () => ({
+	init: () => Engine.init({}),
+	context: {
+		KeyringController: {
+			keyring: {
+				keyrings: [
+					{
+						mnemonic: 'one two three four five six seven eight nine ten eleven twelve'
+					}
+				]
+			}
+		}
+	}
+}));
+
+jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));

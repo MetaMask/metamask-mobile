@@ -50,7 +50,7 @@ exports[`WalletScreen should render correctly 1`] = `
         "key": "StackRouterRoot",
         "routes": Array [
           Object {
-            "key": "id-123-0",
+            "key": "id-1534540399777-0",
             "routeName": "Wallet",
           },
         ],
