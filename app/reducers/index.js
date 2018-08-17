@@ -1,14 +1,12 @@
 import { REHYDRATE } from 'redux-persist';
 import Engine from '../core/Engine';
 import { store } from '../store';
-import Logger from '../util/Logger';
 
 const initialState = {
 	backgroundState: {}
 };
 
 function initalizeEngine(state = {}) {
-	Logger.log('Initializing engine with previous state', state);
 	Engine.init(state);
 	Engine.datamodel.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE' });

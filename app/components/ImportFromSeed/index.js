@@ -104,7 +104,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set restore their account
  * using a seed phrase
  */
-export default class CreatePassword extends Component {
+export default class ImportFromSeed extends Component {
 	static propTypes = {
 		/**
 		 * Function that will be called once the form is submitted
