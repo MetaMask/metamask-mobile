@@ -67,3 +67,5 @@ jest.mock('../core/Engine', () => ({
 		}
 	}
 }));
+
+jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
