@@ -59,6 +59,7 @@
     "react-native-randombytes": "^3.5.0",
     "react-native-remote-svg": "^1.2.0",
     "react-native-scrollable-tab-view": "^0.8.0",
+    "react-native-settings-list": "^1.8.0",
     "react-native-vector-icons": "^4.6.0",
     "react-native-wkwebview-reborn": "1.21.0",
     "react-navigation": "^2.6.2",

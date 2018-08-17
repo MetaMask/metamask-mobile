@@ -4,6 +4,7 @@ import { createDrawerNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
 import CreatePassword from '../CreatePassword';
+import ImportFromSeed from '../ImportFromSeed';
 import LockScreen from '../LockScreen';
 import Main from '../Main';
 import AccountList from '../AccountList';
@@ -37,7 +38,8 @@ export default class App extends Component {
 		existingUser: false,
 		loggedIn: false,
 		appState: 'active',
-		error: null
+		error: null,
+		importFromSeed: false
 	};
 
 	mounted = true;
@@ -86,10 +88,22 @@ export default class App extends Component {
 
 	onPasswordSaved = async pass => {
 		const { KeyringController } = Engine.context;
-		// Here we should create the new vault
 		this.setState({ loading: true });
 		try {
 			await KeyringController.createNewVaultAndKeychain(pass);
+			// mark the user as existing so it doesn't see the create password screen again
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
+		} catch (e) {
+			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
+		}
+	};
+
+	onImportFromSeed = async (pass, seed) => {
+		const { KeyringController } = Engine.context;
+		this.setState({ loading: true });
+		try {
+			await KeyringController.createNewVaultAndRestore(pass, seed);
 			// mark the user as existing so it doesn't see the create password screen again
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
@@ -109,21 +123,43 @@ export default class App extends Component {
 		}
 	};
 
+	toggleImportFromSeed = () => {
+		this.setState({ importFromSeed: !this.state.importFromSeed });
+	};
+
 	render() {
 		if (this.state.locked) {
 			return <LockScreen />;
 		} else if (this.state.loggedIn) {
 			return <Nav />;
 		} else if (!this.state.existingUser) {
+			if (this.state.importFromSeed) {
+				return (
+					<ImportFromSeed
+						onImportFromSeed={this.onImportFromSeed}
+						loading={this.state.loading}
+						error={this.state.error}
+						toggleImportFromSeed={this.toggleImportFromSeed}
+					/>
+				);
+			}
 			return (
 				<CreatePassword
 					onPasswordSaved={this.onPasswordSaved}
 					loading={this.state.loading}
 					error={this.state.error}
+					toggleImportFromSeed={this.toggleImportFromSeed}
 				/>
 			);
 		}
 
-		return <Login onLogin={this.onLogin} loading={this.state.loading} error={this.state.error} />;
+		return (
+			<Login
+				onLogin={this.onLogin}
+				loading={this.state.loading}
+				error={this.state.error}
+				toggleImportFromSeed={this.toggleImportFromSeed}
+			/>
+		);
 	}
 }
