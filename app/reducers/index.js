@@ -8,7 +8,7 @@ const initialState = {
 };
 
 function initalizeEngine(state = {}) {
-	Logger.log('Initializing engine with previous state', state);
+	Logger.log('Initializing engine with previous state', state.KeyringController);
 	Engine.init(state);
 	Engine.datamodel.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE' });
