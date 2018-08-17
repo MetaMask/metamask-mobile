@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
+import Engine from '../../core/Engine';
 import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 
@@ -18,11 +19,11 @@ const styles = StyleSheet.create({
 
 /**
  * View that contains all the different
- * app settings
+ * network settings
  */
-class Settings extends Component {
+class NetworkSettings extends Component {
 	static navigationOptions = {
-		title: 'Settings',
+		title: 'Network',
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -33,51 +34,55 @@ class Settings extends Component {
 		/**
 		 * Object that contains the whole background state
 		 */
-		backgroundState: PropTypes.object,
-		/**
-		 * Object that contains the navigator
-		 */
-		navigation: PropTypes.object
+		backgroundState: PropTypes.object
 	};
+
+	changeNetwork(type) {
+		const { NetworkController } = Engine.context;
+		NetworkController.setProviderType(type);
+	}
+
+	mainnet = () => {
+		this.changeNetwork('mainnet');
+	};
+
+	rinkeby = () => {
+		this.changeNetwork('rinkeby');
+	};
+
+	ropsten = () => {
+		this.changeNetwork('ropsten');
+	};
+
 	logout = () => {
 		persistor.purge();
 	};
 
-	goToNetworkSettings = () => {
-		this.props.navigation.push('NetworkSettings');
-	};
-
-	goToSeedWords = () => {
-		this.props.navigation.push('SeedWords');
-	};
-
 	render() {
-		const { CurrencyRateController, NetworkController, NetworkStatusController } = this.props.backgroundState;
+		const { NetworkController } = this.props.backgroundState;
 
 		return (
 			<View style={styles.wrapper}>
 				<SettingsList borderColor={colors.borderColor} defaultItemSize={50}>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
-						title={'ETH'}
-						titleInfo={`$ ${CurrencyRateController.conversionRate} USD`}
+						title={'mainnet'}
+						titleInfo={NetworkController.provider.type === 'mainnet' ? 'selected' : null}
+						onPress={this.mainnet}
 						hasNavArrow={false}
 					/>
-					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
-						title="Network"
-						titleInfo={NetworkController.provider.type}
-						onPress={this.goToNetworkSettings}
-					/>
-					<SettingsList.Item
-						title="Network Status"
-						titleInfo={NetworkStatusController.networkStatus.infura[NetworkController.provider.type]}
+						title={'ropsten'}
+						titleInfo={NetworkController.provider.type === 'ropsten' ? 'selected' : null}
+						onPress={this.ropsten}
 						hasNavArrow={false}
 					/>
-					<SettingsList.Header headerStyle={styles.separator} />
-					<SettingsList.Item title="Seed Words" onPress={this.goToSeedWords} />
-					<SettingsList.Header headerStyle={styles.separator} />
-					<SettingsList.Item title="Logout" onPress={this.logout} />
+					<SettingsList.Item
+						title={'rinkeby'}
+						titleInfo={NetworkController.provider.type === 'rinkeby' ? 'selected' : null}
+						onPress={this.rinkeby}
+						hasNavArrow={false}
+					/>
 				</SettingsList>
 			</View>
 		);
@@ -85,4 +90,4 @@ class Settings extends Component {
 }
 
 const mapStateToProps = state => ({ backgroundState: state.backgroundState });
-export default connect(mapStateToProps)(Settings);
+export default connect(mapStateToProps)(NetworkSettings);

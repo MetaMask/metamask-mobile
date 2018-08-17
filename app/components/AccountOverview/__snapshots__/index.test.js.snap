@@ -63,27 +63,32 @@ exports[`AccountOverview should render correctly 1`] = `
         }
       }
     >
-      <QRCode
-        bgColor="#333333"
-        fgColor="#FFFFFF"
-        onLoad={[Function]}
-        onLoadEnd={[Function]}
-        size={60}
-        value="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-      />
-      <Component
-        style={
-          Object {
-            "flex": 1,
-            "fontFamily": "Roboto",
-            "fontSize": 12,
-            "fontWeight": "400",
-            "marginTop": 10,
-          }
-        }
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
       >
-        0xe7...B0a1
-      </Component>
+        <QRCode
+          bgColor="#333333"
+          fgColor="#FFFFFF"
+          onLoad={[Function]}
+          onLoadEnd={[Function]}
+          size={60}
+          value="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+        />
+        <Component
+          style={
+            Object {
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "marginTop": 10,
+            }
+          }
+        >
+          0xe7...B0a1
+        </Component>
+      </TouchableOpacity>
     </Component>
   </Component>
 </Component>
