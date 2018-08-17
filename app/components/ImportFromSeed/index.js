@@ -101,7 +101,8 @@ const styles = StyleSheet.create({
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
 /**
- * View where users can set their password for the first time
+ * View where users can set restore their account
+ * using a seed phrase
  */
 export default class CreatePassword extends Component {
 	static propTypes = {

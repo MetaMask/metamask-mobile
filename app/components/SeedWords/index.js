@@ -29,8 +29,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that contains all the different
- * app settings
+ * View that displays the current account seed words
  */
 export default class SeedWords extends Component {
 	static navigationOptions = {

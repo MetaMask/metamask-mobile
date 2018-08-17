@@ -36,8 +36,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that contains all the different
- * app settings
+ * View that contains details about the selected Address
  */
 class AccountDetails extends Component {
 	static navigationOptions = {

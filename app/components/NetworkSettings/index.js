@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 
 /**
  * View that contains all the different
- * app settings
+ * network settings
  */
 class NetworkSettings extends Component {
 	static navigationOptions = {
@@ -34,11 +34,7 @@ class NetworkSettings extends Component {
 		/**
 		 * Object that contains the whole background state
 		 */
-		backgroundState: PropTypes.object,
-		/**
-		 * Object that contains the navigator
-		 */
-		navigation: PropTypes.object
+		backgroundState: PropTypes.object
 	};
 
 	changeNetwork(type) {
@@ -60,10 +56,6 @@ class NetworkSettings extends Component {
 
 	logout = () => {
 		persistor.purge();
-	};
-
-	goToNetworkSettings = () => {
-		this.props.navigation.push('NetworkSettings');
 	};
 
 	render() {

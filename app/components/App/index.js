@@ -88,7 +88,6 @@ export default class App extends Component {
 
 	onPasswordSaved = async pass => {
 		const { KeyringController } = Engine.context;
-		// Here we should create the new vault
 		this.setState({ loading: true });
 		try {
 			await KeyringController.createNewVaultAndKeychain(pass);
@@ -102,7 +101,6 @@ export default class App extends Component {
 
 	onImportFromSeed = async (pass, seed) => {
 		const { KeyringController } = Engine.context;
-		// Here we should create the new vault
 		this.setState({ loading: true });
 		try {
 			await KeyringController.createNewVaultAndRestore(pass, seed);
