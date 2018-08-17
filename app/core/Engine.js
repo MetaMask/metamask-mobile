@@ -34,24 +34,32 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
-			const keychain = new KeyringController(initialState.KeyringController, { encryptor });
-			this.datamodel = new ComposableController([
-				keychain,
-				new AccountTrackerController(initialState.AccountTrackerController),
-				new AddressBookController(initialState.AddressBookController),
-				new BlockHistoryController(initialState.BlockHistoryController),
-				new CurrencyRateController(initialState.CurrencyRateController),
-				new NetworkController(initialState.NetworkController, { providerConfig: {} }),
-				new NetworkStatusController(initialState.NetworkStatusController),
-				new PhishingController(initialState.PhishingController),
-				new PreferencesController(initialState.PreferencesController),
-				new ShapeShiftController(initialState.ShapeShiftController),
-				new TokenRatesController(initialState.TokenRatesController),
-				new TransactionController(initialState.TransactionController, {
-					sign: keychain.keyring.signTransaction.bind(keychain.keyring)
-				})
-			]);
-			this.datamodel.context.NetworkController.subscribe(this.refreshNetwork);
+			this.datamodel = new ComposableController(
+				[
+					new KeyringController({ encryptor }, initialState.KeyringController),
+					new AccountTrackerController(),
+					new AddressBookController(),
+					new BlockHistoryController(),
+					new CurrencyRateController(),
+					new NetworkController({ providerConfig: {} }),
+					new NetworkStatusController(),
+					new PhishingController(),
+					new PreferencesController(),
+					new ShapeShiftController(),
+					new TokenRatesController(),
+					new TransactionController()
+				],
+				initialState
+			);
+
+			const {
+				KeyringController: { keyring },
+				NetworkController: network,
+				TransactionController: transaction
+			} = this.datamodel.context;
+
+			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
+			network.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
 			Engine.instance = this;
 		}
