@@ -72,7 +72,7 @@ exports[`Main should render correctly 1`] = `
             "routeName": "Wallet",
             "routes": Array [
               Object {
-                "key": "id-123-0",
+                "key": "id-1534540399226-0",
                 "routeName": "Wallet",
               },
             ],
@@ -85,7 +85,7 @@ exports[`Main should render correctly 1`] = `
             "routeName": "Transfer",
             "routes": Array [
               Object {
-                "key": "id-123-1",
+                "key": "id-1534540399226-1",
                 "routeName": "Transfer",
               },
             ],

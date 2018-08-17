@@ -51,7 +51,7 @@ jest.mock('react-native-fs', () => ({
 	writeFile: jest.fn()
 }));
 
-Date.now = jest.fn(() => 123);
+jest.useFakeTimers();
 
 jest.mock('../core/Engine', () => ({
 	init: () => Engine.init({}),
