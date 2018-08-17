@@ -41,7 +41,28 @@ class Engine {
 					new AddressBookController(),
 					new BlockHistoryController(),
 					new CurrencyRateController(),
-					new NetworkController({ providerConfig: {} }),
+					new NetworkController({
+						providerConfig: {
+							static: {
+								eth_sendTransaction: async (payload, next, end) => {
+									const { TransactionController } = this.datamodel.context;
+									try {
+										const { result } = await TransactionController.addTransaction(payload.params[0]);
+
+										setTimeout(async () => {
+											const transactions = TransactionController.state.transactions;
+											await TransactionController.approveTransaction(transactions[transactions.length - 1].id);
+										}, 2000);
+
+										const hash = await result;
+										end(undefined, hash);
+									} catch(error) {
+										end(error);
+									}
+								}
+							}
+						}
+					}),
 					new NetworkStatusController(),
 					new PhishingController(),
 					new PreferencesController(),

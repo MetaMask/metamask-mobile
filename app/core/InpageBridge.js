@@ -22,6 +22,10 @@ class InpageBridge {
 
 	_onBackgroundResponse({ __mmID, error, response }) {
 		const callback = this._pending[__mmID];
+		console.log('here', response);
+		if (response.error) {
+			console.error(response.error.message);
+		}
 		callback && callback(error, response);
 		delete this._pending[__mmID];
 	}
