@@ -88,7 +88,7 @@ class Wallet extends Component {
 
 		return (
 			<View style={styles.wrapper}>
-				<AccountOverview account={account} />
+				<AccountOverview account={account} navigation={this.props.navigation} />
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
 					<Tokens navigation={this.props.navigation} tabLabel="TOKENS" assets={tokens} />
 					<Collectibles navigation={this.props.navigation} tabLabel="COLLECTIBLES" assets={[]} />

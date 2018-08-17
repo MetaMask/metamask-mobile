@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode';
 import { colors, fontStyles } from '../../styles/common';
@@ -55,10 +55,18 @@ export default class AccountOverview extends Component {
 		/**
 		 * Object that represents the selected account
 		 */
-		account: PropTypes.object
+		account: PropTypes.object,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
 	};
 	onDeposit = () => true;
 	onSend = () => true;
+
+	goToAccountDetails = () => {
+		this.props.navigation.push('AccountDetails');
+	};
 
 	render() {
 		const {
@@ -73,8 +81,10 @@ export default class AccountOverview extends Component {
 						<Text style={styles.amountFiat}>${balanceFiat}</Text>
 					</View>
 					<View style={styles.right}>
-						<QRCode value={address} size={60} bgColor={colors.fontPrimary} fgColor={colors.white} />
-						<Text style={styles.address}>{`${address.substr(0, 4)}...${address.substr(-4)}`}</Text>
+						<TouchableOpacity onPress={this.goToAccountDetails}>
+							<QRCode value={address} size={60} bgColor={colors.fontPrimary} fgColor={colors.white} />
+							<Text style={styles.address}>{`${address.substr(0, 4)}...${address.substr(-4)}`}</Text>
+						</TouchableOpacity>
 					</View>
 				</View>
 			</View>

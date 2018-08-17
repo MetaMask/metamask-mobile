@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 		padding: 20
 	},
 	logoWrapper: {
-		marginTop: Platform.OS === 'android' ? 40 : 100,
+		marginTop: Platform.OS === 'android' ? 20 : 50,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		height: 100
 	},
 	title: {
-		fontSize: Platform.OS === 'android' ? 30 : 35,
+		fontSize: Platform.OS === 'android' ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.title,
@@ -82,20 +82,34 @@ const styles = StyleSheet.create({
 	seed: {
 		color: colors.fontSecondary,
 		...fontStyles.normal
+	},
+	seedPhrase: {
+		marginTop: 10,
+		marginBottom: 10,
+		backgroundColor: colors.white,
+		paddingTop: 20,
+		paddingBottom: 20,
+		paddingLeft: 20,
+		paddingRight: 20,
+		fontSize: 20,
+		borderRadius: 10,
+		height: 110,
+		...fontStyles.normal
 	}
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 
 /**
- * View where users can set their password for the first time
+ * View where users can set restore their account
+ * using a seed phrase
  */
 export default class CreatePassword extends Component {
 	static propTypes = {
 		/**
 		 * Function that will be called once the form is submitted
 		 */
-		onPasswordSaved: PropTypes.func,
+		onImportFromSeed: PropTypes.func,
 		/**
 		 * Boolean that lets the view know if the parent is doing any processing
 		 * and if that's the case, show a spinner
@@ -106,7 +120,7 @@ export default class CreatePassword extends Component {
 		 */
 		error: PropTypes.string,
 		/**
-		 * Function that will display the import from seed view
+		 * Function that will toggle the visibility of this view
 		 */
 		toggleImportFromSeed: PropTypes.func
 	};
@@ -114,6 +128,7 @@ export default class CreatePassword extends Component {
 	state = {
 		password: '',
 		confirmPassword: '',
+		seed: '',
 		biometryType: null,
 		biometryChoice: false
 	};
@@ -130,13 +145,18 @@ export default class CreatePassword extends Component {
 		this.mounted = false;
 	}
 
-	onPressCreate = async () => {
+	onPressImport = async () => {
 		let error = null;
 		if (this.state.password.length < 8) {
 			error = 'The password needs to be at least 8 chars long';
 		} else if (this.state.password !== this.state.confirmPassword) {
 			error = `Password doesn't match`;
 		}
+
+		if (this.state.seed.split(' ').length !== 12) {
+			error = 'The seed needs to be 12 words';
+		}
+
 		if (error) {
 			Alert.alert('Error', error);
 		} else {
@@ -149,7 +169,7 @@ export default class CreatePassword extends Component {
 					authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
 				};
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-				this.props.onPasswordSaved(this.state.password);
+				this.props.onImportFromSeed(this.state.password, this.state.seed);
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -162,10 +182,22 @@ export default class CreatePassword extends Component {
 		}
 	};
 
-	onPressImport = () => this.props.toggleImportFromSeed();
+	onCancel = () => this.props.toggleImportFromSeed();
 
 	onBiometryChoiceChange = value => {
 		this.setState({ biometryChoice: value });
+	};
+
+	onSeedWordsChange = value => {
+		this.setState({ seed: value });
+	};
+
+	onPasswordChange = val => {
+		this.setState({ password: val });
+	};
+
+	onPasswordConfirmChange = val => {
+		this.setState({ confirmPassword: val });
 	};
 
 	render() {
@@ -175,13 +207,21 @@ export default class CreatePassword extends Component {
 					<View style={styles.logoWrapper}>
 						<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
 					</View>
-					<Text style={styles.title}>Create Password</Text>
+					<Text style={styles.title}>Import from seed</Text>
+					<TextInput
+						value={this.state.seedWords}
+						numberOfLines={3}
+						multiline
+						style={styles.seedPhrase}
+						placeholder={'Enter your seed phrase here'}
+						onChangeText={this.onSeedWordsChange}
+					/>
 					<View style={styles.field}>
 						<Text style={styles.label}>New Password (min 8 chars)</Text>
 						<TextInput
 							style={styles.input}
 							value={this.state.password}
-							onChangeText={val => this.setState({ password: val })} // eslint-disable-line  react/jsx-no-bind
+							onChangeText={this.onPasswordChange}
 							secureTextEntry
 							placeholder={''}
 							underlineColorAndroid={colors.borderColor}
@@ -192,7 +232,7 @@ export default class CreatePassword extends Component {
 						<TextInput
 							style={styles.input}
 							value={this.state.confirmPassword}
-							onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+							onChangeText={this.onPasswordConfirmChange}
 							secureTextEntry
 							placeholder={''}
 							underlineColorAndroid={colors.borderColor}
@@ -207,14 +247,14 @@ export default class CreatePassword extends Component {
 					)}
 					{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 					<View style={styles.ctaWrapper}>
-						<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onPressCreate}>
-							{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'CREATE'}
+						<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onPressImport}>
+							{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'IMPORT'}
 						</Button>
 					</View>
 
 					<View style={styles.footer}>
-						<Button style={styles.seed} onPress={this.onPressImport}>
-							Import with seed phrase
+						<Button style={styles.seed} onPress={this.onCancel}>
+							Cancel
 						</Button>
 					</View>
 				</ScrollView>
