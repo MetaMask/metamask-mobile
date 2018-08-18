@@ -24,7 +24,7 @@ export default function getNavbarOptions(title, navigation) {
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerRight: (
 			<TouchableOpacity
-				testID={'settings-button'}
+				testID={'navbar-settings-button'}
 				style={styles.rightButton}
 				onPress={() => navigation.navigate('Settings')} // eslint-disable-line react/jsx-no-bind
 			>

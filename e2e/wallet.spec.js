@@ -1,6 +1,7 @@
 'use strict';
 
 const TEST_SEED_WORDS = 'recipe silver label ensure thing vendor abuse twin wait receive unaware flower';
+const TEST_ADDRESS = '0x4a6d01f1bbf8197ab8f6b0b5bd88e04cd525fab8';
 
 describe('Wallet', () => {
 	it('should be able to restore accounts from seed', async () => {
@@ -11,13 +12,10 @@ describe('Wallet', () => {
 		await element(by.id('input-password')).typeText('Str0ngP@ss!');
 		await element(by.id('input-password-confirm')).typeText('Str0ngP@ss!\n');
 		await element(by.id('submit')).tap();
-	});
-
-	it('should display the seedwords for the current account', async () => {
 		await waitFor(element(by.id('wallet-screen')))
 			.toBeVisible()
 			.withTimeout(10000);
-		await element(by.id('settings-button')).tap();
+		await element(by.id('navbar-settings-button')).tap();
 		await waitFor(element(by.id('settings-screen')))
 			.toBeVisible()
 			.withTimeout(10000);
@@ -28,12 +26,49 @@ describe('Wallet', () => {
 		await expect(element(by.id('current-seed-words'))).toHaveText(TEST_SEED_WORDS);
 	});
 
+	it('should be able to add new accounts', async () => {
+		await device.launchApp({ newInstance: true });
+		await waitFor(element(by.id('wallet-screen')))
+			.toBeVisible()
+			.withTimeout(10000);
+		await element(by.id('navbar-account-button')).tap();
+		await waitFor(element(by.id('account-list')))
+			.toBeVisible()
+			.withTimeout(10000);
+		await element(by.id('add-account-button')).tap();
+		await expect(element(by.text('Account 2')).atIndex(0)).toBeVisible();
+	});
+
+	it('should be able to switch accounts', async () => {
+		await device.launchApp({ newInstance: true });
+		await waitFor(element(by.id('wallet-screen')))
+			.toBeVisible()
+			.withTimeout(10000);
+		await element(by.id('navbar-account-button')).tap();
+		await waitFor(element(by.id('account-list')))
+			.toBeVisible()
+			.withTimeout(10000);
+		await element(by.text('Account 1'))
+			.atIndex(0)
+			.tap();
+
+		//Close the side menu by tapping outside
+		await element(by.id('account-list-title')).tap();
+
+		await element(by.id('account-qr-button')).tap();
+
+		await waitFor(element(by.id('account-details-screen')))
+			.toBeVisible()
+			.withTimeout(10000);
+		await expect(element(by.id('public-address-input'))).toHaveText(TEST_ADDRESS);
+	});
+
 	it('should be able to switch networks', async () => {
 		await device.launchApp({ newInstance: true });
 		await waitFor(element(by.id('wallet-screen')))
 			.toBeVisible()
 			.withTimeout(10000);
-		await element(by.id('settings-button')).tap();
+		await element(by.id('navbar-settings-button')).tap();
 		await waitFor(element(by.id('settings-screen')))
 			.toBeVisible()
 			.withTimeout(10000);

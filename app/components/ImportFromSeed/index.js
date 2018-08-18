@@ -262,7 +262,6 @@ export default class ImportFromSeed extends Component {
 								testID={'submit'}
 							>
 								{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'IMPORT'}
-								IMPORT
 							</Button>
 						</View>
 
