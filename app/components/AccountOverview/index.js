@@ -74,7 +74,7 @@ export default class AccountOverview extends Component {
 		} = this.props;
 
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'account-overview'}>
 				<View style={styles.row}>
 					<View style={styles.left}>
 						<Text style={styles.label}>{name}</Text>

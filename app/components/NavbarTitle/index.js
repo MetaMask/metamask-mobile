@@ -55,7 +55,9 @@ class NavbarTitle extends Component {
 				<Text style={styles.title}>{title}</Text>
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
-					<Text style={styles.networkName}>{name}</Text>
+					<Text style={styles.networkName} testID={'navbar-title-network'}>
+						{name}
+					</Text>
 				</View>
 			</View>
 		);

@@ -204,58 +204,72 @@ export default class ImportFromSeed extends Component {
 		return (
 			<Screen>
 				<ScrollView style={styles.wrapper}>
-					<View style={styles.logoWrapper}>
-						<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
-					</View>
-					<Text style={styles.title}>Import from seed</Text>
-					<TextInput
-						value={this.state.seedWords}
-						numberOfLines={3}
-						multiline
-						style={styles.seedPhrase}
-						placeholder={'Enter your seed phrase here'}
-						onChangeText={this.onSeedWordsChange}
-					/>
-					<View style={styles.field}>
-						<Text style={styles.label}>New Password (min 8 chars)</Text>
-						<TextInput
-							style={styles.input}
-							value={this.state.password}
-							onChangeText={this.onPasswordChange}
-							secureTextEntry
-							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
-						/>
-					</View>
-					<View style={styles.field}>
-						<Text style={styles.label}>Confirm Password</Text>
-						<TextInput
-							style={styles.input}
-							value={this.state.confirmPassword}
-							onChangeText={this.onPasswordConfirmChange}
-							secureTextEntry
-							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
-						/>
-					</View>
-
-					{this.state.biometryType && (
-						<View style={styles.field}>
-							<Text style={styles.label}>Enable {this.state.biometryType}</Text>
-							<Switch onValueChange={this.onBiometryChoiceChange} value={this.state.biometryChoice} />
+					<View testID={'import-from-seed-screen'}>
+						<View style={styles.logoWrapper}>
+							<Image
+								source={require('../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
+							/>
 						</View>
-					)}
-					{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
-					<View style={styles.ctaWrapper}>
-						<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onPressImport}>
-							{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'IMPORT'}
-						</Button>
-					</View>
+						<Text style={styles.title}>Import from seed</Text>
+						<TextInput
+							value={this.state.seedWords}
+							numberOfLines={3}
+							multiline
+							style={styles.seedPhrase}
+							placeholder={'Enter your seed phrase here'}
+							onChangeText={this.onSeedWordsChange}
+							testID={'input-seed-phrase'}
+						/>
+						<View style={styles.field}>
+							<Text style={styles.label}>New Password (min 8 chars)</Text>
+							<TextInput
+								style={styles.input}
+								value={this.state.password}
+								onChangeText={this.onPasswordChange}
+								secureTextEntry
+								placeholder={''}
+								underlineColorAndroid={colors.borderColor}
+								testID={'input-password'}
+							/>
+						</View>
+						<View style={styles.field}>
+							<Text style={styles.label}>Confirm Password</Text>
+							<TextInput
+								style={styles.input}
+								value={this.state.confirmPassword}
+								onChangeText={this.onPasswordConfirmChange}
+								secureTextEntry
+								placeholder={''}
+								underlineColorAndroid={colors.borderColor}
+								testID={'input-password-confirm'}
+							/>
+						</View>
 
-					<View style={styles.footer}>
-						<Button style={styles.seed} onPress={this.onCancel}>
-							Cancel
-						</Button>
+						{this.state.biometryType && (
+							<View style={styles.field}>
+								<Text style={styles.label}>Enable {this.state.biometryType}</Text>
+								<Switch onValueChange={this.onBiometryChoiceChange} value={this.state.biometryChoice} />
+							</View>
+						)}
+						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
+						<View style={styles.ctaWrapper}>
+							<Button
+								style={styles.ctaText}
+								containerStyle={styles.cta}
+								onPress={this.onPressImport}
+								testID={'submit'}
+							>
+								{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'IMPORT'}
+							</Button>
+						</View>
+
+						<View style={styles.footer}>
+							<Button style={styles.seed} onPress={this.onCancel}>
+								Cancel
+							</Button>
+						</View>
 					</View>
 				</ScrollView>
 			</Screen>

@@ -46,11 +46,13 @@ export default class Asset extends Component {
 		} = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
-				<View style={styles.assetOverviewWrapper}>
-					<AssetOverview asset={navigation && params} />
-				</View>
-				<View>
-					<Transactions />
+				<View testID={'asset'}>
+					<View style={styles.assetOverviewWrapper}>
+						<AssetOverview asset={navigation && params} />
+					</View>
+					<View>
+						<Transactions />
+					</View>
 				</View>
 			</ScrollView>
 		);
