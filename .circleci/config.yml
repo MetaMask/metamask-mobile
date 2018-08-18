@@ -1,0 +1,64 @@
+aliases:
+  - &restore-cache
+    keys:
+      - v2-test-{{ .Branch }}-{{ checksum "package.json" }}
+      - v2-test-{{ .Branch }}
+
+  - &save-node-cache
+    key: v2-test-{{ .Branch }}-{{ checksum "package.json" }}
+    paths:
+      - node_modules
+
+  - &save-ios-cache
+    key: v2-test-{{ .Branch }}-{{ checksum "package.json" }}
+    paths:
+      - node_modules
+      - ios/build
+
+  - &install-node-dependencies
+    |
+      npm install
+
+defaults: &defaults
+  working_directory: ~/react-native-detox-example
+
+jobs:
+  test-ios:
+    <<: *defaults
+    macos:
+      xcode: "9.2"
+    dependencies:
+      pre:
+
+    steps:
+      - checkout
+      - run:
+          name: Load dependencies
+          command:
+            |
+              brew update
+              brew tap wix/brew
+              brew install --HEAD applesimutils
+              npm install -g detox-cli
+      - run: *install-node-dependencies
+      - run: detox build -c ios.sim.release
+      - run: detox test -c ios.sim.release
+
+  test-js:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - restore_cache: *restore-cache
+      - run: *install-node-dependencies
+      - save_cache: *save-ios-cache
+      - run: npm test
+
+workflows:
+  version: 2
+
+  build:
+    jobs:
+      - test-js
+      - test-ios
