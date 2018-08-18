@@ -1,11 +1,9 @@
-import * as Pkg from '../package.json'; // eslint-disable-line import/no-namespace
-const { config } = Pkg.detox;
+const config = require('../package.json').detox; // eslint-disable-line
 
 import detox from 'detox';
-
 import adapter from 'detox/runners/jest/adapter';
 
-jest.setTimeout(120000);
+jest.setTimeout(60000);
 jasmine.getEnv().addReporter(adapter);
 
 beforeAll(async () => {
