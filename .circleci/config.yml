@@ -20,7 +20,7 @@ aliases:
       npm install
 
 defaults: &defaults
-  working_directory: ~/react-native-detox-example
+  working_directory: ~/MetaMask
 
 jobs:
   test-ios:
