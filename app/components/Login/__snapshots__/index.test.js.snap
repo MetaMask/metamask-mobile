@@ -12,131 +12,135 @@ exports[`Login should render correctly 1`] = `
     }
   >
     <Component
-      style={
-        Object {
-          "alignItems": "center",
-          "justifyContent": "center",
-          "marginTop": 100,
-        }
-      }
-    >
-      <Image
-        resizeMethod="auto"
-        source={
-          Object {
-            "testUri": "../../../app/images/fox.png",
-          }
-        }
-        style={
-          Object {
-            "height": 100,
-            "width": 100,
-          }
-        }
-      />
-    </Component>
-    <Component
-      style={
-        Object {
-          "color": "#1B344D",
-          "fontFamily": "Roboto",
-          "fontSize": 35,
-          "fontWeight": "500",
-          "justifyContent": "center",
-          "marginBottom": 20,
-          "marginTop": 20,
-          "textAlign": "center",
-        }
-      }
-    >
-      Welcome Back!
-    </Component>
-    <Component
-      style={
-        Object {
-          "marginBottom": 10,
-        }
-      }
+      testID="login"
     >
       <Component
         style={
           Object {
-            "fontSize": 16,
-            "marginBottom": 10,
-            "marginTop": 10,
-          }
-        }
-      >
-        Password
-      </Component>
-      <TextInput
-        allowFontScaling={true}
-        onChangeText={[Function]}
-        placeholder=""
-        secureTextEntry={true}
-        style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "padding": 10,
-          }
-        }
-        underlineColorAndroid="#CCCCCC"
-        value=""
-      />
-    </Component>
-    <Component
-      style={
-        Object {
-          "marginTop": 20,
-        }
-      }
-    >
-      <Button
-        containerStyle={
-          Object {
-            "backgroundColor": "#f7861ce6",
-            "borderRadius": 4,
-            "flex": 1,
-            "height": 50,
+            "alignItems": "center",
             "justifyContent": "center",
+            "marginTop": 100,
           }
         }
-        onPress={[Function]}
+      >
+        <Image
+          resizeMethod="auto"
+          source={
+            Object {
+              "testUri": "../../../app/images/fox.png",
+            }
+          }
+          style={
+            Object {
+              "height": 100,
+              "width": 100,
+            }
+          }
+        />
+      </Component>
+      <Component
         style={
           Object {
-            "color": "#FFFFFF",
+            "color": "#1B344D",
             "fontFamily": "Roboto",
+            "fontSize": 35,
             "fontWeight": "500",
+            "justifyContent": "center",
+            "marginBottom": 20,
+            "marginTop": 20,
+            "textAlign": "center",
           }
         }
       >
-        LOG IN
-      </Button>
-    </Component>
-    <Component
-      style={
-        Object {
-          "marginTop": 40,
-        }
-      }
-    >
-      <Button
-        onPress={[Function]}
+        Welcome Back!
+      </Component>
+      <Component
         style={
           Object {
-            "color": "#999999",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+            "marginBottom": 10,
           }
         }
       >
-        Import with seed phrase
-      </Button>
+        <Component
+          style={
+            Object {
+              "fontSize": 16,
+              "marginBottom": 10,
+              "marginTop": 10,
+            }
+          }
+        >
+          Password
+        </Component>
+        <TextInput
+          allowFontScaling={true}
+          onChangeText={[Function]}
+          placeholder=""
+          secureTextEntry={true}
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "padding": 10,
+            }
+          }
+          underlineColorAndroid="#CCCCCC"
+          value=""
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "marginTop": 20,
+          }
+        }
+      >
+        <Button
+          containerStyle={
+            Object {
+              "backgroundColor": "#f7861ce6",
+              "borderRadius": 4,
+              "flex": 1,
+              "height": 50,
+              "justifyContent": "center",
+            }
+          }
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#FFFFFF",
+              "fontFamily": "Roboto",
+              "fontWeight": "500",
+            }
+          }
+        >
+          LOG IN
+        </Button>
+      </Component>
+      <Component
+        style={
+          Object {
+            "marginTop": 40,
+          }
+        }
+      >
+        <Button
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Import with seed phrase
+        </Button>
+      </Component>
     </Component>
   </ScrollView>
 </Screen>
