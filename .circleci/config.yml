@@ -62,8 +62,7 @@ jobs:
               brew tap wix/brew
               brew install --HEAD applesimutils
               npm install -g detox-cli
-      - run: detox build -c ios.sim.release
-      - run: detox test -c ios.sim.release
+      - run: npm run test:e2e:ios
 
   test-coverage:
     <<: *defaults

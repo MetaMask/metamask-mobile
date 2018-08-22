@@ -13,7 +13,7 @@
     "start:android": "npm run build && react-native run-android",
     "test:unit": "jest",
     "test:unit:update": "jest -u",
-    "test:e2e": "detox build && detox test --loglevel verbose",
+    "test:e2e:ios": "detox build && detox test",
     "postinstall": "./scripts/postinstall.sh && npm run build"
   },
   "prettier": {
