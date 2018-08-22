@@ -1,17 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {
-	ActivityIndicator,
-	ScrollView,
-	Switch,
-	Alert,
-	Text,
-	View,
-	TextInput,
-	StyleSheet,
-	Platform,
-	Image
-} from 'react-native';
+import { ActivityIndicator, ScrollView, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
 import Button from 'react-native-button';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
@@ -164,10 +153,6 @@ export default class CreatePassword extends Component {
 
 	onPressImport = () => this.props.toggleImportFromSeed();
 
-	onBiometryChoiceChange = value => {
-		this.setState({ biometryChoice: value });
-	};
-
 	render() {
 		return (
 			<Screen>
@@ -206,12 +191,6 @@ export default class CreatePassword extends Component {
 							/>
 						</View>
 
-						{this.state.biometryType && (
-							<View style={styles.field}>
-								<Text style={styles.label}>Enable {this.state.biometryType}</Text>
-								<Switch onValueChange={this.onBiometryChoiceChange} value={this.state.biometryChoice} />
-							</View>
-						)}
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 						<View style={styles.ctaWrapper}>
 							<Button

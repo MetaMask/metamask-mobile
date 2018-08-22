@@ -9,9 +9,19 @@ aliases:
     paths:
       - node_modules
 
+  - &restore-coverage
+    key: v1.0.0-{{ .Branch }}-{{ checksum "coverage/coverage-final.json" }}
+    paths:
+      - coverage
+
+  - &save-coverage
+    key: v1.0.0-{{ .Branch }}-{{ checksum "coverage/coverage-final.json" }}
+    paths:
+      - coverage
+
   - &install-node-dependencies
-    |
-      npm install
+      |
+        npm install
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -44,6 +54,7 @@ jobs:
       - checkout
       - restore_cache: *restore-cache
       - run: npm run test:unit
+      - save_cache: *save-coverage
 
   test-e2e-ios:
     <<: *defaults
@@ -70,7 +81,7 @@ jobs:
       - image: circleci/node:9
     steps:
       - checkout
-      - restore_cache: *restore-cache
+      - restore_cache: *restore-coverage
       - run: npm install -g codecov
       - run: codecov
 
@@ -90,5 +101,5 @@ workflows:
             - prep-deps
       - test-coverage:
           requires:
-            - prep-deps
+            - test-unit
 
