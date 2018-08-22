@@ -82,14 +82,14 @@ workflows:
       - prep-deps
       - lint:
           requires:
-            - prep-deps-npm
+            - prep-deps
       - test-unit:
           requires:
-            - prep-deps-npm
+            - prep-deps
       - test-e2e-ios:
           requires:
-            - prep-deps-npm
+            - prep-deps
       - test-coverage:
           requires:
-            - prep-deps-npm
+            - prep-deps
 
