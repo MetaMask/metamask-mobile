@@ -1,11 +1,11 @@
 aliases:
   - &restore-cache
     keys:
-      - v2-test-{{ .Branch }}-{{ checksum "package.json" }}
-      - v2-test-{{ .Branch }}
+      - v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.0-{{ .Branch }}
 
   - &save-cache
-    key: v2-test-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
 
