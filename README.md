@@ -16,17 +16,6 @@ $ npm i
 $ react-native run-ios
 ```
 
-## TODOs
-
-- [ ] Inject provider
-- [ ] Create MetaMaskController instance
-- [ ] Verify basic communication
-- [ ] Wire up Redux
-- [ ] Figure out persistence
-- [ ] Wallet UI
-- [ ] Settings UI
-- [ ] i18n
-
 ## License
 
 [MIT](./LICENSE)
