@@ -5,7 +5,7 @@ MetaMask is mobile web browser that provides easy access to websites that use th
 
 [http://metamask.io/](http://metamask.io/)
 
-[![CircleCI](https://circleci.com/gh/MetaMask/MetaMask.svg?style=svg)](https://circleci.com/gh/MetaMask/MetaMask)
+[![CircleCI](https://circleci.com/gh/MetaMask/MetaMask.svg?style=shield)](https://circleci.com/gh/MetaMask/MetaMask)
 [![codecov](https://codecov.io/gh/bitpshr/MetaMask/branch/master/graph/badge.svg)](https://codecov.io/gh/bitpshr/MetaMask)
 
 ## Development
