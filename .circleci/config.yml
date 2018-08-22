@@ -9,16 +9,6 @@ aliases:
     paths:
       - node_modules
 
-  - &restore-coverage
-    key: v1.0.0-{{ .Branch }}-{{ checksum "coverage/coverage-final.json" }}
-    paths:
-      - coverage
-
-  - &save-coverage
-    key: v1.0.0-{{ .Branch }}-{{ checksum "coverage/coverage-final.json" }}
-    paths:
-      - coverage
-
   - &install-node-dependencies
       |
         npm install
@@ -35,6 +25,10 @@ jobs:
       - checkout
       - restore_cache: *restore-cache
       - run: *install-node-dependencies
+      - persist_to_workspace:
+          root: .
+          paths:
+          - node_modules
       - save_cache: *save-cache
 
   lint:
@@ -43,7 +37,8 @@ jobs:
       - image: circleci/node:9
     steps:
       - checkout
-      - restore_cache: *restore-cache
+      - attach_workspace:
+          at: .
       - run: npm run lint
 
   test-unit:
@@ -52,9 +47,13 @@ jobs:
       - image: circleci/node:9
     steps:
       - checkout
-      - restore_cache: *restore-cache
+      - attach_workspace:
+          at: .
       - run: npm run test:unit
-      - save_cache: *save-coverage
+      - persist_to_workspace:
+          root: .
+          paths:
+            - coverage
 
   test-e2e-ios:
     <<: *defaults
@@ -65,6 +64,8 @@ jobs:
 
     steps:
       - checkout
+      - attach_workspace:
+          at: .
       - run:
           name: Load dependencies
           command:
@@ -81,7 +82,8 @@ jobs:
       - image: circleci/node:9
     steps:
       - checkout
-      - restore_cache: *restore-coverage
+      - attach_workspace:
+          at: .
       - run: npm install -g codecov
       - run: codecov
 
