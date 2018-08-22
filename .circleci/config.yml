@@ -85,6 +85,14 @@ jobs:
       - run: npm install -g codecov
       - run: codecov
 
+  all-tests-pass:
+      docker:
+      - image: circleci/node:9
+      steps:
+        - run:
+            name: All Tests Passed
+            command: echo 'weew - everything passed!'
+
 workflows:
   version: 2
   ful_test:
@@ -99,7 +107,13 @@ workflows:
       - test-e2e-ios:
           requires:
             - prep-deps
-      - test-coverage:
+      - all-tests-pass:
+          requires:
+            - lint
+            - test-unit
+            - test-e2e-ios
+      - upload-coverage:
           requires:
             - test-unit
+
 
