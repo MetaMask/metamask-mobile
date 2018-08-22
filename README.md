@@ -1,4 +1,6 @@
-![Melfina logo](logo.png?raw=true)
+![Melfina logo](logo.png?raw=true) 
+
+[![CircleCI](https://circleci.com/gh/MetaMask/MetaMask.svg?style=svg)](https://circleci.com/gh/MetaMask/MetaMask)
 
 MetaMask is mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
