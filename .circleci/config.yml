@@ -4,16 +4,10 @@ aliases:
       - v2-test-{{ .Branch }}-{{ checksum "package.json" }}
       - v2-test-{{ .Branch }}
 
-  - &save-node-cache
+  - &save-cache
     key: v2-test-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
-
-  - &save-ios-cache
-    key: v2-test-{{ .Branch }}-{{ checksum "package.json" }}
-    paths:
-      - node_modules
-      - ios/build
 
   - &install-node-dependencies
     |
@@ -23,7 +17,35 @@ defaults: &defaults
   working_directory: ~/MetaMask
 
 jobs:
-  test-ios:
+  prep-deps:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - restore_cache: *restore-cache
+      - run: *install-node-dependencies
+      - save_cache: *save-cache
+
+  lint:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - restore_cache: *restore-cache
+      - run: npm run lint
+
+  test-unit:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - restore_cache: *restore-cache
+      - run: npm test
+
+  test-e2e-ios:
     <<: *defaults
     macos:
       xcode: "9.2"
@@ -40,25 +62,26 @@ jobs:
               brew tap wix/brew
               brew install --HEAD applesimutils
               npm install -g detox-cli
-      - run: *install-node-dependencies
       - run: detox build -c ios.sim.release
       - run: detox test -c ios.sim.release
 
-  test-js:
+  test-coverage:
     <<: *defaults
     docker:
       - image: circleci/node:9
     steps:
       - checkout
       - restore_cache: *restore-cache
-      - run: *install-node-dependencies
-      - save_cache: *save-ios-cache
-      - run: npm test
+      - run: npm install -g codecov
+  	  - run: codecov
 
 workflows:
   version: 2
 
   build:
     jobs:
-      - test-js
-      - test-ios
+      - prep-deps
+      - lint
+      - test-unit
+      - test-e2e-ios
+	    - test-coverage
