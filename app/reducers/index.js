@@ -8,7 +8,7 @@ const initialState = {
 
 function initalizeEngine(state = {}) {
 	Engine.init(state);
-	Engine.datamodel.subscribe &&
+	Engine.datamodel &&
 		Engine.datamodel.subscribe(() => {
 			store.dispatch({ type: 'UPDATE_BG_STATE' });
 		});
