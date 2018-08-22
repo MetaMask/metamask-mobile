@@ -77,12 +77,19 @@ jobs:
 
 workflows:
   version: 2
-
-  build:
+  ful_test:
     jobs:
       - prep-deps
-      - lint
-      - test-unit
-      - test-e2e-ios
-      - test-coverage
+      - lint:
+          requires:
+            - prep-deps-npm
+      - test-unit:
+          requires:
+            - prep-deps-npm
+      - test-e2e-ios:
+          requires:
+            - prep-deps-npm
+      - test-coverage:
+          requires:
+            - prep-deps-npm
 
