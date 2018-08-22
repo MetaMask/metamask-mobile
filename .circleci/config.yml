@@ -73,7 +73,7 @@ jobs:
       - checkout
       - restore_cache: *restore-cache
       - run: npm install -g codecov
-  	  - run: codecov
+      - run: codecov
 
 workflows:
   version: 2
@@ -84,4 +84,5 @@ workflows:
       - lint
       - test-unit
       - test-e2e-ios
-	    - test-coverage
+      - test-coverage
+
