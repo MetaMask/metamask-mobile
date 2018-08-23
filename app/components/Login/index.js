@@ -146,32 +146,38 @@ export default class Login extends Component {
 		return (
 			<Screen>
 				<ScrollView style={styles.wrapper}>
-					<View style={styles.logoWrapper}>
-						<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
-					</View>
-					<Text style={styles.title}>Welcome Back!</Text>
-					<View style={styles.field}>
-						<Text style={styles.label}>Password</Text>
-						<TextInput
-							style={styles.input}
-							value={this.state.password}
-							onChangeText={this.setPassword}
-							secureTextEntry
-							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
-						/>
-					</View>
-					{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
-					<View style={styles.ctaWrapper}>
-						<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onLogin}>
-							{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'LOG IN'}
-						</Button>
-					</View>
+					<View testID={'login'}>
+						<View style={styles.logoWrapper}>
+							<Image
+								source={require('../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
+							/>
+						</View>
+						<Text style={styles.title}>Welcome Back!</Text>
+						<View style={styles.field}>
+							<Text style={styles.label}>Password</Text>
+							<TextInput
+								style={styles.input}
+								value={this.state.password}
+								onChangeText={this.setPassword}
+								secureTextEntry
+								placeholder={''}
+								underlineColorAndroid={colors.borderColor}
+							/>
+						</View>
+						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
+						<View style={styles.ctaWrapper}>
+							<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onLogin}>
+								{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'LOG IN'}
+							</Button>
+						</View>
 
-					<View style={styles.footer}>
-						<Button style={styles.seed} onPress={this.onPressImport}>
-							Import with seed phrase
-						</Button>
+						<View style={styles.footer}>
+							<Button style={styles.seed} onPress={this.onPressImport}>
+								Import with seed phrase
+							</Button>
+						</View>
 					</View>
 				</ScrollView>
 			</Screen>

@@ -71,7 +71,11 @@ class AccountList extends Component {
 		/**
 		 * A string representing the selected address => account
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * The navigator object
+		 */
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -117,6 +121,10 @@ class AccountList extends Component {
 
 	openAccountSettings = () => false;
 
+	closeSideBar = () => {
+		this.props.navigation.closeDrawer();
+	};
+
 	renderAccounts() {
 		const { accounts } = this.props;
 		return Object.keys(accounts).map((key, i) => {
@@ -143,12 +151,14 @@ class AccountList extends Component {
 
 	render() {
 		return (
-			<SafeAreaView style={styles.wrapper}>
-				<Text style={styles.title}>My Accounts</Text>
+			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
+				<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
+					My Accounts
+				</Text>
 				<View style={styles.accountsWrapper}>{this.renderAccounts()}</View>
 				<View style={styles.footer}>
 					<Button style={[styles.icon, styles.left]} onPress={this.addAccount}>
-						<Icon name="plus" size={30} color={colors.fontSecondary} />
+						<Icon name="plus" testID={'add-account-button'} size={30} color={colors.fontSecondary} />
 					</Button>
 					<Button style={[styles.icon, styles.right]} onPress={this.openAccountSettings}>
 						<Icon name="cog" size={30} color={colors.fontSecondary} />

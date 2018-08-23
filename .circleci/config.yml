@@ -1,0 +1,121 @@
+aliases:
+  - &restore-cache
+    keys:
+      - v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.0-{{ .Branch }}
+
+  - &save-cache
+    key: v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
+    paths:
+      - node_modules
+
+  - &install-node-dependencies
+      |
+        npm install
+
+defaults: &defaults
+  working_directory: ~/MetaMask
+
+jobs:
+  prep-deps:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - restore_cache: *restore-cache
+      - run: *install-node-dependencies
+      - persist_to_workspace:
+          root: .
+          paths:
+          - node_modules
+      - save_cache: *save-cache
+
+  lint:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: npm run lint
+
+  test-unit:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: npm run test:unit
+      - persist_to_workspace:
+          root: .
+          paths:
+            - coverage
+
+  test-e2e-ios:
+    <<: *defaults
+    macos:
+      xcode: "9.2"
+    dependencies:
+      pre:
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Load dependencies
+          command:
+            |
+              brew update
+              brew tap wix/brew
+              brew install --HEAD applesimutils
+              npm install -g detox-cli
+      - run: npm run test:e2e:ios
+
+  test-coverage:
+    <<: *defaults
+    docker:
+      - image: circleci/node:9
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: npm install -g codecov
+      - run: codecov
+
+  all-tests-pass:
+      docker:
+      - image: circleci/node:9
+      steps:
+        - run:
+            name: All Tests Passed
+            command: echo 'weew - everything passed!'
+
+workflows:
+  version: 2
+  ful_test:
+    jobs:
+      - prep-deps
+      - lint:
+          requires:
+            - prep-deps
+      - test-unit:
+          requires:
+            - prep-deps
+      - test-e2e-ios:
+          requires:
+            - prep-deps
+      - all-tests-pass:
+          requires:
+            - lint
+            - test-unit
+            - test-e2e-ios
+      - upload-coverage:
+          requires:
+            - test-unit
+
+
