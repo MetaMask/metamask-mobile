@@ -10,18 +10,22 @@ exports[`Asset should render correctly 1`] = `
   }
 >
   <Component
-    style={
-      Object {
-        "height": 280,
-      }
-    }
+    testID="asset"
   >
-    <AssetOverview
-      asset={Object {}}
-    />
-  </Component>
-  <Component>
-    <Transactions />
+    <Component
+      style={
+        Object {
+          "height": 280,
+        }
+      }
+    >
+      <AssetOverview
+        asset={Object {}}
+      />
+    </Component>
+    <Component>
+      <Transactions />
+    </Component>
   </Component>
 </ScrollView>
 `;

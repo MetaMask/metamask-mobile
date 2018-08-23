@@ -127,11 +127,13 @@ export default class Collectibles extends Component {
 	render() {
 		return (
 			<ScrollView style={styles.wrapper}>
-				{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-				<TouchableOpacity style={styles.add}>
-					<Icon name="plus" size={16} color={colors.primary} />
-					<Text style={styles.addText}>ADD COLLECTIBLES</Text>
-				</TouchableOpacity>
+				<View testID={'collectibles'}>
+					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
+					<TouchableOpacity style={styles.add}>
+						<Icon name="plus" size={16} color={colors.primary} />
+						<Text style={styles.addText}>ADD COLLECTIBLES</Text>
+					</TouchableOpacity>
+				</View>
 			</ScrollView>
 		);
 	}

@@ -9,6 +9,7 @@ exports[`SeedWords should render correctly 1`] = `
       "padding": 20,
     }
   }
+  testID="seed-words-screen"
 >
   <Component
     style={
@@ -42,6 +43,7 @@ exports[`SeedWords should render correctly 1`] = `
         "paddingTop": 20,
       }
     }
+    testID="current-seed-words"
     underlineColorAndroid="transparent"
     value="one two three four five six seven eight nine ten eleven twelve"
   />

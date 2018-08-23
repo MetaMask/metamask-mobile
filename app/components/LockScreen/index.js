@@ -23,7 +23,7 @@ export default class LockScreen extends Component {
 	render() {
 		return (
 			<Screen>
-				<View style={styles.wrapper}>
+				<View style={styles.wrapper} testID={'lock-screen'}>
 					<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
 				</View>
 			</Screen>

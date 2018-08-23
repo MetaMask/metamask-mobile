@@ -8,9 +8,10 @@ const initialState = {
 
 function initalizeEngine(state = {}) {
 	Engine.init(state);
-	Engine.datamodel.subscribe(() => {
-		store.dispatch({ type: 'UPDATE_BG_STATE' });
-	});
+	Engine.datamodel &&
+		Engine.datamodel.subscribe(() => {
+			store.dispatch({ type: 'UPDATE_BG_STATE' });
+		});
 }
 
 const rootReducer = (state = initialState, action) => {

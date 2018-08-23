@@ -11,6 +11,7 @@ exports[`AccountOverview should render correctly 1`] = `
       "paddingTop": 20,
     }
   }
+  testID="account-overview"
 >
   <Component
     style={
@@ -66,6 +67,7 @@ exports[`AccountOverview should render correctly 1`] = `
       <TouchableOpacity
         activeOpacity={0.2}
         onPress={[Function]}
+        testID="account-qr-button"
       >
         <QRCode
           bgColor="#333333"

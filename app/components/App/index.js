@@ -49,6 +49,8 @@ export default class App extends Component {
 		if (existingUser !== null) {
 			this.mounted && this.setState({ existingUser: true });
 			this.unlockKeychain();
+		} else {
+			this.setState({ locked: false });
 		}
 
 		AppState.addEventListener('change', this.handleAppStateChange);
