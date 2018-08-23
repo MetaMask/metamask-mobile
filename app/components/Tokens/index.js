@@ -126,11 +126,13 @@ export default class Tokens extends Component {
 	render() {
 		return (
 			<ScrollView style={styles.wrapper}>
-				{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-				<TouchableOpacity style={styles.add}>
-					<Icon name="plus" size={16} color={colors.primary} />
-					<Text style={styles.addText}>ADD TOKENS</Text>
-				</TouchableOpacity>
+				<View testID={'tokens'}>
+					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
+					<TouchableOpacity style={styles.add}>
+						<Icon name="plus" size={16} color={colors.primary} />
+						<Text style={styles.addText}>ADD TOKENS</Text>
+					</TouchableOpacity>
+				</View>
 			</ScrollView>
 		);
 	}

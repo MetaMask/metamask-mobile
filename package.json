@@ -11,8 +11,12 @@
     "build": "concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js && ./scripts/copy-android-assets.sh",
     "start:ios": "npm run build && react-native run-ios --simulator='iPhone X'",
     "start:android": "npm run build && react-native run-android",
-    "test": "jest",
-    "test:update": "jest -u",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "jest ./app/",
+    "test:unit:update": "jest -u ./app/",
+    "test:e2e": "npm run test:e2e:ios && npm run test:e2e:android'",
+    "test:e2e:ios": "detox build && detox test",
+    "test:e2e:android": "echo 'Android Tests are not set yet'",
     "postinstall": "./scripts/postinstall.sh && npm run build"
   },
   "prettier": {
@@ -77,6 +81,7 @@
     "babel-jest": "23.4.0",
     "babel-preset-react-native": "5.0.2",
     "concat-cli": "^4.0.0",
+    "detox": "^8.1.6",
     "enzyme": "^3.0.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "enzyme-to-json": "^3.3.4",
@@ -102,11 +107,18 @@
     ],
     "globals": {
       "beforeAll": true,
+      "afterAll": true,
       "describe": true,
       "expect": true,
       "it": true,
+      "jasmine": true,
       "jest": true,
-      "spyOn": true
+      "spyOn": true,
+      "element": true,
+      "by": true,
+      "beforeEach": true,
+      "device": true,
+      "waitFor": true
     },
     "rules": {
       "class-methods-use-this": 0,
@@ -118,6 +130,18 @@
       "react/no-did-mount-set-state": 0,
       "react/prefer-stateless-function": 0
     }
+  },
+  "detox": {
+    "configurations": {
+      "ios.sim.debug": {
+        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
+        "build": "xcodebuild -project ios/MetaMask.xcodeproj -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
+        "type": "ios.simulator",
+        "name": "iPhone 7"
+      }
+    },
+    "runner-config": "e2e/config.json",
+    "test-runner": "jest"
   },
   "jest": {
     "preset": "react-native",
@@ -139,15 +163,7 @@
       "!<rootDir>/node_modules/",
       "!<rootDir>/app/util/*.{js,jsx}",
       "!<rootDir>/app/entry*.js"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 100,
-        "functions": 100,
-        "lines": 100,
-        "statements": 100
-      }
-    }
+    ]
   },
   "react-native": {
     "crypto": "react-native-crypto",

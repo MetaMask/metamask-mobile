@@ -45,9 +45,16 @@ export default class SeedWords extends Component {
 		const seedWords = JSON.stringify(KeyringController.keyring.keyrings[0].mnemonic).replace(/"/g, '');
 
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'seed-words-screen'}>
 				<Text style={styles.text}>These are your seed words, make sure you keep them safe!</Text>
-				<TextInput value={seedWords} numberOfLines={3} multiline selectTextOnFocus style={styles.seedPhrase} />
+				<TextInput
+					value={seedWords}
+					numberOfLines={3}
+					multiline
+					selectTextOnFocus
+					style={styles.seedPhrase}
+					testID={'current-seed-words'}
+				/>
 			</View>
 		);
 	}

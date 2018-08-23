@@ -62,7 +62,7 @@ class NetworkSettings extends Component {
 		const { NetworkController } = this.props.backgroundState;
 
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'network-settings-screen'}>
 				<SettingsList borderColor={colors.borderColor} defaultItemSize={50}>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
