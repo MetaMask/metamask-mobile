@@ -8,20 +8,23 @@
 export const colors = {
 	ash: '#ced6e0',
 	asphalt: '#747d8c',
-	concrete: '#f1f2f6',
-	slate: '#dfe4ea',
-	tar: '#2f3542',
-	inactive: '#808080',
-	primary: '#007aff',
-	primaryFox: '#f7861ce6',
-	white: '#FFFFFF',
 	black: '#000000',
+	blue: '#2f9ae0',
+	borderColor: '#CCCCCC',
+	concrete: '#f1f2f6',
+	error: '#FF0000',
 	fontPrimary: '#333333',
 	fontSecondary: '#999999',
 	fontTertiary: '#AAAAAA',
-	borderColor: '#CCCCCC',
+	gray: '#5d5d5d',
+	inactive: '#808080',
+	inputBorderColor: '#dedede',
+	primary: '#007aff',
+	primaryFox: '#f7861ce6',
+	slate: '#dfe4ea',
+	tar: '#2f3542',
 	title: '#1B344D',
-	error: '#FF0000'
+	white: '#FFFFFF'
 };
 
 /**

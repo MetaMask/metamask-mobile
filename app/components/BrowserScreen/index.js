@@ -1,16 +1,16 @@
-import React, { Component } from 'react';
 import Browser from '../Browser';
-import Screen from '../Screen';
+import Approval from '../Approval';
+import { createStackNavigator } from 'react-navigation';
 
 /**
- * Main view component for the browser screen
+ * Main view component for the browser screen, renders a stack container
+ * that holds the browser and the approvals creen
  */
-export default class BrowserScreen extends Component {
-	render() {
-		return (
-			<Screen>
-				<Browser defaultURL="https://eip1102.herokuapp.com" />
-			</Screen>
-		);
+export default createStackNavigator({
+	// Browser: {
+	// 	screen: Browser
+	// },
+	Approval: {
+		screen: Approval
 	}
-}
+}, { mode: 'modal' });

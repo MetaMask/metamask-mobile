@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
+import BackgroundBridge from '../../core/BackgroundBridge';
+import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-unresolved
+import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
-import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-unresolved
+import getNavbarOptions from '../Navbar';
 import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
-import BackgroundBridge from '../../core/BackgroundBridge';
-import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	urlBar: {
@@ -43,6 +44,8 @@ export default class Browser extends Component {
 	static defaultProps = {
 		defaultProtocol: 'https://'
 	};
+
+	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
 
 	static propTypes = {
 		/**
@@ -86,6 +89,10 @@ export default class Browser extends Component {
 				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
 		this.injection = { ...this.injection, entryScript, entryScriptWeb3 };
+
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', () => {
+			this.props.navigation.push('Approval');
+		});
 	}
 
 	go = () => {
