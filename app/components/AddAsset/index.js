@@ -1,53 +1,28 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import AddCustomAsset from '../AddCustomAsset';
+import SearchAsset from '../SearchAsset';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
 		flex: 1,
-		padding: 20
+		backgroundColor: colors.slate
 	},
-	textTitle: {
-		marginTop: 10,
-		fontSize: 24,
-		textAlign: 'left',
-		fontWeight: '500'
+	tabUnderlineStyle: {
+		height: 2,
+		backgroundColor: colors.primary
 	},
-	textInput: {
-		borderWidth: 1,
-		borderRadius: 4,
-		borderColor: colors.borderColor,
-		padding: 16
+	tabStyle: {
+		paddingBottom: 0
 	},
-	textAddToken: {
-		color: colors.primary
-	},
-	button: {
-		alignItems: 'center',
-		padding: 16,
-		borderWidth: 2,
-		borderRadius: 4,
-		width: '45%',
-		marginTop: 10,
-		marginBottom: 10
-	},
-	buttonCancel: {
-		borderColor: colors.asphalt
-	},
-	buttonAddToken: {
-		backgroundColor: colors.white,
-		borderColor: colors.primary
-	},
-	footer: {
-		flexDirection: 'row',
-		justifyContent: 'space-evenly',
-		position: 'absolute',
-		left: 0,
-		right: 0,
-		bottom: 0,
-		borderTopWidth: 1,
-		borderColor: colors.borderColor
+	textStyle: {
+		fontSize: 16,
+		letterSpacing: 0.5,
+		...fontStyles.bold
 	}
 });
 
@@ -65,45 +40,40 @@ export default class AddAsset extends Component {
 	}
 
 	static navigationOptions = {
-		title: 'Custom Token',
+		title: 'Add Tokens',
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
 		}
 	};
 
+	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object
+	};
+
+	renderTabBar() {
+		return (
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.textStyle}
+			/>
+		);
+	}
+
 	render() {
 		return (
-			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
-				<Text style={styles.textTitle}>Add Asset</Text>
-				<Text>Custom Token</Text>
-				<TextInput
-					style={styles.textInput}
-					value={this.state.address}
-					onChangeText={address => this.setState({ address })}
-				/>
-				<Text>Token Symbol</Text>
-				<TextInput
-					style={styles.textInput}
-					value={this.state.symbol}
-					onChangeText={symbol => this.setState({ symbol })}
-				/>
-				<Text>Token of Precision</Text>
-				<TextInput
-					style={styles.textInput}
-					value={this.state.decimals}
-					keyboardType="numeric"
-					maxLength={2}
-					onChangeText={decimals => this.setState({ decimals })}
-				/>
-				<View style={styles.footer}>
-					<TouchableOpacity style={[styles.buttonCancel, styles.button]}>
-						<Text>CANCEL</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={[styles.buttonAddToken, styles.button]}>
-						<Text style={styles.textAddToken}>ADD TOKEN</Text>
-					</TouchableOpacity>
-				</View>
+			<View style={styles.wrapper} testID={'add-asset-screen'}>
+				<ScrollableTabView renderTabBar={this.renderTabBar}>
+					<SearchAsset navigation={this.props.navigation} tabLabel="Search" />
+					<AddCustomAsset navigation={this.props.navigation} tabLabel="Custom Token" />
+				</ScrollableTabView>
 			</View>
 		);
 	}
