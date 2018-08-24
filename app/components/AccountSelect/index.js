@@ -83,11 +83,11 @@ class AccountSelect extends Component {
 		/**
 		 * Callback triggered when a new address is selected
 		 */
-		onAddressChange: PropTypes.func,
+		onChange: PropTypes.func,
 		/**
 		 * Currently-selected address in this Select
 		 */
-		selectedAddress: PropTypes.string
+		value: PropTypes.string
 	};
 
 	state = { isOpen: false };
@@ -99,39 +99,55 @@ class AccountSelect extends Component {
 		// TODO: Format currency externally
 		account.formattedValue = parseFloat(Math.round(account.balance * conversionRate * 100) / 100).toFixed(2);
 		return (
-			<TouchableOpacity style={styles.option} onPress={() => { onPress() }}>
+			<TouchableOpacity
+				key={account.address}
+				onPress={onPress}
+				style={styles.option}
+			>
 				<View style={styles.icon}>
 					<Identicon address={account.address} diameter={18} />
 				</View>
 				<View style={styles.content}>
-					<View><Text style={styles.name}>{account.name}</Text></View>
-					<View><Text style={styles.info}>{account.balance} ETH</Text></View>
-					<View><Text style={styles.info}>{account.formattedValue} {currentCurrency}</Text></View>
+					<View>
+						<Text style={styles.name}>{account.name}</Text>
+					</View>
+					<View>
+						<Text style={styles.info}>{account.balance} ETH</Text>
+					</View>
+					<View>
+						<Text style={styles.info}>
+							{account.formattedValue} {currentCurrency}
+						</Text>
+					</View>
 				</View>
 			</TouchableOpacity>
 		);
 	}
 
 	renderActiveOption() {
-		const { activeAddress, accounts, selectedAddress } = this.props;
-		const targetAddress = selectedAddress || activeAddress;
+		const { activeAddress, accounts, value } = this.props;
+		const targetAddress = value || activeAddress;
 		const account = accounts[targetAddress];
 		return (
 			<View style={styles.activeOption}>
 				<MaterialIcon name={'keyboard-arrow-down'} size={18} style={styles.arrow} />
-				{this.renderOption(account, () => { this.setState({ isOpen: !this.state.isOpen }); })}
+				{this.renderOption(account, () => {
+					this.setState({ isOpen: !this.state.isOpen });
+				})}
 			</View>
 		);
 	}
 
 	renderOptionList() {
-		const { accounts, onAddressChange } = this.props;
+		const { accounts, onChange } = this.props;
 		return (
 			<View style={styles.optionList}>
-				{Object.keys(accounts).map((address) => this.renderOption(accounts[address], () => {
-					this.setState({ isOpen: false });
-					onAddressChange && onAddressChange(address);
-				}))}
+				{Object.keys(accounts).map(address =>
+					this.renderOption(accounts[address], () => {
+						this.setState({ isOpen: false });
+						onChange && onChange(address);
+					})
+				)}
 			</View>
 		);
 	}
@@ -149,7 +165,7 @@ class AccountSelect extends Component {
 const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
 	// TODO:  Use different account list that includes balances (from GABA)
 	accounts: PreferencesController.identities,
-	activeAddress:  PreferencesController.selectedAddress,
+	activeAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency
 });

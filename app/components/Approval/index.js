@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 	labelText: {
 		color: colors.gray,
 		fontSize: 16,
-		fontWeight: '500',
+		fontWeight: '500'
 	},
 	max: {
 		color: colors.blue,
@@ -50,30 +50,33 @@ class Approval extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Approval', navigation);
 
 	state = {
-		from: undefined,
-		to: undefined,
-		toError: undefined,
 		amount: undefined,
-		gas: undefined
+		from: undefined,
+		gas: undefined,
+		to: undefined,
+		toError: undefined
 	};
 
 	setFromAddress = (from) => {
 		this.setState({ from });
-	}
+	};
 
 	setToAddress = (to) => {
 		this.setState({
 			to,
 			toError: !isValidAddress(to)
 		});
-	}
+	};
 
 	setAmount = (amount) => {
-		this.setState({ amount });
-	}
+		this.setState({
+			amount,
+			amountError: amount && amount.length >= 0 && isNaN(amount - parseFloat(amount))
+		});
+	};
 
 	render() {
-		const { amount, from, to, toError } = this.state;
+		const { amount, amountError, from, to, toError } = this.state;
 
 		return (
 			<View style={{ backgroundColor: '#FFF', padding: 20 }}>
@@ -86,33 +89,27 @@ class Approval extends Component {
 					<View style={styles.label}>
 						<Text style={styles.labelText}>From:</Text>
 					</View>
-					<AccountSelect
-						selectedAddress={from}
-						onAddressChange={this.setFromAddress}
-					/>
+					<AccountSelect value={from} onChange={this.setFromAddress} />
 				</View>
 				<View style={styles.toRow}>
 					<View style={styles.label}>
 						<Text style={styles.labelText}>To:</Text>
 						{toError && <Text style={styles.error}>Invalid address</Text>}
 					</View>
-					<AccountInput
-						onChange={this.setToAddress}
-						placeholder="Receipient Address"
-						value={to}
-					/>
+					<AccountInput onChange={this.setToAddress} placeholder="Receipient Address" value={to} />
 				</View>
 				<View style={styles.amountRow}>
 					<View style={styles.label}>
 						<Text style={styles.labelText}>Amount:</Text>
-						<TouchableOpacity>
-							<Text style={styles.max}>Max</Text>
-						</TouchableOpacity>
+						{amountError ? (
+							<Text style={styles.error}>Invalid amount</Text>
+						) : (
+							<TouchableOpacity>
+								<Text style={styles.max}>Max</Text>
+							</TouchableOpacity>
+						)}
 					</View>
-					<EthInput
-						onChange={this.setAmount}
-						value={amount}
-					/>
+					<EthInput onChange={this.setAmount} value={amount} />
 				</View>
 				<View style={styles.amountRow}>
 					<View style={styles.label}>

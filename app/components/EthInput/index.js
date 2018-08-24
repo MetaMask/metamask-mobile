@@ -77,17 +77,19 @@ class EthInput extends Component {
 					<TextInput
 						autoCapitalize="none"
 						autoCorrect={false}
+						editable={!readonly}
 						keyboardType="numeric"
 						numberOfLines={1}
 						onChangeText={onChange}
 						onFocus={this.focus}
 						placeholder={'0.00'}
-						editable={!readonly}
 						spellCheck={false}
 						style={styles.input}
 						value={value}
 					/>
-					<Text style={styles.eth} numberOfLines={1}>ETH</Text>
+					<Text style={styles.eth} numberOfLines={1}>
+						ETH
+					</Text>
 				</View>
 				<Text style={styles.fiatValue}>
 					{isNaN(fiatValue) ? '0.00' : fiatValue} {currentCurrency}
@@ -100,7 +102,7 @@ class EthInput extends Component {
 const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
 	// TODO:  Use different account list that includes balances (from GABA)
 	accounts: PreferencesController.identities,
-	activeAddress:  PreferencesController.selectedAddress,
+	activeAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency
 });

@@ -104,13 +104,23 @@ class AccountInput extends Component {
 		// TODO: Format currency externally
 		account.formattedValue = parseFloat(Math.round(account.balance * conversionRate * 100) / 100).toFixed(2);
 		return (
-			<TouchableOpacity style={styles.option} onPress={() => { onPress() }}>
+			<TouchableOpacity
+				key={account.address}
+				onPress={onPress}
+				style={styles.option}
+			>
 				<View style={styles.icon}>
 					<Identicon address={account.address} diameter={18} />
 				</View>
 				<View style={styles.content}>
-					<View><Text style={styles.name}>{account.name}</Text></View>
-					<View><Text style={styles.address} numberOfLines={1}>{account.address}</Text></View>
+					<View>
+						<Text style={styles.name}>{account.name}</Text>
+					</View>
+					<View>
+						<Text style={styles.address} numberOfLines={1}>
+							{account.address}
+						</Text>
+					</View>
 				</View>
 			</TouchableOpacity>
 		);
@@ -120,24 +130,26 @@ class AccountInput extends Component {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
 			<View style={styles.optionList}>
-				{Object.keys(visibleOptions).map((address) => this.renderOption(visibleOptions[address], () => {
-					this.selectAccount(visibleOptions[address]);
-				}))}
+				{Object.keys(visibleOptions).map(address =>
+					this.renderOption(visibleOptions[address], () => {
+						this.selectAccount(visibleOptions[address]);
+					})
+				)}
 			</View>
 		);
 	}
 
-	onChange = (value) => {
+	onChange = value => {
 		const { accounts, onChange } = this.props;
-		const addresses = Object.keys(accounts).filter((address) => address.toLowerCase().match(value.toLowerCase()));
-		const visibleOptions = value.length === 0 ? accounts : addresses.map((address) => accounts[address]);
+		const addresses = Object.keys(accounts).filter(address => address.toLowerCase().match(value.toLowerCase()));
+		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
 		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
 		this.setState({
 			visibleOptions,
 			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
 		});
 		onChange && onChange(value);
-	}
+	};
 
 	render() {
 		const { isOpen } = this.state;
@@ -147,6 +159,7 @@ class AccountInput extends Component {
 				<TextInput
 					autoCapitalize="none"
 					autoCorrect={false}
+					clearButtonMode="while-editing"
 					onChangeText={this.onChange}
 					onFocus={this.focus}
 					placeholder={placeholder}
@@ -163,7 +176,7 @@ class AccountInput extends Component {
 const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
 	// TODO:  Use different account list that includes balances (from GABA)
 	accounts: PreferencesController.identities,
-	activeAddress:  PreferencesController.selectedAddress,
+	activeAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate
 });
 

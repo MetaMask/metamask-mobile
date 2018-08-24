@@ -61,6 +61,7 @@
     "react-native-keychain": "^3.0.0",
     "react-native-level-fs": "^3.0.1",
     "react-native-linear-gradient": "^2.4.0",
+    "react-native-masked-text": "^1.7.2",
     "react-native-os": "^1.2.1",
     "react-native-qrcode": "^0.2.7",
     "react-native-randombytes": "^3.5.0",
