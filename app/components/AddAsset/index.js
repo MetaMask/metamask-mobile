@@ -30,14 +30,11 @@ const styles = StyleSheet.create({
  * View that provides ability to add assets.
  */
 export default class AddAsset extends Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			address: '',
-			symbol: '',
-			decimals: ''
-		};
-	}
+	state = {
+		address: '',
+		symbol: '',
+		decimals: ''
+	};
 
 	static navigationOptions = {
 		title: 'Add Tokens',

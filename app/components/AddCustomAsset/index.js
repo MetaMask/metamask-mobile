@@ -55,17 +55,14 @@ const styles = StyleSheet.create({
  * View that provides ability to add custom assets.
  */
 export default class AddCustomAsset extends Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			address: '',
-			symbol: '',
-			decimals: '',
-			warningAddress: '',
-			warningSymbol: '',
-			warningDecimals: ''
-		};
-	}
+	state = {
+		address: '',
+		symbol: '',
+		decimals: '',
+		warningAddress: '',
+		warningSymbol: '',
+		warningDecimals: ''
+	};
 
 	static navigationOptions = {
 		title: 'Custom Token',
