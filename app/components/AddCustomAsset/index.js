@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Text, TextInput, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -66,34 +67,43 @@ export default class AddCustomAsset extends Component {
 		}
 	};
 
+	addToken = () => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController.addToken(this.state.address, this.state.symbol, this.state.decimals);
+	};
+
+	onAddressChange = address => {
+		this.setState({ address });
+	};
+
+	onSymbolChange = symbol => {
+		this.setState({ symbol });
+	};
+
+	onDecimalsChange = decimals => {
+		this.setState({ decimals });
+	};
+
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
 				<Text>Token Address</Text>
-				<TextInput
-					style={styles.textInput}
-					value={this.state.address}
-					onChangeText={address => this.setState({ address })}
-				/>
+				<TextInput style={styles.textInput} value={this.state.address} onChangeText={this.onAddressChange} />
 				<Text>Token Symbol</Text>
-				<TextInput
-					style={styles.textInput}
-					value={this.state.symbol}
-					onChangeText={symbol => this.setState({ symbol })}
-				/>
+				<TextInput style={styles.textInput} value={this.state.symbol} onChangeText={this.onSymbolChange} />
 				<Text>Token of Precision</Text>
 				<TextInput
 					style={styles.textInput}
 					value={this.state.decimals}
 					keyboardType="numeric"
 					maxLength={2}
-					onChangeText={decimals => this.setState({ decimals })}
+					onChangeText={this.onDecimalsChange}
 				/>
 				<View style={styles.footer}>
 					<TouchableOpacity style={[styles.buttonCancel, styles.button]}>
 						<Text>CANCEL</Text>
 					</TouchableOpacity>
-					<TouchableOpacity style={[styles.buttonAddToken, styles.button]}>
+					<TouchableOpacity style={[styles.buttonAddToken, styles.button]} onPress={this.addToken}>
 						<Text style={styles.textAddToken}>ADD TOKEN</Text>
 					</TouchableOpacity>
 				</View>

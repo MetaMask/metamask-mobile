@@ -64,6 +64,10 @@ export default class SearchAsset extends Component {
 		}
 	};
 
+	onTokenChange = token => {
+		this.setState({ token });
+	};
+
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'search-token-screen'}>
@@ -71,7 +75,7 @@ export default class SearchAsset extends Component {
 					style={styles.textInput}
 					value={this.state.token}
 					placeholder="Search Tokens"
-					onChangeText={token => this.setState({ token })}
+					onChangeText={this.onTokenChange}
 				/>
 
 				<View style={styles.footer}>
