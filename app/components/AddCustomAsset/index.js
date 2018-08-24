@@ -83,14 +83,15 @@ export default class AddCustomAsset extends Component {
 		if (!this.validateCustomToken()) return;
 		const { PreferencesController } = Engine.context;
 		PreferencesController.addToken(this.state.address, this.state.symbol, this.state.decimals);
-		this.props.navigation.push('Wallet');
+		this.props.navigation.pop();
 	};
 
 	cancelAddToken = () => {
-		this.props.navigation.push('Wallet');
+		this.props.navigation.pop();
 	};
 
 	onAddressChange = address => {
+		this.validateCustomToken();
 		this.setState({ address });
 	};
 
