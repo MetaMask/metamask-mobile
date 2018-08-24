@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Text, TextInput, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -64,8 +65,19 @@ export default class SearchAsset extends Component {
 		}
 	};
 
+	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object
+	};
+
 	onTokenChange = token => {
 		this.setState({ token });
+	};
+
+	cancelAddToken = () => {
+		this.props.navigation.push('Wallet');
 	};
 
 	render() {
@@ -79,7 +91,7 @@ export default class SearchAsset extends Component {
 				/>
 
 				<View style={styles.footer}>
-					<TouchableOpacity style={[styles.buttonCancel, styles.button]}>
+					<TouchableOpacity style={[styles.buttonCancel, styles.button]} onPress={this.cancelAddToken}>
 						<Text>CANCEL</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={[styles.buttonAddToken, styles.button]}>

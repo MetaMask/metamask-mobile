@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Text, TextInput, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
+import PropTypes from 'prop-types';
+const isValidAddress = require('ethereumjs-util').isValidAddress;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -43,6 +45,9 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		borderTopWidth: 1,
 		borderColor: colors.borderColor
+	},
+	warningText: {
+		color: colors.primaryFox
 	}
 });
 
@@ -55,7 +60,10 @@ export default class AddCustomAsset extends Component {
 		this.state = {
 			address: '',
 			symbol: '',
-			decimals: ''
+			decimals: '',
+			warningAddress: '',
+			warningSymbol: '',
+			warningDecimals: ''
 		};
 	}
 
@@ -67,9 +75,22 @@ export default class AddCustomAsset extends Component {
 		}
 	};
 
+	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object
+	};
+
 	addToken = () => {
+		if (!this.validateCustomToken()) return;
 		const { PreferencesController } = Engine.context;
 		PreferencesController.addToken(this.state.address, this.state.symbol, this.state.decimals);
+		this.props.navigation.push('Wallet');
+	};
+
+	cancelAddToken = () => {
+		this.props.navigation.push('Wallet');
 	};
 
 	onAddressChange = address => {
@@ -84,13 +105,43 @@ export default class AddCustomAsset extends Component {
 		this.setState({ decimals });
 	};
 
+	validateCustomToken = () => {
+		let validated = true;
+		if (this.state.address.length === 0) {
+			this.setState({ warningAddress: `Token address can't be empty.` });
+			validated = false;
+		} else if (!isValidAddress(this.state.address)) {
+			this.setState({ warningAddress: `Token address have to be a valid address.` });
+			validated = false;
+		} else {
+			this.setState({ warningAddress: `` });
+		}
+		if (this.state.symbol.length === 0) {
+			this.setState({ warningSymbol: `Token symbol can't be empty.` });
+			validated = false;
+		} else {
+			this.setState({ warningSymbol: `` });
+		}
+		if (this.state.decimals.length === 0) {
+			this.setState({ warningDecimals: `Token precision can't be empty.` });
+			validated = false;
+		} else {
+			this.setState({ warningDecimals: `` });
+		}
+		return validated;
+	};
+
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
 				<Text>Token Address</Text>
 				<TextInput style={styles.textInput} value={this.state.address} onChangeText={this.onAddressChange} />
+				<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+
 				<Text>Token Symbol</Text>
 				<TextInput style={styles.textInput} value={this.state.symbol} onChangeText={this.onSymbolChange} />
+				<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
+
 				<Text>Token of Precision</Text>
 				<TextInput
 					style={styles.textInput}
@@ -99,8 +150,10 @@ export default class AddCustomAsset extends Component {
 					maxLength={2}
 					onChangeText={this.onDecimalsChange}
 				/>
+				<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+
 				<View style={styles.footer}>
-					<TouchableOpacity style={[styles.buttonCancel, styles.button]}>
+					<TouchableOpacity style={[styles.buttonCancel, styles.button]} onPress={this.cancelAddToken}>
 						<Text>CANCEL</Text>
 					</TouchableOpacity>
 					<TouchableOpacity style={[styles.buttonAddToken, styles.button]} onPress={this.addToken}>
