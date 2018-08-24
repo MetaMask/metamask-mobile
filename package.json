@@ -54,6 +54,7 @@
     "react-native-browser-polyfill": "^0.1.2",
     "react-native-button": "^2.3.0",
     "react-native-crypto": "^2.1.2",
+    "react-native-fabric": "^0.5.1",
     "react-native-fs": "^2.10.14",
     "react-native-keychain": "^3.0.0",
     "react-native-level-fs": "^3.0.1",
@@ -118,7 +119,8 @@
       "by": true,
       "beforeEach": true,
       "device": true,
-      "waitFor": true
+      "waitFor": true,
+      "__DEV__": true
     },
     "rules": {
       "class-methods-use-this": 0,

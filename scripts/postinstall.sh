@@ -46,3 +46,12 @@ echo "7. Fix react-native-remove-svg"
 TARGET="node_modules/react-native-remote-svg/SvgImage.js"
 sed -i '' 's/<WebView/<WebView originWhitelist={["*"]}/' $TARGET;
 echo "Done"
+
+
+# This one has been fixed on master
+# we can remove once they release a new version
+echo "8. Fix react-native-fabric buildTools version..."
+TARGET="node_modules/react-native-fabric/android/build.gradle"
+sed -i '' -e 's/compileSdkVersion 23/compileSdkVersion 26/' $TARGET;
+sed -i '' -e 's/23.0.1/26.0.1/' $TARGET;
+echo "Done"
