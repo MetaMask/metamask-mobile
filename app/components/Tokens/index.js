@@ -123,12 +123,16 @@ export default class Tokens extends Component {
 		));
 	}
 
+	goToAddToken = () => {
+		this.props.navigation.push('AddAsset');
+	};
+
 	render() {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'tokens'}>
 					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-					<TouchableOpacity style={styles.add}>
+					<TouchableOpacity style={styles.add} onPress={this.goToAddToken}>
 						<Icon name="plus" size={16} color={colors.primary} />
 						<Text style={styles.addText}>ADD TOKENS</Text>
 					</TouchableOpacity>
