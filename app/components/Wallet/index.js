@@ -87,7 +87,7 @@ class Wallet extends Component {
 		const account = accounts[selectedAddress];
 
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'wallet-screen'}>
 				<AccountOverview account={account} navigation={this.props.navigation} />
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
 					<Tokens navigation={this.props.navigation} tabLabel="TOKENS" assets={tokens} />

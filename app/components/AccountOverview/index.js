@@ -74,14 +74,14 @@ export default class AccountOverview extends Component {
 		} = this.props;
 
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'account-overview'}>
 				<View style={styles.row}>
 					<View style={styles.left}>
 						<Text style={styles.label}>{name}</Text>
 						<Text style={styles.amountFiat}>${balanceFiat}</Text>
 					</View>
 					<View style={styles.right}>
-						<TouchableOpacity onPress={this.goToAccountDetails}>
+						<TouchableOpacity onPress={this.goToAccountDetails} testID={'account-qr-button'}>
 							<QRCode value={address} size={60} bgColor={colors.fontPrimary} fgColor={colors.white} />
 							<Text style={styles.address}>{`${address.substr(0, 4)}...${address.substr(-4)}`}</Text>
 						</TouchableOpacity>

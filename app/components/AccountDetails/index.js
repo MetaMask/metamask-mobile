@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 15,
 		paddingLeft: 10,
 		paddingRight: 10,
-		fontSize: 14,
+		fontSize: 13,
 		borderRadius: 10,
 		...fontStyles.normal
 	},
@@ -57,9 +57,15 @@ class AccountDetails extends Component {
 	render() {
 		const { selectedAddress } = this.props;
 		return (
-			<View style={styles.wrapper}>
+			<View style={styles.wrapper} testID={'account-details-screen'}>
 				<Text style={styles.text}>Public Address</Text>
-				<TextInput value={selectedAddress} selectTextOnFocus style={styles.address} editable={false} />
+				<TextInput
+					value={selectedAddress}
+					selectTextOnFocus
+					style={styles.address}
+					editable={false}
+					testID={'public-address-input'}
+				/>
 				<View style={styles.qrCode}>
 					<QRCode value={selectedAddress} size={250} bgColor={colors.fontPrimary} fgColor={colors.white} />
 				</View>

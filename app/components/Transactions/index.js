@@ -78,22 +78,24 @@ export default class Transactions extends Component {
 	render() {
 		return (
 			<ScrollView style={styles.wrapper}>
-				{this.transactions.map(tx => (
-					<View style={styles.row} key={`tx-${tx.id}`}>
-						<Text style={styles.date}>{tx.date}</Text>
-						<View style={styles.subRow}>
-							<Identicon address={tx.to} diameter={24} />
-							<View style={styles.info}>
-								<Text style={styles.address}>{tx.to}</Text>
-								<Text style={styles.status}>{tx.status}</Text>
-							</View>
-							<View style={styles.amounts}>
-								<Text style={styles.amount}>{tx.amount} ETH</Text>
-								<Text style={styles.amountFiat}>{tx.amountFiat} USD</Text>
+				<View testID={'transactions'}>
+					{this.transactions.map(tx => (
+						<View style={styles.row} key={`tx-${tx.id}`}>
+							<Text style={styles.date}>{tx.date}</Text>
+							<View style={styles.subRow}>
+								<Identicon address={tx.to} diameter={24} />
+								<View style={styles.info}>
+									<Text style={styles.address}>{tx.to}</Text>
+									<Text style={styles.status}>{tx.status}</Text>
+								</View>
+								<View style={styles.amounts}>
+									<Text style={styles.amount}>{tx.amount} ETH</Text>
+									<Text style={styles.amountFiat}>{tx.amountFiat} USD</Text>
+								</View>
 							</View>
 						</View>
-					</View>
-				))}
+					))}
+				</View>
 			</ScrollView>
 		);
 	}
