@@ -6,6 +6,7 @@
  * Map of color names to HEX values
  */
 export const colors = {
+	accentGray: '#9b9b9b',
 	ash: '#ced6e0',
 	asphalt: '#747d8c',
 	black: '#000000',
@@ -19,8 +20,10 @@ export const colors = {
 	gray: '#5d5d5d',
 	inactive: '#808080',
 	inputBorderColor: '#dedede',
+	lightGray: '#d2d8dd',
 	primary: '#007aff',
 	primaryFox: '#f7861ce6',
+	red: '#f00',
 	slate: '#dfe4ea',
 	tar: '#2f3542',
 	title: '#1B344D',

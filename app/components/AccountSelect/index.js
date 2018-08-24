@@ -85,7 +85,7 @@ class AccountSelect extends Component {
 		 */
 		onChange: PropTypes.func,
 		/**
-		 * Currently-selected address in this Select
+		 * Address of the currently-selected account
 		 */
 		value: PropTypes.string
 	};
@@ -94,10 +94,7 @@ class AccountSelect extends Component {
 
 	renderOption(account, onPress) {
 		const { conversionRate, currentCurrency } = this.props;
-		// TODO: Use real balances (should come from GABA)
-		account.balance = 100;
-		// TODO: Format currency externally
-		account.formattedValue = parseFloat(Math.round(account.balance * conversionRate * 100) / 100).toFixed(2);
+		const formattedValue = parseFloat(Math.round(account.balance * conversionRate * 100) / 100).toFixed(2);
 		return (
 			<TouchableOpacity
 				key={account.address}
@@ -116,7 +113,7 @@ class AccountSelect extends Component {
 					</View>
 					<View>
 						<Text style={styles.info}>
-							{account.formattedValue} {currentCurrency}
+							{formattedValue} {currentCurrency}
 						</Text>
 					</View>
 				</View>
@@ -126,7 +123,7 @@ class AccountSelect extends Component {
 
 	renderActiveOption() {
 		const { activeAddress, accounts, value } = this.props;
-		const targetAddress = value || activeAddress;
+		const targetAddress = (value || activeAddress).toLowerCase();
 		const account = accounts[targetAddress];
 		return (
 			<View style={styles.activeOption}>
@@ -144,7 +141,7 @@ class AccountSelect extends Component {
 			<View style={styles.optionList}>
 				{Object.keys(accounts).map(address =>
 					this.renderOption(accounts[address], () => {
-						this.setState({ isOpen: false });
+						this.setState({ isOpen: false, value: address });
 						onChange && onChange(address);
 					})
 				)}
@@ -163,7 +160,6 @@ class AccountSelect extends Component {
 }
 
 const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
-	// TODO:  Use different account list that includes balances (from GABA)
 	accounts: PreferencesController.identities,
 	activeAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,

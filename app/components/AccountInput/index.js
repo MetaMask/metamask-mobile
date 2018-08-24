@@ -67,10 +67,6 @@ class AccountInput extends Component {
 		 */
 		accounts: PropTypes.object,
 		/**
-		 * ETH-to-current currency conversion rate from CurrencyRateController
-		 */
-		conversionRate: PropTypes.number,
-		/**
 		 * Callback triggered when the address changes
 		 */
 		onChange: PropTypes.func,
@@ -79,14 +75,14 @@ class AccountInput extends Component {
 		 */
 		placeholder: PropTypes.string,
 		/**
-		 * Current input value
+		 * Value of this underlying input
 		 */
 		value: PropTypes.string
 	};
 
 	state = {
 		isOpen: false,
-		value: ''
+		value: undefined
 	};
 
 	selectAccount(account) {
@@ -98,17 +94,8 @@ class AccountInput extends Component {
 	};
 
 	renderOption(account, onPress) {
-		const { conversionRate } = this.props;
-		// TODO: Use real balances (should come from GABA)
-		account.balance = 100;
-		// TODO: Format currency externally
-		account.formattedValue = parseFloat(Math.round(account.balance * conversionRate * 100) / 100).toFixed(2);
 		return (
-			<TouchableOpacity
-				key={account.address}
-				onPress={onPress}
-				style={styles.option}
-			>
+			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
 					<Identicon address={account.address} diameter={18} />
 				</View>
@@ -145,15 +132,16 @@ class AccountInput extends Component {
 		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
 		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
 		this.setState({
-			visibleOptions,
-			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
+			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match,
+			value,
+			visibleOptions
 		});
 		onChange && onChange(value);
 	};
 
 	render() {
 		const { isOpen } = this.state;
-		const { placeholder, value } = this.props;
+		const { placeholder, value} = this.props;
 		return (
 			<View style={styles.root}>
 				<TextInput
@@ -173,11 +161,10 @@ class AccountInput extends Component {
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
+const mapStateToProps = ({ backgroundState: { PreferencesController } }) => ({
 	// TODO:  Use different account list that includes balances (from GABA)
 	accounts: PreferencesController.identities,
-	activeAddress: PreferencesController.selectedAddress,
-	conversionRate: CurrencyRateController.conversionRate
+	activeAddress: PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(AccountInput);

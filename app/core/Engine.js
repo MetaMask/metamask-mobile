@@ -142,6 +142,13 @@ export default {
 	},
 	init(state) {
 		instance = new Engine(state);
+
+		// TODO: Use real balances
+		const { PreferencesController } = instance.datamodel.context;
+		Object.keys(PreferencesController.state.identities).forEach((address) => {
+			PreferencesController.state.identities[address].balance = 1337;
+		});
+
 		Object.freeze(instance);
 		return instance;
 	}

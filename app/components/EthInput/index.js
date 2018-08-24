@@ -20,9 +20,10 @@ const styles = StyleSheet.create({
 		zIndex: 1
 	},
 	input: {
+		flex: 0,
 		fontSize: 16,
 		fontWeight: '500',
-		flex: 0,
+		minWidth: 44,
 		paddingRight: 8
 	},
 	eth: {
@@ -36,8 +37,8 @@ const styles = StyleSheet.create({
 		textTransform: 'uppercase'
 	},
 	split: {
-		flexDirection: 'row',
-		flex: 0
+		flex: 0,
+		flexDirection: 'row'
 	}
 });
 
@@ -63,13 +64,23 @@ class EthInput extends Component {
 		 */
 		readonly: PropTypes.bool,
 		/**
-		 * Current input value
+		 * Value of this underlying input
 		 */
 		value: PropTypes.string
 	};
 
+	state = {
+		value: undefined
+	};
+
+	onChange = (value) => {
+		const { onChange } = this.props;
+		this.setState({ value });
+		onChange && onChange(value);
+	};
+
 	render() {
-		const { conversionRate, currentCurrency, onChange, readonly, value } = this.props;
+		const { conversionRate, currentCurrency, readonly, value } = this.props;
 		const fiatValue = parseFloat(Math.round((value || 0) * conversionRate * 100) / 100).toFixed(2);
 		return (
 			<View style={styles.root}>
@@ -80,7 +91,7 @@ class EthInput extends Component {
 						editable={!readonly}
 						keyboardType="numeric"
 						numberOfLines={1}
-						onChangeText={onChange}
+						onChangeText={this.onChange}
 						onFocus={this.focus}
 						placeholder={'0.00'}
 						spellCheck={false}
@@ -91,7 +102,7 @@ class EthInput extends Component {
 						ETH
 					</Text>
 				</View>
-				<Text style={styles.fiatValue}>
+				<Text style={styles.fiatValue} numberOfLines={1}>
 					{isNaN(fiatValue) ? '0.00' : fiatValue} {currentCurrency}
 				</Text>
 			</View>
@@ -100,7 +111,6 @@ class EthInput extends Component {
 }
 
 const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
-	// TODO:  Use different account list that includes balances (from GABA)
 	accounts: PreferencesController.identities,
 	activeAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,

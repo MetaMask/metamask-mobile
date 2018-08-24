@@ -1,5 +1,5 @@
 import Browser from '../Browser';
-import Approval from '../Approval';
+import TransactionEditor from '../TransactionEditor';
 import { createStackNavigator } from 'react-navigation';
 
 /**
@@ -12,7 +12,7 @@ export default createStackNavigator(
 		// 	screen: Browser
 		// },
 		Approval: {
-			screen: Approval
+			screen: TransactionEditor
 		}
 	},
 	{ mode: 'modal' }
