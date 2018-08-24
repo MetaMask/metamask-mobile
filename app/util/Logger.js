@@ -1,5 +1,6 @@
 'use strict';
-
+import { Crashlytics } from 'react-native-fabric';
+import { Platform } from 'react-native';
 /**
  * Wrapper class that allows us to override
  * console.log and console.error and in the future
@@ -14,8 +15,12 @@ export default class Logger {
 	 * @returns - void
 	 */
 	static log(...args) {
-		args.unshift('[MetaMask DEBUG]:');
-		console.log(...args); // eslint-disable-line no-console
+		if (__DEV__) {
+			args.unshift('[MetaMask DEBUG]:');
+			console.log(args); // eslint-disable-line no-console
+		} else {
+			Crashlytics.log(JSON.stringify(args));
+		}
 	}
 
 	/**
@@ -25,7 +30,13 @@ export default class Logger {
 	 * @returns - void
 	 */
 	static error(...args) {
-		args.unshift('[MetaMask DEBUG]:');
-		console.error(...args); // eslint-disable-line no-console
+		if (__DEV__) {
+			args.unshift('[MetaMask DEBUG]:');
+			console.error(args); // eslint-disable-line no-console
+		} else if (Platform.OS === 'android') {
+			Crashlytics.logException(JSON.stringify(args));
+		} else {
+			Crashlytics.recordError(JSON.stringify(args));
+		}
 	}
 }
