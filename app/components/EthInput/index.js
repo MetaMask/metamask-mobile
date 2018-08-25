@@ -69,7 +69,7 @@ class EthInput extends Component {
 		value: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
 	};
 
-	onChange = (value) => {
+	onChange = value => {
 		const { onChange } = this.props;
 		onChange && onChange(isNumeric(value) ? parseFloat(value) : value);
 	};

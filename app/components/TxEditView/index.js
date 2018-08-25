@@ -98,7 +98,7 @@ class TransactionEditor extends Component {
 		this.setState({ from });
 	};
 
-	updateToAddress = (to) => {
+	updateToAddress = to => {
 		this.setState({
 			to,
 			toError: Boolean(to && to.length > 0 && !isValidAddress(to))
@@ -110,11 +110,7 @@ class TransactionEditor extends Component {
 		const { amount, amountError, data, from = selectedAddress, gas, to, toError } = this.state;
 
 		return (
-			<ActionView
-				confirmText="Next"
-				onCancelPress={() => {}}
-				onConfirmPress={this.review}
-			>
+			<ActionView confirmText="Next" onCancelPress={() => {}} onConfirmPress={this.review}>
 				<View style={styles.form}>
 					<View style={{ ...styles.formRow, ...styles.fromRow }}>
 						<View style={styles.label}>
@@ -157,7 +153,8 @@ class TransactionEditor extends Component {
 							onChangeText={this.updateData}
 							placeholder="Optional"
 							style={styles.hexData}
-							value={data} />
+							value={data}
+						/>
 					</View>
 				</View>
 			</ActionView>
@@ -165,7 +162,9 @@ class TransactionEditor extends Component {
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController, TransactionController } }) => ({
+const mapStateToProps = ({
+	backgroundState: { CurrencyRateController, PreferencesController, TransactionController }
+}) => ({
 	accounts: PreferencesController.identities,
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency,

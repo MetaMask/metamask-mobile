@@ -54,18 +54,28 @@ const styles = StyleSheet.create({
 /**
  * Component that renders scrollable content above action buttons
  */
-export default function ActionView({ cancelText, children, confirmButtonMode, confirmText, onCancelPress, onConfirmPress}) {
+export default function ActionView({
+	cancelText,
+	children,
+	confirmButtonMode,
+	confirmText,
+	onCancelPress,
+	onConfirmPress
+}) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			<ScrollView style={baseStyles.flexGrow}>
-				{children}
-			</ScrollView>
+			<ScrollView style={baseStyles.flexGrow}>{children}</ScrollView>
 			<View style={styles.actionContainer}>
 				<Button style={{ ...styles.button, ...styles.cancel }} onPress={onCancelPress}>
-					<Text style={{ ...styles.buttonText, ...styles.cancelText}}>{cancelText}</Text>
+					<Text style={{ ...styles.buttonText, ...styles.cancelText }}>{cancelText}</Text>
 				</Button>
-				<Button style={{ ...styles.button, ...styles.confirm, ...styles[confirmButtonMode] }} onPress={onConfirmPress}>
-					<Text style={{ ...styles.buttonText, ...styles.confirmText, ...styles[`${confirmButtonMode}Text`] }}>
+				<Button
+					style={{ ...styles.button, ...styles.confirm, ...styles[confirmButtonMode] }}
+					onPress={onConfirmPress}
+				>
+					<Text
+						style={{ ...styles.buttonText, ...styles.confirmText, ...styles[`${confirmButtonMode}Text`] }}
+					>
 						{confirmText}
 					</Text>
 				</Button>

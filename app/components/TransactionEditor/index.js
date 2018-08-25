@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 	},
 	topOverviewRow: {
 		borderBottomWidth: 1,
-		borderColor: colors.lightGray,
+		borderColor: colors.lightGray
 	},
 	overviewLabel: {
 		color: colors.gray,
@@ -286,7 +286,10 @@ class TransactionEditor extends Component {
 		const { gas } = this.state;
 		let amountError;
 		amount && isNaN(amount) && (amountError = 'Invalid amount');
-		amount && !isNaN(amount) && amount > (identities[selectedAddress].balance - gas) && (amountError = 'Insufficient funds');
+		amount &&
+			!isNaN(amount) &&
+			amount > identities[selectedAddress].balance - gas &&
+			(amountError = 'Insufficient funds');
 		await this.setState({ amount, amountError });
 	};
 
@@ -307,18 +310,24 @@ class TransactionEditor extends Component {
 
 	render() {
 		// TODO: Use correct gas (probably converting from hex)
-		const { activePage, amount, amountError, data, from = this.props.selectedAddress, gas, gasError, to, toError } = this.state;
+		const {
+			activePage,
+			amount,
+			amountError,
+			data,
+			from = this.props.selectedAddress,
+			gas,
+			gasError,
+			to,
+			toError
+		} = this.state;
 		const { conversionRate, currentCurrency, onCancel, onConfirm } = this.props;
 		const safeTotal = (isNaN(amount) ? 0 : amount) + gas;
 
 		return (
 			<View style={styles.root}>
 				{activePage === 'edit' && (
-					<ActionView
-						confirmText="Next"
-						onCancelPress={onCancel}
-						onConfirmPress={this.review}
-					>
+					<ActionView confirmText="Next" onCancelPress={onCancel} onConfirmPress={this.review}>
 						<View style={styles.form}>
 							<View style={{ ...styles.formRow, ...styles.fromRow }}>
 								<View style={styles.label}>
@@ -331,7 +340,12 @@ class TransactionEditor extends Component {
 									<Text style={styles.labelText}>To:</Text>
 									{toError && <Text style={styles.error}>{toError}</Text>}
 								</View>
-								<AccountInput onChange={this.updateToAddress} onFocus={this.focusToAddress} placeholder="Receipient Address" value={to} />
+								<AccountInput
+									onChange={this.updateToAddress}
+									onFocus={this.focusToAddress}
+									placeholder="Receipient Address"
+									value={to}
+								/>
 							</View>
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
@@ -363,29 +377,30 @@ class TransactionEditor extends Component {
 									onChangeText={this.updateData}
 									placeholder="Optional"
 									style={styles.hexData}
-									value={data} />
+									value={data}
+								/>
 							</View>
 						</View>
 					</ActionView>
 				)}
 				{activePage === 'review' && (
-					<ActionView
-						confirmButtonMode="filled"
-						onCancelPress={onCancel}
-						onConfirmPress={onConfirm}
-					>
+					<ActionView confirmButtonMode="filled" onCancelPress={onCancel} onConfirmPress={onConfirm}>
 						<View style={styles.reviewForm}>
 							<View style={styles.graphic}>
 								<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
 									<Identicon address={from} diameter={18} />
-									<Text style={styles.addressText} numberOfLines={1}>{from}</Text>
+									<Text style={styles.addressText} numberOfLines={1}>
+										{from}
+									</Text>
 								</View>
 								<View style={styles.arrow}>
 									<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
 								</View>
 								<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
 									<Identicon address={to} diameter={18} />
-									<Text style={styles.addressText} numberOfLines={1}>{to}</Text>
+									<Text style={styles.addressText} numberOfLines={1}>
+										{to}
+									</Text>
 								</View>
 							</View>
 							<View style={styles.summary}>
@@ -400,11 +415,13 @@ class TransactionEditor extends Component {
 								</TouchableOpacity>
 							</View>
 							<View style={styles.overview}>
-								<View style={{ ...styles.overviewRow, ...styles.topOverviewRow}}>
+								<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
 									<Text style={styles.overviewLabel}>Gas Fee</Text>
 									<View style={styles.overviewContent}>
 										<TouchableOpacity>
-											<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>Edit</Text>
+											<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
+												Edit
+											</Text>
 										</TouchableOpacity>
 										<Text style={styles.overviewFiat}>
 											{/* TODO: Use real gas */}

@@ -147,7 +147,7 @@ class AccountInput extends Component {
 
 	render() {
 		const { isOpen } = this.state;
-		const { placeholder, value} = this.props;
+		const { placeholder, value } = this.props;
 		return (
 			<View style={styles.root}>
 				<TextInput

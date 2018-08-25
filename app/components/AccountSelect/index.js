@@ -108,11 +108,7 @@ class AccountSelect extends Component {
 	renderOption(account, onPress) {
 		const { conversionRate, currentCurrency } = this.props;
 		return (
-			<TouchableOpacity
-				key={account.address}
-				onPress={onPress}
-				style={styles.option}
-			>
+			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
 					<Identicon address={account.address} diameter={18} />
 				</View>
@@ -124,9 +120,7 @@ class AccountSelect extends Component {
 						<Text style={styles.info}>{account.balance} ETH</Text>
 					</View>
 					<View>
-						<Text style={styles.info}>
-							{ethToFiat(account.balance, conversionRate, currentCurrency)}
-						</Text>
+						<Text style={styles.info}>{ethToFiat(account.balance, conversionRate, currentCurrency)}</Text>
 					</View>
 				</View>
 			</TouchableOpacity>

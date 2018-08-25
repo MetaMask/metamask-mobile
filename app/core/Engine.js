@@ -146,8 +146,9 @@ export default {
 
 		// TODO: Use real balances
 		const { PreferencesController } = instance.datamodel.context;
-		Object.keys(PreferencesController.state.identities).forEach((address) => {
+		Object.keys(PreferencesController.state.identities).forEach(address => {
 			PreferencesController.state.identities[address].balance = 1337;
+			// PreferencesController.state.identities[address].balance = '0x487a9a304539440000';
 		});
 
 		Object.freeze(instance);

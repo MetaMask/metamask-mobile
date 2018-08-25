@@ -6,9 +6,7 @@ import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 
-const styles = StyleSheet.create({
-
-});
+const styles = StyleSheet.create({});
 
 /**
  * Component that manages transaction approval from the dapp browser
@@ -19,7 +17,7 @@ class Approval extends Component {
 		 * List of recent TransactionMeta objects
 		 */
 		transactions: PropTypes.arrayOf(PropTypes.object)
-	}
+	};
 
 	cancel = () => {
 		const transactionMeta = this.getTransactionMeta();
@@ -35,13 +33,9 @@ class Approval extends Component {
 		return [...this.props.transactions].reverse().find(meta => meta.status === 'unapproved');
 	}
 
-	prepareTransactionmeta(meta) {
+	prepareTransactionmeta(meta) {}
 
-	}
-
-	sanitizeTransactionMeta(meta) {
-
-	}
+	sanitizeTransactionMeta(meta) {}
 
 	render() {
 		return (
