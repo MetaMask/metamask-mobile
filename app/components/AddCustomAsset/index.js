@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderColor
 	},
 	warningText: {
-		color: colors.primaryFox
+		color: colors.error
 	}
 });
 
@@ -91,41 +91,61 @@ export default class AddCustomAsset extends Component {
 	};
 
 	onAddressChange = address => {
-		this.validateCustomToken();
 		this.setState({ address });
+		this.validateCustomTokenAddress(address);
 	};
 
 	onSymbolChange = symbol => {
 		this.setState({ symbol });
+		this.validateCustomTokenSymbol(symbol);
 	};
 
 	onDecimalsChange = decimals => {
 		this.setState({ decimals });
+		this.validateCustomTokenDecimals(decimals);
 	};
 
-	validateCustomToken = () => {
+	validateCustomTokenAddress = address => {
 		let validated = true;
-		if (this.state.address.length === 0) {
+		if (address.length === 0) {
 			this.setState({ warningAddress: `Token address can't be empty.` });
 			validated = false;
-		} else if (!isValidAddress(this.state.address)) {
+		} else if (!isValidAddress(address)) {
 			this.setState({ warningAddress: `Token address have to be a valid address.` });
 			validated = false;
 		} else {
 			this.setState({ warningAddress: `` });
 		}
-		if (this.state.symbol.length === 0) {
+		return validated;
+	};
+
+	validateCustomTokenSymbol = symbol => {
+		let validated = true;
+		if (symbol.length === 0) {
 			this.setState({ warningSymbol: `Token symbol can't be empty.` });
 			validated = false;
 		} else {
 			this.setState({ warningSymbol: `` });
 		}
-		if (this.state.decimals.length === 0) {
+		return validated;
+	};
+
+	validateCustomTokenDecimals = decimals => {
+		let validated = true;
+		if (decimals.length === 0) {
 			this.setState({ warningDecimals: `Token precision can't be empty.` });
 			validated = false;
 		} else {
 			this.setState({ warningDecimals: `` });
 		}
+		return validated;
+	};
+
+	validateCustomToken = () => {
+		let validated;
+		validated = this.validateCustomTokenAddress(this.state.address);
+		validated = this.validateCustomTokenSymbol(this.state.symbol);
+		validated = this.validateCustomTokenDecimals(this.state.decimals);
 		return validated;
 	};
 
