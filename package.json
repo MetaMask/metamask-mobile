@@ -140,6 +140,12 @@
         "build": "npm run start:ios",
         "type": "ios.simulator",
         "name": "iPhone 7"
+      },
+      "ios.sim.release": {
+        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
+        "build": "npm run start:ios -- --configuration Release",
+        "type": "ios.simulator",
+        "name": "iPhone 7"
       }
     },
     "runner-config": "e2e/config.json",
