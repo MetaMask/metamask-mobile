@@ -64,6 +64,7 @@ jobs:
     steps:
       - checkout
       - restore_cache: *restore-cache
+      - run: npm rebuild
       - run: *install-node-dependencies
       - run:
           name: Load dependencies
