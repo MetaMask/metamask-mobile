@@ -153,11 +153,21 @@ export default class AddCustomAsset extends Component {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
 				<Text>Token Address</Text>
-				<TextInput style={styles.textInput} value={this.state.address} onChangeText={this.onAddressChange} />
+				<TextInput
+					style={styles.textInput}
+					placeholder={'0x...'}
+					value={this.state.address}
+					onChangeText={this.onAddressChange}
+				/>
 				<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 
 				<Text>Token Symbol</Text>
-				<TextInput style={styles.textInput} value={this.state.symbol} onChangeText={this.onSymbolChange} />
+				<TextInput
+					style={styles.textInput}
+					placeholder={'GNO'}
+					value={this.state.symbol}
+					onChangeText={this.onSymbolChange}
+				/>
 				<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 
 				<Text>Token of Precision</Text>
@@ -166,6 +176,7 @@ export default class AddCustomAsset extends Component {
 					value={this.state.decimals}
 					keyboardType="numeric"
 					maxLength={2}
+					placeholder={'18'}
 					onChangeText={this.onDecimalsChange}
 				/>
 				<Text style={styles.warningText}>{this.state.warningDecimals}</Text>

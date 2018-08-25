@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Main view for the walletselectedAddress
+ * Main view for the wallet
  */
 class Wallet extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Wallet', navigation);
