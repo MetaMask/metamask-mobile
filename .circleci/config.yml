@@ -16,11 +16,12 @@ aliases:
 defaults: &defaults
   working_directory: ~/MetaMask
 
+version: 2
 jobs:
   prep-deps:
     <<: *defaults
-    docker:
-      - image: circleci/node:9
+    macos:
+      xcode: "9.4.1"
     steps:
       - checkout
       - restore_cache: *restore-cache
