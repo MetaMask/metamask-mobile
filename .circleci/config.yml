@@ -1,11 +1,11 @@
 aliases:
   - &restore-cache
     keys:
-      - v1.0.1-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.1-{{ .Branch }}
+      - v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.0-{{ .Branch }}
 
   - &save-cache
-    key: v1.0.1-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
 
@@ -20,8 +20,8 @@ version: 2
 jobs:
   prep-deps:
     <<: *defaults
-    macos:
-      xcode: "9.4.1"
+    docker:
+      - image: circleci/node:9
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -59,12 +59,13 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: "9.2"
+      xcode: "9.4.1"
 
     steps:
       - checkout
-      - restore_cache: *restore-cache
-      - run: *install-node-dependencies
+      - attach_workspace:
+          at: .
+      - run: npm rebuild
       - run:
           name: Load dependencies
           command:
