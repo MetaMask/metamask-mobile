@@ -108,7 +108,7 @@ workflows:
             - prep-deps
       - test-e2e-ios:
           requires:
-            - prep-deps
+            - test-unit
       - all-tests-pass:
           requires:
             - lint
