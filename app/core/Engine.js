@@ -47,12 +47,13 @@ class Engine {
 								eth_sendTransaction: async (payload, next, end) => {
 									const { TransactionController } = this.datamodel.context;
 									try {
-										// setTimeout(async () => {
-										// 	const transactions = TransactionController.state.transactions;
-										// 	await TransactionController.approveTransaction(
-										// 		transactions[transactions.length - 1].id
-										// 	);
-										// }, 2000);
+										setTimeout(async () => {
+											const transactions = TransactionController.state.transactions;
+											console.log(transactions);
+											// await TransactionController.approveTransaction(
+											// 	transactions[transactions.length - 1].id
+											// );
+										}, 2000);
 
 										const hash = await (await TransactionController.addTransaction(
 											payload.params[0]

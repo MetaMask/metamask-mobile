@@ -71,6 +71,10 @@ class AccountInput extends Component {
 		 */
 		onChange: PropTypes.func,
 		/**
+		 * Callback triggered when the input is focused
+		 */
+		onFocus: PropTypes.func,
+		/**
 		 * Placeholder text to show inside this input
 		 */
 		placeholder: PropTypes.string,
@@ -85,13 +89,15 @@ class AccountInput extends Component {
 		value: undefined
 	};
 
+	onFocus = () => {
+		const { onFocus } = this.props;
+		this.setState({ isOpen: true });
+		onFocus && onFocus();
+	};
+
 	selectAccount(account) {
 		this.onChange(account.address);
 	}
-
-	focus = () => {
-		this.setState({ isOpen: true });
-	};
 
 	renderOption(account, onPress) {
 		return (
@@ -149,7 +155,7 @@ class AccountInput extends Component {
 					autoCorrect={false}
 					clearButtonMode="while-editing"
 					onChangeText={this.onChange}
-					onFocus={this.focus}
+					onFocus={this.onFocus}
 					placeholder={placeholder}
 					spellCheck={false}
 					style={styles.input}

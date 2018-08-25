@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "base-64": "^0.1.0",
+    "bignumber.js": "^7.2.1",
     "buffer": "^4.9.1",
     "eth-block-tracker": "github:MetaMask/eth-block-tracker#3.0.1-subscription-fix",
     "ethereumjs-util": "^5.2.0",

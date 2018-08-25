@@ -41,11 +41,11 @@ const styles = StyleSheet.create({
  * Complete Web browser component with URL entry and history management
  */
 export default class Browser extends Component {
+	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
+
 	static defaultProps = {
 		defaultProtocol: 'https://'
 	};
-
-	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
 
 	static propTypes = {
 		/**
@@ -55,7 +55,11 @@ export default class Browser extends Component {
 		/**
 		 * Initial URL to load in the WebView
 		 */
-		defaultURL: PropTypes.string.isRequired
+		defaultURL: PropTypes.string.isRequired,
+		/**
+		 * react-navigation object used to switch between screens
+		 */
+		navigation: PropTypes.object
 	};
 
 	state = {

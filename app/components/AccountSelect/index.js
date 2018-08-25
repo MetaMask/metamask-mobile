@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
+import { ethToFiat } from '../../util/number';
 
 const styles = StyleSheet.create({
 	root: {
@@ -20,10 +21,8 @@ const styles = StyleSheet.create({
 	},
 	option: {
 		flexDirection: 'row',
-		paddingBottom: 4,
-		paddingLeft: 10,
-		paddingRight: 10,
-		paddingTop: 8
+		paddingHorizontal: 10,
+		paddingVertical: 8
 	},
 	info: {
 		fontSize: 12,
@@ -60,12 +59,12 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a select-style component populated with available available accounts
+ * Component that renders a select-style component populated with accounts from the current keychain
  */
 class AccountSelect extends Component {
 	static propTypes = {
 		/**
-		 * List of accounts from the PreferencesController TODO: Update this
+		 * List of accounts from the PreferencesController
 		 */
 		accounts: PropTypes.object,
 		/**
@@ -92,9 +91,22 @@ class AccountSelect extends Component {
 
 	state = { isOpen: false };
 
+	renderActiveOption() {
+		const { activeAddress, accounts, value } = this.props;
+		const targetAddress = (value || activeAddress).toLowerCase();
+		const account = accounts[targetAddress];
+		return (
+			<View style={styles.activeOption}>
+				<MaterialIcon name={'keyboard-arrow-down'} size={18} style={styles.arrow} />
+				{this.renderOption(account, () => {
+					this.setState({ isOpen: !this.state.isOpen });
+				})}
+			</View>
+		);
+	}
+
 	renderOption(account, onPress) {
 		const { conversionRate, currentCurrency } = this.props;
-		const formattedValue = parseFloat(Math.round(account.balance * conversionRate * 100) / 100).toFixed(2);
 		return (
 			<TouchableOpacity
 				key={account.address}
@@ -113,25 +125,11 @@ class AccountSelect extends Component {
 					</View>
 					<View>
 						<Text style={styles.info}>
-							{formattedValue} {currentCurrency}
+							{ethToFiat(account.balance, conversionRate, currentCurrency)}
 						</Text>
 					</View>
 				</View>
 			</TouchableOpacity>
-		);
-	}
-
-	renderActiveOption() {
-		const { activeAddress, accounts, value } = this.props;
-		const targetAddress = (value || activeAddress).toLowerCase();
-		const account = accounts[targetAddress];
-		return (
-			<View style={styles.activeOption}>
-				<MaterialIcon name={'keyboard-arrow-down'} size={18} style={styles.arrow} />
-				{this.renderOption(account, () => {
-					this.setState({ isOpen: !this.state.isOpen });
-				})}
-			</View>
 		);
 	}
 
@@ -160,6 +158,7 @@ class AccountSelect extends Component {
 }
 
 const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
+	// TODO: Update this to use balances
 	accounts: PreferencesController.identities,
 	activeAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,

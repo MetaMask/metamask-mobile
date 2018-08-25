@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
+import { ethToFiat, isNumeric } from '../../util/number';
 
 const styles = StyleSheet.create({
 	root: {
@@ -12,10 +13,9 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		flex: 1,
 		fontWeight: '500',
-		paddingBottom: 6,
 		paddingLeft: 10,
 		paddingRight: 40,
-		paddingTop: 6,
+		paddingVertical: 6,
 		position: 'relative',
 		zIndex: 1
 	},
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a text input that converts ETH to fiat
+ * Component that renders a text input that accepts ETH and also renders fiat
  */
 class EthInput extends Component {
 	static propTypes = {
@@ -64,24 +64,18 @@ class EthInput extends Component {
 		 */
 		readonly: PropTypes.bool,
 		/**
-		 * Value of this underlying input
+		 * Value of this underlying input expressed as big number
 		 */
-		value: PropTypes.string
-	};
-
-	state = {
-		value: undefined
+		value: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
 	};
 
 	onChange = (value) => {
 		const { onChange } = this.props;
-		this.setState({ value });
-		onChange && onChange(value);
+		onChange && onChange(isNumeric(value) ? parseFloat(value) : value);
 	};
 
 	render() {
 		const { conversionRate, currentCurrency, readonly, value } = this.props;
-		const fiatValue = parseFloat(Math.round((value || 0) * conversionRate * 100) / 100).toFixed(2);
 		return (
 			<View style={styles.root}>
 				<View style={styles.split}>
@@ -92,27 +86,24 @@ class EthInput extends Component {
 						keyboardType="numeric"
 						numberOfLines={1}
 						onChangeText={this.onChange}
-						onFocus={this.focus}
 						placeholder={'0.00'}
 						spellCheck={false}
 						style={styles.input}
-						value={value}
+						value={typeof value === 'number' ? String(value) : value}
 					/>
 					<Text style={styles.eth} numberOfLines={1}>
 						ETH
 					</Text>
 				</View>
 				<Text style={styles.fiatValue} numberOfLines={1}>
-					{isNaN(fiatValue) ? '0.00' : fiatValue} {currentCurrency}
+					{ethToFiat(value, conversionRate, currentCurrency)}
 				</Text>
 			</View>
 		);
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
-	accounts: PreferencesController.identities,
-	activeAddress: PreferencesController.selectedAddress,
+const mapStateToProps = ({ backgroundState: { CurrencyRateController } }) => ({
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency
 });

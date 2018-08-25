@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import AccountInput from '../AccountInput';
 import AccountSelect from '../AccountSelect';
-import Button from '../Button';
+import ActionView from '../ActionView';
 import EthInput from '../EthInput';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Identicon from '../Identicon';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import PropTypes from 'prop-types';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
+import { ethToFiat } from '../../util/number';
 import { isValidAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
@@ -13,24 +17,24 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
+	formRow: {
+		flexDirection: 'row'
+	},
 	fromRow: {
-		flexDirection: 'row',
 		zIndex: 5
 	},
 	toRow: {
-		flexDirection: 'row',
 		marginTop: 16,
 		zIndex: 4
 	},
 	amountRow: {
-		flexDirection: 'row',
 		marginTop: 16,
 		zIndex: 3
 	},
 	label: {
 		flex: 0,
 		paddingRight: 18,
-		width: 88
+		width: 96
 	},
 	labelText: {
 		color: colors.gray,
@@ -50,147 +54,392 @@ const styles = StyleSheet.create({
 		lineHeight: 12,
 		paddingTop: 6
 	},
-	actionContainer: {
-		borderTopColor: colors.lightGray,
-		borderTopWidth: 1,
-		flex: 0,
-		flexDirection: 'row',
+	form: {
+		flex: 1,
 		padding: 16
 	},
-	button: {
-		borderRadius: 4,
-		borderWidth: 2,
-		height: 'auto',
-		paddingVertical: 16
+	graphic: {
+		borderBottomWidth: 1,
+		borderColor: colors.inputBorderColor,
+		borderTopWidth: 1,
+		flexDirection: 'row',
+		flexGrow: 0,
+		flexShrink: 0,
+		paddingHorizontal: 16
 	},
-	buttonText: {
-		fontSize: 15,
+	addressText: {
+		flex: 1,
+		fontSize: 16,
 		fontWeight: '500',
+		marginLeft: 9
+	},
+	arrow: {
+		backgroundColor: colors.white,
+		borderColor: colors.lightGray,
+		borderRadius: 15,
+		borderWidth: 1,
+		flex: 0,
+		height: 30,
+		left: '50%',
+		marginTop: -15,
+		position: 'absolute',
+		top: '50%',
+		width: 30,
+		zIndex: 1
+	},
+	arrowIcon: {
+		color: colors.gray,
+		marginLeft: 3,
+		marginTop: 3
+	},
+	addressGraphic: {
+		alignItems: 'center',
+		flexDirection: 'row',
+		flexGrow: 1,
+		flexShrink: 1,
+		height: 42,
+		width: '50%'
+	},
+	fromGraphic: {
+		borderColor: colors.inputBorderColor,
+		borderRightWidth: 1,
+		paddingRight: 32
+	},
+	toGraphic: {
+		paddingLeft: 32
+	},
+	reviewForm: {
+		flex: 1
+	},
+	confirmBadge: {
+		alignItems: 'center',
+		borderColor: colors.subtleGray,
+		borderRadius: 4,
+		borderWidth: 1,
+		color: colors.subtleGray,
+		fontSize: 12,
+		lineHeight: 22,
+		textAlign: 'center',
+		textTransform: 'uppercase',
+		width: 74
+	},
+	summary: {
+		backgroundColor: colors.beige,
+		borderBottomWidth: 1,
+		borderColor: colors.lightGray,
+		padding: 16
+	},
+	summaryFiat: {
+		color: colors.copy,
+		fontSize: 44,
+		paddingVertical: 4,
 		textTransform: 'uppercase'
 	},
-	cancel: {
+	summaryEth: {
+		color: colors.subtleGray,
+		fontSize: 24
+	},
+	overview: {
+		padding: 16
+	},
+	overviewRow: {
+		alignItems: 'center',
+		flexDirection: 'row',
+		paddingVertical: 15
+	},
+	topOverviewRow: {
+		borderBottomWidth: 1,
+		borderColor: colors.lightGray,
+	},
+	overviewLabel: {
+		color: colors.gray,
+		flex: 1,
+		fontSize: 12,
+		fontWeight: '500',
+		textTransform: 'uppercase',
+		width: 60
+	},
+	overviewFiat: {
+		color: colors.copy,
+		fontSize: 24,
+		fontWeight: '500',
+		textAlign: 'right',
+		textTransform: 'uppercase'
+	},
+	overviewEth: {
+		color: colors.subtleGray,
+		fontSize: 16,
+		textAlign: 'right'
+	},
+	overviewInfo: {
+		fontSize: 12,
+		marginBottom: 6,
+		textAlign: 'right',
+		textTransform: 'uppercase'
+	},
+	overviewAction: {
+		color: colors.blue,
+		fontWeight: '500'
+	},
+	hexData: {
 		backgroundColor: colors.white,
-		borderColor: colors.accentGray,
-		marginRight: 8
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1,
+		flex: 1,
+		fontSize: 16,
+		fontWeight: '500',
+		minHeight: 64,
+		paddingLeft: 10,
+		paddingVertical: 6
 	},
-	cancelText: {
-		color: colors.gray
+	goBack: {
+		alignItems: 'center',
+		flexDirection: 'row',
+		left: -8,
+		marginTop: 8,
+		position: 'relative',
+		width: 150
 	},
-	next: {
-		backgroundColor: colors.white,
-		borderColor: colors.blue,
-		marginLeft: 8
+	goBackText: {
+		color: colors.blue,
+		fontSize: 22,
+		fontWeight: '500'
 	},
-	nextText: {
-		color: colors.blue
-	},
-	form: {
-		padding: 16,
-		flex: 1
-	},
-	editView: {
-		flex: 1
+	goBackIcon: {
+		color: colors.blue,
+		flex: 0
 	}
 });
 
 /**
- * View that wraps the transaction approval screen
+ * Component that supports editing and reviewing a transaction
  */
 class TransactionEditor extends Component {
+	static propTypes = {
+		/**
+		 * Map of identites associated with the current keychain
+		 */
+		identities: PropTypes.object,
+		/**
+		 * ETH to currnt currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		 * Callback triggered when this transaction is cancelled
+		 */
+		onCancel: PropTypes.func,
+		/**
+		 * Callback triggered when this transaction is cancelled
+		 */
+		onConfirm: PropTypes.func,
+		/**
+		 * Currently-active account address in the current keychain
+		 */
+		selectedAddress: PropTypes.string
+	};
+
 	state = {
+		activePage: 'edit',
 		amount: undefined,
+		amountError: undefined,
 		from: undefined,
-		gas: undefined,
+		gas: 0.0015, // TODO: Use real gas, make this default undefined
+		gasError: undefined,
 		to: undefined,
-		toError: undefined
+		toError: undefined,
+		toFocused: false
 	};
 
-	updateFromAddress = from => {
-		this.setState({ from });
-	};
-
-	updateToAddress = (to) => {
-		this.setState({
-			to,
-			toError: Boolean(to && to.length > 0 && !isValidAddress(to))
-		});
-	};
-
-	updateAmount = amount => {
-		this.setState({
-			amount,
-			amountError: Boolean(amount && amount.length > 0 && isNaN(amount - parseFloat(amount)))
-		});
+	edit = () => {
+		this.setState({ activePage: 'edit' });
 	};
 
 	fillMax = () => {
-		// TODO: Subtract gas properly using hex math
-		const { accounts, selectedAddress } = this.props;
-		const { balance } = accounts[this.state.from || selectedAddress];
-		this.setState({ amount: String(balance) });
+		// TODO: Subtract gas properly (probably using hex math)
+		const { identities, selectedAddress } = this.props;
+		const { balance } = identities[this.state.from || selectedAddress];
+		const { gas } = this.state;
+		this.setState({ amount: balance - gas });
+	};
+
+	focusToAddress = () => {
+		this.setState({ toFocused: true });
+	};
+
+	review = () => {
+		const { amountError, to, toError, gasError } = this.state;
+		if (amountError || toError || gasError || !to) {
+			!to && this.setState({ toError: 'Required' });
+			return;
+		}
+		this.setState({ activePage: 'review' });
+	};
+
+	updateAmount = async amount => {
+		// TODO: Subtract gas properly (probably using hex math)
+		const { identities, selectedAddress } = this.props;
+		const { gas } = this.state;
+		let amountError;
+		amount && isNaN(amount) && (amountError = 'Invalid amount');
+		amount && !isNaN(amount) && amount > (identities[selectedAddress].balance - gas) && (amountError = 'Insufficient funds');
+		await this.setState({ amount, amountError });
+	};
+
+	updateData = async data => {
+		await this.setState({ data });
+	};
+
+	updateFromAddress = async from => {
+		await this.setState({ from });
+	};
+
+	updateToAddress = async to => {
+		let toError;
+		this.state.toFocused && !to && (toError = 'Required');
+		to && !isValidAddress(to) && (toError = 'Invalid address');
+		this.setState({ to, toError });
 	};
 
 	render() {
-		const { amount, amountError, from = this.props.selectedAddress, to, toError } = this.state;
+		// TODO: Use correct gas (probably converting from hex)
+		const { activePage, amount, amountError, data, from = this.props.selectedAddress, gas, gasError, to, toError } = this.state;
+		const { conversionRate, currentCurrency, onCancel, onConfirm } = this.props;
+		const safeTotal = (isNaN(amount) ? 0 : amount) + gas;
 
 		return (
 			<View style={styles.root}>
-				<View style={styles.editView}>
-					<View style={styles.form}>
-						<View style={styles.fromRow}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>From:</Text>
+				{activePage === 'edit' && (
+					<ActionView
+						confirmText="Next"
+						onCancelPress={onCancel}
+						onConfirmPress={this.review}
+					>
+						<View style={styles.form}>
+							<View style={{ ...styles.formRow, ...styles.fromRow }}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>From:</Text>
+								</View>
+								<AccountSelect value={from} onChange={this.updateFromAddress} />
 							</View>
-							<AccountSelect value={from} onChange={this.updateFromAddress} />
-						</View>
-						<View style={styles.toRow}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>To:</Text>
-								{toError && <Text style={styles.error}>Invalid address</Text>}
+							<View style={{ ...styles.formRow, ...styles.toRow }}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>To:</Text>
+									{toError && <Text style={styles.error}>{toError}</Text>}
+								</View>
+								<AccountInput onChange={this.updateToAddress} onFocus={this.focusToAddress} placeholder="Receipient Address" value={to} />
 							</View>
-							<AccountInput onChange={this.updateToAddress} placeholder="Receipient Address" value={to} />
-						</View>
-						<View style={styles.amountRow}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>Amount:</Text>
-								{amountError ? (
-									<Text style={styles.error}>Invalid amount</Text>
-								) : (
-									<TouchableOpacity onPress={this.fillMax}>
-										<Text style={styles.max}>Max</Text>
-									</TouchableOpacity>
-								)}
+							<View style={{ ...styles.formRow, ...styles.amountRow }}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>Amount:</Text>
+									{amountError ? (
+										<Text style={styles.error}>{amountError}</Text>
+									) : (
+										<TouchableOpacity onPress={this.fillMax}>
+											<Text style={styles.max}>Max</Text>
+										</TouchableOpacity>
+									)}
+								</View>
+								<EthInput onChange={this.updateAmount} value={amount} />
 							</View>
-							<EthInput onChange={this.updateAmount} value={amount} />
-						</View>
-						<View style={styles.amountRow}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>Gas Fee:</Text>
+							<View style={{ ...styles.formRow, ...styles.amountRow }}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>Gas Fee:</Text>
+									{gasError && <Text style={styles.error}>{gasError}</Text>}
+								</View>
+								{/* TODO: Use real gas */}
+								<EthInput readonly value={gas} />
 							</View>
-							<EthInput readonly value={'0.00'} />
+							<View style={{ ...styles.formRow, ...styles.amountRow }}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>Hex Data:</Text>
+								</View>
+								<TextInput
+									multiline
+									onChangeText={this.updateData}
+									placeholder="Optional"
+									style={styles.hexData}
+									value={data} />
+							</View>
 						</View>
-					</View>
-					<View style={styles.actionContainer}>
-						<Button style={{ ...styles.button, ...styles.cancel }}>
-							<Text style={{ ...styles.buttonText, ...styles.cancelText}}>Cancel</Text>
-						</Button>
-						<Button style={{ ...styles.button, ...styles.next}}>
-							<Text style={{ ...styles.buttonText, ...styles.nextText}}>Next</Text>
-						</Button>
-					</View>
-				</View>
-				<View>
-
-				</View>
+					</ActionView>
+				)}
+				{activePage === 'review' && (
+					<ActionView
+						confirmButtonMode="filled"
+						onCancelPress={onCancel}
+						onConfirmPress={onConfirm}
+					>
+						<View style={styles.reviewForm}>
+							<View style={styles.graphic}>
+								<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
+									<Identicon address={from} diameter={18} />
+									<Text style={styles.addressText} numberOfLines={1}>{from}</Text>
+								</View>
+								<View style={styles.arrow}>
+									<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
+								</View>
+								<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
+									<Identicon address={to} diameter={18} />
+									<Text style={styles.addressText} numberOfLines={1}>{to}</Text>
+								</View>
+							</View>
+							<View style={styles.summary}>
+								<Text style={styles.confirmBadge}>Confirm</Text>
+								<Text style={styles.summaryFiat}>
+									{ethToFiat(safeTotal, conversionRate, currentCurrency)}
+								</Text>
+								<Text style={styles.summaryEth}>{safeTotal}</Text>
+								<TouchableOpacity style={styles.goBack} onPress={this.edit}>
+									<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
+									<Text style={styles.goBackText}>Edit</Text>
+								</TouchableOpacity>
+							</View>
+							<View style={styles.overview}>
+								<View style={{ ...styles.overviewRow, ...styles.topOverviewRow}}>
+									<Text style={styles.overviewLabel}>Gas Fee</Text>
+									<View style={styles.overviewContent}>
+										<TouchableOpacity>
+											<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>Edit</Text>
+										</TouchableOpacity>
+										<Text style={styles.overviewFiat}>
+											{/* TODO: Use real gas */}
+											{ethToFiat(gas, conversionRate, currentCurrency)}
+										</Text>
+										{/* TODO: Use real gas */}
+										<Text style={styles.overviewEth}>{gas}</Text>
+									</View>
+								</View>
+								<View style={styles.overviewRow}>
+									<Text style={styles.overviewLabel}>Total</Text>
+									<View style={styles.overviewContent}>
+										<Text style={styles.overviewInfo}>Amount + Gas Fee</Text>
+										<Text style={styles.overviewFiat}>
+											{/* TODO: Use real gas */}
+											{ethToFiat(safeTotal, conversionRate, currentCurrency)}
+										</Text>
+										<Text style={styles.overviewEth}>{safeTotal}</Text>
+									</View>
+								</View>
+							</View>
+						</View>
+					</ActionView>
+				)}
 			</View>
 		);
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { PreferencesController, TransactionController } }) => ({
-	accounts: PreferencesController.identities,
-	selectedAddress: PreferencesController.selectedAddress,
-	transactions: TransactionController.transactions
+const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
+	// TODO: Update this to use balances
+	identities: PreferencesController.identities,
+	conversionRate: CurrencyRateController.conversionRate,
+	currentCurrency: CurrencyRateController.currentCurrency,
+	selectedAddress: PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(TransactionEditor);
