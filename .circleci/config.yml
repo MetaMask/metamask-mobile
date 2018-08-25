@@ -50,7 +50,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm run test:unit
+      - run: npm run test:unit -- -w 1
       - persist_to_workspace:
           root: .
           paths:
