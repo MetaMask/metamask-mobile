@@ -60,13 +60,11 @@ jobs:
     <<: *defaults
     macos:
       xcode: "9.2"
-    dependencies:
-      pre:
 
     steps:
       - checkout
-      - attach_workspace:
-          at: .
+      - restore_cache: *restore-cache
+      - run: *install-node-dependencies
       - run:
           name: Load dependencies
           command:
