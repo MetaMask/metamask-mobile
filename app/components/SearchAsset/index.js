@@ -72,7 +72,7 @@ export default class SearchAsset extends Component {
 	};
 
 	cancelAddToken = () => {
-		this.props.navigation.pop();
+		this.props.navigation.goBack();
 	};
 
 	render() {

@@ -83,30 +83,28 @@ export default class AddCustomAsset extends Component {
 		if (!this.validateCustomToken()) return;
 		const { PreferencesController } = Engine.context;
 		PreferencesController.addToken(this.state.address, this.state.symbol, this.state.decimals);
-		this.props.navigation.pop();
+		this.props.navigation.goBack();
 	};
 
 	cancelAddToken = () => {
-		this.props.navigation.pop();
+		this.props.navigation.goBack();
 	};
 
 	onAddressChange = address => {
 		this.setState({ address });
-		this.validateCustomTokenAddress(address);
 	};
 
 	onSymbolChange = symbol => {
 		this.setState({ symbol });
-		this.validateCustomTokenSymbol(symbol);
 	};
 
 	onDecimalsChange = decimals => {
 		this.setState({ decimals });
-		this.validateCustomTokenDecimals(decimals);
 	};
 
-	validateCustomTokenAddress = address => {
+	validateCustomTokenAddress = () => {
 		let validated = true;
+		const address = this.state.address;
 		if (address.length === 0) {
 			this.setState({ warningAddress: `Token address can't be empty.` });
 			validated = false;
@@ -119,8 +117,9 @@ export default class AddCustomAsset extends Component {
 		return validated;
 	};
 
-	validateCustomTokenSymbol = symbol => {
+	validateCustomTokenSymbol = () => {
 		let validated = true;
+		const symbol = this.state.symbol;
 		if (symbol.length === 0) {
 			this.setState({ warningSymbol: `Token symbol can't be empty.` });
 			validated = false;
@@ -130,8 +129,9 @@ export default class AddCustomAsset extends Component {
 		return validated;
 	};
 
-	validateCustomTokenDecimals = decimals => {
+	validateCustomTokenDecimals = () => {
 		let validated = true;
+		const decimals = this.state.decimals;
 		if (decimals.length === 0) {
 			this.setState({ warningDecimals: `Token precision can't be empty.` });
 			validated = false;
@@ -142,11 +142,10 @@ export default class AddCustomAsset extends Component {
 	};
 
 	validateCustomToken = () => {
-		let validated;
-		validated = this.validateCustomTokenAddress(this.state.address);
-		validated = this.validateCustomTokenSymbol(this.state.symbol);
-		validated = this.validateCustomTokenDecimals(this.state.decimals);
-		return validated;
+		const validatedAddress = this.validateCustomTokenAddress();
+		const validatedSymbol = this.validateCustomTokenSymbol();
+		const validatedDecimals = this.validateCustomTokenDecimals();
+		return validatedAddress && validatedSymbol && validatedDecimals;
 	};
 
 	render() {
@@ -158,6 +157,7 @@ export default class AddCustomAsset extends Component {
 					placeholder={'0x...'}
 					value={this.state.address}
 					onChangeText={this.onAddressChange}
+					onBlur={this.validateCustomTokenAddress}
 				/>
 				<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 
@@ -167,6 +167,7 @@ export default class AddCustomAsset extends Component {
 					placeholder={'GNO'}
 					value={this.state.symbol}
 					onChangeText={this.onSymbolChange}
+					onBlur={this.validateCustomTokenSymbol}
 				/>
 				<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 
@@ -178,6 +179,7 @@ export default class AddCustomAsset extends Component {
 					maxLength={2}
 					placeholder={'18'}
 					onChangeText={this.onDecimalsChange}
+					onBlur={this.validateCustomTokenDecimals}
 				/>
 				<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 
