@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import StyledButtonIOS from './index.ios';
 import StyledButtonAndroid from './index.android';
 
-describe('GenericButton', () => {
+describe('StyledButton', () => {
 	const buttonTypes = ['normal', 'confirm', 'orange', 'cancel'];
 
 	buttonTypes.forEach(type => {

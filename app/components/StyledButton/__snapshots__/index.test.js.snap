@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`GenericButton should render correctly on Android the button with type cancel 1`] = `
+exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
 <DummyTouchableNativeFeedback
   style={
     Array [
@@ -19,7 +19,7 @@ exports[`GenericButton should render correctly on Android the button with type c
 />
 `;
 
-exports[`GenericButton should render correctly on Android the button with type confirm 1`] = `
+exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
 <DummyTouchableNativeFeedback
   style={
     Array [
@@ -36,7 +36,7 @@ exports[`GenericButton should render correctly on Android the button with type c
 />
 `;
 
-exports[`GenericButton should render correctly on Android the button with type normal 1`] = `
+exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
 <DummyTouchableNativeFeedback
   style={
     Array [
@@ -55,7 +55,7 @@ exports[`GenericButton should render correctly on Android the button with type n
 />
 `;
 
-exports[`GenericButton should render correctly on Android the button with type orange 1`] = `
+exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
 <DummyTouchableNativeFeedback
   style={
     Array [
@@ -72,7 +72,7 @@ exports[`GenericButton should render correctly on Android the button with type o
 />
 `;
 
-exports[`GenericButton should render correctly on iOS the button with type cancel 1`] = `
+exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
 <Button
   containerStyle={
     Array [
@@ -109,7 +109,7 @@ exports[`GenericButton should render correctly on iOS the button with type cance
 />
 `;
 
-exports[`GenericButton should render correctly on iOS the button with type confirm 1`] = `
+exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
 <Button
   containerStyle={
     Array [
@@ -144,7 +144,7 @@ exports[`GenericButton should render correctly on iOS the button with type confi
 />
 `;
 
-exports[`GenericButton should render correctly on iOS the button with type normal 1`] = `
+exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
 <Button
   containerStyle={
     Array [
@@ -181,7 +181,7 @@ exports[`GenericButton should render correctly on iOS the button with type norma
 />
 `;
 
-exports[`GenericButton should render correctly on iOS the button with type orange 1`] = `
+exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
 <Button
   containerStyle={
     Array [

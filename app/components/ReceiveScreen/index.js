@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { TextInput, StyleSheet, Text, View } from 'react-native';
+import { Platform, TextInput, StyleSheet, Text, ScrollView, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode';
@@ -10,22 +10,24 @@ import Logger from '../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.white,
 		flex: 1,
-		padding: 10,
+		backgroundColor: colors.white
+	},
+	wrapperContainer: {
+		flex: 1,
+		padding: Platform.OS === 'android' ? 20 : 10,
 		alignItems: 'center'
 	},
 	text: {
-		marginTop: 20,
+		marginTop: Platform.OS === 'android' ? 10 : 20,
 		fontSize: 18,
 		textAlign: 'center',
 		...fontStyles.normal
 	},
 	address: {
-		marginTop: 30,
+		marginTop: Platform.OS === 'android' ? 20 : 30,
 		backgroundColor: colors.concrete,
-		paddingTop: 15,
-		paddingBottom: 15,
+		paddingVertical: Platform.OS === 'android' ? 10 : 15,
 		paddingLeft: 8,
 		paddingRight: 8,
 		fontSize: 14,
@@ -33,13 +35,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	qrCode: {
-		marginTop: 40,
+		marginTop: Platform.OS === 'android' ? 20 : 40,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		marginBottom: Platform.OS === 'android' ? 20 : 40
 	},
 	shareButton: {
-		marginTop: 40,
-		width: 250
+		width: Platform.OS === 'android' ? 200 : 250
 	}
 });
 
@@ -65,8 +67,8 @@ class ReceiveScreen extends Component {
 	render() {
 		const { selectedAddress } = this.props;
 		return (
-			<View style={styles.wrapper}>
-				<View style={styles.wrapper} testID={'receive-screen'}>
+			<ScrollView style={styles.wrapper}>
+				<View style={styles.wrapperContainer} testID={'receive-screen'}>
 					<Text style={styles.text}>Public Address</Text>
 					<TextInput
 						value={selectedAddress}
@@ -78,7 +80,7 @@ class ReceiveScreen extends Component {
 					<View style={styles.qrCode}>
 						<QRCode
 							value={selectedAddress}
-							size={250}
+							size={Platform.OS === 'android' ? 200 : 250}
 							bgColor={colors.fontPrimary}
 							fgColor={colors.white}
 						/>
@@ -87,7 +89,7 @@ class ReceiveScreen extends Component {
 						SHARE
 					</StyledButton>
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 }

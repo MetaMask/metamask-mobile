@@ -69,20 +69,5 @@ jest.mock('../core/Engine', () => ({
 }));
 
 jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
-
-// jest.mock('react-native-share', () => ({
-// 	NativeModules: {
-// 		RNShare : {
-// 			FACEBOOK: 'facebook',
-// 			PAGESMANAGER: 'pagesmanager',
-// 			TWITTER: 'twitter',
-// 			WHATSAPP: 'whatsapp',
-// 			INSTAGRAM: 'instagram',
-// 			GOOGLEPLUS: 'googleplus',
-// 			EMAIL: 'email'
-// 		}
-// 	}
-// }));
-
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-fabric', () => 'Fabric');

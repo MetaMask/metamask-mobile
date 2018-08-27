@@ -7,6 +7,7 @@ import getStyles from './styledButtonStyles';
 /**
  * UI component that renders a styled button
  * for iOS devices
+ * see styledButtonStyles.js for available styles
  */
 
 export default class StyledButton extends Component {
