@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { TextInput, View, StyleSheet } from 'react-native';
+import Button from 'react-native-button';
 import { colors, fontStyles } from '../../styles/common';
 import PropTypes from 'prop-types';
 
@@ -14,6 +15,12 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		borderColor: colors.borderColor,
 		padding: 16
+	},
+	textAddToken: {
+		color: colors.primary
+	},
+	textCancel: {
+		color: colors.asphalt
 	},
 	button: {
 		alignItems: 'center',
@@ -40,9 +47,6 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		borderTopWidth: 1,
 		borderColor: colors.borderColor
-	},
-	textSearchToken: {
-		color: colors.primary
 	}
 });
 
@@ -86,12 +90,19 @@ export default class SearchAsset extends Component {
 				/>
 
 				<View style={styles.footer}>
-					<TouchableOpacity style={[styles.buttonCancel, styles.button]} onPress={this.cancelAddToken}>
-						<Text>CANCEL</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={[styles.buttonAddToken, styles.button]}>
-						<Text style={styles.textSearchToken}>NEXT</Text>
-					</TouchableOpacity>
+					<Button
+						containerStyle={[styles.button, styles.buttonCancel]}
+						style={[styles.textCancel, fontStyles.thin]}
+						onPress={this.cancelAddToken}
+					>
+						CANCEL
+					</Button>
+					<Button
+						containerStyle={[styles.button, styles.buttonAddToken]}
+						style={[styles.textAddToken, fontStyles.thin]}
+					>
+						ADD TOKEN
+					</Button>
 				</View>
 			</View>
 		);

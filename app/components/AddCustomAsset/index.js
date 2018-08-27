@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, TextInput, View, StyleSheet } from 'react-native';
+import Button from 'react-native-button';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
@@ -19,6 +20,9 @@ const styles = StyleSheet.create({
 	},
 	textAddToken: {
 		color: colors.primary
+	},
+	textCancel: {
+		color: colors.asphalt
 	},
 	button: {
 		alignItems: 'center',
@@ -184,12 +188,20 @@ export default class AddCustomAsset extends Component {
 				<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 
 				<View style={styles.footer}>
-					<TouchableOpacity style={[styles.buttonCancel, styles.button]} onPress={this.cancelAddToken}>
-						<Text>CANCEL</Text>
-					</TouchableOpacity>
-					<TouchableOpacity style={[styles.buttonAddToken, styles.button]} onPress={this.addToken}>
-						<Text style={styles.textAddToken}>ADD TOKEN</Text>
-					</TouchableOpacity>
+					<Button
+						containerStyle={[styles.button, styles.buttonCancel]}
+						style={[styles.textCancel, fontStyles.thin]}
+						onPress={this.cancelAddToken}
+					>
+						CANCEL
+					</Button>
+					<Button
+						containerStyle={[styles.button, styles.buttonAddToken]}
+						style={[styles.textAddToken, fontStyles.thin]}
+						onPress={this.addToken}
+					>
+						ADD TOKEN
+					</Button>
 				</View>
 			</View>
 		);
