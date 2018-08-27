@@ -1,0 +1,72 @@
+import { StyleSheet } from 'react-native';
+import { colors } from '../../styles/common';
+
+const styles = StyleSheet.create({
+	container: {
+		padding: 15,
+		borderRadius: 4,
+		justifyContent: 'center'
+	},
+	text: {
+		fontSize: 18
+	},
+	orange: {
+		backgroundColor: colors.primaryFox
+	},
+	orangeText: {
+		color: colors.white
+	},
+	confirm: {
+		backgroundColor: colors.primary
+	},
+	confirmText: {
+		color: colors.white
+	},
+	normal: {
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.primary
+	},
+	normalText: {
+		color: colors.primary
+	},
+	cancel: {
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.fontPrimary
+	},
+	cancelText: {
+		color: colors.fontPrimary
+	}
+});
+
+function getStyles(type) {
+	let fontStyle, containerStyle;
+	switch (type) {
+		case 'orange':
+			fontStyle = styles.orangeText;
+			containerStyle = styles.orange;
+			break;
+		case 'confirm':
+			fontStyle = styles.confirmText;
+			containerStyle = styles.confirm;
+			break;
+		case 'normal':
+			fontStyle = styles.normalText;
+			containerStyle = styles.normal;
+			break;
+		case 'cancel':
+			fontStyle = styles.cancelText;
+			containerStyle = styles.cancel;
+			break;
+		default:
+			throw new Error('Unknown button type');
+	}
+
+	return {
+		fontStyle: { ...styles.text, ...fontStyle },
+		containerStyle: { ...styles.container, ...containerStyle }
+	};
+}
+
+export default getStyles;
