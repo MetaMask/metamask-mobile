@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Text, TextInput, View, StyleSheet } from 'react-native';
-import Button from 'react-native-button';
+import PageFooter from '../PageFooter';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
@@ -17,38 +17,6 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		borderColor: colors.borderColor,
 		padding: 16
-	},
-	textAddToken: {
-		color: colors.primary
-	},
-	textCancel: {
-		color: colors.asphalt
-	},
-	button: {
-		alignItems: 'center',
-		padding: 16,
-		borderWidth: 2,
-		borderRadius: 4,
-		width: '45%',
-		marginTop: 10,
-		marginBottom: 10
-	},
-	buttonCancel: {
-		borderColor: colors.asphalt
-	},
-	buttonAddToken: {
-		backgroundColor: colors.white,
-		borderColor: colors.primary
-	},
-	footer: {
-		flexDirection: 'row',
-		justifyContent: 'space-evenly',
-		position: 'absolute',
-		left: 0,
-		right: 0,
-		bottom: 0,
-		borderTopWidth: 1,
-		borderColor: colors.borderColor
 	},
 	warningText: {
 		color: colors.error
@@ -187,22 +155,12 @@ export default class AddCustomAsset extends Component {
 				/>
 				<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 
-				<View style={styles.footer}>
-					<Button
-						containerStyle={[styles.button, styles.buttonCancel]}
-						style={[styles.textCancel, fontStyles.thin]}
-						onPress={this.cancelAddToken}
-					>
-						CANCEL
-					</Button>
-					<Button
-						containerStyle={[styles.button, styles.buttonAddToken]}
-						style={[styles.textAddToken, fontStyles.thin]}
-						onPress={this.addToken}
-					>
-						ADD TOKEN
-					</Button>
-				</View>
+				<PageFooter
+					onCancel={this.cancelAddToken}
+					onSubmit={this.addToken}
+					cancelText={'CANCEL'}
+					submitText={'NEXT'}
+				/>
 			</View>
 		);
 	}
