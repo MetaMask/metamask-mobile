@@ -30,12 +30,12 @@ const styles = StyleSheet.create({
 	footer: {
 		flexDirection: 'row',
 		justifyContent: 'space-evenly',
-		position: 'absolute',
 		left: 0,
 		right: 0,
 		bottom: 0,
 		borderTopWidth: 1,
-		borderColor: colors.borderColor
+		borderColor: colors.borderColor,
+		backgroundColor: colors.white
 	}
 });
 
@@ -46,14 +46,20 @@ const styles = StyleSheet.create({
 export default class PageFooter extends Component {
 	static propTypes = {
 		/**
-		 * Object representing the selected the selected network
+		 * Method to trigger when cancel
 		 */
 		onCancel: PropTypes.object.function,
 		/**
-		 * Name of the current view
+		 * Method to trigger when submit
 		 */
 		onSubmit: PropTypes.object.function,
+		/**
+		 * Text to display on cancel button
+		 */
 		cancelText: PropTypes.string.isRequired,
+		/**
+		 * Text to display on submit button
+		 */
 		submitText: PropTypes.string.isRequired
 	};
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, StyleSheet } from 'react-native';
+import { Text, TextInput, View, ScrollView, StyleSheet } from 'react-native';
 import PageFooter from '../PageFooter';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
@@ -9,7 +9,9 @@ const isValidAddress = require('ethereumjs-util').isValidAddress;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1,
+		flex: 1
+	},
+	scrollViewWrapper: {
 		padding: 20
 	},
 	textInput: {
@@ -123,38 +125,39 @@ export default class AddCustomAsset extends Component {
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
-				<Text>Token Address</Text>
-				<TextInput
-					style={styles.textInput}
-					placeholder={'0x...'}
-					value={this.state.address}
-					onChangeText={this.onAddressChange}
-					onBlur={this.validateCustomTokenAddress}
-				/>
-				<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+				<ScrollView contentContainerStyle={styles.scrollViewWrapper}>
+					<Text>Token Address</Text>
+					<TextInput
+						style={styles.textInput}
+						placeholder={'0x...'}
+						value={this.state.address}
+						onChangeText={this.onAddressChange}
+						onBlur={this.validateCustomTokenAddress}
+					/>
+					<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 
-				<Text>Token Symbol</Text>
-				<TextInput
-					style={styles.textInput}
-					placeholder={'GNO'}
-					value={this.state.symbol}
-					onChangeText={this.onSymbolChange}
-					onBlur={this.validateCustomTokenSymbol}
-				/>
-				<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
+					<Text>Token Symbol</Text>
+					<TextInput
+						style={styles.textInput}
+						placeholder={'GNO'}
+						value={this.state.symbol}
+						onChangeText={this.onSymbolChange}
+						onBlur={this.validateCustomTokenSymbol}
+					/>
+					<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 
-				<Text>Token of Precision</Text>
-				<TextInput
-					style={styles.textInput}
-					value={this.state.decimals}
-					keyboardType="numeric"
-					maxLength={2}
-					placeholder={'18'}
-					onChangeText={this.onDecimalsChange}
-					onBlur={this.validateCustomTokenDecimals}
-				/>
-				<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
-
+					<Text>Token of Precision</Text>
+					<TextInput
+						style={styles.textInput}
+						value={this.state.decimals}
+						keyboardType="numeric"
+						maxLength={2}
+						placeholder={'18'}
+						onChangeText={this.onDecimalsChange}
+						onBlur={this.validateCustomTokenDecimals}
+					/>
+					<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+				</ScrollView>
 				<PageFooter
 					onCancel={this.cancelAddToken}
 					onSubmit={this.addToken}
