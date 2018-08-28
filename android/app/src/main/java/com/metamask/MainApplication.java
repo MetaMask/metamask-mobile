@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
 import com.smixx.fabric.FabricPackage;
 import com.tectiv3.aes.RCTAesPackage;
 import com.oblador.keychain.KeychainPackage;
@@ -37,6 +38,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RNI18nPackage(),
             new FabricPackage(),
             new RCTAesPackage(),
             new KeychainPackage(),

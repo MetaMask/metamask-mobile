@@ -9,6 +9,7 @@ import AccountOverview from '../AccountOverview';
 import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
 import getNavbarOptions from '../Navbar';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -90,8 +91,12 @@ class Wallet extends Component {
 			<View style={styles.wrapper} testID={'wallet-screen'}>
 				<AccountOverview account={account} navigation={this.props.navigation} />
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<Tokens navigation={this.props.navigation} tabLabel="TOKENS" assets={tokens} />
-					<Collectibles navigation={this.props.navigation} tabLabel="COLLECTIBLES" assets={[]} />
+					<Tokens navigation={this.props.navigation} tabLabel={strings('wallet.tokens')} assets={tokens} />
+					<Collectibles
+						navigation={this.props.navigation}
+						tabLabel={strings('wallet.collectibles')}
+						assets={[]}
+					/>
 				</ScrollableTabView>
 			</View>
 		);
