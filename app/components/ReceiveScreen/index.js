@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		marginBottom: Platform.OS === 'android' ? 20 : 40
 	},
 	shareButton: {
-		width: Platform.OS === 'android' ? 200 : 250
+		width: Platform.OS === 'android' ? 180 : 250
 	}
 });
 
@@ -80,7 +80,7 @@ class ReceiveScreen extends Component {
 					<View style={styles.qrCode}>
 						<QRCode
 							value={selectedAddress}
-							size={Platform.OS === 'android' ? 200 : 250}
+							size={Platform.OS === 'android' ? 180 : 250}
 							bgColor={colors.fontPrimary}
 							fgColor={colors.white}
 						/>

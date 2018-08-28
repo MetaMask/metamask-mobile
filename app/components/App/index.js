@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { AppState, AsyncStorage } from 'react-native';
+import { View, AppState, AsyncStorage } from 'react-native';
 import { createDrawerNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
@@ -9,6 +9,7 @@ import LockScreen from '../LockScreen';
 import Main from '../Main';
 import AccountList from '../AccountList';
 import Engine from '../../core/Engine';
+import { baseStyles } from '../../styles/common';
 
 /**
  * Navigator object responsible for instantiating
@@ -34,7 +35,7 @@ const Nav = createDrawerNavigator(
 export default class App extends Component {
 	state = {
 		locked: true,
-		loading: false,
+		loading: true,
 		existingUser: false,
 		loggedIn: false,
 		appState: 'active',
@@ -50,7 +51,7 @@ export default class App extends Component {
 			this.mounted && this.setState({ existingUser: true });
 			this.unlockKeychain();
 		} else {
-			this.setState({ locked: false });
+			this.setState({ locked: false, loading: false });
 		}
 
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -63,7 +64,7 @@ export default class App extends Component {
 
 	handleAppStateChange = nextAppState => {
 		if (nextAppState !== 'active') {
-			this.mounted && this.setState({ locked: true, loggedIn: false });
+			this.mounted && this.setState({ locked: true });
 		} else if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
 			this.state.locked && this.unlockKeychain();
 		}
@@ -80,11 +81,11 @@ export default class App extends Component {
 				await KeyringController.submitPassword(credentials.password);
 				this.mounted && this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 			} else {
-				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
+				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false, loading: false });
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
-			this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
+			this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false, loading: false });
 		}
 	}
 
@@ -97,7 +98,7 @@ export default class App extends Component {
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
 		} catch (e) {
-			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
+			this.setState({ locked: false, existingUser: false, loggedIn: false, loading: false, error: e.toString() });
 		}
 	};
 
@@ -130,10 +131,13 @@ export default class App extends Component {
 	};
 
 	render() {
-		if (this.state.locked) {
-			return <LockScreen />;
-		} else if (this.state.loggedIn) {
-			return <Nav />;
+		if (this.state.loggedIn) {
+			return (
+				<View style={baseStyles.flexGrow}>
+					<Nav />
+					{this.state.locked ? <LockScreen /> : null}
+				</View>
+			);
 		} else if (!this.state.existingUser) {
 			if (this.state.importFromSeed) {
 				return (
@@ -153,6 +157,10 @@ export default class App extends Component {
 					toggleImportFromSeed={this.toggleImportFromSeed}
 				/>
 			);
+		}
+
+		if (this.state.loading) {
+			return <LockScreen />;
 		}
 
 		return (

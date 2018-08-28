@@ -103,8 +103,8 @@ export default class StyledButton extends Component {
 		}
 
 		return (
-			<TouchableNativeFeedback {...touchableProps} testID={this.props.testID} style={containerStyles}>
-				{this.renderGroupedChildren(fontStyle)}
+			<TouchableNativeFeedback {...touchableProps} testID={this.props.testID}>
+				<View style={containerStyles}>{this.renderGroupedChildren(fontStyle, containerStyles)}</View>
 			</TouchableNativeFeedback>
 		);
 	}

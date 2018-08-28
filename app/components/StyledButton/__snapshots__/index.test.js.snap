@@ -1,75 +1,83 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
-<DummyTouchableNativeFeedback
-  style={
-    Array [
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#333333",
-        "borderRadius": 4,
-        "borderWidth": 2,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      null,
-      undefined,
-    ]
-  }
-/>
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#333333",
+          "borderRadius": 4,
+          "borderWidth": 2,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
 `;
 
 exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
-<DummyTouchableNativeFeedback
-  style={
-    Array [
-      Object {
-        "backgroundColor": "#007aff",
-        "borderRadius": 4,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      null,
-      undefined,
-    ]
-  }
-/>
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#007aff",
+          "borderRadius": 4,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
 `;
 
 exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
-<DummyTouchableNativeFeedback
-  style={
-    Array [
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#007aff",
-        "borderRadius": 4,
-        "borderWidth": 2,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      null,
-      undefined,
-    ]
-  }
-/>
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#007aff",
+          "borderRadius": 4,
+          "borderWidth": 2,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
 `;
 
 exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
-<DummyTouchableNativeFeedback
-  style={
-    Array [
-      Object {
-        "backgroundColor": "#f7861ce6",
-        "borderRadius": 4,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      null,
-      undefined,
-    ]
-  }
-/>
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#f7861ce6",
+          "borderRadius": 4,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
 `;
 
 exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
@@ -97,6 +105,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
       Object {
         "color": "#333333",
         "fontSize": 18,
+        "textAlign": "center",
       },
       undefined,
     ]
@@ -132,6 +141,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
       Object {
         "color": "#FFFFFF",
         "fontSize": 18,
+        "textAlign": "center",
       },
       undefined,
     ]
@@ -169,6 +179,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
       Object {
         "color": "#007aff",
         "fontSize": 18,
+        "textAlign": "center",
       },
       undefined,
     ]
@@ -204,6 +215,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
       Object {
         "color": "#FFFFFF",
         "fontSize": 18,
+        "textAlign": "center",
       },
       undefined,
     ]

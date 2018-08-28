@@ -1,14 +1,15 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { colors } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	container: {
-		padding: 15,
+		padding: Platform.OS === 'android' ? 10 : 15,
 		borderRadius: 4,
 		justifyContent: 'center'
 	},
 	text: {
-		fontSize: 18
+		fontSize: 18,
+		textAlign: 'center'
 	},
 	orange: {
 		backgroundColor: colors.primaryFox
