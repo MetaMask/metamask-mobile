@@ -55,6 +55,13 @@ class Engine {
 										end(error);
 									}
 								}
+							},
+							getAccounts: end => {
+								const { KeyringController } = this.datamodel.context;
+								const isUnlocked = KeyringController.keyring.memStore.getState().isUnlocked;
+								const selectedAddress = this.datamodel.context.PreferencesController.state
+									.selectedAddress;
+								end(null, isUnlocked && selectedAddress ? [selectedAddress] : []);
 							}
 						}
 					}),

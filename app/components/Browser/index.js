@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
-import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -67,14 +67,9 @@ export default class Browser extends Component {
 		approvedOrigin: false,
 		canGoBack: false,
 		canGoForward: false,
+		entryScriptWeb3: null,
 		inputValue: this.props.defaultURL,
 		url: this.props.defaultURL
-	};
-
-	injection = {
-		entryScript: null,
-		entryScriptWeb3: null,
-		includeWeb3: false
 	};
 
 	webview = React.createRef();
@@ -82,18 +77,12 @@ export default class Browser extends Component {
 	async componentDidMount() {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
-		// TODO: The presence of these async statement breaks Jest code coverage
-		const entryScript =
-			Platform.OS === 'ios'
-				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridge.js`, 'utf8')
-				: await RNFS.readFileAssets(`InpageBridge.js`);
-
 		const entryScriptWeb3 =
 			Platform.OS === 'ios'
 				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
 				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
-		this.injection = { ...this.injection, entryScript, entryScriptWeb3 };
+		await this.setState({ entryScriptWeb3 });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
@@ -122,20 +111,6 @@ export default class Browser extends Component {
 		current && current.reload();
 	};
 
-	injectEntryScript = () => {
-		const { current } = this.webview;
-		const { entryScript, entryScriptWeb3, includeWeb3 } = this.injection;
-		const code = includeWeb3 ? entryScriptWeb3 : entryScript;
-
-		if (Platform.OS === 'ios') {
-			code && current && current.evaluateJavaScript(code).catch(e => console.log(e)); // eslint-disable-line no-console
-		} else {
-			code && current && current.injectJavaScript(code);
-		}
-
-		this.backgroundBridge.sendStateUpdate()
-	};
-
 	onMessage = ({ nativeEvent: { data } }) => {
 		data = typeof data === 'string' ? JSON.parse(data) : data;
 
@@ -143,26 +118,11 @@ export default class Browser extends Component {
 			return;
 		}
 		switch (data.type) {
-			case 'ETHEREUM_PROVIDER_REQUEST':
-				this.injection.includeWeb3 = !!data.web3;
-				this.handleProviderRequest();
-				break;
 			case 'INPAGE_REQUEST':
 				this.backgroundBridge.onMessage(data);
 				break;
 		}
 	};
-
-	handleProviderRequest() {
-		Alert.alert(
-			'Ethereum access',
-			`The domain "${
-				this.state.url
-			}" is requesting access to the Ethereum blockchain and to view your current account. Always double check that you're on the correct site before approving access.`,
-			[{ text: 'Reject', style: 'cancel' }, { text: 'Approve', onPress: this.injectEntryScript }],
-			{ cancelable: false }
-		);
-	}
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		this.setState({ canGoBack, canGoForward, inputValue: url });
@@ -172,8 +132,12 @@ export default class Browser extends Component {
 		this.setState({ inputValue });
 	};
 
+	sendStateUpdate = () => {
+		this.backgroundBridge.sendStateUpdate();
+	};
+
 	render() {
-		const { canGoBack, canGoForward, inputValue, url } = this.state;
+		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -207,9 +171,11 @@ export default class Browser extends Component {
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<CustomWebview
+					injectJavaScript={entryScriptWeb3}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					messagingEnabled
+					onLoadEnd={this.sendStateUpdate}
 					onMessage={this.onMessage}
 					onNavigationStateChange={this.onPageChange}
 					openNewWindowInWebView
