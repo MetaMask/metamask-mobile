@@ -41,12 +41,14 @@ export default class Approval extends Component {
 
 	prepareTransactionMeta(meta) {
 		meta.transaction.gas = BNToHex(meta.transaction.gas);
+		meta.transaction.gasPrice = BNToHex(meta.transaction.gasPrice);
 		meta.transaction.value = BNToHex(meta.transaction.value);
 		return meta;
 	}
 
 	sanitizeTransactionMeta(meta) {
 		meta.transaction.gas = hexToBN(meta.transaction.gas);
+		meta.transaction.gasPrice = hexToBN(meta.transaction.gasPrice);
 		meta.transaction.value = hexToBN(meta.transaction.value);
 		return meta;
 	}

@@ -147,6 +147,26 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		paddingVertical: 15
 	},
+	overviewAlert: {
+		alignItems: 'center',
+		backgroundColor: colors.lightRed,
+		borderColor: colors.borderRed,
+		borderRadius: 4,
+		borderWidth: 1,
+		flexDirection: 'row',
+		height: 32,
+		paddingHorizontal: 16
+	},
+	overviewAlertText: {
+		color: colors.borderRed,
+		flex: 1,
+		fontSize: 12,
+		marginLeft: 8
+	},
+	overviewAlertIcon: {
+		color: colors.borderRed,
+		flex: 0
+	},
 	topOverviewRow: {
 		borderBottomWidth: 1,
 		borderColor: colors.lightGray
@@ -165,6 +185,9 @@ const styles = StyleSheet.create({
 		fontWeight: '500',
 		textAlign: 'right',
 		textTransform: 'uppercase'
+	},
+	overviewAccent: {
+		color: colors.blue
 	},
 	overviewEth: {
 		color: colors.subtleGray,
@@ -262,6 +285,7 @@ class TransactionEditor extends Component {
 		from: this.props.transaction.from,
 		gas: this.props.transaction.gas,
 		gasError: undefined,
+		gasPrice: this.props.transaction.gasPrice,
 		to: this.props.transaction.to,
 		toError: undefined,
 		toFocused: false
@@ -273,9 +297,9 @@ class TransactionEditor extends Component {
 	};
 
 	fillMax = () => {
-		const { gas, from } = this.state;
+		const { gas, gasPrice, from } = this.state;
 		const { balance } = this.props.accounts[from];
-		this.setState({ amount: hexToBN(balance).sub(gas) });
+		this.setState({ amount: hexToBN(balance).sub(gas.mul(gasPrice)) });
 	};
 
 	focusToAddress = () => {
@@ -289,11 +313,11 @@ class TransactionEditor extends Component {
 
 	onConfirm = () => {
 		const { onConfirm, transaction } = this.props;
-		const { amount, data, from, gas, to } = this.state;
+		const { amount, data, from, gas, gasPrice, to } = this.state;
 		onConfirm &&
 			onConfirm({
 				...transaction,
-				...{ value: amount, data, from, gas, to }
+				...{ value: amount, data, from, gas, gasPrice, to }
 			});
 	};
 
@@ -308,11 +332,14 @@ class TransactionEditor extends Component {
 	};
 
 	updateAmount = async amount => {
-		const { gas, from } = this.state;
+		const { gas, gasPrice, from } = this.state;
 		const { balance } = this.props.accounts[from];
 		let amountError;
 		amount && !isBN(amount) && (amountError = 'Invalid amount');
-		amount && isBN(amount) && hexToBN(balance).lt(amount.add(gas)) && (amountError = 'Insufficient funds');
+		amount &&
+			isBN(amount) &&
+			hexToBN(balance).lt(amount.add(gas.mul(gasPrice))) &&
+			(amountError = 'Insufficient funds');
 		await this.setState({ amount, amountError });
 	};
 
@@ -332,9 +359,20 @@ class TransactionEditor extends Component {
 	};
 
 	render() {
-		const { amount, amountError, data, from = this.props.selectedAddress, gas, gasError, to, toError } = this.state;
+		const {
+			amount,
+			amountError,
+			data,
+			from = this.props.selectedAddress,
+			gas,
+			gasPrice,
+			gasError,
+			to,
+			toError
+		} = this.state;
 		const { conversionRate, currentCurrency, mode } = this.props;
-		const total = isBN(amount) ? amount.add(gas) : gas;
+		const totalGas = gas.mul(gasPrice);
+		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
 
 		return (
 			<View style={styles.root}>
@@ -377,7 +415,7 @@ class TransactionEditor extends Component {
 									<Text style={styles.labelText}>Gas Fee:</Text>
 									{gasError && <Text style={styles.error}>{gasError}</Text>}
 								</View>
-								<EthInput readonly value={gas} />
+								<EthInput readonly value={totalGas} />
 							</View>
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
@@ -439,22 +477,28 @@ class TransactionEditor extends Component {
 											</Text>
 										</TouchableOpacity>
 										<Text style={styles.overviewFiat}>
-											{weiToFiat(gas, conversionRate, currentCurrency)}
+											{weiToFiat(totalGas, conversionRate, currentCurrency)}
 										</Text>
 										{/* TODO: Use real gas */}
-										<Text style={styles.overviewEth}>{fromWei(gas).toString()}</Text>
+										<Text style={styles.overviewEth}>{fromWei(totalGas).toString()}</Text>
 									</View>
 								</View>
 								<View style={styles.overviewRow}>
 									<Text style={styles.overviewLabel}>Total</Text>
 									<View style={styles.overviewContent}>
 										<Text style={styles.overviewInfo}>Amount + Gas Fee</Text>
-										<Text style={styles.overviewFiat}>
+										<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
 											{weiToFiat(total, conversionRate, currentCurrency)}
 										</Text>
 										<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
 									</View>
 								</View>
+								{amountError && (
+									<View style={styles.overviewAlert}>
+										<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
+										<Text style={styles.overviewAlertText}>ALERT: {amountError}.</Text>
+									</View>
+								)}
 							</View>
 						</View>
 					</ActionView>
