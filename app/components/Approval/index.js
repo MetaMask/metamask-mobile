@@ -24,9 +24,11 @@ export default class Approval extends Component {
 		this.props.navigation.goBack();
 	};
 
-	onConfirm = (transaction) => {
+	onConfirm = transaction => {
 		const { TransactionController } = Engine.context;
-		const { params: { transactionMeta } } = this.props.navigation.state;
+		const {
+			params: { transactionMeta }
+		} = this.props.navigation.state;
 		transactionMeta.transaction = transaction;
 		TransactionController.updateTransaction(this.prepareTransactionMeta(transactionMeta));
 		TransactionController.approveTransaction(transactionMeta.id);
@@ -50,7 +52,9 @@ export default class Approval extends Component {
 	}
 
 	render() {
-		const { params: { transactionMeta } } = this.props.navigation.state;
+		const {
+			params: { transactionMeta }
+		} = this.props.navigation.state;
 		const { transaction } = this.sanitizeTransactionMeta(transactionMeta);
 		return (
 			<TransactionEditor
