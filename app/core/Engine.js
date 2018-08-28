@@ -49,7 +49,6 @@ class Engine {
 									try {
 										setTimeout(async () => {
 											const transactions = TransactionController.state.transactions;
-											console.log(transactions);
 											// await TransactionController.approveTransaction(
 											// 	transactions[transactions.length - 1].id
 											// );
@@ -82,6 +81,7 @@ class Engine {
 				TransactionController: transaction
 			} = this.datamodel.context;
 
+			network.setProviderType('ropsten');
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
@@ -103,7 +103,7 @@ class Engine {
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
 		BlockHistoryController.configure({ provider, blockTracker });
-		AccountTrackerController.configure({ provider, blockTracker });
+		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
 		blockTracker.start();
 	};
@@ -148,7 +148,7 @@ export default {
 		const { PreferencesController } = instance.datamodel.context;
 		Object.keys(PreferencesController.state.identities).forEach(address => {
 			// PreferencesController.state.identities[address].balance = 1337;
-			PreferencesController.state.identities[address].balance = '0x487a9a304539440000';
+			// PreferencesController.state.identities[address].balance = '0x487a9a304539440000';
 		});
 
 		Object.freeze(instance);

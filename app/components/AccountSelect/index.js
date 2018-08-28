@@ -7,6 +7,7 @@ import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
 import { weiToFiat, fromWei } from '../../util/number';
 import { hexToBN } from 'gaba/util';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -65,9 +66,13 @@ const styles = StyleSheet.create({
 class AccountSelect extends Component {
 	static propTypes = {
 		/**
-		 * List of accounts from the PreferencesController
+		 * List of accounts from the AccountTrackerController
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object,
 		/**
 		 * Address of the currently-active account from the PreferencesController
 		 */
@@ -98,9 +103,9 @@ class AccountSelect extends Component {
 	}
 
 	renderActiveOption() {
-		const { selectedAddress, accounts, value } = this.props;
-		const targetAddress = (value || selectedAddress).toLowerCase();
-		const account = accounts[targetAddress];
+		const { selectedAddress, accounts, identities, value } = this.props;
+		const targetAddress = toChecksumAddress(value || selectedAddress);
+		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>
 				<MaterialIcon name={'keyboard-arrow-down'} size={18} style={styles.arrow} />
@@ -135,11 +140,11 @@ class AccountSelect extends Component {
 	}
 
 	renderOptionList() {
-		const { accounts, onChange } = this.props;
+		const { accounts, identities, onChange } = this.props;
 		return (
 			<View style={styles.optionList}>
-				{Object.keys(accounts).map(address =>
-					this.renderOption(accounts[address], () => {
+				{Object.keys(identities).map(address =>
+					this.renderOption({ ...identities[address], ...accounts[address] }, () => {
 						this.setState({ isOpen: false, value: address });
 						onChange && onChange(address);
 					})
@@ -158,9 +163,10 @@ class AccountSelect extends Component {
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
+const mapStateToProps = ({ backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController } }) => ({
 	// TODO: Update this to use balances
-	accounts: PreferencesController.identities,
+	accounts: AccountTrackerController.accounts,
+	identities: PreferencesController.identities,
 	selectedAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency

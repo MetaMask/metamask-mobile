@@ -8,9 +8,9 @@ import { createStackNavigator } from 'react-navigation';
  */
 export default createStackNavigator(
 	{
-		Browser: {
-			screen: Browser
-		},
+		// Browser: {
+		// 	screen: Browser
+		// },
 		Approval: {
 			screen: Approval
 		}

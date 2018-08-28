@@ -218,9 +218,9 @@ const styles = StyleSheet.create({
 class TransactionEditor extends Component {
 	static propTypes = {
 		/**
-		 * Map of identites associated with the current keychain
+		 * List of accounts from the AccountTrackerController
 		 */
-		identities: PropTypes.object,
+		accounts: PropTypes.object,
 		/**
 		 * ETH to currnt currency conversion rate
 		 */
@@ -279,7 +279,7 @@ class TransactionEditor extends Component {
 	fillMax = () => {
 		// TODO: Subtract gas properly (probably using hex math)
 		const { gas, from } = this.state;
-		const { balance } = this.props.identities[from];
+		const { balance } = this.props.accounts[from];
 		this.setState({ amount: hexToBN(balance).sub(gas) });
 	};
 
@@ -314,7 +314,7 @@ class TransactionEditor extends Component {
 	updateAmount = async amount => {
 		// TODO: Subtract gas properly (probably using hex math);
 		const { gas, from } = this.state;
-		const { balance } = this.props.identities[from];
+		const { balance } = this.props.accounts[from];
 		let amountError;
 		amount && !isBN(amount) && (amountError = 'Invalid amount');
 		amount && isBN(amount) && hexToBN(balance).lt(amount.add(gas)) && (amountError = 'Insufficient funds');
@@ -482,9 +482,9 @@ class TransactionEditor extends Component {
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
+const mapStateToProps = ({ backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController } }) => ({
 	// TODO: Update this to use balances
-	identities: PreferencesController.identities,
+	accounts: AccountTrackerController.accounts,
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency,
 	selectedAddress: PreferencesController.selectedAddress

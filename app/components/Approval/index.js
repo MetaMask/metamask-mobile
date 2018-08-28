@@ -35,13 +35,10 @@ class Approval extends Component {
 	};
 
 	onConfirm = (id, transaction) => {
-		console.log(1, transaction);
 		const { TransactionController } = Engine.context;
 		const meta = this.props.transactions.find(meta => meta.id === id);
 		meta.transaction = transaction;
-		console.log(2, this.props.transactions.find(meta => meta.id === id));
 		TransactionController.updateTransaction(this.prepareTransactionMeta(meta));
-		console.log(3, this.props.transactions.find(meta => meta.id === id));
 		TransactionController.approveTransaction(id);
 		this.props.navigation.goBack();
 	};

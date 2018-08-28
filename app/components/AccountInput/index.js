@@ -169,7 +169,6 @@ class AccountInput extends Component {
 }
 
 const mapStateToProps = ({ backgroundState: { PreferencesController } }) => ({
-	// TODO:  Use different account list that includes balances (from GABA)
 	accounts: PreferencesController.identities,
 	activeAddress: PreferencesController.selectedAddress
 });
