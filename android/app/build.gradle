@@ -160,6 +160,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-camera')
     compile project(':react-native-share')
     compile project(':react-native-fabric')
 	compile 'com.android.support:multidex:1.0.1'
