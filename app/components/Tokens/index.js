@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
 	addText: {
 		fontSize: 15,
 		color: colors.primary,
+		textTransform: 'uppercase',
 		...fontStyles.normal
 	},
 	itemWrapper: {

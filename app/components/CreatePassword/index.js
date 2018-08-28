@@ -53,6 +53,7 @@ const styles = StyleSheet.create({
 	},
 	ctaText: {
 		color: colors.white,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	cta: {

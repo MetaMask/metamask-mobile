@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
 	textStyle: {
 		fontSize: 16,
 		letterSpacing: 0.5,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	}
 });
@@ -53,7 +54,7 @@ const tokens = [
  * Main view for the wallet
  */
 class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('Wallet', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('wallet.title'), navigation);
 
 	static propTypes = {
 		/**

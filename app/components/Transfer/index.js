@@ -3,6 +3,7 @@ import { StyleSheet, Text } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import getNavbarOptions from '../Navbar';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
  * Which includes send and receive
  */
 export default class Transfer extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('Transfer', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('transfer.title'), navigation);
 
 	render() {
 		return (

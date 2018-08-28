@@ -34,6 +34,9 @@
 		"no_tokens": "You don't have any tokens!",
 		"add_collectibles": "Add Collectibles"
 	},
+	"transfer": {
+		"title": "Transferir"
+	},
 	"accounts": {
 		"title": "My Accounts"
 	},
