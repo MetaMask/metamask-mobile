@@ -44,7 +44,8 @@ export default class Browser extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
 
 	static defaultProps = {
-		defaultProtocol: 'https://'
+		defaultProtocol: 'https://',
+		defaultURL: 'https://eip1102.herokuapp.com'
 	};
 
 	static propTypes = {
@@ -67,8 +68,7 @@ export default class Browser extends Component {
 		canGoBack: false,
 		canGoForward: false,
 		inputValue: this.props.defaultURL,
-		// url: this.props.defaultURL
-		url: 'https://eip1102.herokuapp.com'
+		url: this.props.defaultURL
 	};
 
 	injection = {
@@ -95,8 +95,8 @@ export default class Browser extends Component {
 
 		this.injection = { ...this.injection, entryScript, entryScriptWeb3 };
 
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', () => {
-			this.props.navigation.push('Approval');
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
+			this.props.navigation.push('Approval', { transactionMeta });
 		});
 	}
 

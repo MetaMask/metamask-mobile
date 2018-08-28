@@ -252,11 +252,7 @@ class TransactionEditor extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.obj,
-		/**
-		 * ID corresponding to a transaction meta object in TransactionController state
-		 */
-		transactionID: PropTypes.string
+		transaction: PropTypes.obj
 	};
 
 	state = {
@@ -264,7 +260,7 @@ class TransactionEditor extends Component {
 		amountError: undefined,
 		data: this.props.transaction.data,
 		from: this.props.transaction.from,
-		gas: this.props.transaction.gas, // TODO: Use real gas, make this default undefined
+		gas: this.props.transaction.gas,
 		gasError: undefined,
 		to: this.props.transaction.to,
 		toError: undefined,
@@ -277,7 +273,6 @@ class TransactionEditor extends Component {
 	};
 
 	fillMax = () => {
-		// TODO: Subtract gas properly (probably using hex math)
 		const { gas, from } = this.state;
 		const { balance } = this.props.accounts[from];
 		this.setState({ amount: hexToBN(balance).sub(gas) });
@@ -288,15 +283,15 @@ class TransactionEditor extends Component {
 	};
 
 	onCancel = () => {
-		const { onCancel, transactionID } = this.props;
-		onCancel && onCancel(transactionID);
+		const { onCancel } = this.props;
+		onCancel && onCancel();
 	};
 
 	onConfirm = () => {
-		const { onConfirm, transaction, transactionID } = this.props;
+		const { onConfirm, transaction } = this.props;
 		const { amount, data, from, gas, to } = this.state;
 		onConfirm &&
-			onConfirm(transactionID, {
+			onConfirm({
 				...transaction,
 				...{ value: amount, data, from, gas, to }
 			});
@@ -313,7 +308,6 @@ class TransactionEditor extends Component {
 	};
 
 	updateAmount = async amount => {
-		// TODO: Subtract gas properly (probably using hex math);
 		const { gas, from } = this.state;
 		const { balance } = this.props.accounts[from];
 		let amountError;
@@ -338,7 +332,6 @@ class TransactionEditor extends Component {
 	};
 
 	render() {
-		// TODO: Use correct gas (probably converting from hex)
 		const { amount, amountError, data, from = this.props.selectedAddress, gas, gasError, to, toError } = this.state;
 		const { conversionRate, currentCurrency, mode } = this.props;
 		const total = isBN(amount) ? amount.add(gas) : gas;
@@ -384,7 +377,6 @@ class TransactionEditor extends Component {
 									<Text style={styles.labelText}>Gas Fee:</Text>
 									{gasError && <Text style={styles.error}>{gasError}</Text>}
 								</View>
-								{/* TODO: Use real gas */}
 								<EthInput readonly value={gas} />
 							</View>
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
@@ -447,7 +439,6 @@ class TransactionEditor extends Component {
 											</Text>
 										</TouchableOpacity>
 										<Text style={styles.overviewFiat}>
-											{/* TODO: Use real gas */}
 											{weiToFiat(gas, conversionRate, currentCurrency)}
 										</Text>
 										{/* TODO: Use real gas */}
@@ -459,7 +450,6 @@ class TransactionEditor extends Component {
 									<View style={styles.overviewContent}>
 										<Text style={styles.overviewInfo}>Amount + Gas Fee</Text>
 										<Text style={styles.overviewFiat}>
-											{/* TODO: Use real gas */}
 											{weiToFiat(total, conversionRate, currentCurrency)}
 										</Text>
 										<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
@@ -477,7 +467,6 @@ class TransactionEditor extends Component {
 const mapStateToProps = ({
 	backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
 }) => ({
-	// TODO: Update this to use balances
 	accounts: AccountTrackerController.accounts,
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency,

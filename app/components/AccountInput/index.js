@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 class AccountInput extends Component {
 	static propTypes = {
 		/**
-		 * List of accounts from the PreferencesController TODO: Update this
+		 * List of accounts from the PreferencesController
 		 */
 		accounts: PropTypes.object,
 		/**

@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders scrollable content above action buttons
+ * Component that renders scrollable content above configurable buttons
  */
 export default function ActionView({
 	cancelText,
@@ -86,8 +86,8 @@ export default function ActionView({
 
 ActionView.defaultProps = {
 	cancelText: 'Cancel',
-	confirmText: 'Confirm',
-	confirmButtonMode: 'default'
+	confirmButtonMode: 'default',
+	confirmText: 'Confirm'
 };
 
 ActionView.propTypes = {
