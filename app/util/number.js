@@ -1,3 +1,6 @@
+import { BN } from 'ethereumjs-util';
+import convert from 'ethjs-unit';
+import gabaUtils from 'gaba/util';
 /**
  * Collection of utility functions for working with numbers
  */
@@ -23,4 +26,32 @@ export function ethToFiat(eth, conversionRate, currencyCode) {
  */
 export function isNumeric(value) {
 	return !isNaN(value - parseFloat(value));
+}
+
+export function fromWei(value, unit = 'ether') {
+	return convert.fromWei(value, unit);
+}
+
+export function toWei(value, unit = 'ether') {
+	return convert.toWei(value, unit);
+}
+
+export function isBN(value) {
+	return BN.isBN(value);
+}
+
+export function isDecimal(value) {
+	return /^(\d+\.?\d*|\.\d+)$/.test(value);
+}
+
+export function hexToBN(value) {
+	return gabaUtils.hexToBN(value);
+}
+
+export function weiToFiat(wei, conversionRate, currencyCode) {
+	if (!wei || !isBN(wei)) { return `0.00 ${currencyCode}`; }
+	const eth = fromWei(wei).toString();
+	let value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
+	value = isNaN(value) ? '0.00' : value;
+	return `${value} ${currencyCode}`;
 }

@@ -5,7 +5,8 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
-import { ethToFiat } from '../../util/number';
+import { weiToFiat, fromWei } from '../../util/number';
+import { hexToBN } from 'gaba/util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a select-style component populated with accounts from the current keychain
+ * Component that renders a select element populated with accounts from the current keychain
  */
 class AccountSelect extends Component {
 	static propTypes = {
@@ -70,7 +71,7 @@ class AccountSelect extends Component {
 		/**
 		 * Address of the currently-active account from the PreferencesController
 		 */
-		activeAddress: PropTypes.string,
+		selectedAddress: PropTypes.string,
 		/**
 		 * ETH-to-current currency conversion rate from CurrencyRateController
 		 */
@@ -91,9 +92,14 @@ class AccountSelect extends Component {
 
 	state = { isOpen: false };
 
+	componentDidMount() {
+		const { onChange, selectedAddress } = this.props;
+		onChange && onChange(selectedAddress);
+	}
+
 	renderActiveOption() {
-		const { activeAddress, accounts, value } = this.props;
-		const targetAddress = (value || activeAddress).toLowerCase();
+		const { selectedAddress, accounts, value } = this.props;
+		const targetAddress = (value || selectedAddress).toLowerCase();
 		const account = accounts[targetAddress];
 		return (
 			<View style={styles.activeOption}>
@@ -107,6 +113,7 @@ class AccountSelect extends Component {
 
 	renderOption(account, onPress) {
 		const { conversionRate, currentCurrency } = this.props;
+		const balance = hexToBN(account.balance);
 		return (
 			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
@@ -117,10 +124,10 @@ class AccountSelect extends Component {
 						<Text style={styles.name}>{account.name}</Text>
 					</View>
 					<View>
-						<Text style={styles.info}>{account.balance} ETH</Text>
+						<Text style={styles.info}>{fromWei(balance).toString()} ETH</Text>
 					</View>
 					<View>
-						<Text style={styles.info}>{ethToFiat(account.balance, conversionRate, currentCurrency)}</Text>
+						<Text style={styles.info}>{weiToFiat(balance, conversionRate, currentCurrency)}</Text>
 					</View>
 				</View>
 			</TouchableOpacity>
@@ -154,7 +161,7 @@ class AccountSelect extends Component {
 const mapStateToProps = ({ backgroundState: { CurrencyRateController, PreferencesController } }) => ({
 	// TODO: Update this to use balances
 	accounts: PreferencesController.identities,
-	activeAddress: PreferencesController.selectedAddress,
+	selectedAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency
 });

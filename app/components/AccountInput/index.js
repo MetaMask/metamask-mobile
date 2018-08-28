@@ -58,7 +58,8 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a combobox using available addresses
+ * ComboBox form component allowing address input with auto-completion based on
+ * the current keychain's accounts
  */
 class AccountInput extends Component {
 	static propTypes = {

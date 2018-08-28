@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
-import { ethToFiat } from '../../util/number';
+import { isBN, hexToBN, weiToFiat, fromWei} from '../../util/number';
 import { isValidAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
@@ -248,7 +248,7 @@ class TransactionEditor extends Component {
 		amount: undefined,
 		amountError: undefined,
 		from: undefined,
-		gas: 0.0015, // TODO: Use real gas, make this default undefined
+		gas: hexToBN('0x14d1120d7b160000'), // TODO: Use real gas, make this default undefined
 		gasError: undefined,
 		to: undefined,
 		toError: undefined,
@@ -261,10 +261,9 @@ class TransactionEditor extends Component {
 
 	fillMax = () => {
 		// TODO: Subtract gas properly (probably using hex math)
-		const { identities, selectedAddress } = this.props;
-		const { balance } = identities[this.state.from || selectedAddress];
-		const { gas } = this.state;
-		this.setState({ amount: balance - gas });
+		const { gas, from } = this.state;
+		const { balance } = this.props.identities[from];
+		this.setState({ amount: (hexToBN(balance)).sub(gas) });
 	};
 
 	focusToAddress = () => {
@@ -281,15 +280,12 @@ class TransactionEditor extends Component {
 	};
 
 	updateAmount = async amount => {
-		// TODO: Subtract gas properly (probably using hex math)
-		const { identities, selectedAddress } = this.props;
-		const { gas } = this.state;
+		// TODO: Subtract gas properly (probably using hex math);
+		const { gas, from } = this.state;
+		const { balance } = this.props.identities[from];
 		let amountError;
-		amount && isNaN(amount) && (amountError = 'Invalid amount');
-		amount &&
-			!isNaN(amount) &&
-			amount > identities[selectedAddress].balance - gas &&
-			(amountError = 'Insufficient funds');
+		amount && !isBN(amount) && (amountError = 'Invalid amount');
+		amount && isBN(amount) && hexToBN(balance).lt(amount.add(gas)) && (amountError = 'Insufficient funds');
 		await this.setState({ amount, amountError });
 	};
 
@@ -322,7 +318,7 @@ class TransactionEditor extends Component {
 			toError
 		} = this.state;
 		const { conversionRate, currentCurrency, onCancel, onConfirm } = this.props;
-		const safeTotal = (isNaN(amount) ? 0 : amount) + gas;
+		const total = isBN(amount) ? amount.add(gas) : gas;
 
 		return (
 			<View style={styles.root}>
@@ -406,9 +402,9 @@ class TransactionEditor extends Component {
 							<View style={styles.summary}>
 								<Text style={styles.confirmBadge}>Confirm</Text>
 								<Text style={styles.summaryFiat}>
-									{ethToFiat(safeTotal, conversionRate, currentCurrency)}
+									{weiToFiat(amount, conversionRate, currentCurrency)}
 								</Text>
-								<Text style={styles.summaryEth}>{safeTotal}</Text>
+								<Text style={styles.summaryEth}>{fromWei(amount).toString()}</Text>
 								<TouchableOpacity style={styles.goBack} onPress={this.edit}>
 									<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
 									<Text style={styles.goBackText}>Edit</Text>
@@ -425,10 +421,10 @@ class TransactionEditor extends Component {
 										</TouchableOpacity>
 										<Text style={styles.overviewFiat}>
 											{/* TODO: Use real gas */}
-											{ethToFiat(gas, conversionRate, currentCurrency)}
+											{weiToFiat(gas, conversionRate, currentCurrency)}
 										</Text>
 										{/* TODO: Use real gas */}
-										<Text style={styles.overviewEth}>{gas}</Text>
+										<Text style={styles.overviewEth}>{fromWei(gas).toString()}</Text>
 									</View>
 								</View>
 								<View style={styles.overviewRow}>
@@ -437,9 +433,9 @@ class TransactionEditor extends Component {
 										<Text style={styles.overviewInfo}>Amount + Gas Fee</Text>
 										<Text style={styles.overviewFiat}>
 											{/* TODO: Use real gas */}
-											{ethToFiat(safeTotal, conversionRate, currentCurrency)}
+											{weiToFiat(total, conversionRate, currentCurrency)}
 										</Text>
-										<Text style={styles.overviewEth}>{safeTotal}</Text>
+										<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
 									</View>
 								</View>
 							</View>
