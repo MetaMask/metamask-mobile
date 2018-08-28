@@ -53,7 +53,9 @@ export function BNToHex(value) {
 }
 
 export function weiToFiat(wei, conversionRate, currencyCode) {
-	if (!wei || !isBN(wei)) { return `0.00 ${currencyCode}`; }
+	if (!wei || !isBN(wei)) {
+		return `0.00 ${currencyCode}`;
+	}
 	const eth = fromWei(wei).toString();
 	let value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
 	value = isNaN(value) ? '0.00' : value;

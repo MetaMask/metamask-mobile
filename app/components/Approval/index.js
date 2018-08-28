@@ -25,18 +25,30 @@ class Approval extends Component {
 		transactions: PropTypes.arrayOf(PropTypes.object)
 	};
 
-	onCancel = (id) => {
-		const { TransactionController } = Engine.context;
-		const meta = this.prepareTransactionMeta(this.props.transactions.find(meta => meta.id === id));
-		TransactionController.updateTransaction(meta);
-		TransactionController.cancelTransaction(id);
+	state = {
+		mode: 'review'
+	};
+
+	onCancel = id => {
+		Engine.context.TransactionController.cancelTransaction(id);
 		this.props.navigation.goBack();
 	};
 
-	onConfirm = (id) => {
-		Engine.context.TransactionController.approveTransaction(id);
+	onConfirm = (id, transaction) => {
+		console.log(1, transaction);
+		const { TransactionController } = Engine.context;
+		const meta = this.props.transactions.find(meta => meta.id === id);
+		meta.transaction = transaction;
+		console.log(2, this.props.transactions.find(meta => meta.id === id));
+		TransactionController.updateTransaction(this.prepareTransactionMeta(meta));
+		console.log(3, this.props.transactions.find(meta => meta.id === id));
+		TransactionController.approveTransaction(id);
 		this.props.navigation.goBack();
 	};
+
+	onModeChange = mode => {
+		this.setState({ mode });
+	}
 
 	getTransactionMeta() {
 		return [...this.props.transactions].reverse().find(meta => meta.status === 'unapproved');
@@ -58,8 +70,10 @@ class Approval extends Component {
 		const { id, transaction } = this.sanitizeTransactionMeta(this.getTransactionMeta());
 		return (
 			<TransactionEditor
+				mode={this.state.mode}
 				onCancel={this.onCancel}
 				onConfirm={this.onConfirm}
+				onModeChange={this.onModeChange}
 				transactionID={id}
 				transaction={transaction}
 			/>

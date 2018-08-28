@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
-import { isBN, hexToBN, weiToFiat, fromWei} from '../../util/number';
+import { isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
 import { isValidAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
@@ -230,9 +230,9 @@ class TransactionEditor extends Component {
 		 */
 		currentCurrency: PropTypes.string,
 		/**
-		 * ID corresponding to a transaction meta object in TransactionController state
+		 * Current mode this transaction editor is in
 		 */
-		transactionID: PropTypes.string,
+		mode: PropTypes.oneOf(['edit', 'review']),
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -242,17 +242,24 @@ class TransactionEditor extends Component {
 		 */
 		onConfirm: PropTypes.func,
 		/**
+		 * Called when a user changes modes
+		 */
+		onModeChange: PropTypes.func,
+		/**
 		 * Currently-active account address in the current keychain
 		 */
 		selectedAddress: PropTypes.string,
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.obj
+		transaction: PropTypes.obj,
+		/**
+		 * ID corresponding to a transaction meta object in TransactionController state
+		 */
+		transactionID: PropTypes.string
 	};
 
 	state = {
-		activePage: 'edit',
 		amount: this.props.transaction.value,
 		amountError: undefined,
 		data: this.props.transaction.data,
@@ -265,14 +272,15 @@ class TransactionEditor extends Component {
 	};
 
 	edit = () => {
-		this.setState({ activePage: 'edit' });
+		const { onModeChange } = this.props;
+		onModeChange && onModeChange('edit');
 	};
 
 	fillMax = () => {
 		// TODO: Subtract gas properly (probably using hex math)
 		const { gas, from } = this.state;
 		const { balance } = this.props.identities[from];
-		this.setState({ amount: (hexToBN(balance)).sub(gas) });
+		this.setState({ amount: hexToBN(balance).sub(gas) });
 	};
 
 	focusToAddress = () => {
@@ -285,17 +293,22 @@ class TransactionEditor extends Component {
 	};
 
 	onConfirm = () => {
-		const { onConfirm, transactionID } = this.props;
-		onConfirm && onConfirm(transactionID);
+		const { onConfirm, transaction, transactionID } = this.props;
+		const { amount, data, from, gas, to } = this.state;
+		onConfirm && onConfirm(transactionID, {
+			...transaction,
+			...{ value: amount, data, from, gas, to }
+		});
 	};
 
 	review = () => {
 		const { amountError, to, toError, gasError } = this.state;
+		const { onModeChange } = this.props;
 		if (amountError || toError || gasError || !to) {
 			!to && this.setState({ toError: 'Required' });
 			return;
 		}
-		this.setState({ activePage: 'review' });
+		onModeChange && onModeChange('review');
 	};
 
 	updateAmount = async amount => {
@@ -326,7 +339,6 @@ class TransactionEditor extends Component {
 	render() {
 		// TODO: Use correct gas (probably converting from hex)
 		const {
-			activePage,
 			amount,
 			amountError,
 			data,
@@ -336,12 +348,12 @@ class TransactionEditor extends Component {
 			to,
 			toError
 		} = this.state;
-		const { conversionRate, currentCurrency, } = this.props;
+		const { conversionRate, currentCurrency, mode } = this.props;
 		const total = isBN(amount) ? amount.add(gas) : gas;
 
 		return (
 			<View style={styles.root}>
-				{activePage === 'edit' && (
+				{mode === 'edit' && (
 					<ActionView confirmText="Next" onCancelPress={this.onCancel} onConfirmPress={this.review}>
 						<View style={styles.form}>
 							<View style={{ ...styles.formRow, ...styles.fromRow }}>
@@ -398,8 +410,12 @@ class TransactionEditor extends Component {
 						</View>
 					</ActionView>
 				)}
-				{activePage === 'review' && (
-					<ActionView confirmButtonMode="filled" onCancelPress={this.onCancel} onConfirmPress={this.onConfirm}>
+				{mode === 'review' && (
+					<ActionView
+						confirmButtonMode="filled"
+						onCancelPress={this.onCancel}
+						onConfirmPress={this.onConfirm}
+					>
 						<View style={styles.reviewForm}>
 							<View style={styles.graphic}>
 								<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
