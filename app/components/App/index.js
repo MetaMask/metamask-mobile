@@ -82,7 +82,7 @@ export default class App extends Component {
 	handleAppStateChange = nextAppState => {
 		if (nextAppState !== 'active') {
 			this.mounted && this.setState({ locked: true });
-		} else if (this.state.appState.match(/background/) && nextAppState === 'active') {
+		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
 			this.state.locked && this.unlockKeychain();
 		}
 		this.mounted && this.setState({ appState: nextAppState });
@@ -148,11 +148,12 @@ export default class App extends Component {
 	};
 
 	render() {
-		if (this.state.loggedIn) {
+		if (this.state.locked) {
+			return <LockScreen />;
+		} else if (this.state.loggedIn) {
 			return (
 				<View style={baseStyles.flexGrow}>
 					<MainNav />
-					{this.state.locked ? <LockScreen /> : null}
 				</View>
 			);
 		} else if (!this.state.existingUser) {
