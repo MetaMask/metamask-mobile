@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: Dimensions.get('window').height / 2 - 150,
 		width: Dimensions.get('window').width * 0.8,
-		height: 300,
+		height: Dimensions.get('window').width * 0.8,
 		alignItems: 'center',
 		justifyContent: 'center',
 		marginLeft: Dimensions.get('window').width * 0.1,
