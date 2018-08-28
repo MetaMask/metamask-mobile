@@ -45,7 +45,7 @@ class Approval extends Component {
 
 	onModeChange = mode => {
 		this.setState({ mode });
-	}
+	};
 
 	getTransactionMeta() {
 		return [...this.props.transactions].reverse().find(meta => meta.status === 'unapproved');

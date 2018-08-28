@@ -163,7 +163,9 @@ class AccountSelect extends Component {
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController } }) => ({
+const mapStateToProps = ({
+	backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
+}) => ({
 	// TODO: Update this to use balances
 	accounts: AccountTrackerController.accounts,
 	identities: PreferencesController.identities,

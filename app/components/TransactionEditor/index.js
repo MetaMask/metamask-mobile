@@ -295,10 +295,11 @@ class TransactionEditor extends Component {
 	onConfirm = () => {
 		const { onConfirm, transaction, transactionID } = this.props;
 		const { amount, data, from, gas, to } = this.state;
-		onConfirm && onConfirm(transactionID, {
-			...transaction,
-			...{ value: amount, data, from, gas, to }
-		});
+		onConfirm &&
+			onConfirm(transactionID, {
+				...transaction,
+				...{ value: amount, data, from, gas, to }
+			});
 	};
 
 	review = () => {
@@ -338,16 +339,7 @@ class TransactionEditor extends Component {
 
 	render() {
 		// TODO: Use correct gas (probably converting from hex)
-		const {
-			amount,
-			amountError,
-			data,
-			from = this.props.selectedAddress,
-			gas,
-			gasError,
-			to,
-			toError
-		} = this.state;
+		const { amount, amountError, data, from = this.props.selectedAddress, gas, gasError, to, toError } = this.state;
 		const { conversionRate, currentCurrency, mode } = this.props;
 		const total = isBN(amount) ? amount.add(gas) : gas;
 
@@ -482,7 +474,9 @@ class TransactionEditor extends Component {
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController } }) => ({
+const mapStateToProps = ({
+	backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
+}) => ({
 	// TODO: Update this to use balances
 	accounts: AccountTrackerController.accounts,
 	conversionRate: CurrencyRateController.conversionRate,
