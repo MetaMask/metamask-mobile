@@ -67,7 +67,8 @@ export default class Browser extends Component {
 		canGoBack: false,
 		canGoForward: false,
 		inputValue: this.props.defaultURL,
-		url: this.props.defaultURL
+		// url: this.props.defaultURL
+		url: 'https://eip1102.herokuapp.com'
 	};
 
 	injection = {

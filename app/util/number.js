@@ -48,6 +48,10 @@ export function hexToBN(value) {
 	return gabaUtils.hexToBN(value);
 }
 
+export function BNToHex(value) {
+	return gabaUtils.BNToHex(value);
+}
+
 export function weiToFiat(wei, conversionRate, currencyCode) {
 	if (!wei || !isBN(wei)) { return `0.00 ${currencyCode}`; }
 	const eth = fromWei(wei).toString();

@@ -5,6 +5,8 @@ import TransactionEditor from '../TransactionEditor';
 import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 import { connect } from 'react-redux';
+import { BN } from 'ethereumjs-util';
+import { BNToHex, hexToBN } from '../../util/number';
 
 const styles = StyleSheet.create({});
 
@@ -14,35 +16,52 @@ const styles = StyleSheet.create({});
 class Approval extends Component {
 	static propTypes = {
 		/**
+		 * react-navigation object used for switching between screens
+		 */
+		navigation: PropTypes.object,
+		/**
 		 * List of recent TransactionMeta objects
 		 */
 		transactions: PropTypes.arrayOf(PropTypes.object)
 	};
 
-	cancel = () => {
-		const transactionMeta = this.getTransactionMeta();
-		Engine.context.TransactionController.cancelTransaction(transactionMeta.id);
+	onCancel = (id) => {
+		const { TransactionController } = Engine.context;
+		const meta = this.prepareTransactionMeta(this.props.transactions.find(meta => meta.id === id));
+		TransactionController.updateTransaction(meta);
+		TransactionController.cancelTransaction(id);
+		this.props.navigation.goBack();
 	};
 
-	confirm = () => {
-		const transactionMeta = this.getTransactionMeta();
-		Engine.context.TransactionController.approveTransaction(transactionMeta.id);
+	onConfirm = (id) => {
+		Engine.context.TransactionController.approveTransaction(id);
+		this.props.navigation.goBack();
 	};
 
 	getTransactionMeta() {
 		return [...this.props.transactions].reverse().find(meta => meta.status === 'unapproved');
 	}
 
-	prepareTransactionmeta(meta) {}
+	prepareTransactionMeta(meta) {
+		meta.transaction.gas = BNToHex(meta.transaction.gas);
+		meta.transaction.value = BNToHex(meta.transaction.value);
+		return meta;
+	}
 
-	sanitizeTransactionMeta(meta) {}
+	sanitizeTransactionMeta(meta) {
+		meta.transaction.gas = hexToBN(meta.transaction.gas);
+		meta.transaction.value = hexToBN(meta.transaction.value);
+		return meta;
+	}
 
 	render() {
+		const { id, transaction } = this.sanitizeTransactionMeta(this.getTransactionMeta());
 		return (
 			<TransactionEditor
-				onCancel={this.cancel}
-				onConfirm={this.confirm}
-				transactionMeta={this.sanitizeTransactionMeta(this.getTransactionMeta())}
+				onCancel={this.onCancel}
+				onConfirm={this.onConfirm}
+				transactionID={id}
+				transaction={transaction}
 			/>
 		);
 	}

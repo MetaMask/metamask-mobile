@@ -230,6 +230,10 @@ class TransactionEditor extends Component {
 		 */
 		currentCurrency: PropTypes.string,
 		/**
+		 * ID corresponding to a transaction meta object in TransactionController state
+		 */
+		transactionID: PropTypes.string,
+		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
 		onCancel: PropTypes.func,
@@ -240,17 +244,22 @@ class TransactionEditor extends Component {
 		/**
 		 * Currently-active account address in the current keychain
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Transaction object associated with this transaction
+		 */
+		transaction: PropTypes.obj
 	};
 
 	state = {
 		activePage: 'edit',
-		amount: undefined,
+		amount: this.props.transaction.value,
 		amountError: undefined,
-		from: undefined,
-		gas: hexToBN('0x14d1120d7b160000'), // TODO: Use real gas, make this default undefined
+		data: this.props.transaction.data,
+		from: this.props.transaction.from,
+		gas: this.props.transaction.gas, // TODO: Use real gas, make this default undefined
 		gasError: undefined,
-		to: undefined,
+		to: this.props.transaction.to,
 		toError: undefined,
 		toFocused: false
 	};
@@ -268,6 +277,16 @@ class TransactionEditor extends Component {
 
 	focusToAddress = () => {
 		this.setState({ toFocused: true });
+	};
+
+	onCancel = () => {
+		const { onCancel, transactionID } = this.props;
+		onCancel && onCancel(transactionID);
+	};
+
+	onConfirm = () => {
+		const { onConfirm, transactionID } = this.props;
+		onConfirm && onConfirm(transactionID);
 	};
 
 	review = () => {
@@ -317,13 +336,13 @@ class TransactionEditor extends Component {
 			to,
 			toError
 		} = this.state;
-		const { conversionRate, currentCurrency, onCancel, onConfirm } = this.props;
+		const { conversionRate, currentCurrency, } = this.props;
 		const total = isBN(amount) ? amount.add(gas) : gas;
 
 		return (
 			<View style={styles.root}>
 				{activePage === 'edit' && (
-					<ActionView confirmText="Next" onCancelPress={onCancel} onConfirmPress={this.review}>
+					<ActionView confirmText="Next" onCancelPress={this.onCancel} onConfirmPress={this.review}>
 						<View style={styles.form}>
 							<View style={{ ...styles.formRow, ...styles.fromRow }}>
 								<View style={styles.label}>
@@ -380,7 +399,7 @@ class TransactionEditor extends Component {
 					</ActionView>
 				)}
 				{activePage === 'review' && (
-					<ActionView confirmButtonMode="filled" onCancelPress={onCancel} onConfirmPress={onConfirm}>
+					<ActionView confirmButtonMode="filled" onCancelPress={this.onCancel} onConfirmPress={this.onConfirm}>
 						<View style={styles.reviewForm}>
 							<View style={styles.graphic}>
 								<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
