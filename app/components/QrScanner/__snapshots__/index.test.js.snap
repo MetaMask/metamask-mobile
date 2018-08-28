@@ -56,7 +56,7 @@ exports[`QrScanner should render correctly 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "height": 300,
+            "height": 600,
             "justifyContent": "center",
             "marginLeft": 75,
             "marginRight": 75,
