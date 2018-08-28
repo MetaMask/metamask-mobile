@@ -119,10 +119,11 @@ exports[`AssetOverview should render correctly 1`] = `
             "fontSize": 15,
             "fontWeight": "500",
             "marginLeft": 8,
+            "textTransform": "uppercase",
           }
         }
       >
-        SEND
+        Send
       </Component>
     </Button>
     <Button
@@ -153,10 +154,11 @@ exports[`AssetOverview should render correctly 1`] = `
             "fontSize": 15,
             "fontWeight": "500",
             "marginLeft": 8,
+            "textTransform": "uppercase",
           }
         }
       >
-        RECEIVE
+        Receive
       </Component>
     </Button>
   </Component>

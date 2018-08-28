@@ -115,10 +115,11 @@ exports[`Login should render correctly 1`] = `
               "color": "#FFFFFF",
               "fontFamily": "Roboto",
               "fontWeight": "500",
+              "textTransform": "uppercase",
             }
           }
         >
-          LOG IN
+          Log in
         </Button>
       </Component>
       <Component
