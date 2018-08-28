@@ -132,6 +132,8 @@ export default class Browser extends Component {
 		} else {
 			code && current && current.injectJavaScript(code);
 		}
+
+		this.backgroundBridge.sendStateUpdate()
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
