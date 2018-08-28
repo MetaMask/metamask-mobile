@@ -80,9 +80,9 @@ export default class QrScanner extends Component {
 			<View style={styles.container}>
 				<RNCamera
 					style={styles.preview}
-					type={RNCamera.Constants.Type.back}
+					type={'back'}
 					onBarCodeRead={this.onBarCodeRead}
-					flashMode={RNCamera.Constants.FlashMode.auto}
+					flashMode={'auto'}
 					permissionDialogTitle={'Allow camera access'}
 					permissionDialogMessage={'We need your permission to scan QR codes'}
 				>
