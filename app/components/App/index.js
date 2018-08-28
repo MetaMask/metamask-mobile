@@ -16,23 +16,23 @@ import { baseStyles } from '../../styles/common';
  * Navigator object responsible for instantiating
  * the two top level views: Main and AccountList
  */
-const Home = createDrawerNavigator(
-	{
-		Main: {
-			screen: Main
-		}
-	},
-	{
-		contentComponent: AccountList
-	}
-);
 
 const MainNav = createStackNavigator(
 	{
 		Home: {
-			screen: Home
+			screen: createDrawerNavigator(
+				{
+					Main: {
+						screen: Main
+					}
+				},
+				{
+					contentComponent: AccountList
+				}
+			)
 		},
-		/** ALL MODALS SHOULD GO HERE */
+
+		/** ALL MODAL SCREENS SHOULD GO HERE */
 		QrScanner: {
 			screen: QrScanner
 		}

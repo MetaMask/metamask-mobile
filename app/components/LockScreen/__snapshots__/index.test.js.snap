@@ -6,13 +6,8 @@ exports[`LockScreen should render correctly 1`] = `
     Object {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
-      "bottom": 0,
       "flex": 1,
       "justifyContent": "center",
-      "left": 0,
-      "position": "absolute",
-      "right": 0,
-      "top": 0,
     }
   }
   testID="lock-screen"
