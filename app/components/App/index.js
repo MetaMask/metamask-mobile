@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { View, AppState, AsyncStorage } from 'react-native';
-import { createDrawerNavigator } from 'react-navigation';
+import { createDrawerNavigator, createStackNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
+import QrScanner from '../QrScanner';
 import CreatePassword from '../CreatePassword';
 import ImportFromSeed from '../ImportFromSeed';
 import LockScreen from '../LockScreen';
@@ -15,7 +16,7 @@ import { baseStyles } from '../../styles/common';
  * Navigator object responsible for instantiating
  * the two top level views: Main and AccountList
  */
-const Nav = createDrawerNavigator(
+const Home = createDrawerNavigator(
 	{
 		Main: {
 			screen: Main
@@ -23,6 +24,22 @@ const Nav = createDrawerNavigator(
 	},
 	{
 		contentComponent: AccountList
+	}
+);
+
+const MainNav = createStackNavigator(
+	{
+		Home: {
+			screen: Home
+		},
+		/** ALL MODALS SHOULD GO HERE */
+		QrScanner: {
+			screen: QrScanner
+		}
+	},
+	{
+		mode: 'modal',
+		headerMode: 'none'
 	}
 );
 
@@ -134,7 +151,7 @@ export default class App extends Component {
 		if (this.state.loggedIn) {
 			return (
 				<View style={baseStyles.flexGrow}>
-					<Nav />
+					<MainNav />
 					{this.state.locked ? <LockScreen /> : null}
 				</View>
 			);

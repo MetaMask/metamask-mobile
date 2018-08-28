@@ -91,7 +91,7 @@ export default class QrScanner extends Component {
 						<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
 							<Icon name={'ios-close-outline'} size={40} color={'white'} />
 						</TouchableOpacity>
-						<Image source={{ uri: 'frame' }} style={styles.frame} />
+						<Image source={require('../../images/frame.png')} style={styles.frame} />
 						<Text style={styles.text}>scanning...</Text>
 					</View>
 				</RNCamera>
