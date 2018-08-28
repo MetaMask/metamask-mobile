@@ -1,21 +1,49 @@
+/**
+ * Collection of utility functions for consistent formatting and conversion
+ */
 import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
 import gabaUtils from 'gaba/util';
-/**
- * Collection of utility functions for working with numbers
- */
 
 /**
- * Convert numeric values into 00.00 XXX format
+ * Converts a BN object to a hex string with a '0x' prefix
  *
- * @param {number} eth - Amount of ETH
- * @param {number} conversionRate - ETH to current currency conversion rate
- * @param {string} currencyCode - Current currency code to display
+ * @param {Object} value - BN instance to convert to a hex string
+ * @returns {string} - '0x'-prefixed hex string
  */
-export function ethToFiat(eth, conversionRate, currencyCode) {
-	let value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
-	value = isNaN(value) ? '0.00' : value;
-	return `${value} ${currencyCode}`;
+export function BNToHex(value) {
+	return gabaUtils.BNToHex(value);
+}
+
+/**
+ * Converts wei to a different unit
+ *
+ * @param {number|string|Object} value - Wei to convert
+ * @param {string} unit - Unit to convert to, ether by default
+ * @returns {Object} - BN instance containing the new number
+ */
+export function fromWei(value, unit = 'ether') {
+	return convert.fromWei(value, unit);
+}
+
+/**
+ * Converts a hex string to a BN object
+ *
+ * @param {string} value - Number represented as a hex string
+ * @returns {Object} - A BN instance
+ */
+export function hexToBN(value) {
+	return gabaUtils.hexToBN(value);
+}
+
+/**
+ * Checks if a value is a BN instance
+ *
+ * @param {*} value - Value to check
+ * @returns {boolean} - True if the value is a BN instance
+ */
+export function isBN(value) {
+	return BN.isBN(value);
 }
 
 /**
@@ -24,34 +52,28 @@ export function ethToFiat(eth, conversionRate, currencyCode) {
  * @param {string} value - String to check
  * @returns {boolean} - True if the string is a valid decimal
  */
-export function isNumeric(value) {
-	return !isNaN(value - parseFloat(value));
-}
-
-export function fromWei(value, unit = 'ether') {
-	return convert.fromWei(value, unit);
-}
-
-export function toWei(value, unit = 'ether') {
-	return convert.toWei(value, unit);
-}
-
-export function isBN(value) {
-	return BN.isBN(value);
-}
-
 export function isDecimal(value) {
 	return /^(\d+\.?\d*|\.\d+)$/.test(value);
 }
 
-export function hexToBN(value) {
-	return gabaUtils.hexToBN(value);
+/**
+ * Converts some unit to wei
+ *
+ * @param {number|string|BN} value - Value to convert
+ * @param {string} unit - Unit to convert from, ether by default
+ * @returns {Object} - BN instance containing the new number
+ */
+export function toWei(value, unit = 'ether') {
+	return convert.toWei(value, unit);
 }
 
-export function BNToHex(value) {
-	return gabaUtils.BNToHex(value);
-}
-
+/**
+ * Converts wei expressed as a BN instance into a human-readable fiat string
+ *
+ * @param {number} wei - BN corresponding to an amount of wei
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {string} currencyCode - Current currency code to display
+ */
 export function weiToFiat(wei, conversionRate, currencyCode) {
 	if (!wei || !isBN(wei)) {
 		return `0.00 ${currencyCode}`;
