@@ -53,7 +53,7 @@ export default class QrScanner extends Component {
 	goBack = () => {
 		this.props.navigation.goBack();
 	};
-	onBarcodeRead = response => {
+	onBarCodeRead = response => {
 		const content = response.data;
 
 		let type = 'unknown';
@@ -72,8 +72,8 @@ export default class QrScanner extends Component {
 		} else {
 			Alert.alert('Invalid QR Code', 'The QR code that you are trying to scan it is not valid.');
 		}
-
-		this.props.navigation.getParam('onScanSuccess').call({ type, values });
+		this.props.navigation.state.params.onScanSuccess({ type, values });
+		this.props.navigation.goBack();
 	};
 	render() {
 		return (
@@ -81,6 +81,7 @@ export default class QrScanner extends Component {
 				<RNCamera
 					style={styles.preview}
 					type={RNCamera.Constants.Type.back}
+					onBarCodeRead={this.onBarCodeRead}
 					flashMode={RNCamera.Constants.FlashMode.auto}
 					permissionDialogTitle={'Allow camera access'}
 					permissionDialogMessage={'We need your permission to scan QR codes'}

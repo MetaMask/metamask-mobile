@@ -9,9 +9,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const styles = StyleSheet.create({
 	wrapper: {
 		alignItems: 'center',
-		backgroundColor: colors.slate,
+		backgroundColor: colors.white,
 		flex: 1,
-		justifyContent: 'center'
+		paddingTop: 30
 	},
 	field: {
 		marginBottom: Platform.OS === 'android' ? 0 : 10
@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
 	input: {
 		width: 300,
 		height: 50,
+		paddingRight: 40,
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
 		borderColor: colors.borderColor,
 		padding: 10,
@@ -49,17 +50,21 @@ class SendScreen extends Component {
 		navigation: PropTypes.object
 	};
 	state = {
-		to: ''
+		to: '',
+		fullTo: ''
 	};
 
-	onScanSuccess = (type, values) => {
+	onScanSuccess = ({ type, values }) => {
 		if (type === 'address' && values.address) {
-			this.setState({ to: values.address });
+			const shortAddress = `${values.address.substr(0, 15)}...${values.address.substr(-15)}`;
+			this.setState({ to: shortAddress, fullTo: values.address });
 		}
 	};
 
 	showQrScanner = () => {
-		this.props.navigation.navigate('QrScanner', { onScanSuccess: this.onScanSuccess });
+		this.props.navigation.navigate('QrScanner', {
+			onScanSuccess: this.onScanSuccess
+		});
 	};
 	render() {
 		return (

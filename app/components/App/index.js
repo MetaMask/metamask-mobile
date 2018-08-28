@@ -82,7 +82,7 @@ export default class App extends Component {
 	handleAppStateChange = nextAppState => {
 		if (nextAppState !== 'active') {
 			this.mounted && this.setState({ locked: true });
-		} else if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+		} else if (this.state.appState.match(/background/) && nextAppState === 'active') {
 			this.state.locked && this.unlockKeychain();
 		}
 		this.mounted && this.setState({ appState: nextAppState });
