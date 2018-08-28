@@ -71,3 +71,4 @@ jest.mock('../core/Engine', () => ({
 jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-fabric', () => 'Fabric');
+jest.mock('react-native-camera', () => 'RNCamera');
