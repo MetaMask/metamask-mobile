@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
 class Settings extends Component {
 	static navigationOptions = {
 		title: strings('settings.title'),
+		headerTruncatedBackTitle: strings('navigation.back'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal

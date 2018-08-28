@@ -1,4 +1,7 @@
 {
+	"navigation": {
+		"back": "Atrás"
+	},
 	"login": {
 		"welcome_back": "Bienvenido!",
 		"password": "Contraseña",

@@ -1,4 +1,7 @@
 {
+	"navigation": {
+		"back": "Back"
+	},
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",
