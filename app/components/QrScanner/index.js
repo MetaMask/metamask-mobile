@@ -1,6 +1,6 @@
 'use strict';
 import React, { Component } from 'react';
-import { Alert, Image, Text, TouchableOpacity, View, Dimensions, StyleSheet } from 'react-native';
+import { SafeAreaView, Alert, Image, Text, TouchableOpacity, View, Dimensions, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -9,27 +9,25 @@ import PropTypes from 'prop-types';
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		flexDirection: 'column',
 		backgroundColor: colors.black
 	},
 	preview: {
-		flex: 1,
-		justifyContent: 'flex-end',
-		alignItems: 'center'
+		flex: 1
 	},
 	innerView: {
 		flex: 1
 	},
 	closeIcon: {
 		marginTop: 20,
-		marginLeft: 10,
-		width: 40
+		marginRight: 20,
+		width: 40,
+		alignSelf: 'flex-end'
 	},
 	frame: {
 		position: 'absolute',
-		top: Dimensions.get('window').height / 2 - 100,
+		top: Dimensions.get('window').height / 2 - 150,
 		width: Dimensions.get('window').width * 0.8,
-		height: 200,
+		height: 300,
 		alignItems: 'center',
 		justifyContent: 'center',
 		marginLeft: Dimensions.get('window').width * 0.1,
@@ -43,7 +41,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginTop: Dimensions.get('window').height / 2 - 80
+		marginTop: Dimensions.get('window').height / 2 + 150
 	}
 });
 
@@ -87,13 +85,13 @@ export default class QrScanner extends Component {
 					permissionDialogTitle={'Allow camera access'}
 					permissionDialogMessage={'We need your permission to scan QR codes'}
 				>
-					<View style={styles.innerView}>
+					<SafeAreaView style={styles.innerView}>
 						<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
-							<Icon name={'ios-close-outline'} size={40} color={'white'} />
+							<Icon name={'ios-close'} size={50} color={'white'} />
 						</TouchableOpacity>
 						<Image source={require('../../images/frame.png')} style={styles.frame} />
 						<Text style={styles.text}>scanning...</Text>
-					</View>
+					</SafeAreaView>
 				</RNCamera>
 			</View>
 		);
