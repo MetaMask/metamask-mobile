@@ -53,10 +53,12 @@ export default class AddCustomAsset extends Component {
 		navigation: PropTypes.object
 	};
 
-	addToken = () => {
+	addToken = async () => {
 		if (!this.validateCustomToken()) return;
 		const { PreferencesController } = Engine.context;
-		PreferencesController.addToken(this.state.address, this.state.symbol, this.state.decimals);
+		const { address, symbol, decimals } = this.state;
+		const tokens = PreferencesController.addToken(address, symbol, decimals);
+		await PreferencesController.update({ tokens: Array.from(tokens) });
 		this.props.navigation.goBack();
 	};
 

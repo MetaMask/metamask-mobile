@@ -48,11 +48,11 @@ export default class PageFooter extends Component {
 		/**
 		 * Method to trigger when cancel
 		 */
-		onCancel: PropTypes.object.function,
+		onCancel: PropTypes.func,
 		/**
 		 * Method to trigger when submit
 		 */
-		onSubmit: PropTypes.object.function,
+		onSubmit: PropTypes.func,
 		/**
 		 * Text to display on cancel button
 		 */
