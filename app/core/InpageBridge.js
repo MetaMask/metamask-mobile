@@ -22,8 +22,8 @@ class InpageBridge {
 
 	_onBackgroundResponse({ __mmID, error, response }) {
 		const callback = this._pending[__mmID];
-		console.log('here', response);
 		if (response.error) {
+			/* eslint-disable-next-line no-console */
 			console.error(response.error.message);
 		}
 		callback && callback(error, response);

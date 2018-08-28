@@ -3,8 +3,8 @@ import Approval from '../Approval';
 import { createStackNavigator } from 'react-navigation';
 
 /**
- * Main view component for the browser screen, renders a stack container
- * that holds the browser and the approvals creen
+ * Main view component for the browser screen, renders a StackNavigator that
+ * holds every approval view in the order they are triggered
  */
 export default createStackNavigator(
 	{

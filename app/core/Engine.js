@@ -47,13 +47,6 @@ class Engine {
 								eth_sendTransaction: async (payload, next, end) => {
 									const { TransactionController } = this.datamodel.context;
 									try {
-										setTimeout(async () => {
-											const transactions = TransactionController.state.transactions;
-											// await TransactionController.approveTransaction(
-											// 	transactions[transactions.length - 1].id
-											// );
-										}, 2000);
-
 										const hash = await (await TransactionController.addTransaction(
 											payload.params[0]
 										)).result;
@@ -143,14 +136,6 @@ export default {
 	},
 	init(state) {
 		instance = new Engine(state);
-
-		// TODO: Use real balances
-		const { PreferencesController } = instance.datamodel.context;
-		Object.keys(PreferencesController.state.identities).forEach(address => {
-			// PreferencesController.state.identities[address].balance = 1337;
-			// PreferencesController.state.identities[address].balance = '0x487a9a304539440000';
-		});
-
 		Object.freeze(instance);
 		return instance;
 	}
