@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { withNavigation } from 'react-navigation';
-import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -68,7 +67,7 @@ class SendScreen extends Component {
 	};
 	render() {
 		return (
-			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
+			<View style={styles.wrapper}>
 				<View style={styles.field}>
 					<Text style={styles.label}>TO:</Text>
 					<TextInput
@@ -81,7 +80,7 @@ class SendScreen extends Component {
 					/>
 					<Icon name="qrcode" onPress={this.showQrScanner} size={30} style={styles.icon} />
 				</View>
-			</LinearGradient>
+			</View>
 		);
 	}
 }
