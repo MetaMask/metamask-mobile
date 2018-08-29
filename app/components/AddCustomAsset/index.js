@@ -57,8 +57,7 @@ export default class AddCustomAsset extends Component {
 		if (!this.validateCustomToken()) return;
 		const { PreferencesController } = Engine.context;
 		const { address, symbol, decimals } = this.state;
-		const tokens = PreferencesController.addToken(address, symbol, decimals);
-		await PreferencesController.update({ tokens: Array.from(tokens) });
+		PreferencesController.addToken(address, symbol, decimals);
 		this.props.navigation.goBack();
 	};
 
