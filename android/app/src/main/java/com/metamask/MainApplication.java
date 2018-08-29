@@ -6,6 +6,7 @@ import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
 import org.reactnative.camera.RNCameraPackage;
 import cl.json.RNSharePackage;
+import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
 import com.smixx.fabric.FabricPackage;
 import com.tectiv3.aes.RCTAesPackage;
 import com.oblador.keychain.KeychainPackage;
@@ -38,9 +39,10 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
     @Override
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
-          new MainReactPackage(),
+            new MainReactPackage(),
             new RNCameraPackage(),
             new RNSharePackage(),
+            new RNI18nPackage(),
             new FabricPackage(),
             new RCTAesPackage(),
             new KeychainPackage(),

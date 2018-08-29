@@ -6,6 +6,7 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
 	},
 	ctaText: {
 		color: colors.white,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	cta: {
@@ -165,9 +167,9 @@ export default class CreatePassword extends Component {
 								resizeMethod={'auto'}
 							/>
 						</View>
-						<Text style={styles.title}>Create Password</Text>
+						<Text style={styles.title}>{strings('createPassword.title')}</Text>
 						<View style={styles.field}>
-							<Text style={styles.label}>New Password (min 8 chars)</Text>
+							<Text style={styles.label}>{strings('createPassword.new_password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -179,7 +181,7 @@ export default class CreatePassword extends Component {
 							/>
 						</View>
 						<View style={styles.field}>
-							<Text style={styles.label}>Confirm Password</Text>
+							<Text style={styles.label}>{strings('createPassword.confirm_password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.confirmPassword}
@@ -199,13 +201,17 @@ export default class CreatePassword extends Component {
 								onPress={this.onPressCreate}
 								testID={'submit'}
 							>
-								{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'CREATE'}
+								{this.props.loading ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('createPassword.create_button')
+								)}
 							</Button>
 						</View>
 
 						<View style={styles.footer}>
 							<Button style={styles.seed} onPress={this.onPressImport} testID={'import-seed-button'}>
-								Import with seed phrase
+								{strings('createPassword.import_with_seed_phrase')}
 							</Button>
 						</View>
 					</View>

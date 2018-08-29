@@ -70,7 +70,7 @@ exports[`CreatePassword should render correctly 1`] = `
             }
           }
         >
-          New Password (min 8 chars)
+          New Password (min. 8 characters)
         </Component>
         <TextInput
           allowFontScaling={true}
@@ -155,11 +155,12 @@ exports[`CreatePassword should render correctly 1`] = `
               "color": "#FFFFFF",
               "fontFamily": "Roboto",
               "fontWeight": "500",
+              "textTransform": "uppercase",
             }
           }
           testID="submit"
         >
-          CREATE
+          Create
         </Button>
       </Component>
       <Component

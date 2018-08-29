@@ -2,6 +2,7 @@ import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
 import { View } from 'react-native';
+import I18nJs from 'i18n-js'; // eslint-disable-line import/no-extraneous-dependencies
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -76,4 +77,10 @@ jest.mock('react-native-camera', () => ({
 	RNCamera: View,
 	Aspect: true
 }));
-//jest.mock('react-native-camera', () => 'RNCamera');
+
+I18nJs.locale = 'en';
+jest.mock('react-native-i18n', () => ({
+	...I18nJs,
+	getLanguages: () => Promise.resolve(['en']),
+	currentLocale: () => 'en'
+}));

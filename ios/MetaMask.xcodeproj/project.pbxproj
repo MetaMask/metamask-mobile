@@ -13,6 +13,7 @@
 		00C302E91ABCBA2D00DB3ED1 /* libRCTNetwork.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302DC1ABCB9D200DB3ED1 /* libRCTNetwork.a */; };
 		00C302EA1ABCBA2D00DB3ED1 /* libRCTVibration.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302E41ABCB9EE00DB3ED1 /* libRCTVibration.a */; };
 		00E356F31AD99517003FC87E /* MetaMaskTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* MetaMaskTests.m */; };
+		07B8A7DCBC6E489DBA212896 /* libRNI18n-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09FEE558C52041D0BC6876FF /* libRNI18n-tvOS.a */; };
 		0A2ECB748D5D4A1696858CA2 /* libRNOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 417D7C2840F148F591AB0261 /* libRNOS.a */; };
 		123752B9768C469A85058888 /* Feather.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E9629905BA1940ADA4189921 /* Feather.ttf */; };
 		131AA188550F45659821D213 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -57,6 +58,7 @@
 		5D8870BC98BC432B95CE851F /* libRNCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CC0566B392AA437687A29BEA /* libRNCamera.a */; };
 		657046E69A8E4E9CBC092A88 /* Entypo.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A498EA4CD2F8488DB666B94C /* Entypo.ttf */; };
 		76AB602000D14AA58533641D /* libBVLinearGradient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 278065D027394AD9B2906E38 /* libBVLinearGradient.a */; };
+		790E16E19F464251B005F134 /* libRNI18n.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 08FF510A31D84CA4A8905194 /* libRNI18n.a */; };
 		7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CF552F79C77A4184A690513A /* Roboto-ThinItalic.ttf */; };
 		7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D9A37B5BF2914CF1B49EEF80 /* Roboto-Thin.ttf */; };
 		813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A783D1CD7D27456796FE2E1B /* Roboto-Bold.ttf */; };
@@ -193,6 +195,19 @@
 			proxyType = 2;
 			remoteGlobalIDString = 134814201AA4EA6300B7C361;
 			remoteInfo = RNShare;
+		15503F912135FC7400D1ED22 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 47BB59D42201438EBD1FEE71 /* RNI18n.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RNI18n;
+		};
+		15503F932135FC7400D1ED22 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 47BB59D42201438EBD1FEE71 /* RNI18n.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6476C4051EEAA69700B10F51;
+			remoteInfo = "RNI18n-tvOS";
 		};
 		158B05E8211A725000DF3C74 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -479,6 +494,8 @@
 		00E356EE1AD99517003FC87E /* MetaMaskTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MetaMaskTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* MetaMaskTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetaMaskTests.m; sourceTree = "<group>"; };
+		08FF510A31D84CA4A8905194 /* libRNI18n.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNI18n.a; sourceTree = "<group>"; };
+		09FEE558C52041D0BC6876FF /* libRNI18n-tvOS.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = "libRNI18n-tvOS.a"; sourceTree = "<group>"; };
 		139105B61AF99BAD00B5F7CC /* RCTSettings.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTSettings.xcodeproj; path = "../node_modules/react-native/Libraries/Settings/RCTSettings.xcodeproj"; sourceTree = "<group>"; };
 		139FDEE61B06529A00C62182 /* RCTWebSocket.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTWebSocket.xcodeproj; path = "../node_modules/react-native/Libraries/WebSocket/RCTWebSocket.xcodeproj"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* MetaMask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetaMask.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -492,6 +509,7 @@
 		14E7DBD0B81B4F6087628BA0 /* libRNRandomBytes-tvOS.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = "libRNRandomBytes-tvOS.a"; sourceTree = "<group>"; };
 		151FBD04212F591900AE84BB /* Fabric.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Fabric.framework; sourceTree = "<group>"; };
 		151FBD05212F591900AE84BB /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
+		15503F952135FDD100D1ED22 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
 		158B063A211A72F500DF3C74 /* InpageBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridge.js; path = ../app/core/InpageBridge.js; sourceTree = "<group>"; };
 		15D158EC210BD8C8006982B5 /* Metamask.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Metamask.ttf; path = ../app/fonts/Metamask.ttf; sourceTree = "<group>"; };
@@ -511,6 +529,7 @@
 		4444176409EB42CB93AB03C5 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
 		459C4774EB724F2D8E12F088 /* Roboto-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Roboto-Regular.ttf"; path = "../app/fonts/Roboto-Regular.ttf"; sourceTree = "<group>"; };
 		4752EE200B1A49178D7871A6 /* libRNKeychain.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNKeychain.a; sourceTree = "<group>"; };
+		47BB59D42201438EBD1FEE71 /* RNI18n.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNI18n.xcodeproj; path = "../node_modules/react-native-i18n/ios/RNI18n.xcodeproj"; sourceTree = "<group>"; };
 		4A2D27104599412CA00C35EF /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		500343D7D81046209C481A89 /* RNRandomBytes.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNRandomBytes.xcodeproj; path = "../node_modules/react-native-randombytes/RNRandomBytes.xcodeproj"; sourceTree = "<group>"; };
 		520898DD99AF4BABB996F00E /* RNKeychain.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNKeychain.xcodeproj; path = "../node_modules/react-native-keychain/RNKeychain.xcodeproj"; sourceTree = "<group>"; };
@@ -588,6 +607,7 @@
 				C21D2E236D734B7CB2DFFC6E /* libSMXCrashlytics.a in Frameworks */,
 				975D67E2884F4A30ADADE15E /* libRNShare.a in Frameworks */,
 				5D8870BC98BC432B95CE851F /* libRNCamera.a in Frameworks */,
+				790E16E19F464251B005F134 /* libRNI18n.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -604,6 +624,7 @@
 				2D02E4C71E0B4AEC006451C7 /* libRCTText-tvOS.a in Frameworks */,
 				2D02E4C81E0B4AEC006451C7 /* libRCTWebSocket-tvOS.a in Frameworks */,
 				EF49213DA2374A639808B3AC /* libRNRandomBytes-tvOS.a in Frameworks */,
+				07B8A7DCBC6E489DBA212896 /* libRNI18n-tvOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -774,6 +795,11 @@
 			isa = PBXGroup;
 			children = (
 				15503EE021359C4900D1ED22 /* libRNCamera.a */,
+		15503F8D2135FC7400D1ED22 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				15503F922135FC7400D1ED22 /* libRNI18n.a */,
+				15503F942135FC7400D1ED22 /* libRNI18n-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -819,6 +845,8 @@
 				84EF90ACE1B444F29DC69FF4 /* libSMXCrashlytics.a */,
 				86C488C5AC7D427599323E56 /* libRNShare.a */,
 				CC0566B392AA437687A29BEA /* libRNCamera.a */,
+				08FF510A31D84CA4A8905194 /* libRNI18n.a */,
+				09FEE558C52041D0BC6876FF /* libRNI18n-tvOS.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -933,6 +961,7 @@
 				9A76C2FA10F2464D9211E0C0 /* SMXCrashlytics.xcodeproj */,
 				685E16D55EFD490687846423 /* RNShare.xcodeproj */,
 				648E088FE1984480A3388CFB /* RNCamera.xcodeproj */,
+				47BB59D42201438EBD1FEE71 /* RNI18n.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -1167,6 +1196,10 @@
 					ProjectRef = 6EFAC8C8B451455A999A0F09 /* RNFS.xcodeproj */;
 				},
 				{
+					ProductGroup = 15503F8D2135FC7400D1ED22 /* Products */;
+					ProjectRef = 47BB59D42201438EBD1FEE71 /* RNI18n.xcodeproj */;
+				},
+				{
 					ProductGroup = 1539CE78211A810A00EC0138 /* Products */;
 					ProjectRef = 520898DD99AF4BABB996F00E /* RNKeychain.xcodeproj */;
 				},
@@ -1305,6 +1338,18 @@
 			fileType = archive.ar;
 			path = libRNShare.a;
 			remoteRef = 15503EE221359C4900D1ED22 /* PBXContainerItemProxy */;
+		15503F922135FC7400D1ED22 /* libRNI18n.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNI18n.a;
+			remoteRef = 15503F912135FC7400D1ED22 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		15503F942135FC7400D1ED22 /* libRNI18n-tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libRNI18n-tvOS.a";
+			remoteRef = 15503F932135FC7400D1ED22 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		158B05E9211A725000DF3C74 /* libRNRandomBytes.a */ = {
@@ -1734,6 +1779,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				13B07FB21A68108700A75B9A /* Base */,
+				15503F952135FDD100D1ED22 /* es */,
 			);
 			name = LaunchScreen.xib;
 			path = MetaMask;
@@ -1765,6 +1811,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = MetaMaskTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1817,6 +1864,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = MetaMaskTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1874,6 +1922,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1912,6 +1961,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1952,6 +2002,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -2011,6 +2062,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -2069,6 +2121,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -2127,6 +2180,7 @@
 					"$(SRCROOT)/../node_modules/react-native-fabric/ios/SMXCrashlytics",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-camera/ios/**",
+					"$(SRCROOT)/../node_modules/react-native-i18n/ios",
 				);
 				INFOPLIST_FILE = "MetaMask-tvOSTests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -2164,6 +2218,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -2206,6 +2261,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;

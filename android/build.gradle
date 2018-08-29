@@ -17,6 +17,7 @@ buildscript {
 
 allprojects {
     repositories {
+        google()
         mavenLocal()
         jcenter()
         maven {
@@ -32,7 +33,7 @@ allprojects {
 
 ext {
     buildToolsVersion = "26.0.3"
-    minSdkVersion = 16
+    minSdkVersion = 18
     compileSdkVersion = 26
     targetSdkVersion = 26
     supportLibVersion = "26.1.0"

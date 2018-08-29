@@ -6,6 +6,7 @@ import SendScreen from '../SendScreen';
 import ReceiveScreen from '../ReceiveScreen';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
  * Which includes send and receive
  */
 export default class Transfer extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('Transfer', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('transfer.title'), navigation);
 
 	renderTabBar() {
 		return (

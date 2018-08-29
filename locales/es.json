@@ -1,0 +1,69 @@
+{
+	"navigation": {
+		"back": "Atrás"
+	},
+	"login": {
+		"welcome_back": "Bienvenido!",
+		"password": "Contraseña",
+		"login_button": "Ingresar",
+		"import_with_seed_phrase": "Importar con frase semilla"
+	},
+	"createPassword": {
+		"title": "Crear Contraseña",
+		"new_password": "Nueva Contraseña (min. 8 caracteres)",
+		"confirm_password": "Confirmar Contraseña",
+		"create_button": "Crear",
+		"import_with_seed_phrase": "Importar con frase semilla"
+	},
+	"importFromSeed": {
+		"title": "Importar con frase semilla",
+		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
+		"new_password": "Nueva Contraseña (min. 8 caracteres)",
+		"confirm_password": "Confirmar Contraseña",
+		"import_button": "Importar",
+		"cancel_button": "Cancelar"
+	},
+	"bottomTabBar": {
+		"dapps": "ÐApps",
+		"wallet": "Billetera",
+		"transfer": "Transferir"
+	},
+	"wallet": {
+		"title": "Billetera",
+		"tokens": "Tokens",
+		"collectibles": "Collecionables",
+		"no_collectibles": "No tienes ningun colleccionable",
+		"add_tokens": "Agregar Tokens",
+		"no_tokens": "No tienes ningun token",
+		"add_collectibles": "Agregar Colleccionable"
+	},
+	"transfer": {
+		"title": "Transferir"
+	},
+	"accounts": {
+		"title": "Mis Cuentas"
+	},
+	"settings": {
+		"title": "Configuraciones",
+		"network": "Red",
+		"network_status": "Estado de la red",
+		"seed_words": "Frase semilla",
+		"logout": "Salir"
+	},
+	"network": {
+		"title": "Red",
+		"selected": "seleccionada"
+	},
+	"seedWords": {
+		"title": "Frase Semilla",
+		"label": "Esta es tu frase semilla. Asegurate de guardarla y mantenerla segura"
+	},
+	"assetOverview": {
+		"send_button": "Enviar",
+		"receive_button": "Recibir"
+	},
+	"accountDetails": {
+		"title": "Detalles de la cuenta",
+		"public_address": "Dirección Pública"
+	}
+}
