@@ -10,7 +10,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
 import { isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
-import { isValidAddress } from 'ethereumjs-util';
+import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -280,14 +280,11 @@ class TransactionEditor extends Component {
 
 	state = {
 		amount: this.props.transaction.value,
-		amountError: undefined,
 		data: this.props.transaction.data,
 		from: this.props.transaction.from,
 		gas: this.props.transaction.gas,
-		gasError: undefined,
 		gasPrice: this.props.transaction.gasPrice,
 		to: this.props.transaction.to,
-		toError: undefined,
 		toFocused: false
 	};
 
@@ -314,7 +311,8 @@ class TransactionEditor extends Component {
 	onConfirm = () => {
 		const { onConfirm, transaction } = this.props;
 		const { amount, data, from, gas, gasPrice, to } = this.state;
-		onConfirm &&
+		!this.validate() &&
+			onConfirm &&
 			onConfirm({
 				...transaction,
 				...{ value: amount, data, from, gas, gasPrice, to }
@@ -322,54 +320,63 @@ class TransactionEditor extends Component {
 	};
 
 	review = () => {
-		const { amountError, to, toError, gasError } = this.state;
 		const { onModeChange } = this.props;
-		if (amountError || toError || gasError || !to) {
-			!to && this.setState({ toError: 'Required' });
-			return;
-		}
-		onModeChange && onModeChange('review');
+		!this.validate() && onModeChange && onModeChange('review');
 	};
 
 	updateAmount = async amount => {
-		const { gas, gasPrice, from } = this.state;
-		const { balance } = this.props.accounts[from];
-		let amountError;
-		amount && !isBN(amount) && (amountError = 'Invalid amount');
-		amount &&
-			isBN(amount) &&
-			hexToBN(balance).lt(amount.add(gas.mul(gasPrice))) &&
-			(amountError = 'Insufficient funds');
-		await this.setState({ amount, amountError });
+		this.setState({ amount });
 	};
 
-	updateData = async data => {
-		await this.setState({ data });
+	updateData = data => {
+		this.setState({ data });
 	};
 
-	updateFromAddress = async from => {
-		await this.setState({ from });
+	updateFromAddress = from => {
+		this.setState({ from });
 	};
 
-	updateToAddress = async to => {
-		let toError;
-		this.state.toFocused && !to && (toError = 'Required');
-		to && !isValidAddress(to) && (toError = 'Invalid address');
-		this.setState({ to, toError });
+	updateToAddress = to => {
+		this.setState({ to });
 	};
+
+	validate() {
+		if (this.validateAmount() || this.validateGas() || this.validateToAddress()) {
+			return true;
+		}
+	}
+
+	validateAmount() {
+		let error;
+		const { amount, gas, gasPrice, from } = this.state;
+		const { accounts } = this.props;
+		if (!accounts || !from || !accounts[toChecksumAddress(from)]) {
+			return;
+		}
+		const { balance } = this.props.accounts[toChecksumAddress(from)];
+		amount && !isBN(amount) && (error = 'Invalid amount');
+		amount && isBN(amount) && hexToBN(balance).lt(amount.add(gas.mul(gasPrice))) && (error = 'Insufficient funds');
+		return error;
+	}
+
+	validateGas() {
+		let error;
+		const { gas, gasPrice } = this.state;
+		gas && !isBN(gas) && (error = 'Invalid gas amount');
+		gasPrice && !isBN(gasPrice) && (error = 'Invalid gas price');
+		return error;
+	}
+
+	validateToAddress() {
+		let error;
+		const { to } = this.state;
+		!to && this.state.toFocused && (error = 'Required');
+		to && !isValidAddress(to) && (error = 'Invalid address');
+		return error;
+	}
 
 	render() {
-		const {
-			amount,
-			amountError,
-			data,
-			from = this.props.selectedAddress,
-			gas,
-			gasPrice,
-			gasError,
-			to,
-			toError
-		} = this.state;
+		const { amount, data, from = this.props.selectedAddress, gas, gasPrice, to } = this.state;
 		const { conversionRate, currentCurrency, mode } = this.props;
 		const totalGas = gas.mul(gasPrice);
 		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
@@ -388,7 +395,9 @@ class TransactionEditor extends Component {
 							<View style={{ ...styles.formRow, ...styles.toRow }}>
 								<View style={styles.label}>
 									<Text style={styles.labelText}>To:</Text>
-									{toError && <Text style={styles.error}>{toError}</Text>}
+									{this.validateToAddress() && (
+										<Text style={styles.error}>{this.validateToAddress()}</Text>
+									)}
 								</View>
 								<AccountInput
 									onChange={this.updateToAddress}
@@ -400,8 +409,8 @@ class TransactionEditor extends Component {
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
 									<Text style={styles.labelText}>Amount:</Text>
-									{amountError ? (
-										<Text style={styles.error}>{amountError}</Text>
+									{this.validateAmount() ? (
+										<Text style={styles.error}>{this.validateAmount()}</Text>
 									) : (
 										<TouchableOpacity onPress={this.fillMax}>
 											<Text style={styles.max}>Max</Text>
@@ -413,7 +422,7 @@ class TransactionEditor extends Component {
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
 									<Text style={styles.labelText}>Gas Fee:</Text>
-									{gasError && <Text style={styles.error}>{gasError}</Text>}
+									{this.validateGas() && <Text style={styles.error}>{this.validateGas()}</Text>}
 								</View>
 								<EthInput readonly value={totalGas} />
 							</View>
@@ -480,7 +489,7 @@ class TransactionEditor extends Component {
 											{weiToFiat(totalGas, conversionRate, currentCurrency)}
 										</Text>
 										{/* TODO: Use real gas */}
-										<Text style={styles.overviewEth}>{fromWei(totalGas).toString()}</Text>
+										<Text style={styles.overviewEth}>{fromWei(gas).toString()}</Text>
 									</View>
 								</View>
 								<View style={styles.overviewRow}>
@@ -493,10 +502,10 @@ class TransactionEditor extends Component {
 										<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
 									</View>
 								</View>
-								{amountError && (
+								{this.validateAmount() && (
 									<View style={styles.overviewAlert}>
 										<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
-										<Text style={styles.overviewAlertText}>ALERT: {amountError}.</Text>
+										<Text style={styles.overviewAlertText}>ALERT: {this.validateAmount()}.</Text>
 									</View>
 								)}
 							</View>
