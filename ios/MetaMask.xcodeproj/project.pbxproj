@@ -795,6 +795,10 @@
 			isa = PBXGroup;
 			children = (
 				15503EE021359C4900D1ED22 /* libRNCamera.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		15503F8D2135FC7400D1ED22 /* Products */ = {
 			isa = PBXGroup;
 			children = (
