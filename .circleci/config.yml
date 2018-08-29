@@ -75,7 +75,7 @@ jobs:
               brew install --HEAD applesimutils
               npm install -g detox-cli
       - persist_to_workspace:
-          root: .
+          root: /
           paths:
             - /usr/local/Homebrew
             - node_modules
@@ -87,7 +87,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: .
+          at: /
       - run: detox build -c ios.sim.release && detox test -c ios.sim.release --cleanup
 
   test-e2e-android:
@@ -102,7 +102,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: .
+          at: /
       - run:
           name: Install Android SDK
           command:
@@ -136,15 +136,16 @@ workflows:
   ful_test:
     jobs:
       - prep-deps
-      - lint:
-          requires:
-            - prep-deps
-      - test-unit:
-          requires:
-            - prep-deps
+    #   - lint:
+    #       requires:
+    #         - prep-deps
+    #   - test-unit:
+    #       requires:
+    #         - prep-deps
       - prep-deps-test-e2e:
-           requires:
-            - test-unit
+          requires:
+    #       - test-unit
+            - prep-deps
       - test-e2e-ios:
           requires:
             - prep-deps-test-e2e
