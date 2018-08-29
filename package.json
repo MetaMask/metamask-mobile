@@ -12,8 +12,8 @@
     "start:ios": "npm run build && react-native run-ios --simulator='iPhone X'",
     "start:android": "npm run build && react-native run-android",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "jest ./app/",
-    "test:unit:update": "jest -u ./app/",
+    "test:unit": "jest ./app/ --forceExit",
+    "test:unit:update": "jest -u ./app/ --forceExit",
     "test:e2e": "npm run test:e2e:ios && npm run test:e2e:android'",
     "test:e2e:ios": "detox build && detox test",
     "test:e2e:android": "echo 'Android Tests are not set yet'",
@@ -137,7 +137,13 @@
     "configurations": {
       "ios.sim.debug": {
         "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "xcodebuild -project ios/MetaMask.xcodeproj -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
+        "build": "npm run start:ios",
+        "type": "ios.simulator",
+        "name": "iPhone 7"
+      },
+      "ios.sim.release": {
+        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
+        "build": "npm run start:ios -- --configuration Release",
         "type": "ios.simulator",
         "name": "iPhone 7"
       }

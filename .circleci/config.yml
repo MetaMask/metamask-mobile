@@ -1,11 +1,11 @@
 aliases:
   - &restore-cache
     keys:
-      - v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.0-{{ .Branch }}
+      - v1.0.2-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.2-{{ .Branch }}
 
   - &save-cache
-    key: v1.0.0-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.2-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
 
@@ -16,6 +16,7 @@ aliases:
 defaults: &defaults
   working_directory: ~/MetaMask
 
+version: 2
 jobs:
   prep-deps:
     <<: *defaults
@@ -49,7 +50,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm run test:unit
+      - run: npm run test:unit -- -w 1
       - persist_to_workspace:
           root: .
           paths:
@@ -58,14 +59,13 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: "9.2"
-    dependencies:
-      pre:
+      xcode: "9.4.1"
 
     steps:
       - checkout
       - attach_workspace:
           at: .
+      - run: npm rebuild
       - run:
           name: Load dependencies
           command:
@@ -74,7 +74,7 @@ jobs:
               brew tap wix/brew
               brew install --HEAD applesimutils
               npm install -g detox-cli
-      - run: npm run test:e2e:ios
+      - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
 
   test-coverage:
     <<: *defaults
@@ -108,7 +108,7 @@ workflows:
             - prep-deps
       - test-e2e-ios:
           requires:
-            - prep-deps
+            - test-unit
       - all-tests-pass:
           requires:
             - lint
