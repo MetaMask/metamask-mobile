@@ -55,6 +55,8 @@
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string/>
+	<key>NSCameraUsageDescription</key>
+	<string>MetaMask needs camera access to scan QR codes</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>

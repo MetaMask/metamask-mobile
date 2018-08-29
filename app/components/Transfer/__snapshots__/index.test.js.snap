@@ -1,33 +1,32 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Transfer should render correctly 1`] = `
-<LinearGradient
-  colors={
-    Array [
-      "#dfe4ea",
-      "#FFFFFF",
-    ]
-  }
+<Component
   style={
     Object {
-      "alignItems": "center",
       "backgroundColor": "#dfe4ea",
       "flex": 1,
-      "justifyContent": "center",
     }
   }
 >
-  <Component
-    style={
-      Object {
-        "color": "#999999",
-        "fontFamily": "Roboto",
-        "fontSize": 20,
-        "fontWeight": "400",
-      }
-    }
+  <ScrollableTabView
+    contentProps={Object {}}
+    initialPage={0}
+    locked={false}
+    onChangeTab={[Function]}
+    onScroll={[Function]}
+    page={-1}
+    prerenderingSiblingsNumber={0}
+    renderTabBar={[Function]}
+    scrollWithoutAnimation={false}
+    tabBarPosition="top"
   >
-    COMING SOON...
-  </Component>
-</LinearGradient>
+    <withNavigation(SendScreen)
+      tabLabel="SEND"
+    />
+    <Connect(ReceiveScreen)
+      tabLabel="RECEIVE"
+    />
+  </ScrollableTabView>
+</Component>
 `;

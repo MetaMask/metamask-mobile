@@ -5,14 +5,14 @@
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",
-		"login_button": "Log in",
+		"login_button": "LOG IN",
 		"import_with_seed_phrase": "Import with seed phrase"
 	},
 	"createPassword": {
 		"title": "Create Password",
 		"new_password": "New Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
-		"create_button": "Create",
+		"create_button": "CREATE",
 		"import_with_seed_phrase": "Import with seed phrase"
 	},
 	"importFromSeed": {
@@ -20,7 +20,7 @@
 		"seed_phrase_placeholder": "Enter your seed phrase here",
 		"new_password": "New Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
-		"import_button": "Import",
+		"import_button": "IMPORT",
 		"cancel_button": "Cancel"
 	},
 	"bottomTabBar": {
@@ -30,15 +30,17 @@
 	},
 	"wallet": {
 		"title": "Wallet",
-		"tokens": "Tokens",
-		"collectibles": "Collectibles",
+		"tokens": "TOKENS",
+		"collectibles": "COLLECTIBLES",
 		"no_collectibles": "You don't have any collectibles!",
-		"add_tokens": "Add Tokens",
+		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"add_collectibles": "Add Collectibles"
+		"add_collectibles": "ADD COLLECTIBLES"
 	},
 	"transfer": {
-		"title": "Transfer"
+		"title": "Transfer",
+		"send": "SEND",
+		"receive": "RECEIVE"
 	},
 	"accounts": {
 		"title": "My Accounts"
@@ -59,11 +61,22 @@
 		"label": "These are your seed words, make sure you keep them safe!"
 	},
 	"assetOverview": {
-		"send_button": "Send",
-		"receive_button": "Receive"
+		"send_button": "SEND",
+		"receive_button": "RECEIVE"
 	},
 	"accountDetails": {
 		"title": "Account Details",
 		"public_address": "Public Address"
+	},
+	"qrScanner": {
+		"invalidQrCodeTitle": "Invalid QR Code",
+		"invaludQrCodeMessage": "The QR code that you are trying to scan it is not valid.",
+		"allowCameraDialogTitle": "Allow camera access",
+		"allowCameraDialogMessage": "We need your permission to scan QR codes",
+		"scanning": "scanning..."
+	},
+	"receiveScreen": {
+		"publicAddress": "Public Address",
+		"shareButton": "SHARE"
 	}
 }

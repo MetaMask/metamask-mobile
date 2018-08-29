@@ -1,27 +1,47 @@
 import React, { Component } from 'react';
-import { AppState, AsyncStorage } from 'react-native';
-import { createDrawerNavigator } from 'react-navigation';
+import { View, AppState, AsyncStorage } from 'react-native';
+import { createDrawerNavigator, createStackNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
+import QrScanner from '../QrScanner';
 import CreatePassword from '../CreatePassword';
 import ImportFromSeed from '../ImportFromSeed';
 import LockScreen from '../LockScreen';
 import Main from '../Main';
 import AccountList from '../AccountList';
 import Engine from '../../core/Engine';
+import { baseStyles } from '../../styles/common';
+
+const LOCK_TIMEOUT = 30000;
 
 /**
  * Navigator object responsible for instantiating
  * the two top level views: Main and AccountList
  */
-const Nav = createDrawerNavigator(
+
+const MainNav = createStackNavigator(
 	{
-		Main: {
-			screen: Main
+		Home: {
+			screen: createDrawerNavigator(
+				{
+					Main: {
+						screen: Main
+					}
+				},
+				{
+					contentComponent: AccountList
+				}
+			)
+		},
+
+		/** ALL MODAL SCREENS SHOULD GO HERE */
+		QrScanner: {
+			screen: QrScanner
 		}
 	},
 	{
-		contentComponent: AccountList
+		mode: 'modal',
+		headerMode: 'none'
 	}
 );
 
@@ -34,7 +54,7 @@ const Nav = createDrawerNavigator(
 export default class App extends Component {
 	state = {
 		locked: true,
-		loading: false,
+		loading: true,
 		existingUser: false,
 		loggedIn: false,
 		appState: 'active',
@@ -50,7 +70,7 @@ export default class App extends Component {
 			this.mounted && this.setState({ existingUser: true });
 			this.unlockKeychain();
 		} else {
-			this.setState({ locked: false });
+			this.setState({ locked: false, loading: false });
 		}
 
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -61,11 +81,18 @@ export default class App extends Component {
 		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
-	handleAppStateChange = nextAppState => {
+	handleAppStateChange = async nextAppState => {
 		if (nextAppState !== 'active') {
-			this.mounted && this.setState({ locked: true, loggedIn: false });
-		} else if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-			this.state.locked && this.unlockKeychain();
+			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
+		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
+			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
+			if (bg_mode_ts && Date.now() - parseInt(bg_mode_ts) > LOCK_TIMEOUT) {
+				// If it's still mounted, lock it
+				this.mounted && this.setState({ locked: true });
+				// And try to unlock it
+				this.unlockKeychain();
+			}
+			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
 		}
 		this.mounted && this.setState({ appState: nextAppState });
 	};
@@ -80,11 +107,11 @@ export default class App extends Component {
 				await KeyringController.submitPassword(credentials.password);
 				this.mounted && this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 			} else {
-				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
+				this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false, loading: false });
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
-			this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false });
+			this.mounted && this.setState({ locked: false, existingUser: false, loggedIn: false, loading: false });
 		}
 	}
 
@@ -97,7 +124,7 @@ export default class App extends Component {
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
 		} catch (e) {
-			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
+			this.setState({ locked: false, existingUser: false, loggedIn: false, loading: false, error: e.toString() });
 		}
 	};
 
@@ -130,10 +157,13 @@ export default class App extends Component {
 	};
 
 	render() {
-		if (this.state.locked) {
-			return <LockScreen />;
-		} else if (this.state.loggedIn) {
-			return <Nav />;
+		if (this.state.loggedIn) {
+			return (
+				<View style={baseStyles.flexGrow}>
+					<MainNav />
+					{this.state.locked ? <LockScreen /> : null}
+				</View>
+			);
 		} else if (!this.state.existingUser) {
 			if (this.state.importFromSeed) {
 				return (
@@ -153,6 +183,10 @@ export default class App extends Component {
 					toggleImportFromSeed={this.toggleImportFromSeed}
 				/>
 			);
+		}
+
+		if (this.state.loading) {
+			return <LockScreen />;
 		}
 
 		return (

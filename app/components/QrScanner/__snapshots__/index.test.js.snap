@@ -1,0 +1,84 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`QrScanner should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#000000",
+      "flex": 1,
+    }
+  }
+>
+  <Component
+    flashMode="auto"
+    onBarCodeRead={[Function]}
+    permissionDialogMessage="We need your permission to scan QR codes"
+    permissionDialogTitle="Allow camera access"
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+    type="back"
+  >
+    <SafeAreaView
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "marginRight": 20,
+            "marginTop": 20,
+            "width": 40,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="white"
+          name="ios-close"
+          size={50}
+        />
+      </TouchableOpacity>
+      <Image
+        source={
+          Object {
+            "testUri": "../../../app/images/frame.png",
+          }
+        }
+        style={
+          Object {
+            "alignSelf": "center",
+            "height": 250,
+            "justifyContent": "center",
+            "marginTop": 100,
+            "opacity": 0.5,
+            "width": 250,
+          }
+        }
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "flex": 1,
+            "fontSize": 17,
+            "justifyContent": "center",
+            "marginTop": 100,
+            "textAlign": "center",
+          }
+        }
+      >
+        scanning...
+      </Component>
+    </SafeAreaView>
+  </Component>
+</Component>
+`;

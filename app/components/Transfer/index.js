@@ -1,21 +1,30 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import getNavbarOptions from '../Navbar';
+import SendScreen from '../SendScreen';
+import ReceiveScreen from '../ReceiveScreen';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		alignItems: 'center',
 		backgroundColor: colors.slate,
-		flex: 1,
-		justifyContent: 'center'
+		flex: 1
 	},
-	text: {
-		fontSize: 20,
-		color: colors.fontSecondary,
-		...fontStyles.normal
+	tabUnderlineStyle: {
+		height: 2,
+		backgroundColor: colors.primary
+	},
+	tabStyle: {
+		paddingBottom: 0
+	},
+	textStyle: {
+		fontSize: 16,
+		letterSpacing: 0.5,
+		textTransform: 'uppercase',
+		...fontStyles.bold
 	}
 });
 
@@ -26,11 +35,27 @@ const styles = StyleSheet.create({
 export default class Transfer extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('transfer.title'), navigation);
 
+	renderTabBar() {
+		return (
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.textStyle}
+			/>
+		);
+	}
+
 	render() {
 		return (
-			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
-				<Text style={styles.text}>COMING SOON...</Text>
-			</LinearGradient>
+			<View style={styles.wrapper}>
+				<ScrollableTabView renderTabBar={this.renderTabBar}>
+					<SendScreen tabLabel={strings('transfer.send')} />
+					<ReceiveScreen tabLabel={strings('transfer.receive')} />
+				</ScrollableTabView>
+			</View>
 		);
 	}
 }

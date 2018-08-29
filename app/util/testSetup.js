@@ -1,6 +1,7 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
+import { View } from 'react-native';
 import I18nJs from 'i18n-js'; // eslint-disable-line import/no-extraneous-dependencies
 
 Enzyme.configure({ adapter: new Adapter() });
@@ -70,6 +71,12 @@ jest.mock('../core/Engine', () => ({
 }));
 
 jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
+jest.mock('react-native-share', () => 'RNShare');
+jest.mock('react-native-fabric', () => 'Fabric');
+jest.mock('react-native-camera', () => ({
+	RNCamera: View,
+	Aspect: true
+}));
 
 I18nJs.locale = 'en';
 jest.mock('react-native-i18n', () => ({

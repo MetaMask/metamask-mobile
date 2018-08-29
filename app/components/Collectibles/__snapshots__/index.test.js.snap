@@ -64,7 +64,7 @@ exports[`Collectibles should render correctly 1`] = `
           }
         }
       >
-        Add Collectibles
+        ADD COLLECTIBLES
       </Component>
     </TouchableOpacity>
   </Component>

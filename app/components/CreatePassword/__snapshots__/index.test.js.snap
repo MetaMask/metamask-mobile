@@ -160,7 +160,7 @@ exports[`CreatePassword should render correctly 1`] = `
           }
           testID="submit"
         >
-          Create
+          CREATE
         </Button>
       </Component>
       <Component
