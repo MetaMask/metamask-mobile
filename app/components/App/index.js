@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, AppState, AsyncStorage } from 'react-native';
+import { Platform, View, AppState, AsyncStorage } from 'react-native';
 import { createDrawerNavigator, createStackNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
@@ -10,7 +10,10 @@ import LockScreen from '../LockScreen';
 import Main from '../Main';
 import AccountList from '../AccountList';
 import Engine from '../../core/Engine';
+import Logger from '../../util/Logger';
 import { baseStyles } from '../../styles/common';
+
+const ANDROID_LOCK_TIMEOUT = 30000;
 
 /**
  * Navigator object responsible for instantiating
@@ -79,12 +82,41 @@ export default class App extends Component {
 		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
-	handleAppStateChange = nextAppState => {
-		if (nextAppState !== 'active') {
-			this.mounted && this.setState({ locked: true });
-		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
-			this.state.locked && this.unlockKeychain();
+	handleAppStateChange = async nextAppState => {
+		// Android doesn't support the inactive state
+		// (For ex. when a system modal / alert shows up)
+		// The workaround is to store a timestamp when the app
+		// goes into bg / or inactive and check the delta after
+		// it came back from bg.  If it exceeds the ANDROID_LOCK_TIMEOUT
+		// we'll lock the app.
+		//
+		// TL;DR: Android will lock the app when it goes to BG
+		// for more than ANDROID_LOCK_TIMEOUT ms
+		switch (Platform.OS) {
+			case 'android':
+				if (nextAppState !== 'active') {
+					await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
+				} else if (this.state.appState !== 'active' && nextAppState === 'active') {
+					const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
+					if (bg_mode_ts && Date.now() - parseInt(bg_mode_ts) > ANDROID_LOCK_TIMEOUT) {
+						// If it's still mounted, lock it
+						this.mounted && this.setState({ locked: true });
+						// And try to unlock it
+						this.unlockKeychain();
+					}
+					AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
+					Logger.log('State', this.state);
+				}
+				break;
+			case 'ios':
+				if (nextAppState !== 'active') {
+					this.mounted && this.setState({ locked: true });
+				} else if (this.state.appState !== 'active' && nextAppState === 'active') {
+					this.state.locked && this.unlockKeychain();
+				}
+				break;
 		}
+
 		this.mounted && this.setState({ appState: nextAppState });
 	};
 
