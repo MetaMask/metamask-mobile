@@ -16,9 +16,10 @@ aliases:
   - &install-detox
       |
         brew update
-		brew tap wix/brew
-		brew install --HEAD applesimutils
-		npm install -g detox-cli
+        brew tap wix/brew
+        brew install --HEAD applesimutils
+        npm install -g detox-cli
+
 
 defaults: &defaults
   working_directory: ~/MetaMask
