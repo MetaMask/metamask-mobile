@@ -163,7 +163,7 @@ android {
 }
 
 dependencies {
-
+    compile project(':react-native-i18n')
     compile project(':react-native-fabric')
     compile 'com.android.support:multidex:1.0.1'
     compile project(':react-native-aes-crypto')

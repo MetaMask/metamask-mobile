@@ -6,6 +6,7 @@ import Button from 'react-native-button';
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
 	},
 	ctaText: {
 		color: colors.white,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	cta: {
@@ -154,9 +156,9 @@ export default class Login extends Component {
 								resizeMethod={'auto'}
 							/>
 						</View>
-						<Text style={styles.title}>Welcome Back!</Text>
+						<Text style={styles.title}>{strings('login.title')}</Text>
 						<View style={styles.field}>
-							<Text style={styles.label}>Password</Text>
+							<Text style={styles.label}>{strings('login.password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -169,13 +171,17 @@ export default class Login extends Component {
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 						<View style={styles.ctaWrapper}>
 							<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onLogin}>
-								{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'LOG IN'}
+								{this.props.loading ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('login.login_button')
+								)}
 							</Button>
 						</View>
 
 						<View style={styles.footer}>
 							<Button style={styles.seed} onPress={this.onPressImport}>
-								Import with seed phrase
+								{strings('login.import_with_seed_phrase')}
 							</Button>
 						</View>
 					</View>

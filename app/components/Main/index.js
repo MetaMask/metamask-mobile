@@ -11,6 +11,7 @@ import TransferScreen from '../TransferScreen';
 import fontelloConfig from '../../fonts/config.json';
 const CustomIcon = createIconSetFromFontello(fontelloConfig);
 import { colors } from '../../styles/common';
+import { strings } from '../../../locales/i18n';
 
 /**
  * Navigator component that wraps the
@@ -21,7 +22,7 @@ export default createBottomTabNavigator(
 		Home: {
 			screen: BrowserScreen,
 			navigationOptions: () => ({
-				title: 'ÐApps',
+				title: strings('bottomTabBar.dapps'),
 				tabBarIcon: ico => <CustomIcon name="dapp" size={18} color={ico.tintColor} />, // eslint-disable-line react/display-name
 				tintColor: colors.primary
 			})
@@ -29,7 +30,7 @@ export default createBottomTabNavigator(
 		Wallet: {
 			screen: WalletScreen,
 			navigationOptions: () => ({
-				title: 'Wallet',
+				title: strings('bottomTabBar.wallet'),
 				tabBarIcon: ico => <CustomIcon name="wallet" size={20} color={ico.tintColor} />, // eslint-disable-line react/display-name
 				tintColor: colors.primary
 			})
@@ -37,7 +38,7 @@ export default createBottomTabNavigator(
 		Transfer: {
 			screen: TransferScreen,
 			navigationOptions: () => ({
-				title: 'Transfer',
+				title: strings('bottomTabBar.transfer'),
 				tabBarIcon: ico => <Icon name="repeat" size={20} color={ico.tintColor} />, // eslint-disable-line react/display-name
 				tintColor: colors.primary
 			})

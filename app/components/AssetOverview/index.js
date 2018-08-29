@@ -7,6 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import Button from '../Button';
 import { colors, fontStyles } from '../../styles/common';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -61,6 +62,7 @@ const styles = StyleSheet.create({
 		marginLeft: 8,
 		fontSize: 15,
 		color: colors.white,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	}
 });
@@ -99,11 +101,11 @@ export default class AssetOverview extends Component {
 				<View style={styles.buttons}>
 					<Button onPress={this.onSend} style={[styles.button, styles.leftButton]}>
 						<MaterialIcon name={'send'} size={15} color={colors.white} />
-						<Text style={styles.buttonText}>SEND</Text>
+						<Text style={styles.buttonText}>{strings('assetOverview.send_button')}</Text>
 					</Button>
 					<Button onPress={this.onDeposit} style={[styles.button, styles.rightButton]}>
 						<FoundationIcon name={'download'} size={20} color={colors.white} />
-						<Text style={styles.buttonText}>RECEIVE</Text>
+						<Text style={styles.buttonText}>{strings('assetOverview.receive_button')}</Text>
 					</Button>
 				</View>
 			</LinearGradient>

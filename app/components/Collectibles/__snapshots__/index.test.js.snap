@@ -60,10 +60,11 @@ exports[`Collectibles should render correctly 1`] = `
             "fontFamily": "Roboto",
             "fontSize": 15,
             "fontWeight": "400",
+            "textTransform": "uppercase",
           }
         }
       >
-        ADD COLLECTIBLES
+        Add Collectibles
       </Component>
     </TouchableOpacity>
   </Component>

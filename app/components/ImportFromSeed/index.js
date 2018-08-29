@@ -6,6 +6,7 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
 	},
 	ctaText: {
 		color: colors.white,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	cta: {
@@ -201,18 +203,18 @@ export default class ImportFromSeed extends Component {
 								resizeMethod={'auto'}
 							/>
 						</View>
-						<Text style={styles.title}>Import from seed</Text>
+						<Text style={styles.title}>{strings('importFromSeed.title')}</Text>
 						<TextInput
 							value={this.state.seedWords}
 							numberOfLines={3}
 							multiline
 							style={styles.seedPhrase}
-							placeholder={'Enter your seed phrase here'}
+							placeholder={strings('importFromSeed.seed_phrase_placeholder')}
 							onChangeText={this.onSeedWordsChange}
 							testID={'input-seed-phrase'}
 						/>
 						<View style={styles.field}>
-							<Text style={styles.label}>New Password (min 8 chars)</Text>
+							<Text style={styles.label}>{strings('importFromSeed.new_password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -224,7 +226,7 @@ export default class ImportFromSeed extends Component {
 							/>
 						</View>
 						<View style={styles.field}>
-							<Text style={styles.label}>Confirm Password</Text>
+							<Text style={styles.label}>{strings('importFromSeed.confirm_password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.confirmPassword}
@@ -244,13 +246,17 @@ export default class ImportFromSeed extends Component {
 								onPress={this.onPressImport}
 								testID={'submit'}
 							>
-								{this.props.loading ? <ActivityIndicator size="small" color="white" /> : 'IMPORT'}
+								{this.props.loading ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('importFromSeed.import_button')
+								)}
 							</Button>
 						</View>
 
 						<View style={styles.footer}>
 							<Button style={styles.seed} onPress={this.onCancel}>
-								Cancel
+								{strings('importFromSeed.cancel_button')}
 							</Button>
 						</View>
 					</View>

@@ -7,6 +7,7 @@ import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
 import Button from '../Button';
 import Engine from '../../core/Engine';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -153,7 +154,7 @@ class AccountList extends Component {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
-					My Accounts
+					{strings('accounts.title')}
 				</Text>
 				<View style={styles.accountsWrapper}>{this.renderAccounts()}</View>
 				<View style={styles.footer}>

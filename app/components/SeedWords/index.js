@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { TextInput, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
  */
 export default class SeedWords extends Component {
 	static navigationOptions = {
-		title: 'Seed Words',
+		title: strings('seedWords.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -46,7 +47,7 @@ export default class SeedWords extends Component {
 
 		return (
 			<View style={styles.wrapper} testID={'seed-words-screen'}>
-				<Text style={styles.text}>These are your seed words, make sure you keep them safe!</Text>
+				<Text style={styles.text}>{strings('seedWords.label')}</Text>
 				<TextInput
 					value={seedWords}
 					numberOfLines={3}

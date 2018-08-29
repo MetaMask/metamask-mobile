@@ -9,6 +9,7 @@ import AccountOverview from '../AccountOverview';
 import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
 import getNavbarOptions from '../Navbar';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -25,6 +26,7 @@ const styles = StyleSheet.create({
 	textStyle: {
 		fontSize: 16,
 		letterSpacing: 0.5,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	}
 });
@@ -52,7 +54,7 @@ const tokens = [
  * Main view for the wallet
  */
 class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('Wallet', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('wallet.title'), navigation);
 
 	static propTypes = {
 		/**
@@ -90,8 +92,12 @@ class Wallet extends Component {
 			<View style={styles.wrapper} testID={'wallet-screen'}>
 				<AccountOverview account={account} navigation={this.props.navigation} />
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<Tokens navigation={this.props.navigation} tabLabel="TOKENS" assets={tokens} />
-					<Collectibles navigation={this.props.navigation} tabLabel="COLLECTIBLES" assets={[]} />
+					<Tokens navigation={this.props.navigation} tabLabel={strings('wallet.tokens')} assets={tokens} />
+					<Collectibles
+						navigation={this.props.navigation}
+						tabLabel={strings('wallet.collectibles')}
+						assets={[]}
+					/>
 				</ScrollableTabView>
 			</View>
 		);
