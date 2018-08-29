@@ -96,6 +96,15 @@ jobs:
               brew tap caskroom/cask
               brew tap caskroom/versions
               brew cask install android-sdk
+              # sdkmanager configuration
+              mkdir -p "$HOME/.android"
+              echo "count=0" > "$HOME/.android/repositories.cfg"
+
+              # install what you need
+              echo y | sdkmanager "platforms;android-26"
+              echo y | sdkmanager "build-tools;27.0.3"
+              echo y | sdkmanager "extras;android;m2repository"
+              echo y | sdkmanager "extras;google;m2repository"
       - run: npm rebuild
       - run: *install-detox
       - run: detox build -c android.emu.debug && detox test -c android.emu.debug --cleanup
