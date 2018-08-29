@@ -55,27 +55,23 @@ exports[`QrScanner should render correctly 1`] = `
         }
         style={
           Object {
-            "alignItems": "center",
-            "height": 600,
+            "alignSelf": "center",
+            "height": 250,
             "justifyContent": "center",
-            "marginLeft": 75,
-            "marginRight": 75,
+            "marginTop": 100,
             "opacity": 0.5,
-            "position": "absolute",
-            "top": 517,
-            "width": 600,
+            "width": 250,
           }
         }
       />
       <Component
         style={
           Object {
-            "alignItems": "center",
             "color": "#FFFFFF",
             "flex": 1,
             "fontSize": 17,
             "justifyContent": "center",
-            "marginTop": 817,
+            "marginTop": 100,
             "textAlign": "center",
           }
         }
