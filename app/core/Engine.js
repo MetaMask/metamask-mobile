@@ -84,7 +84,7 @@ class Engine {
 				TransactionController: transaction
 			} = this.datamodel.context;
 
-			network.setProviderType('ropsten');
+			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
