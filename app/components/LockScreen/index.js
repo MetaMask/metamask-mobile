@@ -20,6 +20,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
+
 /**
  * Main view component for the Lock screen
  */
@@ -27,7 +29,7 @@ export default class LockScreen extends Component {
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'lock-screen'}>
-				<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
+				<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
 			</View>
 		);
 	}

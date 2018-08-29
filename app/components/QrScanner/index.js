@@ -1,6 +1,6 @@
 'use strict';
 import React, { Component } from 'react';
-import { SafeAreaView, Alert, Image, Text, TouchableOpacity, View, Dimensions, StyleSheet } from 'react-native';
+import { SafeAreaView, Alert, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -25,14 +25,11 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end'
 	},
 	frame: {
-		position: 'absolute',
-		top: Dimensions.get('window').height / 2 - 150,
-		width: Dimensions.get('window').width * 0.8,
-		height: Dimensions.get('window').width * 0.8,
-		alignItems: 'center',
+		width: 250,
+		height: 250,
+		alignSelf: 'center',
 		justifyContent: 'center',
-		marginLeft: Dimensions.get('window').width * 0.1,
-		marginRight: Dimensions.get('window').width * 0.1,
+		marginTop: 100,
 		opacity: 0.5
 	},
 	text: {
@@ -40,20 +37,28 @@ const styles = StyleSheet.create({
 		fontSize: 17,
 		color: colors.white,
 		textAlign: 'center',
-		alignItems: 'center',
 		justifyContent: 'center',
-		marginTop: Dimensions.get('window').height / 2 + 150
+		marginTop: 100
 	}
 });
 
+const frameImage = require('../../images/frame.png'); // eslint-disable-line import/no-commonjs
+
+/**
+ * View that wraps the QR code scanner screen
+ */
 export default class QrScanner extends Component {
 	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
 		navigation: PropTypes.object
 	};
 
 	goBack = () => {
 		this.props.navigation.goBack();
 	};
+
 	onBarCodeRead = response => {
 		const content = response.data;
 
@@ -76,6 +81,7 @@ export default class QrScanner extends Component {
 		this.props.navigation.state.params.onScanSuccess({ type, values });
 		this.props.navigation.goBack();
 	};
+
 	render() {
 		return (
 			<View style={styles.container}>
@@ -91,7 +97,7 @@ export default class QrScanner extends Component {
 						<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
 							<Icon name={'ios-close'} size={50} color={'white'} />
 						</TouchableOpacity>
-						<Image source={require('../../images/frame.png')} style={styles.frame} />
+						<Image source={frameImage} style={styles.frame} />
 						<Text style={styles.text}>{strings('qrScanner.scanning')}</Text>
 					</SafeAreaView>
 				</RNCamera>

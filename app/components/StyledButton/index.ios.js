@@ -9,7 +9,6 @@ import getStyles from './styledButtonStyles';
  * for iOS devices
  * see styledButtonStyles.js for available styles
  */
-
 export default class StyledButton extends Component {
 	static propTypes = {
 		/**
