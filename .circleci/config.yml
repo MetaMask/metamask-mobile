@@ -56,7 +56,7 @@ jobs:
           paths:
             - coverage
 
-  test-e2e-ios:
+  prep-deps-test-e2e:
     <<: *defaults
     macos:
       xcode: "9.4.1"
@@ -74,7 +74,43 @@ jobs:
               brew tap wix/brew
               brew install --HEAD applesimutils
               npm install -g detox-cli
-      - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
+      - persist_to_workspace:
+          root: .
+          paths:
+            - /usr/local/Homebrew
+            - node_modules
+  test-e2e-ios:
+    <<: *defaults
+    macos:
+      xcode: "9.4.1"
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: detox build -c ios.sim.release && detox test -c ios.sim.release --cleanup
+
+  test-e2e-android:
+    <<: *defaults
+    environment:
+      ANDROID_HOME: "/usr/local/share/android-sdk"
+      ANDROID_SDK_HOME: "/usr/local/share/android-sdk"
+      ANDROID_SDK_ROOT: "/usr/local/share/android-sdk"
+    macos:
+      xcode: "9.4.1"
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install Android SDK
+          command:
+            |
+              brew tap caskroom/cask
+              brew tap caskroom/versions
+              brew cask install android-sdk
+      - run: detox build -c android.emu.debug && detox test -c android.emu.debug --cleanup
 
   test-coverage:
     <<: *defaults
@@ -109,10 +145,14 @@ workflows:
       - test-e2e-ios:
           requires:
             - test-unit
+      - test-e2e-android:
+          requires:
+            - test-unit
       - all-tests-pass:
           requires:
             - lint
             - test-unit
+            - test-e2e-android
             - test-e2e-ios
       - upload-coverage:
           requires:
