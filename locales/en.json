@@ -71,7 +71,7 @@
 	"qrScanner": {
 		"invalidQrCodeTitle": "Invalid QR Code",
 		"invaludQrCodeMessage": "The QR code that you are trying to scan it is not valid.",
-		"allowCameraDialogTitle": "'Allow camera access'",
+		"allowCameraDialogTitle": "Allow camera access",
 		"allowCameraDialogMessage": "We need your permission to scan QR codes",
 		"scanning": "scanning..."
 	},
