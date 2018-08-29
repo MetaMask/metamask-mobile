@@ -12,14 +12,12 @@ echo "2. React Native nodeify..."
 node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream' --hack
 sed -i '' -e '143s/WKUserScriptInjectionTimeAtDocumentEnd/WKUserScriptInjectionTimeAtDocumentStart/' $WKWEBVIEW_FILE;
 
-
 # We need to submit a PR for this one.
 echo "3. Fix react-native-os buildTools version..."
 TARGET="node_modules/react-native-os/android/build.gradle"
 sed -i '' -e 's/compileSdkVersion 23/compileSdkVersion 26/' $TARGET;
 sed -i '' -e 's/23.0.1/26.0.2/' $TARGET;
 echo "Done"
-
 
 # This one has been fixed on master
 # we can remove once they release a new version
@@ -47,7 +45,6 @@ TARGET="node_modules/react-native-remote-svg/SvgImage.js"
 sed -i '' 's/<WebView/<WebView originWhitelist={["*"]}/' $TARGET;
 echo "Done"
 
-
 # This one has been fixed on master
 # we can remove once they release a new version
 echo "8. Fix react-native-fabric buildTools version..."
@@ -55,9 +52,6 @@ TARGET="node_modules/react-native-fabric/android/build.gradle"
 sed -i '' -e 's/compileSdkVersion 23/compileSdkVersion 26/' $TARGET;
 sed -i '' -e 's/23.0.1/26.0.2/' $TARGET;
 echo "Done"
-
-
-
 
 echo "9. Update all the modules to BuildTools 26.0.2..."
 TARGET="node_modules/react-native-aes-crypto/android/build.gradle"
