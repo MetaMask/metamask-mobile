@@ -119,7 +119,7 @@ exports[`Login should render correctly 1`] = `
             }
           }
         >
-          Log in
+          LOG IN
         </Button>
       </Component>
       <Component

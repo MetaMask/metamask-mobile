@@ -64,7 +64,7 @@ exports[`Tokens should render correctly 1`] = `
           }
         }
       >
-        Add Tokens
+        ADD TOKENS
       </Component>
     </TouchableOpacity>
   </Component>
