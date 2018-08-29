@@ -66,7 +66,7 @@ class EthInput extends Component {
 		/**
 		 * Value of this underlying input expressed as in wei as a BN instance
 		 */
-		value: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+		value: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 	};
 
 	onChange = value => {
