@@ -5,6 +5,7 @@ import { RNCamera } from 'react-native-camera';
 import { colors } from '../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	container: {
@@ -70,7 +71,7 @@ export default class QrScanner extends Component {
 			type = 'address';
 			values = { address: content };
 		} else {
-			Alert.alert('Invalid QR Code', 'The QR code that you are trying to scan it is not valid.');
+			Alert.alert(strings('qrScanner.invalidQrCodeTitle'), strings('qrScanner.invalidQrCodeMessage'));
 		}
 		this.props.navigation.state.params.onScanSuccess({ type, values });
 		this.props.navigation.goBack();
@@ -83,15 +84,15 @@ export default class QrScanner extends Component {
 					type={'back'}
 					onBarCodeRead={this.onBarCodeRead}
 					flashMode={'auto'}
-					permissionDialogTitle={'Allow camera access'}
-					permissionDialogMessage={'We need your permission to scan QR codes'}
+					permissionDialogTitle={strings('qrScanner.allowCameraDialogTitle')}
+					permissionDialogMessage={strings('qrScanner.allowCameraDialogMessage')}
 				>
 					<SafeAreaView style={styles.innerView}>
 						<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
 							<Icon name={'ios-close'} size={50} color={'white'} />
 						</TouchableOpacity>
 						<Image source={require('../../images/frame.png')} style={styles.frame} />
-						<Text style={styles.text}>scanning...</Text>
+						<Text style={styles.text}>{strings('qrScanner.scanning')}</Text>
 					</SafeAreaView>
 				</RNCamera>
 			</View>

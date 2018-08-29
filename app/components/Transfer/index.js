@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
 	textStyle: {
 		fontSize: 16,
 		letterSpacing: 0.5,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	}
 });
@@ -51,8 +52,8 @@ export default class Transfer extends Component {
 		return (
 			<View style={styles.wrapper}>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<SendScreen tabLabel="SEND" />
-					<ReceiveScreen tabLabel="RECEIVE" />
+					<SendScreen tabLabel={strings('transfer.send')} />
+					<ReceiveScreen tabLabel={strings('transfer.receive')} />
 				</ScrollableTabView>
 			</View>
 		);

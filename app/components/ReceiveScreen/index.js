@@ -7,6 +7,7 @@ import QRCode from 'react-native-qrcode';
 import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../util/Logger';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -69,7 +70,7 @@ class ReceiveScreen extends Component {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.wrapperContainer} testID={'receive-screen'}>
-					<Text style={styles.text}>Public Address</Text>
+					<Text style={styles.text}>{strings('receiveScreen.publicAddress')}</Text>
 					<TextInput
 						value={selectedAddress}
 						selectTextOnFocus
@@ -86,7 +87,7 @@ class ReceiveScreen extends Component {
 						/>
 					</View>
 					<StyledButton type={'normal'} onPress={this.share} containerStyle={styles.shareButton}>
-						SHARE
+						{strings('receiveScreen.shareButton')}
 					</StyledButton>
 				</View>
 			</ScrollView>

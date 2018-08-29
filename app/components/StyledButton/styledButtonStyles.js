@@ -9,7 +9,8 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 18,
-		textAlign: 'center'
+		textAlign: 'center',
+		textTransform: 'uppercase'
 	},
 	orange: {
 		backgroundColor: colors.primaryFox
