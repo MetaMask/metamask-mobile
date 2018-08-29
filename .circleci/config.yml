@@ -142,12 +142,15 @@ workflows:
       - test-unit:
           requires:
             - prep-deps
+      - prep-deps-test-e2e:
+           requires:
+            - test-unit
       - test-e2e-ios:
           requires:
-            - test-unit
+            - prep-deps-test-e2e
       - test-e2e-android:
           requires:
-            - test-unit
+            - prep-deps-test-e2e
       - all-tests-pass:
           requires:
             - lint
