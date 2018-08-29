@@ -1,94 +1,100 @@
 'use strict';
+import TestHelpers from './helpers';
 
 const TEST_SEED_WORDS = 'recipe silver label ensure thing vendor abuse twin wait receive unaware flower';
 const TEST_ADDRESS = '0x4a6d01f1bbf8197ab8f6b0b5bd88e04cd525fab8';
 
 describe('Wallet', () => {
 	it('should be able to restore accounts from seed', async () => {
-		await element(by.id('import-seed-button')).tap();
-		await expect(element(by.id('import-from-seed-screen'))).toBeVisible();
-		await element(by.id('input-seed-phrase')).tap();
-		await element(by.id('input-seed-phrase')).typeText(`${TEST_SEED_WORDS}`);
-		await element(by.id('input-password')).typeText('Str0ngP@ss!');
-		await element(by.id('input-password-confirm')).typeText('Str0ngP@ss!\n');
-		await element(by.id('submit')).tap();
-		await waitFor(element(by.id('wallet-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.id('navbar-settings-button')).tap();
-		await waitFor(element(by.id('settings-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.text('Seed Words')).tap();
-		await waitFor(element(by.id('seed-words-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await expect(element(by.id('current-seed-words'))).toHaveText(TEST_SEED_WORDS);
+		// Go to import seed screen
+		await TestHelpers.tap('import-seed-button');
+		await TestHelpers.checkIfVisible('import-from-seed-screen');
+		// Input seed phrase
+		await TestHelpers.tap('input-seed-phrase');
+		await TestHelpers.typeTextAndHideKeyboard('input-seed-phrase', TEST_SEED_WORDS);
+		// Input password
+		await TestHelpers.typeTextAndHideKeyboard('input-password', 'Str0ngP@ss!');
+		// Input password confirmation
+		await TestHelpers.typeText('input-password-confirm', 'Str0ngP@ss!\n');
+		// Submit
+		await TestHelpers.waitAndTap('submit');
+		// Check we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on settings
+		await TestHelpers.tap('navbar-settings-button');
+		// Check we're in the settings screen
+		await TestHelpers.checkIfVisible('settings-screen');
+		// Tap on the "seed words" option
+		await TestHelpers.tapByText('Seed Words');
+		// Check we're in the settings screen
+		await TestHelpers.checkIfVisible('seed-words-screen');
+		// Check that the seed words for the current account
+		// matches the ones we use to import the account
+		await TestHelpers.checkIfHasText('current-seed-words', TEST_SEED_WORDS);
 	});
 
 	it('should be able to add new accounts', async () => {
-		await device.launchApp({ newInstance: true });
-		await waitFor(element(by.id('wallet-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.id('navbar-account-button')).tap();
-		await waitFor(element(by.id('account-list')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.id('add-account-button')).tap();
-		await expect(element(by.text('Account 2')).atIndex(0)).toBeVisible();
+		await TestHelpers.relaunchApp();
+		// Check we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on accounts menu
+		await TestHelpers.tap('navbar-account-button');
+		// Check we're in the accounts menu
+		await TestHelpers.checkIfVisible('account-list');
+		// Tap on add account
+		await TestHelpers.tap('add-account-button');
+		// Check if account was added
+		await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
 	});
 
 	it('should be able to switch accounts', async () => {
-		await device.launchApp({ newInstance: true });
-		await waitFor(element(by.id('wallet-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.id('navbar-account-button')).tap();
-		await waitFor(element(by.id('account-list')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.text('Account 1'))
-			.atIndex(0)
-			.tap();
-
-		//Close the side menu by tapping outside
-		await element(by.id('account-list-title')).tap();
-
-		await element(by.id('account-qr-button')).tap();
-
-		await waitFor(element(by.id('account-details-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await expect(element(by.id('public-address-input'))).toHaveText(TEST_ADDRESS);
+		await TestHelpers.relaunchApp();
+		// Check we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on accounts menu
+		await TestHelpers.tap('navbar-account-button');
+		// Check we're in the accounts menu
+		await TestHelpers.checkIfVisible('account-list');
+		// Switch Account to "Account 1"
+		await TestHelpers.tapByText('Account 1');
+		// Close the side menu by tapping outside
+		await TestHelpers.tap('account-list-title');
+		// Tap on the QR Code to go to account details
+		await TestHelpers.tap('account-qr-button');
+		// Check we are on the account details screen
+		await TestHelpers.checkIfVisible('account-details-screen');
+		// Check the address matches with "Account 1"
+		await TestHelpers.checkIfHasText('public-address-input', TEST_ADDRESS);
 	});
 
 	it('should be able to switch networks', async () => {
-		await device.launchApp({ newInstance: true });
-		await waitFor(element(by.id('wallet-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.id('navbar-settings-button')).tap();
-		await waitFor(element(by.id('settings-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.text('Network')).tap();
-		await waitFor(element(by.id('network-settings-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
-		await element(by.text('mainnet'))
-			.atIndex(0)
-			.tap();
+		await TestHelpers.relaunchApp();
+		// Check we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on settings
+		await TestHelpers.tap('navbar-settings-button');
+		// Check we're in the settings screen
+		await TestHelpers.checkIfVisible('settings-screen');
+		// Tap on the "network" option
+		await TestHelpers.tapByText('Network');
+		// Check we're in the settings screen
+		await TestHelpers.checkIfVisible('network-settingss-screen');
+		// Switch to "mainnet"
+		await TestHelpers.tapByText('mainnet');
 
-		// Go back twice
-		await element(by.text('Settings'))
-			.atIndex(1)
-			.tap();
+		//Need to go back 2 levels
+		if (device.getPlatform() === 'android') {
+			device.pressBack();
+			device.pressBack();
+		} else {
+			await element(by.text('Settings'))
+				.atIndex(1)
+				.tap();
 
-		await element(by.text('Wallet'))
-			.atIndex(2)
-			.tap();
-
-		await expect(element(by.id('navbar-title-network'))).toHaveText('Ethereum Main Network');
+			await element(by.text('Wallet'))
+				.atIndex(2)
+				.tap();
+		}
+		await TestHelpers.checkIfHasText('navbar-title-network', 'Ethereum Main Network');
 	});
 });

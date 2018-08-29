@@ -126,6 +126,9 @@ android {
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
+        testBuildType System.getProperty('testBuildType', 'debug')
+        missingDimensionStrategy "minReactNative", "minReactNative46"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -160,8 +163,9 @@ android {
 }
 
 dependencies {
+
     compile project(':react-native-fabric')
-	compile 'com.android.support:multidex:1.0.1'
+    compile 'com.android.support:multidex:1.0.1'
     compile project(':react-native-aes-crypto')
     compile project(':react-native-keychain')
     compile project(':react-native-os')
@@ -175,6 +179,12 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }
+
+    androidTestCompile(project(path: ":detox"))
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'com.android.support.test:runner:1.0.1'
+    androidTestCompile 'com.android.support.test:rules:1.0.1'
+
 }
 
 // Run this once to be able to run the application with BUCK
