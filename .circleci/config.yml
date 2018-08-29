@@ -77,7 +77,7 @@ jobs:
       - persist_to_workspace:
           root: /
           paths:
-            - /usr/local/Homebrew
+            - usr/local/Homebrew
             - node_modules
   test-e2e-ios:
     <<: *defaults
