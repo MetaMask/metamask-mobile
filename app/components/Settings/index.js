@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -22,7 +23,8 @@ const styles = StyleSheet.create({
  */
 class Settings extends Component {
 	static navigationOptions = {
-		title: 'Settings',
+		title: strings('settings.title'),
+		headerTruncatedBackTitle: strings('navigation.back'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -65,19 +67,19 @@ class Settings extends Component {
 					/>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
-						title="Network"
+						title={strings('settings.network')}
 						titleInfo={NetworkController.provider.type}
 						onPress={this.goToNetworkSettings}
 					/>
 					<SettingsList.Item
-						title="Network Status"
+						title={strings('settings.network_status')}
 						titleInfo={NetworkStatusController.networkStatus.infura[NetworkController.provider.type]}
 						hasNavArrow={false}
 					/>
 					<SettingsList.Header headerStyle={styles.separator} />
-					<SettingsList.Item title="Seed Words" onPress={this.goToSeedWords} />
+					<SettingsList.Item title={strings('settings.seed_words')} onPress={this.goToSeedWords} />
 					<SettingsList.Header headerStyle={styles.separator} />
-					<SettingsList.Item title="Logout" onPress={this.logout} />
+					<SettingsList.Item title={strings('settings.logout')} onPress={this.logout} />
 				</SettingsList>
 			</View>
 		);

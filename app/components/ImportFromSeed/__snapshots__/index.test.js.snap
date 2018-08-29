@@ -95,7 +95,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             }
           }
         >
-          New Password (min 8 chars)
+          New Password (min. 8 characters)
         </Component>
         <TextInput
           allowFontScaling={true}
@@ -180,11 +180,12 @@ exports[`ImportFromSeed should render correctly 1`] = `
               "color": "#FFFFFF",
               "fontFamily": "Roboto",
               "fontWeight": "500",
+              "textTransform": "uppercase",
             }
           }
           testID="submit"
         >
-          IMPORT
+          Import
         </Button>
       </Component>
       <Component

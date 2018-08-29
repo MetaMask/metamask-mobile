@@ -6,6 +6,7 @@ import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
  */
 class NetworkSettings extends Component {
 	static navigationOptions = {
-		title: 'Network',
+		title: strings('network.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -67,19 +68,19 @@ class NetworkSettings extends Component {
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
 						title={'mainnet'}
-						titleInfo={NetworkController.provider.type === 'mainnet' ? 'selected' : null}
+						titleInfo={NetworkController.provider.type === 'mainnet' ? strings('network.selected') : null}
 						onPress={this.mainnet}
 						hasNavArrow={false}
 					/>
 					<SettingsList.Item
 						title={'ropsten'}
-						titleInfo={NetworkController.provider.type === 'ropsten' ? 'selected' : null}
+						titleInfo={NetworkController.provider.type === 'ropsten' ? strings('network.selected') : null}
 						onPress={this.ropsten}
 						hasNavArrow={false}
 					/>
 					<SettingsList.Item
 						title={'rinkeby'}
-						titleInfo={NetworkController.provider.type === 'rinkeby' ? 'selected' : null}
+						titleInfo={NetworkController.provider.type === 'rinkeby' ? strings('network.selected') : null}
 						onPress={this.rinkeby}
 						hasNavArrow={false}
 					/>

@@ -4,6 +4,7 @@ import { TextInput, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
  */
 class AccountDetails extends Component {
 	static navigationOptions = {
-		title: 'Account Details',
+		title: strings('accountDetails.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -58,7 +59,7 @@ class AccountDetails extends Component {
 		const { selectedAddress } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'account-details-screen'}>
-				<Text style={styles.text}>Public Address</Text>
+				<Text style={styles.text}>{strings('accountDetails.public_address')}</Text>
 				<TextInput
 					value={selectedAddress}
 					selectTextOnFocus

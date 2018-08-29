@@ -4,6 +4,7 @@ import NavbarLeftButton from '../NavbarLeftButton';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Foundation';
 import { colors } from '../../styles/common';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -22,6 +23,7 @@ export default function getNavbarOptions(title, navigation) {
 		title,
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
+		headerTruncatedBackTitle: strings('navigation.back'),
 		headerRight: (
 			<TouchableOpacity
 				testID={'navbar-settings-button'}

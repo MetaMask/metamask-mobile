@@ -4,6 +4,7 @@ import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-nati
 import Icon from 'react-native-vector-icons/Feather';
 import Image from 'react-native-remote-svg';
 import { colors, fontStyles } from '../../styles/common';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -31,6 +32,7 @@ const styles = StyleSheet.create({
 	addText: {
 		fontSize: 15,
 		color: colors.primary,
+		textTransform: 'uppercase',
 		...fontStyles.normal
 	},
 	itemWrapper: {
@@ -91,7 +93,7 @@ export default class Tokens extends Component {
 	renderEmpty() {
 		return (
 			<View style={styles.emptyView}>
-				<Text style={styles.text}>{`You don't have any tokens!`}</Text>
+				<Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
 			</View>
 		);
 	}
@@ -130,7 +132,7 @@ export default class Tokens extends Component {
 					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
 					<TouchableOpacity style={styles.add}>
 						<Icon name="plus" size={16} color={colors.primary} />
-						<Text style={styles.addText}>ADD TOKENS</Text>
+						<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
 					</TouchableOpacity>
 				</View>
 			</ScrollView>
