@@ -9,8 +9,19 @@ describe('Wallet', () => {
 		await expect(element(by.id('import-from-seed-screen'))).toBeVisible();
 		await element(by.id('input-seed-phrase')).tap();
 		await element(by.id('input-seed-phrase')).typeText(`${TEST_SEED_WORDS}`);
+		if (device.getPlatform() === 'android') {
+			device.pressBack();
+		}
 		await element(by.id('input-password')).typeText('Str0ngP@ss!');
+		if (device.getPlatform() === 'android') {
+			device.pressBack();
+		}
 		await element(by.id('input-password-confirm')).typeText('Str0ngP@ss!\n');
+
+		await waitFor(element(by.id('submit')))
+			.toBeVisible()
+			.withTimeout(3000);
+
 		await element(by.id('submit')).tap();
 		await waitFor(element(by.id('wallet-screen')))
 			.toBeVisible()
@@ -80,14 +91,19 @@ describe('Wallet', () => {
 			.atIndex(0)
 			.tap();
 
-		// Go back twice
-		await element(by.text('Settings'))
-			.atIndex(1)
-			.tap();
+		//Need to go back 2 levels
+		if (device.getPlatform() === 'android') {
+			device.pressBack();
+			device.pressBack();
+		} else {
+			await element(by.text('Settings'))
+				.atIndex(1)
+				.tap();
 
-		await element(by.text('Wallet'))
-			.atIndex(2)
-			.tap();
+			await element(by.text('Wallet'))
+				.atIndex(2)
+				.tap();
+		}
 
 		await expect(element(by.id('navbar-title-network'))).toHaveText('Ethereum Main Network');
 	});
