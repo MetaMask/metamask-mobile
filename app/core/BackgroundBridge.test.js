@@ -55,12 +55,14 @@ describe('BackgroundBridge', () => {
 	it('should emit state update', () => {
 		const stub = spyOn(MOCK_WEBVIEW.current, 'postMessage');
 		new BackgroundBridge(MOCK_ENGINE, MOCK_WEBVIEW);
-		expect(stub).toBeCalledWith({
-			payload: {
-				network: 'bar',
-				selectedAddress: 'foo'
-			},
-			type: 'STATE_UPDATE'
-		});
+		expect(stub).toBeCalledWith(
+			JSON.stringify({
+				type: 'STATE_UPDATE',
+				payload: {
+					network: 'bar',
+					selectedAddress: 'foo'
+				}
+			})
+		);
 	});
 });

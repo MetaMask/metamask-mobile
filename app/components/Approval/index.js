@@ -12,7 +12,7 @@ export default class Approval extends Component {
 		/**
 		 * react-navigation object used for switching between screens
 		 */
-		navigation: PropTypes.objects
+		navigation: PropTypes.object
 	};
 
 	state = {

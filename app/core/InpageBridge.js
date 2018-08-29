@@ -4,7 +4,6 @@
  */
 class InpageBridge {
 	_onMessage(data) {
-		console.log('2', data);
 		try {
 			const { payload, type } = JSON.parse(data);
 			switch (type) {
@@ -32,7 +31,6 @@ class InpageBridge {
 	}
 
 	_onStateUpdate(state) {
-		console.log('3', state);
 		this._selectedAddress = state.selectedAddress;
 		this._network = state.network;
 	}

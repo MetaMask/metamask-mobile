@@ -5,9 +5,9 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../styles/common';
 import { connect } from 'react-redux';
-import { weiToFiat, fromWei } from '../../util/number';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { weiToFiat, fromWei } from '../../util/number';
 
 const styles = StyleSheet.create({
 	root: {
@@ -167,10 +167,10 @@ const mapStateToProps = ({
 	backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
 }) => ({
 	accounts: AccountTrackerController.accounts,
-	identities: PreferencesController.identities,
-	selectedAddress: PreferencesController.selectedAddress,
 	conversionRate: CurrencyRateController.conversionRate,
-	currentCurrency: CurrencyRateController.currentCurrency
+	currentCurrency: CurrencyRateController.currentCurrency,
+	identities: PreferencesController.identities,
+	selectedAddress: PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(AccountSelect);

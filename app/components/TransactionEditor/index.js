@@ -275,7 +275,7 @@ class TransactionEditor extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.obj
+		transaction: PropTypes.object
 	};
 
 	state = {
@@ -349,11 +349,8 @@ class TransactionEditor extends Component {
 	validateAmount() {
 		let error;
 		const { amount, gas, gasPrice, from } = this.state;
-		const { accounts } = this.props;
-		if (!accounts || !from || !accounts[toChecksumAddress(from)]) {
-			return;
-		}
-		const { balance } = this.props.accounts[toChecksumAddress(from)];
+		const checksummedFrom = toChecksumAddress(from);
+		const { balance } = this.props.accounts[checksummedFrom];
 		amount && !isBN(amount) && (error = 'Invalid amount');
 		amount && isBN(amount) && hexToBN(balance).lt(amount.add(gas.mul(gasPrice))) && (error = 'Insufficient funds');
 		return error;

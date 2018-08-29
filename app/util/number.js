@@ -73,6 +73,7 @@ export function toWei(value, unit = 'ether') {
  * @param {number} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {string} currencyCode - Current currency code to display
+ * @returns {string} - Currency-formatted string
  */
 export function weiToFiat(wei, conversionRate, currencyCode) {
 	if (!wei || !isBN(wei)) {

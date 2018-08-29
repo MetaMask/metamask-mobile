@@ -85,10 +85,7 @@ class AccountInput extends Component {
 		value: PropTypes.string
 	};
 
-	state = {
-		isOpen: false,
-		value: undefined
-	};
+	state = { isOpen: false };
 
 	onFocus = () => {
 		const { onFocus } = this.props;
@@ -140,7 +137,6 @@ class AccountInput extends Component {
 		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
 		this.setState({
 			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match,
-			value,
 			visibleOptions
 		});
 		onChange && onChange(value);
