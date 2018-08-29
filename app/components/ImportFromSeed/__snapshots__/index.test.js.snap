@@ -185,7 +185,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
           testID="submit"
         >
-          Import
+          IMPORT
         </Button>
       </Component>
       <Component

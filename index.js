@@ -6,7 +6,12 @@ import { AppRegistry, YellowBox } from 'react-native';
 import Root from './app/components/Root';
 import { name } from './app.json';
 
-YellowBox.ignoreWarnings(['Module RNOS requires', 'Setting a timer']);
+// List of warnings that we're ignoring
+YellowBox.ignoreWarnings([
+	'Module RNOS requires',
+	'use RCT_EXPORT_MODULE',
+	'Setting a timer for a long period of time'
+]);
 
 /**
  * Application entry point responsible for registering root component

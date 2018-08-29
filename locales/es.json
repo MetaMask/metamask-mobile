@@ -5,14 +5,14 @@
 	"login": {
 		"welcome_back": "Bienvenido!",
 		"password": "Contraseña",
-		"login_button": "Ingresar",
+		"login_button": "INGRESAR",
 		"import_with_seed_phrase": "Importar con frase semilla"
 	},
 	"createPassword": {
 		"title": "Crear Contraseña",
 		"new_password": "Nueva Contraseña (min. 8 caracteres)",
 		"confirm_password": "Confirmar Contraseña",
-		"create_button": "Crear",
+		"create_button": "CREAR",
 		"import_with_seed_phrase": "Importar con frase semilla"
 	},
 	"importFromSeed": {
@@ -20,7 +20,7 @@
 		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
 		"new_password": "Nueva Contraseña (min. 8 caracteres)",
 		"confirm_password": "Confirmar Contraseña",
-		"import_button": "Importar",
+		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar"
 	},
 	"bottomTabBar": {
@@ -30,15 +30,17 @@
 	},
 	"wallet": {
 		"title": "Billetera",
-		"tokens": "Tokens",
-		"collectibles": "Collecionables",
-		"no_collectibles": "No tienes ningun colleccionable",
-		"add_tokens": "Agregar Tokens",
+		"tokens": "TOKENS",
+		"collectibles": "COLECCIONABLES",
+		"no_collectibles": "No tienes ningun coleccionable",
+		"add_tokens": "AGREGAR TOKENS",
 		"no_tokens": "No tienes ningun token",
-		"add_collectibles": "Agregar Colleccionable"
+		"add_collectibles": "AGREGAR COLECCIONABLE"
 	},
 	"transfer": {
-		"title": "Transferir"
+		"title": "Transferir",
+		"send": "ENVIAR",
+		"receive": "RECIBIR"
 	},
 	"accounts": {
 		"title": "Mis Cuentas"
@@ -59,11 +61,22 @@
 		"label": "Esta es tu frase semilla. Asegurate de guardarla y mantenerla segura"
 	},
 	"assetOverview": {
-		"send_button": "Enviar",
-		"receive_button": "Recibir"
+		"send_button": "ENVIAR",
+		"receive_button": "RECIBIR"
 	},
 	"accountDetails": {
 		"title": "Detalles de la cuenta",
 		"public_address": "Dirección Pública"
+	},
+	"qrScanner": {
+		"invalidQrCodeTitle": "Código QR Inválido",
+		"invaludQrCodeMessage": "El código QR que has escaneado no es válido!",
+		"allowCameraDialogTitle": "Permite acceso a la cámara",
+		"allowCameraDialogMessage": "Necesitamos tu permiso para escanear códigos QR",
+		"scanning": "escaneando..."
+	},
+	"receiveScreen": {
+		"publicAddress": "Dirección Pública",
+		"shareButton": "COMPARTIR"
 	}
 }

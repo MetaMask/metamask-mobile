@@ -1,0 +1,233 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#333333",
+          "borderRadius": 4,
+          "borderWidth": 2,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#007aff",
+          "borderRadius": 4,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#007aff",
+          "borderRadius": 4,
+          "borderWidth": 2,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
+<DummyTouchableNativeFeedback>
+  <Component
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#f7861ce6",
+          "borderRadius": 4,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
+<Button
+  containerStyle={
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#333333",
+        "borderRadius": 4,
+        "borderWidth": 2,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+  style={
+    Array [
+      Object {
+        "color": "#333333",
+        "fontSize": 18,
+        "textAlign": "center",
+        "textTransform": "uppercase",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
+<Button
+  containerStyle={
+    Array [
+      Object {
+        "backgroundColor": "#007aff",
+        "borderRadius": 4,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+  style={
+    Array [
+      Object {
+        "color": "#FFFFFF",
+        "fontSize": 18,
+        "textAlign": "center",
+        "textTransform": "uppercase",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
+<Button
+  containerStyle={
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#007aff",
+        "borderRadius": 4,
+        "borderWidth": 2,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+  style={
+    Array [
+      Object {
+        "color": "#007aff",
+        "fontSize": 18,
+        "textAlign": "center",
+        "textTransform": "uppercase",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
+<Button
+  containerStyle={
+    Array [
+      Object {
+        "backgroundColor": "#f7861ce6",
+        "borderRadius": 4,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+  style={
+    Array [
+      Object {
+        "color": "#FFFFFF",
+        "fontSize": 18,
+        "textAlign": "center",
+        "textTransform": "uppercase",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={
+    Object {
+      "opacity": 0.6,
+    }
+  }
+/>
+`;
