@@ -1,3 +1,15 @@
+#!/bin/bash
+
+echo "Contents of HOME/.android/"
+ls -la $HOME/.android/
+
+echo "Contents of HOME/.android/avd"
+ls -la $HOME/.android/avd
+
+echo "Contents of HOME/.android/avd/Pixel_2_API_27.avd"
+ls -la $HOME/.android/avd/Pixel_2_API_27.avd
+
+
 echo "
 AvdId=Pixel_2_API_27
 PlayStore.enabled=false
