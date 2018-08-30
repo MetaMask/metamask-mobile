@@ -58,4 +58,12 @@ export default class TestHelpers {
 	static relaunchApp() {
 		return device.launchApp({ newInstance: true });
 	}
+
+	static delay(ms) {
+		return new Promise(resolve => {
+			setTimeout(() => {
+				resolve();
+			}, ms);
+		});
+	}
 }

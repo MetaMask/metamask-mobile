@@ -118,7 +118,10 @@ class AccountList extends Component {
 		const { KeyringController } = Engine.context;
 		try {
 			await KeyringController.addNewAccount();
-			this.setState({ selectedAccountIndex: Object.keys(this.props.identities).length - 1 });
+			const { PreferencesController } = Engine.context;
+			const newIndex = Object.keys(this.props.identities).length - 1;
+			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
+			this.setState({ selectedAccountIndex: newIndex });
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			console.error('error while trying to add a new account', e); // eslint-disable-line
