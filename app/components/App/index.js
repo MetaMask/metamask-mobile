@@ -21,7 +21,7 @@ const LOCK_TIMEOUT = 30000;
 
 const MainNav = createStackNavigator(
 	{
-		Home: {
+		Root: {
 			screen: createDrawerNavigator(
 				{
 					Main: {
