@@ -19,16 +19,6 @@ export class BackgroundBridge {
 		});
 	}
 
-	_sendStateUpdate = () => {
-		const { current } = this._webview;
-		const { network, selectedAddress } = this._engine.datamodel.flatState;
-		current &&
-			current.postMessage({
-				type: 'STATE_UPDATE',
-				payload: { network, selectedAddress }
-			});
-	};
-
 	/**
 	 * Creates a new BackgroundBridge instance
 	 *
@@ -38,8 +28,8 @@ export class BackgroundBridge {
 	constructor(engine, webview) {
 		this._engine = engine;
 		this._webview = webview;
-		engine.context.NetworkController.subscribe(this._sendStateUpdate);
-		engine.context.PreferencesController.subscribe(this._sendStateUpdate);
+		engine.context.NetworkController.subscribe(this.sendStateUpdate);
+		engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 	}
 
 	/**
@@ -55,6 +45,21 @@ export class BackgroundBridge {
 				break;
 		}
 	}
+
+	/**
+	 * Sends updated state to the InpageBridge provider
+	 */
+	sendStateUpdate = () => {
+		const { current } = this._webview;
+		const { network, selectedAddress } = this._engine.datamodel.flatState;
+		current &&
+			current.postMessage(
+				JSON.stringify({
+					type: 'STATE_UPDATE',
+					payload: { network, selectedAddress }
+				})
+			);
+	};
 }
 
 export default BackgroundBridge;

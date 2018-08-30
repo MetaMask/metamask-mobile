@@ -1,0 +1,105 @@
+{
+	"navigation": {
+		"back": "Atrás"
+	},
+	"login": {
+		"welcome_back": "Bienvenido!",
+		"password": "Contraseña",
+		"login_button": "INGRESAR",
+		"import_with_seed_phrase": "Importar con frase semilla"
+	},
+	"createPassword": {
+		"title": "Crear Contraseña",
+		"new_password": "Nueva Contraseña (min. 8 caracteres)",
+		"confirm_password": "Confirmar Contraseña",
+		"create_button": "CREAR",
+		"import_with_seed_phrase": "Importar con frase semilla"
+	},
+	"importFromSeed": {
+		"title": "Importar con frase semilla",
+		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
+		"new_password": "Nueva Contraseña (min. 8 caracteres)",
+		"confirm_password": "Confirmar Contraseña",
+		"import_button": "IMPORTAR",
+		"cancel_button": "Cancelar"
+	},
+	"bottomTabBar": {
+		"dapps": "ÐApps",
+		"wallet": "Billetera",
+		"transfer": "Transferir"
+	},
+	"wallet": {
+		"title": "Billetera",
+		"tokens": "TOKENS",
+		"collectibles": "COLECCIONABLES",
+		"no_collectibles": "No tienes ningun coleccionable",
+		"add_tokens": "AGREGAR TOKENS",
+		"no_tokens": "No tienes ningun token",
+		"add_collectibles": "AGREGAR COLECCIONABLE"
+	},
+	"transfer": {
+		"title": "Transferir",
+		"send": "ENVIAR",
+		"receive": "RECIBIR"
+	},
+	"accounts": {
+		"title": "Mis Cuentas"
+	},
+	"settings": {
+		"title": "Configuraciones",
+		"network": "Red",
+		"network_status": "Estado de la red",
+		"seed_words": "Frase semilla",
+		"logout": "Salir"
+	},
+	"network": {
+		"title": "Red",
+		"selected": "seleccionada"
+	},
+	"seedWords": {
+		"title": "Frase Semilla",
+		"label": "Esta es tu frase semilla. Asegurate de guardarla y mantenerla segura"
+	},
+	"assetOverview": {
+		"send_button": "ENVIAR",
+		"receive_button": "RECIBIR"
+	},
+	"accountDetails": {
+		"title": "Detalles de la cuenta",
+		"public_address": "Dirección Pública"
+	},
+	"qrScanner": {
+		"invalidQrCodeTitle": "Código QR Inválido",
+		"invaludQrCodeMessage": "El código QR que has escaneado no es válido!",
+		"allowCameraDialogTitle": "Permite acceso a la cámara",
+		"allowCameraDialogMessage": "Necesitamos tu permiso para escanear códigos QR",
+		"scanning": "escaneando..."
+	},
+	"receiveScreen": {
+		"publicAddress": "Dirección Pública",
+		"shareButton": "COMPARTIR"
+	},
+	"actionView": {
+		"cancel": "Cancelar",
+		"confirm": "Confirmar"
+	},
+	"transaction": {
+		"alert": "ALERTA",
+		"amount": "Cantidad",
+		"confirm": "Confirmar",
+		"edit": "Editar",
+		"from": "De",
+		"gasFee": "Tarifa de gas",
+		"hexData": "Hex Datos",
+		"insufficient": "Fondos insuficientes",
+		"invalidAddress": "Dirección inválida",
+		"invalidAmount": "Monto invalido",
+		"invalidGas": "Cantidad de gas no válida",
+		"invalidGasPrice": "Precio de gas no válido",
+		"max": "Max",
+		"recipientAddress": "Dirección del receptor",
+		"required": "Necesario",
+		"to": "A",
+		"total": "Total"
+	}
+}

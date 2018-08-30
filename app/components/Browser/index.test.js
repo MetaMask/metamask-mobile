@@ -1,6 +1,6 @@
 import React from 'react';
 import WKWebView from 'react-native-wkwebview-reborn';
-import { Alert, TextInput } from 'react-native';
+import { TextInput } from 'react-native';
 import { shallow } from 'enzyme';
 import Browser from './';
 
@@ -18,7 +18,6 @@ describe('Browser', () => {
 
 	it('should enable back button', () => {
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.instance().injection.entryScript = 'console.log()';
 		expect(wrapper.find('[name="angle-left"]').prop('disabled')).toBe(true);
 		wrapper.find(WKWebView).simulate('NavigationStateChange', { canGoBack: true });
 		expect(wrapper.find('[name="angle-left"]').prop('disabled')).toBe(false);
@@ -26,7 +25,6 @@ describe('Browser', () => {
 
 	it('should enable forward button', () => {
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.instance().injection.entryScript = 'console.log()';
 		expect(wrapper.find('[name="angle-right"]').prop('disabled')).toBe(true);
 		wrapper.find(WKWebView).simulate('NavigationStateChange', { canGoForward: true });
 		expect(wrapper.find('[name="angle-right"]').prop('disabled')).toBe(false);
@@ -50,7 +48,6 @@ describe('Browser', () => {
 		const MockWebView = { goBack() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'goBack');
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.instance().injection.entryScript = 'console.log()';
 		wrapper.find(WKWebView).simulate('NavigationStateChange', { canGoBack: true });
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="angle-left"]').simulate('press');
@@ -61,7 +58,6 @@ describe('Browser', () => {
 		const MockWebView = { goForward() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'goForward');
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.instance().injection.entryScript = 'console.log()';
 		wrapper.find(WKWebView).simulate('NavigationStateChange', { canGoBack: true });
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="angle-right"]').simulate('press');
@@ -72,49 +68,9 @@ describe('Browser', () => {
 		const MockWebView = { reload() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'reload');
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.instance().injection.entryScript = 'console.log()';
 		wrapper.find(WKWebView).simulate('NavigationStateChange', {});
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="refresh"]').simulate('press');
-		expect(stub).toBeCalled();
-	});
-
-	it('should show injection approval dialog', () => {
-		jest.mock('Alert', () => ({ alert: jest.fn() }));
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.find(WKWebView).simulate('Message', { nativeEvent: {} });
-		wrapper.find(WKWebView).simulate('Message', {
-			nativeEvent: {
-				data: { type: 'ETHEREUM_PROVIDER_REQUEST' }
-			}
-		});
-		expect(Alert.alert).toHaveBeenCalled();
-		jest.unmock('Alert');
-	});
-
-	it('should inject entry script after approval (iOS)', () => {
-		const MockWebView = { evaluateJavaScript() {} }; // eslint-disable-line no-empty-function
-		const stub = spyOn(MockWebView, 'evaluateJavaScript').and.callFake(() => Promise.resolve());
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.instance().webview = { current: MockWebView };
-		wrapper.instance().injection.entryScript = 'console.log()';
-		wrapper.instance().injectEntryScript();
-		expect(stub).toBeCalled();
-	});
-
-	it('should inject entry script after approval (Android)', () => {
-		jest.mock('Platform', () => {
-			const Platform = require.requireActual('Platform');
-			Platform.OS = 'android';
-			return Platform;
-		});
-
-		const MockWebView = { injectJavaScript() {} }; // eslint-disable-line no-empty-function
-		const stub = spyOn(MockWebView, 'injectJavaScript');
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.instance().webview = { current: MockWebView };
-		wrapper.instance().injection.entryScript = 'console.log()';
-		wrapper.instance().injectEntryScript();
 		expect(stub).toBeCalled();
 	});
 });

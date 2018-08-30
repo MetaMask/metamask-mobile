@@ -115,6 +115,7 @@ exports[`Login should render correctly 1`] = `
               "color": "#FFFFFF",
               "fontFamily": "Roboto",
               "fontWeight": "500",
+              "textTransform": "uppercase",
             }
           }
         >

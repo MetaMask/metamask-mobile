@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Accounts should render correctly 1`] = `
+exports[`Account Details should render correctly 1`] = `
 <Connect(AccountDetails)
   selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
 />

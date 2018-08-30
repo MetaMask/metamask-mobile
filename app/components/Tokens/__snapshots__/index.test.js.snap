@@ -61,6 +61,7 @@ exports[`Tokens should render correctly 1`] = `
             "fontFamily": "Roboto",
             "fontSize": 15,
             "fontWeight": "400",
+            "textTransform": "uppercase",
           }
         }
       >

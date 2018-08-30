@@ -2,7 +2,12 @@ package com.metamask;
 
 import android.app.Application;
 
+import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import org.reactnative.camera.RNCameraPackage;
+import cl.json.RNSharePackage;
+import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
+import com.smixx.fabric.FabricPackage;
 import com.tectiv3.aes.RCTAesPackage;
 import com.oblador.keychain.KeychainPackage;
 import com.peel.react.rnos.RNOSModule;
@@ -16,6 +21,7 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 
+import io.fabric.sdk.android.Fabric;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,7 +39,11 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
     @Override
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
-          new MainReactPackage(),
+            new MainReactPackage(),
+            new RNCameraPackage(),
+            new RNSharePackage(),
+            new RNI18nPackage(),
+            new FabricPackage(),
             new RCTAesPackage(),
             new KeychainPackage(),
             new RNOSModule(),
@@ -59,6 +69,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   @Override
   public void onCreate() {
     super.onCreate();
+    Fabric.with(this, new Crashlytics());
     SoLoader.init(this, /* native exopackage */ false);
   }
 }

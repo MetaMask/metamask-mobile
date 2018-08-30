@@ -119,6 +119,7 @@ exports[`AssetOverview should render correctly 1`] = `
             "fontSize": 15,
             "fontWeight": "500",
             "marginLeft": 8,
+            "textTransform": "uppercase",
           }
         }
       >
@@ -153,6 +154,7 @@ exports[`AssetOverview should render correctly 1`] = `
             "fontSize": 15,
             "fontWeight": "500",
             "marginLeft": 8,
+            "textTransform": "uppercase",
           }
         }
       >

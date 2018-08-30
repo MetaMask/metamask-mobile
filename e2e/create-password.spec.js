@@ -1,38 +1,46 @@
 'use strict';
+import TestHelpers from './helpers';
 
 describe('Create Password', () => {
 	beforeEach(async () => {
 		await device.reloadReactNative();
-		await expect(element(by.id('create-password-screen'))).toBeVisible();
+		// Check we are in the "Create Password screen"
+		await TestHelpers.checkIfVisible('create-password-screen');
 	});
 
 	it('should validate the password length (min. 8 chars)', async () => {
-		await element(by.id('input-password')).tap();
-		await element(by.id('input-password')).typeText('1234567');
-		await element(by.id('input-password-confirm')).typeText('1234567\n');
-		await element(by.id('submit')).tap();
-		await element(by.label('OK'))
-			.atIndex(0)
-			.tap();
+		// Enter a short password
+		await TestHelpers.tap('input-password');
+		await TestHelpers.typeTextAndHideKeyboard('input-password', '1234567');
+		// Confirm the short password
+		await TestHelpers.typeText('input-password-confirm', '1234567\n');
+		// Submit
+		await TestHelpers.waitAndTap('submit');
+		// Confirm the error message
+		await TestHelpers.tapAlertWithButton('OK');
 	});
 
 	it('should validate that the passwords match', async () => {
-		await element(by.id('input-password')).tap();
-		await element(by.id('input-password')).typeText('foo');
-		await element(by.id('input-password-confirm')).typeText('bar\n');
-		await element(by.id('submit')).tap();
-		await element(by.label('OK'))
-			.atIndex(0)
-			.tap();
+		// Enter a one password
+		await TestHelpers.tap('input-password');
+		await TestHelpers.typeTextAndHideKeyboard('input-password', 'foo');
+		// Enter a different password
+		await TestHelpers.typeText('input-password-confirm', 'bar\n');
+		// Submit
+		await TestHelpers.waitAndTap('submit');
+		// Confirm the error message
+		await TestHelpers.tapAlertWithButton('OK');
 	});
 
 	it('should create the password succesfully', async () => {
-		await element(by.id('input-password')).tap();
-		await element(by.id('input-password')).typeText('Str0ngP@ss!');
-		await element(by.id('input-password-confirm')).typeText('Str0ngP@ss!\n');
-		await element(by.id('submit')).tap();
-		await waitFor(element(by.id('wallet-screen')))
-			.toBeVisible()
-			.withTimeout(10000);
+		// Enter a valid password
+		await TestHelpers.tap('input-password');
+		await TestHelpers.typeTextAndHideKeyboard('input-password', 'Str0ngP@ss!');
+		// Confirm the valid password
+		await TestHelpers.typeText('input-password-confirm', 'Str0ngP@ss!\n');
+		// Submit
+		await TestHelpers.waitAndTap('submit');
+		// Check if we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
 	});
 });

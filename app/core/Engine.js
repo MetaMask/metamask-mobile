@@ -41,7 +41,33 @@ class Engine {
 					new AddressBookController(),
 					new BlockHistoryController(),
 					new CurrencyRateController(),
-					new NetworkController({ providerConfig: {} }),
+					new NetworkController(
+						{
+							providerConfig: {
+								static: {
+									eth_sendTransaction: async (payload, next, end) => {
+										const { TransactionController } = this.datamodel.context;
+										try {
+											const hash = await (await TransactionController.addTransaction(
+												payload.params[0]
+											)).result;
+											end(undefined, hash);
+										} catch (error) {
+											end(error);
+										}
+									}
+								},
+								getAccounts: end => {
+									const { KeyringController } = this.datamodel.context;
+									const isUnlocked = KeyringController.keyring.memStore.getState().isUnlocked;
+									const selectedAddress = this.datamodel.context.PreferencesController.state
+										.selectedAddress;
+									end(null, isUnlocked && selectedAddress ? [selectedAddress] : []);
+								}
+							}
+						},
+						{ network: '3', provider: { type: 'ropsten' } }
+					),
 					new NetworkStatusController(),
 					new PhishingController(),
 					new PreferencesController(),
@@ -58,6 +84,7 @@ class Engine {
 				TransactionController: transaction
 			} = this.datamodel.context;
 
+			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
@@ -76,10 +103,11 @@ class Engine {
 			NetworkController: { provider },
 			TransactionController
 		} = this.datamodel.context;
+
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
 		BlockHistoryController.configure({ provider, blockTracker });
-		AccountTrackerController.configure({ provider, blockTracker });
+		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
 		blockTracker.start();
 	};
