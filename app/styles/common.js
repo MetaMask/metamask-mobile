@@ -6,22 +6,34 @@
  * Map of color names to HEX values
  */
 export const colors = {
+	accentGray: '#9b9b9b',
 	ash: '#ced6e0',
 	asphalt: '#747d8c',
-	concrete: '#f1f2f6',
-	slate: '#dfe4ea',
-	tar: '#2f3542',
-	inactive: '#808080',
-	primary: '#007aff',
-	primaryFox: '#f7861ce6',
-	white: '#FFFFFF',
 	black: '#000000',
+	beige: '#f9fafa',
+	blue: '#2f9ae0',
+	borderColor: '#CCCCCC',
+	borderRed: '#d0021b',
+	concrete: '#f1f2f6',
+	copy: '#4d4d4d',
+	error: '#FF0000',
 	fontPrimary: '#333333',
 	fontSecondary: '#999999',
 	fontTertiary: '#AAAAAA',
-	borderColor: '#CCCCCC',
+	gray: '#5d5d5d',
+	green: '#02c9b1',
+	inactive: '#808080',
+	inputBorderColor: '#dedede',
+	lightGray: '#d2d8dd',
+	lightRed: '#fff1f2',
+	primary: '#007aff',
+	primaryFox: '#f7861ce6',
+	red: '#f00',
+	slate: '#dfe4ea',
+	subtleGray: '#8c8e94',
+	tar: '#2f3542',
 	title: '#1B344D',
-	error: '#FF0000'
+	white: '#FFFFFF'
 };
 
 /**

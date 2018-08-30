@@ -78,5 +78,28 @@
 	"receiveScreen": {
 		"publicAddress": "Dirección Pública",
 		"shareButton": "COMPARTIR"
+	},
+	"actionView": {
+		"cancel": "Cancelar",
+		"confirm": "Confirmar"
+	},
+	"transaction": {
+		"alert": "ALERTA",
+		"amount": "Cantidad",
+		"confirm": "Confirmar",
+		"edit": "Editar",
+		"from": "De",
+		"gasFee": "Tarifa de gas",
+		"hexData": "Hex Datos",
+		"insufficient": "Fondos insuficientes",
+		"invalidAddress": "Dirección inválida",
+		"invalidAmount": "Monto invalido",
+		"invalidGas": "Cantidad de gas no válida",
+		"invalidGasPrice": "Precio de gas no válido",
+		"max": "Max",
+		"recipientAddress": "Dirección del receptor",
+		"required": "Necesario",
+		"to": "A",
+		"total": "Total"
 	}
 }
