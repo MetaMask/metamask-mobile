@@ -13,6 +13,14 @@ aliases:
       |
         npm install
 
+  - &install-detox
+      |
+        brew update
+        brew tap wix/brew
+        brew install --HEAD applesimutils
+        npm install -g detox-cli
+
+
 defaults: &defaults
   working_directory: ~/MetaMask
 
@@ -60,21 +68,55 @@ jobs:
     <<: *defaults
     macos:
       xcode: "9.4.1"
-
     steps:
       - checkout
       - attach_workspace:
           at: .
       - run: npm rebuild
+      - run: *install-detox
+      - run: detox build -c ios.sim.release && detox test -c ios.sim.release --cleanup
+
+  test-e2e-android:
+    <<: *defaults
+    environment:
+      ANDROID_HOME: "/usr/local/share/android-sdk"
+      ANDROID_SDK_HOME: "/usr/local/share/android-sdk"
+      ANDROID_SDK_ROOT: "/usr/local/share/android-sdk"
+    macos:
+      xcode: "9.4.1"
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
       - run:
-          name: Load dependencies
+          name: Install Android SDK
           command:
             |
-              brew update
-              brew tap wix/brew
-              brew install --HEAD applesimutils
-              npm install -g detox-cli
-      - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
+              brew tap caskroom/cask
+              brew tap caskroom/versions
+              brew cask install android-sdk
+              # sdkmanager configuration
+              mkdir -p "$HOME/.android"
+              echo "count=0" > "$HOME/.android/repositories.cfg"
+
+              # install APIs and Build tools
+              echo y | sdkmanager "platforms;android-26"
+              echo y | sdkmanager "build-tools;27.0.3"
+              echo y | sdkmanager "extras;android;m2repository"
+              echo y | sdkmanager "extras;google;m2repository"
+              echo y | sdkmanager "system-images;android-27;google_apis;x86"
+              # Create emulator
+              avdmanager create avd --force --device "Nexus S" -n Nexus_S_API_27 -k "system-images;android-27;google_apis;x86"
+              # Fix simulator settings
+              #./scripts/fix-android-simulator-ini
+      - run:
+          name: Starting Android Emulator
+          command: emulator -avd Nexus_S_API_27 -no-skin -no-boot-anim -no-window -memory 2048 -verbose &
+      - run: npm rebuild
+      - run: *install-detox
+      - run: detox build -c android.emu.debug && detox test -c android.emu.debug --cleanup
+
 
   test-coverage:
     <<: *defaults
@@ -100,22 +142,26 @@ workflows:
   ful_test:
     jobs:
       - prep-deps
-      - lint:
+    #   - lint:
+    #       requires:
+    #         - prep-deps
+    #   - test-unit:
+    #       requires:
+    #         - prep-deps
+    #   - test-e2e-ios:
+    #       requires:
+    #         - prep-deps
+      - test-e2e-android:
           requires:
             - prep-deps
-      - test-unit:
-          requires:
-            - prep-deps
-      - test-e2e-ios:
-          requires:
-            - test-unit
       - all-tests-pass:
           requires:
-            - lint
-            - test-unit
-            - test-e2e-ios
-      - upload-coverage:
-          requires:
-            - test-unit
+    #        - lint
+    #        - test-unit
+            - test-e2e-android
+            #- test-e2e-ios
+    #  - upload-coverage:
+    #      requires:
+    #        - test-unit
 
 

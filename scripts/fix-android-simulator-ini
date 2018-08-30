@@ -1,0 +1,36 @@
+#!/bin/bash
+
+echo "Contents of HOME/.android/"
+ls -la $HOME/.android/
+
+echo "Contents of HOME/.android/avd"
+ls -la $HOME/.android/avd
+
+echo "Contents of HOME/.android/avd/Nexus_S_API_27.avd"
+ls -la $HOME/.android/avd/Nexus_S_API_27.avd
+
+
+echo "
+PlayStore.enabled=false
+abi.type=x86
+avd.ini.encoding=UTF-8
+hw.accelerometer=yes
+hw.audioInput=yes
+hw.battery=yes
+hw.cpu.arch=x86
+hw.dPad=no
+hw.device.hash2=MD5:8c804f74d6129b3b961d1f4d3e7105ab
+hw.device.manufacturer=Google
+hw.device.name=Nexus S
+hw.gps=yes
+hw.lcd.density=240
+hw.lcd.height=800
+hw.lcd.width=480
+hw.mainKeys=yes
+hw.sdCard=yes
+hw.sensors.orientation=yes
+hw.sensors.proximity=yes
+hw.trackBall=no
+image.sysdir.1=system-images/android-27/google_apis/x86/
+tag.display=Google APIs
+tag.id=google_apis" > $HOME/.android/avd/Nexus_S_API_27.avd/config.ini

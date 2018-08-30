@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copy JS files for injection
 yes | cp -rf app/core/InpageBridge.js android/app/src/main/assets/.
 yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
