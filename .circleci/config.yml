@@ -105,6 +105,7 @@ jobs:
               echo y | sdkmanager "build-tools;27.0.3"
               echo y | sdkmanager "extras;android;m2repository"
               echo y | sdkmanager "extras;google;m2repository"
+              echo y | sdkmanager "system-images;android-27;google_apis;x86"
               # Create emulator
               echo n | avdmanager create avd -n Pixel_2_API_27 -k "system-images;android-27;google_apis;x86"
       - run: npm rebuild
