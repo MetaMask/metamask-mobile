@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SearchAsset should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="search-token-screen"
+>
+  <ActionView
+    cancelText="CANCEL"
+    confirmButtonMode="confirm"
+    confirmText="ADD TOKEN"
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+  >
+    <Component
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
+    >
+      <TextInput
+        allowFontScaling={true}
+        onChangeText={[Function]}
+        placeholder="Search Tokens"
+        style={
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "padding": 16,
+          }
+        }
+        underlineColorAndroid="transparent"
+        value=""
+      />
+    </Component>
+  </ActionView>
+</Component>
+`;
