@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import { Platform, StyleSheet, TextInput, View } from 'react-native';
-import { colors, baseStyles } from '../../styles/common';
+import { colors, baseStyles, fontStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	urlBar: {
@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
 		color: colors.ash
 	},
 	urlInput: {
+		...fontStyles.normal,
 		backgroundColor: colors.slate,
 		borderRadius: 3,
 		flex: 1,

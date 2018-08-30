@@ -2,7 +2,8 @@ import React from 'react';
 import Button from '../Button';
 import PropTypes from 'prop-types';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { baseStyles, colors } from '../../styles/common';
+import { baseStyles, colors, fontStyles } from '../../styles/common';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	actionContainer: {
@@ -20,9 +21,8 @@ const styles = StyleSheet.create({
 		width: '50%'
 	},
 	buttonText: {
-		fontSize: 15,
-		fontWeight: '500',
-		textTransform: 'uppercase'
+		...fontStyles.bold,
+		fontSize: 15
 	},
 	cancel: {
 		backgroundColor: colors.white,
@@ -67,7 +67,7 @@ export default function ActionView({
 			<ScrollView style={baseStyles.flexGrow}>{children}</ScrollView>
 			<View style={styles.actionContainer}>
 				<Button style={{ ...styles.button, ...styles.cancel }} onPress={onCancelPress}>
-					<Text style={{ ...styles.buttonText, ...styles.cancelText }}>{cancelText}</Text>
+					<Text style={{ ...styles.buttonText, ...styles.cancelText }}>{cancelText.toUpperCase()}</Text>
 				</Button>
 				<Button
 					style={{ ...styles.button, ...styles.confirm, ...styles[confirmButtonMode] }}
@@ -76,7 +76,7 @@ export default function ActionView({
 					<Text
 						style={{ ...styles.buttonText, ...styles.confirmText, ...styles[`${confirmButtonMode}Text`] }}
 					>
-						{confirmText}
+						{confirmText.toUpperCase()}
 					</Text>
 				</Button>
 			</View>
@@ -85,9 +85,9 @@ export default function ActionView({
 }
 
 ActionView.defaultProps = {
-	cancelText: 'Cancel',
+	cancelText: strings('actionView.cancel'),
 	confirmButtonMode: 'default',
-	confirmText: 'Confirm'
+	confirmText: strings('actionView.confirm')
 };
 
 ActionView.propTypes = {

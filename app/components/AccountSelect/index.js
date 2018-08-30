@@ -3,7 +3,7 @@ import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -27,13 +27,13 @@ const styles = StyleSheet.create({
 		paddingVertical: 8
 	},
 	info: {
+		...fontStyles.normal,
 		fontSize: 12,
-		lineHeight: 16,
-		textTransform: 'uppercase'
+		lineHeight: 16
 	},
 	name: {
+		...fontStyles.bold,
 		fontSize: 16,
-		fontWeight: '500',
 		marginBottom: 4
 	},
 	icon: {
@@ -132,7 +132,9 @@ class AccountSelect extends Component {
 						<Text style={styles.info}>{fromWei(balance).toString()} ETH</Text>
 					</View>
 					<View>
-						<Text style={styles.info}>{weiToFiat(balance, conversionRate, currentCurrency)}</Text>
+						<Text style={styles.info}>
+							{weiToFiat(balance, conversionRate, currentCurrency).toUpperCase()}
+						</Text>
 					</View>
 				</View>
 			</TouchableOpacity>

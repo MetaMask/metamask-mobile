@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { isBN, weiToFiat, isDecimal, toWei, fromWei } from '../../util/number';
 
@@ -20,21 +20,21 @@ const styles = StyleSheet.create({
 		zIndex: 1
 	},
 	input: {
+		...fontStyles.bold,
 		flex: 0,
 		fontSize: 16,
-		fontWeight: '500',
 		minWidth: 44,
 		paddingRight: 8
 	},
 	eth: {
+		...fontStyles.bold,
 		flex: 0,
-		fontSize: 16,
-		fontWeight: '500'
+		fontSize: 16
 	},
 	fiatValue: {
+		...fontStyles.normal,
 		fontSize: 12,
-		marginTop: 4,
-		textTransform: 'uppercase'
+		marginTop: 4
 	},
 	split: {
 		flex: 0,
@@ -96,7 +96,7 @@ class EthInput extends Component {
 					</Text>
 				</View>
 				<Text style={styles.fiatValue} numberOfLines={1}>
-					{weiToFiat(value, conversionRate, currentCurrency)}
+					{weiToFiat(value, conversionRate, currentCurrency).toUpperCase()}
 				</Text>
 			</View>
 		);

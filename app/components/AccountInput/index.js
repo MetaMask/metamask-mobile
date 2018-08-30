@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -10,12 +10,12 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	input: {
+		...fontStyles.bold,
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1,
 		fontSize: 16,
-		fontWeight: '500',
 		paddingBottom: 16,
 		paddingLeft: 10,
 		paddingRight: 10,
@@ -30,11 +30,12 @@ const styles = StyleSheet.create({
 		paddingTop: 8
 	},
 	address: {
+		...fontStyles.normal,
 		fontSize: 16
 	},
 	name: {
+		...fontStyles.bold,
 		fontSize: 16,
-		fontWeight: '500',
 		marginBottom: 4
 	},
 	icon: {

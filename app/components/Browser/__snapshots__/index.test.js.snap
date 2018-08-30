@@ -70,7 +70,9 @@ exports[`Browser should render correctly 1`] = `
           "backgroundColor": "#dfe4ea",
           "borderRadius": 3,
           "flex": 1,
+          "fontFamily": "Roboto",
           "fontSize": 14,
+          "fontWeight": "400",
           "padding": 8,
         }
       }

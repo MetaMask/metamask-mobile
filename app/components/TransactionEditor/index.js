@@ -7,10 +7,11 @@ import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
@@ -37,20 +38,20 @@ const styles = StyleSheet.create({
 		width: 96
 	},
 	labelText: {
+		...fontStyles.bold,
 		color: colors.gray,
-		fontSize: 16,
-		fontWeight: '500'
+		fontSize: 16
 	},
 	max: {
+		...fontStyles.bold,
 		color: colors.blue,
 		fontSize: 12,
-		fontWeight: '500',
 		paddingTop: 6
 	},
 	error: {
+		...fontStyles.bold,
 		color: colors.red,
 		fontSize: 12,
-		fontWeight: '500',
 		lineHeight: 12,
 		paddingTop: 6
 	},
@@ -68,9 +69,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16
 	},
 	addressText: {
+		...fontStyles.bold,
 		flex: 1,
 		fontSize: 16,
-		fontWeight: '500',
 		marginLeft: 9
 	},
 	arrow: {
@@ -112,6 +113,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	confirmBadge: {
+		...fontStyles.normal,
 		alignItems: 'center',
 		borderColor: colors.subtleGray,
 		borderRadius: 4,
@@ -120,7 +122,6 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 22,
 		textAlign: 'center',
-		textTransform: 'uppercase',
 		width: 74
 	},
 	summary: {
@@ -130,12 +131,13 @@ const styles = StyleSheet.create({
 		padding: 16
 	},
 	summaryFiat: {
+		...fontStyles.normal,
 		color: colors.copy,
 		fontSize: 44,
-		paddingVertical: 4,
-		textTransform: 'uppercase'
+		paddingVertical: 4
 	},
 	summaryEth: {
+		...fontStyles.normal,
 		color: colors.subtleGray,
 		fontSize: 24
 	},
@@ -158,6 +160,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16
 	},
 	overviewAlertText: {
+		...fontStyles.normal,
 		color: colors.borderRed,
 		flex: 1,
 		fontSize: 12,
@@ -172,46 +175,45 @@ const styles = StyleSheet.create({
 		borderColor: colors.lightGray
 	},
 	overviewLabel: {
+		...fontStyles.bold,
 		color: colors.gray,
 		flex: 1,
 		fontSize: 12,
-		fontWeight: '500',
-		textTransform: 'uppercase',
 		width: 60
 	},
 	overviewFiat: {
+		...fontStyles.bold,
 		color: colors.copy,
 		fontSize: 24,
-		fontWeight: '500',
-		textAlign: 'right',
-		textTransform: 'uppercase'
+		textAlign: 'right'
 	},
 	overviewAccent: {
 		color: colors.blue
 	},
 	overviewEth: {
+		...fontStyles.normal,
 		color: colors.subtleGray,
 		fontSize: 16,
 		textAlign: 'right'
 	},
 	overviewInfo: {
+		...fontStyles.normal,
 		fontSize: 12,
 		marginBottom: 6,
-		textAlign: 'right',
-		textTransform: 'uppercase'
+		textAlign: 'right'
 	},
 	overviewAction: {
-		color: colors.blue,
-		fontWeight: '500'
+		...fontStyles.nold,
+		color: colors.blue
 	},
 	hexData: {
+		...fontStyles.bold,
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,
 		fontSize: 16,
-		fontWeight: '500',
 		minHeight: 64,
 		paddingLeft: 10,
 		paddingVertical: 6
@@ -225,9 +227,9 @@ const styles = StyleSheet.create({
 		width: 150
 	},
 	goBackText: {
+		...fontStyles.bold,
 		color: colors.blue,
-		fontSize: 22,
-		fontWeight: '500'
+		fontSize: 22
 	},
 	goBackIcon: {
 		color: colors.blue,
@@ -351,24 +353,27 @@ class TransactionEditor extends Component {
 		const { amount, gas, gasPrice, from } = this.state;
 		const checksummedFrom = toChecksumAddress(from);
 		const { balance } = this.props.accounts[checksummedFrom];
-		amount && !isBN(amount) && (error = 'Invalid amount');
-		amount && isBN(amount) && hexToBN(balance).lt(amount.add(gas.mul(gasPrice))) && (error = 'Insufficient funds');
+		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
+		amount &&
+			isBN(amount) &&
+			hexToBN(balance).lt(amount.add(gas.mul(gasPrice))) &&
+			(error = strings('transaction.insufficient'));
 		return error;
 	}
 
 	validateGas() {
 		let error;
 		const { gas, gasPrice } = this.state;
-		gas && !isBN(gas) && (error = 'Invalid gas amount');
-		gasPrice && !isBN(gasPrice) && (error = 'Invalid gas price');
+		gas && !isBN(gas) && (error = strings('transaction.invalidGas'));
+		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalidGasPrice'));
 		return error;
 	}
 
 	validateToAddress() {
 		let error;
 		const { to } = this.state;
-		!to && this.state.toFocused && (error = 'Required');
-		to && !isValidAddress(to) && (error = 'Invalid address');
+		!to && this.state.toFocused && (error = strings('transaction.required'));
+		to && !isValidAddress(to) && (error = strings('transaction.invalidAddress'));
 		return error;
 	}
 
@@ -385,13 +390,13 @@ class TransactionEditor extends Component {
 						<View style={styles.form}>
 							<View style={{ ...styles.formRow, ...styles.fromRow }}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>From:</Text>
+									<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
 								</View>
 								<AccountSelect value={from} onChange={this.updateFromAddress} />
 							</View>
 							<View style={{ ...styles.formRow, ...styles.toRow }}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>To:</Text>
+									<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
 									{this.validateToAddress() && (
 										<Text style={styles.error}>{this.validateToAddress()}</Text>
 									)}
@@ -399,18 +404,18 @@ class TransactionEditor extends Component {
 								<AccountInput
 									onChange={this.updateToAddress}
 									onFocus={this.focusToAddress}
-									placeholder="Receipient Address"
+									placeholder={strings('transaction.recipientAddress')}
 									value={to}
 								/>
 							</View>
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>Amount:</Text>
+									<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
 									{this.validateAmount() ? (
 										<Text style={styles.error}>{this.validateAmount()}</Text>
 									) : (
 										<TouchableOpacity onPress={this.fillMax}>
-											<Text style={styles.max}>Max</Text>
+											<Text style={styles.max}>{strings('transaction.max')}</Text>
 										</TouchableOpacity>
 									)}
 								</View>
@@ -418,14 +423,14 @@ class TransactionEditor extends Component {
 							</View>
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>Gas Fee:</Text>
+									<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
 									{this.validateGas() && <Text style={styles.error}>{this.validateGas()}</Text>}
 								</View>
 								<EthInput readonly value={totalGas} />
 							</View>
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>Hex Data:</Text>
+									<Text style={styles.labelText}>{strings('transaction.hexData')}:</Text>
 								</View>
 								<TextInput
 									multiline
@@ -463,38 +468,45 @@ class TransactionEditor extends Component {
 								</View>
 							</View>
 							<View style={styles.summary}>
-								<Text style={styles.confirmBadge}>Confirm</Text>
+								<Text style={styles.confirmBadge}>{strings('transaction.confirm').toUpperCase()}</Text>
 								<Text style={styles.summaryFiat}>
-									{weiToFiat(amount, conversionRate, currentCurrency)}
+									{weiToFiat(amount, conversionRate, currentCurrency).toUpperCase()}
 								</Text>
 								<Text style={styles.summaryEth}>{fromWei(amount).toString()}</Text>
 								<TouchableOpacity style={styles.goBack} onPress={this.edit}>
 									<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
-									<Text style={styles.goBackText}>Edit</Text>
+									<Text style={styles.goBackText}>{strings('transaction.edit')}</Text>
 								</TouchableOpacity>
 							</View>
 							<View style={styles.overview}>
 								<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
-									<Text style={styles.overviewLabel}>Gas Fee</Text>
+									<Text style={styles.overviewLabel}>
+										{strings('transaction.gasFee').toUpperCase()}
+									</Text>
 									<View style={styles.overviewContent}>
 										<TouchableOpacity>
 											<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
-												Edit
+												{strings('transaction.edit').toUpperCase()}
 											</Text>
 										</TouchableOpacity>
 										<Text style={styles.overviewFiat}>
-											{weiToFiat(totalGas, conversionRate, currentCurrency)}
+											{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
 										</Text>
 										{/* TODO: Use real gas */}
 										<Text style={styles.overviewEth}>{fromWei(gas).toString()}</Text>
 									</View>
 								</View>
 								<View style={styles.overviewRow}>
-									<Text style={styles.overviewLabel}>Total</Text>
+									<Text style={styles.overviewLabel}>
+										{strings('transaction.total').toUpperCase()}
+									</Text>
 									<View style={styles.overviewContent}>
-										<Text style={styles.overviewInfo}>Amount + Gas Fee</Text>
+										<Text style={styles.overviewInfo}>
+											{strings('transaction.amount').toUpperCase()} +{' '}
+											{strings('transaction.gasFee').toUpperCase()}
+										</Text>
 										<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-											{weiToFiat(total, conversionRate, currentCurrency)}
+											{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}
 										</Text>
 										<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
 									</View>
@@ -502,7 +514,9 @@ class TransactionEditor extends Component {
 								{this.validateAmount() && (
 									<View style={styles.overviewAlert}>
 										<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
-										<Text style={styles.overviewAlertText}>ALERT: {this.validateAmount()}.</Text>
+										<Text style={styles.overviewAlertText}>
+											{strings('transaction.alert')}: {this.validateAmount()}.
+										</Text>
 									</View>
 								)}
 							</View>
