@@ -37,14 +37,6 @@ export default class AddAsset extends Component {
 		decimals: ''
 	};
 
-	static navigationOptions = {
-		title: 'Add Tokens',
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	};
-
 	static propTypes = {
 		/**
 		/* navigation object required to push new views

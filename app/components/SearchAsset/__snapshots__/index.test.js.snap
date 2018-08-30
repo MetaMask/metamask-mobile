@@ -33,6 +33,8 @@ exports[`SearchAsset should render correctly 1`] = `
             "borderColor": "#CCCCCC",
             "borderRadius": 4,
             "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
             "padding": 16,
           }
         }

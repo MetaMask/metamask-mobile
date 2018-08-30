@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Text, TextInput, View, StyleSheet } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
@@ -74,10 +74,10 @@ export default class AddCustomAsset extends Component {
 		let validated = true;
 		const address = this.state.address;
 		if (address.length === 0) {
-			this.setState({ warningAddress: `Token address can't be empty.` });
+			this.setState({ warningAddress: strings('token.address_cant_be_empty') });
 			validated = false;
 		} else if (!isValidAddress(address)) {
-			this.setState({ warningAddress: `Token address have to be a valid address.` });
+			this.setState({ warningAddress: strings('token.address_must_be_valid') });
 			validated = false;
 		} else {
 			this.setState({ warningAddress: `` });
@@ -89,7 +89,7 @@ export default class AddCustomAsset extends Component {
 		let validated = true;
 		const symbol = this.state.symbol;
 		if (symbol.length === 0) {
-			this.setState({ warningSymbol: `Token symbol can't be empty.` });
+			this.setState({ warningSymbol: strings('token.symbol_cant_be_empty') });
 			validated = false;
 		} else {
 			this.setState({ warningSymbol: `` });
@@ -101,7 +101,7 @@ export default class AddCustomAsset extends Component {
 		let validated = true;
 		const decimals = this.state.decimals;
 		if (decimals.length === 0) {
-			this.setState({ warningDecimals: `Token precision can't be empty.` });
+			this.setState({ warningDecimals: strings('token.decimals_cant_be_empty') });
 			validated = false;
 		} else {
 			this.setState({ warningDecimals: `` });
@@ -127,29 +127,29 @@ export default class AddCustomAsset extends Component {
 					onConfirmPress={this.addToken}
 				>
 					<View style={styles.rowWrapper}>
-						<Text>{strings('token.token_address')}</Text>
+						<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
 						<TextInput
-							style={styles.textInput}
+							style={{ ...fontStyles.normal, ...styles.textInput }}
 							placeholder={'0x...'}
 							value={this.state.address}
 							onChangeText={this.onAddressChange}
 							onBlur={this.validateCustomTokenAddress}
 						/>
-						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+						<Text style={{ ...fontStyles.normal, ...styles.warningText }}>{this.state.warningAddress}</Text>
 					</View>
 					<View style={styles.rowWrapper}>
-						<Text>{strings('token.token_symbol')}</Text>
+						<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
 						<TextInput
-							style={styles.textInput}
+							style={{ ...fontStyles.normal, ...styles.textInput }}
 							placeholder={'GNO'}
 							value={this.state.symbol}
 							onChangeText={this.onSymbolChange}
 							onBlur={this.validateCustomTokenSymbol}
 						/>
-						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
+						<Text style={{ ...fontStyles.normal, ...styles.warningText }}>{this.state.warningSymbol}</Text>
 					</View>
 					<View style={styles.rowWrapper}>
-						<Text>{strings('token.token_precision')}</Text>
+						<Text style={fontStyles.normal}>{strings('token.token_precision')}</Text>
 						<TextInput
 							style={styles.textInput}
 							value={this.state.decimals}
@@ -159,7 +159,9 @@ export default class AddCustomAsset extends Component {
 							onChangeText={this.onDecimalsChange}
 							onBlur={this.validateCustomTokenDecimals}
 						/>
-						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+						<Text style={{ ...fontStyles.normal, ...styles.warningText }}>
+							{this.state.warningDecimals}
+						</Text>
 					</View>
 				</ActionView>
 			</View>

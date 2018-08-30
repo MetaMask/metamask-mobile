@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { TextInput, View, StyleSheet } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import ActionView from '../ActionView';
@@ -54,7 +54,7 @@ export default class SearchAsset extends Component {
 				>
 					<View style={styles.rowWrapper}>
 						<TextInput
-							style={styles.textInput}
+							style={{ ...fontStyles.normal, ...styles.textInput }}
 							value={this.state.token}
 							placeholder={strings('token.search_tokens_placeholder')}
 							onChangeText={this.onTokenChange}

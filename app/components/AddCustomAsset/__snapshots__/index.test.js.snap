@@ -24,7 +24,14 @@ exports[`AddCustomAsset should render correctly 1`] = `
         }
       }
     >
-      <Component>
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
         Token Address
       </Component>
       <TextInput
@@ -37,6 +44,8 @@ exports[`AddCustomAsset should render correctly 1`] = `
             "borderColor": "#CCCCCC",
             "borderRadius": 4,
             "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
             "padding": 16,
           }
         }
@@ -47,6 +56,8 @@ exports[`AddCustomAsset should render correctly 1`] = `
         style={
           Object {
             "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
           }
         }
       />
@@ -58,7 +69,14 @@ exports[`AddCustomAsset should render correctly 1`] = `
         }
       }
     >
-      <Component>
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
         Token Symbol
       </Component>
       <TextInput
@@ -71,6 +89,8 @@ exports[`AddCustomAsset should render correctly 1`] = `
             "borderColor": "#CCCCCC",
             "borderRadius": 4,
             "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
             "padding": 16,
           }
         }
@@ -81,6 +101,8 @@ exports[`AddCustomAsset should render correctly 1`] = `
         style={
           Object {
             "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
           }
         }
       />
@@ -92,7 +114,14 @@ exports[`AddCustomAsset should render correctly 1`] = `
         }
       }
     >
-      <Component>
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
         Token of Precision
       </Component>
       <TextInput
@@ -117,6 +146,8 @@ exports[`AddCustomAsset should render correctly 1`] = `
         style={
           Object {
             "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
           }
         }
       />
