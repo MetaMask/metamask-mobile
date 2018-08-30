@@ -69,34 +69,34 @@ describe('Wallet', () => {
 		await TestHelpers.checkIfHasText('public-address-input', TEST_ADDRESS);
 	});
 
-	// it('should be able to switch networks', async () => {
-	// 	await TestHelpers.relaunchApp();
-	// 	// Check we're in the wallet screen
-	// 	await TestHelpers.checkIfVisible('wallet-screen');
-	// 	// Tap on settings
-	// 	await TestHelpers.tap('navbar-settings-button');
-	// 	// Check we're in the settings screen
-	// 	await TestHelpers.checkIfVisible('settings-screen');
-	// 	// Tap on the "network" option
-	// 	await TestHelpers.tapByText('Network');
-	// 	// Check we're in the settings screen
-	// 	await TestHelpers.checkIfVisible('network-settingss-screen');
-	// 	// Switch to "mainnet"
-	// 	await TestHelpers.tapByText('mainnet');
+	it('should be able to switch networks', async () => {
+		await TestHelpers.relaunchApp();
+		// Check we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on settings
+		await TestHelpers.tap('navbar-settings-button');
+		// Check we're in the settings screen
+		await TestHelpers.checkIfVisible('settings-screen');
+		// Tap on the "network" option
+		await TestHelpers.tapByText('Network');
+		// Check we're in the settings screen
+		await TestHelpers.checkIfVisible('network-settingss-screen');
+		// Switch to "mainnet"
+		await TestHelpers.tapByText('mainnet');
 
-	// 	//Need to go back 2 levels
-	// 	if (device.getPlatform() === 'android') {
-	// 		device.pressBack();
-	// 		device.pressBack();
-	// 	} else {
-	// 		await element(by.text('Settings'))
-	// 			.atIndex(1)
-	// 			.tap();
+		//Need to go back 2 levels
+		if (device.getPlatform() === 'android') {
+			device.pressBack();
+			device.pressBack();
+		} else {
+			await element(by.text('Settings'))
+				.atIndex(1)
+				.tap();
 
-	// 		await element(by.text('Wallet'))
-	// 			.atIndex(2)
-	// 			.tap();
-	// 	}
-	// 	await TestHelpers.checkIfHasText('navbar-title-network', 'Ethereum Main Network');
-	// });
+			await element(by.text('Wallet'))
+				.atIndex(2)
+				.tap();
+		}
+		await TestHelpers.checkIfHasText('navbar-title-network', 'Ethereum Main Network');
+	});
 });
