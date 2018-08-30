@@ -144,13 +144,13 @@
         "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app",
         "build": "npm run start:ios",
         "type": "ios.simulator",
-        "name": "iPhone 7"
+        "name": "iPhone X"
       },
       "ios.sim.release": {
         "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app",
         "build": "npm run start:ios -- --configuration Release",
         "type": "ios.simulator",
-        "name": "iPhone 7"
+        "name": "iPhone X"
       },
       "android.emu.debug": {
         "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
