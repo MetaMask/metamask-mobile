@@ -6,6 +6,7 @@ import AddCustomAsset from '../AddCustomAsset';
 import SearchAsset from '../SearchAsset';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import PropTypes from 'prop-types';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -68,8 +69,8 @@ export default class AddAsset extends Component {
 		return (
 			<View style={styles.wrapper} testID={'add-asset-screen'}>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<SearchAsset navigation={this.props.navigation} tabLabel="Search" />
-					<AddCustomAsset navigation={this.props.navigation} tabLabel="Custom Token" />
+					<SearchAsset navigation={this.props.navigation} tabLabel={strings('wallet.search_token')} />
+					<AddCustomAsset navigation={this.props.navigation} tabLabel={strings('wallet.custom_token')} />
 				</ScrollableTabView>
 			</View>
 		);

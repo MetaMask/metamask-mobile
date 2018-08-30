@@ -1,17 +1,18 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, ScrollView, StyleSheet } from 'react-native';
-import PageFooter from '../PageFooter';
-import { colors, fontStyles } from '../../styles/common';
+import { Text, TextInput, View, StyleSheet } from 'react-native';
+import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
-const isValidAddress = require('ethereumjs-util').isValidAddress;
+import { strings } from '../../../locales/i18n';
+import { isValidAddress } from 'ethereumjs-util';
+import ActionView from '../ActionView';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	scrollViewWrapper: {
+	rowWrapper: {
 		padding: 20
 	},
 	textInput: {
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that provides ability to add custom assets.
+ * Copmonent that provides ability to add custom assets.
  */
 export default class AddCustomAsset extends Component {
 	state = {
@@ -36,14 +37,6 @@ export default class AddCustomAsset extends Component {
 		warningAddress: '',
 		warningSymbol: '',
 		warningDecimals: ''
-	};
-
-	static navigationOptions = {
-		title: 'Custom Token',
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
 	};
 
 	static propTypes = {
@@ -126,45 +119,49 @@ export default class AddCustomAsset extends Component {
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
-				<ScrollView contentContainerStyle={styles.scrollViewWrapper}>
-					<Text>Token Address</Text>
-					<TextInput
-						style={styles.textInput}
-						placeholder={'0x...'}
-						value={this.state.address}
-						onChangeText={this.onAddressChange}
-						onBlur={this.validateCustomTokenAddress}
-					/>
-					<Text style={styles.warningText}>{this.state.warningAddress}</Text>
-
-					<Text>Token Symbol</Text>
-					<TextInput
-						style={styles.textInput}
-						placeholder={'GNO'}
-						value={this.state.symbol}
-						onChangeText={this.onSymbolChange}
-						onBlur={this.validateCustomTokenSymbol}
-					/>
-					<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
-
-					<Text>Token of Precision</Text>
-					<TextInput
-						style={styles.textInput}
-						value={this.state.decimals}
-						keyboardType="numeric"
-						maxLength={2}
-						placeholder={'18'}
-						onChangeText={this.onDecimalsChange}
-						onBlur={this.validateCustomTokenDecimals}
-					/>
-					<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
-				</ScrollView>
-				<PageFooter
-					onCancel={this.cancelAddToken}
-					onSubmit={this.addToken}
-					cancelText={'CANCEL'}
-					submitText={'NEXT'}
-				/>
+				<ActionView
+					confirmButtonMode={'confirm'}
+					cancelText={strings('wallet.cancel_add_token')}
+					confirmText={strings('wallet.add_token')}
+					onCancelPress={this.cancelAddToken}
+					onConfirmPress={this.addToken}
+				>
+					<View style={styles.rowWrapper}>
+						<Text>{strings('token.token_address')}</Text>
+						<TextInput
+							style={styles.textInput}
+							placeholder={'0x...'}
+							value={this.state.address}
+							onChangeText={this.onAddressChange}
+							onBlur={this.validateCustomTokenAddress}
+						/>
+						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+					</View>
+					<View style={styles.rowWrapper}>
+						<Text>{strings('token.token_symbol')}</Text>
+						<TextInput
+							style={styles.textInput}
+							placeholder={'GNO'}
+							value={this.state.symbol}
+							onChangeText={this.onSymbolChange}
+							onBlur={this.validateCustomTokenSymbol}
+						/>
+						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
+					</View>
+					<View style={styles.rowWrapper}>
+						<Text>{strings('token.token_precision')}</Text>
+						<TextInput
+							style={styles.textInput}
+							value={this.state.decimals}
+							keyboardType="numeric"
+							maxLength={2}
+							placeholder={'18'}
+							onChangeText={this.onDecimalsChange}
+							onBlur={this.validateCustomTokenDecimals}
+						/>
+						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+					</View>
+				</ActionView>
 			</View>
 		);
 	}

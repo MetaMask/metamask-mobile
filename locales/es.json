@@ -35,7 +35,17 @@
 		"no_collectibles": "No tienes ningun coleccionable",
 		"add_tokens": "AGREGAR TOKENS",
 		"no_tokens": "No tienes ningun token",
-		"add_collectibles": "AGREGAR COLECCIONABLE"
+		"add_collectibles": "AGREGAR COLECCIONABLE",
+		"cancel_add_token": "CANCELAR",
+		"add_token": "AGREGAR TOKEN",
+		"search_token": "Buscar",
+		"custom_token": "Token Personalizado"
+	},
+	"token": {
+		"token_symbol": "Símbolo del Token",
+		"token_address": "Dirección del Token",
+		"token_precision": "Token de Precisión",
+		"search_tokens_placeholder": "Buscar Tokens"
 	},
 	"transfer": {
 		"title": "Transferir",

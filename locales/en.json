@@ -35,7 +35,17 @@
 		"no_collectibles": "You don't have any collectibles!",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"add_collectibles": "ADD COLLECTIBLES"
+		"add_collectibles": "ADD COLLECTIBLES",
+		"cancel_add_token": "CANCEL",
+		"add_token": "ADD TOKEN",
+		"search_token": "Search",
+		"custom_token": "Custom Token"
+	},
+	"token": {
+		"token_symbol": "Token Symbol",
+		"token_address": "Token Address",
+		"token_precision": "Token of Precision",
+		"search_tokens_placeholder": "Search Tokens"
 	},
 	"transfer": {
 		"title": "Transfer",

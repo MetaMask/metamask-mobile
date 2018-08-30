@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
-import { TextInput, View, StyleSheet, ScrollView } from 'react-native';
-import PageFooter from '../PageFooter';
-import { colors, fontStyles } from '../../styles/common';
+import { TextInput, View, StyleSheet } from 'react-native';
+import { colors } from '../../styles/common';
 import PropTypes from 'prop-types';
+import { strings } from '../../../locales/i18n';
+import ActionView from '../ActionView';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	scrollViewWrapper: {
+	rowWrapper: {
 		padding: 20
 	},
 	textInput: {
@@ -21,18 +22,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that provides ability to add custom assets.
+ * Component that provides ability to add searched assets with metadata.
  */
 export default class SearchAsset extends Component {
 	state = { token: '' };
-
-	static navigationOptions = {
-		title: 'Custom Token',
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	};
 
 	static propTypes = {
 		/**
@@ -52,15 +45,22 @@ export default class SearchAsset extends Component {
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'search-token-screen'}>
-				<ScrollView contentContainerStyle={styles.scrollViewWrapper}>
-					<TextInput
-						style={styles.textInput}
-						value={this.state.token}
-						placeholder="Search Tokens"
-						onChangeText={this.onTokenChange}
-					/>
-				</ScrollView>
-				<PageFooter onCancel={this.cancelAddToken} cancelText={'CANCEL'} submitText={'NEXT'} />
+				<ActionView
+					confirmButtonMode={'confirm'}
+					cancelText={strings('wallet.cancel_add_token')}
+					confirmText={strings('wallet.add_token')}
+					onCancelPress={this.cancelAddToken}
+					onConfirmPress={this.cancelAddToken}
+				>
+					<View style={styles.rowWrapper}>
+						<TextInput
+							style={styles.textInput}
+							value={this.state.token}
+							placeholder={strings('token.search_tokens_placeholder')}
+							onChangeText={this.onTokenChange}
+						/>
+					</View>
+				</ActionView>
 			</View>
 		);
 	}
