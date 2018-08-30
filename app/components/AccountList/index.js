@@ -135,7 +135,10 @@ class AccountList extends Component {
 		const { accounts, identities } = this.props;
 		return Object.keys(identities).map((key, i) => {
 			const { name, address } = identities[key];
-			const { balance } = accounts[key];
+			let balance = 0;
+			if (accounts[key]) {
+				balance = accounts[key].balance;
+			}
 			const selected =
 				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
 
