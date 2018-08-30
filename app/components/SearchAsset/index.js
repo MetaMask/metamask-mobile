@@ -54,7 +54,7 @@ export default class SearchAsset extends Component {
 				>
 					<View style={styles.rowWrapper}>
 						<TextInput
-							style={{ ...fontStyles.normal, ...styles.textInput }}
+							style={[fontStyles.normal, styles.textInput]}
 							value={this.state.token}
 							placeholder={strings('token.search_tokens_placeholder')}
 							onChangeText={this.onTokenChange}

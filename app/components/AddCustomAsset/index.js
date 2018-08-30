@@ -129,24 +129,24 @@ export default class AddCustomAsset extends Component {
 					<View style={styles.rowWrapper}>
 						<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
 						<TextInput
-							style={{ ...fontStyles.normal, ...styles.textInput }}
+							style={[fontStyles.normal, styles.textInput]}
 							placeholder={'0x...'}
 							value={this.state.address}
 							onChangeText={this.onAddressChange}
 							onBlur={this.validateCustomTokenAddress}
 						/>
-						<Text style={{ ...fontStyles.normal, ...styles.warningText }}>{this.state.warningAddress}</Text>
+						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningAddress}</Text>
 					</View>
 					<View style={styles.rowWrapper}>
 						<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
 						<TextInput
-							style={{ ...fontStyles.normal, ...styles.textInput }}
+							style={[fontStyles.normal, styles.textInput]}
 							placeholder={'GNO'}
 							value={this.state.symbol}
 							onChangeText={this.onSymbolChange}
 							onBlur={this.validateCustomTokenSymbol}
 						/>
-						<Text style={{ ...fontStyles.normal, ...styles.warningText }}>{this.state.warningSymbol}</Text>
+						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningSymbol}</Text>
 					</View>
 					<View style={styles.rowWrapper}>
 						<Text style={fontStyles.normal}>{strings('token.token_precision')}</Text>
@@ -159,9 +159,7 @@ export default class AddCustomAsset extends Component {
 							onChangeText={this.onDecimalsChange}
 							onBlur={this.validateCustomTokenDecimals}
 						/>
-						<Text style={{ ...fontStyles.normal, ...styles.warningText }}>
-							{this.state.warningDecimals}
-						</Text>
+						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningDecimals}</Text>
 					</View>
 				</ActionView>
 			</View>

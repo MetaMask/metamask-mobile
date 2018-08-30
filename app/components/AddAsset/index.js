@@ -58,11 +58,12 @@ export default class AddAsset extends Component {
 	}
 
 	render() {
+		const { navigation } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'add-asset-screen'}>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<SearchAsset navigation={this.props.navigation} tabLabel={strings('wallet.search_token')} />
-					<AddCustomAsset navigation={this.props.navigation} tabLabel={strings('wallet.custom_token')} />
+					<SearchAsset navigation={navigation} tabLabel={strings('wallet.search_token')} />
+					<AddCustomAsset navigation={navigation} tabLabel={strings('wallet.custom_token')} />
 				</ScrollableTabView>
 			</View>
 		);

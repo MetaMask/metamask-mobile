@@ -40,25 +40,33 @@ exports[`AddCustomAsset should render correctly 1`] = `
         onChangeText={[Function]}
         placeholder="0x..."
         style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
-          }
+          Array [
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            },
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "padding": 16,
+            },
+          ]
         }
         underlineColorAndroid="transparent"
         value=""
       />
       <Component
         style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-          }
+          Array [
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            },
+            Object {
+              "color": "#FF0000",
+            },
+          ]
         }
       />
     </Component>
@@ -85,25 +93,33 @@ exports[`AddCustomAsset should render correctly 1`] = `
         onChangeText={[Function]}
         placeholder="GNO"
         style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
-          }
+          Array [
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            },
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "padding": 16,
+            },
+          ]
         }
         underlineColorAndroid="transparent"
         value=""
       />
       <Component
         style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-          }
+          Array [
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            },
+            Object {
+              "color": "#FF0000",
+            },
+          ]
         }
       />
     </Component>
@@ -144,11 +160,15 @@ exports[`AddCustomAsset should render correctly 1`] = `
       />
       <Component
         style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-          }
+          Array [
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            },
+            Object {
+              "color": "#FF0000",
+            },
+          ]
         }
       />
     </Component>
