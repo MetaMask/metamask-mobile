@@ -51,15 +51,14 @@ exports[`AccountOverview should render correctly 1`] = `
           }
         }
       >
-        $
-        1604.2
+        0.00 UNDEFINED
       </Component>
     </Component>
     <Component
       style={
         Object {
           "alignItems": "flex-end",
-          "flex": 1,
+          "flex": 0,
           "paddingTop": 5,
         }
       }
