@@ -107,12 +107,12 @@ jobs:
               echo y | sdkmanager "extras;google;m2repository"
               echo y | sdkmanager "system-images;android-27;google_apis;x86"
               # Create emulator
-              echo no | avdmanager create avd -n Pixel_2_API_27 -k "system-images;android-27;google_apis;x86"
+              avdmanager create avd --force --device "Nexus S" -n Nexus_S_API_27 -k "system-images;android-27;google_apis;x86"
               # Fix simulator settings
-              ./scripts/fix-android-simulator-ini
+              #./scripts/fix-android-simulator-ini
       - run:
           name: Starting Android Emulator
-          command: emulator -avd Pixel_2_API_27 -no-skin -no-boot-anim -no-window -memory 2048 -verbose &
+          command: emulator -avd Nexus_S_API_27 -no-skin -no-boot-anim -no-window -memory 2048 -verbose &
       - run: npm rebuild
       - run: *install-detox
       - run: detox build -c android.emu.debug && detox test -c android.emu.debug --cleanup
