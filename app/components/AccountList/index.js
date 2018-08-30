@@ -138,7 +138,7 @@ class AccountList extends Component {
 		const { accounts, identities } = this.props;
 		return Object.keys(identities).map((key, i) => {
 			const { name, address } = identities[key];
-			let balance = 0;
+			let balance = 0x0;
 			if (accounts[key]) {
 				balance = accounts[key].balance;
 			}
