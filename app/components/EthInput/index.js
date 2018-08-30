@@ -7,12 +7,12 @@ import { isBN, weiToFiat, isDecimal, toWei, fromWei } from '../../util/number';
 
 const styles = StyleSheet.create({
 	root: {
+		...fontStyles.bold,
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,
-		fontWeight: '500',
 		paddingLeft: 10,
 		paddingRight: 40,
 		paddingVertical: 6,
