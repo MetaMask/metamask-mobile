@@ -76,7 +76,7 @@ jobs:
               npm install -g detox-cli
       - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
 
-  test-coverage:
+  upload-coverage:
     <<: *defaults
     docker:
       - image: circleci/node:9
