@@ -11,7 +11,7 @@ describe('Wallet', () => {
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
 		await TestHelpers.tap('input-seed-phrase');
-		await TestHelpers.typeTextAndHideKeyboard('input-seed-phrase', TEST_SEED_WORDS);
+		await TestHelpers.typeText('input-seed-phrase', TEST_SEED_WORDS);
 		// Input password
 		await TestHelpers.typeTextAndHideKeyboard('input-password', 'Str0ngP@ss!');
 		// Input password confirmation

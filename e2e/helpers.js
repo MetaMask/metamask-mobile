@@ -17,12 +17,13 @@ export default class TestHelpers {
 			.tap();
 	}
 
-	static typeText(elementId, text) {
+	static async typeText(elementId, text) {
+		await TestHelpers.tap(elementId);
 		return element(by.id(elementId)).typeText(text);
 	}
 
 	static async typeTextAndHideKeyboard(elementId, text) {
-		await TestHelpers.typeText(elementId, text);
+		await TestHelpers.typeText(elementId, text + '\n');
 		if (device.getPlatform() === 'android') {
 			device.pressBack();
 		}
