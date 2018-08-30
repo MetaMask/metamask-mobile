@@ -2,7 +2,7 @@
 import TestHelpers from './helpers';
 
 const TEST_SEED_WORDS = 'recipe silver label ensure thing vendor abuse twin wait receive unaware flower';
-const TEST_ADDRESS = '0x4a6d01f1bbf8197ab8f6b0b5bd88e04cd525fab8';
+const TEST_ADDRESS = '0x4a6D01f1BBf8197AB8f6b0b5BD88e04CD525fAb8';
 
 describe('Wallet', () => {
 	it('should be able to restore accounts from seed', async () => {
@@ -11,7 +11,7 @@ describe('Wallet', () => {
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
 		await TestHelpers.tap('input-seed-phrase');
-		await TestHelpers.typeTextAndHideKeyboard('input-seed-phrase', TEST_SEED_WORDS);
+		await TestHelpers.typeText('input-seed-phrase', TEST_SEED_WORDS);
 		// Input password
 		await TestHelpers.typeTextAndHideKeyboard('input-password', 'Str0ngP@ss!');
 		// Input password confirmation
@@ -45,6 +45,8 @@ describe('Wallet', () => {
 		await TestHelpers.tap('add-account-button');
 		// Check if account was added
 		await TestHelpers.checkIfElementWithTextIsVisible('Account 2');
+		// Wait to make sure we persist the state
+		await TestHelpers.delay(1000);
 	});
 
 	it('should be able to switch accounts', async () => {
