@@ -3,19 +3,16 @@
 exports[`Button should render correctly 1`] = `
 <GenericButton
   style={
-    Array [
-      Object {
-        "alignItems": "center",
-        "backgroundColor": "#007aff",
-        "borderRadius": 4,
-        "flex": 1,
-        "height": 40,
-        "justifyContent": "center",
-        "paddingHorizontal": 15,
-        "paddingVertical": 10,
-      },
-      undefined,
-    ]
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#007aff",
+      "borderRadius": 4,
+      "flex": 1,
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 15,
+      "paddingVertical": 10,
+    }
   }
 />
 `;

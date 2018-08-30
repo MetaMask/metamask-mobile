@@ -78,5 +78,28 @@
 	"receiveScreen": {
 		"publicAddress": "Public Address",
 		"shareButton": "SHARE"
+	},
+	"actionView": {
+		"cancel": "Cancel",
+		"confirm": "Confirm"
+	},
+	"transaction": {
+		"alert": "ALERT",
+		"amount": "Amount",
+		"confirm": "Confirm",
+		"edit": "Edit",
+		"from": "From",
+		"gasFee": "Gas Fee",
+		"hexData": "Hex Data",
+		"insufficient": "Insufficient funds",
+		"invalidAddress": "Invalid address",
+		"invalidAmount": "Invalid amount",
+		"invalidGas": "Invalid gas amount",
+		"invalidGasPrice": "Invalid gas price",
+		"max": "Max",
+		"recipientAddress": "Recipient Address",
+		"required": "Required",
+		"to": "To",
+		"total": "Total"
 	}
 }

@@ -15,7 +15,19 @@ exports[`Main should render correctly 1`] = `
       "navigate": [Function],
       "router": Object {
         "childRouters": Object {
-          "Home": null,
+          "Home": Object {
+            "childRouters": Object {
+              "Approval": null,
+              "Browser": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
           "Transfer": Object {
             "childRouters": Object {
               "Transfer": null,
@@ -56,13 +68,21 @@ exports[`Main should render correctly 1`] = `
       },
       "setParams": [Function],
       "state": Object {
-        "index": 1,
+        "index": 0,
         "isTransitioning": false,
         "routes": Array [
           Object {
+            "index": 0,
+            "isTransitioning": false,
             "key": "Home",
             "params": undefined,
             "routeName": "Home",
+            "routes": Array [
+              Object {
+                "key": "id-123-0",
+                "routeName": "Browser",
+              },
+            ],
           },
           Object {
             "index": 0,
@@ -72,7 +92,7 @@ exports[`Main should render correctly 1`] = `
             "routeName": "Wallet",
             "routes": Array [
               Object {
-                "key": "id-123-0",
+                "key": "id-123-1",
                 "routeName": "Wallet",
               },
             ],
@@ -85,7 +105,7 @@ exports[`Main should render correctly 1`] = `
             "routeName": "Transfer",
             "routes": Array [
               Object {
-                "key": "id-123-1",
+                "key": "id-123-2",
                 "routeName": "Transfer",
               },
             ],
