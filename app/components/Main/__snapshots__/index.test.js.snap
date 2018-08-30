@@ -15,7 +15,7 @@ exports[`Main should render correctly 1`] = `
       "navigate": [Function],
       "router": Object {
         "childRouters": Object {
-          "Home": Object {
+          "Browser": Object {
             "childRouters": Object {
               "Approval": null,
               "Browser": null,
@@ -68,15 +68,15 @@ exports[`Main should render correctly 1`] = `
       },
       "setParams": [Function],
       "state": Object {
-        "index": 0,
+        "index": 1,
         "isTransitioning": false,
         "routes": Array [
           Object {
             "index": 0,
             "isTransitioning": false,
-            "key": "Home",
+            "key": "Browser",
             "params": undefined,
-            "routeName": "Home",
+            "routeName": "Browser",
             "routes": Array [
               Object {
                 "key": "id-123-0",

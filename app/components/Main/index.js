@@ -19,7 +19,7 @@ import { strings } from '../../../locales/i18n';
  */
 export default createBottomTabNavigator(
 	{
-		Home: {
+		Browser: {
 			screen: BrowserScreen,
 			navigationOptions: () => ({
 				title: strings('bottomTabBar.dapps'),
@@ -45,7 +45,7 @@ export default createBottomTabNavigator(
 		}
 	},
 	{
-		initialRouteName: 'Home',
+		initialRouteName: 'Wallet',
 		tabBarOptions: {
 			activeTintColor: colors.primary,
 			inactiveTintColor: colors.inactive,
