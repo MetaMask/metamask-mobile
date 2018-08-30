@@ -107,10 +107,13 @@ jobs:
               echo y | sdkmanager "extras;google;m2repository"
               echo y | sdkmanager "system-images;android-27;google_apis;x86"
               # Create emulator
-              echo n | avdmanager create avd -n Pixel_2_API_27 -k "system-images;android-27;google_apis;x86"
+              echo "no" | avdmanager create avd -n Pixel_2_API_27 -k "system-images;android-27;google_apis;x86"
+              # Fix simulator settings
+              ./scripts/fix-android-simulator-ini
       - run: npm rebuild
       - run: *install-detox
       - run: detox build -c android.emu.debug && detox test -c android.emu.debug --cleanup
+
 
   test-coverage:
     <<: *defaults
@@ -142,9 +145,9 @@ workflows:
     #   - test-unit:
     #       requires:
     #         - prep-deps
-      - test-e2e-ios:
-          requires:
-            - prep-deps
+    #   - test-e2e-ios:
+    #       requires:
+    #         - prep-deps
       - test-e2e-android:
           requires:
             - prep-deps
@@ -153,7 +156,7 @@ workflows:
     #        - lint
     #        - test-unit
             - test-e2e-android
-            - test-e2e-ios
+            #- test-e2e-ios
     #  - upload-coverage:
     #      requires:
     #        - test-unit
