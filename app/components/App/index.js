@@ -3,7 +3,7 @@ import { View, AppState, AsyncStorage } from 'react-native';
 import { createDrawerNavigator, createStackNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
-import QrScanner from '../QrScanner';
+import QRScanner from '../QRScanner';
 import CreatePassword from '../CreatePassword';
 import ImportFromSeed from '../ImportFromSeed';
 import LockScreen from '../LockScreen';
@@ -35,8 +35,8 @@ const MainNav = createStackNavigator(
 		},
 
 		/** ALL MODAL SCREENS SHOULD GO HERE */
-		QrScanner: {
-			screen: QrScanner
+		QRScanner: {
+			screen: QRScanner
 		}
 	},
 	{
