@@ -57,13 +57,25 @@ class Wallet extends Component {
 
 	static propTypes = {
 		/**
+		 * Map of accounts to information objects including balances
+		 */
+		accounts: PropTypes.object,
+		/**
+		 * ETH to currnt currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
 		/**
 		 * An object containing each identity in the format address => account
 		 */
-		accounts: PropTypes.object,
+		identities: PropTypes.object,
 		/**
 		 * An string that represents the selected address
 		 */
@@ -84,12 +96,17 @@ class Wallet extends Component {
 	}
 
 	render() {
-		const { accounts, selectedAddress } = this.props;
-		const account = accounts[selectedAddress];
+		const { accounts, conversionRate, currentCurrency, identities, selectedAddress } = this.props;
+		const account = { ...identities[selectedAddress], ...accounts[selectedAddress] };
 
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
-				<AccountOverview account={account} navigation={this.props.navigation} />
+				<AccountOverview
+					account={account}
+					conversionRate={conversionRate}
+					currentCurrency={currentCurrency}
+					navigation={this.props.navigation}
+				/>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
 					<Tokens navigation={this.props.navigation} tabLabel={strings('wallet.tokens')} assets={tokens} />
 					<Collectibles
@@ -104,7 +121,10 @@ class Wallet extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.backgroundState.PreferencesController.identities,
+	accounts: state.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
+	identities: state.backgroundState.PreferencesController.identities,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
 

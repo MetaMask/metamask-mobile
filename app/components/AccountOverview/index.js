@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
+import { weiToFiat, hexToBN } from '../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	right: {
-		flex: 1,
+		flex: 0,
 		alignItems: 'flex-end',
 		paddingTop: 5
 	},
@@ -57,6 +58,14 @@ export default class AccountOverview extends Component {
 		 */
 		account: PropTypes.object,
 		/**
+		 * ETH to currnt currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
 		 * Object that represents the navigator
 		 */
 		navigation: PropTypes.object
@@ -70,7 +79,9 @@ export default class AccountOverview extends Component {
 
 	render() {
 		const {
-			account: { name, balanceFiat = 0, address }
+			account: { name, balance, address },
+			conversionRate,
+			currentCurrency
 		} = this.props;
 
 		return (
@@ -78,7 +89,9 @@ export default class AccountOverview extends Component {
 				<View style={styles.row}>
 					<View style={styles.left}>
 						<Text style={styles.label}>{name}</Text>
-						<Text style={styles.amountFiat}>${balanceFiat}</Text>
+						<Text style={styles.amountFiat}>
+							{weiToFiat(hexToBN(balance), conversionRate, currentCurrency).toUpperCase()}
+						</Text>
 					</View>
 					<View style={styles.right}>
 						<TouchableOpacity onPress={this.goToAccountDetails} testID={'account-qr-button'}>
