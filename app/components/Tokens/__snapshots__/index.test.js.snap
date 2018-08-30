@@ -38,12 +38,13 @@ exports[`Tokens should render correctly 1`] = `
     </Component>
     <TouchableOpacity
       activeOpacity={0.2}
+      onPress={[Function]}
       style={
         Object {
           "alignItems": "center",
           "flexDirection": "row",
           "justifyContent": "center",
-          "marginTop": 20,
+          "margin": 20,
         }
       }
     >
