@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
+import { withNavigation } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	root: {
@@ -247,6 +248,10 @@ class TransactionEditor extends Component {
 		 */
 		accounts: PropTypes.object,
 		/**
+		 * react-navigation object used for switching between screens
+		 */
+		navigation: PropTypes.object,
+		/**
 		 * ETH to currnt currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -324,6 +329,16 @@ class TransactionEditor extends Component {
 	review = () => {
 		const { onModeChange } = this.props;
 		!this.validate() && onModeChange && onModeChange('review');
+	};
+
+	showQRScanner = () => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: ({ type, values }) => {
+				if (type === 'address' && values.address) {
+					this.setState({ to: toChecksumAddress(values.address) });
+				}
+			}
+		});
 	};
 
 	updateAmount = async amount => {
@@ -405,6 +420,7 @@ class TransactionEditor extends Component {
 									onChange={this.updateToAddress}
 									onFocus={this.focusToAddress}
 									placeholder={strings('transaction.recipientAddress')}
+									showQRScanner={this.showQRScanner}
 									value={to}
 								/>
 							</View>
@@ -537,4 +553,4 @@ const mapStateToProps = ({
 	selectedAddress: PreferencesController.selectedAddress
 });
 
-export default connect(mapStateToProps)(TransactionEditor);
+export default withNavigation(connect(mapStateToProps)(TransactionEditor));
