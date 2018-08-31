@@ -4,10 +4,9 @@ import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-u
 import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
-import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
-import { Platform, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -69,7 +68,6 @@ export default class Browser extends Component {
 		approvedOrigin: false,
 		canGoBack: false,
 		canGoForward: false,
-		entryScriptWeb3: null,
 		inputValue: this.props.defaultURL,
 		url: this.props.defaultURL,
 		progress: 0
@@ -79,13 +77,6 @@ export default class Browser extends Component {
 
 	async componentDidMount() {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
-
-		const entryScriptWeb3 =
-			Platform.OS === 'ios'
-				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
-				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
-
-		await this.setState({ entryScriptWeb3 });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
@@ -144,7 +135,7 @@ export default class Browser extends Component {
 	};
 
 	render() {
-		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+		const { canGoBack, canGoForward, inputValue, url } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -179,10 +170,7 @@ export default class Browser extends Component {
 				</View>
 				<WebviewProgressBar progress={this.state.progress} />
 				<CustomWebview
-					injectJavaScript={entryScriptWeb3}
-					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
-					messagingEnabled
 					onLoadEnd={this.sendStateUpdate}
 					onMessage={this.onMessage}
 					onNavigationStateChange={this.onPageChange}

@@ -1,21 +1,24 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
-
-const styles = StyleSheet.create({
-	bar: {
-		height: 4,
-		backgroundColor: colors.primary
-	}
-});
+import ProgressBar from 'react-native-progress/Bar';
+import FadeView from '../FadeView';
 
 const WebviewProgressBar = props => {
-	if (props.progress === 0 || props.progress === 1) {
-		return null;
-	}
-
-	return <View style={[styles.bar, { width: `${props.progress * 100}%` }]} />;
+	const visible = props.progress !== 1;
+	return (
+		<FadeView visible={visible}>
+			<ProgressBar
+				progress={props.progress}
+				color={colors.primary}
+				width={null}
+				height={3}
+				borderRadius={0}
+				borderWidth={0}
+				useNativeDriver
+			/>
+		</FadeView>
+	);
 };
 
 WebviewProgressBar.propTypes = {
