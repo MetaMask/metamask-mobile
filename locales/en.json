@@ -37,6 +37,25 @@
 		"no_tokens": "You don't have any tokens!",
 		"add_collectibles": "ADD COLLECTIBLES"
 	},
+	"addAsset": {
+		"title": "Add Asset",
+		"search_token": "SEARCH",
+		"custom_token": "CUSTOM TOKEN",
+		"tokens": {
+			"cancel_add_token": "CANCEL",
+			"add_token": "ADD TOKEN"
+		}
+	},
+	"token": {
+		"token_symbol": "Token Symbol",
+		"token_address": "Token Address",
+		"token_precision": "Token of Precision",
+		"search_tokens_placeholder": "Search Tokens",
+		"address_cant_be_empty": "Token address can't be empty.",
+		"address_must_be_valid": "Token address must be a valid address.",
+		"symbol_cant_be_empty": "Token symbol can't be empty.",
+		"decimals_cant_be_empty": "Token decimals can't be empty."
+	},
 	"transfer": {
 		"title": "Transfer",
 		"send": "SEND",

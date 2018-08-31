@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	add: {
-		marginTop: 20,
+		margin: 20,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -125,12 +125,16 @@ export default class Tokens extends Component {
 		));
 	}
 
+	goToAddToken = () => {
+		this.props.navigation.push('AddAsset');
+	};
+
 	render() {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'tokens'}>
 					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-					<TouchableOpacity style={styles.add}>
+					<TouchableOpacity style={styles.add} onPress={this.goToAddToken}>
 						<Icon name="plus" size={16} color={colors.primary} />
 						<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
 					</TouchableOpacity>

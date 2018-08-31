@@ -4,6 +4,7 @@ import NetworkSettings from '../NetworkSettings';
 import SeedWords from '../SeedWords';
 import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
+import AddAsset from '../AddAsset';
 import { createStackNavigator } from 'react-navigation';
 
 /**
@@ -28,5 +29,8 @@ export default createStackNavigator({
 	},
 	Asset: {
 		screen: Asset
+	},
+	AddAsset: {
+		screen: AddAsset
 	}
 });
