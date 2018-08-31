@@ -12,7 +12,7 @@ exports[`SearchAsset should render correctly 1`] = `
 >
   <ActionView
     cancelText="CANCEL"
-    confirmButtonMode="confirm"
+    confirmButtonMode="default"
     confirmText="ADD TOKEN"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
@@ -42,6 +42,7 @@ exports[`SearchAsset should render correctly 1`] = `
             },
           ]
         }
+        testID="input-search-asset"
         underlineColorAndroid="transparent"
         value=""
       />

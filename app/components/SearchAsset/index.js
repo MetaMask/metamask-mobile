@@ -46,9 +46,8 @@ export default class SearchAsset extends Component {
 		return (
 			<View style={styles.wrapper} testID={'search-token-screen'}>
 				<ActionView
-					confirmButtonMode={'confirm'}
-					cancelText={strings('wallet.cancel_add_token')}
-					confirmText={strings('wallet.add_token')}
+					cancelText={strings('addAsset.tokens.cancel_add_token')}
+					confirmText={strings('addAsset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
 					onConfirmPress={this.cancelAddToken}
 				>
@@ -58,6 +57,7 @@ export default class SearchAsset extends Component {
 							value={this.state.token}
 							placeholder={strings('token.search_tokens_placeholder')}
 							onChangeText={this.onTokenChange}
+							testID={'input-search-asset'}
 						/>
 					</View>
 				</ActionView>

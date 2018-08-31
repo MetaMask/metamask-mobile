@@ -12,7 +12,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
 >
   <ActionView
     cancelText="CANCEL"
-    confirmButtonMode="confirm"
+    confirmButtonMode="default"
     confirmText="ADD TOKEN"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
@@ -53,6 +53,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
             },
           ]
         }
+        testID="input-token-address"
         underlineColorAndroid="transparent"
         value=""
       />
@@ -106,6 +107,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
             },
           ]
         }
+        testID="input-token-symbo"
         underlineColorAndroid="transparent"
         value=""
       />
@@ -155,6 +157,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
             "padding": 16,
           }
         }
+        testID="input-token-decimals"
         underlineColorAndroid="transparent"
         value=""
       />

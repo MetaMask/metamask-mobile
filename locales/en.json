@@ -35,11 +35,16 @@
 		"no_collectibles": "You don't have any collectibles!",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"add_collectibles": "ADD COLLECTIBLES",
-		"cancel_add_token": "CANCEL",
-		"add_token": "ADD TOKEN",
+		"add_collectibles": "ADD COLLECTIBLES"
+	},
+	"addAsset": {
+		"title": "Add Asset",
 		"search_token": "Search",
-		"custom_token": "Custom Token"
+		"custom_token": "Custom Token",
+		"tokens": {
+			"cancel_add_token": "CANCEL",
+			"add_token": "ADD TOKEN"
+		}
 	},
 	"token": {
 		"token_symbol": "Token Symbol",

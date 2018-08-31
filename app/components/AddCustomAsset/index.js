@@ -120,9 +120,8 @@ export default class AddCustomAsset extends Component {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
 				<ActionView
-					confirmButtonMode={'confirm'}
-					cancelText={strings('wallet.cancel_add_token')}
-					confirmText={strings('wallet.add_token')}
+					cancelText={strings('addAsset.tokens.cancel_add_token')}
+					confirmText={strings('addAsset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
 					onConfirmPress={this.addToken}
 				>
@@ -134,6 +133,7 @@ export default class AddCustomAsset extends Component {
 							value={this.state.address}
 							onChangeText={this.onAddressChange}
 							onBlur={this.validateCustomTokenAddress}
+							testID={'input-token-address'}
 						/>
 						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningAddress}</Text>
 					</View>
@@ -145,6 +145,7 @@ export default class AddCustomAsset extends Component {
 							value={this.state.symbol}
 							onChangeText={this.onSymbolChange}
 							onBlur={this.validateCustomTokenSymbol}
+							testID={'input-token-symbo'}
 						/>
 						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningSymbol}</Text>
 					</View>
@@ -158,6 +159,7 @@ export default class AddCustomAsset extends Component {
 							placeholder={'18'}
 							onChangeText={this.onDecimalsChange}
 							onBlur={this.validateCustomTokenDecimals}
+							testID={'input-token-decimals'}
 						/>
 						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningDecimals}</Text>
 					</View>

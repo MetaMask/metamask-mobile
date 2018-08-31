@@ -24,9 +24,11 @@ exports[`AddAsset should render correctly 1`] = `
   >
     <SearchAsset
       tabLabel="Search"
+      testID="tab-search-token"
     />
     <AddCustomAsset
       tabLabel="Custom Token"
+      testID="tab-add-custom-token"
     />
   </ScrollableTabView>
 </Component>

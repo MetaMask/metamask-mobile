@@ -28,9 +28,17 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that provides ability to add assets.
+ * Component that provides ability to add assets.
  */
 export default class AddAsset extends Component {
+	static navigationOptions = {
+		title: strings('addAsset.title'),
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		}
+	};
+
 	state = {
 		address: '',
 		symbol: '',
@@ -62,8 +70,16 @@ export default class AddAsset extends Component {
 		return (
 			<View style={styles.wrapper} testID={'add-asset-screen'}>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<SearchAsset navigation={navigation} tabLabel={strings('wallet.search_token')} />
-					<AddCustomAsset navigation={navigation} tabLabel={strings('wallet.custom_token')} />
+					<SearchAsset
+						navigation={navigation}
+						tabLabel={strings('addAsset.search_token')}
+						testID={'tab-search-token'}
+					/>
+					<AddCustomAsset
+						navigation={navigation}
+						tabLabel={strings('addAsset.custom_token')}
+						testID={'tab-add-custom-token'}
+					/>
 				</ScrollableTabView>
 			</View>
 		);
