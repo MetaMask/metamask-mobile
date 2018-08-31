@@ -30,25 +30,6 @@ const styles = StyleSheet.create({
 	}
 });
 
-// This should be coming from redux / GABA store
-
-const tokens = [
-	{
-		balance: 4,
-		balanceFiat: 1500,
-		logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
-		symbol: 'ETH',
-		name: 'Ethereum'
-	},
-	{
-		balance: 20,
-		balanceFiat: 104.2,
-		logo: 'https://cdn.freebiesupply.com/logos/large/2x/omisego-logo-png-transparent.png',
-		symbol: 'OMG',
-		name: 'OmiseGo'
-	}
-];
-
 /**
  * Main view for the wallet
  */
@@ -79,7 +60,11 @@ class Wallet extends Component {
 		/**
 		 * An string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * An array that represents the user tokens
+		 */
+		tokens: PropTypes.array
 	};
 
 	renderTabBar() {
@@ -96,9 +81,8 @@ class Wallet extends Component {
 	}
 
 	render() {
-		const { accounts, conversionRate, currentCurrency, identities, selectedAddress } = this.props;
+		const { accounts, conversionRate, currentCurrency, identities, selectedAddress, tokens } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
 				<AccountOverview
@@ -125,7 +109,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.backgroundState.PreferencesController.identities,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.backgroundState.PreferencesController.tokens
 });
 
 export default connect(mapStateToProps)(Wallet);

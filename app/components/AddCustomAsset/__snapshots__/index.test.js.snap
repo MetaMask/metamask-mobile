@@ -1,0 +1,162 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddCustomAsset should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="add-custom-token-screen"
+>
+  <ActionView
+    cancelText="CANCEL"
+    confirmButtonMode="default"
+    confirmText="ADD TOKEN"
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+  >
+    <Component
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
+        Token Address
+      </Component>
+      <TextInput
+        allowFontScaling={true}
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        placeholder="0x..."
+        style={
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
+        }
+        testID="input-token-address"
+        underlineColorAndroid="transparent"
+        value=""
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      />
+    </Component>
+    <Component
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
+        Token Symbol
+      </Component>
+      <TextInput
+        allowFontScaling={true}
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        placeholder="GNO"
+        style={
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
+        }
+        testID="input-token-symbo"
+        underlineColorAndroid="transparent"
+        value=""
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      />
+    </Component>
+    <Component
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
+        Token of Precision
+      </Component>
+      <TextInput
+        allowFontScaling={true}
+        keyboardType="numeric"
+        maxLength={2}
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        placeholder="18"
+        style={
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
+        }
+        testID="input-token-decimals"
+        underlineColorAndroid="transparent"
+        value=""
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      />
+    </Component>
+  </ActionView>
+</Component>
+`;

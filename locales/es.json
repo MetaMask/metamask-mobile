@@ -37,6 +37,25 @@
 		"no_tokens": "No tienes ningun token",
 		"add_collectibles": "AGREGAR COLECCIONABLE"
 	},
+	"addAsset": {
+		"title": "Agregar Activo",
+		"search_token": "BUSCAR",
+		"custom_token": "TOKEN PERSONALIZADO",
+		"tokens": {
+			"cancel_add_token": "CANCELAR",
+			"add_token": "AGREGAR TOKEN"
+		}
+	},
+	"token": {
+		"token_symbol": "Símbolo del Token",
+		"token_address": "Dirección del Token",
+		"token_precision": "Token de Precisión",
+		"search_tokens_placeholder": "Buscar Tokens",
+		"address_cant_be_empty": "Dirección del token no puede estar vacío.",
+		"address_must_be_valid": "Dirección del token debe ser válida.",
+		"symbol_cant_be_empty": "Símbolo del token no puede estar vacío.",
+		"decimals_cant_be_empty": "Precisión del token no puede estar vacío."
+	},
 	"transfer": {
 		"title": "Transferir",
 		"send": "ENVIAR",

@@ -29,6 +29,7 @@ exports[`WalletScreen should render correctly 1`] = `
       "router": Object {
         "childRouters": Object {
           "AccountDetails": null,
+          "AddAsset": null,
           "Asset": null,
           "NetworkSettings": null,
           "SeedWords": null,
