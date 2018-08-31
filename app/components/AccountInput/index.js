@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -18,7 +19,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		paddingBottom: 16,
 		paddingLeft: 10,
-		paddingRight: 10,
+		paddingRight: 52,
 		paddingTop: 16,
 		position: 'relative'
 	},
@@ -55,6 +56,11 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		flex: 1
+	},
+	qrIcon: {
+		position: 'absolute',
+		right: 16,
+		top: 16
 	}
 });
 
@@ -80,6 +86,10 @@ class AccountInput extends Component {
 		 * Placeholder text to show inside this input
 		 */
 		placeholder: PropTypes.string,
+		/**
+		 * Called when a user clicks the QR code icon
+		 */
+		showQRScanner: PropTypes.func,
 		/**
 		 * Value of this underlying input
 		 */
@@ -143,6 +153,12 @@ class AccountInput extends Component {
 		onChange && onChange(value);
 	};
 
+	showQRScanner = () => {
+		const { showQRScanner } = this.props;
+		this.setState({ isOpen: false });
+		showQRScanner && showQRScanner();
+	};
+
 	render() {
 		const { isOpen } = this.state;
 		const { placeholder, value } = this.props;
@@ -151,7 +167,6 @@ class AccountInput extends Component {
 				<TextInput
 					autoCapitalize="none"
 					autoCorrect={false}
-					clearButtonMode="while-editing"
 					onChangeText={this.onChange}
 					onFocus={this.onFocus}
 					placeholder={placeholder}
@@ -159,6 +174,7 @@ class AccountInput extends Component {
 					style={styles.input}
 					value={value}
 				/>
+				<Icon name="qrcode" onPress={this.showQRScanner} size={24} style={styles.qrIcon} />
 				{isOpen && this.renderOptionList()}
 			</View>
 		);
