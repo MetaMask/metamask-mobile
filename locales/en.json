@@ -39,8 +39,8 @@
 	},
 	"addAsset": {
 		"title": "Add Asset",
-		"search_token": "Search",
-		"custom_token": "Custom Token",
+		"search_token": "SEARCH",
+		"custom_token": "CUSTOM TOKEN",
 		"tokens": {
 			"cancel_add_token": "CANCEL",
 			"add_token": "ADD TOKEN"

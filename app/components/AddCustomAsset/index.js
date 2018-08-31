@@ -19,10 +19,12 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 4,
 		borderColor: colors.borderColor,
-		padding: 16
+		padding: 16,
+		...fontStyles.normal
 	},
 	warningText: {
-		color: colors.error
+		color: colors.error,
+		...fontStyles.normal
 	}
 });
 
@@ -128,26 +130,26 @@ export default class AddCustomAsset extends Component {
 					<View style={styles.rowWrapper}>
 						<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
 						<TextInput
-							style={[fontStyles.normal, styles.textInput]}
+							style={styles.textInput}
 							placeholder={'0x...'}
 							value={this.state.address}
 							onChangeText={this.onAddressChange}
 							onBlur={this.validateCustomTokenAddress}
 							testID={'input-token-address'}
 						/>
-						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningAddress}</Text>
+						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 					</View>
 					<View style={styles.rowWrapper}>
 						<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
 						<TextInput
-							style={[fontStyles.normal, styles.textInput]}
+							style={styles.textInput}
 							placeholder={'GNO'}
 							value={this.state.symbol}
 							onChangeText={this.onSymbolChange}
 							onBlur={this.validateCustomTokenSymbol}
 							testID={'input-token-symbo'}
 						/>
-						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningSymbol}</Text>
+						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 					</View>
 					<View style={styles.rowWrapper}>
 						<Text style={fontStyles.normal}>{strings('token.token_precision')}</Text>
@@ -161,7 +163,7 @@ export default class AddCustomAsset extends Component {
 							onBlur={this.validateCustomTokenDecimals}
 							testID={'input-token-decimals'}
 						/>
-						<Text style={[fontStyles.normal, styles.warningText]}>{this.state.warningDecimals}</Text>
+						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 					</View>
 				</ActionView>
 			</View>

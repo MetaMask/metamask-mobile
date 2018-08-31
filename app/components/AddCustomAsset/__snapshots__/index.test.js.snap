@@ -40,18 +40,14 @@ exports[`AddCustomAsset should render correctly 1`] = `
         onChangeText={[Function]}
         placeholder="0x..."
         style={
-          Array [
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            },
-            Object {
-              "borderColor": "#CCCCCC",
-              "borderRadius": 4,
-              "borderWidth": 1,
-              "padding": 16,
-            },
-          ]
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
         }
         testID="input-token-address"
         underlineColorAndroid="transparent"
@@ -59,15 +55,11 @@ exports[`AddCustomAsset should render correctly 1`] = `
       />
       <Component
         style={
-          Array [
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            },
-            Object {
-              "color": "#FF0000",
-            },
-          ]
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
         }
       />
     </Component>
@@ -94,18 +86,14 @@ exports[`AddCustomAsset should render correctly 1`] = `
         onChangeText={[Function]}
         placeholder="GNO"
         style={
-          Array [
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            },
-            Object {
-              "borderColor": "#CCCCCC",
-              "borderRadius": 4,
-              "borderWidth": 1,
-              "padding": 16,
-            },
-          ]
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
         }
         testID="input-token-symbo"
         underlineColorAndroid="transparent"
@@ -113,15 +101,11 @@ exports[`AddCustomAsset should render correctly 1`] = `
       />
       <Component
         style={
-          Array [
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            },
-            Object {
-              "color": "#FF0000",
-            },
-          ]
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
         }
       />
     </Component>
@@ -154,6 +138,8 @@ exports[`AddCustomAsset should render correctly 1`] = `
             "borderColor": "#CCCCCC",
             "borderRadius": 4,
             "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
             "padding": 16,
           }
         }
@@ -163,15 +149,11 @@ exports[`AddCustomAsset should render correctly 1`] = `
       />
       <Component
         style={
-          Array [
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            },
-            Object {
-              "color": "#FF0000",
-            },
-          ]
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
         }
       />
     </Component>

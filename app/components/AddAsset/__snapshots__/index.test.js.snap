@@ -23,11 +23,11 @@ exports[`AddAsset should render correctly 1`] = `
     tabBarPosition="top"
   >
     <SearchAsset
-      tabLabel="Search"
+      tabLabel="SEARCH"
       testID="tab-search-token"
     />
     <AddCustomAsset
-      tabLabel="Custom Token"
+      tabLabel="CUSTOM TOKEN"
       testID="tab-add-custom-token"
     />
   </ScrollableTabView>

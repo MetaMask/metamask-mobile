@@ -39,8 +39,8 @@
 	},
 	"addAsset": {
 		"title": "Agregar Activo",
-		"search_token": "Buscar",
-		"custom_token": "Token Personalizado",
+		"search_token": "BUSCAR",
+		"custom_token": "TOKEN PERSONALIZADO",
 		"tokens": {
 			"cancel_add_token": "CANCELAR",
 			"add_token": "AGREGAR TOKEN"
