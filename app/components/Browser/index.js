@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
+import WebviewProgressBar from '../WebviewProgressBar';
 import { Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 
@@ -46,7 +47,7 @@ export default class Browser extends Component {
 
 	static defaultProps = {
 		defaultProtocol: 'https://',
-		defaultURL: 'https://eip1102.herokuapp.com'
+		defaultURL: 'https://faucet.metamask.io'
 	};
 
 	static propTypes = {
@@ -70,7 +71,8 @@ export default class Browser extends Component {
 		canGoForward: false,
 		entryScriptWeb3: null,
 		inputValue: this.props.defaultURL,
-		url: this.props.defaultURL
+		url: this.props.defaultURL,
+		progress: 0
 	};
 
 	webview = React.createRef();
@@ -137,6 +139,10 @@ export default class Browser extends Component {
 		this.backgroundBridge.sendStateUpdate();
 	};
 
+	onLoadProgress = progress => {
+		this.setState({ progress });
+	};
+
 	render() {
 		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 		return (
@@ -171,6 +177,7 @@ export default class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
+				<WebviewProgressBar progress={this.state.progress} />
 				<CustomWebview
 					injectJavaScript={entryScriptWeb3}
 					injectedJavaScriptForMainFrameOnly
@@ -183,6 +190,7 @@ export default class Browser extends Component {
 					ref={this.webview}
 					source={{ uri: url }}
 					style={baseStyles.flexGrow}
+					onProgress={this.onLoadProgress}
 				/>
 			</View>
 		);
