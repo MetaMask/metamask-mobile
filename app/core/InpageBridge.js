@@ -41,6 +41,8 @@ class InpageBridge {
 	constructor() {
 		this._pending = {};
 		this.isMetamask = true;
+		this._network = 'INITIAL_NETWORK';
+		this._selectedAddress = 'INITIAL_SELECTED_ADDRESS';
 		document.addEventListener('message', ({ data }) => {
 			this._onMessage(data);
 		});
@@ -101,7 +103,8 @@ class InpageBridge {
 	 * @param {Function} callback - Function called when operation completes
 	 */
 	sendAsync(payload, callback) {
-		payload = { ...payload, ...{ __mmID: Date.now() } };
+		const random = Math.floor(Math.random() * 100 + 1);
+		payload = { ...payload, ...{ __mmID: Date.now() * random } };
 		this._pending[payload.__mmID] = callback;
 		window.postMessage(
 			{

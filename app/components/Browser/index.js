@@ -4,10 +4,13 @@ import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-u
 import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
+import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
+import { connect } from 'react-redux';
+import Networks from '../../util/networks';
 
 const styles = StyleSheet.create({
 	urlBar: {
@@ -41,7 +44,7 @@ const styles = StyleSheet.create({
 /**
  * Complete Web browser component with URL entry and history management
  */
-export default class Browser extends Component {
+class Browser extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
 
 	static defaultProps = {
@@ -68,15 +71,28 @@ export default class Browser extends Component {
 		approvedOrigin: false,
 		canGoBack: false,
 		canGoForward: false,
+		entryScriptWeb3: null,
 		inputValue: this.props.defaultURL,
-		url: this.props.defaultURL,
-		progress: 0
+		url: this.props.defaultURL
 	};
 
 	webview = React.createRef();
 
 	async componentDidMount() {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
+
+		const entryScriptWeb3 =
+			Platform.OS === 'ios'
+				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
+				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
+
+		const { networkType, selectedAddress } = this.props;
+		const { networkId } = Networks[networkType];
+
+		const updatedentryScriptWeb3 = entryScriptWeb3
+			.replace('INITIAL_NETWORK', networkId.toString())
+			.replace('INITIAL_SELECTED_ADDRESS', selectedAddress);
+		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
@@ -135,7 +151,7 @@ export default class Browser extends Component {
 	};
 
 	render() {
-		const { canGoBack, canGoForward, inputValue, url } = this.state;
+		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -170,17 +186,25 @@ export default class Browser extends Component {
 				</View>
 				<WebviewProgressBar progress={this.state.progress} />
 				<CustomWebview
+					injectJavaScript={entryScriptWeb3}
+					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
-					onLoadEnd={this.sendStateUpdate}
+					messagingEnabled
+					onProgress={this.onLoadProgress}
 					onMessage={this.onMessage}
 					onNavigationStateChange={this.onPageChange}
 					openNewWindowInWebView
 					ref={this.webview}
 					source={{ uri: url }}
 					style={baseStyles.flexGrow}
-					onProgress={this.onLoadProgress}
 				/>
 			</View>
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	networkType: state.backgroundState.NetworkController.provider.type,
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+});
+export default connect(mapStateToProps)(Browser);
