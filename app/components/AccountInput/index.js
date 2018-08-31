@@ -169,7 +169,6 @@ class AccountInput extends Component {
 					autoCorrect={false}
 					onChangeText={this.onChange}
 					onFocus={this.onFocus}
-					s
 					placeholder={placeholder}
 					spellCheck={false}
 					style={styles.input}
