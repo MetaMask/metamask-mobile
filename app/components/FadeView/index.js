@@ -7,10 +7,6 @@ import { Animated, ViewPropTypes } from 'react-native';
  * his children by using the visible prop
  */
 export default class FadeView extends Component {
-	state = {
-		visible: this.props.visible
-	};
-
 	static propTypes = {
 		/**
 		 * Determines to show / hide the children components
@@ -28,21 +24,26 @@ export default class FadeView extends Component {
 		style: ViewPropTypes.style
 	};
 
-	visibility = new Animated.Value(this.props.visible ? 1 : 0);
-
-	componentDidUpdate() {
-		this.updateComponentAfterPropChange();
+	constructor(props) {
+		super(props);
+		this.state = {
+			visible: props.visible
+		};
 	}
 
-	updateComponentAfterPropChange() {
-		if (this.props.visible) {
+	UNSAFE_componentWillMount() {
+		this.visibility = new Animated.Value(this.props.visible ? 1 : 0);
+	}
+
+	UNSAFE_componentWillReceiveProps(nextProps) {
+		if (nextProps.visible) {
 			this.setState({ visible: true });
 		}
 		Animated.timing(this.visibility, {
-			toValue: this.props.visible ? 1 : 0,
-			duration: 300
+			toValue: nextProps.visible ? 1 : 0,
+			duration: 100
 		}).start(() => {
-			this.setState({ visible: this.props.visible });
+			this.setState({ visible: nextProps.visible });
 		});
 	}
 
