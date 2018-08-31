@@ -14,7 +14,7 @@ exports[`Browser should render correctly 1`] = `
         "alignItems": "stretch",
         "backgroundColor": "#f1f2f6",
         "flexDirection": "row",
-        "paddingVertical": 8,
+        "paddingVertical": 11,
       }
     }
   >
@@ -98,14 +98,24 @@ exports[`Browser should render correctly 1`] = `
       }
     />
   </Component>
+  <Component
+    style={
+      Object {
+        "height": 3,
+        "marginTop": -5,
+      }
+    }
+  >
+    <WebviewProgressBar />
+  </Component>
   <WKWebView
     injectJavaScript={null}
     injectedJavaScriptForMainFrameOnly={true}
     javaScriptEnabled={true}
     messagingEnabled={true}
-    onLoadEnd={[Function]}
     onMessage={[Function]}
     onNavigationStateChange={[Function]}
+    onProgress={[Function]}
     openNewWindowInWebView={true}
     source={
       Object {
