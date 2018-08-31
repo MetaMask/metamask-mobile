@@ -194,7 +194,7 @@ export default class ImportFromSeed extends Component {
 	render() {
 		return (
 			<Screen>
-				<ScrollView style={styles.wrapper}>
+				<ScrollView style={styles.wrapper} keyboardShouldPersistTaps={'always'}>
 					<View testID={'import-from-seed-screen'}>
 						<View style={styles.logoWrapper}>
 							<Image

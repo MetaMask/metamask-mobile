@@ -147,7 +147,7 @@ export default class Login extends Component {
 	render() {
 		return (
 			<Screen>
-				<ScrollView style={styles.wrapper}>
+				<ScrollView style={styles.wrapper} keyboardShouldPersistTaps={'always'}>
 					<View testID={'login'}>
 						<View style={styles.logoWrapper}>
 							<Image
