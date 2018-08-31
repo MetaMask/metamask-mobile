@@ -2,7 +2,7 @@ import React from 'react';
 import WKWebView from 'react-native-wkwebview-reborn';
 import { TextInput } from 'react-native';
 import { shallow } from 'enzyme';
-import Browser from './';
+import { Browser } from './';
 
 describe('Browser', () => {
 	it('should render correctly', () => {

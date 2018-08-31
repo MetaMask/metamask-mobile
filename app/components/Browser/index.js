@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 /**
  * Complete Web browser component with URL entry and history management
  */
-class Browser extends Component {
+export class Browser extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
 
 	static defaultProps = {
@@ -207,4 +207,6 @@ const mapStateToProps = state => ({
 	networkType: state.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
-export default connect(mapStateToProps)(Browser);
+
+const ConnectedBrowser = connect(mapStateToProps)(Browser);
+export default ConnectedBrowser;

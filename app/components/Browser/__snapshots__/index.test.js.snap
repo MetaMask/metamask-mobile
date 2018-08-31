@@ -98,14 +98,15 @@ exports[`Browser should render correctly 1`] = `
       }
     />
   </Component>
+  <WebviewProgressBar />
   <WKWebView
     injectJavaScript={null}
     injectedJavaScriptForMainFrameOnly={true}
     javaScriptEnabled={true}
     messagingEnabled={true}
-    onLoadEnd={[Function]}
     onMessage={[Function]}
     onNavigationStateChange={[Function]}
+    onProgress={[Function]}
     openNewWindowInWebView={true}
     source={
       Object {
