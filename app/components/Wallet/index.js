@@ -82,7 +82,7 @@ class Wallet extends Component {
 
 	render() {
 		const { accounts, conversionRate, currentCurrency, identities, selectedAddress, tokens } = this.props;
-		const account = { ...identities[selectedAddress], ...accounts[selectedAddress] };
+		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
 				<AccountOverview

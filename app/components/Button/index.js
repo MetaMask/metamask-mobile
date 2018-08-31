@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
  * which renders the appropiate UI elements for each platform (android & iOS)
  */
 const Button = props => (
-	<GenericButton onPress={props.onPress} style={{ ...styles.button, ...props.style }}>
+	<GenericButton onPress={props.onPress} style={[styles.button, props.style]}>
 		{props.children}
 	</GenericButton>
 );
