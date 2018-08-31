@@ -23,7 +23,7 @@ export default class TestHelpers {
 	}
 
 	static async typeTextAndHideKeyboard(elementId, text) {
-		await TestHelpers.typeText(elementId, text + '\n');
+		await TestHelpers.typeText(elementId, text);
 		if (device.getPlatform() === 'android') {
 			device.pressBack();
 		}
