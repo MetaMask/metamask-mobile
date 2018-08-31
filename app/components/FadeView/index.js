@@ -29,21 +29,20 @@ export default class FadeView extends Component {
 		this.state = {
 			visible: props.visible
 		};
+		this.visibility = new Animated.Value(props.visible ? 1 : 0);
 	}
 
-	UNSAFE_componentWillMount() {
-		this.visibility = new Animated.Value(this.props.visible ? 1 : 0);
-	}
-
-	UNSAFE_componentWillReceiveProps(nextProps) {
-		if (nextProps.visible) {
-			this.setState({ visible: true });
-		}
+	componentDidUpdate() {
 		Animated.timing(this.visibility, {
-			toValue: nextProps.visible ? 1 : 0,
-			duration: 1000
+			toValue: this.props.visible ? 1 : 0,
+			duration: 300,
+			useNativeDriver: true
 		}).start(() => {
-			this.setState({ visible: nextProps.visible });
+			if (this.props.visible !== this.state.visible) {
+				setTimeout(() => {
+					this.setState({ visible: this.props.visible });
+				}, 500);
+			}
 		});
 	}
 

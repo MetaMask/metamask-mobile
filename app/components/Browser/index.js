@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 		alignItems: 'stretch',
 		backgroundColor: colors.concrete,
 		flexDirection: 'row',
-		paddingVertical: 8
+		paddingVertical: 11
 	},
 	icon: {
 		color: colors.tar,
@@ -38,6 +38,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 14,
 		padding: 8
+	},
+	progressBarWrapper: {
+		height: 3,
+		marginTop: -5
 	}
 });
 
@@ -87,11 +91,11 @@ export class Browser extends Component {
 				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
 		const { networkType, selectedAddress } = this.props;
-		const { networkId } = Networks[networkType];
 
 		const updatedentryScriptWeb3 = entryScriptWeb3
-			.replace('INITIAL_NETWORK', networkId.toString())
+			.replace('INITIAL_NETWORK', Networks[networkType].networkId.toString())
 			.replace('INITIAL_SELECTED_ADDRESS', selectedAddress);
+
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
@@ -184,7 +188,9 @@ export class Browser extends Component {
 					/>
 					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
-				<WebviewProgressBar progress={this.state.progress} />
+				<View style={styles.progressBarWrapper}>
+					<WebviewProgressBar progress={this.state.progress} />
+				</View>
 				<CustomWebview
 					injectJavaScript={entryScriptWeb3}
 					injectedJavaScriptForMainFrameOnly
@@ -208,5 +214,4 @@ const mapStateToProps = state => ({
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
 
-const ConnectedBrowser = connect(mapStateToProps)(Browser);
-export default ConnectedBrowser;
+export default connect(mapStateToProps)(Browser);
