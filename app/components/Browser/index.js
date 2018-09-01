@@ -1,18 +1,22 @@
 import React, { Component } from 'react';
 import BackgroundBridge from '../../core/BackgroundBridge';
-import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-unresolved
+import Web3Webview from 'react-native-web3-webview';
 import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
-import { Platform, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import Networks from '../../util/networks';
 
 const styles = StyleSheet.create({
+	wrapper: {
+		...baseStyles.flexGrow,
+		backgroundColor: colors.concrete
+	},
 	urlBar: {
 		alignItems: 'stretch',
 		backgroundColor: colors.concrete,
@@ -24,9 +28,9 @@ const styles = StyleSheet.create({
 		flex: 0,
 		height: 28,
 		lineHeight: 28,
-		paddingTop: 2,
 		textAlign: 'center',
-		width: 36
+		width: 36,
+		alignSelf: 'center'
 	},
 	disabledIcon: {
 		color: colors.ash
@@ -42,6 +46,12 @@ const styles = StyleSheet.create({
 	progressBarWrapper: {
 		height: 3,
 		marginTop: -5
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -154,10 +164,19 @@ export class Browser extends Component {
 		this.setState({ progress });
 	};
 
+	renderLoader() {
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	}
+
 	render() {
 		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={styles.wrapper}>
 				<View style={styles.urlBar}>
 					<Icon
 						disabled={!canGoBack}
@@ -186,24 +205,25 @@ export class Browser extends Component {
 						style={styles.urlInput}
 						value={inputValue}
 					/>
-					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
+					<Icon name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
-				<CustomWebview
-					injectJavaScript={entryScriptWeb3}
-					injectedJavaScriptForMainFrameOnly
-					javaScriptEnabled
-					messagingEnabled
-					onProgress={this.onLoadProgress}
-					onMessage={this.onMessage}
-					onNavigationStateChange={this.onPageChange}
-					openNewWindowInWebView
-					ref={this.webview}
-					source={{ uri: url }}
-					style={baseStyles.flexGrow}
-				/>
+				{entryScriptWeb3 ? (
+					<Web3Webview
+						injectedOnStartLoadingJavaScript={entryScriptWeb3}
+						injectedJavaScriptForMainFrameOnly
+						onProgress={this.onLoadProgress}
+						onMessage={this.onMessage}
+						onNavigationStateChange={this.onPageChange}
+						ref={this.webview}
+						source={{ uri: url }}
+						style={baseStyles.flexGrow}
+					/>
+				) : (
+					this.renderLoader()
+				)}
 			</View>
 		);
 	}
