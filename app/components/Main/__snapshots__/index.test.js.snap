@@ -69,7 +69,7 @@ exports[`Main should render correctly 1`] = `
       },
       "setParams": [Function],
       "state": Object {
-        "index": 1,
+        "index": 0,
         "isTransitioning": false,
         "routes": Array [
           Object {

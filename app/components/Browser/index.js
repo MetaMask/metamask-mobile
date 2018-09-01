@@ -217,12 +217,9 @@ export class Browser extends Component {
 					<Web3Webview
 						{...injectionProps}
 						injectedJavaScriptForMainFrameOnly
-						javaScriptEnabled
-						messagingEnabled
 						onProgress={this.onLoadProgress}
 						onMessage={this.onMessage}
 						onNavigationStateChange={this.onPageChange}
-						openNewWindowInWebView
 						ref={this.webview}
 						source={{ uri: url }}
 						style={baseStyles.flexGrow}
