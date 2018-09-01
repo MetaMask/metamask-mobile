@@ -51,6 +51,7 @@ import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.ContentSizeChangeEvent;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.facebook.react.views.webview.ReactWebViewManager;
 import com.facebook.react.views.webview.WebViewConfig;
 import com.facebook.react.views.webview.events.TopLoadingErrorEvent;
@@ -430,6 +431,15 @@ public class CustomWebviewManager extends ReactWebViewManager {
             setWebViewClient(null);
             destroy();
         }
+
+        private void reactNativeEvent(String eventName, String message) {
+            WritableMap event = Arguments.createMap();
+            event.putString("message", message);
+            ReactContext reactContext = (ReactContext) this.getContext();
+            reactContext
+                    .getJSModule(RCTEventEmitter.class)
+                    .receiveEvent(this.getId(), eventName, event);
+        }
     }
 
     public CustomWebviewManager(ReactApplicationContext context, CustomWebviewPackage pkg) {
@@ -533,11 +543,14 @@ public class CustomWebviewManager extends ReactWebViewManager {
                 return true;
             }
             public void onProgressChanged(WebView view, int progress) {
+                dispatchEvent(view, new ProgressEvent(view.getId(), progress));
 
                 if(webView.getProgress() >= 10){
                     webView.linkBridge();
                 }
+
                 Log.d("CustomWebviewProgress", Integer.toString(webView.getProgress()));
+
             }
 
             @Override
@@ -853,5 +866,15 @@ public class CustomWebviewManager extends ReactWebViewManager {
         EventDispatcher eventDispatcher =
                 reactContext.getNativeModule(UIManagerModule.class).getEventDispatcher();
         eventDispatcher.dispatchEvent(event);
+    }
+
+    @Override
+    public @Nullable Map getExportedCustomBubblingEventTypeConstants() {
+        return MapBuilder.builder()
+                .put("progress",
+                        MapBuilder.of(
+                                "phasedRegistrationNames",
+                                MapBuilder.of("bubbled", "onProgress")))
+                .build();
     }
 }

@@ -62,6 +62,7 @@ export default class WebView extends React.Component {
 		onLoadEnd: PropTypes.func,
 		onLoadStart: PropTypes.func,
 		onError: PropTypes.func,
+		onProgress: PropTypes.func,
 		automaticallyAdjustContentInsets: PropTypes.bool,
 		contentInset: EdgeInsetsPropType,
 		onNavigationStateChange: PropTypes.func,
@@ -314,6 +315,7 @@ export default class WebView extends React.Component {
 				domStorageEnabled={this.props.domStorageEnabled}
 				messagingEnabled={typeof this.props.onMessage === 'function'}
 				onMessage={this.onMessage}
+				onProgress={this.onProgress}
 				contentInset={this.props.contentInset}
 				automaticallyAdjustContentInsets={this.props.automaticallyAdjustContentInsets}
 				onContentSizeChange={this.props.onContentSizeChange}
@@ -421,6 +423,11 @@ export default class WebView extends React.Component {
 			viewState: WebViewState.IDLE
 		});
 		this.updateNavigationState(event);
+	};
+
+	onProgress = event => {
+		const { onProgress } = this.props;
+		onProgress && onProgress(parseFloat(event.nativeEvent.progress / 100));
 	};
 
 	onMessage = event => {
