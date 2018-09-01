@@ -16,17 +16,6 @@ import com.rnfs.RNFSPackage;
 import com.smixx.fabric.FabricPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.tectiv3.aes.RCTAesPackage;
-import org.reactnative.camera.RNCameraPackage;
-import cl.json.RNSharePackage;
-import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
-import com.smixx.fabric.FabricPackage;
-import com.tectiv3.aes.RCTAesPackage;
-import com.oblador.keychain.KeychainPackage;
-import com.peel.react.rnos.RNOSModule;
-import com.BV.LinearGradient.LinearGradientPackage;
-import com.bitgo.randombytes.RandomBytesPackage;
-import com.rnfs.RNFSPackage;
-import com.oblador.vectoricons.VectorIconsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -51,29 +40,18 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
             new MainReactPackage(),
-            new Web3WebviewPackage(),
+            new FabricPackage(),
+            new KeychainPackage(),
+            new LinearGradientPackage(),
+            new RandomBytesPackage(),
+            new RCTAesPackage(),
+            new RNCameraPackage(),
+            new RNFSPackage(),
+            new RNI18nPackage(),
+            new RNOSModule(),
+            new RNSharePackage(),
             new VectorIconsPackage(),
-            new RNSharePackage(),
-            new RandomBytesPackage(),
-            new RNOSModule(),
-            new LinearGradientPackage(),
-            new KeychainPackage(),
-            new RNI18nPackage(),
-            new RNFSPackage(),
-            new FabricPackage(),
-            new RNCameraPackage(),
-            new RCTAesPackage(),
-            new RNCameraPackage(),
-            new RNSharePackage(),
-            new RNI18nPackage(),
-            new FabricPackage(),
-            new RCTAesPackage(),
-            new KeychainPackage(),
-            new RNOSModule(),
-            new LinearGradientPackage(),
-            new RandomBytesPackage(),
-            new RNFSPackage(),
-            new VectorIconsPackage()
+            new Web3WebviewPackage()
       );
     }
 
