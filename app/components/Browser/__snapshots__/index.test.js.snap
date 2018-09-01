@@ -4,6 +4,7 @@ exports[`Browser should render correctly 1`] = `
 <Component
   style={
     Object {
+      "backgroundColor": "#f1f2f6",
       "flex": 1,
     }
   }
@@ -26,11 +27,11 @@ exports[`Browser should render correctly 1`] = `
       size={30}
       style={
         Object {
+          "alignSelf": "center",
           "color": "#ced6e0",
           "flex": 0,
           "height": 28,
           "lineHeight": 28,
-          "paddingTop": 2,
           "textAlign": "center",
           "width": 36,
         }
@@ -44,11 +45,11 @@ exports[`Browser should render correctly 1`] = `
       size={30}
       style={
         Object {
+          "alignSelf": "center",
           "color": "#ced6e0",
           "flex": 0,
           "height": 28,
           "lineHeight": 28,
-          "paddingTop": 2,
           "textAlign": "center",
           "width": 36,
         }
@@ -81,17 +82,16 @@ exports[`Browser should render correctly 1`] = `
     />
     <Icon
       allowFontScaling={false}
-      disabled={true}
       name="refresh"
       onPress={[Function]}
       size={20}
       style={
         Object {
+          "alignSelf": "center",
           "color": "#2f3542",
           "flex": 0,
           "height": 28,
           "lineHeight": 28,
-          "paddingTop": 2,
           "textAlign": "center",
           "width": 36,
         }
@@ -108,25 +108,19 @@ exports[`Browser should render correctly 1`] = `
   >
     <WebviewProgressBar />
   </Component>
-  <WKWebView
-    injectJavaScript={null}
-    injectedJavaScriptForMainFrameOnly={true}
-    javaScriptEnabled={true}
-    messagingEnabled={true}
-    onMessage={[Function]}
-    onNavigationStateChange={[Function]}
-    onProgress={[Function]}
-    openNewWindowInWebView={true}
-    source={
-      Object {
-        "uri": "https://metamask.io",
-      }
-    }
+  <Component
     style={
       Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
         "flex": 1,
+        "justifyContent": "center",
       }
     }
-  />
+  >
+    <Component
+      size="small"
+    />
+  </Component>
 </Component>
 `;

@@ -9,7 +9,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0'
+        classpath 'com.android.tools.build:gradle:3.1.4'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -32,9 +32,9 @@ allprojects {
 }
 
 ext {
-    buildToolsVersion = "26.0.3"
-    minSdkVersion = 18
-    compileSdkVersion = 26
-    targetSdkVersion = 26
+    buildToolsVersion = "27.0.3"
+    minSdkVersion = 19
+    compileSdkVersion = 27
+    targetSdkVersion = 27
     supportLibVersion = "26.1.0"
 }

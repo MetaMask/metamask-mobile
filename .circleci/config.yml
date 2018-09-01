@@ -20,8 +20,8 @@ version: 2
 jobs:
   prep-deps:
     <<: *defaults
-    docker:
-      - image: circleci/node:9
+    macos:
+      xcode: "9.4.1"
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -34,8 +34,8 @@ jobs:
 
   lint:
     <<: *defaults
-    docker:
-      - image: circleci/node:9
+    macos:
+      xcode: "9.4.1"
     steps:
       - checkout
       - attach_workspace:
@@ -44,8 +44,8 @@ jobs:
 
   test-unit:
     <<: *defaults
-    docker:
-      - image: circleci/node:9
+    macos:
+      xcode: "9.4.1"
     steps:
       - checkout
       - attach_workspace:
@@ -60,12 +60,10 @@ jobs:
     <<: *defaults
     macos:
       xcode: "9.4.1"
-
     steps:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm rebuild
       - run:
           name: Load dependencies
           command:
@@ -78,8 +76,8 @@ jobs:
 
   upload-coverage:
     <<: *defaults
-    docker:
-      - image: circleci/node:9
+    macos:
+      xcode: "9.4.1"
     steps:
       - checkout
       - attach_workspace:
@@ -88,9 +86,10 @@ jobs:
       - run: codecov
 
   all-tests-pass:
-      docker:
-      - image: circleci/node:9
-      steps:
+    <<: *defaults
+    macos:
+      xcode: "9.4.1"
+    steps:
         - run:
             name: All Tests Passed
             command: echo 'weew - everything passed!'

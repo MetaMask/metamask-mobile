@@ -72,7 +72,7 @@
     "react-native-settings-list": "^1.8.0",
     "react-native-share": "^1.1.1",
     "react-native-vector-icons": "^4.6.0",
-    "react-native-wkwebview-reborn": "1.21.0",
+    "react-native-web3-webview": "^1.0.0",
     "react-navigation": "^2.6.2",
     "react-redux": "^5.0.7",
     "readable-stream": "^1.0.33",
