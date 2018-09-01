@@ -3,9 +3,15 @@
 exports[`Browser should render correctly 1`] = `
 <Component
   style={
-    Object {
-      "flex": 1,
-    }
+    Array [
+      Object {
+        "flex": 1,
+      },
+      Object {
+        "backgroundColor": "#f1f2f6",
+        "flex": 1,
+      },
+    ]
   }
 >
   <Component

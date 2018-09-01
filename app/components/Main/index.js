@@ -45,7 +45,7 @@ export default createBottomTabNavigator(
 		}
 	},
 	{
-		initialRouteName: 'Browser',
+		initialRouteName: 'Wallet',
 		tabBarOptions: {
 			activeTintColor: colors.primary,
 			inactiveTintColor: colors.inactive,

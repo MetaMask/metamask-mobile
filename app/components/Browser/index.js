@@ -13,6 +13,10 @@ import { connect } from 'react-redux';
 import Networks from '../../util/networks';
 
 const styles = StyleSheet.create({
+	wrapper: {
+		...baseStyles.flexGrow,
+		backgroundColor: colors.concrete
+	},
 	urlBar: {
 		alignItems: 'stretch',
 		backgroundColor: colors.concrete,
@@ -172,7 +176,7 @@ export class Browser extends Component {
 		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={[baseStyles.flexGrow, styles.wrapper]}>
 				<View style={styles.urlBar}>
 					<Icon
 						disabled={!canGoBack}

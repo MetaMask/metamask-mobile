@@ -4,7 +4,18 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
-import com.metamask.Web3Webview.Web3WebviewPackage;
+import com.web3webview.Web3WebviewPackage;
+import com.oblador.vectoricons.VectorIconsPackage;
+import cl.json.RNSharePackage;
+import com.bitgo.randombytes.RandomBytesPackage;
+import com.peel.react.rnos.RNOSModule;
+import com.BV.LinearGradient.LinearGradientPackage;
+import com.oblador.keychain.KeychainPackage;
+import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
+import com.rnfs.RNFSPackage;
+import com.smixx.fabric.FabricPackage;
+import org.reactnative.camera.RNCameraPackage;
+import com.tectiv3.aes.RCTAesPackage;
 import org.reactnative.camera.RNCameraPackage;
 import cl.json.RNSharePackage;
 import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
@@ -41,6 +52,17 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       return Arrays.<ReactPackage>asList(
             new MainReactPackage(),
             new Web3WebviewPackage(),
+            new VectorIconsPackage(),
+            new RNSharePackage(),
+            new RandomBytesPackage(),
+            new RNOSModule(),
+            new LinearGradientPackage(),
+            new KeychainPackage(),
+            new RNI18nPackage(),
+            new RNFSPackage(),
+            new FabricPackage(),
+            new RNCameraPackage(),
+            new RCTAesPackage(),
             new RNCameraPackage(),
             new RNSharePackage(),
             new RNI18nPackage(),
