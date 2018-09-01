@@ -489,7 +489,6 @@ public class CustomWebviewManager extends ReactWebViewManager {
         try {
             Request req = new Request.Builder()
                     .url(urlStr)
-                    //.header("User-Agent", userAgent)
                     .build();
             Response response = httpClient.newCall(req).execute();
             Log.d("CustomWebview", "response headers " + response.headers().toString());

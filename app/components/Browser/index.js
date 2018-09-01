@@ -194,7 +194,7 @@ export class Browser extends Component {
 						style={styles.urlInput}
 						value={inputValue}
 					/>
-					<Icon disabled={!canGoForward} name="refresh" onPress={this.reload} size={20} style={styles.icon} />
+					<Icon name="refresh" onPress={this.reload} size={20} style={styles.icon} />
 				</View>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />

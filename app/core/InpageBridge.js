@@ -118,4 +118,11 @@ class InpageBridge {
 
 window.ethereum = new InpageBridge();
 
-window.originalPostMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
+function safePostMessage(msg) {
+	if (window.originalPostMessage) {
+		window.originalPostMessage(msg, '*');
+	} else {
+		window.postMessage(msg, '*');
+	}
+}
+safePostMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' });
