@@ -148,6 +148,10 @@ export default class WebView extends React.Component {
 		injectedJavaScript: PropTypes.string,
 
 		/**
+		 * Sets the JS to be injected when the webpage starts loading.
+		 */
+		injectedOnStartLoadingJavaScript: PropTypes.string,
+		/**
 		 * Sets whether the webpage scales to fit the view and the user can change the scale.
 		 */
 		scalesPageToFit: PropTypes.bool,
@@ -303,6 +307,7 @@ export default class WebView extends React.Component {
 				source={resolveAssetSource(source)}
 				scalesPageToFit={this.props.scalesPageToFit}
 				injectedJavaScript={this.props.injectedJavaScript}
+				injectedOnStartLoadingJavaScript={this.props.injectedOnStartLoadingJavaScript}
 				userAgent={this.props.userAgent}
 				javaScriptEnabled={this.props.javaScriptEnabled}
 				thirdPartyCookiesEnabled={this.props.thirdPartyCookiesEnabled}

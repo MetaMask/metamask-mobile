@@ -7,25 +7,14 @@
 
 package com.metamask.CustomWebview;
 import android.annotation.TargetApi;
-import android.content.Context;
-import com.facebook.react.uimanager.UIManagerModule;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Pattern;
-import javax.annotation.Nullable;
-
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Picture;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ViewGroup.LayoutParams;
@@ -33,13 +22,19 @@ import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
+import android.webkit.ServiceWorkerClient;
+import android.webkit.ServiceWorkerController;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
 import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -51,18 +46,44 @@ import com.facebook.react.common.build.ReactBuildConfig;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.events.ContentSizeChangeEvent;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.views.webview.ReactWebViewManager;
+import com.facebook.react.views.webview.WebViewConfig;
 import com.facebook.react.views.webview.events.TopLoadingErrorEvent;
 import com.facebook.react.views.webview.events.TopLoadingFinishEvent;
 import com.facebook.react.views.webview.events.TopLoadingStartEvent;
 import com.facebook.react.views.webview.events.TopMessageEvent;
-import com.facebook.react.views.webview.WebViewConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.OkHttpClient.Builder;
+
+
+import static okhttp3.internal.Util.UTF_8;
 
 /**
  * Manages instances of {@link WebView}
@@ -86,13 +107,18 @@ import org.json.JSONObject;
  *  - canGoForward - boolean, whether it is possible to request GO_FORWARD command
  */
 @ReactModule(name = CustomWebviewManager.REACT_CLASS)
-public class CustomWebviewManager extends SimpleViewManager<WebView> {
+public class CustomWebviewManager extends ReactWebViewManager {
 
     protected static final String REACT_CLASS = "CustomWebview";
 
+    public final static String HEADER_CONTENT_TYPE = "content-type";
+    private static final String MIME_TEXT_HTML = "text/html";
+    private static final String MIME_UNKNOWN = "application/octet-stream";
     protected static final String HTML_ENCODING = "UTF-8";
     protected static final String HTML_MIME_TYPE = "text/html";
+
     protected static final String BRIDGE_NAME = "__REACT_WEB_VIEW_BRIDGE";
+    private OkHttpClient httpClient;
 
     protected static final String HTTP_METHOD_POST = "POST";
 
@@ -108,9 +134,12 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
     protected static final String BLANK_URL = "about:blank";
 
     protected WebViewConfig mWebViewConfig;
+    private static ReactApplicationContext reactNativeContext;
+    private static boolean debug;
+    private CustomWebviewPackage pkg;
     protected @Nullable WebView.PictureListener mPictureListener;
 
-    protected static class CustomWebviewClient extends WebViewClient {
+    protected class CustomWebviewClient extends WebViewClient {
 
         protected boolean mLastLoadFailed = false;
         protected @Nullable ReadableArray mUrlPrefixesForDefaultIntent;
@@ -146,28 +175,28 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
 
 
         @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url.equals(BLANK_URL)) return false;
-
-            // url blacklisting
-            if (mUrlPrefixesForDefaultIntent != null && mUrlPrefixesForDefaultIntent.size() > 0) {
-                ArrayList<Object> urlPrefixesForDefaultIntent =
-                        mUrlPrefixesForDefaultIntent.toArrayList();
-                for (Object urlPrefix : urlPrefixesForDefaultIntent) {
-                    if (url.startsWith((String) urlPrefix)) {
-                        launchIntent(view.getContext(), url);
-                        return true;
-                    }
-                }
-            }
-
-            if (mOriginWhitelist != null && shouldHandleURL(mOriginWhitelist, url)) {
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            if (request == null || view == null) {
                 return false;
             }
-
-            launchIntent(view.getContext(), url);
-            return true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                /*
+                 * In order to follow redirects properly, we return null in interceptRequest().
+                 * Doing this breaks the web3 injection on the resulting page, so we have to reload to
+                 * make sure web3 is available.
+                 * */
+                if (request.isForMainFrame() && request.isRedirect()) {
+                    view.loadUrl(request.getUrl().toString());
+                    return true;
+                }
+            }
+            /*
+             * API < 24: TODO: implement based on https://github.com/toshiapp/toshi-android-client/blob/f4840d3d24ff60223662eddddceca8586a1be8bb/app/src/main/java/com/toshi/view/activity/webView/ToshiWebClient.kt#L99
+             * */
+            return super.shouldOverrideUrlLoading(view, request);
         }
+
+
 
         private void launchIntent(Context context, String url) {
             try {
@@ -215,6 +244,16 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
                     new TopLoadingErrorEvent(webView.getId(), eventData));
         }
 
+        @Override
+        public void doUpdateVisitedHistory(WebView webView, String url, boolean isReload) {
+            super.doUpdateVisitedHistory(webView, url, isReload);
+            dispatchEvent(
+                    webView,
+                    new TopLoadingStartEvent(
+                            webView.getId(),
+                            createWebViewEvent(webView, url)));
+        }
+
         protected void emitFinishEvent(WebView webView, String url) {
             dispatchEvent(
                     webView,
@@ -236,6 +275,27 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
             return event;
         }
 
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            return null;
+        }
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            Log.d("CustomWebview", "shouldInterceptRequest / WebViewClient");
+            WebResourceResponse response = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                response = CustomWebviewManager.this.shouldInterceptRequest(request, true, (CustomWebview) view);
+                if (response != null) {
+                    Log.d("CustomWebview", "shouldInterceptRequest / WebViewClient -> return intercept response");
+                    return response;
+                }
+            }
+
+            Log.d("CustomWebview", "shouldInterceptRequest / WebViewClient -> intercept response is nil, delegating up");
+            return super.shouldInterceptRequest(view, request);
+        }
+
+
         public void setUrlPrefixesForDefaultIntent(ReadableArray specialUrls) {
             mUrlPrefixesForDefaultIntent = specialUrls;
         }
@@ -251,6 +311,7 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
      */
     protected static class CustomWebview extends WebView implements LifecycleEventListener {
         protected @Nullable String injectedJS;
+        protected @Nullable String injectedOnStartLoadingJS;
         protected boolean messagingEnabled = false;
         protected @Nullable CustomWebviewClient mCustomWebviewClient;
 
@@ -305,6 +366,10 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
 
         public void setInjectedJavaScript(@Nullable String js) {
             injectedJS = js;
+        }
+
+        public void setInjectedOnStartLoadingJavaScript(@Nullable String js) {
+            injectedOnStartLoadingJS = js;
         }
 
         protected CustomWebviewBridge createCustomWebviewBridge(CustomWebview webView) {
@@ -367,21 +432,86 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
         }
     }
 
-    public CustomWebviewManager() {
+    public CustomWebviewManager(ReactApplicationContext context, CustomWebviewPackage pkg) {
+        this.reactNativeContext = context;
+        this.pkg = pkg;
+        Builder b = new Builder();
+        httpClient = b
+                .followRedirects(false)
+                .followSslRedirects(false)
+                .build();
         mWebViewConfig = new WebViewConfig() {
             public void configWebView(WebView webView) {
             }
         };
     }
 
-    public CustomWebviewManager(WebViewConfig webViewConfig) {
-        mWebViewConfig = webViewConfig;
-    }
-
     @Override
     public String getName() {
         return REACT_CLASS;
     }
+
+    public static Boolean urlStringLooksInvalid(String urlString) {
+        return urlString == null ||
+                urlString.trim().equals("") ||
+                !(urlString.startsWith("http") && !urlString.startsWith("www")) ||
+                urlString.contains("|");
+    }
+
+    public static Boolean responseRequiresJSInjection(Response response) {
+        // we don't want to inject JS into redirects
+        if (response.isRedirect()) {
+            return false;
+        }
+        // ...okhttp appends charset to content type sometimes, like "text/html; charset=UTF8"
+        final String contentTypeAndCharset = response.header(HEADER_CONTENT_TYPE, MIME_UNKNOWN);
+        // ...and we only want to inject it in to HTML, really
+        return contentTypeAndCharset.startsWith(MIME_TEXT_HTML);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public WebResourceResponse shouldInterceptRequest(WebResourceRequest request, Boolean onlyMainFrame, CustomWebview webView) {
+        Uri url = request.getUrl();
+        String urlStr = url.toString();
+        Log.d("CustomWebview","new request ");
+        Log.d("CustomWebview","url " + urlStr);
+        Log.d("CustomWebview","host " + request.getUrl().getHost());
+        Log.d("CustomWebview","path " + request.getUrl().getPath());
+        Log.d("CustomWebview","main " + request.isForMainFrame());
+        Log.d("CustomWebview","headers " + request.getRequestHeaders().toString());
+        Log.d("CustomWebview","method " + request.getMethod());
+        if (onlyMainFrame && !request.isForMainFrame()) {
+            return null;
+        }
+        if (CustomWebviewManager.urlStringLooksInvalid(urlStr)) {
+            return null;
+        }
+        try {
+            Request req = new Request.Builder()
+                    .url(urlStr)
+                    //.header("User-Agent", userAgent)
+                    .build();
+            Response response = httpClient.newCall(req).execute();
+            Log.d("CustomWebview", "response headers " + response.headers().toString());
+            Log.d("CustomWebview", "response code " + response.code());
+            Log.d("CustomWebview", "response ok? " + response.isSuccessful());
+            if (!CustomWebviewManager.responseRequiresJSInjection(response)) {
+                return null;
+            }
+            InputStream is = response.body().byteStream();
+            MediaType contentType = response.body().contentType();
+            Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
+            if (response.code() == HttpURLConnection.HTTP_OK) {
+                is = new InputStreamWithInjectedJS(is, webView.injectedOnStartLoadingJS, charset);
+            }
+            Log.d("CustomWebview", "inject our custom JS to this request");
+            return new WebResourceResponse("text/html", charset.name(), is);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+
 
     protected CustomWebview createCustomWebviewInstance(ThemedReactContext reactContext) {
         return new CustomWebview(reactContext);
@@ -441,6 +571,23 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ServiceWorkerController swController = ServiceWorkerController.getInstance();
+            swController.setServiceWorkerClient(new ServiceWorkerClient() {
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebResourceRequest request) {
+                    Log.d("CustomWebview", "shouldInterceptRequest / ServiceWorkerClient");
+                    WebResourceResponse response = CustomWebviewManager.this.shouldInterceptRequest(request, false, webView);
+                    if (response != null) {
+                        Log.d("CustomWebview", "shouldInterceptRequest / ServiceWorkerClient -> return intersept response");
+                        return response;
+                    }
+                    Log.d("CustomWebview", "shouldInterceptRequest / ServiceWorkerClient -> intercept response is nil, delegating up");
+                    return super.shouldInterceptRequest(request);
+                }
+            });
+        }
+
         return webView;
     }
 
@@ -494,6 +641,11 @@ public class CustomWebviewManager extends SimpleViewManager<WebView> {
     @ReactProp(name = "injectedJavaScript")
     public void setInjectedJavaScript(WebView view, @Nullable String injectedJavaScript) {
         ((CustomWebview) view).setInjectedJavaScript(injectedJavaScript);
+    }
+
+    @ReactProp(name = "injectedOnStartLoadingJavaScript")
+    public void setInjectedOnStartLoadingJavaScript(WebView view, @Nullable String injectedJavaScript) {
+        ((CustomWebview) view).setInjectedOnStartLoadingJavaScript(injectedJavaScript);
     }
 
     @ReactProp(name = "messagingEnabled")

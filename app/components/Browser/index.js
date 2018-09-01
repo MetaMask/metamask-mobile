@@ -156,6 +156,14 @@ export class Browser extends Component {
 
 	render() {
 		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+		const injectionProps = {};
+
+		if (Platform.OS === 'android') {
+			injectionProps.injectedOnStartLoadingJavaScript = entryScriptWeb3;
+		} else {
+			injectionProps.injectJavaScript = entryScriptWeb3;
+		}
+
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={styles.urlBar}>
@@ -192,7 +200,7 @@ export class Browser extends Component {
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
 				<CustomWebview
-					injectJavaScript={entryScriptWeb3}
+					{...injectionProps}
 					injectedJavaScriptForMainFrameOnly
 					javaScriptEnabled
 					messagingEnabled

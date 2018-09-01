@@ -14,7 +14,7 @@ public class CustomWebviewPackage implements ReactPackage {
     public List<ViewManager> createViewManagers(
             ReactApplicationContext reactContext) {
         return Collections.<ViewManager>singletonList(
-                new CustomWebviewManager()
+                new CustomWebviewManager(reactContext,this)
         );
     }
 

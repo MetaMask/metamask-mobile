@@ -70,4 +70,6 @@ TARGET="node_modules/react-native-randombytes/android/build.gradle"
 sed -i '' -e 's/26.0.1/27.0.3/' $TARGET;
 TARGET="node_modules/react-native-vector-icons/android/build.gradle"
 sed -i '' -e 's/26.0.1/27.0.3/' $TARGET;
+TARGET="node_modules/detox/android/detox/build.gradle"
+sed -i '' -e 's/26.0.2/27.0.3/' $TARGET;
 echo "Done"
