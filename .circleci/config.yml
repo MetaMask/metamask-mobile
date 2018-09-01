@@ -60,7 +60,6 @@ jobs:
     <<: *defaults
     macos:
       xcode: "9.4.1"
-
     steps:
       - checkout
       - attach_workspace:
@@ -87,9 +86,10 @@ jobs:
       - run: codecov
 
   all-tests-pass:
-      macos:
+    <<: *defaults
+    macos:
       xcode: "9.4.1"
-      steps:
+    steps:
         - run:
             name: All Tests Passed
             command: echo 'weew - everything passed!'
