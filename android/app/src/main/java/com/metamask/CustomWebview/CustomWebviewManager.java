@@ -175,25 +175,21 @@ public class CustomWebviewManager extends ReactWebViewManager {
         }
 
 
+        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             if (request == null || view == null) {
                 return false;
             }
+
+            // This works only for API 24+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                /*
-                 * In order to follow redirects properly, we return null in interceptRequest().
-                 * Doing this breaks the web3 injection on the resulting page, so we have to reload to
-                 * make sure web3 is available.
-                 * */
                 if (request.isForMainFrame() && request.isRedirect()) {
                     view.loadUrl(request.getUrl().toString());
                     return true;
                 }
             }
-            /*
-             * API < 24: TODO: implement based on https://github.com/toshiapp/toshi-android-client/blob/f4840d3d24ff60223662eddddceca8586a1be8bb/app/src/main/java/com/toshi/view/activity/webView/ToshiWebClient.kt#L99
-             * */
+
             return super.shouldOverrideUrlLoading(view, request);
         }
 
@@ -431,15 +427,6 @@ public class CustomWebviewManager extends ReactWebViewManager {
             setWebViewClient(null);
             destroy();
         }
-
-        private void reactNativeEvent(String eventName, String message) {
-            WritableMap event = Arguments.createMap();
-            event.putString("message", message);
-            ReactContext reactContext = (ReactContext) this.getContext();
-            reactContext
-                    .getJSModule(RCTEventEmitter.class)
-                    .receiveEvent(this.getId(), eventName, event);
-        }
     }
 
     public CustomWebviewManager(ReactApplicationContext context, CustomWebviewPackage pkg) {
@@ -469,13 +456,10 @@ public class CustomWebviewManager extends ReactWebViewManager {
     }
 
     public static Boolean responseRequiresJSInjection(Response response) {
-        // we don't want to inject JS into redirects
         if (response.isRedirect()) {
             return false;
         }
-        // ...okhttp appends charset to content type sometimes, like "text/html; charset=UTF8"
         final String contentTypeAndCharset = response.header(HEADER_CONTENT_TYPE, MIME_UNKNOWN);
-        // ...and we only want to inject it in to HTML, really
         return contentTypeAndCharset.startsWith(MIME_TEXT_HTML);
     }
 
@@ -511,11 +495,13 @@ public class CustomWebviewManager extends ReactWebViewManager {
             MediaType contentType = response.body().contentType();
             Charset charset = contentType != null ? contentType.charset(UTF_8) : UTF_8;
             if (response.code() == HttpURLConnection.HTTP_OK) {
-                is = new InputStreamWithInjectedJS(is, webView.injectedOnStartLoadingJS, charset);
+                is = new InputStreamWithInjectedJS(is, webView.injectedOnStartLoadingJS, charset, webView.getContext());
             }
             Log.d("CustomWebview", "inject our custom JS to this request");
             return new WebResourceResponse("text/html", charset.name(), is);
         } catch (IOException e) {
+            Log.e("CustomWebview", "injection failed");
+            Log.e("CustomWebview", e.toString());
             return null;
         }
     }

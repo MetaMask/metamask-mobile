@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
-import { Platform, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import Networks from '../../util/networks';
@@ -42,6 +42,12 @@ const styles = StyleSheet.create({
 	progressBarWrapper: {
 		height: 3,
 		marginTop: -5
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -154,6 +160,14 @@ export class Browser extends Component {
 		this.setState({ progress });
 	};
 
+	renderLoader() {
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	}
+
 	render() {
 		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 		const injectionProps = {};
@@ -199,19 +213,23 @@ export class Browser extends Component {
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
-				<CustomWebview
-					{...injectionProps}
-					injectedJavaScriptForMainFrameOnly
-					javaScriptEnabled
-					messagingEnabled
-					onProgress={this.onLoadProgress}
-					onMessage={this.onMessage}
-					onNavigationStateChange={this.onPageChange}
-					openNewWindowInWebView
-					ref={this.webview}
-					source={{ uri: url }}
-					style={baseStyles.flexGrow}
-				/>
+				{entryScriptWeb3 ? (
+					<CustomWebview
+						{...injectionProps}
+						injectedJavaScriptForMainFrameOnly
+						javaScriptEnabled
+						messagingEnabled
+						onProgress={this.onLoadProgress}
+						onMessage={this.onMessage}
+						onNavigationStateChange={this.onPageChange}
+						openNewWindowInWebView
+						ref={this.webview}
+						source={{ uri: url }}
+						style={baseStyles.flexGrow}
+					/>
+				) : (
+					this.renderLoader()
+				)}
 			</View>
 		);
 	}

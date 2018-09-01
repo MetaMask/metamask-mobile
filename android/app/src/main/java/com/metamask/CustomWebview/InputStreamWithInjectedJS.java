@@ -1,6 +1,13 @@
 package com.metamask.CustomWebview;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
+
+import com.metamask.R;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,8 +16,10 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.nio.charset.StandardCharsets.*;
+import io.fabric.sdk.android.services.common.CommonUtils;
 
+import static java.nio.charset.StandardCharsets.*;
+@RequiresApi(api = Build.VERSION_CODES.KITKAT)
 public class InputStreamWithInjectedJS extends InputStream {
     private InputStream pageIS;
     private InputStream scriptIS;
@@ -28,7 +37,7 @@ public class InputStreamWithInjectedJS extends InputStream {
                 cs = Charset.forName(charsetName);
             }
         } catch (UnsupportedCharsetException e) {
-            Log.d("InputStreamJS", "wrong charset: " + charsetName);
+            Log.d("CustomWebview", "wrong charset: " + charsetName);
         }
         return cs;
     }
@@ -41,7 +50,7 @@ public class InputStreamWithInjectedJS extends InputStream {
         }
         return new ByteArrayInputStream(js.getBytes(charset));
     }
-    InputStreamWithInjectedJS(InputStream is, String js, Charset charset) {
+    InputStreamWithInjectedJS(InputStream is, String js, Charset charset, Context c) {
         if (js == null) {
             this.pageIS = is;
         } else {

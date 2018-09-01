@@ -20,7 +20,8 @@ import {
 
 const styles = StyleSheet.create({
 	container: {
-		flex: 1
+		flex: 1,
+		backgroundColor: 'white' // eslint-disable-line
 	},
 	hidden: {
 		height: 0,
@@ -270,7 +271,7 @@ export default class WebView extends React.Component {
 	};
 
 	render() {
-		let otherView = null;
+		let otherView = null; // eslint-disable-line no-unused-vars
 
 		if (this.state.viewState === WebViewState.LOADING) {
 			otherView = (this.props.renderLoading || defaultRenderLoading)();
@@ -334,12 +335,7 @@ export default class WebView extends React.Component {
 			/>
 		);
 
-		return (
-			<View style={styles.container}>
-				{webView}
-				{otherView}
-			</View>
-		);
+		return <View style={styles.container}>{webView}</View>;
 	}
 
 	goForward = () => {
