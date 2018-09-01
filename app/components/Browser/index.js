@@ -176,7 +176,7 @@ export class Browser extends Component {
 		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 
 		return (
-			<View style={[baseStyles.flexGrow, styles.wrapper]}>
+			<View style={styles.wrapper}>
 				<View style={styles.urlBar}>
 					<Icon
 						disabled={!canGoBack}
