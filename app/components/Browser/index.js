@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import BackgroundBridge from '../../core/BackgroundBridge';
-import CustomWebview from '../CustomWebview'; // eslint-disable-line import/no-unresolved
+import Web3Webview from 'react-native-web3-webview';
 import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
@@ -24,9 +24,9 @@ const styles = StyleSheet.create({
 		flex: 0,
 		height: 28,
 		lineHeight: 28,
-		paddingTop: 2,
 		textAlign: 'center',
-		width: 36
+		width: 36,
+		alignSelf: 'center'
 	},
 	disabledIcon: {
 		color: colors.ash
@@ -214,7 +214,7 @@ export class Browser extends Component {
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
 				{entryScriptWeb3 ? (
-					<CustomWebview
+					<Web3Webview
 						{...injectionProps}
 						injectedJavaScriptForMainFrameOnly
 						javaScriptEnabled

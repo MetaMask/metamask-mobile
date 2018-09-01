@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import com.metamask.Web3Webview.Web3WebviewPackage;
 import org.reactnative.camera.RNCameraPackage;
 import cl.json.RNSharePackage;
 import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
@@ -13,7 +14,6 @@ import com.oblador.keychain.KeychainPackage;
 import com.peel.react.rnos.RNOSModule;
 import com.BV.LinearGradient.LinearGradientPackage;
 import com.bitgo.randombytes.RandomBytesPackage;
-import com.metamask.CustomWebview.CustomWebviewPackage;
 import com.rnfs.RNFSPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.facebook.react.ReactNativeHost;
@@ -40,6 +40,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
             new MainReactPackage(),
+            new Web3WebviewPackage(),
             new RNCameraPackage(),
             new RNSharePackage(),
             new RNI18nPackage(),
@@ -50,8 +51,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
             new LinearGradientPackage(),
             new RandomBytesPackage(),
             new RNFSPackage(),
-            new VectorIconsPackage(),
-            new CustomWebviewPackage()
+            new VectorIconsPackage()
       );
     }
 

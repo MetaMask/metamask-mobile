@@ -1,4 +1,6 @@
 rootProject.name = 'MetaMask'
+include ':react-native-web3-webview'
+project(':react-native-web3-webview').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-web3-webview/android')
 include ':react-native-camera'
 project(':react-native-camera').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-camera/android')
 include ':react-native-share'
