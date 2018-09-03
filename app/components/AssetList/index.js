@@ -3,15 +3,23 @@ import { Text, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
+import AssetIcon from '../AssetIcon';
 
 const styles = StyleSheet.create({
 	rowWrapper: {
 		padding: 20
 	},
 	item: {
-		padding: 20,
 		marginBottom: 5,
-		borderWidth: 1
+		borderWidth: 2
+	},
+	assetListElement: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'flex-start'
+	},
+	text: {
+		padding: 16
 	}
 });
 
@@ -52,7 +60,7 @@ export default class AssetSearch extends Component {
 				{Array(6)
 					.fill(undefined)
 					.map((_, i) => {
-						const { symbol, name, address } = searchResults[i] || {};
+						const { symbol, name, address, logo } = searchResults[i] || {};
 						const isSelected = selectedAsset && selectedAsset.address === address;
 						return (
 							Boolean(address || name || symbol) && (
@@ -62,9 +70,12 @@ export default class AssetSearch extends Component {
 									onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
 									key={i}
 								>
-									<Text>
-										{name} ({symbol})
-									</Text>
+									<View style={styles.assetListElement}>
+										<AssetIcon logo={logo} />
+										<Text style={styles.text}>
+											{name} ({symbol})
+										</Text>
+									</View>
 								</StyledButton>
 							)
 						);

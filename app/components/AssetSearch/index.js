@@ -5,17 +5,26 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import Fuse from 'fuse.js';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
-	rowWrapper: {
-		padding: 20
-	},
-	textInput: {
+	searchSection: {
+		margin: 20,
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.borderColor,
+		borderColor: colors.borderColor
+	},
+	textInput: {
 		padding: 16,
+		flex: 1,
 		...fontStyles.normal
+	},
+	icon: {
+		padding: 16
 	}
 });
 
@@ -65,7 +74,8 @@ export default class AssetSearch extends Component {
 		const { searchQuery } = this.state;
 
 		return (
-			<View style={styles.rowWrapper} testID={'add-searched-token-screen'}>
+			<View style={styles.searchSection} testID={'add-searched-token-screen'}>
+				<Icon name="search" size={22} style={styles.icon} />
 				<TextInput
 					style={styles.textInput}
 					value={searchQuery}
