@@ -66,3 +66,23 @@ TARGET="node_modules/detox/android/detox/build.gradle"
 sed -i '' -e 's/26.0.2/27.0.3/' $TARGET;
 echo "Done"
 
+echo "9. Fix all android build warnings..."
+TARGET="node_modules/react-native-aes-crypto/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
+TARGET="node_modules/react-native-fs/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
+TARGET="node_modules/react-native-fabric/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
+sed -i '' -e 's/compile(/api(/' $TARGET;
+TARGET="node_modules/react-native-linear-gradient/android/build.gradle"
+sed -i '' -e 's/provided /compileOnly /' $TARGET;
+TARGET="node_modules/react-native-i18n/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
+TARGET="node_modules/react-native-os/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
+TARGET="node_modules/react-native-randombytes/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
+TARGET="node_modules/react-native-keychain/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
+TARGET="node_modules/react-native-vector-icons/android/build.gradle"
+sed -i '' -e 's/compile /api /' $TARGET;
