@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import Image from 'react-native-remote-svg';
+import AssetIcon from '../AssetIcon';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,15 +45,11 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.borderColor
 	},
 	itemLogoWrapper: {
-		width: 40,
-		height: 40,
+		width: 50,
+		height: 50,
 		overflow: 'hidden',
 		borderRadius: 100,
 		marginRight: 20
-	},
-	itemLogo: {
-		width: 40,
-		height: 40
 	},
 	balances: {
 		flex: 1
@@ -110,7 +107,7 @@ export default class Tokens extends Component {
 				key={`asset-${asset.symbol}`}
 			>
 				<View style={styles.itemLogoWrapper}>
-					<Image source={{ uri: asset.logo }} style={styles.itemLogo} />
+					<AssetIcon logo={asset.address in contractMap ? contractMap[asset.address].logo : null} />
 				</View>
 				<View style={styles.balances}>
 					<Text style={styles.balance}>
