@@ -6,6 +6,7 @@ import AssetIcon from '../AssetIcon';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
+import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -100,26 +101,29 @@ export default class Tokens extends Component {
 	};
 
 	renderList() {
-		return this.props.assets.map(asset => (
-			<TouchableOpacity
-				onPress={() => this.onItemPress(asset)} // eslint-disable-line
-				style={styles.itemWrapper}
-				key={`asset-${asset.symbol}`}
-			>
-				<View style={styles.itemLogoWrapper}>
-					<AssetIcon logo={asset.address in contractMap ? contractMap[asset.address].logo : null} />
-				</View>
-				<View style={styles.balances}>
-					<Text style={styles.balance}>
-						{asset.balance} {asset.symbol}
-					</Text>
-					<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
-				</View>
-				<View styles={styles.arrow}>
-					<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
-				</View>
-			</TouchableOpacity>
-		));
+		return this.props.assets.map(asset => {
+			asset.logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
+			return (
+				<TouchableOpacity
+					onPress={() => this.onItemPress(asset)} // eslint-disable-line
+					style={styles.itemWrapper}
+					key={`asset-${asset.symbol}`}
+				>
+					<View style={styles.itemLogoWrapper}>
+						{asset.logo ? <AssetIcon logo={asset.logo} /> : <Identicon address={asset.address} />}
+					</View>
+					<View style={styles.balances}>
+						<Text style={styles.balance}>
+							{asset.balance} {asset.symbol}
+						</Text>
+						<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
+					</View>
+					<View styles={styles.arrow}>
+						<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
+					</View>
+				</TouchableOpacity>
+			);
+		});
 	}
 
 	goToAddToken = () => {

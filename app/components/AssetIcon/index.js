@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Image, Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import Image from 'react-native-remote-svg';
 import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
@@ -25,11 +26,10 @@ export default class AssetIcon extends Component {
 	};
 
 	render() {
+		const pngPath = 'https://github.com/MetaMask/eth-contract-metadata/raw/master/images/';
+		const svgPath = 'https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/';
 		const { logo } = this.props;
-		return logo && Platform.OS === 'android' ? (
-			<Image source={{ uri: `asset:/contract/${logo}` }} style={styles.stretch} />
-		) : (
-			<Image source={require('../../images/fox.png')} style={styles.stretch} />
-		);
+		const uri = logo && logo.includes('svg') ? svgPath + logo : pngPath + logo;
+		return logo ? <Image source={{ uri }} style={styles.stretch} /> : null;
 	}
 }
