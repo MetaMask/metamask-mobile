@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetIcon should render correctly 1`] = `
-<Image
+<MyImage
   source={
     Object {
-      "testUri": "../../../app/images/fox.png",
+      "uri": "https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/metamark.svg",
     }
   }
   style={
