@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const styles = StyleSheet.create({
 	searchSection: {
 		margin: 20,
+		marginBottom: 0,
 		flex: 1,
 		flexDirection: 'row',
 		justifyContent: 'center',
@@ -19,7 +20,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderColor
 	},
 	textInput: {
-		padding: 16,
 		flex: 1,
 		...fontStyles.normal
 	},

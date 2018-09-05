@@ -12,6 +12,7 @@ exports[`AssetSearch should render correctly 1`] = `
       "flexDirection": "row",
       "justifyContent": "center",
       "margin": 20,
+      "marginBottom": 0,
     }
   }
   testID="add-searched-token-screen"
@@ -35,7 +36,6 @@ exports[`AssetSearch should render correctly 1`] = `
         "flex": 1,
         "fontFamily": "Roboto",
         "fontWeight": "400",
-        "padding": 16,
       }
     }
     testID="input-search-asset"
