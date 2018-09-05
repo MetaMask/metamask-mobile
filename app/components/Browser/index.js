@@ -197,6 +197,7 @@ export class Browser extends Component {
 						autoCorrect={false}
 						clearButtonMode="while-editing"
 						keyboardType="url"
+						textContentType={'URL'}
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.go}
 						placeholder="Enter website address"
