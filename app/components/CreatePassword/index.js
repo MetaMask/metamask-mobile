@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, ScrollView, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
@@ -111,6 +112,8 @@ export default class CreatePassword extends Component {
 
 	mounted = true;
 
+	confirmPasswordInput = React.createRef();
+
 	componentDidMount() {
 		Keychain.getSupportedBiometryType().then(biometryType => {
 			this.mounted && this.setState({ biometryType, biometryChoice: true });
@@ -155,10 +158,15 @@ export default class CreatePassword extends Component {
 
 	onPressImport = () => this.props.toggleImportFromSeed();
 
+	jumpToConfirmPassword = () => {
+		const { current } = this.confirmPasswordInput;
+		current && current.focus();
+	};
+
 	render() {
 		return (
 			<Screen>
-				<ScrollView style={styles.wrapper}>
+				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'create-password-screen'}>
 						<View style={styles.logoWrapper}>
 							<Image
@@ -178,11 +186,13 @@ export default class CreatePassword extends Component {
 								placeholder={''}
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password'}
+								onSubmitEditing={this.jumpToConfirmPassword}
 							/>
 						</View>
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('createPassword.confirm_password')}</Text>
 							<TextInput
+								ref={this.confirmPasswordInput}
 								style={styles.input}
 								value={this.state.confirmPassword}
 								onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
@@ -190,6 +200,7 @@ export default class CreatePassword extends Component {
 								placeholder={''}
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password-confirm'}
+								onSubmitEditing={this.onPressCreate}
 							/>
 						</View>
 
@@ -215,7 +226,7 @@ export default class CreatePassword extends Component {
 							</Button>
 						</View>
 					</View>
-				</ScrollView>
+				</KeyboardAwareScrollView>
 			</Screen>
 		);
 	}

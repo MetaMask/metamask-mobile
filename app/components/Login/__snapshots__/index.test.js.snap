@@ -75,6 +75,7 @@ exports[`Login should render correctly 1`] = `
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
+          onSubmitEditing={[Function]}
           placeholder=""
           secureTextEntry={true}
           style={

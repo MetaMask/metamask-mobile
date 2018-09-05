@@ -124,7 +124,7 @@ export default class App extends Component {
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
 		} catch (e) {
-			this.setState({ locked: false, existingUser: false, loggedIn: false, loading: false, error: e.toString() });
+			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: false, error: e.toString() });
 		}
 	};
 
@@ -137,7 +137,7 @@ export default class App extends Component {
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: true });
 		} catch (e) {
-			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
+			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: false, error: e.toString() });
 		}
 	};
 
@@ -148,7 +148,7 @@ export default class App extends Component {
 			await KeyringController.submitPassword(password);
 			this.setState({ locked: false, existingUser: true, loading: false, loggedIn: true });
 		} catch (e) {
-			this.setState({ locked: false, existingUser: false, loggedIn: false, error: e.toString() });
+			this.setState({ locked: false, existingUser: false, loading: false, loggedIn: false, error: e.toString() });
 		}
 	};
 

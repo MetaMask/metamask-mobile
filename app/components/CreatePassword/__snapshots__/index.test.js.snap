@@ -2,7 +2,19 @@
 
 exports[`CreatePassword should render correctly 1`] = `
 <Screen>
-  <ScrollView
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    resetScrollToCoords={
+      Object {
+        "x": 0,
+        "y": 0,
+      }
+    }
     style={
       Object {
         "backgroundColor": "#f1f2f6",
@@ -10,6 +22,7 @@ exports[`CreatePassword should render correctly 1`] = `
         "padding": 20,
       }
     }
+    viewIsInsideTabBar={false}
   >
     <Component
       testID="create-password-screen"
@@ -75,6 +88,7 @@ exports[`CreatePassword should render correctly 1`] = `
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
+          onSubmitEditing={[Function]}
           placeholder=""
           secureTextEntry={true}
           style={
@@ -114,6 +128,7 @@ exports[`CreatePassword should render correctly 1`] = `
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
+          onSubmitEditing={[Function]}
           placeholder=""
           secureTextEntry={true}
           style={
@@ -185,6 +200,6 @@ exports[`CreatePassword should render correctly 1`] = `
         </Button>
       </Component>
     </Component>
-  </ScrollView>
+  </KeyboardAwareScrollView>
 </Screen>
 `;
