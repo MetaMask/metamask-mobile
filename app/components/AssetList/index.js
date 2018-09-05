@@ -57,29 +57,25 @@ export default class AssetSearch extends Component {
 		return (
 			<View style={styles.rowWrapper} testID={'add-searched-token-screen'}>
 				<Text>{strings('token.select_token')}</Text>
-				{Array(6)
-					.fill(undefined)
-					.map((_, i) => {
-						const { symbol, name, address, logo } = searchResults[i] || {};
-						const isSelected = selectedAsset && selectedAsset.address === address;
-						return (
-							Boolean(address || name || symbol) && (
-								<StyledButton
-									type={isSelected ? 'normal' : 'transparent'}
-									containerStyle={styles.item}
-									onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
-									key={i}
-								>
-									<View style={styles.assetListElement}>
-										<AssetIcon logo={logo} />
-										<Text style={styles.text}>
-											{name} ({symbol})
-										</Text>
-									</View>
-								</StyledButton>
-							)
-						);
-					})}
+				{searchResults.slice(0, 6).map((_, i) => {
+					const { symbol, name, address, logo } = searchResults[i] || {};
+					const isSelected = selectedAsset && selectedAsset.address === address;
+					return (
+						<StyledButton
+							type={isSelected ? 'normal' : 'transparent'}
+							containerStyle={styles.item}
+							onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
+							key={i}
+						>
+							<View style={styles.assetListElement}>
+								<AssetIcon logo={logo} />
+								<Text style={styles.text}>
+									{name} ({symbol})
+								</Text>
+							</View>
+						</StyledButton>
+					);
+				})}
 			</View>
 		);
 	}

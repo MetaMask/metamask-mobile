@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AddSearchedAsset should render correctly 1`] = `
+exports[`SearchAssetAutocomplete should render correctly 1`] = `
 <Component
   style={
     Object {
