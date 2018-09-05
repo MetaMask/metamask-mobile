@@ -77,6 +77,7 @@ exports[`Browser should render correctly 1`] = `
           "padding": 8,
         }
       }
+      textContentType="URL"
       underlineColorAndroid="transparent"
       value="https://metamask.io"
     />

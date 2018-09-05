@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, ScrollView, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
@@ -68,6 +69,7 @@ const styles = StyleSheet.create({
 	},
 	errorMsg: {
 		color: colors.error,
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	seed: {
@@ -125,6 +127,9 @@ export default class ImportFromSeed extends Component {
 	};
 
 	mounted = true;
+
+	passwordInput = React.createRef();
+	confirmPasswordInput = React.createRef();
 
 	componentDidMount() {
 		Keychain.getSupportedBiometryType().then(biometryType => {
@@ -191,10 +196,20 @@ export default class ImportFromSeed extends Component {
 		this.setState({ confirmPassword: val });
 	};
 
+	jumpToPassword = () => {
+		const { current } = this.passwordInput;
+		current && current.focus();
+	};
+
+	jumpToConfirmPassword = () => {
+		const { current } = this.confirmPasswordInput;
+		current && current.focus();
+	};
+
 	render() {
 		return (
 			<Screen>
-				<ScrollView style={styles.wrapper}>
+				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'import-from-seed-screen'}>
 						<View style={styles.logoWrapper}>
 							<Image
@@ -212,10 +227,13 @@ export default class ImportFromSeed extends Component {
 							placeholder={strings('importFromSeed.seed_phrase_placeholder')}
 							onChangeText={this.onSeedWordsChange}
 							testID={'input-seed-phrase'}
+							blurOnSubmit
+							onSubmitEditing={this.jumpToPassword}
 						/>
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('importFromSeed.new_password')}</Text>
 							<TextInput
+								ref={this.passwordInput}
 								style={styles.input}
 								value={this.state.password}
 								onChangeText={this.onPasswordChange}
@@ -223,11 +241,13 @@ export default class ImportFromSeed extends Component {
 								placeholder={''}
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password'}
+								onSubmitEditing={this.jumpToConfirmPassword}
 							/>
 						</View>
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('importFromSeed.confirm_password')}</Text>
 							<TextInput
+								ref={this.confirmPasswordInput}
 								style={styles.input}
 								value={this.state.confirmPassword}
 								onChangeText={this.onPasswordConfirmChange}
@@ -235,6 +255,7 @@ export default class ImportFromSeed extends Component {
 								placeholder={''}
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password-confirm'}
+								onSubmitEditing={this.onPressImport}
 							/>
 						</View>
 
@@ -260,7 +281,7 @@ export default class ImportFromSeed extends Component {
 							</Button>
 						</View>
 					</View>
-				</ScrollView>
+				</KeyboardAwareScrollView>
 			</Screen>
 		);
 	}
