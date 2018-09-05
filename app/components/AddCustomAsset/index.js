@@ -118,6 +118,19 @@ export default class AddCustomAsset extends Component {
 		return validatedAddress && validatedSymbol && validatedDecimals;
 	};
 
+	assetSymbolInput = React.createRef();
+	assetPrecisionInput = React.createRef();
+
+	jumpToAssetSymbol = () => {
+		const { current } = this.assetSymbolInput;
+		current && current.focus();
+	};
+
+	jumpToAssetPrecision = () => {
+		const { current } = this.assetPrecisionInput;
+		current && current.focus();
+	};
+
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
@@ -136,6 +149,7 @@ export default class AddCustomAsset extends Component {
 							onChangeText={this.onAddressChange}
 							onBlur={this.validateCustomTokenAddress}
 							testID={'input-token-address'}
+							onSubmitEditing={this.jumpToAssetSymbol}
 						/>
 						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 					</View>
@@ -147,7 +161,9 @@ export default class AddCustomAsset extends Component {
 							value={this.state.symbol}
 							onChangeText={this.onSymbolChange}
 							onBlur={this.validateCustomTokenSymbol}
-							testID={'input-token-symbo'}
+							testID={'input-token-symbol'}
+							ref={this.assetSymbolInput}
+							onSubmitEditing={this.jumpToAssetPrecision}
 						/>
 						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 					</View>
@@ -162,6 +178,8 @@ export default class AddCustomAsset extends Component {
 							onChangeText={this.onDecimalsChange}
 							onBlur={this.validateCustomTokenDecimals}
 							testID={'input-token-decimals'}
+							ref={this.assetPrecisionInput}
+							onSubmitEditing={this.addToken}
 						/>
 						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 					</View>

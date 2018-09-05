@@ -1,7 +1,8 @@
 import React from 'react';
 import Button from '../Button';
 import PropTypes from 'prop-types';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { baseStyles, colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 
@@ -64,7 +65,9 @@ export default function ActionView({
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			<ScrollView style={baseStyles.flexGrow}>{children}</ScrollView>
+			<KeyboardAwareScrollView style={baseStyles.flexGrow} resetScrollToCoords={{ x: 0, y: 0 }}>
+				{children}
+			</KeyboardAwareScrollView>
 			<View style={styles.actionContainer}>
 				<Button style={{ ...styles.button, ...styles.cancel }} onPress={onCancelPress}>
 					<Text style={{ ...styles.buttonText, ...styles.cancelText }}>{cancelText.toUpperCase()}</Text>

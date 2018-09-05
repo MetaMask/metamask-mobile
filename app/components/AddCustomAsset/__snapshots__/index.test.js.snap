@@ -38,6 +38,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
         allowFontScaling={true}
         onBlur={[Function]}
         onChangeText={[Function]}
+        onSubmitEditing={[Function]}
         placeholder="0x..."
         style={
           Object {
@@ -84,6 +85,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
         allowFontScaling={true}
         onBlur={[Function]}
         onChangeText={[Function]}
+        onSubmitEditing={[Function]}
         placeholder="GNO"
         style={
           Object {
@@ -95,7 +97,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
             "padding": 16,
           }
         }
-        testID="input-token-symbo"
+        testID="input-token-symbol"
         underlineColorAndroid="transparent"
         value=""
       />
@@ -132,6 +134,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
         maxLength={2}
         onBlur={[Function]}
         onChangeText={[Function]}
+        onSubmitEditing={[Function]}
         placeholder="18"
         style={
           Object {

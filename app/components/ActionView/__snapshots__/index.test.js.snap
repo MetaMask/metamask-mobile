@@ -8,12 +8,25 @@ exports[`ActionView should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    resetScrollToCoords={
+      Object {
+        "x": 0,
+        "y": 0,
+      }
+    }
     style={
       Object {
         "flex": 1,
       }
     }
+    viewIsInsideTabBar={false}
   />
   <Component
     style={
