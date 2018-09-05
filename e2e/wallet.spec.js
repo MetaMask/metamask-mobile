@@ -11,11 +11,11 @@ describe('Wallet', () => {
 		await TestHelpers.checkIfVisible('import-from-seed-screen');
 		// Input seed phrase
 		await TestHelpers.tap('input-seed-phrase');
-		await TestHelpers.typeText('input-seed-phrase', TEST_SEED_WORDS);
+		await TestHelpers.typeTextAndHideKeyboard('input-seed-phrase', TEST_SEED_WORDS);
 		// Input password
 		await TestHelpers.typeTextAndHideKeyboard('input-password', 'Str0ngP@ss!');
 		// Input password confirmation
-		await TestHelpers.typeText('input-password-confirm', 'Str0ngP@ss!\n');
+		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', 'Str0ngP@ss!');
 		// Submit
 		await TestHelpers.waitAndTap('submit');
 		// Check we're in the wallet screen
@@ -54,7 +54,7 @@ describe('Wallet', () => {
 		// Check we're in the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Tap on accounts menu
-		await TestHelpers.tap('navbar-account-button');
+		await TestHelpers.waitAndTap('navbar-account-button');
 		// Check we're in the accounts menu
 		await TestHelpers.checkIfVisible('account-list');
 		// Switch Account to "Account 1"
