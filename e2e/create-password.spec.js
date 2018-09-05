@@ -10,7 +10,6 @@ describe('Create Password', () => {
 
 	it('should validate the password length (min. 8 chars)', async () => {
 		// Enter a short password
-		await TestHelpers.tap('input-password');
 		await TestHelpers.typeText('input-password', '1234567\n');
 		// Confirm the short password and submit
 		await TestHelpers.typeText('input-password-confirm', '1234567\n');
@@ -20,19 +19,15 @@ describe('Create Password', () => {
 
 	it('should validate that the passwords match', async () => {
 		// Enter a one password
-		await TestHelpers.tap('input-password');
 		await TestHelpers.typeText('input-password', 'foo\n');
-		// Enter a different password
-		await TestHelpers.typeTextAndHideKeyboard('input-password-confirm', 'bar');
-		// Submit
-		await TestHelpers.waitAndTap('submit');
+		// Enter a different password and submit
+		await TestHelpers.typeText('input-password-confirm', 'bar\n');
 		// Confirm the error message
 		await TestHelpers.tapAlertWithButton('OK');
 	});
 
 	it('should create the password succesfully', async () => {
 		// Enter a valid password
-		await TestHelpers.tap('input-password');
 		await TestHelpers.typeText('input-password', 'Str0ngP@ss!\n');
 		// Confirm the valid password and submit
 		await TestHelpers.typeText('input-password-confirm', 'Str0ngP@ss!\n');

@@ -18,7 +18,11 @@ export default class TestHelpers {
 	}
 
 	static async typeText(elementId, text) {
-		await TestHelpers.tap(elementId);
+		if (device.getPlatform() === 'android') {
+			await TestHelpers.waitAndTap(elementId);
+		} else {
+			await TestHelpers.tap(elementId);
+		}
 		return element(by.id(elementId)).typeText(text);
 	}
 
