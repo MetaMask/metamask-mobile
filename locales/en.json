@@ -54,7 +54,8 @@
 		"address_cant_be_empty": "Token address can't be empty.",
 		"address_must_be_valid": "Token address must be a valid address.",
 		"symbol_cant_be_empty": "Token symbol can't be empty.",
-		"decimals_cant_be_empty": "Token decimals can't be empty."
+		"decimals_cant_be_empty": "Token decimals can't be empty.",
+		"select_token": "Select Token"
 	},
 	"transfer": {
 		"title": "Transfer",

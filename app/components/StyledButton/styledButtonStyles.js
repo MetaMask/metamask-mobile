@@ -32,6 +32,11 @@ const styles = StyleSheet.create({
 	normalText: {
 		color: colors.primary
 	},
+	transparent: {
+		backgroundColor: colors.white,
+		borderWidth: 0,
+		borderColor: colors.white
+	},
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 2,
@@ -60,6 +65,10 @@ function getStyles(type) {
 		case 'cancel':
 			fontStyle = styles.cancelText;
 			containerStyle = styles.cancel;
+			break;
+		case 'transparent':
+			fontStyle = styles.normalText;
+			containerStyle = styles.transparent;
 			break;
 		default:
 			throw new Error('Unknown button type');

@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetSearch should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "alignItems": "center",
+      "borderColor": "#CCCCCC",
+      "borderRadius": 4,
+      "borderWidth": 1,
+      "flex": 1,
+      "flexDirection": "row",
+      "justifyContent": "center",
+      "margin": 20,
+      "marginBottom": 0,
+    }
+  }
+  testID="add-searched-token-screen"
+>
+  <Icon
+    allowFontScaling={false}
+    name="search"
+    size={22}
+    style={
+      Object {
+        "padding": 16,
+      }
+    }
+  />
+  <TextInput
+    allowFontScaling={true}
+    onChangeText={[Function]}
+    placeholder="Search Tokens"
+    style={
+      Object {
+        "flex": 1,
+        "fontFamily": "Roboto",
+        "fontWeight": "400",
+      }
+    }
+    testID="input-search-asset"
+    underlineColorAndroid="transparent"
+    value=""
+  />
+</Component>
+`;
