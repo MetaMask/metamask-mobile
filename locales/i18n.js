@@ -7,7 +7,7 @@ import es from './es.json';
 
 // Should the app fallback to English if user locale doesn't exists
 I18n.fallbacks = true;
-
+I18n.defaultLocale = 'en';
 // Define the supported translations
 I18n.translations = {
 	en,
