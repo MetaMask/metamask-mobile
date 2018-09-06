@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetList should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "padding": 20,
+    }
+  }
+  testID="add-searched-token-screen"
+>
+  <Component>
+    Select Token
+  </Component>
+</Component>
+`;

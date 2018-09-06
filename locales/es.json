@@ -54,7 +54,8 @@
 		"address_cant_be_empty": "Dirección del token no puede estar vacío.",
 		"address_must_be_valid": "Dirección del token debe ser válida.",
 		"symbol_cant_be_empty": "Símbolo del token no puede estar vacío.",
-		"decimals_cant_be_empty": "Precisión del token no puede estar vacío."
+		"decimals_cant_be_empty": "Precisión del token no puede estar vacío.",
+		"select_token": "Seleccionar Token"
 	},
 	"transfer": {
 		"title": "Transferir",
