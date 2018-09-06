@@ -172,6 +172,7 @@ dependencies {
     api project(':react-native-i18n')
     api project(':react-native-fabric')
     api 'com.android.support:multidex:1.0.1'
+    api "com.android.support:support-annotations:27.1.1"
     api project(':react-native-aes-crypto')
     api project(':react-native-keychain')
     api project(':react-native-os')
@@ -181,7 +182,7 @@ dependencies {
     api project(':react-native-vector-icons')
     api fileTree(dir: "libs", include: ["*.jar"])
     api "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
-    api "com.facebook.react:react-native:+"  // From node_modules
+	api "com.facebook.react:react-native:+"  // From node_modules
     api('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }
