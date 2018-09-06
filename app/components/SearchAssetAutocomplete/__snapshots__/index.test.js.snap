@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SearchAssetAutocomplete should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="search-token-screen"
+>
+  <ActionView
+    cancelText="CANCEL"
+    confirmButtonMode="default"
+    confirmText="ADD TOKEN"
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+  >
+    <AssetSearch
+      onSearch={[Function]}
+    />
+    <AssetSearch
+      handleSelectAsset={[Function]}
+      searchResults={Array []}
+      selectedAsset={Object {}}
+    />
+  </ActionView>
+</Component>
+`;

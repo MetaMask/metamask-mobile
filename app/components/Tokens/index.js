@@ -2,9 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import Image from 'react-native-remote-svg';
+import AssetIcon from '../AssetIcon';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import contractMap from 'eth-contract-metadata';
+import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,15 +46,11 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.borderColor
 	},
 	itemLogoWrapper: {
-		width: 40,
-		height: 40,
+		width: 50,
+		height: 50,
 		overflow: 'hidden',
 		borderRadius: 100,
 		marginRight: 20
-	},
-	itemLogo: {
-		width: 40,
-		height: 40
 	},
 	balances: {
 		flex: 1
@@ -103,26 +101,29 @@ export default class Tokens extends Component {
 	};
 
 	renderList() {
-		return this.props.assets.map(asset => (
-			<TouchableOpacity
-				onPress={() => this.onItemPress(asset)} // eslint-disable-line
-				style={styles.itemWrapper}
-				key={`asset-${asset.symbol}`}
-			>
-				<View style={styles.itemLogoWrapper}>
-					<Image source={{ uri: asset.logo }} style={styles.itemLogo} />
-				</View>
-				<View style={styles.balances}>
-					<Text style={styles.balance}>
-						{asset.balance} {asset.symbol}
-					</Text>
-					<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
-				</View>
-				<View styles={styles.arrow}>
-					<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
-				</View>
-			</TouchableOpacity>
-		));
+		return this.props.assets.map(asset => {
+			asset.logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
+			return (
+				<TouchableOpacity
+					onPress={() => this.onItemPress(asset)} // eslint-disable-line
+					style={styles.itemWrapper}
+					key={`asset-${asset.symbol}`}
+				>
+					<View style={styles.itemLogoWrapper}>
+						{asset.logo ? <AssetIcon logo={asset.logo} /> : <Identicon address={asset.address} />}
+					</View>
+					<View style={styles.balances}>
+						<Text style={styles.balance}>
+							{asset.balance} {asset.symbol}
+						</Text>
+						<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
+					</View>
+					<View styles={styles.arrow}>
+						<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
+					</View>
+				</TouchableOpacity>
+			);
+		});
 	}
 
 	goToAddToken = () => {
