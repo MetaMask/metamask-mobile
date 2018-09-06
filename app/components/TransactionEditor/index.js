@@ -461,7 +461,7 @@ class TransactionEditor extends Component {
 				)}
 				{mode === 'review' && (
 					<ActionView
-						confirmButtonMode="filled"
+						confirmButtonMode="confirm"
 						onCancelPress={this.onCancel}
 						onConfirmPress={this.onConfirm}
 					>

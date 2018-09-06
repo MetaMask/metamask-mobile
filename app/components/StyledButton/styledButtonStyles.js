@@ -1,5 +1,5 @@
 import { StyleSheet, Platform } from 'react-native';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	container: {
@@ -10,7 +10,8 @@ const styles = StyleSheet.create({
 	text: {
 		fontSize: 18,
 		textAlign: 'center',
-		textTransform: 'uppercase'
+		textTransform: 'uppercase',
+		...fontStyles.bold
 	},
 	orange: {
 		backgroundColor: colors.primaryFox
@@ -40,10 +41,10 @@ const styles = StyleSheet.create({
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 2,
-		borderColor: colors.fontPrimary
+		borderColor: colors.accentGray
 	},
 	cancelText: {
-		color: colors.fontPrimary
+		color: colors.accentGray
 	}
 });
 

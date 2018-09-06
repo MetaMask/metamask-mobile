@@ -12,7 +12,7 @@ exports[`SearchAssetAutocomplete should render correctly 1`] = `
 >
   <ActionView
     cancelText="CANCEL"
-    confirmButtonMode="default"
+    confirmButtonMode="normal"
     confirmText="ADD TOKEN"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}

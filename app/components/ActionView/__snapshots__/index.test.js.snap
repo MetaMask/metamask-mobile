@@ -26,60 +26,56 @@ exports[`ActionView should render correctly 1`] = `
       }
     }
   >
-    <Button
-      style={
+    <StyledButton
+      containerStyle={
+        Array [
+          Object {
+            "flex": 1,
+          },
+          Object {
+            "marginRight": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
         Object {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#9b9b9b",
-          "borderRadius": 4,
-          "borderWidth": 2,
-          "height": "auto",
-          "marginRight": 8,
-          "paddingVertical": 16,
-          "width": "50%",
+          "opacity": 0.6,
         }
       }
-    >
-      <Component
-        style={
-          Object {
-            "color": "#5d5d5d",
-            "fontFamily": "Roboto",
-            "fontSize": 15,
-            "fontWeight": "500",
-          }
-        }
-      >
-        CANCEL
-      </Component>
-    </Button>
-    <Button
-      style={
+      styleDisabled={
         Object {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#2f9ae0",
-          "borderRadius": 4,
-          "borderWidth": 2,
-          "height": "auto",
-          "marginLeft": 8,
-          "paddingVertical": 16,
-          "width": "50%",
+          "opacity": 0.6,
         }
       }
+      type="cancel"
     >
-      <Component
-        style={
+      CANCEL
+    </StyledButton>
+    <StyledButton
+      containerStyle={
+        Array [
           Object {
-            "color": "#2f9ae0",
-            "fontFamily": "Roboto",
-            "fontSize": 15,
-            "fontWeight": "500",
-          }
+            "flex": 1,
+          },
+          Object {
+            "marginLeft": 8,
+          },
+        ]
+      }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
         }
-      >
-        CONFIRM
-      </Component>
-    </Button>
+      }
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="normal"
+    >
+      CONFIRM
+    </StyledButton>
   </Component>
 </Component>
 `;
