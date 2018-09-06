@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ActivityIndicator, ScrollView, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Button from 'react-native-button';
+import StyledButton from '../StyledButton';
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
@@ -50,18 +51,6 @@ const styles = StyleSheet.create({
 	},
 	ctaWrapper: {
 		marginTop: 20
-	},
-	ctaText: {
-		color: colors.white,
-		textTransform: 'uppercase',
-		...fontStyles.bold
-	},
-	cta: {
-		flex: 1,
-		backgroundColor: colors.primaryFox,
-		borderRadius: 4,
-		height: 50,
-		justifyContent: 'center'
 	},
 	footer: {
 		marginTop: 40
@@ -171,13 +160,13 @@ export default class Login extends Component {
 						</View>
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 						<View style={styles.ctaWrapper}>
-							<Button style={styles.ctaText} containerStyle={styles.cta} onPress={this.onLogin}>
+							<StyledButton type={'orange'} onPress={this.onLogin}>
 								{this.props.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
 									strings('login.login_button')
 								)}
-							</Button>
+							</StyledButton>
 						</View>
 
 						<View style={styles.footer}>

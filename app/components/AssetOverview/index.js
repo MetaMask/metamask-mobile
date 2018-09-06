@@ -5,7 +5,7 @@ import Image from 'react-native-remote-svg';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
-import Button from '../Button';
+import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 
@@ -99,14 +99,22 @@ export default class AssetOverview extends Component {
 					<Text style={styles.amountFiat}>${balanceFiat} USD</Text>
 				</View>
 				<View style={styles.buttons}>
-					<Button onPress={this.onSend} style={[styles.button, styles.leftButton]}>
+					<StyledButton
+						type={'confirm'}
+						onPress={this.onSend}
+						containerStyle={[styles.button, styles.leftButton]}
+					>
 						<MaterialIcon name={'send'} size={15} color={colors.white} />
 						<Text style={styles.buttonText}>{strings('assetOverview.send_button')}</Text>
-					</Button>
-					<Button onPress={this.onDeposit} style={[styles.button, styles.rightButton]}>
+					</StyledButton>
+					<StyledButton
+						type={'confirm'}
+						onPress={this.onDeposit}
+						containerStyle={[styles.button, styles.rightButton]}
+					>
 						<FoundationIcon name={'download'} size={20} color={colors.white} />
 						<Text style={styles.buttonText}>{strings('assetOverview.receive_button')}</Text>
-					</Button>
+					</StyledButton>
 				</View>
 			</LinearGradient>
 		);

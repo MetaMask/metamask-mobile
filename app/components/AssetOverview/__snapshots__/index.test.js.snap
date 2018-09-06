@@ -91,9 +91,8 @@ exports[`AssetOverview should render correctly 1`] = `
       }
     }
   >
-    <Button
-      onPress={[Function]}
-      style={
+    <StyledButton
+      containerStyle={
         Array [
           Object {
             "flex": 1,
@@ -104,6 +103,18 @@ exports[`AssetOverview should render correctly 1`] = `
           },
         ]
       }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="confirm"
     >
       <Icon
         allowFontScaling={false}
@@ -117,7 +128,7 @@ exports[`AssetOverview should render correctly 1`] = `
             "color": "#FFFFFF",
             "fontFamily": "Roboto",
             "fontSize": 15,
-            "fontWeight": "500",
+            "fontWeight": "600",
             "marginLeft": 8,
             "textTransform": "uppercase",
           }
@@ -125,10 +136,9 @@ exports[`AssetOverview should render correctly 1`] = `
       >
         SEND
       </Component>
-    </Button>
-    <Button
-      onPress={[Function]}
-      style={
+    </StyledButton>
+    <StyledButton
+      containerStyle={
         Array [
           Object {
             "flex": 1,
@@ -139,6 +149,18 @@ exports[`AssetOverview should render correctly 1`] = `
           },
         ]
       }
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="confirm"
     >
       <Icon
         allowFontScaling={false}
@@ -152,7 +174,7 @@ exports[`AssetOverview should render correctly 1`] = `
             "color": "#FFFFFF",
             "fontFamily": "Roboto",
             "fontSize": 15,
-            "fontWeight": "500",
+            "fontWeight": "600",
             "marginLeft": 8,
             "textTransform": "uppercase",
           }
@@ -160,7 +182,7 @@ exports[`AssetOverview should render correctly 1`] = `
       >
         RECEIVE
       </Component>
-    </Button>
+    </StyledButton>
   </Component>
 </LinearGradient>
 `;

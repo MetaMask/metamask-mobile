@@ -66,6 +66,6 @@ export const fontStyles = {
 	},
 	bold: {
 		fontFamily: 'Roboto',
-		fontWeight: '500'
+		fontWeight: '600'
 	}
 };

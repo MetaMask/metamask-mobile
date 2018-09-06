@@ -4,7 +4,7 @@ import { Platform, TextInput, StyleSheet, Text, ScrollView, View } from 'react-n
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode';
-import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
+import StyledButton from '../StyledButton';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../util/Logger';
 import { strings } from '../../../locales/i18n';

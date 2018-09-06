@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
+import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 import { colors, fontStyles } from '../../styles/common';
@@ -51,18 +52,6 @@ const styles = StyleSheet.create({
 	},
 	ctaWrapper: {
 		marginTop: 20
-	},
-	ctaText: {
-		color: colors.white,
-		textTransform: 'uppercase',
-		...fontStyles.bold
-	},
-	cta: {
-		flex: 1,
-		backgroundColor: colors.primaryFox,
-		borderRadius: 4,
-		height: 50,
-		justifyContent: 'center'
 	},
 	footer: {
 		marginTop: 40
@@ -206,18 +195,13 @@ export default class CreatePassword extends Component {
 
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 						<View style={styles.ctaWrapper}>
-							<Button
-								style={styles.ctaText}
-								containerStyle={styles.cta}
-								onPress={this.onPressCreate}
-								testID={'submit'}
-							>
+							<StyledButton type={'orange'} onPress={this.onPressCreate} testID={'submit'}>
 								{this.props.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
 									strings('createPassword.create_button')
 								)}
-							</Button>
+							</StyledButton>
 						</View>
 
 						<View style={styles.footer}>
