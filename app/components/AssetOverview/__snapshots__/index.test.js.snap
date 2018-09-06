@@ -28,18 +28,8 @@ exports[`AssetOverview should render correctly 1`] = `
       }
     }
   >
-    <MyImage
-      source={
-        Object {
-          "uri": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
-        }
-      }
-      style={
-        Object {
-          "height": 60,
-          "width": 60,
-        }
-      }
+    <AssetIcon
+      logo="https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg"
     />
   </Component>
   <Component

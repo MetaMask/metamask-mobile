@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import AddCustomAsset from '../AddCustomAsset';
-import SearchAsset from '../SearchAsset';
+import SearchAssetAutocomplete from '../SearchAssetAutocomplete';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
@@ -70,7 +70,7 @@ export default class AddAsset extends Component {
 		return (
 			<View style={styles.wrapper} testID={'add-asset-screen'}>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<SearchAsset
+					<SearchAssetAutocomplete
 						navigation={navigation}
 						tabLabel={strings('addAsset.search_token')}
 						testID={'tab-search-token'}

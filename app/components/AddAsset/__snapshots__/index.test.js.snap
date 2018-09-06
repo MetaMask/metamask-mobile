@@ -22,7 +22,7 @@ exports[`AddAsset should render correctly 1`] = `
     scrollWithoutAnimation={false}
     tabBarPosition="top"
   >
-    <SearchAsset
+    <SearchAssetAutocomplete
       tabLabel="SEARCH"
       testID="tab-search-token"
     />

@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
-import Image from 'react-native-remote-svg';
+import AssetIcon from '../AssetIcon';
+import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
@@ -22,10 +23,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderRadius: 10,
 		marginBottom: 10
-	},
-	assetLogoImage: {
-		width: 60,
-		height: 60
 	},
 	balance: {
 		flex: 1,
@@ -83,13 +80,12 @@ export default class AssetOverview extends Component {
 
 	render() {
 		const {
-			asset: { logo, symbol, balance, balanceFiat }
+			asset: { address, logo, symbol, balance, balanceFiat }
 		} = this.props;
-
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>
-					<Image source={{ uri: logo }} style={styles.assetLogoImage} />
+					{logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />}
 				</View>
 				<View style={styles.balance}>
 					<Text style={styles.amount}>

@@ -48,6 +48,8 @@
     "ethereumjs-util": "^5.2.0",
     "ethjs-unit": "^0.1.6",
     "events": "^3.0.0",
+    "eth-contract-metadata": "github:MetaMask/eth-contract-metadata#master",
+    "fuse.js": "^3.2.0",
     "gaba": "^1.0.0-beta.33",
     "prop-types": "^15.6.2",
     "react": "16.4.1",

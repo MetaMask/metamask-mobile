@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import SearchAsset from './';
+import SearchAssetAutocomplete from './';
 
-describe('SearchAsset', () => {
+describe('SearchAssetAutocomplete', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<SearchAsset />);
+		const wrapper = shallow(<SearchAssetAutocomplete />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
