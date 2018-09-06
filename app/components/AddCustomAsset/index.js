@@ -150,6 +150,7 @@ export default class AddCustomAsset extends Component {
 							onBlur={this.validateCustomTokenAddress}
 							testID={'input-token-address'}
 							onSubmitEditing={this.jumpToAssetSymbol}
+							returnKeyType={'next'}
 						/>
 						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 					</View>
@@ -164,6 +165,7 @@ export default class AddCustomAsset extends Component {
 							testID={'input-token-symbol'}
 							ref={this.assetSymbolInput}
 							onSubmitEditing={this.jumpToAssetPrecision}
+							returnKeyType={'next'}
 						/>
 						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 					</View>
@@ -180,6 +182,7 @@ export default class AddCustomAsset extends Component {
 							testID={'input-token-decimals'}
 							ref={this.assetPrecisionInput}
 							onSubmitEditing={this.addToken}
+							returnKeyType={'done'}
 						/>
 						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 					</View>

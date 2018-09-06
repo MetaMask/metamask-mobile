@@ -156,6 +156,7 @@ export default class Login extends Component {
 								placeholder={''}
 								underlineColorAndroid={colors.borderColor}
 								onSubmitEditing={this.onLogin}
+								returnKeyType={'done'}
 							/>
 						</View>
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
