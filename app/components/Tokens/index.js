@@ -113,9 +113,7 @@ export default class Tokens extends Component {
 						{asset.logo ? <AssetIcon logo={asset.logo} /> : <Identicon address={asset.address} />}
 					</View>
 					<View style={styles.balances}>
-						<Text style={styles.balance}>
-							{asset.balance} {asset.symbol}
-						</Text>
+						<Text style={styles.balance}>{asset.symbol}</Text>
 						<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
 					</View>
 					<View styles={styles.arrow}>
@@ -135,7 +133,7 @@ export default class Tokens extends Component {
 			<ScrollView style={styles.wrapper}>
 				<View testID={'tokens'}>
 					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-					<TouchableOpacity style={styles.add} onPress={this.goToAddToken}>
+					<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
 						<Icon name="plus" size={16} color={colors.primary} />
 						<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
 					</TouchableOpacity>

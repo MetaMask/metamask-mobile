@@ -45,6 +45,10 @@ export default class TestHelpers {
 			.tap();
 	}
 
+	static async swipe(elementId, direction) {
+		await element(by.id(elementId)).swipe(direction);
+	}
+
 	static checkIfVisible(elementId) {
 		return waitFor(element(by.id(elementId)))
 			.toBeVisible()
@@ -57,6 +61,10 @@ export default class TestHelpers {
 
 	static checkIfElementWithTextIsVisible(text) {
 		return expect(element(by.text(text)).atIndex(0)).toBeVisible();
+	}
+
+	static checkIfElementByTextIsVisible(text) {
+		return expect(element(by.text(text))).toBeVisible();
 	}
 
 	static relaunchApp() {
