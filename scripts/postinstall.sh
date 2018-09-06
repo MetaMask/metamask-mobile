@@ -34,7 +34,7 @@ echo "Done"
 # Waiting for PR to get merged: https://github.com/seekshiva/react-native-remote-svg/pull/18
 echo "6. Fix react-native-remote-svg"
 TARGET="node_modules/react-native-remote-svg/SvgImage.js"
-sed -i'' 's/<WebView/<WebView originWhitelist={["*"]}/' $TARGET;
+sed -i'' -e 's/<WebView/<WebView originWhitelist={["*"]}/' $TARGET;
 echo "Done"
 
 # This one has been fixed on master
