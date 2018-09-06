@@ -3,6 +3,9 @@ import TestHelpers from './helpers';
 
 const TEST_SEED_WORDS = 'recipe silver label ensure thing vendor abuse twin wait receive unaware flower';
 const TEST_ADDRESS = '0x4a6D01f1BBf8197AB8f6b0b5BD88e04CD525fAb8';
+const TEST_TOKEN_ADDRESS = '0x4CEdA7906a5Ed2179785Cd3A40A69ee8bc99C466';
+const TEST_TOKEN_SYMBOL = 'TN';
+const TEST_TOKEN_PRECISION = '18';
 
 describe('Wallet', () => {
 	it('should be able to restore accounts from seed', async () => {
@@ -95,5 +98,27 @@ describe('Wallet', () => {
 				.tap();
 		}
 		await TestHelpers.checkIfHasText('navbar-title-network', 'Ethereum Main Network');
+	});
+
+	it('should be able to add custom token', async () => {
+		await TestHelpers.relaunchApp();
+		// Check we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Tap on add tokens button
+		await TestHelpers.tap('add-token-button');
+		// Check we're in the add asset screen
+		await TestHelpers.checkIfVisible('add-asset-screen');
+		// Go to custom token tab
+		await TestHelpers.swipe('search-token-screen', 'left');
+		// Select first input and write address
+		await TestHelpers.typeText('input-token-address', `${TEST_TOKEN_ADDRESS}\n`);
+		// Select second input and write symbol
+		await TestHelpers.typeText('input-token-symbol', `${TEST_TOKEN_SYMBOL}\n`);
+		// Select third input and write precision
+		await TestHelpers.typeText('input-token-decimals', `${TEST_TOKEN_PRECISION}\n`);
+		// Check we're in the wallet screen
+		await TestHelpers.checkIfVisible('wallet-screen');
+		// Find token added on list
+		await TestHelpers.checkIfElementByTextIsVisible(TEST_TOKEN_SYMBOL);
 	});
 });
