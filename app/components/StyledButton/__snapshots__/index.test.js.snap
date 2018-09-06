@@ -7,7 +7,7 @@ exports[`StyledButton should render correctly on Android the button with type ca
       Array [
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#333333",
+          "borderColor": "#9b9b9b",
           "borderRadius": 4,
           "borderWidth": 2,
           "justifyContent": "center",
@@ -86,7 +86,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
     Array [
       Object {
         "backgroundColor": "#FFFFFF",
-        "borderColor": "#333333",
+        "borderColor": "#9b9b9b",
         "borderRadius": 4,
         "borderWidth": 2,
         "justifyContent": "center",
@@ -103,8 +103,10 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   style={
     Array [
       Object {
-        "color": "#333333",
+        "color": "#9b9b9b",
+        "fontFamily": "Roboto",
         "fontSize": 18,
+        "fontWeight": "600",
         "textAlign": "center",
         "textTransform": "uppercase",
       },
@@ -141,7 +143,9 @@ exports[`StyledButton should render correctly on iOS the button with type confir
     Array [
       Object {
         "color": "#FFFFFF",
+        "fontFamily": "Roboto",
         "fontSize": 18,
+        "fontWeight": "600",
         "textAlign": "center",
         "textTransform": "uppercase",
       },
@@ -180,7 +184,9 @@ exports[`StyledButton should render correctly on iOS the button with type normal
     Array [
       Object {
         "color": "#007aff",
+        "fontFamily": "Roboto",
         "fontSize": 18,
+        "fontWeight": "600",
         "textAlign": "center",
         "textTransform": "uppercase",
       },
@@ -217,7 +223,9 @@ exports[`StyledButton should render correctly on iOS the button with type orange
     Array [
       Object {
         "color": "#FFFFFF",
+        "fontFamily": "Roboto",
         "fontSize": 18,
+        "fontWeight": "600",
         "textAlign": "center",
         "textTransform": "uppercase",
       },

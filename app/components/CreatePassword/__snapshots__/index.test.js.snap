@@ -57,7 +57,7 @@ exports[`CreatePassword should render correctly 1`] = `
             "color": "#1B344D",
             "fontFamily": "Roboto",
             "fontSize": 35,
-            "fontWeight": "500",
+            "fontWeight": "600",
             "justifyContent": "center",
             "marginBottom": 20,
             "marginTop": 20,
@@ -154,29 +154,23 @@ exports[`CreatePassword should render correctly 1`] = `
           }
         }
       >
-        <Button
-          containerStyle={
+        <StyledButton
+          disabledContainerStyle={
             Object {
-              "backgroundColor": "#f7861ce6",
-              "borderRadius": 4,
-              "flex": 1,
-              "height": 50,
-              "justifyContent": "center",
+              "opacity": 0.6,
             }
           }
           onPress={[Function]}
-          style={
+          styleDisabled={
             Object {
-              "color": "#FFFFFF",
-              "fontFamily": "Roboto",
-              "fontWeight": "500",
-              "textTransform": "uppercase",
+              "opacity": 0.6,
             }
           }
           testID="submit"
+          type="orange"
         >
           CREATE
-        </Button>
+        </StyledButton>
       </Component>
       <Component
         style={
