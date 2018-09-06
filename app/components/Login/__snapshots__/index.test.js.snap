@@ -77,6 +77,7 @@ exports[`Login should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          returnKeyType="done"
           secureTextEntry={true}
           style={
             Object {
