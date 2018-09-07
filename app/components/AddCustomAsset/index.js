@@ -135,6 +135,8 @@ export default class AddCustomAsset extends Component {
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
 				<ActionView
+					cancelTestID={'add-custom-asset-cancel-button'}
+					confirmTestID={'add-custom-asset-confirm-button'}
 					cancelText={strings('addAsset.tokens.cancel_add_token')}
 					confirmText={strings('addAsset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
@@ -180,6 +182,7 @@ export default class AddCustomAsset extends Component {
 							testID={'input-token-decimals'}
 							ref={this.assetPrecisionInput}
 							onSubmitEditing={this.addToken}
+							returnKeyType={'done'}
 						/>
 						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 					</View>

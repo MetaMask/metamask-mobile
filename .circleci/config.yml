@@ -72,6 +72,7 @@ jobs:
               brew tap wix/brew
               brew install --HEAD applesimutils
               npm install -g detox-cli
+      - run: detox clean-framework-cache && detox build-framework-cache
       - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
 
   upload-coverage:

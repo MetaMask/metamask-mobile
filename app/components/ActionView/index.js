@@ -29,6 +29,8 @@ const styles = StyleSheet.create({
  * Component that renders scrollable content above configurable buttons
  */
 export default function ActionView({
+	cancelTestID,
+	confirmTestID,
 	cancelText,
 	children,
 	confirmText,
@@ -42,10 +44,16 @@ export default function ActionView({
 				{children}
 			</KeyboardAwareScrollView>
 			<View style={styles.actionContainer}>
-				<StyledButton type={'cancel'} onPress={onCancelPress} containerStyle={[styles.button, styles.cancel]}>
+				<StyledButton
+					testID={cancelTestID}
+					type={'cancel'}
+					onPress={onCancelPress}
+					containerStyle={[styles.button, styles.cancel]}
+				>
 					{cancelText.toUpperCase()}
 				</StyledButton>
 				<StyledButton
+					testID={confirmTestID}
 					type={confirmButtonMode}
 					onPress={onConfirmPress}
 					containerStyle={[styles.button, styles.confirm]}
@@ -60,10 +68,20 @@ export default function ActionView({
 ActionView.defaultProps = {
 	cancelText: strings('actionView.cancel'),
 	confirmButtonMode: 'normal',
-	confirmText: strings('actionView.confirm')
+	confirmText: strings('actionView.confirm'),
+	confirmTestID: '',
+	cancelTestID: ''
 };
 
 ActionView.propTypes = {
+	/**
+	 * TestID for the cancel button
+	 */
+	cancelTestID: PropTypes.string,
+	/**
+	 * TestID for the confirm button
+	 */
+	confirmTestID: PropTypes.string,
 	/**
 	 * Text to show in the cancel button
 	 */

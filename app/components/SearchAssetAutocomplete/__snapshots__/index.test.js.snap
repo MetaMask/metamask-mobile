@@ -11,8 +11,10 @@ exports[`SearchAssetAutocomplete should render correctly 1`] = `
   testID="search-token-screen"
 >
   <ActionView
+    cancelTestID=""
     cancelText="CANCEL"
     confirmButtonMode="normal"
+    confirmTestID=""
     confirmText="ADD TOKEN"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
