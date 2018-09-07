@@ -26,6 +26,17 @@ export default class TestHelpers {
 		return element(by.id(elementId)).typeText(text);
 	}
 
+	static async typeNumbers(elementId, text, submitLabel) {
+		if (device.getPlatform() === 'android') {
+			return TestHelpers.typeText(elementId, text);
+		}
+
+		await element(by.id(elementId)).replaceText(text.replace('\n', ''));
+		return element(by.label(submitLabel))
+			.atIndex(0)
+			.tap();
+	}
+
 	static async typeTextAndHideKeyboard(elementId, text) {
 		await TestHelpers.typeText(elementId, text + '\n');
 		if (device.getPlatform() === 'android') {

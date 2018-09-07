@@ -60,6 +60,7 @@ exports[`ActionView should render correctly 1`] = `
           "opacity": 0.6,
         }
       }
+      testID=""
       type="cancel"
     >
       CANCEL
@@ -85,6 +86,7 @@ exports[`ActionView should render correctly 1`] = `
           "opacity": 0.6,
         }
       }
+      testID=""
       type="normal"
     >
       CONFIRM

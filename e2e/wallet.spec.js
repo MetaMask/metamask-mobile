@@ -114,8 +114,8 @@ describe('Wallet', () => {
 		await TestHelpers.typeText('input-token-address', `${TEST_TOKEN_ADDRESS}\n`);
 		// Select second input and write symbol
 		await TestHelpers.typeText('input-token-symbol', `${TEST_TOKEN_SYMBOL}\n`);
-		// Select third input and write precision
-		await TestHelpers.typeText('input-token-decimals', `${TEST_TOKEN_PRECISION}\n`);
+		// Select third input and write precision and submit
+		await TestHelpers.typeNumbers('input-token-decimals', `${TEST_TOKEN_PRECISION}\n`, 'Done');
 		// Check we're in the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Find token added on list

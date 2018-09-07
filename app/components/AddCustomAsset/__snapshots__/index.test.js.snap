@@ -11,8 +11,10 @@ exports[`AddCustomAsset should render correctly 1`] = `
   testID="add-custom-token-screen"
 >
   <ActionView
+    cancelTestID="add-custom-asset-cancel-button"
     cancelText="CANCEL"
     confirmButtonMode="normal"
+    confirmTestID="add-custom-asset-confirm-button"
     confirmText="ADD TOKEN"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
@@ -136,6 +138,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="18"
+        returnKeyType="done"
         style={
           Object {
             "borderColor": "#CCCCCC",
