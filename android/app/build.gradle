@@ -182,7 +182,7 @@ dependencies {
     api project(':react-native-vector-icons')
     api fileTree(dir: "libs", include: ["*.jar"])
     api "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
-	api "com.facebook.react:react-native:+"  // From node_modules
+    api "com.facebook.react:react-native:+"  // From node_modules
     api('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }
