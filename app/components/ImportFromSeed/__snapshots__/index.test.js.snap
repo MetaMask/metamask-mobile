@@ -75,6 +75,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Enter your seed phrase here"
+        returnKeyType="next"
         style={
           Object {
             "backgroundColor": "#FFFFFF",
@@ -117,6 +118,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          returnKeyType="next"
           secureTextEntry={true}
           style={
             Object {
@@ -157,6 +159,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          returnKeyType="done"
           secureTextEntry={true}
           style={
             Object {
