@@ -166,6 +166,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-branch')
     api project(':react-native-web3-webview')
     api project(':react-native-camera')
     api project(':react-native-share')

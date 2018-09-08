@@ -12,13 +12,18 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
+#import <react-native-branch/RNBranch.h> // at the top
+
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
 
   [Fabric with:@[[Crashlytics class]]];
-
+  
+  [RNBranch useTestInstance];
+  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES]; // <-- add this
+  
   NSURL *jsCodeLocation;
 
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
@@ -41,6 +46,17 @@
   rootView.loadingView = launchScreenView;
   
   return YES;
+}
+
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+  if (![RNBranch.branch application:app openURL:url options:options]) {
+    // do other deep link routing for the Facebook SDK, Pinterest SDK, etc
+  }
+  return YES;
+}
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *restorableObjects))restorationHandler {
+  return [RNBranch continueUserActivity:userActivity];
 }
 
 @end

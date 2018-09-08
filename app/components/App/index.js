@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, AppState, AsyncStorage } from 'react-native';
+import { Alert, View, AppState, AsyncStorage } from 'react-native';
 import { createDrawerNavigator, createStackNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
@@ -11,6 +11,8 @@ import Main from '../Main';
 import AccountList from '../AccountList';
 import Engine from '../../core/Engine';
 import { baseStyles } from '../../styles/common';
+import branch from 'react-native-branch';
+import Logger from '../../util/Logger';
 
 const LOCK_TIMEOUT = 30000;
 
@@ -64,15 +66,25 @@ export default class App extends Component {
 
 	mounted = true;
 
+	handleDeeplinks = async ({ error, params }) => {
+		if (error) {
+			Logger.error('Error from Branch: ' + error);
+			return;
+		}
+		if (params['+non_branch_link']) {
+			Alert.alert('Deeplink detected!', params['+non_branch_link']);
+		}
+	};
+
 	async componentDidMount() {
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
 			this.mounted && this.setState({ existingUser: true });
-			this.unlockKeychain();
+			await this.unlockKeychain();
 		} else {
 			this.setState({ locked: false, loading: false });
 		}
-
+		branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
 	}
 

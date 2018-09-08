@@ -4,6 +4,8 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import io.branch.rnbranch.RNBranchPackage;
+import io.branch.referral.Branch;
 import com.web3webview.Web3WebviewPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import cl.json.RNSharePackage;
@@ -40,6 +42,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
             new MainReactPackage(),
+            new RNBranchPackage(),
             new FabricPackage(),
             new KeychainPackage(),
             new LinearGradientPackage(),
@@ -69,7 +72,8 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   @Override
   public void onCreate() {
     super.onCreate();
-    Fabric.with(this, new Crashlytics());
+	Fabric.with(this, new Crashlytics());
+	Branch.getAutoInstance(this);
     SoLoader.init(this, /* native exopackage */ false);
   }
 }
