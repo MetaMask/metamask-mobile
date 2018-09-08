@@ -42,6 +42,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="0x..."
+        returnKeyType="next"
         style={
           Object {
             "borderColor": "#CCCCCC",
@@ -89,6 +90,7 @@ exports[`AddCustomAsset should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="GNO"
+        returnKeyType="next"
         style={
           Object {
             "borderColor": "#CCCCCC",

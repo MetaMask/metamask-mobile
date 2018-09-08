@@ -176,6 +176,7 @@ export default class CreatePassword extends Component {
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password'}
 								onSubmitEditing={this.jumpToConfirmPassword}
+								returnKeyType={'next'}
 							/>
 						</View>
 						<View style={styles.field}>
@@ -190,6 +191,7 @@ export default class CreatePassword extends Component {
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password-confirm'}
 								onSubmitEditing={this.onPressCreate}
+								returnKeyType={'done'}
 							/>
 						</View>
 
