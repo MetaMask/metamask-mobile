@@ -123,18 +123,25 @@ export class Browser extends Component {
 
 	checkForDeeplinks() {
 		const { navigation } = this.props;
-		const url = navigation.getParam('url', null);
-		if (url) {
-			this.setState({ url });
+		if (navigation) {
+			const url = navigation.getParam('url', null);
+			if (url) {
+				this.setState({ url });
+			}
 		}
 	}
 
 	componentDidUpdate(prevProps) {
-		const prevUrl = prevProps.navigation.getParam('url', null);
-		const currentUrl = this.props.navigation.getParam('url', null);
+		const prevNavigation = prevProps.navigation;
+		const { navigation } = this.props;
 
-		if (currentUrl && prevUrl !== currentUrl && currentUrl !== this.state.url) {
-			this.checkForDeeplinks();
+		if (prevNavigation && navigation) {
+			const prevUrl = prevNavigation.getParam('url', null);
+			const currentUrl = navigation.getParam('url', null);
+
+			if (currentUrl && prevUrl !== currentUrl && currentUrl !== this.state.url) {
+				this.checkForDeeplinks();
+			}
 		}
 	}
 

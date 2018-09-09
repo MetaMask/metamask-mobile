@@ -28,7 +28,7 @@ exports[`TransferScreen should render correctly 1`] = `
       "reset": [Function],
       "router": Object {
         "childRouters": Object {
-          "Transfer": null,
+          "TransferView": null,
         },
         "getActionCreators": [Function],
         "getActionForPathAndParams": [Function],
@@ -46,7 +46,7 @@ exports[`TransferScreen should render correctly 1`] = `
         "routes": Array [
           Object {
             "key": "id-123-0",
-            "routeName": "Transfer",
+            "routeName": "TransferView",
           },
         ],
       },

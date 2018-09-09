@@ -58,7 +58,7 @@ export default class Transfer extends Component {
 
 	render() {
 		const { navigation } = this.props;
-		const to = navigation.getParam('to', null);
+		const to = navigation ? navigation.getParam('to', null) : null;
 
 		return (
 			<View style={styles.wrapper}>

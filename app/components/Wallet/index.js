@@ -10,7 +10,7 @@ import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
 import getNavbarOptions from '../Navbar';
 import { strings } from '../../../locales/i18n';
-import branch from 'react-native-branch';
+import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 
@@ -70,7 +70,7 @@ class Wallet extends Component {
 		tokens: PropTypes.array
 	};
 	componentDidMount() {
-		branch.subscribe(this.handleDeeplinks);
+		Branch.subscribe(this.handleDeeplinks);
 	}
 
 	renderTabBar() {
