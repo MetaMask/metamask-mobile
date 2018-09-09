@@ -52,6 +52,7 @@
     "fuse.js": "^3.2.0",
     "gaba": "^1.0.0-beta.33",
     "prop-types": "^15.6.2",
+    "url-parse": "^1.4.3",
     "react": "16.4.1",
     "react-native": "0.56.0",
     "react-native-aes-crypto": "github:appman-agm/react-native-aes#9af842442f7e250f967eaaea434e8d3864a4d2ca",

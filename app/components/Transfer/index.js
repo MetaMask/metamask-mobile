@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import getNavbarOptions from '../Navbar';
@@ -35,6 +36,13 @@ const styles = StyleSheet.create({
 export default class Transfer extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('transfer.title'), navigation);
 
+	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
+	};
+
 	renderTabBar() {
 		return (
 			<DefaultTabBar
@@ -49,10 +57,13 @@ export default class Transfer extends Component {
 	}
 
 	render() {
+		const { navigation } = this.props;
+		const to = navigation.getParam('to', null);
+
 		return (
 			<View style={styles.wrapper}>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<SendScreen tabLabel={strings('transfer.send')} />
+					<SendScreen tabLabel={strings('transfer.send')} to={to} />
 					<ReceiveScreen tabLabel={strings('transfer.receive')} />
 				</ScrollableTabView>
 			</View>

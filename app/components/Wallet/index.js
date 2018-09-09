@@ -10,6 +10,9 @@ import Tokens from '../Tokens';
 import Collectibles from '../Collectibles';
 import getNavbarOptions from '../Navbar';
 import { strings } from '../../../locales/i18n';
+import branch from 'react-native-branch';
+import Logger from '../../util/Logger';
+import DeeplinkManager from '../../core/DeeplinkManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -66,6 +69,9 @@ class Wallet extends Component {
 		 */
 		tokens: PropTypes.array
 	};
+	componentDidMount() {
+		branch.subscribe(this.handleDeeplinks);
+	}
 
 	renderTabBar() {
 		return (
@@ -79,6 +85,17 @@ class Wallet extends Component {
 			/>
 		);
 	}
+
+	handleDeeplinks = async ({ error, params }) => {
+		if (error) {
+			Logger.error('Error from Branch: ' + error);
+			return;
+		}
+		if (params['+non_branch_link']) {
+			const dm = new DeeplinkManager(this.props.navigation);
+			dm.parse(params['+non_branch_link']);
+		}
+	};
 
 	render() {
 		const { accounts, conversionRate, currentCurrency, identities, selectedAddress, tokens } = this.props;
