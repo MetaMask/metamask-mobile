@@ -25,7 +25,10 @@ export default class DeeplinkManager {
 			// Specific to the browser screen
 			// For ex. navigate to a specific dapp
 			case 'dapp':
-				this.navigation.navigate('Browser', { url: urlObj.host });
+				urlObj.set('protocol', 'https:');
+				this.navigation.navigate('BrowserView', {
+					url: urlObj.href
+				});
 				break;
 
 			// Specific to the MetaMask app

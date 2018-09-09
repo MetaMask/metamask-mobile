@@ -11,6 +11,7 @@ import { ActivityIndicator, Platform, StyleSheet, TextInput, View } from 'react-
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import Networks from '../../util/networks';
+import Logger from '../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -78,7 +79,12 @@ export class Browser extends Component {
 		/**
 		 * react-navigation object used to switch between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Url coming from an external source
+		 * For ex. deeplinks
+		 */
+		url: PropTypes.string
 	};
 
 	state = {
@@ -111,6 +117,25 @@ export class Browser extends Component {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
+
+		this.checkForDeeplinks();
+	}
+
+	checkForDeeplinks() {
+		const { navigation } = this.props;
+		const url = navigation.getParam('url', null);
+		if (url) {
+			this.setState({ url });
+		}
+	}
+
+	componentDidUpdate(prevProps) {
+		const prevUrl = prevProps.navigation.getParam('url', null);
+		const currentUrl = this.props.navigation.getParam('url', null);
+
+		if (currentUrl && prevUrl !== currentUrl && currentUrl !== this.state.url) {
+			this.checkForDeeplinks();
+		}
 	}
 
 	go = () => {
@@ -136,15 +161,19 @@ export class Browser extends Component {
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
-		data = typeof data === 'string' ? JSON.parse(data) : data;
+		try {
+			data = typeof data === 'string' ? JSON.parse(data) : data;
 
-		if (!data || !data.type) {
-			return;
-		}
-		switch (data.type) {
-			case 'INPAGE_REQUEST':
-				this.backgroundBridge.onMessage(data);
-				break;
+			if (!data || !data.type) {
+				return;
+			}
+			switch (data.type) {
+				case 'INPAGE_REQUEST':
+					this.backgroundBridge.onMessage(data);
+					break;
+			}
+		} catch (e) {
+			Logger.error(`Browser::onMessage ${this.state.url}`, e.toString());
 		}
 	};
 
