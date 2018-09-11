@@ -44,9 +44,9 @@ export default class SearchAssetAutocomplete extends Component {
 	};
 
 	addToken = () => {
-		const { PreferencesController } = Engine.context;
+		const { AssetsController } = Engine.context;
 		const { address, symbol, decimals } = this.state.selectedAsset;
-		PreferencesController.addToken(address, symbol, decimals);
+		AssetsController.addToken(address, symbol, decimals);
 		this.props.navigation.goBack();
 	};
 

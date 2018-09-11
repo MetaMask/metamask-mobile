@@ -110,7 +110,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.backgroundState.PreferencesController.identities,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.backgroundState.PreferencesController.tokens
+	tokens: state.backgroundState.AssetsController.tokens
 });
 
 export default connect(mapStateToProps)(Wallet);

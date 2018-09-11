@@ -1,6 +1,7 @@
 import {
 	AccountTrackerController,
 	AddressBookController,
+	AssetsController,
 	BlockHistoryController,
 	ComposableController,
 	CurrencyRateController,
@@ -39,6 +40,7 @@ class Engine {
 					new KeyringController({ encryptor }, initialState.KeyringController),
 					new AccountTrackerController(),
 					new AddressBookController(),
+					new AssetsController(),
 					new BlockHistoryController(),
 					new CurrencyRateController(),
 					new NetworkController(
@@ -122,6 +124,7 @@ export default {
 	get state() {
 		const {
 			AccountTrackerController,
+			AssetsController,
 			CurrencyRateController,
 			KeyringController,
 			NetworkController,
@@ -133,6 +136,7 @@ export default {
 
 		return {
 			AccountTrackerController,
+			AssetsController,
 			CurrencyRateController,
 			KeyringController,
 			NetworkController,
