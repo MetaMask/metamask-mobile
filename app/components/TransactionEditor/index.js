@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
+import { toBN, isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { withNavigation } from 'react-navigation';
@@ -333,15 +333,32 @@ class TransactionEditor extends Component {
 
 	showQRScanner = () => {
 		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: ({ type, values }) => {
-				if (type === 'address' && values.address) {
-					this.setState({ to: toChecksumAddress(values.address) });
+			onScanSuccess: ({ target_address, chain_id = null, function_name = null, parameters = null }) => { // eslint-disable-line no-unused-vars
+				this.setState({ to: toChecksumAddress(target_address) });
+
+				if (parameters) {
+					const { value, gas, gasPrice, gasLimit } = parameters;
+					if (value) {
+						this.updateAmount(toBN(value));
+					}
+					if (gas) {
+						this.setState({ gas: toBN(gas) });
+					}
+					if (gasPrice) {
+						this.setState({ gasPrice: toBN(gas) });
+					}
+					if (gasLimit) {
+						// Don't see a gasLimit anywhere...
+					}
+
+					// TODO: We should add here support for sending tokens
+					// or calling smart contract functions
 				}
 			}
 		});
 	};
 
-	updateAmount = async amount => {
+	updateAmount = amount => {
 		this.setState({ amount });
 	};
 

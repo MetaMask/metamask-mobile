@@ -46,13 +46,13 @@
     "buffer": "^4.9.1",
     "eth-block-tracker": "github:MetaMask/eth-block-tracker#3.0.1-subscription-fix",
     "eth-contract-metadata": "github:MetaMask/eth-contract-metadata#master",
+    "eth-url-parser": "^1.0.2",
     "ethereumjs-util": "^5.2.0",
     "ethjs-unit": "^0.1.6",
     "events": "^3.0.0",
     "fuse.js": "^3.2.0",
     "gaba": "^1.0.0-beta.33",
     "prop-types": "^15.6.2",
-    "url-parse": "^1.4.3",
     "react": "16.4.1",
     "react-native": "0.56.0",
     "react-native-aes-crypto": "github:appman-agm/react-native-aes#9af842442f7e250f967eaaea434e8d3864a4d2ca",
@@ -86,6 +86,7 @@
     "redux-persist": "^5.10.0",
     "stream": "0.0.2",
     "stream-browserify": "^1.0.0",
+    "url-parse": "^1.4.3",
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {

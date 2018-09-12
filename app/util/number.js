@@ -84,3 +84,13 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 	value = isNaN(value) ? '0.00' : value;
 	return `${value} ${currencyCode}`;
 }
+
+/**
+ * Creates a BN object from a string
+ *
+ * @param {string} value - Some numeric value represented as a string
+ * @returns {Object} - BN instance
+ */
+export function toBN(value) {
+	return new BN(value);
+}

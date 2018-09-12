@@ -1,7 +1,7 @@
 'use strict';
 
 import URL from 'url-parse';
-
+import { parse } from 'eth-url-parser';
 export default class DeeplinkManager {
 	constructor(_navigation) {
 		this.navigation = _navigation;
@@ -9,16 +9,25 @@ export default class DeeplinkManager {
 
 	parse(url) {
 		const urlObj = new URL(url);
+		let ethUrl, action;
 		switch (urlObj.protocol.replace(':', '')) {
 			// ethereum related deeplinks
 			// address, transactions, etc
 			case 'ethereum':
-				// Check if it's an ethereum address
-				if (urlObj.host.toLowerCase().substr(0, 2) === '0x') {
-					this.navigation.navigate('TransferView', {
-						to: urlObj.host
-					});
+				ethUrl = parse(url);
+
+				if (ethUrl.prefix === 'pay') {
+					action = 'send-eth';
+				} else if (ethUrl.function_name === 'transfer') {
+					// Send erc20 token
+					action = 'send-token';
+				} else if (ethUrl.function_name) {
+					// Other smart contract interaction
+					// That involves txs
+					action = 'smart-contract-interaction';
 				}
+
+				this.navigation.navigate('TransferView', { txMeta: { ...ethUrl, action, source: url } });
 
 				break;
 
