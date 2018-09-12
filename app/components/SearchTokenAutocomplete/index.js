@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 /**
  * Component that provides ability to add searched assets with metadata.
  */
-export default class SearchAssetAutocomplete extends Component {
+export default class SearchTokenAutocomplete extends Component {
 	state = {
 		searchResults: [],
 		selectedAsset: {}

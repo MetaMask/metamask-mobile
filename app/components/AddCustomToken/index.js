@@ -29,9 +29,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Copmonent that provides ability to add custom assets.
+ * Copmonent that provides ability to add custom tokens.
  */
-export default class AddCustomAsset extends Component {
+export default class AddCustomToken extends Component {
 	state = {
 		address: '',
 		symbol: '',

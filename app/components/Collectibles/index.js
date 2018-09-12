@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Image from 'react-native-remote-svg';
+import Identicon from '../Identicon';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 
@@ -43,34 +44,23 @@ const styles = StyleSheet.create({
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderBottomColor: colors.borderColor
 	},
-	itemLogoWrapper: {
-		width: 40,
-		height: 40,
+	imageWrapper: {
+		width: 50,
+		height: 50,
 		overflow: 'hidden',
 		borderRadius: 100,
 		marginRight: 20
 	},
-	itemLogo: {
-		width: 40,
-		height: 40
+	image: {
+		width: 50,
+		height: 50
 	},
 	balances: {
 		flex: 1
 	},
-	balance: {
+	name: {
 		fontSize: 16,
 		color: colors.fontPrimary
-	},
-	balanceFiat: {
-		fontSize: 12,
-		color: colors.fontSecondary
-	},
-	arrow: {
-		flex: 1,
-		alignSelf: 'flex-end'
-	},
-	arrowIcon: {
-		marginTop: 8
 	}
 });
 
@@ -99,39 +89,40 @@ export default class Collectibles extends Component {
 		);
 	}
 
-	onItemPress = asset => {
-		this.props.navigation.navigate('Asset', asset);
-	};
-
 	renderList() {
 		return this.props.assets.map(asset => (
-			<TouchableOpacity
-				onPress={() => this.onItemPress(asset)} // eslint-disable-line
-				style={styles.itemWrapper}
-				key={`asset-${asset.symbol}`}
-			>
-				<View style={styles.itemLogoWrapper}>
-					<Image source={{ uri: asset.logo }} style={styles.itemLogo} />
+			<TouchableOpacity style={styles.itemWrapper} key={`asset-${asset.tokenId}`}>
+				<View style={styles.imageWrapper}>
+					{asset.image ? (
+						<Image source={{ uri: asset.image }} style={styles.image} />
+					) : (
+						<Identicon address={asset.tokenId} />
+					)}
 				</View>
 				<View style={styles.balances}>
-					<Text style={styles.balance}>
-						{asset.balance} {asset.symbol}
+					<Text style={styles.name}>{asset.name}</Text>
+					<Text>
+						{strings('collectible.collectible_token_id')}: {asset.tokenId}
 					</Text>
-					<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
-				</View>
-				<View styles={styles.arrow}>
-					<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
 				</View>
 			</TouchableOpacity>
 		));
 	}
+
+	goToAddCollectible = () => {
+		this.props.navigation.push('AddAsset', 'collectibles');
+	};
 
 	render() {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'collectibles'}>
 					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-					<TouchableOpacity style={styles.add}>
+					<TouchableOpacity
+						style={styles.add}
+						onPress={this.goToAddCollectible}
+						testID={'add-collectible-button'}
+					>
 						<Icon name="plus" size={16} color={colors.primary} />
 						<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 					</TouchableOpacity>

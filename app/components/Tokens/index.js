@@ -125,7 +125,7 @@ export default class Tokens extends Component {
 	}
 
 	goToAddToken = () => {
-		this.props.navigation.push('AddAsset');
+		this.props.navigation.push('AddAsset', 'tokens');
 	};
 
 	render() {

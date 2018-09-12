@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import AddAsset from './';
+import AddCustomCollectible from './';
 
-describe('AddAsset', () => {
+describe('AddCustomCollectible', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<AddAsset navigation={{ state: { params: {} } }} />);
+		const wrapper = shallow(<AddCustomCollectible />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
