@@ -3,14 +3,18 @@ import BackgroundBridge from '../../core/BackgroundBridge';
 import Web3Webview from 'react-native-web3-webview';
 import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
-import { ActivityIndicator, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { Text, ActivityIndicator, Platform, StyleSheet, TextInput, View, TouchableWithoutFeedback } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import Networks from '../../util/networks';
+import Logger from '../../util/Logger';
+import Button from '../Button';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,7 +56,35 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
-	}
+	},
+	optionsOverlay: {
+		position: 'absolute',
+		zIndex: 99999998,
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 0
+	},
+	optionsWrapper: {
+		position: 'absolute',
+		zIndex: 99999999,
+		marginTop: 50,
+		right: 3,
+		width: 180,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
+		backgroundColor: colors.concrete
+	},
+	option: {
+		backgroundColor: colors.concrete,
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'flex-start'
+	},
+	optionText: {
+		fontSize: 14
+	},
+	optionIcon: {}
 });
 
 /**
@@ -87,7 +119,8 @@ export class Browser extends Component {
 		canGoForward: false,
 		entryScriptWeb3: null,
 		inputValue: this.props.defaultURL,
-		url: this.props.defaultURL
+		url: this.props.defaultURL,
+		showOptions: false
 	};
 
 	webview = React.createRef();
@@ -135,6 +168,18 @@ export class Browser extends Component {
 		current && current.reload();
 	};
 
+	share = () => {
+		Share.open({
+			url: this.state.url
+		}).catch(err => {
+			Logger.log('Error while trying to share address', err);
+		});
+	};
+
+	toggleOptions = () => {
+		this.setState({ showOptions: !this.state.showOptions });
+	};
+
 	onMessage = ({ nativeEvent: { data } }) => {
 		data = typeof data === 'string' ? JSON.parse(data) : data;
 
@@ -172,6 +217,31 @@ export class Browser extends Component {
 		);
 	}
 
+	renderOptions() {
+		if (this.state.showOptions) {
+			return (
+				<TouchableWithoutFeedback onPress={this.toggleOptions}>
+					<View style={styles.optionsOverlay}>
+						<View style={styles.optionsWrapper}>
+							<Button onPress={this.reload} style={styles.option}>
+								<Icon name="refresh" size={18} style={[styles.icon, styles.optionIcon]} />
+								<Text style={styles.optionText}>Reload</Text>
+							</Button>
+							<Button onPress={this.bookmark} style={styles.option}>
+								<Icon name="star" size={18} style={[styles.icon, styles.optionIcon]} />
+								<Text style={styles.optionText}>Bookmark</Text>
+							</Button>
+							<Button onPress={this.share} style={styles.option}>
+								<Icon name="share" size={18} style={[styles.icon, styles.optionIcon]} />
+								<Text style={styles.optionText}>Share</Text>
+							</Button>
+						</View>
+					</View>
+				</TouchableWithoutFeedback>
+			);
+		}
+	}
+
 	render() {
 		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 
@@ -185,13 +255,15 @@ export class Browser extends Component {
 						size={30}
 						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
 					/>
-					<Icon
-						disabled={!canGoForward}
-						name="angle-right"
-						onPress={this.goForward}
-						size={30}
-						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
-					/>
+					{canGoForward ? (
+						<Icon
+							disabled={!canGoForward}
+							name="angle-right"
+							onPress={this.goForward}
+							size={30}
+							style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
+						/>
+					) : null}
 					<TextInput
 						autoCapitalize="none"
 						autoCorrect={false}
@@ -206,11 +278,12 @@ export class Browser extends Component {
 						style={styles.urlInput}
 						value={inputValue}
 					/>
-					<Icon name="refresh" onPress={this.reload} size={20} style={styles.icon} />
+					<MaterialIcon name="more-vert" onPress={this.toggleOptions} size={20} style={styles.icon} />
 				</View>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
+				{this.renderOptions()}
 				{entryScriptWeb3 ? (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
