@@ -1,13 +1,4 @@
 import React, { Component } from 'react';
-import BackgroundBridge from '../../core/BackgroundBridge';
-import Web3Webview from 'react-native-web3-webview';
-import Engine from '../../core/Engine';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import PropTypes from 'prop-types';
-import RNFS from 'react-native-fs';
-import getNavbarOptions from '../Navbar';
-import WebviewProgressBar from '../WebviewProgressBar';
 import {
 	Text,
 	ActivityIndicator,
@@ -19,12 +10,21 @@ import {
 	AsyncStorage,
 	Alert
 } from 'react-native';
-import { colors, baseStyles, fontStyles } from '../../styles/common';
+import Web3Webview from 'react-native-web3-webview';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import PropTypes from 'prop-types';
+import RNFS from 'react-native-fs';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { connect } from 'react-redux';
+import BackgroundBridge from '../../core/BackgroundBridge';
+import Engine from '../../core/Engine';
+import getNavbarOptions from '../Navbar';
+import WebviewProgressBar from '../WebviewProgressBar';
+import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
 import Button from '../Button';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { strings } from '../../../locales/i18n';
 import HomePage from '../HomePage';
 
@@ -126,7 +126,7 @@ export class Browser extends Component {
 
 	static propTypes = {
 		/**
-		 * Protocol string to append to URLs that have none
+		 * Initial URL to load in the WebView
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
@@ -258,6 +258,7 @@ export class Browser extends Component {
 					if (data.title) {
 						this.setState({ currentPageTitle: data.title });
 					}
+					break;
 			}
 		} catch (e) {
 			Logger.error(`Browser::onMessage on ${this.state.inputValue}`, e.toString());
@@ -306,14 +307,14 @@ export class Browser extends Component {
 		// We need to get the title of the page first
 		const { current } = this.webview;
 		const js = `
-		(function () {
-			window.postMessage(
-				JSON.stringify({
-					type: 'GET_TITLE_FOR_BOOKMARK',
-					title: document.title
-				})
-			)
-		})();
+			(function () {
+				window.postMessage(
+					JSON.stringify({
+						type: 'GET_TITLE_FOR_BOOKMARK',
+						title: document.title
+					})
+				)
+			})();
 		`;
 		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavascript(js);
 	};

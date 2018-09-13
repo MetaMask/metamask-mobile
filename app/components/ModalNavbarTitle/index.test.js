@@ -5,12 +5,8 @@ import ModalNavbarTitle from './';
 describe('ModalNavbarTitle', () => {
 	it('should render correctly', () => {
 		const title = 'Test';
-		const network = {
-			provider: {
-				type: 'mainnet'
-			}
-		};
-		const wrapper = shallow(<ModalNavbarTitle title={title} network={network} />);
+
+		const wrapper = shallow(<ModalNavbarTitle title={title} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

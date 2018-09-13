@@ -1,22 +1,22 @@
 html, body{
 	height: 100%;
-  }
+}
 
-  body{
+body{
 	background: white;
 	text-align: center;
 	color: white;
 	font-family: roboto;
 	overflow: hidden;
-  }
+}
 
-  div{
+div{
 	height:50px;
 	overflow: visible;
-  }
+}
 
-  svg {
+svg {
 	overflow: visible;
 	margin-top: -53px;
 	margin-left: -10px;
- }
+}

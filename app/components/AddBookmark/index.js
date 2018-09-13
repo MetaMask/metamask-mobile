@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Text, TextInput, View, StyleSheet } from 'react-native';
-import { colors, fontStyles } from '../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
+import { colors, fontStyles } from '../../styles/common';
 import ActionView from '../ActionView';
 import Screen from '../Screen';
 import { getModalNavbarOptions } from '../Navbar';
