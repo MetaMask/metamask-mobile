@@ -66,11 +66,15 @@ const styles = StyleSheet.create({
 		right: 0
 	},
 	optionsWrapper: {
+		shadowColor: colors.gray,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
 		position: 'absolute',
 		zIndex: 99999999,
 		marginTop: 50,
 		right: 3,
-		width: 180,
+		width: 140,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		backgroundColor: colors.concrete
@@ -82,9 +86,20 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start'
 	},
 	optionText: {
-		fontSize: 14
+		fontSize: 14,
+		color: colors.fontPrimary,
+		...fontStyles.normal
 	},
-	optionIcon: {}
+	optionIcon: {
+		width: 18,
+		color: colors.fontPrimary,
+		flex: 0,
+		height: 15,
+		lineHeight: 15,
+		marginRight: 10,
+		textAlign: 'center',
+		alignSelf: 'center'
+	}
 });
 
 /**
@@ -224,15 +239,15 @@ export class Browser extends Component {
 					<View style={styles.optionsOverlay}>
 						<View style={styles.optionsWrapper}>
 							<Button onPress={this.reload} style={styles.option}>
-								<Icon name="refresh" size={18} style={[styles.icon, styles.optionIcon]} />
+								<Icon name="refresh" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>Reload</Text>
 							</Button>
 							<Button onPress={this.bookmark} style={styles.option}>
-								<Icon name="star" size={18} style={[styles.icon, styles.optionIcon]} />
+								<Icon name="star" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>Bookmark</Text>
 							</Button>
 							<Button onPress={this.share} style={styles.option}>
-								<Icon name="share" size={18} style={[styles.icon, styles.optionIcon]} />
+								<Icon name="share" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>Share</Text>
 							</Button>
 						</View>
