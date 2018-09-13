@@ -281,6 +281,11 @@ export class Browser extends Component {
 		}
 	};
 
+	updateBookmarks = async bookmarks => {
+		this.setState({ bookmarks });
+		await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(bookmarks));
+	};
+
 	onURLChange = inputValue => {
 		this.setState({ inputValue });
 	};
@@ -351,6 +356,7 @@ export class Browser extends Component {
 					bookmarks={this.state.bookmarks}
 					onBookmarkTapped={this.go}
 					onInitialUrlSubmit={this.onInitialUrlSubmit}
+					updateBookmarks={this.updateBookmarks}
 				/>
 			);
 		}

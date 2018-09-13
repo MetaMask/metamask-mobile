@@ -122,11 +122,14 @@
 		"to": "To",
 		"total": "Total"
 	},
-	"browser": {
-		"letsGetStarted": "Let's get started",
+	"homePage": {
+		"letsGetStarted": "Let's get started!",
 		"web3Awaits": "The decentralized web awaits",
 		"bookmarks": "Bookmarks",
 		"noBookmarks": "Your bookmarks will show up here",
+		"removeBookmarkTitle": "Do you want to remove this bookmark?"
+	},
+	"browser": {
 		"error": "Ooops!",
 		"bookmarkAlreadyExists": "You already bookmarked this url"
 	},

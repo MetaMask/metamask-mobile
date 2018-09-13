@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
+import ActionSheet from 'react-native-actionsheet';
 import { ScrollView, TouchableOpacity, Image, Text, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import AnimatedFox from '../AnimatedFox';
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		marginTop: 10,
 		marginBottom: 0,
-		height: 150
+		height: 120
 	},
 	startPageContent: {
 		flex: 1,
@@ -112,12 +113,20 @@ export default class HomePage extends Component {
 		/**
 		 * function to be called when submitting the text input field
 		 */
-		onInitialUrlSubmit: PropTypes.any
+		onInitialUrlSubmit: PropTypes.any,
+		/**
+		 * function to be called when bookmarks are updated
+		 */
+		updateBookmarks: PropTypes.any
 	};
 
 	state = {
 		searchInputValue: ''
 	};
+
+	actionSheet = null;
+
+	bookmarkIndexToRemove = null;
 
 	onInitialUrlChange = searchInputValue => {
 		this.setState({ searchInputValue });
@@ -132,33 +141,57 @@ export default class HomePage extends Component {
 		return tmp[2];
 	}
 
+	showRemoveMenu = index => {
+		this.bookmarkIndexToRemove = index;
+		this.actionSheet.show();
+	};
+
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
+	};
+
 	renderBookmarks() {
 		let content = null;
 		if (this.props.bookmarks.length) {
-			content = this.props.bookmarks.map(i => {
-				const iconUrl = `http://icons.duckduckgo.com/ip2/${this.getHost(i.url)}.ico`;
+			content = this.props.bookmarks.map((item, i) => {
+				const iconUrl = `http://icons.duckduckgo.com/ip2/${this.getHost(item.url)}.ico`;
 				return (
-					<View key={i.url} style={styles.bookmarkItem}>
+					<View key={item.url} style={styles.bookmarkItem}>
 						<TouchableOpacity
 							style={styles.bookmarkTouchable}
-							onPress={() => this.props.onBookmarkTapped(i.url)} // eslint-disable-line react/jsx-no-bind
+							onPress={() => this.props.onBookmarkTapped(item.url)} // eslint-disable-line react/jsx-no-bind
+							onLongPress={() => this.showRemoveMenu(i)}
 						>
 							<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />
 							<Image style={styles.bookmarkIco} source={{ uri: iconUrl }} />
 							<Text numberOfLines={1} style={styles.bookmarkUrl}>
-								{i.name}
+								{item.name}
 							</Text>
 						</TouchableOpacity>
 					</View>
 				);
 			});
 		} else {
-			content = <Text style={styles.noBookmarks}>{strings('browser.noBookmarks')}</Text>;
+			content = <Text style={styles.noBookmarks}>{strings('homePage.noBookmarks')}</Text>;
 		}
 		return (
 			<View style={styles.bookmarksWrapper}>
-				<Text style={styles.bookmarksTitle}>{strings('browser.bookmarks')}</Text>
+				<Text style={styles.bookmarksTitle}>{strings('homePage.bookmarks')}</Text>
 				<View style={styles.bookmarksItemsWrapper}>{content}</View>
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('homePage.removeBookmarkTitle')}
+					options={['Remove', 'cancel']}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					onPress={index => {
+						if (index === 0) {
+							const newBookmarks = this.props.bookmarks;
+							newBookmarks.splice(this.bookmarkIndexToRemove, 1);
+							this.props.updateBookmarks(newBookmarks);
+						}
+					}}
+				/>
 			</View>
 		);
 	}
@@ -170,8 +203,8 @@ export default class HomePage extends Component {
 					<AnimatedFox />
 				</View>
 				<View style={styles.startPageContent}>
-					<Text style={styles.startPageTitle}>{strings('browser.letsGetStarted')}</Text>
-					<Text style={styles.startPageSubtitle}>{strings('browser.web3Awaits')}</Text>
+					<Text style={styles.startPageTitle}>{strings('homePage.letsGetStarted')}</Text>
+					<Text style={styles.startPageSubtitle}>{strings('homePage.web3Awaits')}</Text>
 					<TextInput
 						style={styles.searchInput}
 						autoCapitalize="none"
