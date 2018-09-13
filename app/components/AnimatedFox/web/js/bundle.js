@@ -564,8 +564,8 @@
 							if ((v || l(), d)) {
 								const n = event.gamma,
 									r = event.beta;
-								(yOffset = -300),
-									(acceleration = 10),
+								(yOffset = -100),
+									(acceleration = 5),
 									e({ x: 200 + n * acceleration, y: yOffset + r * acceleration }),
 									f();
 							}
