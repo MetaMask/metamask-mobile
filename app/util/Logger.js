@@ -32,7 +32,7 @@ export default class Logger {
 	static error(...args) {
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
-			console.error(args); // eslint-disable-line no-console
+			console.warn(args); // eslint-disable-line no-console
 		} else if (Platform.OS === 'android') {
 			Crashlytics.logException(JSON.stringify(args));
 		} else {

@@ -34,13 +34,12 @@ const MainNav = createStackNavigator(
 			)
 		},
 
-		/** ALL MODAL SCREENS SHOULD GO HERE */
+		/** ALL FULL SCREEN MODALS SHOULD GO HERE */
 		QRScanner: {
 			screen: QRScanner
 		}
 	},
 	{
-		mode: 'modal',
 		headerMode: 'none'
 	}
 );

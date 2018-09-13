@@ -18,7 +18,9 @@ import {
 	StyleSheet,
 	TextInput,
 	View,
-	TouchableWithoutFeedback
+	TouchableWithoutFeedback,
+	AsyncStorage,
+	Alert
 } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
@@ -105,7 +107,7 @@ const styles = StyleSheet.create({
 	},
 	optionIcon: {
 		width: 18,
-		color: colors.fontPrimary,
+		color: colors.tar,
 		flex: 0,
 		height: 15,
 		lineHeight: 15,
@@ -113,18 +115,22 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		alignSelf: 'center'
 	},
-
 	startPageWrapper: {
-		flex: 1,
+		...baseStyles.flexGrow,
+		backgroundColor: colors.white
+	},
+	startPageWrapperContent: {
 		backgroundColor: colors.white,
-		padding: 30
+		padding: 30,
+		paddingBottom: 0
 	},
 	foxWrapper: {
 		marginTop: 10,
 		marginBottom: 0,
-		height: 100
+		height: 150
 	},
 	startPageContent: {
+		flex: 1,
 		alignItems: 'center'
 	},
 	startPageTitle: {
@@ -142,8 +148,10 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	bookmarksWrapper: {
-		alignSelf: 'flex-start'
+		alignSelf: 'flex-start',
+		flex: 1
 	},
+
 	bookmarksTitle: {
 		fontSize: Platform.OS === 'android' ? 15 : 20,
 		marginTop: 20,
@@ -152,20 +160,32 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		...fontStyles.bold
 	},
+
 	bookmarkItem: {
-		backgroundColor: colors.white,
-		flexDirection: 'row',
-		alignItems: 'center',
 		marginBottom: 15,
 		paddingVertical: 5
 	},
+	bookmarkTouchable: {
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
 	bookmarkUrl: {
+		paddingRight: 35,
 		...fontStyles.normal
 	},
 	bookmarkIco: {
 		width: 24,
 		height: 24,
-		marginRight: 10
+		marginRight: 7
+	},
+	bookmarkIconDefault: {
+		position: 'absolute',
+		marginTop: 0,
+		marginLeft: 5,
+		width: 24,
+		height: 24,
+		marginRight: 10,
+		color: colors.fontSecondary
 	},
 	searchInput: {
 		marginVertical: 20,
@@ -174,7 +194,12 @@ const styles = StyleSheet.create({
 		width: '100%',
 		borderColor: colors.borderColor,
 		borderWidth: StyleSheet.hairlineWidth,
+		borderRadius: 3,
 		fontSize: 17,
+		...fontStyles.normal
+	},
+	noBookmarks: {
+		color: colors.fontSecondary,
 		...fontStyles.normal
 	}
 });
@@ -214,16 +239,18 @@ export class Browser extends Component {
 
 	webview = React.createRef();
 
-	bookmarks = [
-		{
-			url: 'google.com'
-		},
-		{
-			url: 'facebook.com'
+	bookmarks = [];
+
+	loadBookmarks = async () => {
+		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
+		if (bookmarksStr) {
+			return JSON.parse(bookmarksStr).reverse();
 		}
-	];
+		return [];
+	};
 
 	async componentDidMount() {
+		this.bookmarks = await this.loadBookmarks();
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
 		const entryScriptWeb3 =
@@ -244,11 +271,14 @@ export class Browser extends Component {
 		});
 	}
 
-	go = (url = null) => {
-		const urlToGo = url || this.state.inputValue;
+	go = url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
-		const sanitizedURL = hasProtocol ? urlToGo : `${this.props.defaultProtocol}${urlToGo}`;
-		this.setState({ url: sanitizedURL });
+		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
+		this.setState({ url: sanitizedURL, progress: 0 });
+	};
+
+	onUrlInputSubmit = () => {
+		this.go(this.state.inputValue);
 	};
 
 	goBack = () => {
@@ -256,7 +286,7 @@ export class Browser extends Component {
 			const { current } = this.webview;
 			current && current.goBack();
 		} else {
-			this.setState({ url: '' });
+			this.setState({ inputValue: '', url: '' });
 		}
 	};
 
@@ -268,6 +298,24 @@ export class Browser extends Component {
 	reload = () => {
 		const { current } = this.webview;
 		current && current.reload();
+	};
+
+	bookmark = () => {
+		this.toggleOptions();
+		// Check it doesn't exist already
+		if (this.bookmarks.filter(i => i.url === this.state.inputValue).length) {
+			Alert.alert(strings('browser.error'), strings('browser.bookmarkAlreadyExists'));
+			return false;
+		}
+
+		this.props.navigation.push('AddBookmark', {
+			title: this.state.currentPageTitle || '',
+			url: this.state.inputValue,
+			onAddBookmark: async ({ name, url }) => {
+				this.bookmarks.push({ name, url });
+				await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(this.bookmarks));
+			}
+		});
 	};
 
 	share = () => {
@@ -283,17 +331,23 @@ export class Browser extends Component {
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
-		data = typeof data === 'string' ? JSON.parse(data) : data;
+		try {
+			data = typeof data === 'string' ? JSON.parse(data) : data;
 
-		if (!data || !data.type) {
-			return;
-		}
-		switch (data.type) {
-			case 'INPAGE_REQUEST':
-				this.backgroundBridge.onMessage(data);
-				break;
-			case 'CURRENT_PAGE_TITLE':
-				this.setState({ currentPageTitle: data.title });
+			if (!data || !data.type) {
+				return;
+			}
+			switch (data.type) {
+				case 'INPAGE_REQUEST':
+					this.backgroundBridge.onMessage(data);
+					break;
+				case 'GET_TITLE_FOR_BOOKMARK':
+					if (data.title) {
+						this.setState({ currentPageTitle: data.title });
+					}
+			}
+		} catch (e) {
+			Logger.error(`Browser::onMessage on ${this.state.inputValue}`, e.toString());
 		}
 	};
 
@@ -306,6 +360,9 @@ export class Browser extends Component {
 	};
 
 	onInitialUrlSubmit = () => {
+		if (this.state.searchInputValue === '') {
+			return false;
+		}
 		const str = this.state.searchInputValue;
 		const res = str.match(
 			/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g
@@ -327,6 +384,22 @@ export class Browser extends Component {
 
 	onLoadProgress = progress => {
 		this.setState({ progress });
+	};
+
+	onLoadEnd = () => {
+		// We need to get the title of the page first
+		const { current } = this.webview;
+		const js = `
+		(function () {
+			window.postMessage(
+				JSON.stringify({
+					type: 'GET_TITLE_FOR_BOOKMARK',
+					title: document.title
+				})
+			)
+		})();
+		`;
+		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavascript(js);
 	};
 
 	renderLoader() {
@@ -361,38 +434,45 @@ export class Browser extends Component {
 			);
 		}
 	}
+	getHost(url) {
+		const tmp = url.split('/');
+		return tmp[2];
+	}
 
 	renderBookmarks() {
 		let content = null;
 		if (this.bookmarks.length) {
-			content = this.bookmarks.map(i => (
-				<View key={i.url}>
-					<TouchableOpacity
-						style={styles.bookmarkItem}
-						onPress={() => this.go(i.url)} // eslint-disable-line react/jsx-no-bind
-					>
-						<Image
-							style={styles.bookmarkIco}
-							source={{ uri: `http://icons.duckduckgo.com/ip2/${i.url}.ico` }}
-						/>
-						<Text style={styles.bookmarkUrl}>{i.url}</Text>
-					</TouchableOpacity>
-				</View>
-			));
+			content = this.bookmarks.map(i => {
+				const iconUrl = `http://icons.duckduckgo.com/ip2/${this.getHost(i.url)}.ico`;
+				return (
+					<View key={i.url} style={styles.bookmarkItem}>
+						<TouchableOpacity
+							style={styles.bookmarkTouchable}
+							onPress={() => this.go(i.url)} // eslint-disable-line react/jsx-no-bind
+						>
+							<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />
+							<Image style={styles.bookmarkIco} source={{ uri: iconUrl }} />
+							<Text numberOfLines={1} style={styles.bookmarkUrl}>
+								{i.name}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				);
+			});
 		} else {
-			content = <Text>{strings('browser.noBookmarks')}</Text>;
+			content = <Text style={styles.noBookmarks}>{strings('browser.noBookmarks')}</Text>;
 		}
 		return (
 			<View style={styles.bookmarksWrapper}>
 				<Text style={styles.bookmarksTitle}>{strings('browser.bookmarks')}</Text>
-				{content}
+				<View style={styles.bookmarksItemsWrapper}>{content}</View>
 			</View>
 		);
 	}
 
 	renderStartPage() {
 		return (
-			<ScrollView style={styles.wrapper} contentContainerStyle={styles.startPageWrapper}>
+			<ScrollView style={styles.startPageWrapper} contentContainerStyle={styles.startPageWrapperContent}>
 				<View style={styles.foxWrapper}>
 					<AnimatedFox />
 				</View>
@@ -446,7 +526,7 @@ export class Browser extends Component {
 						keyboardType="url"
 						textContentType={'URL'}
 						onChangeText={this.onURLChange}
-						onSubmitEditing={this.go}
+						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder="Enter website address"
 						placeholderTextColor={colors.asphalt}
 						returnKeyType="go"
@@ -464,6 +544,7 @@ export class Browser extends Component {
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						injectedJavaScriptForMainFrameOnly
 						onProgress={this.onLoadProgress}
+						onLoadEnd={this.onLoadEnd}
 						onMessage={this.onMessage}
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}

@@ -126,6 +126,18 @@
 		"letsGetStarted": "Let's get started",
 		"web3Awaits": "The decentralized web awaits",
 		"bookmarks": "Bookmarks",
-		"noBookmarks": "Your bookmarks will show up here"
+		"noBookmarks": "Your bookmarks will show up here",
+		"error": "Ooops!",
+		"bookmarkAlreadyExists": "You already bookmarked this url"
+	},
+	"addBookmark": {
+		"title": "Add Bookmark",
+		"titleLabel": "Name",
+		"urlLabel": "Url",
+		"addButton": "Add",
+		"cancelButton": "Cancel"
+	},
+	"approval": {
+		"title": "Confirm Transaction"
 	}
 }

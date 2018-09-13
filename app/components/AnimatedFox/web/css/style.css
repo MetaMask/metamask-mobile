@@ -18,4 +18,5 @@ html, body{
   svg {
 	overflow: visible;
 	margin-top: -53px;
+	margin-left: -10px;
  }
