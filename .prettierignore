@@ -10,3 +10,4 @@ package-lock.json
 package.json
 app/util/blockies.js
 /shim.js
+app/components/AnimatedFox/web

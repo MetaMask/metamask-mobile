@@ -121,5 +121,11 @@
 		"required": "Required",
 		"to": "To",
 		"total": "Total"
+	},
+	"browser": {
+		"letsGetStarted": "Let's get started",
+		"web3Awaits": "The decentralized web awaits",
+		"bookmarks": "Bookmarks",
+		"noBookmarks": "Your bookmarks will show up here"
 	}
 }

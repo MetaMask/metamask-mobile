@@ -1,0 +1,21 @@
+html, body{
+	height: 100%;
+  }
+
+  body{
+	background: white;
+	text-align: center;
+	color: white;
+	font-family: roboto;
+	overflow: hidden;
+  }
+
+  div{
+	height:50px;
+	overflow: visible;
+  }
+
+  svg {
+	overflow: visible;
+	margin-top: -53px;
+ }

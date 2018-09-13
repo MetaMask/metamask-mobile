@@ -8,13 +8,26 @@ import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
-import { Text, ActivityIndicator, Platform, StyleSheet, TextInput, View, TouchableWithoutFeedback } from 'react-native';
+import {
+	ScrollView,
+	TouchableOpacity,
+	Image,
+	Text,
+	ActivityIndicator,
+	Platform,
+	StyleSheet,
+	TextInput,
+	View,
+	TouchableWithoutFeedback
+} from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
 import Button from '../Button';
+import AnimatedFox from '../AnimatedFox';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -99,6 +112,70 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		textAlign: 'center',
 		alignSelf: 'center'
+	},
+
+	startPageWrapper: {
+		flex: 1,
+		backgroundColor: colors.white,
+		padding: 30
+	},
+	foxWrapper: {
+		marginTop: 10,
+		marginBottom: 0,
+		height: 100
+	},
+	startPageContent: {
+		alignItems: 'center'
+	},
+	startPageTitle: {
+		fontSize: Platform.OS === 'android' ? 30 : 35,
+		marginTop: 20,
+		marginBottom: 20,
+		color: colors.fontPrimary,
+		justifyContent: 'center',
+		textAlign: 'center',
+		...fontStyles.bold
+	},
+	startPageSubtitle: {
+		fontSize: Platform.OS === 'android' ? 18 : 20,
+		color: colors.fontSecondary,
+		...fontStyles.normal
+	},
+	bookmarksWrapper: {
+		alignSelf: 'flex-start'
+	},
+	bookmarksTitle: {
+		fontSize: Platform.OS === 'android' ? 15 : 20,
+		marginTop: 20,
+		marginBottom: 10,
+		color: colors.fontPrimary,
+		justifyContent: 'center',
+		...fontStyles.bold
+	},
+	bookmarkItem: {
+		backgroundColor: colors.white,
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 15,
+		paddingVertical: 5
+	},
+	bookmarkUrl: {
+		...fontStyles.normal
+	},
+	bookmarkIco: {
+		width: 24,
+		height: 24,
+		marginRight: 10
+	},
+	searchInput: {
+		marginVertical: 20,
+		backgroundColor: colors.white,
+		padding: 15,
+		width: '100%',
+		borderColor: colors.borderColor,
+		borderWidth: StyleSheet.hairlineWidth,
+		fontSize: 17,
+		...fontStyles.normal
 	}
 });
 
@@ -109,8 +186,7 @@ export class Browser extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
 
 	static defaultProps = {
-		defaultProtocol: 'https://',
-		defaultURL: 'https://faucet.metamask.io'
+		defaultProtocol: 'https://'
 	};
 
 	static propTypes = {
@@ -118,10 +194,6 @@ export class Browser extends Component {
 		 * Protocol string to append to URLs that have none
 		 */
 		defaultProtocol: PropTypes.string,
-		/**
-		 * Initial URL to load in the WebView
-		 */
-		defaultURL: PropTypes.string.isRequired,
 		/**
 		 * react-navigation object used to switch between screens
 		 */
@@ -133,12 +205,23 @@ export class Browser extends Component {
 		canGoBack: false,
 		canGoForward: false,
 		entryScriptWeb3: null,
-		inputValue: this.props.defaultURL,
-		url: this.props.defaultURL,
-		showOptions: false
+		inputValue: '',
+		url: '',
+		showOptions: false,
+		currentPageTitle: '',
+		searchInputValue: ''
 	};
 
 	webview = React.createRef();
+
+	bookmarks = [
+		{
+			url: 'google.com'
+		},
+		{
+			url: 'facebook.com'
+		}
+	];
 
 	async componentDidMount() {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
@@ -161,16 +244,20 @@ export class Browser extends Component {
 		});
 	}
 
-	go = () => {
-		const url = this.state.inputValue;
+	go = (url = null) => {
+		const urlToGo = url || this.state.inputValue;
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
-		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
+		const sanitizedURL = hasProtocol ? urlToGo : `${this.props.defaultProtocol}${urlToGo}`;
 		this.setState({ url: sanitizedURL });
 	};
 
 	goBack = () => {
-		const { current } = this.webview;
-		current && current.goBack();
+		if (this.state.canGoBack) {
+			const { current } = this.webview;
+			current && current.goBack();
+		} else {
+			this.setState({ url: '' });
+		}
 	};
 
 	goForward = () => {
@@ -205,11 +292,29 @@ export class Browser extends Component {
 			case 'INPAGE_REQUEST':
 				this.backgroundBridge.onMessage(data);
 				break;
+			case 'CURRENT_PAGE_TITLE':
+				this.setState({ currentPageTitle: data.title });
 		}
 	};
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		this.setState({ canGoBack, canGoForward, inputValue: url });
+	};
+
+	onInitialUrlChange = searchInputValue => {
+		this.setState({ searchInputValue });
+	};
+
+	onInitialUrlSubmit = () => {
+		const str = this.state.searchInputValue;
+		const res = str.match(
+			/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g
+		);
+		if (res === null) {
+			this.go('https://www.google.com/search?q=' + escape(str));
+		} else {
+			this.go(str);
+		}
 	};
 
 	onURLChange = inputValue => {
@@ -257,19 +362,74 @@ export class Browser extends Component {
 		}
 	}
 
+	renderBookmarks() {
+		let content = null;
+		if (this.bookmarks.length) {
+			content = this.bookmarks.map(i => (
+				<View key={i.url}>
+					<TouchableOpacity
+						style={styles.bookmarkItem}
+						onPress={() => this.go(i.url)} // eslint-disable-line react/jsx-no-bind
+					>
+						<Image
+							style={styles.bookmarkIco}
+							source={{ uri: `http://icons.duckduckgo.com/ip2/${i.url}.ico` }}
+						/>
+						<Text style={styles.bookmarkUrl}>{i.url}</Text>
+					</TouchableOpacity>
+				</View>
+			));
+		} else {
+			content = <Text>{strings('browser.noBookmarks')}</Text>;
+		}
+		return (
+			<View style={styles.bookmarksWrapper}>
+				<Text style={styles.bookmarksTitle}>{strings('browser.bookmarks')}</Text>
+				{content}
+			</View>
+		);
+	}
+
+	renderStartPage() {
+		return (
+			<ScrollView style={styles.wrapper} contentContainerStyle={styles.startPageWrapper}>
+				<View style={styles.foxWrapper}>
+					<AnimatedFox />
+				</View>
+				<View style={styles.startPageContent}>
+					<Text style={styles.startPageTitle}>{strings('browser.letsGetStarted')}</Text>
+					<Text style={styles.startPageSubtitle}>{strings('browser.web3Awaits')}</Text>
+					<TextInput
+						style={styles.searchInput}
+						autoCapitalize="none"
+						autoCorrect={false}
+						clearButtonMode="while-editing"
+						keyboardType="url"
+						textContentType={'URL'}
+						onChangeText={this.onInitialUrlChange}
+						onSubmitEditing={this.onInitialUrlSubmit}
+						placeholder="Search or type URL"
+						placeholderTextColor={colors.asphalt}
+						returnKeyType="go"
+						value={this.state.searchInputValue}
+					/>
+					{this.renderBookmarks()}
+				</View>
+			</ScrollView>
+		);
+	}
+
 	render() {
-		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+		const { canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+
+		if (this.state.url === '') {
+			return this.renderStartPage();
+		}
 
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.urlBar}>
-					<Icon
-						disabled={!canGoBack}
-						name="angle-left"
-						onPress={this.goBack}
-						size={30}
-						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
-					/>
+					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
 					{canGoForward ? (
 						<Icon
 							disabled={!canGoForward}
