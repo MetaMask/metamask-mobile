@@ -17,6 +17,7 @@ exports[`Main should render correctly 1`] = `
         "childRouters": Object {
           "Browser": Object {
             "childRouters": Object {
+              "AddBookmark": null,
               "Approval": null,
               "Browser": null,
             },
@@ -69,7 +70,7 @@ exports[`Main should render correctly 1`] = `
       },
       "setParams": [Function],
       "state": Object {
-        "index": 1,
+        "index": 0,
         "isTransitioning": false,
         "routes": Array [
           Object {
