@@ -9,9 +9,6 @@ import RNFS from 'react-native-fs';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
 import {
-	ScrollView,
-	TouchableOpacity,
-	Image,
 	Text,
 	ActivityIndicator,
 	Platform,
@@ -27,9 +24,9 @@ import { connect } from 'react-redux';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
 import Button from '../Button';
-import AnimatedFox from '../AnimatedFox';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { strings } from '../../../locales/i18n';
+import HomePage from '../HomePage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -114,93 +111,6 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		textAlign: 'center',
 		alignSelf: 'center'
-	},
-	startPageWrapper: {
-		...baseStyles.flexGrow,
-		backgroundColor: colors.white
-	},
-	startPageWrapperContent: {
-		backgroundColor: colors.white,
-		padding: 30,
-		paddingBottom: 0
-	},
-	foxWrapper: {
-		marginTop: 10,
-		marginBottom: 0,
-		height: 150
-	},
-	startPageContent: {
-		flex: 1,
-		alignItems: 'center'
-	},
-	startPageTitle: {
-		fontSize: Platform.OS === 'android' ? 30 : 35,
-		marginTop: 20,
-		marginBottom: 20,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.bold
-	},
-	startPageSubtitle: {
-		fontSize: Platform.OS === 'android' ? 18 : 20,
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	bookmarksWrapper: {
-		alignSelf: 'flex-start',
-		flex: 1
-	},
-
-	bookmarksTitle: {
-		fontSize: Platform.OS === 'android' ? 15 : 20,
-		marginTop: 20,
-		marginBottom: 10,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		...fontStyles.bold
-	},
-
-	bookmarkItem: {
-		marginBottom: 15,
-		paddingVertical: 5
-	},
-	bookmarkTouchable: {
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
-	bookmarkUrl: {
-		paddingRight: 35,
-		...fontStyles.normal
-	},
-	bookmarkIco: {
-		width: 24,
-		height: 24,
-		marginRight: 7
-	},
-	bookmarkIconDefault: {
-		position: 'absolute',
-		marginTop: 0,
-		marginLeft: 5,
-		width: 24,
-		height: 24,
-		marginRight: 10,
-		color: colors.fontSecondary
-	},
-	searchInput: {
-		marginVertical: 20,
-		backgroundColor: colors.white,
-		padding: 15,
-		width: '100%',
-		borderColor: colors.borderColor,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderRadius: 3,
-		fontSize: 17,
-		...fontStyles.normal
-	},
-	noBookmarks: {
-		color: colors.fontSecondary,
-		...fontStyles.normal
 	}
 });
 
@@ -234,23 +144,20 @@ export class Browser extends Component {
 		url: '',
 		showOptions: false,
 		currentPageTitle: '',
-		searchInputValue: ''
+		bookmarks: []
 	};
 
 	webview = React.createRef();
 
-	bookmarks = [];
-
 	loadBookmarks = async () => {
 		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
 		if (bookmarksStr) {
-			return JSON.parse(bookmarksStr).reverse();
+			this.setState({ bookmarks: JSON.parse(bookmarksStr).reverse() });
 		}
-		return [];
 	};
 
 	async componentDidMount() {
-		this.bookmarks = await this.loadBookmarks();
+		await this.loadBookmarks();
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
 		const entryScriptWeb3 =
@@ -303,7 +210,7 @@ export class Browser extends Component {
 	bookmark = () => {
 		this.toggleOptions();
 		// Check it doesn't exist already
-		if (this.bookmarks.filter(i => i.url === this.state.inputValue).length) {
+		if (this.state.bookmarks.filter(i => i.url === this.state.inputValue).length) {
 			Alert.alert(strings('browser.error'), strings('browser.bookmarkAlreadyExists'));
 			return false;
 		}
@@ -312,8 +219,10 @@ export class Browser extends Component {
 			title: this.state.currentPageTitle || '',
 			url: this.state.inputValue,
 			onAddBookmark: async ({ name, url }) => {
-				this.bookmarks.push({ name, url });
-				await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(this.bookmarks));
+				const newBookmarks = this.state.bookmarks;
+				newBookmarks.push({ name, url });
+				this.setState({ bookmarks: newBookmarks });
+				await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(newBookmarks));
 			}
 		});
 	};
@@ -355,22 +264,20 @@ export class Browser extends Component {
 		this.setState({ canGoBack, canGoForward, inputValue: url });
 	};
 
-	onInitialUrlChange = searchInputValue => {
-		this.setState({ searchInputValue });
-	};
-
-	onInitialUrlSubmit = () => {
-		if (this.state.searchInputValue === '') {
+	onInitialUrlSubmit = url => {
+		if (url === '') {
 			return false;
 		}
-		const str = this.state.searchInputValue;
-		const res = str.match(
+
+		//Check if it's a url or a keyword
+		const res = url.match(
 			/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g
 		);
 		if (res === null) {
-			this.go('https://www.google.com/search?q=' + escape(str));
+			// In case of keywords we default to google search
+			this.go('https://www.google.com/search?q=' + escape(url));
 		} else {
-			this.go(str);
+			this.go(url);
 		}
 	};
 
@@ -434,76 +341,18 @@ export class Browser extends Component {
 			);
 		}
 	}
-	getHost(url) {
-		const tmp = url.split('/');
-		return tmp[2];
-	}
-
-	renderBookmarks() {
-		let content = null;
-		if (this.bookmarks.length) {
-			content = this.bookmarks.map(i => {
-				const iconUrl = `http://icons.duckduckgo.com/ip2/${this.getHost(i.url)}.ico`;
-				return (
-					<View key={i.url} style={styles.bookmarkItem}>
-						<TouchableOpacity
-							style={styles.bookmarkTouchable}
-							onPress={() => this.go(i.url)} // eslint-disable-line react/jsx-no-bind
-						>
-							<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />
-							<Image style={styles.bookmarkIco} source={{ uri: iconUrl }} />
-							<Text numberOfLines={1} style={styles.bookmarkUrl}>
-								{i.name}
-							</Text>
-						</TouchableOpacity>
-					</View>
-				);
-			});
-		} else {
-			content = <Text style={styles.noBookmarks}>{strings('browser.noBookmarks')}</Text>;
-		}
-		return (
-			<View style={styles.bookmarksWrapper}>
-				<Text style={styles.bookmarksTitle}>{strings('browser.bookmarks')}</Text>
-				<View style={styles.bookmarksItemsWrapper}>{content}</View>
-			</View>
-		);
-	}
-
-	renderStartPage() {
-		return (
-			<ScrollView style={styles.startPageWrapper} contentContainerStyle={styles.startPageWrapperContent}>
-				<View style={styles.foxWrapper}>
-					<AnimatedFox />
-				</View>
-				<View style={styles.startPageContent}>
-					<Text style={styles.startPageTitle}>{strings('browser.letsGetStarted')}</Text>
-					<Text style={styles.startPageSubtitle}>{strings('browser.web3Awaits')}</Text>
-					<TextInput
-						style={styles.searchInput}
-						autoCapitalize="none"
-						autoCorrect={false}
-						clearButtonMode="while-editing"
-						keyboardType="url"
-						textContentType={'URL'}
-						onChangeText={this.onInitialUrlChange}
-						onSubmitEditing={this.onInitialUrlSubmit}
-						placeholder="Search or type URL"
-						placeholderTextColor={colors.asphalt}
-						returnKeyType="go"
-						value={this.state.searchInputValue}
-					/>
-					{this.renderBookmarks()}
-				</View>
-			</ScrollView>
-		);
-	}
 
 	render() {
 		const { canGoForward, entryScriptWeb3, inputValue, url } = this.state;
 
 		if (this.state.url === '') {
-			return this.renderStartPage();
+			return (
+				<HomePage
+					bookmarks={this.state.bookmarks}
+					onBookmarkTapped={this.go}
+					onInitialUrlSubmit={this.onInitialUrlSubmit}
+				/>
+			);
 		}
 
 		return (
