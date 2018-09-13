@@ -3,6 +3,7 @@ import Web3Webview from 'react-native-web3-webview';
 import { TextInput } from 'react-native';
 import { shallow } from 'enzyme';
 import { Browser } from './';
+import HomePage from '../HomePage';
 
 describe('Browser', () => {
 	it('should render correctly', () => {
@@ -16,19 +17,16 @@ describe('Browser', () => {
 		expect(wrapper.state().inputValue).toBe('foobar');
 	});
 
-	it('should enable back button', () => {
+	it('should have the back button always enabled', () => {
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.setState({ entryScriptWeb3: 'let inject=true;' });
-		expect(wrapper.find('[name="angle-left"]').prop('disabled')).toBe(true);
-		wrapper.find(Web3Webview).simulate('NavigationStateChange', { canGoBack: true });
-		expect(wrapper.find('[name="angle-left"]').prop('disabled')).toBe(false);
+		expect(wrapper.find('[name="angle-left"]').prop('disabled')).not.toBe(false);
 	});
 
-	it('should enable forward button', () => {
+	it('should render the forward button only if canGoForward', () => {
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.setState({ entryScriptWeb3: 'let inject=true;' });
-		expect(wrapper.find('[name="angle-right"]').prop('disabled')).toBe(true);
-		wrapper.find(Web3Webview).simulate('NavigationStateChange', { canGoForward: true });
+		expect(wrapper.find('[name="angle-right"]').length).toBe(0);
+		wrapper.setState({ canGoForward: true });
+		expect(wrapper.find('[name="angle-right"]')).toBeDefined();
 		expect(wrapper.find('[name="angle-right"]').prop('disabled')).toBe(false);
 	});
 
@@ -61,21 +59,14 @@ describe('Browser', () => {
 		const MockWebView = { goForward() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'goForward');
 		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.setState({ entryScriptWeb3: 'let inject=true;' });
-		wrapper.find(Web3Webview).simulate('NavigationStateChange', { canGoBack: true });
+		wrapper.setState({ canGoForward: true });
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="angle-right"]').simulate('press');
 		expect(stub).toBeCalled();
 	});
 
-	it('should reload', () => {
-		const MockWebView = { reload() {} }; // eslint-disable-line no-empty-function
-		const stub = spyOn(MockWebView, 'reload');
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.setState({ entryScriptWeb3: 'let inject=true;' });
-		wrapper.find(Web3Webview).simulate('NavigationStateChange', {});
-		wrapper.instance().webview = { current: MockWebView };
-		wrapper.find('[name="refresh"]').simulate('press');
-		expect(stub).toBeCalled();
+	it('should render the home page if no defaultURL', () => {
+		const wrapper = shallow(<Browser />);
+		expect(wrapper.find(HomePage).length).toBe(1);
 	});
 });

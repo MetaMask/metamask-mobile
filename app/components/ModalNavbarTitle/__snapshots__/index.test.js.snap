@@ -1,14 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NavbarTitle should render correctly 1`] = `
-<ModalNavbarTitle
-  network={
+exports[`ModalNavbarTitle should render correctly 1`] = `
+<Component
+  style={
     Object {
-      "provider": Object {
-        "type": "mainnet",
-      },
+      "alignItems": "center",
+      "flex": 1,
     }
   }
-  title="Test"
-/>
+>
+  <Component
+    style={
+      Object {
+        "fontFamily": "Roboto",
+        "fontSize": 18,
+        "fontWeight": "400",
+      }
+    }
+  >
+    Test
+  </Component>
+</Component>
 `;

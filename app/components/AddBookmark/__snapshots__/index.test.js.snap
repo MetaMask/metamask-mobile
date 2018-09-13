@@ -1,0 +1,119 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddBookmark should render correctly 1`] = `
+<Screen>
+  <Component
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="add-bookmark-screen"
+  >
+    <ActionView
+      cancelTestID="add-bookmark-cancel-button"
+      cancelText="Cancel"
+      confirmButtonMode="normal"
+      confirmTestID="add-bookmark-confirm-button"
+      confirmText="Add"
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+    >
+      <Component
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Name
+        </Component>
+        <TextInput
+          allowFontScaling={true}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder=""
+          returnKeyType="next"
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="add-bookmark-title"
+          underlineColorAndroid="transparent"
+          value={null}
+        />
+        <Component
+          style={
+            Object {
+              "color": "#FF0000",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Url
+        </Component>
+        <TextInput
+          allowFontScaling={true}
+          onChangeText={[Function]}
+          placeholder=""
+          returnKeyType="done"
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="add-bookmark-url"
+          underlineColorAndroid="transparent"
+          value={null}
+        />
+        <Component
+          style={
+            Object {
+              "color": "#FF0000",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        />
+      </Component>
+    </ActionView>
+  </Component>
+</Screen>
+`;

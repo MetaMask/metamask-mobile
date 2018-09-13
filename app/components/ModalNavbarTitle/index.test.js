@@ -1,13 +1,8 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
-import NavbarTitle from './';
+import ModalNavbarTitle from './';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
-
-describe('NavbarTitle', () => {
+describe('ModalNavbarTitle', () => {
 	it('should render correctly', () => {
 		const title = 'Test';
 		const network = {
@@ -15,11 +10,7 @@ describe('NavbarTitle', () => {
 				type: 'mainnet'
 			}
 		};
-		const wrapper = shallow(
-			<Provider store={store}>
-				<NavbarTitle title={title} network={network} />
-			</Provider>
-		);
+		const wrapper = shallow(<ModalNavbarTitle title={title} network={network} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

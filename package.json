@@ -193,7 +193,7 @@
       "!<rootDir>/node_modules/",
       "!<rootDir>/app/util/*.{js,jsx}",
       "!<rootDir>/app/entry*.js",
-      "!<rootDir>/app/components/AnimatedFox/web/"
+      "!<rootDir>/app/components/AnimatedFox/"
     ]
   },
   "react-native": {

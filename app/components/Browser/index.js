@@ -130,6 +130,10 @@ export class Browser extends Component {
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
+		 * Protocol string to append to URLs that have none
+		 */
+		defaultURL: PropTypes.string,
+		/**
 		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object
@@ -141,7 +145,7 @@ export class Browser extends Component {
 		canGoForward: false,
 		entryScriptWeb3: null,
 		inputValue: '',
-		url: '',
+		url: this.props.defaultURL || '',
 		showOptions: false,
 		currentPageTitle: '',
 		bookmarks: []
