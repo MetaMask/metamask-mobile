@@ -23,7 +23,6 @@ exports[`Transfer should render correctly 1`] = `
   >
     <Connect(withNavigation(SendScreen))
       tabLabel="SEND"
-      to={null}
     />
     <Connect(ReceiveScreen)
       tabLabel="RECEIVE"

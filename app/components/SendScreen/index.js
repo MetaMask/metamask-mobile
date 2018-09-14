@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
@@ -9,14 +9,18 @@ import { toBN, BNToHex, hexToBN } from '../../util/number';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 
-
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
 		paddingTop: 30
 	},
-
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	}
 });
 
 /**
@@ -31,44 +35,60 @@ class SendScreen extends Component {
 		/**
 		 * String representing the selected adddress
 		 */
-		selectedAddress: PropTypes.string,
-		/**
-		 * Object containing tx metadata for coming from an external source,
-		 * for ex. deeplinks
-		 */
-		txMeta: PropTypes.object
+		selectedAddress: PropTypes.string
 	};
 
-	constructor(props){
-		super(props);
-
-		let txMeta = {
+	state = {
+		to: '',
+		fullTo: '',
+		mode: 'edit',
+		txMeta: {
 			gas: toBN('0'),
 			gasPrice: toBN('0'),
 			value: toBN('0'),
 			to: '',
-			from: props.selectedAddress,
+			from: this.props.selectedAddress,
 			source: null,
 			transaction: null,
 			status: ''
-		};
+		},
+		ready: false
+	};
 
-		if(props.txMeta){
-			txMeta = {
-				...txMeta,
-				...props.txMeta,
+	checkForDeeplinks() {
+		const { navigation } = this.props;
+		if (navigation) {
+			const txMeta = navigation.getParam('txMeta', null);
+			if (txMeta) {
+				this.handleNewTxMeta(txMeta);
 			}
 		}
 
-		this.state = {
-			to: '',
-			fullTo: '',
-			mode: 'edit',
-			txMeta
+		this.setState({ ready: true });
+	}
+
+	componentDidMount() {
+		this.checkForDeeplinks();
+	}
+
+	componentDidUpdate(prevProps) {
+		const prevNavigation = prevProps.navigation;
+		const { navigation } = this.props;
+		if (prevNavigation && navigation) {
+			const prevTxMeta = prevNavigation.getParam('txMeta', null);
+			const currentTxMeta = navigation.getParam('txMeta', null);
+			if (currentTxMeta.source && (!prevTxMeta.source || prevTxMeta.source !== currentTxMeta.source)) {
+				this.handleNewTxMeta(currentTxMeta);
+			}
 		}
 	}
 
-	handleNewTxMeta =  ({ target_address, chain_id = null, function_name = null, parameters = null }) => { // eslint-disable-line no-unused-vars
+	handleNewTxMeta = ({
+		target_address,
+		chain_id = null, // eslint-disable-line no-unused-vars
+		function_name = null, // eslint-disable-line no-unused-vars
+		parameters = null
+	}) => {
 		const newTxMeta = this.state.txMeta;
 		newTxMeta.to = toChecksumAddress(target_address);
 
@@ -78,10 +98,10 @@ class SendScreen extends Component {
 				newTxMeta.value = toBN(value);
 			}
 			if (gas) {
-				newTxMeta.gas =  toBN(gas);
+				newTxMeta.gas = toBN(gas);
 			}
 			if (gasPrice) {
-				newTxMeta.gasPrice =  toBN(gas);
+				newTxMeta.gasPrice = toBN(gas);
 			}
 			if (gasLimit) {
 				// Don't see a gasLimit anywhere...
@@ -90,14 +110,8 @@ class SendScreen extends Component {
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
-		this.setState({txMeta: newTxMeta});
+		this.setState({ txMeta: newTxMeta });
 	};
-
-	componentDidUpdate() {
-		if (this.props.txMeta && this.props.txMeta.source !== this.state.txMeta.source) {
-			this.handleNewTxMeta(this.props.txMeta);
-		}
-	}
 
 	prepareTransactionMeta(meta) {
 		meta.transaction.gas = BNToHex(meta.transaction.gas);
@@ -113,15 +127,9 @@ class SendScreen extends Component {
 		return meta;
 	}
 
-	showQrScanner = () => {
-		this.props.navigation.navigate('QrScanner', {
-			onScanSuccess: this.handleNewTxMeta
-		});
-	};
-
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
-		this.setState({mode: 'edit'});
+		this.setState({ mode: 'edit' });
 	};
 
 	onConfirm = transaction => {
@@ -137,16 +145,29 @@ class SendScreen extends Component {
 		this.setState({ mode });
 	};
 
+	renderLoader() {
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	}
+
 	render() {
 		return (
 			<View style={styles.wrapper}>
-				<TransactionEditor
-					mode={this.state.mode}
-					onCancel={this.onCancel}
-					onConfirm={this.onConfirm}
-					onModeChange={this.onModeChange}
-					transaction={this.state.txMeta}
-				/>
+				{this.state.ready ? (
+					<TransactionEditor
+						mode={this.state.mode}
+						onCancel={this.onCancel}
+						onConfirm={this.onConfirm}
+						onModeChange={this.onModeChange}
+						onScanSuccess={this.handleNewTxMeta}
+						transaction={this.state.txMeta}
+					/>
+				) : (
+					this.renderLoader()
+				)}
 			</View>
 		);
 	}

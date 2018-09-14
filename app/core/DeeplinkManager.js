@@ -15,10 +15,8 @@ export default class DeeplinkManager {
 			// address, transactions, etc
 			case 'ethereum':
 				ethUrl = parse(url);
-
-				if (ethUrl.prefix === 'pay') {
-					action = 'send-eth';
-				} else if (ethUrl.function_name === 'transfer') {
+				action = 'send-eth';
+				if (ethUrl.function_name === 'transfer') {
 					// Send erc20 token
 					action = 'send-token';
 				} else if (ethUrl.function_name) {
