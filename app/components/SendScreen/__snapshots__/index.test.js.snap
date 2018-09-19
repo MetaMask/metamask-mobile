@@ -1,7 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SendScreen should render correctly 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
-`;
+exports[`SendScreen should render correctly 1`] = `<[object Object] />`;
