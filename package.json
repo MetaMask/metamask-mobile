@@ -50,7 +50,7 @@
     "events": "^3.0.0",
     "eth-contract-metadata": "github:MetaMask/eth-contract-metadata#master",
     "fuse.js": "^3.2.0",
-    "gaba": "^1.0.0-beta.33",
+    "gaba": "^1.0.0-beta.40",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",

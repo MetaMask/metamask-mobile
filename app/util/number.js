@@ -22,7 +22,7 @@ export function BNToHex(value) {
  * @param {string} unit - Unit to convert to, ether by default
  * @returns {Object} - BN instance containing the new number
  */
-export function fromWei(value, unit = 'ether') {
+export function fromWei(value = 0, unit = 'ether') {
 	return convert.fromWei(value, unit);
 }
 
@@ -54,6 +54,16 @@ export function isBN(value) {
  */
 export function isDecimal(value) {
 	return /^(\d+\.?\d*|\.\d+)$/.test(value);
+}
+
+/**
+ * Creates a BN object from a string
+ *
+ * @param {string} value - Some numeric value represented as a string
+ * @returns {Object} - BN instance
+ */
+export function toBN(value) {
+	return new BN(value);
 }
 
 /**
