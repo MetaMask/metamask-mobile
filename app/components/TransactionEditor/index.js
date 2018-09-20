@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
+import { isBN, hexToBN, weiToFiat, fromWei, toBN } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { withNavigation } from 'react-navigation';
@@ -260,6 +260,10 @@ class TransactionEditor extends Component {
 		 */
 		currentCurrency: PropTypes.string,
 		/**
+		 * Hids the "data" field
+		 */
+		hideData: PropTypes.bool,
+		/**
 		 * Current mode this transaction editor is in
 		 */
 		mode: PropTypes.oneOf(['edit', 'review']),
@@ -303,10 +307,12 @@ class TransactionEditor extends Component {
 	fillMax = () => {
 		const { gas, gasPrice, from } = this.state;
 		const { balance } = this.props.accounts[from];
-		this.setState({ amount: hexToBN(balance).sub(gas.mul(gasPrice)) });
+		this.setState({
+			amount: !isBN(gas) || !isBN(gasPrice) ? hexToBN(balance) : hexToBN(balance).sub(gas.mul(gasPrice))
+		});
 	};
 
-	focusToAddress = () => {
+	onFocusToAddress = () => {
 		this.setState({ toFocused: true });
 	};
 
@@ -326,8 +332,9 @@ class TransactionEditor extends Component {
 			});
 	};
 
-	review = () => {
+	review = async () => {
 		const { onModeChange } = this.props;
+		await this.setState({ toFocused: true });
 		!this.validate() && onModeChange && onModeChange('review');
 	};
 
@@ -366,12 +373,15 @@ class TransactionEditor extends Component {
 	validateAmount() {
 		let error;
 		const { amount, gas, gasPrice, from } = this.state;
-		const checksummedFrom = toChecksumAddress(from);
-		const { balance } = this.props.accounts[checksummedFrom];
+		const checksummedFrom = from ? toChecksumAddress(from) : '';
+		const fromAccount = this.props.accounts[checksummedFrom];
 		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
 		amount &&
+			fromAccount &&
+			isBN(gas) &&
+			isBN(gasPrice) &&
 			isBN(amount) &&
-			hexToBN(balance).lt(amount.add(gas.mul(gasPrice))) &&
+			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
 			(error = strings('transaction.insufficient'));
 		return error;
 	}
@@ -394,8 +404,8 @@ class TransactionEditor extends Component {
 
 	render() {
 		const { amount, data, from = this.props.selectedAddress, gas, gasPrice, to } = this.state;
-		const { conversionRate, currentCurrency, mode } = this.props;
-		const totalGas = gas.mul(gasPrice);
+		const { conversionRate, currentCurrency, hideData, mode } = this.props;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
 
 		return (
@@ -418,7 +428,7 @@ class TransactionEditor extends Component {
 								</View>
 								<AccountInput
 									onChange={this.updateToAddress}
-									onFocus={this.focusToAddress}
+									onFocus={this.onFocusToAddress}
 									placeholder={strings('transaction.recipientAddress')}
 									showQRScanner={this.showQRScanner}
 									value={to}
@@ -444,18 +454,20 @@ class TransactionEditor extends Component {
 								</View>
 								<EthInput readonly value={totalGas} />
 							</View>
-							<View style={{ ...styles.formRow, ...styles.amountRow }}>
-								<View style={styles.label}>
-									<Text style={styles.labelText}>{strings('transaction.hexData')}:</Text>
+							{!hideData && (
+								<View style={{ ...styles.formRow, ...styles.amountRow }}>
+									<View style={styles.label}>
+										<Text style={styles.labelText}>{strings('transaction.hexData')}:</Text>
+									</View>
+									<TextInput
+										multiline
+										onChangeText={this.updateData}
+										placeholder="Optional"
+										style={styles.hexData}
+										value={data}
+									/>
 								</View>
-								<TextInput
-									multiline
-									onChangeText={this.updateData}
-									placeholder="Optional"
-									style={styles.hexData}
-									value={data}
-								/>
-							</View>
+							)}
 						</View>
 					</ActionView>
 				)}
