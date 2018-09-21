@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddCustomCollectible should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="add-custom-token-screen"
+>
+  <ActionView
+    cancelTestID="add-custom-asset-cancel-button"
+    cancelText="CANCEL"
+    confirmButtonMode="normal"
+    confirmTestID="add-custom-asset-confirm-button"
+    confirmText="ADD COLLECTIBLE"
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+  >
+    <Component
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
+        Collectible Address
+      </Component>
+      <TextInput
+        allowFontScaling={true}
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="0x..."
+        style={
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
+        }
+        testID="input-collectible-address"
+        underlineColorAndroid="transparent"
+        value=""
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      />
+    </Component>
+    <Component
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
+        Collectible Identifier
+      </Component>
+      <TextInput
+        allowFontScaling={true}
+        keyboardType="numeric"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder=""
+        returnKeyType="done"
+        style={
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
+        }
+        testID="input-token-decimals"
+        underlineColorAndroid="transparent"
+        value=""
+      />
+      <Component
+        style={
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      />
+    </Component>
+  </ActionView>
+</Component>
+`;

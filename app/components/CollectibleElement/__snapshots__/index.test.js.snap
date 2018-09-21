@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleElement should render correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={0.2}
+  key="asset-123"
+  style={
+    Object {
+      "borderBottomColor": "#CCCCCC",
+      "borderBottomWidth": 0.5,
+      "flex": 1,
+      "flexDirection": "row",
+      "paddingHorizontal": 15,
+      "paddingVertical": 10,
+    }
+  }
+>
+  <CollectibleImage
+    asset={
+      Object {
+        "address": "0x123",
+        "image": "IMAGE",
+        "name": "NAME",
+        "tokenId": 123,
+      }
+    }
+  />
+  <Component
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "color": "#333333",
+          "fontFamily": "Roboto",
+          "fontSize": 16,
+          "fontWeight": "400",
+        }
+      }
+    >
+      NAME
+    </Component>
+    <Component
+      style={
+        Object {
+          "color": "#333333",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Collectible Identifier
+      : 
+      123
+    </Component>
+  </Component>
+</TouchableOpacity>
+`;
