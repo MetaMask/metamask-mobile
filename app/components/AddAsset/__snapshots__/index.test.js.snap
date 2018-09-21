@@ -8,17 +8,46 @@ exports[`AddAsset should render correctly 1`] = `
       "flex": 1,
     }
   }
-  testID="add-undefined-screen"
+  testID="add-token-screen"
 >
-  <AddCustomCollectible
-    navigation={
-      Object {
-        "state": Object {
-          "params": Object {},
-        },
+  <ScrollableTabView
+    contentProps={Object {}}
+    initialPage={0}
+    locked={false}
+    onChangeTab={[Function]}
+    onScroll={[Function]}
+    page={-1}
+    prerenderingSiblingsNumber={0}
+    renderTabBar={[Function]}
+    scrollWithoutAnimation={false}
+    tabBarPosition="top"
+  >
+    <SearchTokenAutocomplete
+      navigation={
+        Object {
+          "state": Object {
+            "params": Object {
+              "assetType": "token",
+            },
+          },
+        }
       }
-    }
-    testID="add-custom-collectible"
-  />
+      tabLabel="SEARCH"
+      testID="tab-search-token"
+    />
+    <AddCustomToken
+      navigation={
+        Object {
+          "state": Object {
+            "params": Object {
+              "assetType": "token",
+            },
+          },
+        }
+      }
+      tabLabel="CUSTOM TOKEN"
+      testID="tab-add-custom-token"
+    />
+  </ScrollableTabView>
 </Component>
 `;
