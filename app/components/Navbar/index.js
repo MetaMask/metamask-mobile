@@ -1,5 +1,6 @@
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
+import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Foundation';
@@ -20,7 +21,6 @@ const styles = StyleSheet.create({
  */
 export default function getNavbarOptions(title, navigation) {
 	return {
-		title,
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerTruncatedBackTitle: strings('navigation.back'),
@@ -33,5 +33,11 @@ export default function getNavbarOptions(title, navigation) {
 				<Icon name="widget" size={28} color={colors.fontTertiary} />
 			</TouchableOpacity>
 		)
+	};
+}
+
+export function getModalNavbarOptions(title) {
+	return {
+		headerTitle: <ModalNavbarTitle title={title} />
 	};
 }

@@ -54,6 +54,7 @@
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
+    "react-native-actionsheet": "^2.4.2",
     "react-native-aes-crypto": "github:appman-agm/react-native-aes#9af842442f7e250f967eaaea434e8d3864a4d2ca",
     "react-native-browser-polyfill": "^0.1.2",
     "react-native-button": "^2.3.0",
@@ -191,7 +192,8 @@
       "<rootDir>/app/**/*.{js,jsx}",
       "!<rootDir>/node_modules/",
       "!<rootDir>/app/util/*.{js,jsx}",
-      "!<rootDir>/app/entry*.js"
+      "!<rootDir>/app/entry*.js",
+      "!<rootDir>/app/components/AnimatedFox/"
     ]
   },
   "react-native": {

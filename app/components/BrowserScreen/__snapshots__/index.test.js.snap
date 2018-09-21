@@ -28,6 +28,7 @@ exports[`BrowserScreen should render correctly 1`] = `
       "reset": [Function],
       "router": Object {
         "childRouters": Object {
+          "AddBookmark": null,
           "Approval": null,
           "Browser": null,
         },

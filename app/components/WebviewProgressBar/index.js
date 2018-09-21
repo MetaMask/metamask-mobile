@@ -22,6 +22,14 @@ export default class WebviewProgressBar extends Component {
 		progress: PropTypes.any
 	};
 
+	componentDidMount() {
+		this.mounted = true;
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
+
 	componentDidUpdate() {
 		if (this.props.progress === 1) {
 			this.hide();
@@ -32,12 +40,12 @@ export default class WebviewProgressBar extends Component {
 
 	hide() {
 		setTimeout(() => {
-			this.setState({ visible: false });
+			this.mounted && this.setState({ visible: false });
 		}, 300);
 	}
 
 	show() {
-		this.setState({ visible: true });
+		this.mounted && this.setState({ visible: true });
 	}
 
 	render() {

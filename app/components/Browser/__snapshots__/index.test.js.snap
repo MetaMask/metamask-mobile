@@ -21,32 +21,13 @@ exports[`Browser should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      disabled={true}
       name="angle-left"
       onPress={[Function]}
       size={30}
       style={
         Object {
           "alignSelf": "center",
-          "color": "#ced6e0",
-          "flex": 0,
-          "height": 28,
-          "lineHeight": 28,
-          "textAlign": "center",
-          "width": 36,
-        }
-      }
-    />
-    <Icon
-      allowFontScaling={false}
-      disabled={true}
-      name="angle-right"
-      onPress={[Function]}
-      size={30}
-      style={
-        Object {
-          "alignSelf": "center",
-          "color": "#ced6e0",
+          "color": "#2f3542",
           "flex": 0,
           "height": 28,
           "lineHeight": 28,
@@ -79,11 +60,11 @@ exports[`Browser should render correctly 1`] = `
       }
       textContentType="URL"
       underlineColorAndroid="transparent"
-      value="https://metamask.io"
+      value=""
     />
     <Icon
       allowFontScaling={false}
-      name="refresh"
+      name="more-vert"
       onPress={[Function]}
       size={20}
       style={

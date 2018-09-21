@@ -3,11 +3,15 @@ import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../TransactionEditor';
 import { BNToHex, hexToBN } from '../../util/number';
+import { getModalNavbarOptions } from '../Navbar';
+import { strings } from '../../../locales/i18n';
 
 /**
  * Component that manages transaction approval from the dapp browser
  */
 export default class Approval extends Component {
+	static navigationOptions = ({ navigation }) => getModalNavbarOptions(strings('approval.title'), navigation);
+
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
