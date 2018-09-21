@@ -32,6 +32,14 @@ export default class FadeView extends Component {
 		this.visibility = new Animated.Value(props.visible ? 1 : 0);
 	}
 
+	componentDidMount() {
+		this.mounted = true;
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
+
 	componentDidUpdate() {
 		Animated.timing(this.visibility, {
 			toValue: this.props.visible ? 1 : 0,
@@ -40,7 +48,7 @@ export default class FadeView extends Component {
 		}).start(() => {
 			if (this.props.visible !== this.state.visible) {
 				setTimeout(() => {
-					this.setState({ visible: this.props.visible });
+					this.mounted && this.setState({ visible: this.props.visible });
 				}, 500);
 			}
 		});

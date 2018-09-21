@@ -89,13 +89,8 @@ describe('Wallet', () => {
 			device.pressBack();
 			device.pressBack();
 		} else {
-			await element(by.text('Settings'))
-				.atIndex(1)
-				.tap();
-
-			await element(by.text('Wallet'))
-				.atIndex(2)
-				.tap();
+			await element(by.traits(['button']).and(by.label('Settings')));
+			await element(by.traits(['button']).and(by.label('')));
 		}
 		await TestHelpers.checkIfHasText('navbar-title-network', 'Ethereum Main Network');
 	});
