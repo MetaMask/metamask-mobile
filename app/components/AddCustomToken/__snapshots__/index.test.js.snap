@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AddCustomAsset should render correctly 1`] = `
+exports[`AddCustomToken should render correctly 1`] = `
 <Component
   style={
     Object {

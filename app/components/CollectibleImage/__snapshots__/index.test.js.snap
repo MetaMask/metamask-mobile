@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleImage should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "borderRadius": 100,
+      "height": 50,
+      "marginRight": 20,
+      "overflow": "hidden",
+      "width": 50,
+    }
+  }
+>
+  <MyImage
+    source={
+      Object {
+        "uri": "IMAGE",
+      }
+    }
+    style={
+      Object {
+        "height": 50,
+        "width": 50,
+      }
+    }
+  />
+</Component>
+`;

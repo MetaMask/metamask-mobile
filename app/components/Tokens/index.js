@@ -2,11 +2,10 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import AssetIcon from '../AssetIcon';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
-import Identicon from '../Identicon';
+import TokenElement from '../TokenElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -36,39 +35,6 @@ const styles = StyleSheet.create({
 		color: colors.primary,
 		textTransform: 'uppercase',
 		...fontStyles.normal
-	},
-	itemWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor
-	},
-	itemLogoWrapper: {
-		width: 50,
-		height: 50,
-		overflow: 'hidden',
-		borderRadius: 100,
-		marginRight: 20
-	},
-	balances: {
-		flex: 1
-	},
-	balance: {
-		fontSize: 16,
-		color: colors.fontPrimary
-	},
-	balanceFiat: {
-		fontSize: 12,
-		color: colors.fontSecondary
-	},
-	arrow: {
-		flex: 1,
-		alignSelf: 'flex-end'
-	},
-	arrowIcon: {
-		marginTop: 8
 	}
 });
 
@@ -104,28 +70,13 @@ export default class Tokens extends Component {
 		return this.props.assets.map(asset => {
 			asset.logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
 			return (
-				<TouchableOpacity
-					onPress={() => this.onItemPress(asset)} // eslint-disable-line
-					style={styles.itemWrapper}
-					key={`asset-${asset.symbol}`}
-				>
-					<View style={styles.itemLogoWrapper}>
-						{asset.logo ? <AssetIcon logo={asset.logo} /> : <Identicon address={asset.address} />}
-					</View>
-					<View style={styles.balances}>
-						<Text style={styles.balance}>{asset.symbol}</Text>
-						<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
-					</View>
-					<View styles={styles.arrow}>
-						<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
-					</View>
-				</TouchableOpacity>
+				<TokenElement onPress={() => this.onItemPress(asset)} asset={asset} key={asset.address} /> // eslint-disable-line
 			);
 		});
 	}
 
 	goToAddToken = () => {
-		this.props.navigation.push('AddAsset');
+		this.props.navigation.push('AddAsset', { assetType: 'token' });
 	};
 
 	render() {

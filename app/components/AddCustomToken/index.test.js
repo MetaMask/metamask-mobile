@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import AddCustomAsset from './';
+import AddCustomToken from './';
 
-describe('AddCustomAsset', () => {
+describe('AddCustomToken', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<AddCustomAsset />);
+		const wrapper = shallow(<AddCustomToken />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
