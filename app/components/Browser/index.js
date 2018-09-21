@@ -335,15 +335,15 @@ export class Browser extends Component {
 						<View style={styles.optionsWrapper}>
 							<Button onPress={this.reload} style={styles.option}>
 								<Icon name="refresh" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>Reload</Text>
+								<Text style={styles.optionText}>{strings('browser.reload')}</Text>
 							</Button>
 							<Button onPress={this.bookmark} style={styles.option}>
 								<Icon name="star" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>Bookmark</Text>
+								<Text style={styles.optionText}>{strings('browser.bookmark')}</Text>
 							</Button>
 							<Button onPress={this.share} style={styles.option}>
 								<Icon name="share" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>Share</Text>
+								<Text style={styles.optionText}>{strings('browser.share')}</Text>
 							</Button>
 						</View>
 					</View>

@@ -141,6 +141,9 @@
 		"removeBookmarkTitle": "Do you want to remove this bookmark?"
 	},
 	"browser": {
+		"reload": "Reload",
+		"share": "Share",
+		"bookmark": "Bookmark",
 		"error": "Ooops!",
 		"bookmarkAlreadyExists": "You already bookmarked this url"
 	},
