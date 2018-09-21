@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import Image from 'react-native-remote-svg';
-import Identicon from '../Identicon';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import CollectibleElement from '../CollectibleElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -35,32 +34,6 @@ const styles = StyleSheet.create({
 		color: colors.primary,
 		textTransform: 'uppercase',
 		...fontStyles.normal
-	},
-	itemWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor
-	},
-	imageWrapper: {
-		width: 50,
-		height: 50,
-		overflow: 'hidden',
-		borderRadius: 100,
-		marginRight: 20
-	},
-	image: {
-		width: 50,
-		height: 50
-	},
-	balances: {
-		flex: 1
-	},
-	name: {
-		fontSize: 16,
-		color: colors.fontPrimary
 	}
 });
 
@@ -90,27 +63,11 @@ export default class Collectibles extends Component {
 	}
 
 	renderList() {
-		return this.props.assets.map(asset => (
-			<TouchableOpacity style={styles.itemWrapper} key={`asset-${asset.tokenId}`}>
-				<View style={styles.imageWrapper}>
-					{asset.image ? (
-						<Image source={{ uri: asset.image }} style={styles.image} />
-					) : (
-						<Identicon address={asset.tokenId} />
-					)}
-				</View>
-				<View style={styles.balances}>
-					<Text style={styles.name}>{asset.name}</Text>
-					<Text>
-						{strings('collectible.collectible_token_id')}: {asset.tokenId}
-					</Text>
-				</View>
-			</TouchableOpacity>
-		));
+		return this.props.assets.map(asset => <CollectibleElement asset={asset} key={asset.tokenId} />);
 	}
 
 	goToAddCollectible = () => {
-		this.props.navigation.push('AddAsset', 'collectibles');
+		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
 	};
 
 	render() {

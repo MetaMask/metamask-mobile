@@ -8,7 +8,7 @@ exports[`AddAsset should render correctly 1`] = `
       "flex": 1,
     }
   }
-  testID="add-asset-screen"
+  testID="add-undefined-screen"
 >
   <AddCustomCollectible
     navigation={
@@ -18,7 +18,7 @@ exports[`AddAsset should render correctly 1`] = `
         },
       }
     }
-    testID="add-cutom-collectible"
+    testID="add-custom-collectible"
   />
 </Component>
 `;

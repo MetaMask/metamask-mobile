@@ -69,14 +69,15 @@ export default class AddAsset extends Component {
 	render() {
 		const {
 			navigation: {
-				state: { params }
+				state: {
+					params: { assetType }
+				}
 			},
 			navigation
 		} = this.props;
-
 		return (
-			<View style={styles.wrapper} testID={'add-asset-screen'}>
-				{params === 'tokens' ? (
+			<View style={styles.wrapper} testID={`add-${assetType}-screen`}>
+				{assetType === 'token' ? (
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
 						<SearchTokenAutocomplete
 							navigation={navigation}
@@ -90,7 +91,7 @@ export default class AddAsset extends Component {
 						/>
 					</ScrollableTabView>
 				) : (
-					<AddCustomCollectible navigation={navigation} testID={'add-cutom-collectible'} />
+					<AddCustomCollectible navigation={navigation} testID={'add-custom-collectible'} />
 				)}
 			</View>
 		);
