@@ -1,16 +1,32 @@
 import React, { Component } from 'react';
-import BackgroundBridge from '../../core/BackgroundBridge';
+import {
+	Text,
+	ActivityIndicator,
+	Platform,
+	StyleSheet,
+	TextInput,
+	View,
+	TouchableWithoutFeedback,
+	AsyncStorage,
+	Alert
+} from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
-import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
+import { connect } from 'react-redux';
+import BackgroundBridge from '../../core/BackgroundBridge';
+import Engine from '../../core/Engine';
 import getNavbarOptions from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
-import { ActivityIndicator, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
-import { connect } from 'react-redux';
 import Networks from '../../util/networks';
+import Logger from '../../util/Logger';
+import Button from '../Button';
+import { strings } from '../../../locales/i18n';
+import HomePage from '../HomePage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,6 +68,49 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	optionsOverlay: {
+		position: 'absolute',
+		zIndex: 99999998,
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 0
+	},
+	optionsWrapper: {
+		shadowColor: colors.gray,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
+		position: 'absolute',
+		zIndex: 99999999,
+		marginTop: 50,
+		right: 3,
+		width: 140,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
+		backgroundColor: colors.concrete
+	},
+	option: {
+		backgroundColor: colors.concrete,
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'flex-start'
+	},
+	optionText: {
+		fontSize: 14,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	optionIcon: {
+		width: 18,
+		color: colors.tar,
+		flex: 0,
+		height: 15,
+		lineHeight: 15,
+		marginRight: 10,
+		textAlign: 'center',
+		alignSelf: 'center'
 	}
 });
 
@@ -62,8 +121,7 @@ export class Browser extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
 
 	static defaultProps = {
-		defaultProtocol: 'https://',
-		defaultURL: 'https://faucet.metamask.io'
+		defaultProtocol: 'https://'
 	};
 
 	static propTypes = {
@@ -74,7 +132,7 @@ export class Browser extends Component {
 		/**
 		 * Initial URL to load in the WebView
 		 */
-		defaultURL: PropTypes.string.isRequired,
+		defaultURL: PropTypes.string,
 		/**
 		 * react-navigation object used to switch between screens
 		 */
@@ -86,13 +144,24 @@ export class Browser extends Component {
 		canGoBack: false,
 		canGoForward: false,
 		entryScriptWeb3: null,
-		inputValue: this.props.defaultURL,
-		url: this.props.defaultURL
+		inputValue: '',
+		url: this.props.defaultURL || '',
+		showOptions: false,
+		currentPageTitle: '',
+		bookmarks: []
 	};
 
 	webview = React.createRef();
 
+	loadBookmarks = async () => {
+		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
+		if (bookmarksStr) {
+			this.setState({ bookmarks: JSON.parse(bookmarksStr).reverse() });
+		}
+	};
+
 	async componentDidMount() {
+		await this.loadBookmarks();
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
 		const entryScriptWeb3 =
@@ -113,16 +182,23 @@ export class Browser extends Component {
 		});
 	}
 
-	go = () => {
-		const url = this.state.inputValue;
+	go = url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		this.setState({ url: sanitizedURL });
+		this.setState({ url: sanitizedURL, progress: 0 });
+	};
+
+	onUrlInputSubmit = () => {
+		this.go(this.state.inputValue);
 	};
 
 	goBack = () => {
-		const { current } = this.webview;
-		current && current.goBack();
+		if (this.state.canGoBack) {
+			const { current } = this.webview;
+			current && current.goBack();
+		} else {
+			this.setState({ inputValue: '', url: '' });
+		}
 	};
 
 	goForward = () => {
@@ -135,21 +211,84 @@ export class Browser extends Component {
 		current && current.reload();
 	};
 
-	onMessage = ({ nativeEvent: { data } }) => {
-		data = typeof data === 'string' ? JSON.parse(data) : data;
-
-		if (!data || !data.type) {
-			return;
+	bookmark = () => {
+		this.toggleOptions();
+		// Check it doesn't exist already
+		if (this.state.bookmarks.filter(i => i.url === this.state.inputValue).length) {
+			Alert.alert(strings('browser.error'), strings('browser.bookmarkAlreadyExists'));
+			return false;
 		}
-		switch (data.type) {
-			case 'INPAGE_REQUEST':
-				this.backgroundBridge.onMessage(data);
-				break;
+
+		this.props.navigation.push('AddBookmark', {
+			title: this.state.currentPageTitle || '',
+			url: this.state.inputValue,
+			onAddBookmark: async ({ name, url }) => {
+				const newBookmarks = this.state.bookmarks;
+				newBookmarks.push({ name, url });
+				this.setState({ bookmarks: newBookmarks });
+				await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(newBookmarks));
+			}
+		});
+	};
+
+	share = () => {
+		Share.open({
+			url: this.state.url
+		}).catch(err => {
+			Logger.log('Error while trying to share address', err);
+		});
+	};
+
+	toggleOptions = () => {
+		this.setState({ showOptions: !this.state.showOptions });
+	};
+
+	onMessage = ({ nativeEvent: { data } }) => {
+		try {
+			data = typeof data === 'string' ? JSON.parse(data) : data;
+
+			if (!data || !data.type) {
+				return;
+			}
+			switch (data.type) {
+				case 'INPAGE_REQUEST':
+					this.backgroundBridge.onMessage(data);
+					break;
+				case 'GET_TITLE_FOR_BOOKMARK':
+					if (data.title) {
+						this.setState({ currentPageTitle: data.title });
+					}
+					break;
+			}
+		} catch (e) {
+			Logger.error(`Browser::onMessage on ${this.state.inputValue}`, e.toString());
 		}
 	};
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		this.setState({ canGoBack, canGoForward, inputValue: url });
+	};
+
+	onInitialUrlSubmit = url => {
+		if (url === '') {
+			return false;
+		}
+
+		//Check if it's a url or a keyword
+		const res = url.match(
+			/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g
+		);
+		if (res === null) {
+			// In case of keywords we default to google search
+			this.go('https://www.google.com/search?q=' + escape(url));
+		} else {
+			this.go(url);
+		}
+	};
+
+	updateBookmarks = async bookmarks => {
+		this.setState({ bookmarks });
+		await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(bookmarks));
 	};
 
 	onURLChange = inputValue => {
@@ -164,6 +303,22 @@ export class Browser extends Component {
 		this.setState({ progress });
 	};
 
+	onLoadEnd = () => {
+		// We need to get the title of the page first
+		const { current } = this.webview;
+		const js = `
+			(function () {
+				window.postMessage(
+					JSON.stringify({
+						type: 'GET_TITLE_FOR_BOOKMARK',
+						title: document.title
+					})
+				)
+			})();
+		`;
+		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavascript(js);
+	};
+
 	renderLoader() {
 		return (
 			<View style={styles.loader}>
@@ -172,26 +327,58 @@ export class Browser extends Component {
 		);
 	}
 
+	renderOptions() {
+		if (this.state.showOptions) {
+			return (
+				<TouchableWithoutFeedback onPress={this.toggleOptions}>
+					<View style={styles.optionsOverlay}>
+						<View style={styles.optionsWrapper}>
+							<Button onPress={this.reload} style={styles.option}>
+								<Icon name="refresh" size={15} style={styles.optionIcon} />
+								<Text style={styles.optionText}>{strings('browser.reload')}</Text>
+							</Button>
+							<Button onPress={this.bookmark} style={styles.option}>
+								<Icon name="star" size={15} style={styles.optionIcon} />
+								<Text style={styles.optionText}>{strings('browser.bookmark')}</Text>
+							</Button>
+							<Button onPress={this.share} style={styles.option}>
+								<Icon name="share" size={15} style={styles.optionIcon} />
+								<Text style={styles.optionText}>{strings('browser.share')}</Text>
+							</Button>
+						</View>
+					</View>
+				</TouchableWithoutFeedback>
+			);
+		}
+	}
+
 	render() {
-		const { canGoBack, canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+		const { canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+
+		if (this.state.url === '') {
+			return (
+				<HomePage
+					bookmarks={this.state.bookmarks}
+					onBookmarkTapped={this.go}
+					onInitialUrlSubmit={this.onInitialUrlSubmit}
+					updateBookmarks={this.updateBookmarks}
+				/>
+			);
+		}
 
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.urlBar}>
-					<Icon
-						disabled={!canGoBack}
-						name="angle-left"
-						onPress={this.goBack}
-						size={30}
-						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
-					/>
-					<Icon
-						disabled={!canGoForward}
-						name="angle-right"
-						onPress={this.goForward}
-						size={30}
-						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
-					/>
+					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
+					{canGoForward ? (
+						<Icon
+							disabled={!canGoForward}
+							name="angle-right"
+							onPress={this.goForward}
+							size={30}
+							style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
+						/>
+					) : null}
 					<TextInput
 						autoCapitalize="none"
 						autoCorrect={false}
@@ -199,23 +386,25 @@ export class Browser extends Component {
 						keyboardType="url"
 						textContentType={'URL'}
 						onChangeText={this.onURLChange}
-						onSubmitEditing={this.go}
+						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder="Enter website address"
 						placeholderTextColor={colors.asphalt}
 						returnKeyType="go"
 						style={styles.urlInput}
 						value={inputValue}
 					/>
-					<Icon name="refresh" onPress={this.reload} size={20} style={styles.icon} />
+					<MaterialIcon name="more-vert" onPress={this.toggleOptions} size={20} style={styles.icon} />
 				</View>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
+				{this.renderOptions()}
 				{entryScriptWeb3 ? (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						injectedJavaScriptForMainFrameOnly
 						onProgress={this.onLoadProgress}
+						onLoadEnd={this.onLoadEnd}
 						onMessage={this.onMessage}
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}
