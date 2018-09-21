@@ -1,6 +1,7 @@
 import {
 	AccountTrackerController,
 	AddressBookController,
+	AssetsController,
 	BlockHistoryController,
 	ComposableController,
 	CurrencyRateController,
@@ -73,6 +74,7 @@ class Engine {
 					new PreferencesController(),
 					new ShapeShiftController(),
 					new TokenRatesController(),
+					new AssetsController(),
 					new TransactionController()
 				],
 				initialState
