@@ -67,7 +67,11 @@ class Wallet extends Component {
 		/**
 		 * An array that represents the user tokens
 		 */
-		tokens: PropTypes.array
+		tokens: PropTypes.array,
+		/**
+		 * An array that represents the user collectibles
+		 */
+		collectibles: PropTypes.array
 	};
 	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
@@ -98,7 +102,15 @@ class Wallet extends Component {
 	};
 
 	render() {
-		const { accounts, conversionRate, currentCurrency, identities, selectedAddress, tokens } = this.props;
+		const {
+			accounts,
+			conversionRate,
+			currentCurrency,
+			identities,
+			selectedAddress,
+			tokens,
+			collectibles
+		} = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
@@ -113,7 +125,7 @@ class Wallet extends Component {
 					<Collectibles
 						navigation={this.props.navigation}
 						tabLabel={strings('wallet.collectibles')}
-						assets={[]}
+						assets={collectibles}
 					/>
 				</ScrollableTabView>
 			</View>
@@ -127,7 +139,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.backgroundState.PreferencesController.identities,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.backgroundState.PreferencesController.tokens
+	tokens: state.backgroundState.AssetsController.tokens,
+	collectibles: state.backgroundState.AssetsController.collectibles
 });
 
 export default connect(mapStateToProps)(Wallet);

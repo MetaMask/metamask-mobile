@@ -44,6 +44,10 @@
 		"tokens": {
 			"cancel_add_token": "CANCELAR",
 			"add_token": "AGREGAR TOKEN"
+		},
+		"collectibles": {
+			"cancel_add_collectible": "CANCELAR",
+			"add_collectible": "AGREGAR COLECCIONABLE"
 		}
 	},
 	"token": {
@@ -51,11 +55,18 @@
 		"token_address": "Dirección del Token",
 		"token_precision": "Token de Precisión",
 		"search_tokens_placeholder": "Buscar Tokens",
-		"address_cant_be_empty": "Dirección del token no puede estar vacío.",
+		"address_cant_be_empty": "Dirección del token no puede estar vacía.",
 		"address_must_be_valid": "Dirección del token debe ser válida.",
 		"symbol_cant_be_empty": "Símbolo del token no puede estar vacío.",
-		"decimals_cant_be_empty": "Precisión del token no puede estar vacío.",
+		"decimals_cant_be_empty": "Precisión del token no puede estar vacía.",
 		"select_token": "Seleccionar Token"
+	},
+	"collectible": {
+		"collectible_address": "Dirección del Coleccionable",
+		"collectible_token_id": "Identificador del Coleccionable",
+		"address_must_be_valid": "Dirección del coleccionable debe ser válida.",
+		"address_cant_be_empty": "Dirección del coleccionable no puede estar vacía.",
+		"token_id_cant_be_empty": "Identificador del coleccionable no puede estar vacío."
 	},
 	"transfer": {
 		"title": "Transferir",

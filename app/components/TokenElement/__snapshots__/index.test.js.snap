@@ -1,0 +1,81 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenElement should render correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={0.2}
+  key="asset-ABC"
+  style={
+    Object {
+      "borderBottomColor": "#CCCCCC",
+      "borderBottomWidth": 0.5,
+      "flex": 1,
+      "flexDirection": "row",
+      "paddingHorizontal": 15,
+      "paddingVertical": 10,
+    }
+  }
+>
+  <TokenElement
+    asset={
+      Object {
+        "address": "0x123",
+        "decimals": 18,
+        "symbol": "ABC",
+      }
+    }
+  />
+  <Component
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "color": "#333333",
+          "fontFamily": "Roboto",
+          "fontSize": 16,
+          "fontWeight": "400",
+        }
+      }
+    >
+      ABC
+    </Component>
+    <Component
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+        }
+      }
+    >
+      $
+       USD
+    </Component>
+  </Component>
+  <Component
+    styles={
+      Object {
+        "alignSelf": "flex-end",
+        "flex": 1,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      color="#AAAAAA"
+      name="chevron-right"
+      size={24}
+      style={
+        Object {
+          "marginTop": 8,
+        }
+      }
+    />
+  </Component>
+</TouchableOpacity>
+`;

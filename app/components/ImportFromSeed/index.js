@@ -218,6 +218,7 @@ export default class ImportFromSeed extends Component {
 							testID={'input-seed-phrase'}
 							blurOnSubmit
 							onSubmitEditing={this.jumpToPassword}
+							returnKeyType={'next'}
 						/>
 						<View style={styles.field}>
 							<Text style={styles.label}>{strings('importFromSeed.new_password')}</Text>
@@ -231,6 +232,7 @@ export default class ImportFromSeed extends Component {
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password'}
 								onSubmitEditing={this.jumpToConfirmPassword}
+								returnKeyType={'next'}
 							/>
 						</View>
 						<View style={styles.field}>
@@ -245,6 +247,7 @@ export default class ImportFromSeed extends Component {
 								underlineColorAndroid={colors.borderColor}
 								testID={'input-password-confirm'}
 								onSubmitEditing={this.onPressImport}
+								returnKeyType={'done'}
 							/>
 						</View>
 

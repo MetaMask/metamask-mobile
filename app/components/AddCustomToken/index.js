@@ -29,9 +29,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Copmonent that provides ability to add custom assets.
+ * Copmonent that provides ability to add custom tokens.
  */
-export default class AddCustomAsset extends Component {
+export default class AddCustomToken extends Component {
 	state = {
 		address: '',
 		symbol: '',
@@ -50,9 +50,9 @@ export default class AddCustomAsset extends Component {
 
 	addToken = () => {
 		if (!this.validateCustomToken()) return;
-		const { PreferencesController } = Engine.context;
+		const { AssetsController } = Engine.context;
 		const { address, symbol, decimals } = this.state;
-		PreferencesController.addToken(address, symbol, decimals);
+		AssetsController.addToken(address, symbol, decimals);
 		this.props.navigation.goBack();
 	};
 
@@ -152,6 +152,7 @@ export default class AddCustomAsset extends Component {
 							onBlur={this.validateCustomTokenAddress}
 							testID={'input-token-address'}
 							onSubmitEditing={this.jumpToAssetSymbol}
+							returnKeyType={'next'}
 						/>
 						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 					</View>
@@ -166,6 +167,7 @@ export default class AddCustomAsset extends Component {
 							testID={'input-token-symbol'}
 							ref={this.assetSymbolInput}
 							onSubmitEditing={this.jumpToAssetPrecision}
+							returnKeyType={'next'}
 						/>
 						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 					</View>

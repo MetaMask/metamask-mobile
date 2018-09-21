@@ -8,7 +8,7 @@ exports[`AddAsset should render correctly 1`] = `
       "flex": 1,
     }
   }
-  testID="add-asset-screen"
+  testID="add-token-screen"
 >
   <ScrollableTabView
     contentProps={Object {}}
@@ -22,11 +22,29 @@ exports[`AddAsset should render correctly 1`] = `
     scrollWithoutAnimation={false}
     tabBarPosition="top"
   >
-    <SearchAssetAutocomplete
+    <SearchTokenAutocomplete
+      navigation={
+        Object {
+          "state": Object {
+            "params": Object {
+              "assetType": "token",
+            },
+          },
+        }
+      }
       tabLabel="SEARCH"
       testID="tab-search-token"
     />
-    <AddCustomAsset
+    <AddCustomToken
+      navigation={
+        Object {
+          "state": Object {
+            "params": Object {
+              "assetType": "token",
+            },
+          },
+        }
+      }
       tabLabel="CUSTOM TOKEN"
       testID="tab-add-custom-token"
     />

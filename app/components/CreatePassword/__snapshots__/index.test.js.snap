@@ -90,6 +90,7 @@ exports[`CreatePassword should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          returnKeyType="next"
           secureTextEntry={true}
           style={
             Object {
@@ -130,6 +131,7 @@ exports[`CreatePassword should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          returnKeyType="done"
           secureTextEntry={true}
           style={
             Object {

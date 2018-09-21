@@ -22,7 +22,7 @@ export function BNToHex(value) {
  * @param {string} unit - Unit to convert to, ether by default
  * @returns {Object} - BN instance containing the new number
  */
-export function fromWei(value, unit = 'ether') {
+export function fromWei(value = 0, unit = 'ether') {
 	return convert.fromWei(value, unit);
 }
 
@@ -57,6 +57,16 @@ export function isDecimal(value) {
 }
 
 /**
+ * Creates a BN object from a string
+ *
+ * @param {string} value - Some numeric value represented as a string
+ * @returns {Object} - BN instance
+ */
+export function toBN(value) {
+	return new BN(value);
+}
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
@@ -83,14 +93,4 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 	let value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
 	value = isNaN(value) ? '0.00' : value;
 	return `${value} ${currencyCode}`;
-}
-
-/**
- * Creates a BN object from a string
- *
- * @param {string} value - Some numeric value represented as a string
- * @returns {Object} - BN instance
- */
-export function toBN(value) {
-	return new BN(value);
 }
