@@ -19,13 +19,27 @@ exports[`HomePage should render correctly 1`] = `
   <Component
     style={
       Object {
+        "alignItems": "center",
         "height": 120,
         "marginBottom": 0,
         "marginTop": 10,
       }
     }
   >
-    <AnimatedFox />
+    <Image
+      resizeMethod="auto"
+      source={
+        Object {
+          "testUri": "../../../app/images/fox.png",
+        }
+      }
+      style={
+        Object {
+          "height": 120,
+          "width": 120,
+        }
+      }
+    />
   </Component>
   <Component
     style={

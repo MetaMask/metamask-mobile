@@ -4,8 +4,9 @@ import PropTypes from 'prop-types';
 import ActionSheet from 'react-native-actionsheet';
 import { ScrollView, TouchableOpacity, Image, Text, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
-import AnimatedFox from '../AnimatedFox';
 import { strings } from '../../../locales/i18n';
+
+const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 const styles = StyleSheet.create({
 	startPageWrapper: {
@@ -20,6 +21,11 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		marginTop: 10,
 		marginBottom: 0,
+		height: 120,
+		alignItems: 'center'
+	},
+	image: {
+		width: 120,
 		height: 120
 	},
 	startPageContent: {
@@ -200,7 +206,7 @@ export default class HomePage extends Component {
 		return (
 			<ScrollView style={styles.startPageWrapper} contentContainerStyle={styles.startPageWrapperContent}>
 				<View style={styles.foxWrapper}>
-					<AnimatedFox />
+					<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
 				</View>
 				<View style={styles.startPageContent}>
 					<Text style={styles.startPageTitle}>{strings('homePage.letsGetStarted')}</Text>
