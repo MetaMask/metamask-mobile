@@ -4,6 +4,7 @@ describe('Engine', () => {
 		const engine = Engine.init({});
 		expect(engine.datamodel.context).toHaveProperty('AccountTrackerController');
 		expect(engine.datamodel.context).toHaveProperty('AddressBookController');
+		expect(engine.datamodel.context).toHaveProperty('AssetsController');
 		expect(engine.datamodel.context).toHaveProperty('BlockHistoryController');
 		expect(engine.datamodel.context).toHaveProperty('CurrencyRateController');
 		expect(engine.datamodel.context).toHaveProperty('KeyringController');
