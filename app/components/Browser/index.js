@@ -126,11 +126,11 @@ export class Browser extends Component {
 
 	static propTypes = {
 		/**
-		 * Initial URL to load in the WebView
+		 * Protocol string to append to URLs that have none
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
-		 * Protocol string to append to URLs that have none
+		 * Initial URL to load in the WebView
 		 */
 		defaultURL: PropTypes.string,
 		/**

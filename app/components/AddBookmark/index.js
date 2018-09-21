@@ -53,8 +53,8 @@ export default class AddBookmark extends Component {
 	loadInitialValues() {
 		const { navigation } = this.props;
 		this.setState({
-			title: navigation.getParam('title', 'lol'),
-			url: navigation.getParam('url', 'lal')
+			title: navigation.getParam('title', ''),
+			url: navigation.getParam('url', '')
 		});
 	}
 
