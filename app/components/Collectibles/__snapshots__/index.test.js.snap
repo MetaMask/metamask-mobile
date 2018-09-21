@@ -38,6 +38,7 @@ exports[`Collectibles should render correctly 1`] = `
     </Component>
     <TouchableOpacity
       activeOpacity={0.2}
+      onPress={[Function]}
       style={
         Object {
           "alignItems": "center",
@@ -46,6 +47,7 @@ exports[`Collectibles should render correctly 1`] = `
           "margin": 20,
         }
       }
+      testID="add-collectible-button"
     >
       <Icon
         allowFontScaling={false}
