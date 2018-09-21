@@ -75,6 +75,7 @@ class Engine {
 					new PreferencesController(),
 					new ShapeShiftController(),
 					new TokenRatesController(),
+					new AssetsController(),
 					new TransactionController()
 				],
 				initialState
