@@ -1,16 +1,25 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { withNavigation } from 'react-navigation';
+import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
 import TransactionEditor from '../TransactionEditor';
-import { Alert, StyleSheet, View } from 'react-native';
-import { colors } from '../../styles/common';
-import { BNToHex, hexToBN } from '../../util/number';
-import { withNavigation } from 'react-navigation';
+import { toBN, BNToHex, hexToBN } from '../../util/number';
+import { connect } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
 		paddingTop: 30
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -18,77 +27,154 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class SendScreen extends Component {
-	state = {
-		mode: 'edit',
-		transaction: undefined,
-		transactionKey: undefined
+	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * String representing the selected adddress
+		 */
+		selectedAddress: PropTypes.string
 	};
 
-	async reset() {
-		const transaction = {};
-		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
-		transaction.gas = gas;
-		transaction.gasPrice = gasPrice;
-		return this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
+	state = {
+		to: '',
+		fullTo: '',
+		mode: 'edit',
+		txMeta: {
+			gas: toBN('0'),
+			gasPrice: toBN('0'),
+			value: toBN('0'),
+			to: '',
+			from: this.props.selectedAddress,
+			source: null,
+			transaction: null,
+			status: ''
+		},
+		ready: false
+	};
+
+	checkForDeeplinks() {
+		const { navigation } = this.props;
+		if (navigation) {
+			const txMeta = navigation.getParam('txMeta', null);
+			if (txMeta) {
+				this.handleNewTxMeta(txMeta);
+			}
+		}
+
+		this.setState({ ready: true });
 	}
 
 	componentDidMount() {
-		this.reset();
+		this.checkForDeeplinks();
 	}
 
-	onCancel = async () => {
-		this.reset();
+	componentDidUpdate(prevProps) {
+		const prevNavigation = prevProps.navigation;
+		const { navigation } = this.props;
+		if (prevNavigation && navigation) {
+			const prevTxMeta = prevNavigation.getParam('txMeta', null);
+			const currentTxMeta = navigation.getParam('txMeta', null);
+			if (currentTxMeta.source && (!prevTxMeta.source || prevTxMeta.source !== currentTxMeta.source)) {
+				this.handleNewTxMeta(currentTxMeta);
+			}
+		}
+	}
+
+	handleNewTxMeta = ({
+		target_address,
+		chain_id = null, // eslint-disable-line no-unused-vars
+		function_name = null, // eslint-disable-line no-unused-vars
+		parameters = null
+	}) => {
+		const newTxMeta = this.state.txMeta;
+		newTxMeta.to = toChecksumAddress(target_address);
+
+		if (parameters) {
+			const { value, gas, gasPrice, gasLimit } = parameters;
+			if (value) {
+				newTxMeta.value = toBN(value);
+			}
+			if (gas) {
+				newTxMeta.gas = toBN(gas);
+			}
+			if (gasPrice) {
+				newTxMeta.gasPrice = toBN(gas);
+			}
+			if (gasLimit) {
+				// Don't see a gasLimit anywhere...
+			}
+
+			// TODO: We should add here support for sending tokens
+			// or calling smart contract functions
+		}
+		this.setState({ txMeta: newTxMeta });
 	};
 
-	onConfirm = async transaction => {
+	prepareTransactionMeta(meta) {
+		meta.transaction.gas = BNToHex(meta.transaction.gas);
+		meta.transaction.gasPrice = BNToHex(meta.transaction.gasPrice);
+		meta.transaction.value = BNToHex(meta.transaction.value);
+		return meta;
+	}
+
+	sanitizeTransactionMeta(meta) {
+		meta.transaction.gas = hexToBN(meta.transaction.gas);
+		meta.transaction.gasPrice = hexToBN(meta.transaction.gasPrice);
+		meta.transaction.value = hexToBN(meta.transaction.value);
+		return meta;
+	}
+
+	onCancel = id => {
+		Engine.context.TransactionController.cancelTransaction(id);
+		this.setState({ mode: 'edit' });
+	};
+
+	onConfirm = transaction => {
 		const { TransactionController } = Engine.context;
-		transaction = this.prepareTransaction(transaction);
-		try {
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
-			await TransactionController.approveTransaction(transactionMeta.id);
-			const hash = await result;
-			Alert.alert('Transaction success', hash, [{ text: 'OK' }]);
-			this.reset();
-		} catch (error) {
-			Alert.alert('Transaction error', error, [{ text: 'OK' }]);
-		}
+		const transactionMeta = this.state.txMeta;
+		transactionMeta.transaction = transaction;
+		TransactionController.updateTransaction(this.prepareTransactionMeta(transactionMeta));
+		TransactionController.approveTransaction(transactionMeta.id);
+		this.props.navigation.goBack();
 	};
 
 	onModeChange = mode => {
 		this.setState({ mode });
 	};
 
-	prepareTransaction(transaction) {
-		transaction.gas = BNToHex(transaction.gas);
-		transaction.gasPrice = BNToHex(transaction.gasPrice);
-		transaction.value = BNToHex(transaction.value);
-		return transaction;
-	}
-
-	sanitizeTransaction(transaction) {
-		transaction.gas = hexToBN(transaction.gas);
-		transaction.gasPrice = hexToBN(transaction.gasPrice);
-		return transaction;
+	renderLoader() {
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
 	}
 
 	render() {
-		const { transaction, transactionKey } = this.state;
 		return (
 			<View style={styles.wrapper}>
-				{transaction && (
+				{this.state.ready ? (
 					<TransactionEditor
-						key={transactionKey}
-						hideData
 						mode={this.state.mode}
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
 						onModeChange={this.onModeChange}
-						transaction={this.sanitizeTransaction(transaction)}
+						onScanSuccess={this.handleNewTxMeta}
+						transaction={this.state.txMeta}
 					/>
+				) : (
+					this.renderLoader()
 				)}
 			</View>
 		);
 	}
 }
 
-export default withNavigation(SendScreen);
+const mapStateToProps = state => ({
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+});
+
+export default connect(mapStateToProps)(withNavigation(SendScreen));
