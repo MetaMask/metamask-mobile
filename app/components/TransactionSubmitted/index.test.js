@@ -1,17 +1,17 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import NetworkSettings from './';
+import TransactionSubmitted from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 const mockStore = configureMockStore();
 const store = mockStore({});
 
-describe('NetworkSettings', () => {
+describe('a', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<NetworkSettings backgroundState={{ NetworkController: { provider: { type: 'mainnet' } } }} />
+				<TransactionSubmitted network={'ropsten'} />
 			</Provider>
 		);
 		expect(wrapper).toMatchSnapshot();

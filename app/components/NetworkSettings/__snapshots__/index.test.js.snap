@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Accounts should render correctly 1`] = `
+exports[`NetworkSettings should render correctly 1`] = `
 <Connect(NetworkSettings)
   backgroundState={
     Object {

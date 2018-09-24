@@ -28,6 +28,7 @@ exports[`TransferScreen should render correctly 1`] = `
       "reset": [Function],
       "router": Object {
         "childRouters": Object {
+          "TransactionSubmitted": null,
           "TransferView": null,
         },
         "getActionCreators": [Function],

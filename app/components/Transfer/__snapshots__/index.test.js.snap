@@ -21,7 +21,7 @@ exports[`Transfer should render correctly 1`] = `
     scrollWithoutAnimation={false}
     tabBarPosition="top"
   >
-    <Connect(withNavigation(SendScreen))
+    <withNavigation(SendScreen)
       tabLabel="SEND"
     />
     <Connect(ReceiveScreen)

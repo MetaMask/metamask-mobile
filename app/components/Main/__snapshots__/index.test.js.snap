@@ -31,6 +31,7 @@ exports[`Main should render correctly 1`] = `
           },
           "Transfer": Object {
             "childRouters": Object {
+              "TransactionSubmitted": null,
               "TransferView": null,
             },
             "getActionCreators": [Function],
