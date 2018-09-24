@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
 import TransactionEditor from '../TransactionEditor';
 import { toBN, BNToHex, hexToBN } from '../../util/number';
-import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
@@ -31,29 +30,23 @@ class SendScreen extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object,
-		/**
-		 * String representing the selected adddress
-		 */
-		selectedAddress: PropTypes.string
+		navigation: PropTypes.object
 	};
 
 	state = {
-		to: '',
-		fullTo: '',
 		mode: 'edit',
-		txMeta: {
-			gas: toBN('0'),
-			gasPrice: toBN('0'),
-			value: toBN('0'),
-			to: '',
-			from: this.props.selectedAddress,
-			source: null,
-			transaction: null,
-			status: ''
-		},
+		transaction: undefined,
+		transactionKey: undefined,
 		ready: false
 	};
+
+	async reset() {
+		const transaction = {};
+		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
+		transaction.gas = toBN(gas);
+		transaction.gasPrice = toBN(gasPrice);
+		return this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
+	}
 
 	checkForDeeplinks() {
 		const { navigation } = this.props;
@@ -67,7 +60,8 @@ class SendScreen extends Component {
 		this.setState({ ready: true });
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
+		await this.reset();
 		this.checkForDeeplinks();
 	}
 
@@ -77,7 +71,11 @@ class SendScreen extends Component {
 		if (prevNavigation && navigation) {
 			const prevTxMeta = prevNavigation.getParam('txMeta', null);
 			const currentTxMeta = navigation.getParam('txMeta', null);
-			if (currentTxMeta.source && (!prevTxMeta.source || prevTxMeta.source !== currentTxMeta.source)) {
+			if (
+				currentTxMeta &&
+				currentTxMeta.source &&
+				(!prevTxMeta.source || prevTxMeta.source !== currentTxMeta.source)
+			) {
 				this.handleNewTxMeta(currentTxMeta);
 			}
 		}
@@ -110,21 +108,20 @@ class SendScreen extends Component {
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
-		this.setState({ txMeta: newTxMeta });
+		this.setState({ transaction: newTxMeta });
 	};
 
-	prepareTransactionMeta(meta) {
-		meta.transaction.gas = BNToHex(meta.transaction.gas);
-		meta.transaction.gasPrice = BNToHex(meta.transaction.gasPrice);
-		meta.transaction.value = BNToHex(meta.transaction.value);
-		return meta;
+	prepareTransaction(transaction) {
+		transaction.gas = BNToHex(transaction.gas);
+		transaction.gasPrice = BNToHex(transaction.gasPrice);
+		transaction.value = BNToHex(transaction.value);
+		return transaction;
 	}
 
-	sanitizeTransactionMeta(meta) {
-		meta.transaction.gas = hexToBN(meta.transaction.gas);
-		meta.transaction.gasPrice = hexToBN(meta.transaction.gasPrice);
-		meta.transaction.value = hexToBN(meta.transaction.value);
-		return meta;
+	sanitizeTransaction(transaction) {
+		transaction.gas = hexToBN(transaction.gas);
+		transaction.gasPrice = hexToBN(transaction.gasPrice);
+		return transaction;
 	}
 
 	onCancel = id => {
@@ -132,13 +129,18 @@ class SendScreen extends Component {
 		this.setState({ mode: 'edit' });
 	};
 
-	onConfirm = transaction => {
+	onConfirm = async transaction => {
 		const { TransactionController } = Engine.context;
-		const transactionMeta = this.state.txMeta;
-		transactionMeta.transaction = transaction;
-		TransactionController.updateTransaction(this.prepareTransactionMeta(transactionMeta));
-		TransactionController.approveTransaction(transactionMeta.id);
-		this.props.navigation.goBack();
+		transaction = this.prepareTransaction(transaction);
+		try {
+			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+			await TransactionController.approveTransaction(transactionMeta.id);
+			const hash = await result;
+			this.props.navigation.push('TransactionSubmitted', { hash });
+			this.reset();
+		} catch (error) {
+			Alert.alert('Transaction error', error, [{ text: 'OK' }]);
+		}
 	};
 
 	onModeChange = mode => {
@@ -163,7 +165,7 @@ class SendScreen extends Component {
 						onConfirm={this.onConfirm}
 						onModeChange={this.onModeChange}
 						onScanSuccess={this.handleNewTxMeta}
-						transaction={this.state.txMeta}
+						transaction={this.state.transaction}
 					/>
 				) : (
 					this.renderLoader()
@@ -173,8 +175,4 @@ class SendScreen extends Component {
 	}
 }
 
-const mapStateToProps = state => ({
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
-});
-
-export default connect(mapStateToProps)(withNavigation(SendScreen));
+export default withNavigation(SendScreen);

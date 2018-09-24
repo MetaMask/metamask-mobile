@@ -33,7 +33,8 @@ export const colors = {
 	subtleGray: '#8c8e94',
 	tar: '#2f3542',
 	title: '#1B344D',
-	white: '#FFFFFF'
+	white: '#FFFFFF',
+	success: '#8dc63f'
 };
 
 /**
