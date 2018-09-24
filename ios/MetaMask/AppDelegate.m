@@ -22,7 +22,7 @@
   [Fabric with:@[[Crashlytics class]]];
 
   [RNBranch useTestInstance];
-  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES]; // <-- add this
+  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
 
   NSURL *jsCodeLocation;
 

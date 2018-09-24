@@ -45,7 +45,7 @@
     "base-64": "^0.1.0",
     "buffer": "^4.9.1",
     "eth-block-tracker": "github:MetaMask/eth-block-tracker#3.0.1-subscription-fix",
-    "eth-contract-metadata": "github:MetaMask/eth-contract-metadata#master",
+    "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#master",
     "eth-url-parser": "^1.0.2",
     "ethereumjs-util": "^5.2.0",
     "ethjs-unit": "^0.1.6",

@@ -32,48 +32,48 @@ import android.support.multidex.MultiDexApplication;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
 
-  private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
-    @Override
-    public boolean getUseDeveloperSupport() {
-      return BuildConfig.DEBUG;
-    }
+	private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
+		@Override
+		public boolean getUseDeveloperSupport() {
+			return BuildConfig.DEBUG;
+		}
 
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-            new MainReactPackage(),
-            new RNBranchPackage(),
-            new FabricPackage(),
-            new KeychainPackage(),
-            new LinearGradientPackage(),
-            new RandomBytesPackage(),
-            new RCTAesPackage(),
-            new RNCameraPackage(),
-            new RNFSPackage(),
-            new RNI18nPackage(),
-            new RNOSModule(),
-            new RNSharePackage(),
-            new VectorIconsPackage(),
-            new Web3WebviewPackage()
-      );
-    }
+		@Override
+		protected List<ReactPackage> getPackages() {
+		return Arrays.<ReactPackage>asList(
+				new MainReactPackage(),
+				new RNBranchPackage(),
+				new FabricPackage(),
+				new KeychainPackage(),
+				new LinearGradientPackage(),
+				new RandomBytesPackage(),
+				new RCTAesPackage(),
+				new RNCameraPackage(),
+				new RNFSPackage(),
+				new RNI18nPackage(),
+				new RNOSModule(),
+				new RNSharePackage(),
+				new VectorIconsPackage(),
+				new Web3WebviewPackage()
+		);
+		}
 
-    @Override
-    protected String getJSMainModuleName() {
-      return "index";
-    }
-  };
+		@Override
+		protected String getJSMainModuleName() {
+			return "index";
+    	}
+  	};
 
-  @Override
-  public ReactNativeHost getReactNativeHost() {
-    return mReactNativeHost;
-  }
+	@Override
+	public ReactNativeHost getReactNativeHost() {
+		return mReactNativeHost;
+	}
 
-  @Override
-  public void onCreate() {
-	super.onCreate();
-	Fabric.with(this, new Crashlytics());
-	Branch.getAutoInstance(this);
-	SoLoader.init(this, /* native exopackage */ false);
-  }
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		Fabric.with(this, new Crashlytics());
+		Branch.getAutoInstance(this);
+		SoLoader.init(this, /* native exopackage */ false);
+	}
 }
