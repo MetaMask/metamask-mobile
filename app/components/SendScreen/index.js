@@ -87,7 +87,7 @@ class SendScreen extends Component {
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
-		const newTxMeta = this.state.txMeta;
+		const newTxMeta = this.state.transaction;
 		newTxMeta.to = toChecksumAddress(target_address);
 
 		if (parameters) {
