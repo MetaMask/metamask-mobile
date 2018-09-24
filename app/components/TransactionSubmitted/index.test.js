@@ -7,7 +7,7 @@ import configureMockStore from 'redux-mock-store';
 const mockStore = configureMockStore();
 const store = mockStore({});
 
-describe('a', () => {
+describe('TransactionSubmitted', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
