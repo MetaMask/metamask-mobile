@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`a should render correctly 1`] = `
+exports[`TransactionSubmitted should render correctly 1`] = `
 <Connect(TransactionSubmitted)
   network="ropsten"
 />
