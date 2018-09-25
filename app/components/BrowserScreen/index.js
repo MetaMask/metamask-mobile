@@ -1,4 +1,5 @@
 import Browser from '../Browser';
+import AddBookmark from '../AddBookmark';
 import Approval from '../Approval';
 import { createStackNavigator } from 'react-navigation';
 
@@ -11,9 +12,14 @@ export default createStackNavigator(
 		Browser: {
 			screen: Browser
 		},
+		AddBookmark: {
+			screen: AddBookmark
+		},
 		Approval: {
 			screen: Approval
 		}
 	},
-	{ mode: 'modal' }
+	{
+		mode: 'modal'
+	}
 );

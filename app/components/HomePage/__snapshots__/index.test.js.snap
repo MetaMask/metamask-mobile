@@ -1,0 +1,160 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HomePage should render correctly 1`] = `
+<ScrollView
+  contentContainerStyle={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "padding": 30,
+      "paddingBottom": 0,
+    }
+  }
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 120,
+        "marginBottom": 0,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Image
+      resizeMethod="auto"
+      source={
+        Object {
+          "testUri": "../../../app/images/fox.png",
+        }
+      }
+      style={
+        Object {
+          "height": 120,
+          "width": 120,
+        }
+      }
+    />
+  </Component>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "color": "#333333",
+          "fontFamily": "Roboto",
+          "fontSize": 35,
+          "fontWeight": "600",
+          "justifyContent": "center",
+          "marginBottom": 20,
+          "marginTop": 20,
+          "textAlign": "center",
+        }
+      }
+    >
+      Let's get started!
+    </Component>
+    <Component
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 20,
+          "fontWeight": "400",
+        }
+      }
+    >
+      The decentralized web awaits
+    </Component>
+    <TextInput
+      allowFontScaling={true}
+      autoCapitalize="none"
+      autoCorrect={false}
+      clearButtonMode="while-editing"
+      keyboardType="url"
+      onChangeText={[Function]}
+      onSubmitEditing={[Function]}
+      placeholder="Search or type URL"
+      placeholderTextColor="#747d8c"
+      returnKeyType="go"
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#CCCCCC",
+          "borderRadius": 3,
+          "borderWidth": 0.5,
+          "fontFamily": "Roboto",
+          "fontSize": 17,
+          "fontWeight": "400",
+          "marginVertical": 20,
+          "padding": 15,
+          "width": "100%",
+        }
+      }
+      textContentType="URL"
+      underlineColorAndroid="transparent"
+      value=""
+    />
+    <Component
+      style={
+        Object {
+          "alignSelf": "flex-start",
+          "flex": 1,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "color": "#333333",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "600",
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginTop": 20,
+          }
+        }
+      >
+        Bookmarks
+      </Component>
+      <Component>
+        <Component
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Your bookmarks will show up here
+        </Component>
+      </Component>
+      <ActionSheet
+        cancelButtonIndex={1}
+        destructiveButtonIndex={0}
+        onPress={[Function]}
+        options={
+          Array [
+            "Remove",
+            "cancel",
+          ]
+        }
+        title="Do you want to remove this bookmark?"
+      />
+    </Component>
+  </Component>
+</ScrollView>
+`;
