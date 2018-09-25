@@ -15,6 +15,7 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme">
       <activity
+        android:launchMode="singleTask"
         android:name=".SplashActivity"
         android:theme="@style/SplashTheme"
         android:label="@string/app_name">
@@ -24,6 +25,7 @@
         </intent-filter>
       </activity>
       <activity
+	    android:launchMode="singleTask"
         android:name=".MainActivity"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
@@ -33,11 +35,37 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+		 <!-- Branch URI Scheme -->
+		<intent-filter>
+			<data android:scheme="ethereum" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+
+		<!-- Branch App Links (optional) -->
+		<intent-filter android:autoVerify="true">
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+			<data android:scheme="https" android:host="metamask.io" />
+		</intent-filter>
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
       <meta-data
         android:name="io.fabric.ApiKey"
          android:value="9216d1fa651341733ac1220be0cb2e62d4f703a1" />
+	  <!-- Branch init -->
+	  <meta-data android:name="io.branch.sdk.BranchKey" android:value="key_live_miz18CYAqYay29Ahgs0o2bejutcU3qqL" />
+	  <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="key_test_pfrX7t9xE4pyZZydcD6k6eikEubI7xA1" />
+	  <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />
+
+	  <!-- Branch install referrer tracking (optional) -->
+	  <receiver android:name="io.branch.referral.InstallListener" android:exported="true">
+		<intent-filter>
+			<action android:name="com.android.vending.INSTALL_REFERRER" />
+		</intent-filter>
+	  </receiver>
     </application>
 
 </manifest>

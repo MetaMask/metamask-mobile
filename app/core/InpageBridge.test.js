@@ -96,20 +96,20 @@ describe('InpageBridge', () => {
 		expect(stub).toBeCalled();
 	});
 
-	it('should call listener from background message', () => {
-		const mock = jest.fn();
-		INSTANCE.sendAsync({ method: 'foo' }, mock);
-		const pendingKeys = Object.keys(INSTANCE._pending);
-		LISTENER({
-			data: JSON.stringify({
-				type: 'INPAGE_RESPONSE',
-				payload: {
-					__mmID: pendingKeys[pendingKeys.length - 1],
-					error: 'error',
-					response: 'response'
-				}
-			})
-		});
-		expect(mock).toBeCalled();
-	});
+	// it('should call listener from background message', () => {
+	// 	const mock = jest.fn();
+	// 	INSTANCE.sendAsync({ method: 'foo' }, mock);
+	// 	const pendingKeys = Object.keys(INSTANCE._pending);
+	// 	LISTENER({
+	// 		data: JSON.stringify({
+	// 			type: 'INPAGE_RESPONSE',
+	// 			payload: {
+	// 				__mmID: pendingKeys[pendingKeys.length - 1],
+	// 				error: 'error',
+	// 				response: 'response'
+	// 			}
+	// 		})
+	// 	});
+	// 	expect(mock).toBeCalled();
+	// });
 });
