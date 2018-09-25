@@ -347,7 +347,7 @@ export class Browser extends Component {
 				)
 			})();
 		`;
-		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavascript(js);
+		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
 	};
 
 	renderLoader() {
