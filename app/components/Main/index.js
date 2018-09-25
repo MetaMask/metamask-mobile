@@ -22,6 +22,7 @@ export default createBottomTabNavigator(
 		Browser: {
 			screen: BrowserScreen,
 			navigationOptions: () => ({
+				tabBarTestID: 'browser-tab-button',
 				title: strings('bottomTabBar.dapps'),
 				tabBarIcon: ico => <CustomIcon name="dapp" size={18} color={ico.tintColor} />, // eslint-disable-line react/display-name
 				tintColor: colors.primary
@@ -30,6 +31,7 @@ export default createBottomTabNavigator(
 		Wallet: {
 			screen: WalletScreen,
 			navigationOptions: () => ({
+				tabBarTestID: 'wallet-tab-button',
 				title: strings('bottomTabBar.wallet'),
 				tabBarIcon: ico => <CustomIcon name="wallet" size={20} color={ico.tintColor} />, // eslint-disable-line react/display-name
 				tintColor: colors.primary
@@ -38,6 +40,7 @@ export default createBottomTabNavigator(
 		Transfer: {
 			screen: TransferScreen,
 			navigationOptions: () => ({
+				tabBarTestID: 'transfer-tab-button',
 				title: strings('bottomTabBar.transfer'),
 				tabBarIcon: ico => <Icon name="repeat" size={20} color={ico.tintColor} />, // eslint-disable-line react/display-name
 				tintColor: colors.primary

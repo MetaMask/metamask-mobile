@@ -17,6 +17,7 @@ exports[`Main should render correctly 1`] = `
         "childRouters": Object {
           "Browser": Object {
             "childRouters": Object {
+              "AddBookmark": null,
               "Approval": null,
               "Browser": null,
             },

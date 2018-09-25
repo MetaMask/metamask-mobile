@@ -45,15 +45,16 @@
     "base-64": "^0.1.0",
     "buffer": "^4.9.1",
     "eth-block-tracker": "github:MetaMask/eth-block-tracker#3.0.1-subscription-fix",
+    "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#master",
     "ethereumjs-util": "^5.2.0",
     "ethjs-unit": "^0.1.6",
     "events": "^3.0.0",
-    "eth-contract-metadata": "github:MetaMask/eth-contract-metadata#master",
     "fuse.js": "^3.2.0",
     "gaba": "^1.0.0-beta.40",
     "prop-types": "^15.6.2",
     "react": "16.4.1",
     "react-native": "0.56.0",
+    "react-native-actionsheet": "^2.4.2",
     "react-native-aes-crypto": "github:appman-agm/react-native-aes#9af842442f7e250f967eaaea434e8d3864a4d2ca",
     "react-native-browser-polyfill": "^0.1.2",
     "react-native-button": "^2.3.0",
@@ -191,7 +192,8 @@
       "<rootDir>/app/**/*.{js,jsx}",
       "!<rootDir>/node_modules/",
       "!<rootDir>/app/util/*.{js,jsx}",
-      "!<rootDir>/app/entry*.js"
+      "!<rootDir>/app/entry*.js",
+      "!<rootDir>/app/components/AnimatedFox/"
     ]
   },
   "react-native": {
