@@ -91,7 +91,7 @@ class SendScreen extends Component {
 		newTxMeta.to = toChecksumAddress(target_address);
 
 		if (parameters) {
-			const { value, gas, gasPrice, gasLimit } = parameters;
+			const { value, gas, gasPrice } = parameters;
 			if (value) {
 				newTxMeta.value = toBN(value);
 			}
@@ -101,7 +101,7 @@ class SendScreen extends Component {
 			if (gasPrice) {
 				newTxMeta.gasPrice = toBN(gas);
 			}
-			
+
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
