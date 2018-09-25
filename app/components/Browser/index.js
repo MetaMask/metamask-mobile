@@ -136,7 +136,12 @@ export class Browser extends Component {
 		/**
 		 * react-navigation object used to switch between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Url coming from an external source
+		 * For ex. deeplinks
+		 */
+		url: PropTypes.string
 	};
 
 	state = {
@@ -180,6 +185,32 @@ export class Browser extends Component {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
+
+		this.checkForDeeplinks();
+	}
+
+	checkForDeeplinks() {
+		const { navigation } = this.props;
+		if (navigation) {
+			const url = navigation.getParam('url', null);
+			if (url) {
+				this.setState({ url });
+			}
+		}
+	}
+
+	componentDidUpdate(prevProps) {
+		const prevNavigation = prevProps.navigation;
+		const { navigation } = this.props;
+
+		if (prevNavigation && navigation) {
+			const prevUrl = prevNavigation.getParam('url', null);
+			const currentUrl = navigation.getParam('url', null);
+
+			if (currentUrl && prevUrl !== currentUrl && currentUrl !== this.state.url) {
+				this.checkForDeeplinks();
+			}
+		}
 	}
 
 	go = url => {

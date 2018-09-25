@@ -156,5 +156,10 @@
 	},
 	"approval": {
 		"title": "Confirm Transaction"
+	},
+	"transactionSubmitted": {
+		"title": "Transaction Submitted",
+		"yourTxHashIs": "Your transaction hash is:",
+		"viewOnEtherscan": "View on etherscan.io"
 	}
 }

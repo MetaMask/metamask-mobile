@@ -67,7 +67,7 @@ export default class App extends Component {
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
 			this.mounted && this.setState({ existingUser: true });
-			this.unlockKeychain();
+			await this.unlockKeychain();
 		} else {
 			this.setState({ locked: false, loading: false });
 		}

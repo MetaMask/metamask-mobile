@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { isBN, hexToBN, weiToFiat, fromWei, toBN } from '../../util/number';
+import { toBN, isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { withNavigation } from 'react-navigation';
@@ -286,7 +286,11 @@ class TransactionEditor extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.object
+		transaction: PropTypes.object,
+		/**
+		 * Callback to open the qr scanner
+		 */
+		onScanSuccess: PropTypes.func
 	};
 
 	state = {
@@ -338,17 +342,7 @@ class TransactionEditor extends Component {
 		!this.validate() && onModeChange && onModeChange('review');
 	};
 
-	showQRScanner = () => {
-		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: ({ type, values }) => {
-				if (type === 'address' && values.address) {
-					this.setState({ to: toChecksumAddress(values.address) });
-				}
-			}
-		});
-	};
-
-	updateAmount = async amount => {
+	updateAmount = amount => {
 		this.setState({ amount });
 	};
 
@@ -402,6 +396,12 @@ class TransactionEditor extends Component {
 		return error;
 	}
 
+	onScanSuccess = () => {
+		this.props.navigation.navigate('QrScanner', {
+			onScanSuccess: this.props.onScanSuccess
+		});
+	};
+
 	render() {
 		const { amount, data, from = this.props.selectedAddress, gas, gasPrice, to } = this.state;
 		const { conversionRate, currentCurrency, hideData, mode } = this.props;
@@ -430,7 +430,7 @@ class TransactionEditor extends Component {
 									onChange={this.updateToAddress}
 									onFocus={this.onFocusToAddress}
 									placeholder={strings('transaction.recipientAddress')}
-									showQRScanner={this.showQRScanner}
+									onScanSuccess={this.onScanSuccess}
 									value={to}
 								/>
 							</View>
