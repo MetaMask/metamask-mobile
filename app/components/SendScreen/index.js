@@ -101,10 +101,7 @@ class SendScreen extends Component {
 			if (gasPrice) {
 				newTxMeta.gasPrice = toBN(gas);
 			}
-			if (gasLimit) {
-				// Don't see a gasLimit anywhere...
-			}
-
+			
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
