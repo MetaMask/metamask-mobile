@@ -36,7 +36,7 @@ export default class CollectibleImage extends Component {
 				{asset.image ? (
 					<Image source={{ uri: asset.image }} style={styles.image} />
 				) : (
-					<Identicon address={asset.tokenId} />
+					<Identicon address={asset.address} />
 				)}
 			</View>
 		);
