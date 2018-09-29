@@ -3,6 +3,8 @@ import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import StyledButton from '../StyledButton';
+import Engine from '../../core/Engine';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import PubNub from 'pubnub';
 
 const styles = StyleSheet.create({
@@ -23,7 +25,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		...fontStyles.normal,
+		...fontStyles.normal
 	},
 	button: {
 		marginTop: 40
@@ -34,14 +36,21 @@ const styles = StyleSheet.create({
  * View that displays the current account seed words
  */
 export default class SyncWithExtension extends Component {
+	static propTypes = {
+		/**
+		 * The navigator object
+		 */
+		navigation: PropTypes.object
+	};
 
 	seedwords = null;
 	channelName = null;
+	dataToSync = null;
 
 	state = {
 		loading: false,
 		complete: false
-	}
+	};
 
 	static navigationOptions = {
 		title: strings('syncWithExtension.title'),
@@ -58,34 +67,36 @@ export default class SyncWithExtension extends Component {
 				// Enable pusher logging - don't include this in production
 				const result = data.split('|');
 				this.channelName = result[0];
-				this.seedWords = result[1];
+				this.cipherText = result[1];
+				this.seedWords = result[2];
 				this.initWebsockets();
 			}
 		});*/
 
-
 		// Temp to avoid having to scan every time!
 		this.channelName = 'mm-sync-1';
+		this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
 		this.initWebsockets();
-	}
+	};
 
-	initWebsockets () {
-		if(this.loading) return false;
+	initWebsockets() {
+		if (this.loading) return false;
 
 		this.loading = true;
-		this.setState({loading: true});
+		this.setState({ loading: true });
 
 		this.pubnub = new PubNub({
 			subscribeKey: 'sub-c-30b2ba04-c37e-11e8-bd78-d63445bede87',
 			publishKey: 'pub-c-d40e77d5-5cd3-4ca2-82eb-792a1f4573db',
-			ssl: true,
-		})
+			cipherKey: this.cipherKey,
+			ssl: true
+		});
 
 		this.pubnubListener = this.pubnub.addListener({
-			message: ({channel, message}) => {
+			message: ({ channel, message }) => {
 				// handle message
 				if (channel !== this.channelName) {
-					return false
+					return false;
 				}
 
 				if (message.event === 'syncing-data') {
@@ -94,72 +105,82 @@ export default class SyncWithExtension extends Component {
 				if (message.event === 'syncing-tx') {
 					this.syncTx(message.data);
 				}
-			},
+			}
 		});
 
 		this.pubnub.subscribe({
 			channels: [this.channelName],
+			withPresence: false
 		});
 
 		this.startSync();
-
 	}
 
-	disconnectWebsockets () {
+	disconnectWebsockets() {
 		if (this.pubnub && this.pubnubListener) {
-			this.pubnub.disconnect(this.pubnubListener)
+			this.pubnub.disconnect(this.pubnubListener);
 		}
 	}
 
-	startSync () {
+	startSync() {
 		this.pubnub.publish(
-		{
-			message: {
-				'event': 'start-sync',
-				'data': { 'who': 'me' },
+			{
+				message: {
+					event: 'start-sync',
+				},
+				channel: this.channelName,
+				sendByPost: false,
+				storeInHistory: false
 			},
-			channel: this.channelName,
-			sendByPost: false,
-			storeInHistory: false,
-		},
-		(status, response) => {
-			console.log('got response from start-sync', status, response)
-		})
+			(status, response) => {
+				console.log('got response from start-sync', status, response);
+			}
+		);
 	}
 
-	syncData(data){
+	syncData(data) {
 		Alert.alert('Incoming data!', JSON.stringify(data));
+		this.dataToSync = {...data}
 	}
-	syncTx(data){
+	syncTx(data) {
 		Alert.alert('Incoming tx data!', JSON.stringify(data));
+		this.dataToSync.transactions = data;
 		this.endSync();
 	}
 
-	endSync ()  {
+	async endSync() {
 		this.pubnub.publish(
-		{
-			message: {
-				'event': 'end-sync',
-				'data': { 'status': 'success' },
+			{
+				message: {
+					event: 'end-sync',
+					data: { status: 'success' }
+				},
+				channel: this.channelName,
+				sendByPost: false,
+				storeInHistory: false
 			},
-			channel: this.channelName,
-			sendByPost: false,
-			storeInHistory: false,
-		},
-		(status, response) => {
-			console.log('got response from end-sync', status, response)
-			this.disconnectWebsockets();
-			this.loading = false;
-			this.setState({loading: false, complete: true})
-		});
+			(status, response) => {
+				console.log('got response from end-sync', status, response);
+				this.disconnectWebsockets();
+				this.loading = false;
+				this.setState({ loading: false, complete: true });
+			}
+		);
+
+		// This could also come from the previous step
+		// if it's a first time user
+		const credentials = await Keychain.getGenericPassword();
+
+		Engine.sync({...this.dataToSync, seed: this.seedWords, pass: credentials});
+
 	}
 
 	goBack = () => {
 		this.props.navigation.pop(2);
-	}
+	};
 
-	componentWillUnmount () {
-		this.disconnectWebsockets()
+	componentWillUnmount() {
+		this.disconnectWebsockets();
 	}
 
 	renderLoader() {
@@ -173,46 +194,38 @@ export default class SyncWithExtension extends Component {
 		);
 	}
 
-	renderInitialView(){
+	renderInitialView() {
 		return (
 			<View>
 				<Text style={styles.text}>{strings('syncWithExtension.label')}</Text>
-				<StyledButton
-					type="confirm"
-					onPress={this.showQRScanner}
-					containerStyle={styles.button}
-				>
+				<StyledButton type="confirm" onPress={this.showQRScanner} containerStyle={styles.button}>
 					{strings('syncWithExtension.buttonContinue')}
 				</StyledButton>
 			</View>
-		)
+		);
 	}
 
-	renderCompleteView(){
+	renderCompleteView() {
 		return (
 			<View>
 				<Text style={styles.text}>{strings('syncWithExtension.syncComplete')}</Text>
-				<StyledButton
-					type="confirm"
-					onPress={this.goBack}
-					containerStyle={styles.button}
-				>
+				<StyledButton type="confirm" onPress={this.goBack} containerStyle={styles.button}>
 					{strings('syncWithExtension.buttonGotIt')}
 				</StyledButton>
 			</View>
-		)
+		);
 	}
 
-	renderContent(){
-		if(this.state.loading) return this.renderLoader();
-		if(this.state.complete) return this.renderCompleteView();
+	renderContent() {
+		if (this.state.loading) return this.renderLoader();
+		if (this.state.complete) return this.renderCompleteView();
 		return this.renderInitialView();
 	}
 
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
-				{ this.renderContent()}
+				{this.renderContent()}
 			</View>
 		);
 	}

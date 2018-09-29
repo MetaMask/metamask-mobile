@@ -83,7 +83,10 @@ class Settings extends Component {
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item title={strings('settings.seed_words')} onPress={this.goToSeedWords} />
 					<SettingsList.Header headerStyle={styles.separator} />
-					<SettingsList.Item title={strings('settings.sync_with_extension')} onPress={this.goToSyncWithExtension} />
+					<SettingsList.Item
+						title={strings('settings.sync_with_extension')}
+						onPress={this.goToSyncWithExtension}
+					/>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item title={strings('settings.logout')} onPress={this.logout} />
 				</SettingsList>

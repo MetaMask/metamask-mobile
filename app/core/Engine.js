@@ -114,7 +114,30 @@ class Engine {
 		TransactionController.configure({ provider });
 		blockTracker.start();
 	};
-}
+
+	sync = async ({accounts, preferences, network, transactions, seed, pass}) => {
+		console.log('Restoring accounts...');
+		const { KeyringController, PreferencesController } = this.datamodel.context;
+		try {
+			// Recreate accounts
+			await KeyringController.createNewVaultAndRestore(pass, seed);
+			accounts.forEach( async (a) => {
+				await KeyringController.addNewAccount();
+			});
+
+			// Restore preferences
+			await PreferencesController.update(preferences);
+
+			// Restore tx history - TODO
+
+			// Select same network ?
+
+
+		} catch (e){
+			console.log(e);
+		}
+	}
+ }
 
 let instance;
 
@@ -149,6 +172,9 @@ export default {
 	},
 	get datamodel() {
 		return instance.datamodel;
+	},
+	sync(data) {
+		return instance.sync(data)
 	},
 	init(state) {
 		instance = new Engine(state);
