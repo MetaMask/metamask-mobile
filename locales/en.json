@@ -81,6 +81,7 @@
 		"network": "Network",
 		"network_status": "Network status",
 		"seed_words": "Seed Words",
+		"sync_with_extension": "Sync with MetaMask Extension",
 		"logout": "Logout"
 	},
 	"network": {
@@ -161,5 +162,14 @@
 		"title": "Transaction Submitted",
 		"yourTxHashIs": "Your transaction hash is:",
 		"viewOnEtherscan": "View on etherscan.io"
+	},
+	"syncWithExtension": {
+		"title": "Sync data from Extension",
+		"label":
+			"Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
+		"buttonContinue": "Continue",
+		"buttonGotIt": "GOT IT!",
+		"pleaseWait": "Please wait while we sync your data...",
+		"syncComplete": "Sync completed succesfully!"
 	}
 }
