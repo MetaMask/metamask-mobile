@@ -17,6 +17,8 @@ import {
 
 import BlockTracker from 'eth-block-tracker';
 import Encryptor from './Encryptor';
+import Logger from '../util/Logger';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const encryptor = new Encryptor();
 
@@ -115,29 +117,44 @@ class Engine {
 		blockTracker.start();
 	};
 
-	sync = async ({accounts, preferences, network, transactions, seed, pass}) => {
-		console.log('Restoring accounts...');
-		const { KeyringController, PreferencesController } = this.datamodel.context;
+	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
+		Logger.log(network, transactions);
+		const {
+			KeyringController,
+			PreferencesController,
+			NetworkController, // eslint-disable-line
+			TransactionController // eslint-disable-line
+		} = this.datamodel.context;
 		try {
 			// Recreate accounts
 			await KeyringController.createNewVaultAndRestore(pass, seed);
-			accounts.forEach( async (a) => {
+			for (let i = 0; i < accounts.hd.length - 1; i++) {
 				await KeyringController.addNewAccount();
-			});
+			}
 
 			// Restore preferences
-			await PreferencesController.update(preferences);
+
+			// First we need to convert the keys to checksummed addresses
+			const updatedPref = { ...preferences, identities: {} };
+			Object.keys(preferences.identities).forEach(address => {
+				const checksummedAddress = toChecksumAddress(address);
+				if (accounts.hd.includes(checksummedAddress)) {
+					updatedPref.identities[checksummedAddress] = preferences.identities[address];
+				}
+			});
+			await PreferencesController.update(updatedPref);
+			await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
 
 			// Restore tx history - TODO
+			//TransactionController.update(transactions);
 
 			// Select same network ?
-
-
-		} catch (e){
-			console.log(e);
+			//NetworkController.update(network);
+		} catch (e) {
+			Logger.error('Failure while syncing', e);
 		}
-	}
- }
+	};
+}
 
 let instance;
 
@@ -174,7 +191,7 @@ export default {
 		return instance.datamodel;
 	},
 	sync(data) {
-		return instance.sync(data)
+		return instance.sync(data);
 	},
 	init(state) {
 		instance = new Engine(state);

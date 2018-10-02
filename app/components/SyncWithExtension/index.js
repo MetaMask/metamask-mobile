@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -74,6 +75,7 @@ export default class SyncWithExtension extends Component {
 		});*/
 
 		// Temp to avoid having to scan every time!
+		this.seedWords = 'blur spawn canvas dream person few marble evolve frown grace lab chicken';
 		this.channelName = 'mm-sync-1';
 		this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
 		this.initWebsockets();
@@ -126,21 +128,19 @@ export default class SyncWithExtension extends Component {
 		this.pubnub.publish(
 			{
 				message: {
-					event: 'start-sync',
+					event: 'start-sync'
 				},
 				channel: this.channelName,
 				sendByPost: false,
 				storeInHistory: false
 			},
-			(status, response) => {
-				console.log('got response from start-sync', status, response);
-			}
+			null
 		);
 	}
 
 	syncData(data) {
 		Alert.alert('Incoming data!', JSON.stringify(data));
-		this.dataToSync = {...data}
+		this.dataToSync = { ...data };
 	}
 	syncTx(data) {
 		Alert.alert('Incoming tx data!', JSON.stringify(data));
@@ -159,8 +159,7 @@ export default class SyncWithExtension extends Component {
 				sendByPost: false,
 				storeInHistory: false
 			},
-			(status, response) => {
-				console.log('got response from end-sync', status, response);
+			() => {
 				this.disconnectWebsockets();
 				this.loading = false;
 				this.setState({ loading: false, complete: true });
@@ -169,10 +168,11 @@ export default class SyncWithExtension extends Component {
 
 		// This could also come from the previous step
 		// if it's a first time user
+
 		const credentials = await Keychain.getGenericPassword();
-
-		Engine.sync({...this.dataToSync, seed: this.seedWords, pass: credentials});
-
+		if (credentials) {
+			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: credentials.password });
+		}
 	}
 
 	goBack = () => {

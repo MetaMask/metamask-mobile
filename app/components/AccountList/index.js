@@ -9,6 +9,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -85,20 +86,35 @@ class AccountList extends Component {
 	};
 
 	state = {
-		selectedAccountIndex: 0
+		selectedAccountIndex: 0,
+		accounts: []
 	};
 
 	getInitialSelectedAccountIndex = () => {
-		const { identities, selectedAddress } = this.props;
-		Object.keys(identities).forEach((address, i) => {
-			if (selectedAddress === address) {
+		const { selectedAddress } = this.props;
+		this.state.accounts.forEach((address, i) => {
+			if (toChecksumAddress(selectedAddress) === toChecksumAddress(address)) {
 				this.setState({ selectedAccountIndex: i });
 			}
 		});
 	};
 
-	componentDidMount() {
+	async getAccounts() {
+		const { KeyringController } = Engine.context;
+		const keyring = KeyringController.keyring.keyrings[0];
+		const accounts = await keyring.getAccounts();
+		this.setState({ accounts });
+	}
+	async componentDidMount() {
+		await this.getAccounts();
 		this.getInitialSelectedAccountIndex();
+	}
+
+	async componentDidUpdate(prevProps) {
+		if (prevProps.selectedAddress !== this.props.selectedAddress) {
+			await this.getAccounts();
+			this.getInitialSelectedAccountIndex();
+		}
 	}
 
 	onAccountChange = async newIndex => {
@@ -118,6 +134,7 @@ class AccountList extends Component {
 		const { KeyringController } = Engine.context;
 		try {
 			await KeyringController.addNewAccount();
+			await this.getAccounts();
 			const { PreferencesController } = Engine.context;
 			const newIndex = Object.keys(this.props.identities).length - 1;
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
@@ -136,8 +153,10 @@ class AccountList extends Component {
 
 	renderAccounts() {
 		const { accounts, identities } = this.props;
-		return Object.keys(identities).map((key, i) => {
-			const { name, address } = identities[key];
+
+		if (!this.state.accounts.length) return null;
+		return this.state.accounts.filter(a => identities[toChecksumAddress(a)]).map((key, i) => {
+			const { name, address } = identities[toChecksumAddress(key)];
 			let balance = 0x0;
 			if (accounts[key]) {
 				balance = accounts[key].balance;
