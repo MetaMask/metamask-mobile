@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
 import { renderShortAddress } from '../../util/address';
+import { toLocaleDateTime } from '../../util/date';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -97,7 +98,7 @@ export default class Transactions extends Component {
 							key={`tx-${tx.id}`}
 							onPress={() => this.viewOnEtherscan(tx.hash, tx.metamaskNetworkId)} // eslint-disable-line react/jsx-no-bind
 						>
-							<Text style={styles.date}>{tx.submittedTime}</Text>
+							<Text style={styles.date}>{toLocaleDateTime(tx.submittedTime)}</Text>
 							<View style={styles.subRow}>
 								<Identicon address={tx.txParams.to} diameter={24} />
 								<View style={styles.info}>
