@@ -3,6 +3,7 @@ echo "PostInstall script:"
 
 echo "1. React Native nodeify..."
 node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream' --hack
+node_modules/.bin/rn-nodeify 'gaba' --install
 
 # We need to submit a PR for this one.
 echo "2. Fix react-native-os buildTools version..."
