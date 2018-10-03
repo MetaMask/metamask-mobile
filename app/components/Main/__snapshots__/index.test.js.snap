@@ -19,7 +19,7 @@ exports[`Main should render correctly 1`] = `
             "childRouters": Object {
               "AddBookmark": null,
               "Approval": null,
-              "Browser": null,
+              "BrowserView": null,
             },
             "getActionCreators": [Function],
             "getActionForPathAndParams": [Function],
@@ -31,7 +31,8 @@ exports[`Main should render correctly 1`] = `
           },
           "Transfer": Object {
             "childRouters": Object {
-              "Transfer": null,
+              "TransactionSubmitted": null,
+              "TransferView": null,
             },
             "getActionCreators": [Function],
             "getActionForPathAndParams": [Function],
@@ -82,7 +83,7 @@ exports[`Main should render correctly 1`] = `
             "routes": Array [
               Object {
                 "key": "id-123-0",
-                "routeName": "Browser",
+                "routeName": "BrowserView",
               },
             ],
           },
@@ -108,7 +109,7 @@ exports[`Main should render correctly 1`] = `
             "routes": Array [
               Object {
                 "key": "id-123-2",
-                "routeName": "Transfer",
+                "routeName": "TransferView",
               },
             ],
           },

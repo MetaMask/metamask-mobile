@@ -5,6 +5,7 @@ import { RNCamera } from 'react-native-camera';
 import { colors } from '../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
+import { parse } from 'eth-url-parser';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -62,23 +63,16 @@ export default class QrScanner extends Component {
 	onBarCodeRead = response => {
 		const content = response.data;
 
-		let type = 'unknown';
-		let values = {};
-		// Here we could add more cases
-		// To parse other type of links
-		// For ex. EIP-681 (https://eips.ethereum.org/EIPS/eip-681)
-		// Ethereum address links - fox ex. ethereum:0x.....1111
+		let data = {};
+
 		if (content.split('ethereum:').length > 1) {
-			type = 'address';
-			values = { address: content.split('ethereum:')[1] };
-			// Regular ethereum addresses - fox ex. 0x.....1111
+			data = parse(content);
 		} else if (content.substring(0, 2).toLowerCase() === '0x') {
-			type = 'address';
-			values = { address: content };
+			data = { target_address: content };
 		} else {
 			Alert.alert(strings('qrScanner.invalidQrCodeTitle'), strings('qrScanner.invalidQrCodeMessage'));
 		}
-		this.props.navigation.state.params.onScanSuccess({ type, values });
+		this.props.navigation.state.params.onScanSuccess(data);
 		this.props.navigation.goBack();
 	};
 
