@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
+import Image from 'react-native-remote-svg';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import StyledButton from '../StyledButton';
@@ -23,6 +24,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderRadius: 10,
 		marginBottom: 10
+	},
+	ethLogo: {
+		width: 70,
+		height: 70,
+		overflow: 'hidden',
+		borderRadius: 100,
+		marginRight: 20
 	},
 	balance: {
 		flex: 1,
@@ -64,6 +72,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const ethLogo = require('../../images/eth-logo.svg'); // eslint-disable-line
+
 /**
  * View that displays the information of a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
@@ -78,15 +88,23 @@ export default class AssetOverview extends Component {
 	onDeposit = () => true;
 	onSend = () => true;
 
+	renderLogo() {
+		const {
+			asset: { address, logo, symbol }
+		} = this.props;
+		if (symbol === 'ETH') {
+			return <Image source={ethLogo} style={styles.ethLogo} />;
+		}
+		return logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />;
+	}
+
 	render() {
 		const {
-			asset: { address, logo, symbol, balance, balanceFiat }
+			asset: { symbol, balance, balanceFiat }
 		} = this.props;
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
-				<View style={styles.assetLogo}>
-					{logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />}
-				</View>
+				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
 					<Text style={styles.amount}>
 						{' '}

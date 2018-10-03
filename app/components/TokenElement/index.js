@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import Image from 'react-native-remote-svg';
 import { colors, fontStyles } from '../../styles/common';
 import TokenImage from '../TokenImage';
 
@@ -33,8 +34,17 @@ const styles = StyleSheet.create({
 	},
 	arrowIcon: {
 		marginTop: 8
+	},
+	ethLogo: {
+		width: 50,
+		height: 50,
+		overflow: 'hidden',
+		borderRadius: 100,
+		marginRight: 20
 	}
 });
+
+const ethLogo = require('../../images/eth-logo.svg'); // eslint-disable-line
 
 /**
  * View that renders an ERC-20 Token list element
@@ -53,12 +63,19 @@ export default class TokenElement extends Component {
 
 	render() {
 		const { onPress, asset } = this.props;
+
 		return (
 			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${asset.symbol}`}>
-				<TokenImage asset={asset} />
+				{asset.symbol === 'ETH' ? (
+					<Image source={ethLogo} style={styles.ethLogo} />
+				) : (
+					<TokenImage asset={asset} />
+				)}
 				<View style={styles.balances}>
-					<Text style={styles.balance}>{asset.symbol}</Text>
-					<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
+					<Text style={styles.balance}>
+						{asset.balance} {asset.symbol}
+					</Text>
+					<Text style={styles.balanceFiat}>{asset.balanceFiat}</Text>
 				</View>
 				<View styles={styles.arrow}>
 					<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />

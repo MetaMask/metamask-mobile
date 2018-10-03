@@ -118,7 +118,6 @@ class Engine {
 	};
 
 	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
-		Logger.log(network, transactions);
 		const {
 			KeyringController,
 			PreferencesController,
@@ -146,10 +145,12 @@ class Engine {
 			await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
 
 			// Restore tx history - TODO
-			//TransactionController.update(transactions);
+			Logger.log(transactions, TransactionController);
+			TransactionController.update({ transactions: transactions.transactions });
 
 			// Select same network ?
 			//NetworkController.update(network);
+			NetworkController.setProviderType(network.provider.type);
 		} catch (e) {
 			Logger.error('Failure while syncing', e);
 		}

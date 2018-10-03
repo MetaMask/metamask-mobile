@@ -68,9 +68,11 @@ export default class Tokens extends Component {
 
 	renderList() {
 		return this.props.assets.map(asset => {
-			asset.logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
+			if (!asset.logo) {
+				asset.logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
+			}
 			return (
-				<TokenElement onPress={() => this.onItemPress(asset)} asset={asset} key={asset.address} /> // eslint-disable-line
+				<TokenElement onPress={() => this.onItemPress(asset)} asset={asset} key={`asset_${asset.symbol}`} /> // eslint-disable-line
 			);
 		});
 	}

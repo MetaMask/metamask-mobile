@@ -13,6 +13,7 @@ import { strings } from '../../../locales/i18n';
 import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
+import { fromWei, weiToFiat, hexToBN } from '../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -111,6 +112,28 @@ class Wallet extends Component {
 			tokens,
 			collectibles
 		} = this.props;
+		let balance = 0;
+		let assets = tokens;
+		if (accounts[selectedAddress]) {
+			balance = fromWei(accounts[selectedAddress].balance, 'ether');
+			assets = [
+				{
+					name: 'Ether',
+					symbol: 'ETH',
+					balance,
+					balanceFiat: weiToFiat(
+						hexToBN(accounts[selectedAddress].balance),
+						conversionRate,
+						currentCurrency
+					).toUpperCase(),
+					logo: '../images/eth-logo.svg'
+				},
+				...tokens
+			];
+		} else {
+			assets = tokens;
+		}
+
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
@@ -121,7 +144,7 @@ class Wallet extends Component {
 					navigation={this.props.navigation}
 				/>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<Tokens navigation={this.props.navigation} tabLabel={strings('wallet.tokens')} assets={tokens} />
+					<Tokens navigation={this.props.navigation} tabLabel={strings('wallet.tokens')} assets={assets} />
 					<Collectibles
 						navigation={this.props.navigation}
 						tabLabel={strings('wallet.collectibles')}

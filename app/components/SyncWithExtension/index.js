@@ -70,6 +70,7 @@ export default class SyncWithExtension extends Component {
 				this.channelName = result[0];
 				this.cipherText = result[1];
 				this.seedWords = result[2];
+				this.password = result[3];
 				this.initWebsockets();
 			}
 		});*/
@@ -170,9 +171,14 @@ export default class SyncWithExtension extends Component {
 		// if it's a first time user
 
 		const credentials = await Keychain.getGenericPassword();
+		let password;
 		if (credentials) {
-			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: credentials.password });
+			password = credentials.password;
+		} else {
+			password = this.password;
 		}
+
+		Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
 	}
 
 	goBack = () => {
