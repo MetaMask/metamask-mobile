@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import PropTypes from 'prop-types';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
+import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+import { renderShortAddress } from '../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -56,44 +59,63 @@ const styles = StyleSheet.create({
  * View that renders a list of transactions for a specific asset
  */
 export default class Transactions extends Component {
-	transactions = [
-		{
-			id: '0x45f9758855577311c91e49bc8b005a694f7f007d324290f046571819b8903a86',
-			date: 'July 22 2018 22:34',
-			to: '0xf4F6A831...21D8',
-			status: 'Confirmed',
-			amount: '0.0001',
-			amountFiat: '0.47'
-		},
-		{
-			id: '0xed0ef23798d23b29e91c54508a31fcb03992825ba003c769fc6c219b0b9ec0f3',
-			date: 'July 13 2018 18:17',
-			to: '0xb1690C08...7d8C',
-			status: 'Confirmed',
-			amount: '0.003',
-			amountFiat: '1.41'
-		}
-	];
+	static propTypes = {
+		/**
+		 * ETH to currnt currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object,
+		/**
+		 * An array of transactions objects
+		 */
+		transactions: PropTypes.array
+	};
+
+	viewOnEtherscan = (hash, networkId) => {
+		const isRopsten = networkId === '3';
+		const url = `https://${isRopsten ? 'ropsten.' : ''}etherscan.io/tx/${hash}`;
+		this.props.navigation.navigate('BrowserView', {
+			url
+		});
+	};
 
 	render() {
+		const { transactions, currentCurrency, conversionRate } = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>
-					{this.transactions.map(tx => (
-						<View style={styles.row} key={`tx-${tx.id}`}>
-							<Text style={styles.date}>{tx.date}</Text>
+					{transactions.map(tx => (
+						<TouchableOpacity
+							style={styles.row}
+							key={`tx-${tx.id}`}
+							onPress={() => this.viewOnEtherscan(tx.hash, tx.metamaskNetworkId)} // eslint-disable-line react/jsx-no-bind
+						>
+							<Text style={styles.date}>{tx.submittedTime}</Text>
 							<View style={styles.subRow}>
-								<Identicon address={tx.to} diameter={24} />
+								<Identicon address={tx.txParams.to} diameter={24} />
 								<View style={styles.info}>
-									<Text style={styles.address}>{tx.to}</Text>
+									<Text style={styles.address}>{renderShortAddress(tx.txParams.to)}</Text>
 									<Text style={styles.status}>{tx.status}</Text>
 								</View>
 								<View style={styles.amounts}>
-									<Text style={styles.amount}>{tx.amount} ETH</Text>
-									<Text style={styles.amountFiat}>{tx.amountFiat} USD</Text>
+									<Text style={styles.amount}>{fromWei(tx.txParams.value, 'ether')} ETH</Text>
+									<Text style={styles.amountFiat}>
+										{weiToFiat(
+											hexToBN(tx.txParams.value),
+											conversionRate,
+											currentCurrency
+										).toUpperCase()}
+									</Text>
 								</View>
 							</View>
-						</View>
+						</TouchableOpacity>
 					))}
 				</View>
 			</ScrollView>
