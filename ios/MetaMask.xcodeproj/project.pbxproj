@@ -1634,7 +1634,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n    export SKIP_BUNDLING=true\nfi\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
+			shellScript = "#if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n#    export SKIP_BUNDLING=true\n#fi\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		151FBCD2212F57FE00AE84BB /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1647,7 +1647,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "./Fabric.framework/run 9216d1fa651341733ac1220be0cb2e62d4f703a1 6c6035598a56a6cda67b359de43ca020b5a8785d2096a1820f16e55290af1f5e";
+			shellScript = "./Fabric.framework/run 9216d1fa651341733ac1220be0cb2e62d4f703a1 6c6035598a56a6cda67b359de43ca020b5a8785d2096a1820f16e55290af1f5e\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
