@@ -28,8 +28,12 @@ platform :ios do
 			clean: true,
 			scheme: "MetaMask",
 			configuration: "Release",
+		    export_method: "app-store",
 			output_name: "MetaMask"
 		)
-		upload_to_testflight
+		upload_to_testflight(
+      		distribute_external: false,
+      		wait_processing_interval: 120,
+    	)
 	end
 end
