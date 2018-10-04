@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
 import { fromWei, toGwei, weiToFiat, hexToBN, isBN, toBN } from '../../util/number';
-import { renderShortAddress, renderFullAddress } from '../../util/address';
+import { renderFullAddress } from '../../util/address';
 import { toLocaleDateTime } from '../../util/date';
 
 const styles = StyleSheet.create({
@@ -37,11 +37,12 @@ const styles = StyleSheet.create({
 	},
 	status: {
 		marginTop: 5,
-		paddingVertical: 5,
-		paddingHorizontal: 10,
+		paddingVertical: 3,
+		paddingHorizontal: 5,
+		textAlign: 'center',
 		backgroundColor: colors.concrete,
 		color: colors.gray,
-		fontSize: 10,
+		fontSize: 9,
 		letterSpacing: 0.5,
 		...fontStyles.bold
 	},
@@ -268,6 +269,7 @@ export default class Transactions extends Component {
 		const { transactions, currentCurrency, conversionRate } = this.props;
 		// Sort by date DESC
 		transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+
 		return (
 			<View style={styles.wrapper}>
 				<View testID={'transactions'}>
@@ -278,22 +280,23 @@ export default class Transactions extends Component {
 							onPress={() => this.toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
 						>
 							<View style={styles.rowContent}>
-								<Text style={styles.date}>{toLocaleDateTime(tx.time)}</Text>
+								<Text style={styles.date}>{`#${hexToBN(
+									tx.transaction.nonce
+								).toString()} - ${toLocaleDateTime(tx.time)}`}</Text>
 								<View style={styles.subRow}>
 									<Identicon address={tx.transaction.to} diameter={24} />
 									<View style={styles.info}>
-										<Text style={styles.address}>{renderShortAddress(tx.transaction.to)}</Text>
-										<Text
-											adjustsFontSizeToFit
-											numberOfLines={0}
-											style={[styles.status, this.getStatusStyle(tx.status)]}
-										>
+										<Text style={styles.address}>Sent Ether</Text>
+										<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
 											{tx.status.toUpperCase()}
 										</Text>
 									</View>
 									<View style={styles.amounts}>
-										<Text style={styles.amount}>{fromWei(tx.transaction.value, 'ether')} ETH</Text>
+										<Text style={styles.amount}>
+											- {fromWei(tx.transaction.value, 'ether')} ETH
+										</Text>
 										<Text style={styles.amountFiat}>
+											-{' '}
 											{weiToFiat(
 												hexToBN(tx.transaction.value),
 												conversionRate,
