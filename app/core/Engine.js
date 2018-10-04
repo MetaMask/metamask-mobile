@@ -132,8 +132,6 @@ class Engine {
 			}
 
 			// Restore preferences
-
-			// First we need to convert the keys to checksummed addresses
 			const updatedPref = { ...preferences, identities: {} };
 			Object.keys(preferences.identities).forEach(address => {
 				const checksummedAddress = toChecksumAddress(address);
@@ -144,9 +142,28 @@ class Engine {
 			await PreferencesController.update(updatedPref);
 			await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
 
-			// Restore tx history - TODO
+			// Restore tx history
 			Logger.log(transactions, TransactionController);
-			TransactionController.update({ transactions: transactions.transactions });
+
+			TransactionController.update({
+				transactions: transactions.map(tx => ({
+					id: tx.id,
+					networkID: tx.metamaskNetworkId,
+					origin: tx.origin,
+					status: tx.status,
+					time: tx.time,
+					transactionHash: tx.hash,
+					rawTx: tx.rawTx,
+					transaction: {
+						from: tx.txParams.from,
+						to: tx.txParams.to,
+						nonce: tx.txParams.nonce,
+						gas: tx.txParams.gas,
+						gasPrice: tx.txParams.gasPrice,
+						value: tx.txParams.value
+					}
+				}))
+			});
 
 			// Select same network ?
 			//NetworkController.update(network);

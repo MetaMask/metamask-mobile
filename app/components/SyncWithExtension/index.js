@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
+import Logger from '../../util/Logger';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import PubNub from 'pubnub';
 
@@ -106,7 +107,7 @@ export default class SyncWithExtension extends Component {
 					this.syncData(message.data);
 				}
 				if (message.event === 'syncing-tx') {
-					this.syncTx(message.data);
+					this.syncTx(message.data.transactions);
 				}
 			}
 		});
@@ -140,12 +141,12 @@ export default class SyncWithExtension extends Component {
 	}
 
 	syncData(data) {
-		Alert.alert('Incoming data!', JSON.stringify(data));
+		Logger.log('Incoming data!', JSON.stringify(data));
 		this.dataToSync = { ...data };
 	}
-	syncTx(data) {
-		Alert.alert('Incoming tx data!', JSON.stringify(data));
-		this.dataToSync.transactions = data;
+	syncTx(transactions) {
+		Logger.log('Incoming tx data!', JSON.stringify(transactions));
+		this.dataToSync.transactions = transactions;
 		this.endSync();
 	}
 

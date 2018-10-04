@@ -34,7 +34,10 @@ export const colors = {
 	tar: '#2f3542',
 	title: '#1B344D',
 	white: '#FFFFFF',
-	success: '#8dc63f'
+	success: '#609a1c',
+	lightSuccess: '#eafad7',
+	warning: '#CA810A',
+	lightWarning: '#FFF2DB'
 };
 
 /**

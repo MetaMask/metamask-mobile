@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Clipboard } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
-import { fromWei, weiToFiat, hexToBN } from '../../util/number';
-import { renderShortAddress } from '../../util/address';
+import { fromWei, toGwei, weiToFiat, hexToBN, isBN, toBN } from '../../util/number';
+import { renderShortAddress, renderFullAddress } from '../../util/address';
 import { toLocaleDateTime } from '../../util/date';
 
 const styles = StyleSheet.create({
@@ -14,9 +15,11 @@ const styles = StyleSheet.create({
 	row: {
 		backgroundColor: colors.white,
 		flex: 1,
-		padding: 15,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor
+	},
+	rowContent: {
+		padding: 15
 	},
 	date: {
 		color: colors.fontSecondary,
@@ -25,7 +28,6 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	info: {
-		flex: 1,
 		marginLeft: 15
 	},
 	address: {
@@ -34,9 +36,22 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	status: {
-		color: colors.fontSecondary,
-		fontSize: 12,
-		...fontStyles.normal
+		marginTop: 5,
+		paddingVertical: 5,
+		paddingHorizontal: 10,
+		backgroundColor: colors.concrete,
+		color: colors.gray,
+		fontSize: 10,
+		letterSpacing: 0.5,
+		...fontStyles.bold
+	},
+	statusConfirmed: {
+		backgroundColor: colors.lightSuccess,
+		color: colors.success
+	},
+	statusSubmitted: {
+		backgroundColor: colors.lightWarning,
+		color: colors.warning
 	},
 	amount: {
 		fontSize: 15,
@@ -49,10 +64,74 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	amounts: {
+		flex: 1,
 		alignItems: 'flex-end'
 	},
 	subRow: {
 		flexDirection: 'row'
+	},
+	detailRowWrapper: {
+		flex: 1,
+		backgroundColor: colors.concrete,
+		paddingVertical: 10,
+		paddingHorizontal: 15
+	},
+	detailRowTitle: {
+		flex: 1,
+		paddingVertical: 10,
+		fontSize: 15,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	detailRowInfo: {
+		borderRadius: 5,
+		shadowColor: colors.accentGray,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
+		backgroundColor: colors.white,
+		padding: 10,
+		marginBottom: 5
+	},
+	detailRowInfoItem: {
+		flex: 1,
+		flexDirection: 'row',
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
+		marginBottom: 10,
+		paddingBottom: 5
+	},
+	noBorderBottom: {
+		borderBottomWidth: 0
+	},
+	detailRowText: {
+		flex: 1,
+		fontSize: 12,
+		color: colors.fontSecondary,
+		...fontStyles.normal
+	},
+	alignLeft: {
+		textAlign: 'left'
+	},
+	alignRight: {
+		textAlign: 'right'
+	},
+	viewOnEtherscan: {
+		fontSize: 14,
+		color: colors.primary,
+		...fontStyles.normal,
+		textAlign: 'center',
+		marginTop: 15,
+		marginBottom: 10
+	},
+	hash: {
+		fontSize: 12
+	},
+	singleRow: {
+		flexDirection: 'row'
+	},
+	copyIcon: {
+		paddingRight: 5
 	}
 });
 
@@ -76,50 +155,159 @@ export default class Transactions extends Component {
 		/**
 		 * An array of transactions objects
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Callback function that will adjust the scroll
+		 * position once the transaction detail is visible
+		 */
+		adjustScroll: PropTypes.func
 	};
 
-	viewOnEtherscan = (hash, networkId) => {
-		const isRopsten = networkId === '3';
+	state = {
+		selectedTx: null
+	};
+
+	viewOnEtherscan = (hash, networkID) => {
+		const isRopsten = networkID === '3';
 		const url = `https://${isRopsten ? 'ropsten.' : ''}etherscan.io/tx/${hash}`;
 		this.props.navigation.navigate('BrowserView', {
 			url
 		});
 	};
 
+	toggleDetailsView(hash, index) {
+		const show = this.state.selectedTx !== hash;
+		this.setState({ selectedTx: show ? hash : null });
+		if (show) {
+			this.props.adjustScroll(index);
+		}
+	}
+
+	renderCopyIcon(str) {
+		function copy() {
+			Clipboard.setString(str);
+		}
+		return (
+			<TouchableOpacity style={styles.copyIcon} onPress={copy}>
+				<Icon name={'copy'} size={15} color={colors.primary} />
+			</TouchableOpacity>
+		);
+	}
+
+	renderTxDetails(tx) {
+		const {
+			transaction: { gas, gasPrice, value, to, from },
+			transactionHash
+		} = tx;
+		const { conversionRate, currentCurrency } = this.props;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const amount = hexToBN(value);
+		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
+
+		return (
+			<View style={styles.detailRowWrapper}>
+				<Text style={styles.detailRowTitle}>Hash</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
+						0,
+						20
+					)} ... ${transactionHash.substr(-20)}`}</Text>
+					{this.renderCopyIcon(transactionHash)}
+				</View>
+				<Text style={styles.detailRowTitle}>From</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={styles.detailRowText}>{renderFullAddress(from)}</Text>
+				</View>
+				<Text style={styles.detailRowTitle}>To</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={styles.detailRowText}>{renderFullAddress(to)}</Text>
+				</View>
+				<Text style={styles.detailRowTitle}>Details</Text>
+				<View style={styles.detailRowInfo}>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>Amount</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{fromWei(value, 'ether')} ETH</Text>
+					</View>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>Gas Limit (Units)</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{hexToBN(gas).toNumber()}</Text>
+					</View>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>Gas Price (GWEI)</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{toGwei(gasPrice)}</Text>
+					</View>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>Total</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{fromWei(total, 'ether')} ETH</Text>
+					</View>
+					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}
+						</Text>
+					</View>
+				</View>
+				<TouchableOpacity
+					onPress={() => this.viewOnEtherscan(tx.transactionHash, tx.networkID)} // eslint-disable-line react/jsx-no-bind
+				>
+					<Text style={styles.viewOnEtherscan}>VIEW ON ETHERSCAN</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	}
+
+	getStatusStyle(status) {
+		if (status === 'confirmed') {
+			return styles.statusConfirmed;
+		} else if (status === 'submitted' || 'approved') {
+			return styles.statusSubmitted;
+		}
+		return null;
+	}
+
 	render() {
 		const { transactions, currentCurrency, conversionRate } = this.props;
+		// Sort by date DESC
+		transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 		return (
-			<ScrollView style={styles.wrapper}>
+			<View style={styles.wrapper}>
 				<View testID={'transactions'}>
-					{transactions.map(tx => (
+					{transactions.map((tx, i) => (
 						<TouchableOpacity
 							style={styles.row}
 							key={`tx-${tx.id}`}
-							onPress={() => this.viewOnEtherscan(tx.hash, tx.metamaskNetworkId)} // eslint-disable-line react/jsx-no-bind
+							onPress={() => this.toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
 						>
-							<Text style={styles.date}>{toLocaleDateTime(tx.submittedTime)}</Text>
-							<View style={styles.subRow}>
-								<Identicon address={tx.txParams.to} diameter={24} />
-								<View style={styles.info}>
-									<Text style={styles.address}>{renderShortAddress(tx.txParams.to)}</Text>
-									<Text style={styles.status}>{tx.status}</Text>
-								</View>
-								<View style={styles.amounts}>
-									<Text style={styles.amount}>{fromWei(tx.txParams.value, 'ether')} ETH</Text>
-									<Text style={styles.amountFiat}>
-										{weiToFiat(
-											hexToBN(tx.txParams.value),
-											conversionRate,
-											currentCurrency
-										).toUpperCase()}
-									</Text>
+							<View style={styles.rowContent}>
+								<Text style={styles.date}>{toLocaleDateTime(tx.time)}</Text>
+								<View style={styles.subRow}>
+									<Identicon address={tx.transaction.to} diameter={24} />
+									<View style={styles.info}>
+										<Text style={styles.address}>{renderShortAddress(tx.transaction.to)}</Text>
+										<Text
+											adjustsFontSizeToFit
+											numberOfLines={0}
+											style={[styles.status, this.getStatusStyle(tx.status)]}
+										>
+											{tx.status.toUpperCase()}
+										</Text>
+									</View>
+									<View style={styles.amounts}>
+										<Text style={styles.amount}>{fromWei(tx.transaction.value, 'ether')} ETH</Text>
+										<Text style={styles.amountFiat}>
+											{weiToFiat(
+												hexToBN(tx.transaction.value),
+												conversionRate,
+												currentCurrency
+											).toUpperCase()}
+										</Text>
+									</View>
 								</View>
 							</View>
+							{tx.transactionHash === this.state.selectedTx ? this.renderTxDetails(tx) : null}
 						</TouchableOpacity>
 					))}
 				</View>
-			</ScrollView>
+			</View>
 		);
 	}
 }
