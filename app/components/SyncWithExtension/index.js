@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import StyledButton from '../StyledButton';
+import { getOnboardingNavbarOptions } from '../Navbar';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
@@ -11,13 +12,22 @@ import PubNub from 'pubnub';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.slate,
+		backgroundColor: colors.white,
 		flex: 1,
-		padding: 20
+		padding: 30
+	},
+	title: {
+		fontSize: 32,
+		marginTop: 20,
+		marginBottom: 10,
+		color: colors.fontPrimary,
+		justifyContent: 'center',
+		textAlign: 'center',
+		...fontStyles.bold
 	},
 	text: {
 		marginTop: 20,
-		fontSize: 18,
+		fontSize: 16,
 		textAlign: 'center',
 		color: colors.fontPrimary,
 		...fontStyles.normal
@@ -54,13 +64,8 @@ export default class SyncWithExtension extends Component {
 		complete: false
 	};
 
-	static navigationOptions = {
-		title: strings('syncWithExtension.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	};
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 
 	showQRScanner = () => {
 		/*
@@ -205,7 +210,7 @@ export default class SyncWithExtension extends Component {
 		return (
 			<View>
 				<Text style={styles.text}>{strings('syncWithExtension.label')}</Text>
-				<StyledButton type="confirm" onPress={this.showQRScanner} containerStyle={styles.button}>
+				<StyledButton type="blue" onPress={this.showQRScanner} containerStyle={styles.button}>
 					{strings('syncWithExtension.buttonContinue')}
 				</StyledButton>
 			</View>
@@ -216,7 +221,7 @@ export default class SyncWithExtension extends Component {
 		return (
 			<View>
 				<Text style={styles.text}>{strings('syncWithExtension.syncComplete')}</Text>
-				<StyledButton type="confirm" onPress={this.goBack} containerStyle={styles.button}>
+				<StyledButton type="blue" onPress={this.goBack} containerStyle={styles.button}>
 					{strings('syncWithExtension.buttonGotIt')}
 				</StyledButton>
 			</View>
@@ -232,6 +237,7 @@ export default class SyncWithExtension extends Component {
 	render() {
 		return (
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
+				<Text style={styles.title}>Sync from Browser Extension</Text>
 				{this.renderContent()}
 			</View>
 		);

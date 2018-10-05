@@ -10,7 +10,7 @@
 	},
 	"createPassword": {
 		"title": "Create Password",
-		"new_password": "New Password (min. 8 characters)",
+		"password": "Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"create_button": "CREATE",
 		"import_with_seed_phrase": "Import with seed phrase"

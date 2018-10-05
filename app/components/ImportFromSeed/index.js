@@ -253,7 +253,7 @@ export default class ImportFromSeed extends Component {
 
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 						<View style={styles.ctaWrapper}>
-							<StyledButton type={'orange'} onPress={this.onPressImport} testID={'submit'}>
+							<StyledButton type={'blue'} onPress={this.onPressImport} testID={'submit'}>
 								{this.props.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (

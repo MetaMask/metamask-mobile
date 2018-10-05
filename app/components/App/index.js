@@ -4,8 +4,11 @@ import { createDrawerNavigator, createStackNavigator } from 'react-navigation';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
 import QRScanner from '../QRScanner';
+import Onboarding from '../Onboarding';
 import CreatePassword from '../CreatePassword';
+import ImportWallet from '../ImportWallet';
 import ImportFromSeed from '../ImportFromSeed';
+import SyncWithExtension from '../SyncWithExtension';
 import LockScreen from '../LockScreen';
 import Main from '../Main';
 import AccountList from '../AccountList';
@@ -41,6 +44,29 @@ const MainNav = createStackNavigator(
 	},
 	{
 		headerMode: 'none'
+	}
+);
+
+const OnboardingNav = createStackNavigator(
+	{
+		Onboarding: {
+			screen: Onboarding,
+		},
+		CreatePassword: {
+			screen: CreatePassword,
+		},
+		ImportWallet: {
+			screen: ImportWallet,
+		},
+		ImportFromSeed: {
+			screen: ImportFromSeed,
+		},
+		SyncWithExtension: {
+			screen: SyncWithExtension,
+		},
+	},
+	{
+		initialRoute: 'Onboarding'
 	}
 );
 
@@ -164,7 +190,7 @@ export default class App extends Component {
 				</View>
 			);
 		} else if (!this.state.existingUser) {
-			if (this.state.importFromSeed) {
+			/*if (this.state.importFromSeed) {
 				return (
 					<ImportFromSeed
 						onImportFromSeed={this.onImportFromSeed}
@@ -181,7 +207,8 @@ export default class App extends Component {
 					error={this.state.error}
 					toggleImportFromSeed={this.toggleImportFromSeed}
 				/>
-			);
+			);*/
+			return <OnboardingNav />;
 		}
 
 		if (this.state.loading) {

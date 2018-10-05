@@ -9,10 +9,11 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
+import { getOnboardingNavbarOptions } from '../Navbar'
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.white,
 		flex: 1,
 		padding: 20
 	},
@@ -53,15 +54,8 @@ const styles = StyleSheet.create({
 	ctaWrapper: {
 		marginTop: 20
 	},
-	footer: {
-		marginTop: 40
-	},
 	errorMsg: {
 		color: colors.error,
-		...fontStyles.normal
-	},
-	seed: {
-		color: colors.fontSecondary,
 		...fontStyles.normal
 	}
 });
@@ -72,6 +66,9 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set their password for the first time
  */
 export default class CreatePassword extends Component {
+
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 	static propTypes = {
 		/**
 		 * Function that will be called once the form is submitted
@@ -157,16 +154,9 @@ export default class CreatePassword extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'create-password-screen'}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						</View>
 						<Text style={styles.title}>{strings('createPassword.title')}</Text>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('createPassword.new_password')}</Text>
+							<Text style={styles.label}>{strings('createPassword.password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -197,19 +187,13 @@ export default class CreatePassword extends Component {
 
 						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
 						<View style={styles.ctaWrapper}>
-							<StyledButton type={'orange'} onPress={this.onPressCreate} testID={'submit'}>
+							<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'submit'}>
 								{this.props.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
 									strings('createPassword.create_button')
 								)}
 							</StyledButton>
-						</View>
-
-						<View style={styles.footer}>
-							<Button style={styles.seed} onPress={this.onPressImport} testID={'import-seed-button'}>
-								{strings('createPassword.import_with_seed_phrase')}
-							</Button>
 						</View>
 					</View>
 				</KeyboardAwareScrollView>

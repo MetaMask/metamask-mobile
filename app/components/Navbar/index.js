@@ -2,7 +2,7 @@ import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Foundation';
 import { colors } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -12,7 +12,11 @@ const styles = StyleSheet.create({
 		marginTop: 7,
 		marginRight: 12,
 		marginBottom: 12
-	}
+	},
+	metamaskName: {
+		width: 94,
+		height: 12
+	},
 });
 /**
  * Function that returns the navigation options
@@ -39,5 +43,23 @@ export default function getNavbarOptions(title, navigation) {
 export function getModalNavbarOptions(title) {
 	return {
 		headerTitle: <ModalNavbarTitle title={title} />
+	};
+}
+
+export function getOnboardingNavbarOptions() {
+	return {
+		headerStyle: {
+				shadowColor: 'red' ,
+				elevation: 0,
+				backgroundColor: 'white',
+				borderBottomWidth: 0,
+		},
+		headerTitle: <Image
+			source={require('../../images/metamask-name.png')}
+			style={styles.metamaskName}
+			resizeMethod={'auto'}
+		/>,
+		headerBackTitle: strings('navigation.back'),
+
 	};
 }
