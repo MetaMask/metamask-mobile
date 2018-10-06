@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from 'react-native-button';
+import { getOnboardingNavbarOptions } from '../Navbar';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
@@ -12,18 +12,9 @@ import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.white,
 		flex: 1,
 		padding: 20
-	},
-	logoWrapper: {
-		marginTop: Platform.OS === 'android' ? 20 : 50,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	image: {
-		width: 100,
-		height: 100
 	},
 	title: {
 		fontSize: Platform.OS === 'android' ? 20 : 25,
@@ -53,16 +44,9 @@ const styles = StyleSheet.create({
 	ctaWrapper: {
 		marginTop: 20
 	},
-	footer: {
-		marginTop: 40
-	},
 	errorMsg: {
 		color: colors.error,
 		textAlign: 'center',
-		...fontStyles.normal
-	},
-	seed: {
-		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
 	seedPhrase: {
@@ -76,6 +60,8 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		borderRadius: 10,
 		height: 110,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
 		...fontStyles.normal
 	}
 });
@@ -87,6 +73,8 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * using a seed phrase
  */
 export default class ImportFromSeed extends Component {
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 	static propTypes = {
 		/**
 		 * Function that will be called once the form is submitted
@@ -100,11 +88,7 @@ export default class ImportFromSeed extends Component {
 		/**
 		 * String that contains any error message
 		 */
-		error: PropTypes.string,
-		/**
-		 * Function that will toggle the visibility of this view
-		 */
-		toggleImportFromSeed: PropTypes.func
+		error: PropTypes.string
 	};
 
 	state = {
@@ -167,8 +151,6 @@ export default class ImportFromSeed extends Component {
 		}
 	};
 
-	onCancel = () => this.props.toggleImportFromSeed();
-
 	onBiometryChoiceChange = value => {
 		this.setState({ biometryChoice: value });
 	};
@@ -200,13 +182,6 @@ export default class ImportFromSeed extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'import-from-seed-screen'}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						</View>
 						<Text style={styles.title}>{strings('importFromSeed.title')}</Text>
 						<TextInput
 							value={this.state.seedWords}
@@ -260,12 +235,6 @@ export default class ImportFromSeed extends Component {
 									strings('importFromSeed.import_button')
 								)}
 							</StyledButton>
-						</View>
-
-						<View style={styles.footer}>
-							<Button style={styles.seed} onPress={this.onCancel}>
-								{strings('importFromSeed.cancel_button')}
-							</Button>
 						</View>
 					</View>
 				</KeyboardAwareScrollView>

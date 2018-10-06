@@ -66,7 +66,6 @@ export default class SyncWithExtension extends Component {
 
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
-
 	showQRScanner = () => {
 		/*
 		this.props.navigation.navigate('QrScanner', {

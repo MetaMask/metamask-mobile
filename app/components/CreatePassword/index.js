@@ -1,30 +1,20 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from 'react-native-button';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../Navbar'
+import { getOnboardingNavbarOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
 		padding: 20
-	},
-	logoWrapper: {
-		marginTop: Platform.OS === 'android' ? 40 : 100,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	image: {
-		width: 100,
-		height: 100
 	},
 	title: {
 		fontSize: Platform.OS === 'android' ? 30 : 35,
@@ -66,7 +56,6 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set their password for the first time
  */
 export default class CreatePassword extends Component {
-
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
@@ -82,11 +71,7 @@ export default class CreatePassword extends Component {
 		/**
 		 * String that contains any error message
 		 */
-		error: PropTypes.string,
-		/**
-		 * Function that will display the import from seed view
-		 */
-		toggleImportFromSeed: PropTypes.func
+		error: PropTypes.string
 	};
 
 	state = {
@@ -141,8 +126,6 @@ export default class CreatePassword extends Component {
 			}
 		}
 	};
-
-	onPressImport = () => this.props.toggleImportFromSeed();
 
 	jumpToConfirmPassword = () => {
 		const { current } = this.confirmPasswordInput;

@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { 	Text, View, StyleSheet, Image } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
@@ -37,19 +36,18 @@ const styles = StyleSheet.create({
 	},
 	separator: {
 		marginTop: 60,
-		marginBottom: 10,
+		marginBottom: 10
 	},
 	ctaWrapper: {
 		marginTop: 10
-	}
+	},
+	importFromSeedBtn: { borderWidth: 0 }
 });
-
 
 /**
  * View where users can set their password for the first time
  */
 export default class Onboarding extends Component {
-
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
@@ -98,28 +96,26 @@ export default class Onboarding extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'create-password-screen'}>
-						<Text style={styles.title}>Import Wallet</Text>
+						<Text style={styles.title}>{strings('importWallet.title')}</Text>
 
-						<Text style={styles.text}>If you have access to your computer where you have your MetaMask Browser Extension installed, we recommend you to choose "Sync from Browser Extension", since it will preserve all your accounts, settings, etc.</Text>
+						<Text style={styles.text}>{strings('importWallet.sync_help')}</Text>
 						<View style={styles.ctaWrapper}>
-							<StyledButton
-								type={'blue'}
-								onPress={this.onPressSync}
-								testID={'onboarding-import-button'}
-							>
-								Sync from Browser Extension
+							<StyledButton type={'blue'} onPress={this.onPressSync} testID={'onboarding-import-button'}>
+								{strings('importWallet.sync_from_browser_extension_button')}
 							</StyledButton>
 						</View>
-						<Text style={[styles.text, styles.separator]}>If you don't have access to your computer, but you have your seed phrase you can choose "Import from Seed phrase"</Text>
+						<Text style={[styles.text, styles.separator]}>
+							{strings('importWallet.import_from_seed_help')}
+						</Text>
 
 						<View style={styles.ctaWrapper}>
 							<StyledButton
 								type={'normal'}
 								onPress={this.onPressImport}
 								testID={'onboarding-new-button'}
-								containerStyle={{borderWidth: 0}}
+								containerStyle={styles.importFromSeedBtn}
 							>
-								Import using Seed Phrase
+								{strings('importWallet.import_from_seed_button')}
 							</StyledButton>
 						</View>
 					</View>

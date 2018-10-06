@@ -50,20 +50,20 @@ const MainNav = createStackNavigator(
 const OnboardingNav = createStackNavigator(
 	{
 		Onboarding: {
-			screen: Onboarding,
+			screen: Onboarding
 		},
 		CreatePassword: {
-			screen: CreatePassword,
+			screen: CreatePassword
 		},
 		ImportWallet: {
-			screen: ImportWallet,
+			screen: ImportWallet
 		},
 		ImportFromSeed: {
-			screen: ImportFromSeed,
+			screen: ImportFromSeed
 		},
 		SyncWithExtension: {
-			screen: SyncWithExtension,
-		},
+			screen: SyncWithExtension
+		}
 	},
 	{
 		initialRoute: 'Onboarding'

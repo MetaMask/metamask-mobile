@@ -2,6 +2,23 @@
 	"navigation": {
 		"back": "Back"
 	},
+	"onboarding": {
+		"title": "Welcome",
+		"subtitle": "The decentralized web awaits",
+		"lets_get_started": "Let's get started!",
+		"already_using_metamask": "Already using MetaMask?",
+		"import_wallet_button": "Import Wallet",
+		"create_new_wallet_button": "Create New Wallet"
+	},
+	"importWallet": {
+		"title": "Import Wallet",
+		"sync_help":
+			"If you have access to your computer where you have your MetaMask Browser Extension installed, we recommend you to choose \"Sync from Browser Extension\", since it will preserve all your accounts, settings, etc.",
+		"sync_from_browser_extension_button": "Sync from Browser Extension",
+		"import_from_seed_help":
+			"If you don't have access to your computer, but you have your seed phrase you can choose \"Import from Seed phrase\"",
+		"import_from_seed_button": "Import from Seed"
+	},
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",

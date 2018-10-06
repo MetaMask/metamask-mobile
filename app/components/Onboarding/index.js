@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { 	Text, View, StyleSheet, Image } from 'react-native';
+import { Text, View, StyleSheet, Image } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
@@ -67,12 +67,10 @@ const styles = StyleSheet.create({
 	}
 });
 
-
 /**
  * View where users can set their password for the first time
  */
 export default class Onboarding extends Component {
-
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
@@ -124,11 +122,11 @@ export default class Onboarding extends Component {
 						<View style={styles.logoWrapper}>
 							<Image source={require('../../images/fox.png')} style={styles.fox} resizeMethod={'auto'} />
 						</View>
-						<Text style={styles.title}>Welcome</Text>
-						<Text style={styles.subtitle}>The decentralized web awaits</Text>
+						<Text style={styles.title}>{strings('onboarding.title')}</Text>
+						<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
 
-						<Text style={styles.bigText}>Let's get started!</Text>
-						<Text style={styles.smallText}>Already using MetaMask?</Text>
+						<Text style={styles.bigText}>{strings('onboarding.lets_get_started')}</Text>
+						<Text style={styles.smallText}>{strings('onboarding.already_using_metamask')}</Text>
 
 						<View style={styles.ctaWrapper}>
 							<StyledButton
@@ -136,14 +134,14 @@ export default class Onboarding extends Component {
 								onPress={this.onPressImport}
 								testID={'onboarding-import-button'}
 							>
-								Import Wallet
+								{strings('onboarding.import_wallet_button')}
 							</StyledButton>
 						</View>
 						<Text style={[styles.smallText, styles.separator]}>OR</Text>
 
 						<View style={styles.ctaWrapper}>
 							<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'onboarding-new-button'}>
-								Create New Wallet
+								{strings('onboarding.create_new_wallet_button')}
 							</StyledButton>
 						</View>
 					</View>

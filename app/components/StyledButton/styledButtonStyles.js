@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	blue: {
-		backgroundColor: colors.ctaBlue
+		backgroundColor: colors.primary
 	},
 	blueText: {
 		color: colors.white

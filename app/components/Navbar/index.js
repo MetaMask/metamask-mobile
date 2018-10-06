@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 	metamaskName: {
 		width: 94,
 		height: 12
-	},
+	}
 });
 /**
  * Function that returns the navigation options
@@ -49,17 +49,18 @@ export function getModalNavbarOptions(title) {
 export function getOnboardingNavbarOptions() {
 	return {
 		headerStyle: {
-				shadowColor: 'red' ,
-				elevation: 0,
-				backgroundColor: 'white',
-				borderBottomWidth: 0,
+			shadowColor: 'red',
+			elevation: 0,
+			backgroundColor: 'white',
+			borderBottomWidth: 0
 		},
-		headerTitle: <Image
-			source={require('../../images/metamask-name.png')}
-			style={styles.metamaskName}
-			resizeMethod={'auto'}
-		/>,
-		headerBackTitle: strings('navigation.back'),
-
+		headerTitle: (
+			<Image
+				source={require('../../images/metamask-name.png')}
+				style={styles.metamaskName}
+				resizeMethod={'auto'}
+			/>
+		),
+		headerBackTitle: strings('navigation.back')
 	};
 }
