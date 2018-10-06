@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Text, View, StyleSheet } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Screen from '../Screen';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 import { colors, fontStyles } from '../../styles/common';
-import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../Navbar';
 
@@ -94,32 +93,33 @@ export default class Onboarding extends Component {
 	render() {
 		return (
 			<Screen>
-				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-					<View testID={'create-password-screen'}>
-						<Text style={styles.title}>{strings('importWallet.title')}</Text>
+				<View
+					style={styles.wrapper}
+					testID={'import-wallet-screen'}
+				>
+					<Text style={styles.title}>{strings('importWallet.title')}</Text>
 
-						<Text style={styles.text}>{strings('importWallet.sync_help')}</Text>
-						<View style={styles.ctaWrapper}>
-							<StyledButton type={'blue'} onPress={this.onPressSync} testID={'onboarding-import-button'}>
-								{strings('importWallet.sync_from_browser_extension_button')}
-							</StyledButton>
-						</View>
-						<Text style={[styles.text, styles.separator]}>
-							{strings('importWallet.import_from_seed_help')}
-						</Text>
-
-						<View style={styles.ctaWrapper}>
-							<StyledButton
-								type={'normal'}
-								onPress={this.onPressImport}
-								testID={'onboarding-new-button'}
-								containerStyle={styles.importFromSeedBtn}
-							>
-								{strings('importWallet.import_from_seed_button')}
-							</StyledButton>
-						</View>
+					<Text style={styles.text}>{strings('importWallet.sync_help')}</Text>
+					<View style={styles.ctaWrapper}>
+						<StyledButton type={'blue'} onPress={this.onPressSync} testID={'onboarding-import-button'}>
+							{strings('importWallet.sync_from_browser_extension_button')}
+						</StyledButton>
 					</View>
-				</KeyboardAwareScrollView>
+					<Text style={[styles.text, styles.separator]}>
+						{strings('importWallet.import_from_seed_help')}
+					</Text>
+
+					<View style={styles.ctaWrapper}>
+						<StyledButton
+							type={'normal'}
+							onPress={this.onPressImport}
+							testID={'onboarding-new-button'}
+							containerStyle={styles.importFromSeedBtn}
+						>
+							{strings('importWallet.import_from_seed_button')}
+						</StyledButton>
+					</View>
+				</View>
 			</Screen>
 		);
 	}

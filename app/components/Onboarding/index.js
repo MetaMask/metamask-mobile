@@ -117,35 +117,36 @@ export default class Onboarding extends Component {
 	render() {
 		return (
 			<Screen>
-				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-					<View testID={'create-password-screen'}>
-						<View style={styles.logoWrapper}>
-							<Image source={require('../../images/fox.png')} style={styles.fox} resizeMethod={'auto'} />
-						</View>
-						<Text style={styles.title}>{strings('onboarding.title')}</Text>
-						<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
-
-						<Text style={styles.bigText}>{strings('onboarding.lets_get_started')}</Text>
-						<Text style={styles.smallText}>{strings('onboarding.already_using_metamask')}</Text>
-
-						<View style={styles.ctaWrapper}>
-							<StyledButton
-								type={'blue'}
-								onPress={this.onPressImport}
-								testID={'onboarding-import-button'}
-							>
-								{strings('onboarding.import_wallet_button')}
-							</StyledButton>
-						</View>
-						<Text style={[styles.smallText, styles.separator]}>OR</Text>
-
-						<View style={styles.ctaWrapper}>
-							<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'onboarding-new-button'}>
-								{strings('onboarding.create_new_wallet_button')}
-							</StyledButton>
-						</View>
+				<View
+					style={styles.wrapper}
+					testID={'onboarding-screen'}
+				>
+					<View style={styles.logoWrapper}>
+						<Image source={require('../../images/fox.png')} style={styles.fox} resizeMethod={'auto'} />
 					</View>
-				</KeyboardAwareScrollView>
+					<Text style={styles.title}>{strings('onboarding.title')}</Text>
+					<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
+
+					<Text style={styles.bigText}>{strings('onboarding.lets_get_started')}</Text>
+					<Text style={styles.smallText}>{strings('onboarding.already_using_metamask')}</Text>
+
+					<View style={styles.ctaWrapper}>
+						<StyledButton
+							type={'blue'}
+							onPress={this.onPressImport}
+							testID={'onboarding-import-button'}
+						>
+							{strings('onboarding.import_wallet_button')}
+						</StyledButton>
+					</View>
+					<Text style={[styles.smallText, styles.separator]}>OR</Text>
+
+					<View style={styles.ctaWrapper}>
+						<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'onboarding-new-button'}>
+							{strings('onboarding.create_new_wallet_button')}
+						</StyledButton>
+					</View>
+				</View>
 			</Screen>
 		);
 	}

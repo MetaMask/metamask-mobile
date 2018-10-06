@@ -178,15 +178,19 @@
 	"transactionSubmitted": {
 		"title": "Transaction Submitted",
 		"yourTxHashIs": "Your transaction hash is:",
-		"viewOnEtherscan": "View on etherscan.io"
+		"viewOnEtherscan": "VIEW ON ETHERSCAN"
 	},
 	"syncWithExtension": {
 		"title": "Sync data from Extension",
 		"label":
 			"Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"buttonContinue": "Continue",
-		"buttonGotIt": "GOT IT!",
-		"pleaseWait": "Please wait while we sync your data...",
-		"syncComplete": "Sync completed succesfully!"
+		"pleaseWait": "Please wait while we sync your data..."
+	},
+	"syncWithExtensionSuccess": {
+		"title": "Sync completed",
+		"syncComplete":
+			"We have synchronized all the information from your MetaMask extension and now you're ready to go!",
+		"buttonContinue": "Continue"
 	}
 }

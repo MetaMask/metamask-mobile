@@ -18,6 +18,8 @@ const styles = StyleSheet.create({
 		height: 12
 	}
 });
+
+const metamask_name = require('../../images/metamask-name.png');
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -56,7 +58,7 @@ export function getOnboardingNavbarOptions() {
 		},
 		headerTitle: (
 			<Image
-				source={require('../../images/metamask-name.png')}
+				source={metamask_name}
 				style={styles.metamaskName}
 				resizeMethod={'auto'}
 			/>

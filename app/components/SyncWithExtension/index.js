@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import Screen from '../Screen';
 import StyledButton from '../StyledButton';
 import { getOnboardingNavbarOptions } from '../Navbar';
 import Engine from '../../core/Engine';
@@ -165,10 +166,12 @@ export default class SyncWithExtension extends Component {
 				sendByPost: false,
 				storeInHistory: false
 			},
-			() => {
+			async () => {
 				this.disconnectWebsockets();
-				this.loading = false;
-				this.setState({ loading: false, complete: true });
+				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				setTimeout(() => {
+					this.props.navigation.push('SyncWithExtensionSuccess');
+				}, 800);
 			}
 		);
 
@@ -187,7 +190,8 @@ export default class SyncWithExtension extends Component {
 	}
 
 	goBack = () => {
-		this.props.navigation.pop(2);
+		this.props.navigation.navigate('HomeNav');
+
 	};
 
 	componentWillUnmount() {
@@ -235,10 +239,15 @@ export default class SyncWithExtension extends Component {
 
 	render() {
 		return (
-			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
-				<Text style={styles.title}>Sync from Browser Extension</Text>
-				{this.renderContent()}
-			</View>
+			<Screen>
+				<View
+					style={styles.wrapper}
+					testID={'sync-with-extension-screen'}
+				>
+					<Text style={styles.title}>Sync from Browser Extension</Text>
+					{this.renderContent()}
+				</View>
+			</Screen>
 		);
 	}
 }
