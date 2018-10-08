@@ -117,10 +117,7 @@ export default class Onboarding extends Component {
 	render() {
 		return (
 			<Screen>
-				<View
-					style={styles.wrapper}
-					testID={'onboarding-screen'}
-				>
+				<View style={styles.wrapper} testID={'onboarding-screen'}>
 					<View style={styles.logoWrapper}>
 						<Image source={require('../../images/fox.png')} style={styles.fox} resizeMethod={'auto'} />
 					</View>
@@ -131,11 +128,7 @@ export default class Onboarding extends Component {
 					<Text style={styles.smallText}>{strings('onboarding.already_using_metamask')}</Text>
 
 					<View style={styles.ctaWrapper}>
-						<StyledButton
-							type={'blue'}
-							onPress={this.onPressImport}
-							testID={'onboarding-import-button'}
-						>
+						<StyledButton type={'blue'} onPress={this.onPressImport} testID={'onboarding-import-button'}>
 							{strings('onboarding.import_wallet_button')}
 						</StyledButton>
 					</View>

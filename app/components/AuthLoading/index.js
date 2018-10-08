@@ -10,7 +10,6 @@ import Engine from '../../core/Engine';
  * and <LockScreen> if the app goes on background mode
  */
 export default class AuthLoading extends Component {
-
 	async componentDidMount() {
 		//await AsyncStorage.removeItem('@MetaMask:existingUser');
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
@@ -19,7 +18,6 @@ export default class AuthLoading extends Component {
 		} else {
 			this.goToOnboarding();
 		}
-
 	}
 
 	async unlockKeychain() {
@@ -53,6 +51,6 @@ export default class AuthLoading extends Component {
 	}
 
 	render() {
-		return <LockScreen />
+		return <LockScreen />;
 	}
 }

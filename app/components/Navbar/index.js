@@ -56,13 +56,7 @@ export function getOnboardingNavbarOptions() {
 			backgroundColor: 'white',
 			borderBottomWidth: 0
 		},
-		headerTitle: (
-			<Image
-				source={metamask_name}
-				style={styles.metamaskName}
-				resizeMethod={'auto'}
-			/>
-		),
+		headerTitle: <Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />,
 		headerBackTitle: strings('navigation.back')
 	};
 }

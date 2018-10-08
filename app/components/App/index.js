@@ -39,7 +39,7 @@ const OnboardingNav = createStackNavigator(
 		},
 		SyncWithExtension: {
 			screen: SyncWithExtension
-		},
+		}
 	},
 	{
 		initialRouteName: 'Onboarding'
@@ -53,14 +53,13 @@ const OnboardingRootNav = createStackNavigator(
 		},
 		SyncWithExtensionSuccess: {
 			screen: SyncWithExtensionSuccess
-		},
+		}
 	},
 	{
 		headerMode: 'none',
 		mode: 'modal'
 	}
-)
-
+);
 
 const HomeNav = createStackNavigator(
 	{
@@ -86,8 +85,6 @@ const HomeNav = createStackNavigator(
 	}
 );
 
-
-
 export default createSwitchNavigator(
 	{
 		AuthLoading,
@@ -96,10 +93,9 @@ export default createSwitchNavigator(
 		Login
 	},
 	{
-		initialRouteName: 'AuthLoading',
+		initialRouteName: 'AuthLoading'
 	}
-  );
-
+);
 
 // export default class App extends Component {
 

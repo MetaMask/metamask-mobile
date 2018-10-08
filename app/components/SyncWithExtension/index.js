@@ -191,7 +191,6 @@ export default class SyncWithExtension extends Component {
 
 	goBack = () => {
 		this.props.navigation.navigate('HomeNav');
-
 	};
 
 	componentWillUnmount() {
@@ -240,10 +239,7 @@ export default class SyncWithExtension extends Component {
 	render() {
 		return (
 			<Screen>
-				<View
-					style={styles.wrapper}
-					testID={'sync-with-extension-screen'}
-				>
+				<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
 					<Text style={styles.title}>Sync from Browser Extension</Text>
 					{this.renderContent()}
 				</View>

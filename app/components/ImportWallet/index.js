@@ -93,10 +93,7 @@ export default class Onboarding extends Component {
 	render() {
 		return (
 			<Screen>
-				<View
-					style={styles.wrapper}
-					testID={'import-wallet-screen'}
-				>
+				<View style={styles.wrapper} testID={'import-wallet-screen'}>
 					<Text style={styles.title}>{strings('importWallet.title')}</Text>
 
 					<Text style={styles.text}>{strings('importWallet.sync_help')}</Text>
@@ -105,9 +102,7 @@ export default class Onboarding extends Component {
 							{strings('importWallet.sync_from_browser_extension_button')}
 						</StyledButton>
 					</View>
-					<Text style={[styles.text, styles.separator]}>
-						{strings('importWallet.import_from_seed_help')}
-					</Text>
+					<Text style={[styles.text, styles.separator]}>{strings('importWallet.import_from_seed_help')}</Text>
 
 					<View style={styles.ctaWrapper}>
 						<StyledButton

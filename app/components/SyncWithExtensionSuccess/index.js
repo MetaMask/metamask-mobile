@@ -72,17 +72,12 @@ export default class SyncWithExtensionSuccess extends Component {
 
 	continue = () => {
 		this.props.navigation.navigate('HomeNav');
-
 	};
-
 
 	render() {
 		return (
 			<Screen>
-				<View
-					style={styles.wrapper}
-					testID={'sync-with-extension-screen'}
-				>
+				<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
 					<Text style={styles.title}>{strings('syncWithExtensionSuccess.title')}</Text>
 					<Animated.View
 						style={[

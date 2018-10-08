@@ -34,7 +34,6 @@ const styles = StyleSheet.create({
 
 const metamask_name = require('../../images/metamask-name.png');
 
-
 /**
  * UI Component that renders inside the navbar
  * showing the view title and the selected network
@@ -56,11 +55,7 @@ class NavbarTitle extends Component {
 		const { color, name } = Networks[network.provider.type];
 		return (
 			<View style={styles.wrapper}>
-				<Image
-					source={metamask_name}
-					style={styles.metamaskName}
-					resizeMethod={'auto'}
-				/>
+				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
