@@ -1,6 +1,7 @@
 import {
 	AccountTrackerController,
 	AddressBookController,
+	AssetsContractController,
 	AssetsController,
 	AssetsDetectionController,
 	BlockHistoryController,
@@ -41,6 +42,7 @@ class Engine {
 					new KeyringController({ encryptor }, initialState.KeyringController),
 					new AccountTrackerController(),
 					new AddressBookController(),
+					new AssetsContractController(),
 					new AssetsController(),
 					new AssetsDetectionController(),
 					new BlockHistoryController(),
@@ -104,7 +106,7 @@ class Engine {
 	refreshNetwork = () => {
 		const {
 			AccountTrackerController,
-			AssetsDetectionController,
+			AssetsContractController,
 			BlockHistoryController,
 			NetworkController: { provider },
 			TransactionController
@@ -112,7 +114,7 @@ class Engine {
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
-		AssetsDetectionController.configure({ provider });
+		AssetsContractController.configure({ provider });
 		BlockHistoryController.configure({ provider, blockTracker });
 		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
@@ -129,6 +131,7 @@ export default {
 	get state() {
 		const {
 			AccountTrackerController,
+			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
 			CurrencyRateController,
@@ -142,6 +145,7 @@ export default {
 
 		return {
 			AccountTrackerController,
+			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
 			CurrencyRateController,
