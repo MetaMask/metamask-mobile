@@ -28,6 +28,7 @@ exports[`TokenElement should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
+        "justifyContent": "center",
       }
     }
   >
@@ -41,20 +42,8 @@ exports[`TokenElement should render correctly 1`] = `
         }
       }
     >
+       
       ABC
-    </Component>
-    <Component
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "400",
-        }
-      }
-    >
-      $
-       USD
     </Component>
   </Component>
   <Component
