@@ -33,7 +33,7 @@ export default class CollectibleImage extends Component {
 		const { asset } = this.props;
 		return (
 			<View style={styles.imageWrapper}>
-				{asset.image ? (
+				{asset.image && asset.image.length !== 0 ? (
 					<Image source={{ uri: asset.image }} style={styles.image} />
 				) : (
 					<Identicon address={asset.address + asset.tokenId} />
