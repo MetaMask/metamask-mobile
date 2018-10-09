@@ -45,7 +45,7 @@ class Wallet extends Component {
 		 */
 		accounts: PropTypes.object,
 		/**
-		 * ETH to currnt currency conversion rate
+		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
 		/**
@@ -68,6 +68,14 @@ class Wallet extends Component {
 		 * An array that represents the user tokens
 		 */
 		tokens: PropTypes.array,
+		/**
+		 * An object containing token balances for current account and network in the format address => balance
+		 */
+		tokenBalances: PropTypes.object,
+		/**
+		 * An object containing token exchange rates in the format address => exchangeRate
+		 */
+		tokenExchangeRates: PropTypes.object,
 		/**
 		 * An array that represents the user collectibles
 		 */
@@ -109,6 +117,8 @@ class Wallet extends Component {
 			identities,
 			selectedAddress,
 			tokens,
+			tokenBalances,
+			tokenExchangeRates,
 			collectibles
 		} = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -121,7 +131,15 @@ class Wallet extends Component {
 					navigation={this.props.navigation}
 				/>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<Tokens navigation={this.props.navigation} tabLabel={strings('wallet.tokens')} assets={tokens} />
+					<Tokens
+						navigation={this.props.navigation}
+						tabLabel={strings('wallet.tokens')}
+						assets={tokens}
+						currentCurrency={currentCurrency}
+						conversionRate={conversionRate}
+						tokenBalances={tokenBalances}
+						tokenExchangeRates={tokenExchangeRates}
+					/>
 					<Collectibles
 						navigation={this.props.navigation}
 						tabLabel={strings('wallet.collectibles')}
@@ -140,6 +158,8 @@ const mapStateToProps = state => ({
 	identities: state.backgroundState.PreferencesController.identities,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.backgroundState.AssetsController.tokens,
+	tokenBalances: state.backgroundState.TokenBalancesController.contractBalances,
+	tokenExchangeRates: state.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.backgroundState.AssetsController.collectibles
 });
 

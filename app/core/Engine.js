@@ -13,6 +13,7 @@ import {
 	PhishingController,
 	PreferencesController,
 	ShapeShiftController,
+	TokenBalancesController,
 	TokenRatesController,
 	TransactionController
 } from 'gaba';
@@ -78,8 +79,8 @@ class Engine {
 					new PhishingController(),
 					new PreferencesController(),
 					new ShapeShiftController(),
+					new TokenBalancesController(),
 					new TokenRatesController(),
-					new AssetsController(),
 					new TransactionController()
 				],
 				initialState
@@ -139,6 +140,7 @@ export default {
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
+			TokenBalancesController,
 			TokenRatesController,
 			TransactionController
 		} = instance.datamodel.state;
@@ -153,6 +155,7 @@ export default {
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
+			TokenBalancesController,
 			TokenRatesController,
 			TransactionController
 		};

@@ -92,7 +92,7 @@ export default class AssetOverview extends Component {
 						{' '}
 						{balance} {symbol}
 					</Text>
-					<Text style={styles.amountFiat}>${balanceFiat} USD</Text>
+					<Text style={styles.amountFiat}>{balanceFiat}</Text>
 				</View>
 				<View style={styles.buttons}>
 					<StyledButton
