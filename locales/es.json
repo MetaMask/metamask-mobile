@@ -97,7 +97,10 @@
 	},
 	"accountDetails": {
 		"title": "Detalles de la cuenta",
-		"public_address": "Dirección Pública"
+		"public_address": "Dirección Pública",
+		"share_account": "Compartir",
+		"view_account": "Ver cuenta en Etherscan",
+		"download_private_key": "Descargar dirección privada"
 	},
 	"qrScanner": {
 		"invalidQrCodeTitle": "Código QR Inválido",
