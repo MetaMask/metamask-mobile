@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CreatePassword should render correctly 1`] = `
+exports[`CreateWallet should render correctly 1`] = `
 <Screen>
   <KeyboardAwareScrollView
     enableAutomaticScroll={true}

@@ -5,7 +5,7 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 import Login from '../Login';
 import QRScanner from '../QRScanner';
 import Onboarding from '../Onboarding';
-import CreatePassword from '../CreatePassword';
+import CreateWallet from '../CreateWallet';
 import ImportWallet from '../ImportWallet';
 import ImportFromSeed from '../ImportFromSeed';
 import SyncWithExtension from '../SyncWithExtension';
@@ -28,8 +28,8 @@ const OnboardingNav = createStackNavigator(
 		Onboarding: {
 			screen: Onboarding
 		},
-		CreatePassword: {
-			screen: CreatePassword
+		CreateWallet: {
+			screen: CreateWallet
 		},
 		ImportWallet: {
 			screen: ImportWallet

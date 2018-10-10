@@ -102,7 +102,7 @@ export default class Onboarding extends Component {
 	}
 
 	onPressCreate = () => {
-		this.props.navigation.push('CreatePassword');
+		this.props.navigation.push('CreateWallet');
 	};
 
 	onPressImport = () => {

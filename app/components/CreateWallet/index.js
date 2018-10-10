@@ -55,7 +55,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 /**
  * View where users can set their password for the first time
  */
-export default class CreatePassword extends Component {
+export default class CreateWallet extends Component {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
@@ -137,9 +137,9 @@ export default class CreatePassword extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'create-password-screen'}>
-						<Text style={styles.title}>{strings('createPassword.title')}</Text>
+						<Text style={styles.title}>{strings('createWallet.title')}</Text>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('createPassword.password')}</Text>
+							<Text style={styles.label}>{strings('createWallet.password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -153,7 +153,7 @@ export default class CreatePassword extends Component {
 							/>
 						</View>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('createPassword.confirm_password')}</Text>
+							<Text style={styles.label}>{strings('createWallet.confirm_password')}</Text>
 							<TextInput
 								ref={this.confirmPasswordInput}
 								style={styles.input}
@@ -174,7 +174,7 @@ export default class CreatePassword extends Component {
 								{this.props.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
-									strings('createPassword.create_button')
+									strings('createWallet.create_button')
 								)}
 							</StyledButton>
 						</View>

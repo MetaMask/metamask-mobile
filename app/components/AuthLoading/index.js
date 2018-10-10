@@ -5,7 +5,7 @@ import LockScreen from '../LockScreen';
 import Engine from '../../core/Engine';
 /**
  * Root application component responsible for rendering
- * the first "guest" screens of the app:  CreatePassword, Login
+ * the first "guest" screens of the app:  CreateWallet, Login
  * It will  also render <Nav> only if the user is authenticated
  * and <LockScreen> if the app goes on background mode
  */

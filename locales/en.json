@@ -25,8 +25,8 @@
 		"login_button": "LOG IN",
 		"import_with_seed_phrase": "Import with seed phrase"
 	},
-	"createPassword": {
-		"title": "Create Password",
+	"createWallet": {
+		"title": "Create New Wallet",
 		"password": "Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"create_button": "CREATE",
