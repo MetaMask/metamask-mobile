@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { AsyncStorage } from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
-import LockScreen from '../LockScreen';
 import Engine from '../../core/Engine';
+import FoxScreen from '../FoxScreen';
 /**
  * Root application component responsible for rendering
  * the first "guest" screens of the app:  CreateWallet, Login
@@ -59,6 +59,6 @@ export default class AuthLoading extends Component {
 	}
 
 	render() {
-		return <LockScreen />;
+		return <FoxScreen />;
 	}
 }

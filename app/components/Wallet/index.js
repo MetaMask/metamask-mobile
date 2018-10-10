@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, AsyncStorage } from 'react-native';
+import { AppState, StyleSheet, View, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -14,8 +14,7 @@ import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
-const LOCK_TIMEOUT = 30000;
-
+const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -75,8 +74,23 @@ class Wallet extends Component {
 		 */
 		collectibles: PropTypes.array
 	};
+
+	state = {
+		locked: false,
+		appState: 'active'
+	};
+
+	mounted = false;
+
 	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
+		AppState.addEventListener('change', this.handleAppStateChange);
+		this.mounted = true;
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
 	renderTabBar() {
@@ -110,9 +124,7 @@ class Wallet extends Component {
 			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
 			if (bg_mode_ts && Date.now() - parseInt(bg_mode_ts) > LOCK_TIMEOUT) {
 				// If it's still mounted, lock it
-				this.mounted && this.setState({ locked: true });
-				// And try to unlock it
-				this.unlockKeychain();
+				this.mounted && this.props.navigation.navigate('LockScreen');
 			}
 			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
 		}
