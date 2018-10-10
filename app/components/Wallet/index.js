@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -14,6 +14,7 @@ import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+const LOCK_TIMEOUT = 30000;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -100,6 +101,22 @@ class Wallet extends Component {
 			const dm = new DeeplinkManager(this.props.navigation);
 			dm.parse(params['+non_branch_link']);
 		}
+	};
+
+	handleAppStateChange = async nextAppState => {
+		if (nextAppState !== 'active') {
+			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
+		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
+			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
+			if (bg_mode_ts && Date.now() - parseInt(bg_mode_ts) > LOCK_TIMEOUT) {
+				// If it's still mounted, lock it
+				this.mounted && this.setState({ locked: true });
+				// And try to unlock it
+				this.unlockKeychain();
+			}
+			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
+		}
+		this.mounted && this.setState({ appState: nextAppState });
 	};
 
 	render() {

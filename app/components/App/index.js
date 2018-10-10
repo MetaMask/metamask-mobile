@@ -1,7 +1,4 @@
-import React, { Component } from 'react';
-import { View, AppState, AsyncStorage } from 'react-native';
 import { createSwitchNavigator, createDrawerNavigator, createStackNavigator } from 'react-navigation';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Login from '../Login';
 import QRScanner from '../QRScanner';
 import Onboarding from '../Onboarding';
@@ -10,13 +7,9 @@ import ImportWallet from '../ImportWallet';
 import ImportFromSeed from '../ImportFromSeed';
 import SyncWithExtension from '../SyncWithExtension';
 import SyncWithExtensionSuccess from '../SyncWithExtensionSuccess';
-import LockScreen from '../LockScreen';
 import AuthLoading from '../AuthLoading';
 import Main from '../Main';
 import AccountList from '../AccountList';
-import Engine from '../../core/Engine';
-
-const LOCK_TIMEOUT = 30000;
 
 /**
  * Navigator object responsible for instantiating

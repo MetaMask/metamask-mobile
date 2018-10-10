@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
+import { AsyncStorage, ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../Navbar';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import Engine from '../../core/Engine';
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
@@ -77,18 +78,9 @@ export default class ImportFromSeed extends Component {
 
 	static propTypes = {
 		/**
-		 * Function that will be called once the form is submitted
+		 * The navigator object
 		 */
-		onImportFromSeed: PropTypes.func,
-		/**
-		 * Boolean that lets the view know if the parent is doing any processing
-		 * and if that's the case, show a spinner
-		 */
-		loading: PropTypes.bool,
-		/**
-		 * String that contains any error message
-		 */
-		error: PropTypes.string
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -96,7 +88,9 @@ export default class ImportFromSeed extends Component {
 		confirmPassword: '',
 		seed: '',
 		biometryType: null,
-		biometryChoice: false
+		biometryChoice: false,
+		loading: false,
+		error: null
 	};
 
 	mounted = true;
@@ -130,6 +124,8 @@ export default class ImportFromSeed extends Component {
 			Alert.alert('Error', error);
 		} else {
 			try {
+				this.setState({ loading: true });
+
 				const authOptions = {
 					accessControl: this.state.biometryChoice
 						? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -138,7 +134,13 @@ export default class ImportFromSeed extends Component {
 					authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
 				};
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-				this.props.onImportFromSeed(this.state.password, this.state.seed);
+				const { KeyringController } = Engine.context;
+
+				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
+				// mark the user as existing so it doesn't see the create password screen again
+				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				this.setState({ loading: false });
+				this.props.navigation.navigate('HomeNav');
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -146,6 +148,9 @@ export default class ImportFromSeed extends Component {
 						'Security Alert',
 						'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 					);
+					this.setState({ loading: false });
+				} else {
+					this.setState({ loading: false, error: error.toString() });
 				}
 			}
 		}
@@ -226,10 +231,10 @@ export default class ImportFromSeed extends Component {
 							/>
 						</View>
 
-						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
+						{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 						<View style={styles.ctaWrapper}>
 							<StyledButton type={'blue'} onPress={this.onPressImport} testID={'submit'}>
-								{this.props.loading ? (
+								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
 									strings('importFromSeed.import_button')

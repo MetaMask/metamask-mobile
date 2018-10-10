@@ -23,7 +23,7 @@
 		"title": "Welcome Back!",
 		"password": "Password",
 		"login_button": "LOG IN",
-		"import_with_seed_phrase": "Import with seed phrase"
+		"go_back": "Go Back"
 	},
 	"createWallet": {
 		"title": "Create New Wallet",

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { AsyncStorage } from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import LockScreen from '../LockScreen';
@@ -10,6 +11,13 @@ import Engine from '../../core/Engine';
  * and <LockScreen> if the app goes on background mode
  */
 export default class AuthLoading extends Component {
+	static propTypes = {
+		/**
+		 * The navigator object
+		 */
+		navigation: PropTypes.object
+	};
+
 	async componentDidMount() {
 		//await AsyncStorage.removeItem('@MetaMask:existingUser');
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
