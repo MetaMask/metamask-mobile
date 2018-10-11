@@ -12,11 +12,9 @@ import StyledButton from '../StyledButton';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1,
-		padding: 20
+		flex: 1
 	},
 	text: {
-		marginTop: 20,
 		fontSize: 18,
 		textAlign: 'center',
 		...fontStyles.normal
@@ -37,25 +35,29 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
-	accountHeader: {
-		marginTop: 10,
+	accountWrapper: {
+		paddingTop: 15,
+		paddingBottom: 15,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		borderBottomWidth: 2,
+		borderBottomColor: colors.concrete
+	},
+	detailsWrapper: {
+		padding: 20
 	},
 	addressWrapper: {
-		marginTop: 10,
-		flex: 1,
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
+		padding: 10,
+		margin: 10,
 		borderRadius: 5,
-		padding: 15,
-		borderColor: colors.borderColor,
 		backgroundColor: colors.concrete
 	},
 	buttonWrapper: {
-		marginLeft: 30,
-		marginRight: 30
+		marginLeft: 50,
+		marginRight: 50
 	},
 	button: {
 		marginTop: 10
@@ -102,30 +104,38 @@ class AccountDetails extends Component {
 		} = this.props;
 		return (
 			<View style={styles.wrapper} testID={'account-details-screen'}>
-				<View style={styles.accountHeader}>
+				<View style={styles.accountWrapper}>
 					<Identicon address={selectedAddress} />
 					<Text style={styles.textHeader}>{accountName}</Text>
 				</View>
-				<Text style={styles.text}>{strings('accountDetails.public_address')}</Text>
-				<View style={styles.qrCode}>
-					<QRCode value={selectedAddress} size={120} bgColor={colors.fontPrimary} fgColor={colors.white} />
-				</View>
-				<View style={styles.addressWrapper}>
-					<Text style={styles.address} testID={'public-address-text'}>
-						{selectedAddress}
-					</Text>
-					<Icon name="copy" size={22} style={styles.icon} onPress={() => this.copyToClipboard()} />
-				</View>
-				<View style={styles.buttonWrapper}>
-					<StyledButton containerStyle={styles.button} type={'normal'}>
-						{strings('accountDetails.share_account')}
-					</StyledButton>
-					<StyledButton containerStyle={styles.button} type={'normal'}>
-						{strings('accountDetails.view_account')}
-					</StyledButton>
-					<StyledButton containerStyle={styles.button} type={'warning'}>
-						{strings('accountDetails.download_private_key')}
-					</StyledButton>
+				<View style={styles.detailsWrapper}>
+					<Text style={styles.text}>{strings('accountDetails.public_address')}</Text>
+					<View style={styles.qrCode}>
+						<QRCode
+							value={selectedAddress}
+							size={120}
+							bgColor={colors.fontPrimary}
+							fgColor={colors.white}
+						/>
+					</View>
+					<View style={styles.addressWrapper}>
+						<Text style={styles.address} testID={'public-address-text'}>
+							{selectedAddress}
+						</Text>
+						<Icon name="copy" size={22} style={styles.icon} onPress={() => this.copyToClipboard()} />
+					</View>
+
+					<View style={styles.buttonWrapper}>
+						<StyledButton containerStyle={styles.button} type={'normal'}>
+							{strings('accountDetails.share_account')}
+						</StyledButton>
+						<StyledButton containerStyle={styles.button} type={'normal'}>
+							{strings('accountDetails.view_account')}
+						</StyledButton>
+						<StyledButton containerStyle={styles.button} type={'warning'}>
+							{strings('accountDetails.download_private_key')}
+						</StyledButton>
+					</View>
 				</View>
 			</View>
 		);
