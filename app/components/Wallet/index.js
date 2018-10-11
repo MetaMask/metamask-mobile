@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { AppState, StyleSheet, View, AsyncStorage } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -31,6 +31,12 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		letterSpacing: 0.5,
 		...fontStyles.bold
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -131,7 +137,7 @@ class Wallet extends Component {
 		this.mounted && this.setState({ appState: nextAppState });
 	};
 
-	render() {
+	renderContent() {
 		const {
 			accounts,
 			conversionRate,
@@ -139,7 +145,8 @@ class Wallet extends Component {
 			identities,
 			selectedAddress,
 			tokens,
-			collectibles
+			collectibles,
+			navigation
 		} = this.props;
 		let balance = 0;
 		let assets = tokens;
@@ -162,24 +169,40 @@ class Wallet extends Component {
 		} else {
 			assets = tokens;
 		}
-
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+
 		return (
-			<View style={styles.wrapper} testID={'wallet-screen'}>
+			<View style={styles.wrapper}>
 				<AccountOverview
 					account={account}
 					conversionRate={conversionRate}
 					currentCurrency={currentCurrency}
-					navigation={this.props.navigation}
+					navigation={navigation}
 				/>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
-					<Tokens navigation={this.props.navigation} tabLabel={strings('wallet.tokens')} assets={assets} />
+					<Tokens navigation={navigation} tabLabel={strings('wallet.tokens')} assets={assets} />
 					<Collectibles
-						navigation={this.props.navigation}
+						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
 						assets={collectibles}
 					/>
 				</ScrollableTabView>
+			</View>
+		);
+	}
+
+	renderLoader() {
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	}
+
+	render() {
+		return (
+			<View style={styles.wrapper} testID={'wallet-screen'}>
+				{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
 			</View>
 		);
 	}

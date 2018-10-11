@@ -397,8 +397,9 @@ class TransactionEditor extends Component {
 	}
 
 	onScanSuccess = () => {
-		this.props.navigation.navigate('QrScanner', {
-			onScanSuccess: this.props.onScanSuccess
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: this.props.onScanSuccess,
+			addressOnly: true
 		});
 	};
 

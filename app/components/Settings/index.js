@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { AsyncStorage, StyleSheet, View, NativeModules } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
@@ -41,8 +41,10 @@ class Settings extends Component {
 		 */
 		navigation: PropTypes.object
 	};
-	logout = () => {
+	logout = async () => {
+		await AsyncStorage.removeItem('@MetaMask:existingUser');
 		persistor.purge();
+		NativeModules.DevMenu.reload();
 	};
 
 	goToNetworkSettings = () => {

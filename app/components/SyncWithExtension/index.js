@@ -59,6 +59,7 @@ export default class SyncWithExtension extends Component {
 	seedwords = null;
 	channelName = null;
 	dataToSync = null;
+	mounted = false;
 
 	state = {
 		loading: false,
@@ -67,32 +68,40 @@ export default class SyncWithExtension extends Component {
 
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
+	componentDidMount() {
+		this.mounted = true;
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+		this.disconnectWebsockets();
+	}
+
 	showQRScanner = () => {
-		/*
-		this.props.navigation.navigate('QrScanner', {
-			onScanSuccess: (data) => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: data => {
 				// Enable pusher logging - don't include this in production
-				const result = data.split('|');
+				const result = data.content.split('|');
 				this.channelName = result[0];
-				this.cipherText = result[1];
+				this.cipherKey = result[1];
 				this.seedWords = result[2];
 				this.password = result[3];
 				this.initWebsockets();
 			}
-		});*/
+		});
 
 		// Temp to avoid having to scan every time!
-		this.seedWords = 'blur spawn canvas dream person few marble evolve frown grace lab chicken';
-		this.channelName = 'mm-sync-1';
-		this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
-		this.initWebsockets();
+		// this.seedWords = 'blur spawn canvas dream person few marble evolve frown grace lab chicken';
+		// this.channelName = 'mm-sync-1';
+		// this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
+		// this.initWebsockets();
 	};
 
 	initWebsockets() {
 		if (this.loading) return false;
 
 		this.loading = true;
-		this.setState({ loading: true });
+		this.mounted && this.setState({ loading: true });
 
 		this.pubnub = new PubNub({
 			subscribeKey: 'sub-c-30b2ba04-c37e-11e8-bd78-d63445bede87',
@@ -171,7 +180,7 @@ export default class SyncWithExtension extends Component {
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				setTimeout(() => {
 					this.props.navigation.push('SyncWithExtensionSuccess');
-				}, 800);
+				}, 2000);
 			}
 		);
 
@@ -192,10 +201,6 @@ export default class SyncWithExtension extends Component {
 	goBack = () => {
 		this.props.navigation.navigate('HomeNav');
 	};
-
-	componentWillUnmount() {
-		this.disconnectWebsockets();
-	}
 
 	renderLoader() {
 		return (

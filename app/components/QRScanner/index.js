@@ -56,11 +56,18 @@ export default class QrScanner extends Component {
 		navigation: PropTypes.object
 	};
 
+	mounted = false;
+
+	componentDidMount() {
+		this.mounted = true;
+	}
+
 	goBack = () => {
 		this.props.navigation.goBack();
 	};
 
 	onBarCodeRead = response => {
+		if (!this.mounted) return false;
 		const content = response.data;
 
 		let data = {};
@@ -69,9 +76,13 @@ export default class QrScanner extends Component {
 			data = parse(content);
 		} else if (content.substring(0, 2).toLowerCase() === '0x') {
 			data = { target_address: content };
-		} else {
+		} else if (this.props.navigation.getParam('addressOnly', false)) {
 			Alert.alert(strings('qrScanner.invalidQrCodeTitle'), strings('qrScanner.invalidQrCodeMessage'));
+			return false;
+		} else {
+			data = { content };
 		}
+		this.mounted = false;
 		this.props.navigation.state.params.onScanSuccess(data);
 		this.props.navigation.goBack();
 	};

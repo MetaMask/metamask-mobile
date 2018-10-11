@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { InteractionManager, Animated, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -71,7 +71,9 @@ export default class SyncWithExtensionSuccess extends Component {
 	}
 
 	continue = () => {
-		this.props.navigation.navigate('HomeNav');
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.navigate('HomeNav');
+		});
 	};
 
 	render() {
