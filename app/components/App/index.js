@@ -47,6 +47,9 @@ const OnboardingRootNav = createStackNavigator(
 		},
 		SyncWithExtensionSuccess: {
 			screen: SyncWithExtensionSuccess
+		},
+		QRScanner: {
+			screen: QRScanner
 		}
 	},
 	{

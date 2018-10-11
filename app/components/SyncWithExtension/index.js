@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, ActivityIndicator, InteractionManager, StyleSheet, Text, View } from 'react-native';
+import { AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -95,10 +95,8 @@ class SyncWithExtension extends Component {
 		) {
 			this.done = true;
 
-			InteractionManager.runAfterInteractions(() => {
-				this.dataToSync = null;
-				this.props.navigation.push('SyncWithExtensionSuccess');
-			});
+			this.dataToSync = null;
+			this.props.navigation.push('SyncWithExtensionSuccess');
 		}
 	}
 
@@ -108,20 +106,19 @@ class SyncWithExtension extends Component {
 	}
 
 	showQRScanner = () => {
-		// this.props.navigation.navigate('QRScanner', {
-		// 	onScanSuccess: data => {
-		// 		const result = data.content.split('|@|');
-		// 		this.channelName = result[0];
-		// 		this.cipherKey = result[1];
-		// 		this.initWebsockets();
-		// 	}
-		// });
+		this.props.navigation.push('QRScanner', {
+			onScanSuccess: data => {
+				const result = data.content.split('|@|');
+				this.channelName = result[0];
+				this.cipherKey = result[1];
+				this.initWebsockets();
+			}
+		});
 
 		// Temp to avoid having to scan every time!
-		// this.seedWords = 'blur spawn canvas dream person few marble evolve frown grace lab chicken';
-		this.channelName = 'mm-sync-1';
-		this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
-		this.initWebsockets();
+		//this.channelName = 'mm-sync-1';
+		//this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
+		//this.initWebsockets();
 	};
 
 	initWebsockets() {

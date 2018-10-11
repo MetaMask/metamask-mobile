@@ -166,10 +166,9 @@ class Engine {
 			});
 
 			// Select same network ?
-			//NetworkController.update(network);
 			NetworkController.setProviderType(network.provider.type);
 		} catch (e) {
-			Logger.error('Failure while syncing', e, e.toString());
+			Logger.log('Failure while syncing', e, e.toString());
 		}
 	};
 }
