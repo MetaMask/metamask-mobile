@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { AsyncStorage, ActivityIndicator, InteractionManager, StyleSheet, Text, View } from 'react-native';
+import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import Screen from '../Screen';
@@ -48,22 +49,30 @@ const styles = StyleSheet.create({
 /**
  * View that displays the current account seed words
  */
-export default class SyncWithExtension extends Component {
+class SyncWithExtension extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * An string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
+		 * Map of accounts to information objects including balances
+		 */
+		accounts: PropTypes.object
 	};
 
 	seedwords = null;
 	channelName = null;
 	dataToSync = null;
 	mounted = false;
+	complete = false;
 
 	state = {
-		loading: false,
-		complete: false
+		loading: false
 	};
 
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
@@ -72,29 +81,47 @@ export default class SyncWithExtension extends Component {
 		this.mounted = true;
 	}
 
+	componentDidUpdate() {
+		// We need to wait until the sync completes and the engine is ready
+		// To do that we make sure the accounts in redux ===  the accounts we imported
+		// and also the selected address matches
+		if (
+			this.dataToSync &&
+			this.dataToSync.accounts &&
+			this.dataToSync.accounts.hd &&
+			Object.keys(this.props.accounts).length === this.dataToSync.accounts.hd.length &&
+			this.props.selectedAddress === this.dataToSync.preferences.selectedAddress &&
+			!this.done
+		) {
+			this.done = true;
+
+			InteractionManager.runAfterInteractions(() => {
+				this.dataToSync = null;
+				this.props.navigation.push('SyncWithExtensionSuccess');
+			});
+		}
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 		this.disconnectWebsockets();
 	}
 
 	showQRScanner = () => {
-		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: data => {
-				// Enable pusher logging - don't include this in production
-				const result = data.content.split('|');
-				this.channelName = result[0];
-				this.cipherKey = result[1];
-				this.seedWords = result[2];
-				this.password = result[3];
-				this.initWebsockets();
-			}
-		});
+		// this.props.navigation.navigate('QRScanner', {
+		// 	onScanSuccess: data => {
+		// 		const result = data.content.split('|@|');
+		// 		this.channelName = result[0];
+		// 		this.cipherKey = result[1];
+		// 		this.initWebsockets();
+		// 	}
+		// });
 
 		// Temp to avoid having to scan every time!
 		// this.seedWords = 'blur spawn canvas dream person few marble evolve frown grace lab chicken';
-		// this.channelName = 'mm-sync-1';
-		// this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
-		// this.initWebsockets();
+		this.channelName = 'mm-sync-1';
+		this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
+		this.initWebsockets();
 	};
 
 	initWebsockets() {
@@ -156,6 +183,10 @@ export default class SyncWithExtension extends Component {
 
 	syncData(data) {
 		Logger.log('Incoming data!', JSON.stringify(data));
+		const { pwd, seed } = data.udata;
+		this.password = pwd;
+		this.seedWords = seed;
+		delete data.udata;
 		this.dataToSync = { ...data };
 	}
 	syncTx(transactions) {
@@ -178,9 +209,7 @@ export default class SyncWithExtension extends Component {
 			async () => {
 				this.disconnectWebsockets();
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
-				setTimeout(() => {
-					this.props.navigation.push('SyncWithExtensionSuccess');
-				}, 2000);
+				this.complete = true;
 			}
 		);
 
@@ -224,20 +253,8 @@ export default class SyncWithExtension extends Component {
 		);
 	}
 
-	renderCompleteView() {
-		return (
-			<View>
-				<Text style={styles.text}>{strings('syncWithExtension.syncComplete')}</Text>
-				<StyledButton type="blue" onPress={this.goBack} containerStyle={styles.button}>
-					{strings('syncWithExtension.buttonGotIt')}
-				</StyledButton>
-			</View>
-		);
-	}
-
 	renderContent() {
 		if (this.state.loading) return this.renderLoader();
-		if (this.state.complete) return this.renderCompleteView();
 		return this.renderInitialView();
 	}
 
@@ -252,3 +269,10 @@ export default class SyncWithExtension extends Component {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.backgroundState.AccountTrackerController.accounts
+});
+
+export default connect(mapStateToProps)(SyncWithExtension);

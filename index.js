@@ -10,7 +10,8 @@ import { name } from './app.json';
 YellowBox.ignoreWarnings([
 	'Module RNOS requires',
 	'use RCT_EXPORT_MODULE',
-	'Setting a timer for a long period of time'
+	'Setting a timer for a long period of time',
+	'Did not receive response to shouldStartLoad in time'
 ]);
 
 /**

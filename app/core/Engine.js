@@ -121,8 +121,8 @@ class Engine {
 		const {
 			KeyringController,
 			PreferencesController,
-			NetworkController, // eslint-disable-line
-			TransactionController // eslint-disable-line
+			NetworkController,
+			TransactionController
 		} = this.datamodel.context;
 		try {
 			// Recreate accounts
@@ -169,7 +169,7 @@ class Engine {
 			//NetworkController.update(network);
 			NetworkController.setProviderType(network.provider.type);
 		} catch (e) {
-			Logger.error('Failure while syncing', e);
+			Logger.error('Failure while syncing', e, e.toString());
 		}
 	};
 }
