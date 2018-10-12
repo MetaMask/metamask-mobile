@@ -31,10 +31,10 @@ export default class AuthLoading extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const { KeyringController } = Engine.context;
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
+				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
 				this.goToWallet();
 			} else {

@@ -18,7 +18,20 @@ export default class LockScreen extends Component {
 
 	componentDidMount() {
 		this.mounted = true;
-		this.unlockKeychain();
+		// Because this is the first screen
+		// We need to wait for the engine to bootstrap
+		// before we can continue
+		if (!Engine.context) {
+			this.waitForEngine();
+		} else {
+			this.unlockKeychain();
+		}
+	}
+
+	waitForEngine() {
+		setTimeout(() => {
+			Engine.context ? this.unlockKeychain() : this.waitForEngine();
+		}, 100);
 	}
 
 	componentWillUnmount() {
@@ -28,10 +41,10 @@ export default class LockScreen extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const { KeyringController } = Engine.context;
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
+				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
 				this.props.navigation.goBack();
 			}

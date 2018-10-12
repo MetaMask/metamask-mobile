@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Alert, AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../styles/common';
+import Logger from '../../util/Logger';
 import { strings } from '../../../locales/i18n';
 import Screen from '../Screen';
 import StyledButton from '../StyledButton';
 import { getOnboardingNavbarOptions } from '../Navbar';
 import Engine from '../../core/Engine';
-import Logger from '../../util/Logger';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import PubNub from 'pubnub';
 
@@ -67,6 +67,7 @@ class SyncWithExtension extends Component {
 
 	seedwords = null;
 	channelName = null;
+	incomingDataStr = '';
 	dataToSync = null;
 	mounted = false;
 	complete = false;
@@ -141,11 +142,22 @@ class SyncWithExtension extends Component {
 					return false;
 				}
 
-				if (message.event === 'syncing-data') {
-					this.syncData(message.data);
+				if (!message) {
+					return false;
 				}
-				if (message.event === 'syncing-tx') {
-					this.syncTx(message.data.transactions);
+
+				if (message.event === 'syncing-data') {
+					this.incomingDataStr += message.data;
+					if (message.totalPkg === message.currentPkg) {
+						const data = JSON.parse(this.incomingDataStr);
+						this.incomingDataStr = null;
+						const { pwd, seed } = data.udata;
+						this.password = pwd;
+						this.seedWords = seed;
+						delete data.udata;
+						this.dataToSync = { ...data };
+						this.endSync();
+					}
 				}
 			}
 		});
@@ -178,20 +190,6 @@ class SyncWithExtension extends Component {
 		);
 	}
 
-	syncData(data) {
-		Logger.log('Incoming data!', JSON.stringify(data));
-		const { pwd, seed } = data.udata;
-		this.password = pwd;
-		this.seedWords = seed;
-		delete data.udata;
-		this.dataToSync = { ...data };
-	}
-	syncTx(transactions) {
-		Logger.log('Incoming tx data!', JSON.stringify(transactions));
-		this.dataToSync.transactions = transactions;
-		this.endSync();
-	}
-
 	async endSync() {
 		this.pubnub.publish(
 			{
@@ -203,9 +201,8 @@ class SyncWithExtension extends Component {
 				sendByPost: false,
 				storeInHistory: false
 			},
-			async () => {
+			() => {
 				this.disconnectWebsockets();
-				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.complete = true;
 			}
 		);
@@ -213,15 +210,26 @@ class SyncWithExtension extends Component {
 		// This could also come from the previous step
 		// if it's a first time user
 
-		const credentials = await Keychain.getGenericPassword();
 		let password;
-		if (credentials) {
-			password = credentials.password;
-		} else {
+		try {
+			const credentials = await Keychain.getGenericPassword();
+			if (credentials) {
+				password = credentials.password;
+			} else {
+				password = this.password;
+			}
+		} catch (e) {
 			password = this.password;
 		}
 
-		Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+		try {
+			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+		} catch (e) {
+			Logger.error('Syncing failed', e.toString());
+			Alert.alert('Bummer!', 'Something went wrong... Please try again');
+			this.setState({ loading: false });
+		}
+		await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 	}
 
 	goBack = () => {

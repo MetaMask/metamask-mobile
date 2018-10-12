@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Text, View, StyleSheet, Image } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../StyledButton';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
@@ -80,22 +78,7 @@ export default class Onboarding extends Component {
 		navigation: PropTypes.object
 	};
 
-	state = {
-		password: '',
-		confirmPassword: '',
-		biometryType: null,
-		biometryChoice: false
-	};
-
 	mounted = true;
-
-	confirmPasswordInput = React.createRef();
-
-	componentDidMount() {
-		Keychain.getSupportedBiometryType().then(biometryType => {
-			this.mounted && this.setState({ biometryType, biometryChoice: true });
-		});
-	}
 
 	componentWillUnmount() {
 		this.mounted = false;
@@ -107,11 +90,6 @@ export default class Onboarding extends Component {
 
 	onPressImport = () => {
 		this.props.navigation.push('ImportWallet');
-	};
-
-	jumpToConfirmPassword = () => {
-		const { current } = this.confirmPasswordInput;
-		current && current.focus();
 	};
 
 	render() {

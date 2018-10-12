@@ -177,7 +177,7 @@ let instance;
 
 export default {
 	get context() {
-		return instance.datamodel.context;
+		return instance && instance.datamodel && instance.datamodel.context;
 	},
 	get state() {
 		const {

@@ -12,7 +12,9 @@ YellowBox.ignoreWarnings([
 	'use RCT_EXPORT_MODULE',
 	'Setting a timer for a long period of time',
 	'Did not receive response to shouldStartLoad in time',
-	'startLoadWithResult invoked with invalid'
+	'startLoadWithResult invoked with invalid',
+	'RCTBridge required dispatch_sync',
+	'Remote debugger is in a background tab'
 ]);
 
 /**
