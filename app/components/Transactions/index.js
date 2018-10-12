@@ -7,6 +7,7 @@ import Identicon from '../Identicon';
 import { fromWei, toGwei, weiToFiat, hexToBN, isBN, toBN } from '../../util/number';
 import { renderFullAddress } from '../../util/address';
 import { toLocaleDateTime } from '../../util/date';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -207,7 +208,7 @@ export default class Transactions extends Component {
 
 		return (
 			<View style={styles.detailRowWrapper}>
-				<Text style={styles.detailRowTitle}>Hash</Text>
+				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
 						0,
@@ -215,30 +216,32 @@ export default class Transactions extends Component {
 					)} ... ${transactionHash.substr(-20)}`}</Text>
 					{this.renderCopyIcon(transactionHash)}
 				</View>
-				<Text style={styles.detailRowTitle}>From</Text>
+				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={styles.detailRowText}>{renderFullAddress(from)}</Text>
 				</View>
-				<Text style={styles.detailRowTitle}>To</Text>
+				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={styles.detailRowText}>{renderFullAddress(to)}</Text>
 				</View>
-				<Text style={styles.detailRowTitle}>Details</Text>
+				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
 				<View style={styles.detailRowInfo}>
 					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>Amount</Text>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.amount')}</Text>
 						<Text style={[styles.detailRowText, styles.alignRight]}>{fromWei(value, 'ether')} ETH</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>Gas Limit (Units)</Text>
+						<Text style={[styles.detailRowText, styles.alignLeft]} />
 						<Text style={[styles.detailRowText, styles.alignRight]}>{hexToBN(gas).toNumber()}</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>Gas Price (GWEI)</Text>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>
+							{strings('transactions.gas_price')}
+						</Text>
 						<Text style={[styles.detailRowText, styles.alignRight]}>{toGwei(gasPrice)}</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>Total</Text>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
 						<Text style={[styles.detailRowText, styles.alignRight]}>{fromWei(total, 'ether')} ETH</Text>
 					</View>
 					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
@@ -250,7 +253,7 @@ export default class Transactions extends Component {
 				<TouchableOpacity
 					onPress={() => this.viewOnEtherscan(tx.transactionHash, tx.networkID)} // eslint-disable-line react/jsx-no-bind
 				>
-					<Text style={styles.viewOnEtherscan}>VIEW ON ETHERSCAN</Text>
+					<Text style={styles.viewOnEtherscan}>{strings('transaction.view_on_etherscan')}</Text>
 				</TouchableOpacity>
 			</View>
 		);
@@ -267,7 +270,6 @@ export default class Transactions extends Component {
 
 	render() {
 		const { transactions, currentCurrency, conversionRate } = this.props;
-		// Sort by date DESC
 		transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
 		return (
@@ -286,7 +288,7 @@ export default class Transactions extends Component {
 								<View style={styles.subRow}>
 									<Identicon address={tx.transaction.to} diameter={24} />
 									<View style={styles.info}>
-										<Text style={styles.address}>Sent Ether</Text>
+										<Text style={styles.address}>{strings('transactions.sent_ether')}</Text>
 										<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
 											{tx.status.toUpperCase()}
 										</Text>

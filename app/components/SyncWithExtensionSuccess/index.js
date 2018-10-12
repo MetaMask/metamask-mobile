@@ -41,7 +41,8 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that displays the current account seed words
+ * View that shows the success message once
+ * the sync with the extension is complete
  */
 export default class SyncWithExtensionSuccess extends Component {
 	static propTypes = {
@@ -90,9 +91,9 @@ export default class SyncWithExtensionSuccess extends Component {
 						<Icon name="check-circle" size={150} style={styles.icon} />
 					</Animated.View>
 					<View>
-						<Text style={styles.text}>{strings('syncWithExtensionSuccess.syncComplete')}</Text>
+						<Text style={styles.text}>{strings('syncWithExtensionSuccess.sync_complete')}</Text>
 						<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
-							{strings('syncWithExtensionSuccess.buttonContinue')}
+							{strings('syncWithExtensionSuccess.button_continue')}
 						</StyledButton>
 					</View>
 				</View>

@@ -47,7 +47,8 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that displays the current account seed words
+ * View that initiates the sync process with
+ * the MetaMask extension
  */
 class SyncWithExtension extends Component {
 	static propTypes = {
@@ -84,8 +85,8 @@ class SyncWithExtension extends Component {
 
 	componentDidUpdate() {
 		// We need to wait until the sync completes and the engine is ready
-		// To do that we make sure the accounts in redux ===  the accounts we imported
-		// and also the selected address matches
+		// To do that we make sure the # of accounts in redux === the # accounts we imported
+		// and also make sure the selected address matches
 		if (
 			this.dataToSync &&
 			this.dataToSync.accounts &&
@@ -115,11 +116,6 @@ class SyncWithExtension extends Component {
 				this.initWebsockets();
 			}
 		});
-
-		// Temp to avoid having to scan every time!
-		//this.channelName = 'mm-sync-1';
-		//this.cipherKey = '4d6826a4-801c-4bff-b45c-752abd4da8a8';
-		//this.initWebsockets();
 	};
 
 	initWebsockets() {
@@ -128,6 +124,9 @@ class SyncWithExtension extends Component {
 		this.loading = true;
 		this.mounted && this.setState({ loading: true });
 
+		// We need to use ENV variables to set this
+		// And rotate keys before going opensource
+		// See https://github.com/MetaMask/MetaMask/issues/145
 		this.pubnub = new PubNub({
 			subscribeKey: 'sub-c-30b2ba04-c37e-11e8-bd78-d63445bede87',
 			publishKey: 'pub-c-d40e77d5-5cd3-4ca2-82eb-792a1f4573db',
@@ -137,7 +136,6 @@ class SyncWithExtension extends Component {
 
 		this.pubnubListener = this.pubnub.addListener({
 			message: ({ channel, message }) => {
-				// handle message
 				if (channel !== this.channelName) {
 					return false;
 				}
@@ -207,11 +205,9 @@ class SyncWithExtension extends Component {
 			}
 		);
 
-		// This could also come from the previous step
-		// if it's a first time user
-
 		let password;
 		try {
+			// This could also come from the previous step if it's a first time user
 			const credentials = await Keychain.getGenericPassword();
 			if (credentials) {
 				password = credentials.password;
@@ -241,8 +237,8 @@ class SyncWithExtension extends Component {
 		try {
 			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
 		} catch (e) {
-			Logger.error('Syncing failed', e.toString());
-			Alert.alert('Bummer!', 'Something went wrong... Please try again');
+			Logger.error('Sync failed', e);
+			Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
 			this.setState({ loading: false });
 		}
 		await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
@@ -257,7 +253,7 @@ class SyncWithExtension extends Component {
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
-					<Text style={styles.loadingText}>{strings('syncWithExtension.pleaseWait')}</Text>
+					<Text style={styles.loadingText}>{strings('syncWithExtension.please_wait')}</Text>
 				</View>
 			</View>
 		);
@@ -268,7 +264,7 @@ class SyncWithExtension extends Component {
 			<View>
 				<Text style={styles.text}>{strings('syncWithExtension.label')}</Text>
 				<StyledButton type="blue" onPress={this.showQRScanner} containerStyle={styles.button}>
-					{strings('syncWithExtension.buttonContinue')}
+					{strings('syncWithExtension.button_continue')}
 				</StyledButton>
 			</View>
 		);
