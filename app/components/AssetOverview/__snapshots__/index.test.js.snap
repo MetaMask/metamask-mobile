@@ -110,6 +110,14 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       }
       onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+          "flexDirection": "row",
+          "justifyContent": "center",
+        }
+      }
       styleDisabled={
         Object {
           "opacity": 0.6,
@@ -122,6 +130,13 @@ exports[`AssetOverview should render correctly 1`] = `
         color="#FFFFFF"
         name="send"
         size={15}
+        style={
+          Object {
+            "height": 15,
+            "marginTop": 0,
+            "width": 15,
+          }
+        }
       />
       <Component
         style={
@@ -131,6 +146,7 @@ exports[`AssetOverview should render correctly 1`] = `
             "fontSize": 15,
             "fontWeight": "600",
             "marginLeft": 8,
+            "marginTop": 0,
             "textTransform": "uppercase",
           }
         }
@@ -156,6 +172,14 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       }
       onPress={[Function]}
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+          "flexDirection": "row",
+          "justifyContent": "center",
+        }
+      }
       styleDisabled={
         Object {
           "opacity": 0.6,
@@ -168,6 +192,13 @@ exports[`AssetOverview should render correctly 1`] = `
         color="#FFFFFF"
         name="download"
         size={20}
+        style={
+          Object {
+            "height": 15,
+            "marginTop": 0,
+            "width": 15,
+          }
+        }
       />
       <Component
         style={
@@ -177,6 +208,7 @@ exports[`AssetOverview should render correctly 1`] = `
             "fontSize": 15,
             "fontWeight": "600",
             "marginLeft": 8,
+            "marginTop": 0,
             "textTransform": "uppercase",
           }
         }

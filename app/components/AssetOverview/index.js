@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
@@ -64,11 +64,23 @@ const styles = StyleSheet.create({
 		marginLeft: 10
 	},
 	buttonText: {
-		marginLeft: 8,
+		marginLeft: Platform.OS === 'ios' ? 8 : 28,
+		marginTop: Platform.OS === 'ios' ? 0 : -17,
 		fontSize: 15,
 		color: colors.white,
 		textTransform: 'uppercase',
 		...fontStyles.bold
+	},
+	buttonContent: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'center'
+	},
+	buttonIcon: {
+		width: 15,
+		height: 15,
+		marginTop: Platform.OS === 'ios' ? 0 : 7
 	}
 });
 
@@ -117,16 +129,18 @@ export default class AssetOverview extends Component {
 						type={'confirm'}
 						onPress={this.onSend}
 						containerStyle={[styles.button, styles.leftButton]}
+						style={styles.buttonContent}
 					>
-						<MaterialIcon name={'send'} size={15} color={colors.white} />
+						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
 						<Text style={styles.buttonText}>{strings('assetOverview.send_button')}</Text>
 					</StyledButton>
 					<StyledButton
 						type={'confirm'}
 						onPress={this.onDeposit}
 						containerStyle={[styles.button, styles.rightButton]}
+						style={styles.buttonContent}
 					>
-						<FoundationIcon name={'download'} size={20} color={colors.white} />
+						<FoundationIcon name={'download'} size={20} color={colors.white} style={styles.buttonIcon} />
 						<Text style={styles.buttonText}>{strings('assetOverview.receive_button')}</Text>
 					</StyledButton>
 				</View>

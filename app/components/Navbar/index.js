@@ -2,7 +2,7 @@ import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
-import { TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Platform, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Foundation';
 import { colors } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -16,6 +16,9 @@ const styles = StyleSheet.create({
 	metamaskName: {
 		width: 94,
 		height: 12
+	},
+	metamaskNameWrapper: {
+		marginLeft: Platform.OS === 'android' ? 20 : 0
 	}
 });
 
@@ -65,7 +68,11 @@ export function getOnboardingNavbarOptions() {
 			backgroundColor: 'white',
 			borderBottomWidth: 0
 		},
-		headerTitle: <Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />,
+		headerTitle: (
+			<View style={styles.metamaskNameWrapper}>
+				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+			</View>
+		),
 		headerBackTitle: strings('navigation.back')
 	};
 }
