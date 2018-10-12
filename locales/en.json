@@ -99,6 +99,7 @@
 		"network_status": "Network status",
 		"seed_words": "Seed Words",
 		"sync_with_extension": "Sync with MetaMask Extension",
+		"face_id": "Enable FaceID",
 		"logout": "Logout"
 	},
 	"network": {

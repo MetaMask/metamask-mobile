@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { AsyncStorage, StyleSheet, View, NativeModules } from 'react-native';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import { StyleSheet, View, NativeModules } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
-import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 import { strings } from '../../../locales/i18n';
 
@@ -42,8 +42,7 @@ class Settings extends Component {
 		navigation: PropTypes.object
 	};
 	logout = async () => {
-		await AsyncStorage.removeItem('@MetaMask:existingUser');
-		persistor.purge();
+		await Keychain.resetGenericPassword();
 		NativeModules.DevMenu.reload();
 	};
 

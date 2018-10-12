@@ -91,18 +91,16 @@ export default class Login extends Component {
 
 	mounted = true;
 
-	componentDidMount() {
-		Keychain.getSupportedBiometryType().then(biometryType => {
-			this.mounted && this.setState({ biometryType, biometryChoice: true });
-		});
-	}
-
 	componentWillUnmount() {
 		this.mounted = false;
 	}
 
 	onLogin = async () => {
 		try {
+			const biometryType = await Keychain.getSupportedBiometryType();
+			if (biometryType) {
+				this.setState({ biometryType, biometryChoice: true });
+			}
 			const authOptions = {
 				accessControl: this.state.biometryChoice
 					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE

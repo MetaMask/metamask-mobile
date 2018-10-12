@@ -79,12 +79,6 @@ export default class CreateWallet extends Component {
 
 	confirmPasswordInput = React.createRef();
 
-	componentDidMount() {
-		Keychain.getSupportedBiometryType().then(biometryType => {
-			this.mounted && this.setState({ biometryType, biometryChoice: true });
-		});
-	}
-
 	componentWillUnmount() {
 		this.mounted = false;
 	}
@@ -101,6 +95,11 @@ export default class CreateWallet extends Component {
 		} else {
 			try {
 				this.setState({ loading: true });
+
+				const biometryType = await Keychain.getSupportedBiometryType();
+				if (biometryType) {
+					this.setState({ biometryType, biometryChoice: true });
+				}
 
 				const authOptions = {
 					accessControl: this.state.biometryChoice

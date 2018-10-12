@@ -17,7 +17,6 @@ import {
 
 import BlockTracker from 'eth-block-tracker';
 import Encryptor from './Encryptor';
-import Logger from '../util/Logger';
 import { toChecksumAddress } from 'ethereumjs-util';
 
 const encryptor = new Encryptor();
@@ -124,52 +123,46 @@ class Engine {
 			NetworkController,
 			TransactionController
 		} = this.datamodel.context;
-		try {
-			// Recreate accounts
-			await KeyringController.createNewVaultAndRestore(pass, seed);
-			for (let i = 0; i < accounts.hd.length - 1; i++) {
-				await KeyringController.addNewAccount();
-			}
 
-			// Restore preferences
-			const updatedPref = { ...preferences, identities: {} };
-			Object.keys(preferences.identities).forEach(address => {
-				const checksummedAddress = toChecksumAddress(address);
-				if (accounts.hd.includes(checksummedAddress)) {
-					updatedPref.identities[checksummedAddress] = preferences.identities[address];
-				}
-			});
-			await PreferencesController.update(updatedPref);
-			await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
-
-			// Restore tx history
-			Logger.log(transactions, TransactionController);
-
-			TransactionController.update({
-				transactions: transactions.map(tx => ({
-					id: tx.id,
-					networkID: tx.metamaskNetworkId,
-					origin: tx.origin,
-					status: tx.status,
-					time: tx.time,
-					transactionHash: tx.hash,
-					rawTx: tx.rawTx,
-					transaction: {
-						from: tx.txParams.from,
-						to: tx.txParams.to,
-						nonce: tx.txParams.nonce,
-						gas: tx.txParams.gas,
-						gasPrice: tx.txParams.gasPrice,
-						value: tx.txParams.value
-					}
-				}))
-			});
-
-			// Select same network ?
-			NetworkController.setProviderType(network.provider.type);
-		} catch (e) {
-			Logger.log('Failure while syncing', e, e.toString());
+		// Recreate accounts
+		await KeyringController.createNewVaultAndRestore(pass, seed);
+		for (let i = 0; i < accounts.hd.length - 1; i++) {
+			await KeyringController.addNewAccount();
 		}
+
+		// Restore preferences
+		const updatedPref = { ...preferences, identities: {} };
+		Object.keys(preferences.identities).forEach(address => {
+			const checksummedAddress = toChecksumAddress(address);
+			if (accounts.hd.includes(checksummedAddress)) {
+				updatedPref.identities[checksummedAddress] = preferences.identities[address];
+			}
+		});
+		await PreferencesController.update(updatedPref);
+		await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
+
+		TransactionController.update({
+			transactions: transactions.map(tx => ({
+				id: tx.id,
+				networkID: tx.metamaskNetworkId,
+				origin: tx.origin,
+				status: tx.status,
+				time: tx.time,
+				transactionHash: tx.hash,
+				rawTx: tx.rawTx,
+				transaction: {
+					from: tx.txParams.from,
+					to: tx.txParams.to,
+					nonce: tx.txParams.nonce,
+					gas: tx.txParams.gas,
+					gasPrice: tx.txParams.gasPrice,
+					value: tx.txParams.value
+				}
+			}))
+		});
+
+		// Select same network ?
+		NetworkController.setProviderType(network.provider.type);
 	};
 }
 

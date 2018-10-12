@@ -5,10 +5,9 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 import Engine from '../../core/Engine';
 import FoxScreen from '../FoxScreen';
 /**
- * Root application component responsible for rendering
- * the first "guest" screens of the app:  CreateWallet, Login
- * It will  also render <Nav> only if the user is authenticated
- * and <LockScreen> if the app goes on background mode
+ * Auth component that decides which screen to show
+ * depending on the state of the user
+ * new, existing , logged in or not
  */
 export default class AuthLoading extends Component {
 	static propTypes = {
