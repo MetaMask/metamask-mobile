@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, Clipboard, Alert } from 'react-native';
+import { StyleSheet, Text, View, Clipboard, Alert, InteractionManager } from 'react-native';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode';
@@ -8,6 +9,8 @@ import { strings } from '../../../locales/i18n';
 import Identicon from '../Identicon';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
+import Engine from '../../core/Engine';
+import Logger from '../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -87,10 +90,41 @@ class AccountDetails extends Component {
 		navigation: PropTypes.object
 	};
 
-	copyToClipboard = async () => {
-		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
+	copyToClipboard = async toCopy => {
+		await Clipboard.setString(toCopy);
 		Alert.alert('Copied to clipboard');
+	};
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		this.copyToClipboard(selectedAddress);
+	};
+
+	copyPrivateKeyToClipboard = async () => {
+		const { KeyringController } = Engine.context;
+		const { selectedAddress } = this.props;
+		const privateKey = await KeyringController.exportAccount(selectedAddress);
+		this.copyToClipboard(privateKey);
+	};
+
+	goToEtherscan = () => {
+		const { selectedAddress } = this.props;
+		const url = `https://etherscan.io/address/${selectedAddress}`;
+		this.props.navigation.pop();
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.navigate('BrowserView', {
+				url
+			});
+		});
+	};
+
+	share = () => {
+		const { selectedAddress } = this.props;
+		Share.open({
+			message: `Sharing my public key! ${selectedAddress}`
+		}).catch(err => {
+			Logger.log('Error while trying to share address', err);
+		});
 	};
 
 	render() {
@@ -109,7 +143,7 @@ class AccountDetails extends Component {
 					<Text style={styles.textHeader}>{accountName}</Text>
 				</View>
 				<View style={styles.detailsWrapper}>
-					<Text style={styles.text}>{strings('accountDetails.public_address')}</Text>
+					<Text style={styles.text}>{strings('accountDetails.publicAddress')}</Text>
 					<View style={styles.qrCode}>
 						<QRCode
 							value={selectedAddress}
@@ -122,18 +156,22 @@ class AccountDetails extends Component {
 						<Text style={styles.address} testID={'public-address-text'}>
 							{selectedAddress}
 						</Text>
-						<Icon name="copy" size={22} style={styles.icon} onPress={() => this.copyToClipboard()} />
+						<Icon name="copy" size={22} style={styles.icon} onPress={this.copyToClipboard} />
 					</View>
 
 					<View style={styles.buttonWrapper}>
-						<StyledButton containerStyle={styles.button} type={'normal'}>
-							{strings('accountDetails.share_account')}
+						<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.share}>
+							{strings('accountDetails.shareAccount')}
 						</StyledButton>
-						<StyledButton containerStyle={styles.button} type={'normal'}>
-							{strings('accountDetails.view_account')}
+						<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.goToEtherscan}>
+							{strings('accountDetails.viewAccount')}
 						</StyledButton>
-						<StyledButton containerStyle={styles.button} type={'warning'}>
-							{strings('accountDetails.download_private_key')}
+						<StyledButton
+							containerStyle={styles.button}
+							type={'warning'}
+							onPress={this.copyPrivateKeyToClipboard}
+						>
+							{strings('accountDetails.downloadPrivateKey')}
 						</StyledButton>
 					</View>
 				</View>

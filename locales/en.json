@@ -97,10 +97,10 @@
 	},
 	"accountDetails": {
 		"title": "Account Details",
-		"public_address": "Public Address",
-		"share_account": "Share",
-		"view_account": "View account on Etherscan",
-		"download_private_key": "Download private key"
+		"publicAddress": "Public Address",
+		"shareAccount": "Share",
+		"viewAccount": "View account on Etherscan",
+		"downloadPrivateKey": "Download private key"
 	},
 	"qrScanner": {
 		"invalidQrCodeTitle": "Invalid QR Code",
