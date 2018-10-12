@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const metamask_name = require('../../images/metamask-name.png');
+const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
 
 /**
  * UI Component that renders inside the navbar
@@ -43,15 +43,11 @@ class NavbarTitle extends Component {
 		/**
 		 * Object representing the selected the selected network
 		 */
-		network: PropTypes.object.isRequired,
-		/**
-		 * Name of the current view
-		 */
-		title: PropTypes.string.isRequired
+		network: PropTypes.object.isRequired
 	};
 
 	render() {
-		const { network, title } = this.props;
+		const { network } = this.props;
 		const { color, name } = Networks[network.provider.type];
 		return (
 			<View style={styles.wrapper}>
