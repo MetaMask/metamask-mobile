@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import Transactions from './';
+import SyncWIthExtensionSuccess from './';
 
-describe('Transactions', () => {
+describe('SyncWIthExtensionSuccess', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<Transactions transactions={[]} />);
+		const wrapper = shallow(<SyncWIthExtensionSuccess />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
