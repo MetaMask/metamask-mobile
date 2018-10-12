@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LockScreen should render correctly 1`] = `
+exports[`FoxScreen should render correctly 1`] = `
 <Component
   style={
     Object {

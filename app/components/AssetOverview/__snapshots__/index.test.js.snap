@@ -28,8 +28,21 @@ exports[`AssetOverview should render correctly 1`] = `
       }
     }
   >
-    <AssetIcon
-      logo="https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg"
+    <MyImage
+      source={
+        Object {
+          "testUri": "../../../app/images/eth-logo.svg",
+        }
+      }
+      style={
+        Object {
+          "borderRadius": 100,
+          "height": 70,
+          "marginRight": 20,
+          "overflow": "hidden",
+          "width": 70,
+        }
+      }
     />
   </Component>
   <Component
@@ -45,7 +58,7 @@ exports[`AssetOverview should render correctly 1`] = `
     <Component
       style={
         Object {
-          "color": "#333333",
+          "color": "#4a4a4a",
           "fontFamily": "Roboto",
           "fontSize": 30,
           "fontWeight": "400",
@@ -67,9 +80,7 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       }
     >
-      $
       1500
-       USD
     </Component>
   </Component>
   <Component

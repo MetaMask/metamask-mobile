@@ -2,14 +2,27 @@
 
 exports[`Login should render correctly 1`] = `
 <Screen>
-  <ScrollView
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    resetScrollToCoords={
+      Object {
+        "x": 0,
+        "y": 0,
+      }
+    }
     style={
       Object {
-        "backgroundColor": "#f1f2f6",
+        "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 20,
       }
     }
+    viewIsInsideTabBar={false}
   >
     <Component
       testID="login"
@@ -135,10 +148,10 @@ exports[`Login should render correctly 1`] = `
             }
           }
         >
-          Import with seed phrase
+          Go Back
         </Button>
       </Component>
     </Component>
-  </ScrollView>
+  </KeyboardAwareScrollView>
 </Screen>
 `;

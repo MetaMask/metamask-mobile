@@ -17,7 +17,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#f1f2f6",
+        "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 20,
       }
@@ -27,30 +27,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
     <Component
       testID="import-from-seed-screen"
     >
-      <Component
-        style={
-          Object {
-            "alignItems": "center",
-            "justifyContent": "center",
-            "marginTop": 50,
-          }
-        }
-      >
-        <Image
-          resizeMethod="auto"
-          source={
-            Object {
-              "testUri": "../../../app/images/fox.png",
-            }
-          }
-          style={
-            Object {
-              "height": 100,
-              "width": 100,
-            }
-          }
-        />
-      </Component>
       <Component
         style={
           Object {
@@ -79,7 +55,9 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "backgroundColor": "#FFFFFF",
+            "borderColor": "#CCCCCC",
             "borderRadius": 10,
+            "borderWidth": 0.5,
             "fontFamily": "Roboto",
             "fontSize": 20,
             "fontWeight": "400",
@@ -197,30 +175,10 @@ exports[`ImportFromSeed should render correctly 1`] = `
             }
           }
           testID="submit"
-          type="orange"
+          type="blue"
         >
           IMPORT
         </StyledButton>
-      </Component>
-      <Component
-        style={
-          Object {
-            "marginTop": 40,
-          }
-        }
-      >
-        <Button
-          onPress={[Function]}
-          style={
-            Object {
-              "color": "#999999",
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            }
-          }
-        >
-          Cancel
-        </Button>
       </Component>
     </Component>
   </KeyboardAwareScrollView>
