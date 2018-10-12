@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, Clipboard, Alert, InteractionManager } from 'react-native';
+import { StyleSheet, Text, View, Clipboard, Alert, InteractionManager, TextInput } from 'react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
@@ -23,9 +23,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	textHeader: {
-		marginTop: 10,
 		fontSize: 28,
 		textAlign: 'center',
+		color: colors.black,
 		...fontStyles.normal
 	},
 	address: {
@@ -58,6 +58,13 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		backgroundColor: colors.concrete
 	},
+	accountLabelWrapper: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginTop: 10,
+		padding: 10
+	},
 	buttonWrapper: {
 		marginLeft: 50,
 		marginRight: 50
@@ -77,6 +84,11 @@ class AccountDetails extends Component {
 			fontSize: 20,
 			...fontStyles.normal
 		}
+	};
+
+	state = {
+		accountLabelEditable: false,
+		accountLabel: ''
 	};
 
 	static propTypes = {
@@ -118,13 +130,33 @@ class AccountDetails extends Component {
 		});
 	};
 
-	share = () => {
+	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
 			message: `Sharing my public key! ${selectedAddress}`
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
+	};
+
+	setAccountLabel = () => {
+		const { PreferencesController } = Engine.context;
+		const { selectedAddress } = this.props;
+		const { accountLabel } = this.state;
+		PreferencesController.setAccountLabel(selectedAddress, accountLabel);
+		this.unsetAccountLabelEditable();
+	};
+
+	onAccountLabelChange = accountLabel => {
+		this.setState({ accountLabel });
+	};
+
+	setAccountLabelEditable = () => {
+		this.setState({ accountLabelEditable: true });
+	};
+
+	unsetAccountLabelEditable = () => {
+		this.setState({ accountLabelEditable: false });
 	};
 
 	render() {
@@ -136,11 +168,28 @@ class AccountDetails extends Component {
 				}
 			}
 		} = this.props;
+		const { accountLabelEditable } = this.state;
 		return (
 			<View style={styles.wrapper} testID={'account-details-screen'}>
 				<View style={styles.accountWrapper}>
 					<Identicon address={selectedAddress} />
-					<Text style={styles.textHeader}>{accountName}</Text>
+					<View style={styles.accountLabelWrapper}>
+						<TextInput
+							style={styles.textHeader}
+							editable={accountLabelEditable}
+							onChangeText={this.onAccountLabelChange}
+						>
+							{accountName}
+						</TextInput>
+						{accountLabelEditable ? (
+							<View>
+								<Icon name="check" size={22} onPress={this.setAccountLabel} />
+								<Icon name="times" size={22} onPress={this.unsetAccountLabelEditable} />
+							</View>
+						) : (
+							<Icon name="edit" size={22} onPress={this.setAccountLabelEditable} />
+						)}
+					</View>
 				</View>
 				<View style={styles.detailsWrapper}>
 					<Text style={styles.text}>{strings('accountDetails.publicAddress')}</Text>
@@ -156,11 +205,11 @@ class AccountDetails extends Component {
 						<Text style={styles.address} testID={'public-address-text'}>
 							{selectedAddress}
 						</Text>
-						<Icon name="copy" size={22} style={styles.icon} onPress={this.copyToClipboard} />
+						<Icon name="copy" size={22} onPress={this.copyToClipboard} />
 					</View>
 
 					<View style={styles.buttonWrapper}>
-						<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.share}>
+						<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.onShare}>
 							{strings('accountDetails.shareAccount')}
 						</StyledButton>
 						<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.goToEtherscan}>
