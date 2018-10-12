@@ -55,7 +55,7 @@ class Settings extends Component {
 	};
 
 	goToSyncWithExtension = () => {
-		this.props.navigation.push('SyncWithExtension');
+		this.props.navigation.push('SyncWithExtension', { existingUser: true });
 	};
 
 	render() {

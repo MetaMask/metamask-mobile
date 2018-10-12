@@ -107,15 +107,34 @@ class SyncWithExtension extends Component {
 		this.disconnectWebsockets();
 	}
 
-	showQRScanner = () => {
-		this.props.navigation.push('QRScanner', {
-			onScanSuccess: data => {
-				const result = data.content.replace('metamask-sync:', '').split('|@|');
-				this.channelName = result[0];
-				this.cipherKey = result[1];
-				this.initWebsockets();
-			}
-		});
+	scanCode = () => {
+		if (this.props.navigation.getParam('existingUser', false)) {
+			Alert.alert(
+				strings('syncWithExtension.warning_title'),
+				strings('syncWithExtension.warning_message'),
+				[
+					{ text: strings('syncWithExtension.warning_cancel_button'), onPress: () => false },
+					{ text: strings('syncWithExtension.warning_ok_button'), onPress: () => this.showQrCode() }
+				],
+				{ cancelable: false }
+			);
+		} else {
+			this.showQrCode();
+		}
+	};
+
+	showQrCode = () => {
+		// this.props.navigation.push('QRScanner', {
+		// 	onScanSuccess: data => {
+		// 		const result = data.content.replace('metamask-sync:', '').split('|@|');
+		// 		this.channelName = result[0];
+		// 		this.cipherKey = result[1];
+		// 		this.initWebsockets();
+		// 	}
+		// });
+		this.channelName = 'android';
+		this.cipherKey = 'android';
+		this.initWebsockets();
 	};
 
 	initWebsockets() {
@@ -263,7 +282,7 @@ class SyncWithExtension extends Component {
 		return (
 			<View>
 				<Text style={styles.text}>{strings('syncWithExtension.label')}</Text>
-				<StyledButton type="blue" onPress={this.showQRScanner} containerStyle={styles.button}>
+				<StyledButton type="blue" onPress={this.scanCode} containerStyle={styles.button}>
 					{strings('syncWithExtension.button_continue')}
 				</StyledButton>
 			</View>

@@ -201,7 +201,12 @@
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",
 		"error_title": "Bummer!",
-		"error_message": "Something went wrong... Please try again"
+		"error_message": "Something went wrong... Please try again",
+		"warning_title": "Warning!",
+		"warning_message":
+			"This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
+		"warning_ok_button": "YES",
+		"warning_cancel_button": "NO"
 	},
 	"syncWithExtensionSuccess": {
 		"title": "Sync completed",
