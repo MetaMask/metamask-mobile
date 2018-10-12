@@ -15,7 +15,7 @@ exports[`FoxScreen should render correctly 1`] = `
       "top": 0,
     }
   }
-  testID="lock-screen"
+  testID="fox-screen"
 >
   <Image
     resizeMethod="auto"
