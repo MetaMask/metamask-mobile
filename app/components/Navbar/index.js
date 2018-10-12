@@ -19,11 +19,11 @@ const styles = StyleSheet.create({
 	}
 });
 
-const metamask_name = require('../../images/metamask-name.png');
+const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
- * which contains accounts icon, Title and current network, and settings icon
+ * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
  */
 export default function getNavbarOptions(title, navigation) {
 	return {
@@ -42,12 +42,21 @@ export default function getNavbarOptions(title, navigation) {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * for our modals
+ */
 export function getModalNavbarOptions(title) {
 	return {
 		headerTitle: <ModalNavbarTitle title={title} />
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * for our the onboarding screens,
+ * which is just the metamask log and the Back button
+ */
 export function getOnboardingNavbarOptions() {
 	return {
 		headerStyle: {

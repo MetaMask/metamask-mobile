@@ -7,16 +7,15 @@ import ImportWallet from '../ImportWallet';
 import ImportFromSeed from '../ImportFromSeed';
 import SyncWithExtension from '../SyncWithExtension';
 import SyncWithExtensionSuccess from '../SyncWithExtensionSuccess';
-import AuthLoading from '../AuthLoading';
+import Entry from '../Entry';
 import LockScreen from '../LockScreen';
 import Main from '../Main';
 import AccountList from '../AccountList';
 
 /**
- * Navigator object responsible for instantiating
- * the two top level views: Main and AccountList
+ * Stack navigator responsible for the onboarding process
+ * Create Wallet, Import from Seed and Sync
  */
-
 const OnboardingNav = createStackNavigator(
 	{
 		Onboarding: {
@@ -40,6 +39,10 @@ const OnboardingNav = createStackNavigator(
 	}
 );
 
+/**
+ * Parent Stack navigator that allows the
+ * child OnboardingNav navigator to push modals on top of it
+ */
 const OnboardingRootNav = createStackNavigator(
 	{
 		Onboarding: {
@@ -58,6 +61,10 @@ const OnboardingRootNav = createStackNavigator(
 	}
 );
 
+/**
+ * Main app navigator which handles all the screens
+ * after the user is already onboarded
+ */
 const HomeNav = createStackNavigator(
 	{
 		Home: {
@@ -86,15 +93,19 @@ const HomeNav = createStackNavigator(
 	}
 );
 
+/**
+ * Top level switch navigator which decides
+ * which top level view to show
+ */
 export default createSwitchNavigator(
 	{
-		AuthLoading,
+		Entry,
 		HomeNav,
 		OnboardingRootNav,
 		Login,
 		LockScreen
 	},
 	{
-		initialRouteName: 'AuthLoading'
+		initialRouteName: 'Entry'
 	}
 );

@@ -15,7 +15,7 @@ exports[`App should render correctly 1`] = `
       "navigate": [Function],
       "router": Object {
         "childRouters": Object {
-          "AuthLoading": null,
+          "Entry": null,
           "HomeNav": Object {
             "childRouters": Object {
               "Home": Object {
@@ -143,9 +143,9 @@ exports[`App should render correctly 1`] = `
         "isTransitioning": false,
         "routes": Array [
           Object {
-            "key": "AuthLoading",
+            "key": "Entry",
             "params": undefined,
-            "routeName": "AuthLoading",
+            "routeName": "Entry",
           },
           Object {
             "index": 0,

@@ -5,11 +5,12 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 import Engine from '../../core/Engine';
 import FoxScreen from '../FoxScreen';
 /**
- * Auth component that decides which screen to show
+ * Entry Screen that decides which screen to show
  * depending on the state of the user
  * new, existing , logged in or not
+ * while showing the fox
  */
-export default class AuthLoading extends Component {
+export default class Entry extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -18,7 +19,6 @@ export default class AuthLoading extends Component {
 	};
 
 	async componentDidMount() {
-		//await AsyncStorage.removeItem('@MetaMask:existingUser');
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
 			await this.unlockKeychain();

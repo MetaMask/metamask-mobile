@@ -23,12 +23,13 @@ const styles = StyleSheet.create({
 const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 /**
- * Main view component for the Lock screen
+ * View component that displays the MetaMask fox
+ * in the middle of the screen
  */
 export default class FoxScreen extends Component {
 	render() {
 		return (
-			<View style={styles.wrapper} testID={'lock-screen'}>
+			<View style={styles.wrapper} testID={'fox-screen'}>
 				<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
 			</View>
 		);

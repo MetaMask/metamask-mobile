@@ -18,9 +18,8 @@ export default class LockScreen extends Component {
 
 	componentDidMount() {
 		this.mounted = true;
-		// Because this is the first screen
-		// We need to wait for the engine to bootstrap
-		// before we can continue
+		// Because this is also the first screen
+		// We need to wait for the engine to bootstrap before we can continue
 		if (!Engine.context) {
 			this.waitForEngine();
 		} else {

@@ -8,6 +8,7 @@
 		"lets_get_started": "Let's get started!",
 		"already_using_metamask": "Already using MetaMask?",
 		"import_wallet_button": "Import Wallet",
+		"or": "OR",
 		"create_new_wallet_button": "Create New Wallet"
 	},
 	"importWallet": {

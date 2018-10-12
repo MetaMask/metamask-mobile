@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View where users can set their password for the first time
+ * View that is displayed to first time (new) users
  */
 export default class Onboarding extends Component {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
@@ -77,12 +77,6 @@ export default class Onboarding extends Component {
 		 */
 		navigation: PropTypes.object
 	};
-
-	mounted = true;
-
-	componentWillUnmount() {
-		this.mounted = false;
-	}
 
 	onPressCreate = () => {
 		this.props.navigation.push('CreateWallet');
@@ -110,8 +104,7 @@ export default class Onboarding extends Component {
 							{strings('onboarding.import_wallet_button')}
 						</StyledButton>
 					</View>
-					<Text style={[styles.smallText, styles.separator]}>OR</Text>
-
+					<Text style={[styles.smallText, styles.separator]}>{strings('onboarding.or')}</Text>
 					<View style={styles.ctaWrapper}>
 						<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'onboarding-new-button'}>
 							{strings('onboarding.create_new_wallet_button')}
