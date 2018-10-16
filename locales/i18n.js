@@ -19,6 +19,16 @@ const currentLocale = I18n.currentLocale();
 // Is it a RTL language?
 export const isRTL = currentLocale.indexOf('he') === 0 || currentLocale.indexOf('ar') === 0;
 
+// Set locale
+export function setLocale(locale) {
+	I18n.locale = locale;
+}
+
+// Get languages
+export function getLanguages() {
+	return { en: 'English', es: 'Spanish' };
+}
+
 // Allow RTL alignment in RTL languages
 ReactNative.I18nManager.allowRTL(isRTL);
 
