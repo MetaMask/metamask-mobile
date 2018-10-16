@@ -115,14 +115,6 @@ class AccountDetails extends Component {
 		Alert.alert(strings('accountDetails.accountCopiedToClipboard'));
 	};
 
-	copyPrivateKeyToClipboard = async () => {
-		const { KeyringController } = Engine.context;
-		const { selectedAddress } = this.props;
-		const privateKey = await KeyringController.exportAccount(selectedAddress);
-		await Clipboard.setString(privateKey);
-		Alert.alert('Copied to clipboard');
-	};
-
 	goToEtherscan = () => {
 		const { selectedAddress } = this.props;
 		const url = `https://etherscan.io/address/${selectedAddress}`;
