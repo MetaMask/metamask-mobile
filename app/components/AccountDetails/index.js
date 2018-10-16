@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, Clipboard, Alert, InteractionManager, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Clipboard, Alert, InteractionManager, TextInput, ScrollView } from 'react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
@@ -17,20 +17,35 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	text: {
-		fontSize: 18,
-		textAlign: 'center',
-		...fontStyles.normal
+	accountWrapper: {
+		flex: 1,
+		flexDirection: 'column',
+		alignItems: 'center',
+		marginTop: 20,
+		borderBottomWidth: 2,
+		borderBottomColor: colors.concrete
 	},
-	textHeader: {
+	accountLabelWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	labelText: {
 		fontSize: 28,
 		textAlign: 'center',
 		color: colors.black,
 		...fontStyles.normal
 	},
-	address: {
-		fontSize: 12,
-		flex: 1,
+	labelActionIcons: {
+		alignItems: 'center'
+	},
+	detailsWrapper: {
+		padding: 10
+	},
+	text: {
+		fontSize: 18,
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	qrCode: {
@@ -38,39 +53,31 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
-	accountWrapper: {
-		paddingTop: 15,
-		paddingBottom: 15,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderBottomWidth: 2,
-		borderBottomColor: colors.concrete
-	},
-	detailsWrapper: {
-		padding: 20
-	},
 	addressWrapper: {
+		flex: 1,
 		flexDirection: 'row',
-		justifyContent: 'center',
 		alignItems: 'center',
+		justifyContent: 'center',
 		padding: 10,
-		margin: 10,
+		marginTop: 10,
+		marginRight: 10,
+		marginLeft: 10,
 		borderRadius: 5,
 		backgroundColor: colors.concrete
 	},
-	accountLabelWrapper: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginTop: 10,
-		padding: 10
+	address: {
+		fontSize: 12,
+		...fontStyles.normal
 	},
-	buttonWrapper: {
+	icon: {
+		marginLeft: 10
+	},
+	actionsWrapper: {
 		marginLeft: 50,
 		marginRight: 50
 	},
 	button: {
-		marginTop: 10
+		marginBottom: 10
 	}
 });
 
@@ -102,21 +109,18 @@ class AccountDetails extends Component {
 		navigation: PropTypes.object
 	};
 
-	copyToClipboard = async toCopy => {
-		await Clipboard.setString(toCopy);
-		Alert.alert('Copied to clipboard');
-	};
-
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
-		this.copyToClipboard(selectedAddress);
+		await Clipboard.setString(selectedAddress);
+		Alert.alert(strings('accountDetails.accountCopiedToClipboard'));
 	};
 
 	copyPrivateKeyToClipboard = async () => {
 		const { KeyringController } = Engine.context;
 		const { selectedAddress } = this.props;
 		const privateKey = await KeyringController.exportAccount(selectedAddress);
-		this.copyToClipboard(privateKey);
+		await Clipboard.setString(privateKey);
+		Alert.alert('Copied to clipboard');
 	};
 
 	goToEtherscan = () => {
@@ -133,7 +137,7 @@ class AccountDetails extends Component {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: `Sharing my public key! ${selectedAddress}`
+			message: `${strings('accountDetails.sharePublicKey')} ${selectedAddress}`
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
@@ -143,8 +147,8 @@ class AccountDetails extends Component {
 		const { PreferencesController } = Engine.context;
 		const { selectedAddress } = this.props;
 		const { accountLabel } = this.state;
-		PreferencesController.setAccountLabel(selectedAddress, accountLabel);
 		this.unsetAccountLabelEditable();
+		PreferencesController.setAccountLabel(selectedAddress, accountLabel);
 	};
 
 	onAccountLabelChange = accountLabel => {
@@ -170,27 +174,31 @@ class AccountDetails extends Component {
 		} = this.props;
 		const { accountLabelEditable } = this.state;
 		return (
-			<View style={styles.wrapper} testID={'account-details-screen'}>
+			<ScrollView style={styles.wrapper} testID={'account-details-screen'}>
 				<View style={styles.accountWrapper}>
 					<Identicon address={selectedAddress} />
 					<View style={styles.accountLabelWrapper}>
 						<TextInput
-							style={styles.textHeader}
+							style={styles.labelText}
 							editable={accountLabelEditable}
 							onChangeText={this.onAccountLabelChange}
+							onSubmitEditing={this.setAccountLabel}
 						>
 							{accountName}
 						</TextInput>
-						{accountLabelEditable ? (
-							<View>
-								<Icon name="check" size={22} onPress={this.setAccountLabel} />
-								<Icon name="times" size={22} onPress={this.unsetAccountLabelEditable} />
-							</View>
-						) : (
-							<Icon name="edit" size={22} onPress={this.setAccountLabelEditable} />
-						)}
+						<View style={styles.labelActionIcons}>
+							{accountLabelEditable ? (
+								<View>
+									<Icon name="check" size={22} onPress={this.setAccountLabel} />
+									<Icon name="times" size={22} onPress={this.unsetAccountLabelEditable} />
+								</View>
+							) : (
+								<Icon name="edit" size={22} onPress={this.setAccountLabelEditable} />
+							)}
+						</View>
 					</View>
 				</View>
+
 				<View style={styles.detailsWrapper}>
 					<Text style={styles.text}>{strings('accountDetails.publicAddress')}</Text>
 					<View style={styles.qrCode}>
@@ -205,26 +213,26 @@ class AccountDetails extends Component {
 						<Text style={styles.address} testID={'public-address-text'}>
 							{selectedAddress}
 						</Text>
-						<Icon name="copy" size={22} onPress={this.copyToClipboard} />
-					</View>
-
-					<View style={styles.buttonWrapper}>
-						<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.onShare}>
-							{strings('accountDetails.shareAccount')}
-						</StyledButton>
-						<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.goToEtherscan}>
-							{strings('accountDetails.viewAccount')}
-						</StyledButton>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'warning'}
-							onPress={this.copyPrivateKeyToClipboard}
-						>
-							{strings('accountDetails.downloadPrivateKey')}
-						</StyledButton>
+						<Icon style={styles.icon} name="copy" size={22} onPress={this.copyAccountToClipboard} />
 					</View>
 				</View>
-			</View>
+
+				<View style={styles.actionsWrapper}>
+					<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.onShare}>
+						{strings('accountDetails.shareAccount')}
+					</StyledButton>
+					<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.goToEtherscan}>
+						{strings('accountDetails.viewAccount')}
+					</StyledButton>
+					<StyledButton
+						containerStyle={styles.button}
+						type={'warning'}
+						onPress={this.copyPrivateKeyToClipboard}
+					>
+						{strings('accountDetails.downloadPrivateKey')}
+					</StyledButton>
+				</View>
+			</ScrollView>
 		);
 	}
 }

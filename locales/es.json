@@ -100,7 +100,9 @@
 		"publicAddress": "Dirección Pública",
 		"shareAccount": "Compartir",
 		"viewAccount": "Ver cuenta en Etherscan",
-		"downloadPrivateKey": "Descargar dirección privada"
+		"downloadPrivateKey": "Descargar dirección privada",
+		"accountCopiedToClipboard": "Dirección pública copiada en portapapeles",
+		"sharePublicKey": "Compartiendo mi dirección pública: "
 	},
 	"qrScanner": {
 		"invalidQrCodeTitle": "Código QR Inválido",
