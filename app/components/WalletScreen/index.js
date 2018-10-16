@@ -5,6 +5,7 @@ import SeedWords from '../SeedWords';
 import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
 import AddAsset from '../AddAsset';
+import RevealPrivateCredential from '../RevealPrivateCredential';
 import { createStackNavigator } from 'react-navigation';
 
 /**
@@ -23,6 +24,9 @@ export default createStackNavigator({
 	},
 	NetworkSettings: {
 		screen: NetworkSettings
+	},
+	RevealPrivateCredential: {
+		screen: RevealPrivateCredential
 	},
 	SeedWords: {
 		screen: SeedWords

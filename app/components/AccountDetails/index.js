@@ -134,6 +134,10 @@ class AccountDetails extends Component {
 		});
 	};
 
+	goToRevealPrivateKey = () => {
+		this.props.navigation.navigate('RevealPrivateCredential', { privateCredentialName: 'private_key' });
+	};
+
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
@@ -224,12 +228,8 @@ class AccountDetails extends Component {
 					<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.goToEtherscan}>
 						{strings('accountDetails.viewAccount')}
 					</StyledButton>
-					<StyledButton
-						containerStyle={styles.button}
-						type={'warning'}
-						onPress={this.copyPrivateKeyToClipboard}
-					>
-						{strings('accountDetails.downloadPrivateKey')}
+					<StyledButton containerStyle={styles.button} type={'warning'} onPress={this.goToRevealPrivateKey}>
+						{strings('accountDetails.showPrivateKey')}
 					</StyledButton>
 				</View>
 			</ScrollView>

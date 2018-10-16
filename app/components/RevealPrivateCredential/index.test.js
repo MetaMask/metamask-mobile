@@ -1,11 +1,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import AccountDetails from './';
 import configureMockStore from 'redux-mock-store';
+import RevealPrivateCredential from './';
 
 const mockStore = configureMockStore();
 
-describe('Account Details', () => {
+describe('RevealPrivateCredential', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			backgroundState: {
@@ -14,10 +14,10 @@ describe('Account Details', () => {
 				}
 			}
 		};
-
-		const wrapper = shallow(<AccountDetails navigation={{ state: { params: { accounName: 'Account 1' } } }} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<RevealPrivateCredential navigation={{ state: { params: { privateCredentialName: 'private_key' } } }} />,
+			{ context: { store: mockStore(initialState) } }
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });
