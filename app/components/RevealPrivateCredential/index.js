@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 		alignItems: 'center'
 	},
-	seedPhraseAction: {
+	privateCredentialAction: {
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center'
@@ -173,7 +173,7 @@ class RevealPrivateCredential extends Component {
 			}
 		} = this.props;
 		return (
-			<View style={styles.wrapper} testID={'search-token-screen'}>
+			<View style={styles.wrapper} testID={'reveal-private-credential-screen'}>
 				<ActionView
 					cancelText={strings('reveal_credential.cancel')}
 					confirmText={strings('reveal_credential.confirm')}
@@ -205,11 +205,12 @@ class RevealPrivateCredential extends Component {
 										selectTextOnFocus
 										style={styles.seedPhrase}
 										editable={false}
-										testID={'current-seed-words'}
+										testID={'private-credential-text'}
 									/>
 									<TouchableOpacity
-										style={styles.seedPhraseAction}
+										style={styles.privateCredentialAction}
 										onPress={this.copyPrivateCredentialToClipboard}
+										testID={'private-credential-touchable'}
 									>
 										<Icon style={styles.actionIcon} name="copy" size={18} />
 										<Text style={styles.actionText}>
@@ -227,6 +228,7 @@ class RevealPrivateCredential extends Component {
 									onChangeText={this.onPasswordChange}
 									secureTextEntry
 									onSubmitEditing={this.tryUnlock}
+									testID={'private-credential-password-text-input'}
 								/>
 								<Text style={styles.warningText}>{this.state.warningIncorrectPassword}</Text>
 							</View>

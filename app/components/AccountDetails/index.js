@@ -179,17 +179,33 @@ class AccountDetails extends Component {
 							editable={accountLabelEditable}
 							onChangeText={this.onAccountLabelChange}
 							onSubmitEditing={this.setAccountLabel}
+							testID={'account-label-text-input'}
 						>
 							{accountName}
 						</TextInput>
 						<View style={styles.labelActionIcons}>
 							{accountLabelEditable ? (
 								<View>
-									<Icon name="check" size={22} onPress={this.setAccountLabel} />
-									<Icon name="times" size={22} onPress={this.unsetAccountLabelEditable} />
+									<Icon
+										name="check"
+										size={22}
+										onPress={this.setAccountLabel}
+										testID={'set-account-label-icon'}
+									/>
+									<Icon
+										name="times"
+										size={22}
+										onPress={this.unsetAccountLabelEditable}
+										testID={'unset-account-label-icon'}
+									/>
 								</View>
 							) : (
-								<Icon name="edit" size={22} onPress={this.setAccountLabelEditable} />
+								<Icon
+									name="edit"
+									size={22}
+									onPress={this.setAccountLabelEditable}
+									testID={'edit-account-label-icon'}
+								/>
 							)}
 						</View>
 					</View>
@@ -209,18 +225,39 @@ class AccountDetails extends Component {
 						<Text style={styles.address} testID={'public-address-text'}>
 							{selectedAddress}
 						</Text>
-						<Icon style={styles.icon} name="copy" size={22} onPress={this.copyAccountToClipboard} />
+						<Icon
+							style={styles.icon}
+							name="copy"
+							size={22}
+							onPress={this.copyAccountToClipboard}
+							testID={'copy-public-address-icon'}
+						/>
 					</View>
 				</View>
 
 				<View style={styles.actionsWrapper}>
-					<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.onShare}>
+					<StyledButton
+						containerStyle={styles.button}
+						type={'normal'}
+						onPress={this.onShare}
+						testID={'share-account-button'}
+					>
 						{strings('accountDetails.shareAccount')}
 					</StyledButton>
-					<StyledButton containerStyle={styles.button} type={'normal'} onPress={this.goToEtherscan}>
+					<StyledButton
+						containerStyle={styles.button}
+						type={'normal'}
+						onPress={this.goToEtherscan}
+						testID={'view-account-button'}
+					>
 						{strings('accountDetails.viewAccount')}
 					</StyledButton>
-					<StyledButton containerStyle={styles.button} type={'warning'} onPress={this.goToRevealPrivateKey}>
+					<StyledButton
+						containerStyle={styles.button}
+						type={'warning'}
+						onPress={this.goToRevealPrivateKey}
+						testID={'show-private-key-button'}
+					>
 						{strings('accountDetails.showPrivateKey')}
 					</StyledButton>
 				</View>

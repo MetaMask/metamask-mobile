@@ -8,7 +8,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
       "flex": 1,
     }
   }
-  testID="search-token-screen"
+  testID="reveal-private-credential-screen"
 >
   <ActionView
     cancelTestID=""
@@ -112,6 +112,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
               "padding": 10,
             }
           }
+          testID="private-credential-password-text-input"
           underlineColorAndroid="transparent"
         />
         <Component

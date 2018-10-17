@@ -50,6 +50,7 @@ exports[`Account Details should render correctly 1`] = `
             "textAlign": "center",
           }
         }
+        testID="account-label-text-input"
         underlineColorAndroid="transparent"
       />
       <Component
@@ -64,6 +65,7 @@ exports[`Account Details should render correctly 1`] = `
           name="edit"
           onPress={[Function]}
           size={22}
+          testID="edit-account-label-icon"
         />
       </Component>
     </Component>
@@ -143,6 +145,7 @@ exports[`Account Details should render correctly 1`] = `
             "marginLeft": 10,
           }
         }
+        testID="copy-public-address-icon"
       />
     </Component>
   </Component>
@@ -171,6 +174,7 @@ exports[`Account Details should render correctly 1`] = `
           "opacity": 0.6,
         }
       }
+      testID="share-account-button"
       type="normal"
     >
       Share
@@ -192,6 +196,7 @@ exports[`Account Details should render correctly 1`] = `
           "opacity": 0.6,
         }
       }
+      testID="view-account-button"
       type="normal"
     >
       View account on Etherscan
@@ -213,6 +218,7 @@ exports[`Account Details should render correctly 1`] = `
           "opacity": 0.6,
         }
       }
+      testID="show-private-key-button"
       type="warning"
     >
       Show private key
