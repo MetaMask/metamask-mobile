@@ -5,6 +5,18 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import I18n, { strings, setLocale, getLanguages } from '../../../locales/i18n';
 import StyledButton from '../StyledButton';
+import infuraCurrencies from '../../util/infura-conversion.json';
+import Engine from '../../core/Engine';
+
+const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
+	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
+);
+
+const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) => ({
+	label: `${code.toUpperCase()} - ${name}`,
+	key: code,
+	value: code
+}));
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,12 +62,15 @@ class AppSettings extends Component {
 	};
 
 	componentDidMount = () => {
-		this.setState({ languages: getLanguages() });
+		const { CurrencyRateController } = Engine.context;
+		const currentCurrency = CurrencyRateController.state.currentCurrency;
+		this.setState({ languages: getLanguages(), currentCurrency });
 	};
 
 	state = {
 		languages: {},
-		currentLanguage: I18n.language
+		currentLanguage: I18n.language,
+		currentCurrency: 'usd'
 	};
 
 	static propTypes = {};
@@ -63,6 +78,12 @@ class AppSettings extends Component {
 	selectLanguage = language => {
 		setLocale(language);
 		this.setState({ currentLanguage: language });
+	};
+
+	selectCurrency = async currency => {
+		const { CurrencyRateController } = Engine.context;
+		await CurrencyRateController.updateCurrency(currency);
+		this.setState({ currentCurrency: currency });
 	};
 
 	goToRevealPrivateCredential = () => {
@@ -75,7 +96,11 @@ class AppSettings extends Component {
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
 					<View style={styles.input}>
-						<Picker style={styles.picker} />
+						<Picker selectedValue={this.state.currentCurrency} onValueChange={this.selectCurrency}>
+							{infuraCurrencyOptions.map(option => (
+								<Picker.Item value={option.value} label={option.label} key={option.key} />
+							))}
+						</Picker>
 					</View>
 				</View>
 				<View style={styles.setting}>
