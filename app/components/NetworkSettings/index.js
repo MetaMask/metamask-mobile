@@ -35,13 +35,17 @@ class NetworkSettings extends Component {
 		/**
 		 * Object that contains the whole background state
 		 */
-		backgroundState: PropTypes.object
+		provider: PropTypes.object,
+		/**
+		 * A list of custom RPCs to provide the user
+		 */
+		frequentRpcList: PropTypes.array
 	};
 
-	changeNetwork(type) {
+	changeNetwork = type => {
 		const { NetworkController } = Engine.context;
 		NetworkController.setProviderType(type);
-	}
+	};
 
 	mainnet = () => {
 		this.changeNetwork('mainnet');
@@ -59,36 +63,57 @@ class NetworkSettings extends Component {
 		persistor.purge();
 	};
 
-	render() {
-		const { NetworkController } = this.props.backgroundState;
+	setRpcTarget = rpcTarget => {
+		const { NetworkController } = Engine.context;
+		NetworkController.setRpcTarget(rpcTarget);
+	};
 
+	render() {
+		const { frequentRpcList, provider } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'network-settings-screen'}>
 				<SettingsList borderColor={colors.borderColor} defaultItemSize={50}>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
 						title={'mainnet'}
-						titleInfo={NetworkController.provider.type === 'mainnet' ? strings('network.selected') : null}
+						titleInfo={provider.type === 'mainnet' ? strings('network.selected') : null}
 						onPress={this.mainnet}
 						hasNavArrow={false}
 					/>
 					<SettingsList.Item
 						title={'ropsten'}
-						titleInfo={NetworkController.provider.type === 'ropsten' ? strings('network.selected') : null}
+						titleInfo={provider.type === 'ropsten' ? strings('network.selected') : null}
 						onPress={this.ropsten}
 						hasNavArrow={false}
 					/>
 					<SettingsList.Item
 						title={'rinkeby'}
-						titleInfo={NetworkController.provider.type === 'rinkeby' ? strings('network.selected') : null}
+						titleInfo={provider.type === 'rinkeby' ? strings('network.selected') : null}
 						onPress={this.rinkeby}
 						hasNavArrow={false}
 					/>
+					{frequentRpcList.map(url => (
+						<SettingsList.Item
+							title={url}
+							titleInfo={
+								provider.type === 'rpc' && provider.rpcTarget === url
+									? strings('network.selected')
+									: null
+							}
+							key={url}
+							onPress={() => this.setRpcTarget(url)} // eslint-disable-line
+							hasNavArrow={false}
+						/>
+					))}
 				</SettingsList>
 			</View>
 		);
 	}
 }
 
-const mapStateToProps = state => ({ backgroundState: state.backgroundState });
+const mapStateToProps = ({ backgroundState: { NetworkController, PreferencesController } }) => ({
+	provider: NetworkController.provider,
+	frequentRpcList: PreferencesController.frequentRpcList
+});
+
 export default connect(mapStateToProps)(NetworkSettings);

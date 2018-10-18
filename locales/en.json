@@ -90,7 +90,8 @@
 		"reset_account_confirm_button": "RESET",
 		"reset_account_cancel_button": "NEVERMIND",
 		"reset_account_modal_title": "Reset Account?",
-		"reset_account_modal_message": "Resetting your account will clear your transaction history."
+		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
+		"save_rpc_url": "SAVE"
 	},
 	"settings": {
 		"title": "Settings",

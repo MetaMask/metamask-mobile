@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Picker } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView, Picker, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -57,6 +57,15 @@ const styles = StyleSheet.create({
 		fontSize: 22,
 		textAlign: 'center',
 		...fontStyles.bold
+	},
+	touchable: {
+		flex: 1,
+		alignSelf: 'flex-end'
+	},
+	touchableText: {
+		fontSize: 18,
+		padding: 5,
+		...fontStyles.normal
 	}
 });
 
@@ -92,7 +101,8 @@ class AppSettings extends Component {
 		languages: {},
 		currentLanguage: I18n.language,
 		currentCurrency: 'usd',
-		modalVisible: false
+		modalVisible: false,
+		rpcUrl: ''
 	};
 
 	static propTypes = {};
@@ -125,6 +135,19 @@ class AppSettings extends Component {
 
 	cancelResetAccount = () => {
 		this.setState({ modalVisible: false });
+	};
+
+	addRpcUrl = () => {
+		const { PreferencesController, NetworkController } = Engine.context;
+		const { rpcUrl } = this.state;
+		const { navigation } = this.props;
+		PreferencesController.addToFrequentRpcList(rpcUrl);
+		NetworkController.setRpcTarget(rpcUrl);
+		navigation.navigate('Wallet');
+	};
+
+	onRpcUrlChange = url => {
+		this.setState({ rpcUrl: url });
 	};
 
 	render() {
@@ -166,11 +189,15 @@ class AppSettings extends Component {
 				</View>
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.new_RPC_URL')}</Text>
-					<TextInput style={styles.input} />
-				</View>
-				<View style={styles.setting}>
-					<Text style={styles.text}>{strings('app_settings.state_logs')}</Text>
-					<StyledButton type="normal">{strings('app_settings.state_logs_button')}</StyledButton>
+					<TextInput
+						style={styles.input}
+						value={this.state.rpcUrl}
+						onSubmitEditing={this.addRpcUrl}
+						onChangeText={this.onRpcUrlChange}
+					/>
+					<TouchableOpacity key="save" onPress={this.addRpcUrl} style={styles.touchable}>
+						<Text style={styles.touchableText}>{strings('app_settings.save_rpc_url')}</Text>
+					</TouchableOpacity>
 				</View>
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
