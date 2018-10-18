@@ -18,6 +18,8 @@ exports[`AddCustomCollectible should render correctly 1`] = `
     confirmText="ADD COLLECTIBLE"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
   >
     <Component
       style={

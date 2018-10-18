@@ -86,7 +86,11 @@
 		"reset_account": "Reiniciar Cuenta",
 		"state_logs_button": "DESCARGAR LOGS DE ESTADO",
 		"reveal_seed_words_button": "REVELAR PALABRAS DE SEMILLA",
-		"reset_account_button": "REINICIAR CUENTA"
+		"reset_account_button": "REINICIAR CUENTA",
+		"reset_account_confirm_button": "REINICIAR",
+		"reset_account_cancel_button": "NO IMPORTA",
+		"reset_account_modal_title": "¿Reinciar Cuenta?",
+		"reset_account_modal_message": "Reiniciar tu cuenta borrará tu historial de transacciones."
 	},
 	"settings": {
 		"title": "Configuraciones",

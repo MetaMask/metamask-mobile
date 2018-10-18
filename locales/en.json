@@ -86,7 +86,11 @@
 		"reset_account": "Reset Account",
 		"state_logs_button": "DOWNLOAD STATE LOGS",
 		"reveal_seed_words_button": "REVEAL SEED WORDS",
-		"reset_account_button": "RESET ACCOUNT"
+		"reset_account_button": "RESET ACCOUNT",
+		"reset_account_confirm_button": "RESET",
+		"reset_account_cancel_button": "NEVERMIND",
+		"reset_account_modal_title": "Reset Account?",
+		"reset_account_modal_message": "Resetting your account will clear your transaction history."
 	},
 	"settings": {
 		"title": "Settings",

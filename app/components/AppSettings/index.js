@@ -7,6 +7,7 @@ import I18n, { strings, setLocale, getLanguages } from '../../../locales/i18n';
 import StyledButton from '../StyledButton';
 import infuraCurrencies from '../../util/infura-conversion.json';
 import Engine from '../../core/Engine';
+import ActionModal from '../ActionModal';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -39,6 +40,23 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 5,
 		borderColor: colors.concrete
+	},
+	modalView: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 20,
+		flexDirection: 'column'
+	},
+	modalText: {
+		fontSize: 18,
+		textAlign: 'center',
+		...fontStyles.normal
+	},
+	modalTitle: {
+		fontSize: 22,
+		textAlign: 'center',
+		...fontStyles.bold
 	}
 });
 
@@ -58,19 +76,23 @@ class AppSettings extends Component {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		/* State current currency
+		*/
+		currentCurrency: PropTypes.number
 	};
 
 	componentDidMount = () => {
-		const { CurrencyRateController } = Engine.context;
-		const currentCurrency = CurrencyRateController.state.currentCurrency;
+		const { currentCurrency } = this.props;
 		this.setState({ languages: getLanguages(), currentCurrency });
 	};
 
 	state = {
 		languages: {},
 		currentLanguage: I18n.language,
-		currentCurrency: 'usd'
+		currentCurrency: 'usd',
+		modalVisible: false
 	};
 
 	static propTypes = {};
@@ -90,9 +112,38 @@ class AppSettings extends Component {
 		this.props.navigation.navigate('RevealPrivateCredential', { privateCredentialName: 'seed_phrase' });
 	};
 
+	displayResetAccountModal = () => {
+		this.setState({ modalVisible: true });
+	};
+
+	resetAccount = () => {
+		const { TransactionController } = Engine.context;
+		const { navigation } = this.props;
+		TransactionController.wipeTransactions(true);
+		navigation.navigate('Wallet');
+	};
+
+	cancelResetAccount = () => {
+		this.setState({ modalVisible: false });
+	};
+
 	render() {
 		return (
 			<ScrollView style={styles.wrapper} testID={'app-settings-screen'}>
+				<ActionModal
+					modalVisible={this.state.modalVisible}
+					confirmText={strings('app_settings.reset_account_confirm_button')}
+					cancelText={strings('app_settings.reset_account_cancel_button')}
+					onCancelPress={this.cancelResetAccount}
+					onRequestClose={this.cancelResetAccount}
+					onConfirmPress={this.resetAccount}
+				>
+					<View style={styles.modalView}>
+						<Text style={styles.modalTitle}>{strings('app_settings.reset_account_modal_title')}</Text>
+						<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
+					</View>
+				</ActionModal>
+
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
 					<View style={styles.input}>
@@ -129,7 +180,9 @@ class AppSettings extends Component {
 				</View>
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.reset_account')}</Text>
-					<StyledButton type="orange">{strings('app_settings.reset_account_button')}</StyledButton>
+					<StyledButton type="orange" onPress={this.displayResetAccountModal}>
+						{strings('app_settings.reset_account_button')}
+					</StyledButton>
 				</View>
 			</ScrollView>
 		);
@@ -137,7 +190,7 @@ class AppSettings extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency
 });
 
 export default connect(mapStateToProps)(AppSettings);

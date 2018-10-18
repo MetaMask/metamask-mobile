@@ -18,6 +18,8 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     confirmText="ADD TOKEN"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
   >
     <AssetSearch
       onSearch={[Function]}

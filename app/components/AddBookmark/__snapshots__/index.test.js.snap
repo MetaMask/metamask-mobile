@@ -19,6 +19,8 @@ exports[`AddBookmark should render correctly 1`] = `
       confirmText="Add"
       onCancelPress={[Function]}
       onConfirmPress={[Function]}
+      showCancelButton={true}
+      showConfirmButton={true}
     >
       <Component
         style={

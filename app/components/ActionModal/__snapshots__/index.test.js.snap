@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ActionModal should render correctly 1`] = `
+<Component
+  animationType="slide"
+  hardwareAccelerated={false}
+  style={
+    Object {
+      "margin": 50,
+      "width": 20,
+    }
+  }
+  transparent={true}
+  visible={true}
+>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#00000080",
+        "flex": 1,
+        "flexDirection": "column",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 10,
+          "height": 300,
+          "width": 350,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      />
+      <Component
+        style={
+          Object {
+            "borderTopColor": "#d2d8dd",
+            "borderTopWidth": 1,
+            "flex": 0,
+            "flexDirection": "row",
+            "padding": 16,
+          }
+        }
+      >
+        <StyledButton
+          containerStyle={
+            Array [
+              Object {
+                "flex": 1,
+              },
+              Object {
+                "marginRight": 8,
+              },
+            ]
+          }
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID=""
+          type="neutral"
+        >
+          CANCEL
+        </StyledButton>
+        <StyledButton
+          containerStyle={
+            Array [
+              Object {
+                "flex": 1,
+              },
+              Object {
+                "marginLeft": 8,
+              },
+            ]
+          }
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID=""
+          type="warning"
+        >
+          CONFIRM
+        </StyledButton>
+      </Component>
+    </Component>
+  </Component>
+</Component>
+`;
