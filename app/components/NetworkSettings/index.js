@@ -7,6 +7,7 @@ import Engine from '../../core/Engine';
 import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 import { strings } from '../../../locales/i18n';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -68,8 +69,13 @@ class NetworkSettings extends Component {
 		NetworkController.setRpcTarget(rpcTarget);
 	};
 
+	removeRpcTarget = rpcTarget => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController.removeFromFrequentRpcList(rpcTarget);
+	};
+
 	render() {
-		const { frequentRpcList, provider } = this.props;
+		const { provider } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'network-settings-screen'}>
 				<SettingsList borderColor={colors.borderColor} defaultItemSize={50}>
@@ -92,28 +98,37 @@ class NetworkSettings extends Component {
 						onPress={this.rinkeby}
 						hasNavArrow={false}
 					/>
-					{frequentRpcList.map(url => (
-						<SettingsList.Item
-							title={url}
-							titleInfo={
-								provider.type === 'rpc' && provider.rpcTarget === url
-									? strings('network.selected')
-									: null
-							}
-							key={url}
-							onPress={() => this.setRpcTarget(url)} // eslint-disable-line
-							hasNavArrow={false}
-						/>
-					))}
+					{this.props.frequentRpcList.map(url => {
+						const rpcUrlSelected = provider.type === 'rpc' && provider.rpcTarget === url;
+						return (
+							<SettingsList.Item
+								icon={
+									rpcUrlSelected ? null : (
+										<Icon
+											name="remove-circle"
+											size={20}
+											color={colors.fontTertiary}
+											onPress={() => this.removeRpcTarget(url)} // eslint-disable-line
+										/>
+									)
+								}
+								title={url}
+								titleInfo={rpcUrlSelected ? strings('network.selected') : null}
+								key={url}
+								onPress={() => this.setRpcTarget(url)} // eslint-disable-line
+								hasNavArrow={false}
+							/>
+						);
+					})}
 				</SettingsList>
 			</View>
 		);
 	}
 }
 
-const mapStateToProps = ({ backgroundState: { NetworkController, PreferencesController } }) => ({
-	provider: NetworkController.provider,
-	frequentRpcList: PreferencesController.frequentRpcList
+const mapStateToProps = state => ({
+	frequentRpcList: state.backgroundState.PreferencesController.frequentRpcList,
+	provider: state.backgroundState.NetworkController.provider
 });
 
 export default connect(mapStateToProps)(NetworkSettings);
