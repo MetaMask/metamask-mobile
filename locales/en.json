@@ -91,7 +91,9 @@
 		"reset_account_cancel_button": "NEVERMIND",
 		"reset_account_modal_title": "Reset Account?",
 		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
-		"save_rpc_url": "SAVE"
+		"save_rpc_url": "SAVE",
+		"invalid_rpc_prefix": "URIs require the appropriate HTTP/HTTPS prefix",
+		"invalid_rpc_url": "Invalid RPC URL"
 	},
 	"settings": {
 		"title": "Settings",

@@ -8,6 +8,7 @@ import StyledButton from '../StyledButton';
 import infuraCurrencies from '../../util/infura-conversion.json';
 import Engine from '../../core/Engine';
 import ActionModal from '../ActionModal';
+import { isWebUri } from 'valid-url';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -39,6 +40,12 @@ const styles = StyleSheet.create({
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
+		borderColor: colors.concrete,
+		padding: 10
+	},
+	picker: {
+		borderWidth: 2,
+		borderRadius: 5,
 		borderColor: colors.concrete
 	},
 	modalView: {
@@ -65,6 +72,10 @@ const styles = StyleSheet.create({
 	touchableText: {
 		fontSize: 18,
 		padding: 5,
+		...fontStyles.normal
+	},
+	warningText: {
+		color: colors.error,
 		...fontStyles.normal
 	}
 });
@@ -102,7 +113,8 @@ class AppSettings extends Component {
 		currentLanguage: I18n.language,
 		currentCurrency: 'usd',
 		modalVisible: false,
-		rpcUrl: ''
+		rpcUrl: '',
+		warningRpcUrl: ''
 	};
 
 	static propTypes = {};
@@ -141,9 +153,25 @@ class AppSettings extends Component {
 		const { PreferencesController, NetworkController } = Engine.context;
 		const { rpcUrl } = this.state;
 		const { navigation } = this.props;
-		PreferencesController.addToFrequentRpcList(rpcUrl);
-		NetworkController.setRpcTarget(rpcUrl);
-		navigation.navigate('Wallet');
+		if (this.validateRpcUrl()) {
+			PreferencesController.addToFrequentRpcList(rpcUrl);
+			NetworkController.setRpcTarget(rpcUrl);
+			navigation.navigate('Wallet');
+		}
+	};
+
+	validateRpcUrl = () => {
+		const { rpcUrl } = this.state;
+		if (!isWebUri(rpcUrl)) {
+			const appendedRpc = `http://${rpcUrl}`;
+			if (isWebUri(appendedRpc)) {
+				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
+			} else {
+				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
+			}
+			return false;
+		}
+		return true;
 	};
 
 	onRpcUrlChange = url => {
@@ -169,7 +197,7 @@ class AppSettings extends Component {
 
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
-					<View style={styles.input}>
+					<View style={styles.picker}>
 						<Picker selectedValue={this.state.currentCurrency} onValueChange={this.selectCurrency}>
 							{infuraCurrencyOptions.map(option => (
 								<Picker.Item value={option.value} label={option.label} key={option.key} />
@@ -179,7 +207,7 @@ class AppSettings extends Component {
 				</View>
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.current_language')}</Text>
-					<View style={styles.input}>
+					<View style={styles.picker}>
 						<Picker selectedValue={this.state.currentLanguage} onValueChange={this.selectLanguage}>
 							{Object.keys(this.state.languages).map(key => (
 								<Picker.Item value={key} label={this.state.languages[key]} key={key} />
@@ -195,6 +223,7 @@ class AppSettings extends Component {
 						onSubmitEditing={this.addRpcUrl}
 						onChangeText={this.onRpcUrlChange}
 					/>
+					<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
 					<TouchableOpacity key="save" onPress={this.addRpcUrl} style={styles.touchable}>
 						<Text style={styles.touchableText}>{strings('app_settings.save_rpc_url')}</Text>
 					</TouchableOpacity>

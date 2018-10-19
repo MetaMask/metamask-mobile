@@ -464,52 +464,52 @@ exports[`AppSettings should render correctly 1`] = `
     </Component>
     <TextInput
       allowFontScaling={true}
+      onChangeText={[Function]}
+      onSubmitEditing={[Function]}
       style={
         Object {
           "borderColor": "#f1f2f6",
           "borderRadius": 5,
           "borderWidth": 2,
+          "padding": 10,
         }
       }
       underlineColorAndroid="transparent"
+      value=""
     />
-  </Component>
-  <Component
-    style={
-      Object {
-        "marginBottom": 10,
-        "marginTop": 10,
-      }
-    }
-  >
     <Component
       style={
         Object {
+          "color": "#FF0000",
           "fontFamily": "Roboto",
-          "fontSize": 18,
           "fontWeight": "400",
-          "marginBottom": 5,
-          "textAlign": "left",
+        }
+      }
+    />
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="save"
+      onPress={[Function]}
+      style={
+        Object {
+          "alignSelf": "flex-end",
+          "flex": 1,
         }
       }
     >
-      State Logs
-    </Component>
-    <StyledButton
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "padding": 5,
+          }
         }
-      }
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      type="normal"
-    >
-      DOWNLOAD STATE LOGS
-    </StyledButton>
+      >
+        SAVE
+      </Component>
+    </TouchableOpacity>
   </Component>
   <Component
     style={

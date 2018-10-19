@@ -89,6 +89,7 @@
     "stream": "0.0.2",
     "stream-browserify": "^1.0.0",
     "url-parse": "^1.4.3",
+    "valid-url": "^1.0.9",
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
