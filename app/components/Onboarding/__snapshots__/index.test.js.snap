@@ -2,13 +2,18 @@
 
 exports[`Onboarding should render correctly 1`] = `
 <Screen>
-  <Component
-    style={
+  <ScrollView
+    contentContainerStyle={
       Object {
         "backgroundColor": "#FFFFFF",
-        "flex": 1,
+        "paddingBottom": 30,
         "paddingHorizontal": 60,
         "paddingVertical": 10,
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
       }
     }
     testID="onboarding-screen"
@@ -168,6 +173,6 @@ exports[`Onboarding should render correctly 1`] = `
         Create New Wallet
       </StyledButton>
     </Component>
-  </Component>
+  </ScrollView>
 </Screen>
 `;

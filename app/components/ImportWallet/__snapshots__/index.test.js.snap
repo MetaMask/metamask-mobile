@@ -2,13 +2,19 @@
 
 exports[`ImportFromSeed should render correctly 1`] = `
 <Screen>
-  <Component
-    style={
+  <ScrollView
+    contentContainerStyle={
       Object {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
+        "paddingBottom": 30,
         "paddingHorizontal": 30,
         "paddingVertical": 10,
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
       }
     }
     testID="import-wallet-screen"
@@ -120,6 +126,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
         Import from Seed
       </StyledButton>
     </Component>
-  </Component>
+  </ScrollView>
 </Screen>
 `;
