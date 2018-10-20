@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, ScrollView, StyleSheet } from 'react-native';
 import Screen from '../Screen';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
@@ -10,11 +10,15 @@ import { strings } from '../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
+	flex: {
+		flex: 1
+	},
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
 		paddingVertical: 10,
-		paddingHorizontal: 30
+		paddingHorizontal: 30,
+		paddingBottom: 30
 	},
 	title: {
 		fontSize: 32,
@@ -93,7 +97,7 @@ export default class Onboarding extends Component {
 	render() {
 		return (
 			<Screen>
-				<View style={styles.wrapper} testID={'import-wallet-screen'}>
+				<ScrollView style={styles.flex} contentContainerStyle={styles.wrapper} testID={'import-wallet-screen'}>
 					<Text style={styles.title}>{strings('importWallet.title')}</Text>
 
 					<Text style={styles.text}>{strings('importWallet.sync_help')}</Text>
@@ -114,7 +118,7 @@ export default class Onboarding extends Component {
 							{strings('importWallet.import_from_seed_button')}
 						</StyledButton>
 					</View>
-				</View>
+				</ScrollView>
 			</Screen>
 		);
 	}

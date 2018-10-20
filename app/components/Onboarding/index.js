@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, StyleSheet, Image } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
 import StyledButton from '../StyledButton';
 
 import { colors, fontStyles } from '../../styles/common';
@@ -9,11 +9,14 @@ import { strings } from '../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
+	flex: {
+		flex: 1
+	},
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1,
 		paddingVertical: 10,
-		paddingHorizontal: 60
+		paddingHorizontal: 60,
+		paddingBottom: 30
 	},
 	logoWrapper: {
 		justifyContent: 'center',
@@ -89,7 +92,7 @@ export default class Onboarding extends Component {
 	render() {
 		return (
 			<Screen>
-				<View style={styles.wrapper} testID={'onboarding-screen'}>
+				<ScrollView style={styles.flex} contentContainerStyle={styles.wrapper} testID={'onboarding-screen'}>
 					<View style={styles.logoWrapper}>
 						<Image source={require('../../images/fox.png')} style={styles.fox} resizeMethod={'auto'} />
 					</View>
@@ -110,7 +113,7 @@ export default class Onboarding extends Component {
 							{strings('onboarding.create_new_wallet_button')}
 						</StyledButton>
 					</View>
-				</View>
+				</ScrollView>
 			</Screen>
 		);
 	}
