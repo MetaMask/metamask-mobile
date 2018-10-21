@@ -24,6 +24,7 @@ import WebviewProgressBar from '../WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
+import resolver from '../../lib/resolver';
 import Button from '../Button';
 import { strings } from '../../../locales/i18n';
 import HomePage from '../HomePage';
@@ -141,7 +142,11 @@ export class Browser extends Component {
 		 * Url coming from an external source
 		 * For ex. deeplinks
 		 */
-		url: PropTypes.string
+		url: PropTypes.string,
+		/**
+		 * The network provider
+		 */
+		provider: PropTypes.string
 	};
 
 	state = {
@@ -153,10 +158,13 @@ export class Browser extends Component {
 		url: this.props.defaultURL || '',
 		showOptions: false,
 		currentPageTitle: '',
-		bookmarks: []
+		bookmarks: [],
+		timeout: false
 	};
 
 	webview = React.createRef();
+
+	timeoutHandler = null;
 
 	loadBookmarks = async () => {
 		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
@@ -216,8 +224,61 @@ export class Browser extends Component {
 	go = url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		this.setState({ url: sanitizedURL, progress: 0 });
+		const ipfsContent = this.checkAndHandleIpfsContent(this.props.provider, sanitizedURL);
+		this.setState({ url: ipfsContent ? sanitizedURL : ipfsContent, progress: 0 });
+		this.timeoutHandler && clearTimeout(this.timeoutHandler);
+		this.timeoutHandler = setTimeout(() => {
+			this.urlTimedOut();
+		}, 60000);
 	};
+
+	urlTimedOut() {
+		Alert.alert('Ooops', 'this website timed out...');
+	}
+
+	urlNotFound() {
+		Alert.alert('Ooops', 'could not find this website');
+	}
+
+	urlNotSupported() {
+		Alert.alert('Ooops', 'Looks like this website is not supported');
+	}
+
+	urlErrored() {
+		Alert.alert('Ooops', 'Looks like there was an error loading this website');
+	}
+
+	checkAndHandleIpfsContent(provider, url) {
+		const name = url.substring(7, url.length - 1);
+		if (/^.+\.eth$/.test(name) === false) return null;
+
+		resolver
+			.resolve(name, provider)
+			.then(ipfsHash => {
+				let url = 'https://ipfs.infura.io/ipfs/' + ipfsHash;
+				return fetch(url, { method: 'HEAD' })
+					.then(response => response.status)
+					.then(statusCode => {
+						if (statusCode !== 200) {
+							this.urlTimedOut();
+							return null;
+						}
+						return url;
+					})
+					.catch(err => {
+						// If there's an error our fallback mechanism is
+						// to point straight to the ipfs gateway
+						Logger.error('Failed to fetch ipfs website via ens', err);
+						url = 'https://ipfs.infura.io/ipfs/' + ipfsHash;
+						return url;
+					});
+			})
+			.catch(err => {
+				clearTimeout(this.timeoutHandler);
+				Logger.error('Failed to resolve ENS name', err);
+				err === 'unsupport' ? this.urlNotSupported() : this.urlErrored();
+			});
+	}
 
 	onUrlInputSubmit = () => {
 		this.go(this.state.inputValue);
@@ -451,6 +512,7 @@ export class Browser extends Component {
 }
 
 const mapStateToProps = state => ({
+	provider: state.backgroundState.NetworkController.provider,
 	networkType: state.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
