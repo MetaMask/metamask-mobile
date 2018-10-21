@@ -227,19 +227,26 @@ export class Browser extends Component {
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		const { provider } = Engine.context.NetworkController;
-		const ipfsContent = await this.checkAndHandleIpfsContent(provider, sanitizedURL);
+		const urlObj = new URL(url);
+		const { hostname, query, pathname } = urlObj;
+		const tld = hostname.split('.').pop();
+		let ipfsContent = null;
 		let currentEnsName = null;
 		let ipfsHash = null;
-		if (ipfsContent) {
-			const urlObj = new URL(sanitizedURL);
-			currentEnsName = urlObj.hostname;
-			ipfsHash = ipfsContent
-				.replace(this.state.ipfsGateway, '')
-				.split('/')
-				.shift();
+		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+			ipfsContent = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
+
+			if (ipfsContent) {
+				const urlObj = new URL(sanitizedURL);
+				currentEnsName = urlObj.hostname;
+				ipfsHash = ipfsContent
+					.replace(this.state.ipfsGateway, '')
+					.split('/')
+					.shift();
+			}
 		}
-		const urlToGo = !ipfsContent ? sanitizedURL : ipfsContent;
+
+		const urlToGo = ipfsContent || sanitizedURL;
 		this.setState({
 			url: urlToGo,
 			progress: 0,
@@ -248,6 +255,7 @@ export class Browser extends Component {
 			currentEnsName,
 			ipfsHash
 		});
+
 		this.timeoutHandler && clearTimeout(this.timeoutHandler);
 		this.timeoutHandler = setTimeout(() => {
 			this.urlTimedOut(urlToGo);
@@ -270,21 +278,15 @@ export class Browser extends Component {
 		Logger.log('Browser::url::Unknown error!', url);
 	}
 
-	async checkAndHandleIpfsContent(provider, url) {
-		const urlObj = new URL(url);
-		const { hostname, query, pathname } = urlObj;
-		const tld = hostname.split('.').pop();
-		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) === -1) {
-			return null;
-		}
-
+	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
+		const { provider } = Engine.context.NetworkController;
 		let ipfsHash;
 		try {
 			ipfsHash = await resolveEnsToIpfsContentId({ provider, name: hostname });
 		} catch (err) {
 			this.timeoutHandler && clearTimeout(this.timeoutHandler);
 			Logger.error('Failed to resolve ENS name', err);
-			err === 'unsupport' ? this.urlNotSupported(url) : this.urlErrored(url);
+			err === 'unsupport' ? this.urlNotSupported(fullUrl) : this.urlErrored(fullUrl);
 			return null;
 		}
 
@@ -302,13 +304,12 @@ export class Browser extends Component {
 			// If there's an error our fallback mechanism is
 			// to point straight to the ipfs gateway
 			Logger.error('Failed to fetch ipfs website via ens', err);
-			url = 'https://ipfs.io/ipfs/' + ipfsHash;
-			return url;
+			return 'https://ipfs.io/ipfs/' + ipfsHash;
 		}
 	}
 
-	onUrlInputSubmit = () => {
-		this.go(this.state.inputValue);
+	onUrlInputSubmit = async () => {
+		await this.go(this.state.inputValue);
 	};
 
 	goBack = () => {
@@ -316,7 +317,14 @@ export class Browser extends Component {
 			const { current } = this.webview;
 			current && current.goBack();
 		} else {
-			this.setState({ inputValue: '', url: '' });
+			this.setState({
+				inputValue: '',
+				url: '',
+				ipfsContent: null,
+				ipfsHash: null,
+				ipfsWebsite: null,
+				currentEnsName: null
+			});
 		}
 	};
 
@@ -397,7 +405,7 @@ export class Browser extends Component {
 		this.setState(data);
 	};
 
-	onInitialUrlSubmit = url => {
+	onInitialUrlSubmit = async url => {
 		if (url === '') {
 			return false;
 		}
@@ -408,9 +416,9 @@ export class Browser extends Component {
 		);
 		if (res === null) {
 			// In case of keywords we default to google search
-			this.go('https://www.google.com/search?q=' + escape(url));
+			await this.go('https://www.google.com/search?q=' + escape(url));
 		} else {
-			this.go(url);
+			await this.go(url);
 		}
 	};
 
