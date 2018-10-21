@@ -162,7 +162,9 @@ export class Browser extends Component {
 		bookmarks: [],
 		timeout: false,
 		ipfsWebsite: false,
-		ipfsGateway: 'https://ipfs.io/ipfs/'
+		ipfsGateway: 'https://ipfs.io/ipfs/',
+		ipfsHash: null,
+		currentEnsName: null
 	};
 
 	webview = React.createRef();
@@ -228,8 +230,22 @@ export class Browser extends Component {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const ipfsContent = await this.checkAndHandleIpfsContent(this.props.provider, sanitizedURL);
+		let currentEnsName = null;
+		let ipfsHash = null;
+		if (ipfsContent) {
+			const urlObj = new URL(sanitizedURL);
+			currentEnsName = urlObj.hostname;
+			ipfsHash = ipfsContent.split('/').pop();
+		}
 		const urlToGo = !ipfsContent ? sanitizedURL : ipfsContent;
-		this.setState({ url: urlToGo, progress: 0, ipfsWebsite: true, inputValue: sanitizedURL });
+		this.setState({
+			url: urlToGo,
+			progress: 0,
+			ipfsWebsite: true,
+			inputValue: sanitizedURL,
+			currentEnsName,
+			ipfsHash
+		});
 		this.timeoutHandler && clearTimeout(this.timeoutHandler);
 		this.timeoutHandler = setTimeout(() => {
 			this.urlTimedOut();
@@ -368,6 +384,11 @@ export class Browser extends Component {
 		const data = { canGoBack, canGoForward };
 		if (!this.state.ipfsWebsite) {
 			data.inputValue = url;
+		} else {
+			data.inputValue = url.replace(
+				`${this.state.ipfsGateway}${this.state.ipfsHash}`,
+				`http://${this.state.currentEnsName}`
+			);
 		}
 		this.setState(data);
 	};
