@@ -24,11 +24,13 @@ import WebviewProgressBar from '../WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
-import ensResolve from '../../lib/resolver';
+import resolveEnsToIpfsContentId from '../../lib/ens-ipfs/resolver';
 import Button from '../Button';
 import { strings } from '../../../locales/i18n';
 import HomePage from '../HomePage';
 import URL from 'url-parse';
+
+const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -235,7 +237,10 @@ export class Browser extends Component {
 		if (ipfsContent) {
 			const urlObj = new URL(sanitizedURL);
 			currentEnsName = urlObj.hostname;
-			ipfsHash = ipfsContent.split('/').pop();
+			ipfsHash = ipfsContent
+				.replace(this.state.ipfsGateway, '')
+				.split('/')
+				.shift();
 		}
 		const urlToGo = !ipfsContent ? sanitizedURL : ipfsContent;
 		this.setState({
@@ -248,49 +253,51 @@ export class Browser extends Component {
 		});
 		this.timeoutHandler && clearTimeout(this.timeoutHandler);
 		this.timeoutHandler = setTimeout(() => {
-			this.urlTimedOut();
+			this.urlTimedOut(urlToGo);
 		}, 60000);
 	};
 
-	urlTimedOut() {
-		Logger.log('Browser::url::Timeout!');
+	urlTimedOut(url) {
+		Logger.log('Browser::url::Timeout!', url);
 	}
 
-	urlNotFound() {
-		Logger.log('Browser::url::Not found!');
+	urlNotFound(url) {
+		Logger.log('Browser::url::Not found!', url);
 	}
 
-	urlNotSupported() {
-		Logger.log('Browser::url::Not supported!');
+	urlNotSupported(url) {
+		Logger.log('Browser::url::Not supported!', url);
 	}
 
-	urlErrored() {
-		Logger.log('Browser::url::Unknown error!');
+	urlErrored(url) {
+		Logger.log('Browser::url::Unknown error!', url);
 	}
 
 	async checkAndHandleIpfsContent(provider, url) {
 		const urlObj = new URL(url);
-		const name = urlObj.hostname;
-		if (/^.+\.eth$/.test(name) === false) {
-			return null;
-		}
-		let ipfsHash;
-		try {
-			ipfsHash = await ensResolve(name, provider);
-		} catch (err) {
-			this.timeoutHandler && clearTimeout(this.timeoutHandler);
-			Logger.error('Failed to resolve ENS name', err);
-			err === 'unsupport' ? this.urlNotSupported() : this.urlErrored();
+		const { hostname, query, pathname } = urlObj;
+		const tld = hostname.split('.').pop();
+		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) === -1) {
 			return null;
 		}
 
-		const gatewayUrl = this.state.ipfsGateway + ipfsHash;
+		let ipfsHash;
+		try {
+			ipfsHash = await resolveEnsToIpfsContentId(hostname, provider);
+		} catch (err) {
+			this.timeoutHandler && clearTimeout(this.timeoutHandler);
+			Logger.error('Failed to resolve ENS name', err);
+			err === 'unsupport' ? this.urlNotSupported(url) : this.urlErrored(url);
+			return null;
+		}
+
+		const gatewayUrl = this.state.ipfsGateway + ipfsHash + (pathname || '') + (query || '');
 
 		try {
 			const response = await fetch(gatewayUrl, { method: 'HEAD' });
 			const statusCode = response.status;
 			if (statusCode !== 200) {
-				this.urlNotFound();
+				this.urlNotFound(gatewayUrl);
 				return null;
 			}
 			return gatewayUrl;
