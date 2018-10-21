@@ -24,10 +24,11 @@ import WebviewProgressBar from '../WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
-import resolver from '../../lib/resolver';
+import ensResolve from '../../lib/resolver';
 import Button from '../Button';
 import { strings } from '../../../locales/i18n';
 import HomePage from '../HomePage';
+import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -146,7 +147,7 @@ export class Browser extends Component {
 		/**
 		 * The network provider
 		 */
-		provider: PropTypes.string
+		provider: PropTypes.object
 	};
 
 	state = {
@@ -159,7 +160,9 @@ export class Browser extends Component {
 		showOptions: false,
 		currentPageTitle: '',
 		bookmarks: [],
-		timeout: false
+		timeout: false,
+		ipfsWebsite: false,
+		ipfsGateway: 'https://ipfs.io/ipfs/'
 	};
 
 	webview = React.createRef();
@@ -221,11 +224,12 @@ export class Browser extends Component {
 		}
 	}
 
-	go = url => {
+	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		const ipfsContent = this.checkAndHandleIpfsContent(this.props.provider, sanitizedURL);
-		this.setState({ url: ipfsContent ? sanitizedURL : ipfsContent, progress: 0 });
+		const ipfsContent = await this.checkAndHandleIpfsContent(this.props.provider, sanitizedURL);
+		const urlToGo = !ipfsContent ? sanitizedURL : ipfsContent;
+		this.setState({ url: urlToGo, progress: 0, ipfsWebsite: true, inputValue: sanitizedURL });
 		this.timeoutHandler && clearTimeout(this.timeoutHandler);
 		this.timeoutHandler = setTimeout(() => {
 			this.urlTimedOut();
@@ -233,51 +237,54 @@ export class Browser extends Component {
 	};
 
 	urlTimedOut() {
-		Alert.alert('Ooops', 'this website timed out...');
+		Logger.log('Browser::url::Timeout!');
 	}
 
 	urlNotFound() {
-		Alert.alert('Ooops', 'could not find this website');
+		Logger.log('Browser::url::Not found!');
 	}
 
 	urlNotSupported() {
-		Alert.alert('Ooops', 'Looks like this website is not supported');
+		Logger.log('Browser::url::Not supported!');
 	}
 
 	urlErrored() {
-		Alert.alert('Ooops', 'Looks like there was an error loading this website');
+		Logger.log('Browser::url::Unknown error!');
 	}
 
-	checkAndHandleIpfsContent(provider, url) {
-		const name = url.substring(7, url.length - 1);
-		if (/^.+\.eth$/.test(name) === false) return null;
+	async checkAndHandleIpfsContent(provider, url) {
+		const urlObj = new URL(url);
+		const name = urlObj.hostname;
+		if (/^.+\.eth$/.test(name) === false) {
+			return null;
+		}
+		let ipfsHash;
+		try {
+			ipfsHash = await ensResolve(name, provider);
+		} catch (err) {
+			this.timeoutHandler && clearTimeout(this.timeoutHandler);
+			Logger.error('Failed to resolve ENS name', err);
+			err === 'unsupport' ? this.urlNotSupported() : this.urlErrored();
+			return null;
+		}
 
-		resolver
-			.resolve(name, provider)
-			.then(ipfsHash => {
-				let url = 'https://ipfs.infura.io/ipfs/' + ipfsHash;
-				return fetch(url, { method: 'HEAD' })
-					.then(response => response.status)
-					.then(statusCode => {
-						if (statusCode !== 200) {
-							this.urlTimedOut();
-							return null;
-						}
-						return url;
-					})
-					.catch(err => {
-						// If there's an error our fallback mechanism is
-						// to point straight to the ipfs gateway
-						Logger.error('Failed to fetch ipfs website via ens', err);
-						url = 'https://ipfs.infura.io/ipfs/' + ipfsHash;
-						return url;
-					});
-			})
-			.catch(err => {
-				clearTimeout(this.timeoutHandler);
-				Logger.error('Failed to resolve ENS name', err);
-				err === 'unsupport' ? this.urlNotSupported() : this.urlErrored();
-			});
+		const gatewayUrl = this.state.ipfsGateway + ipfsHash;
+
+		try {
+			const response = await fetch(gatewayUrl, { method: 'HEAD' });
+			const statusCode = response.status;
+			if (statusCode !== 200) {
+				this.urlNotFound();
+				return null;
+			}
+			return gatewayUrl;
+		} catch (err) {
+			// If there's an error our fallback mechanism is
+			// to point straight to the ipfs gateway
+			Logger.error('Failed to fetch ipfs website via ens', err);
+			url = 'https://ipfs.io/ipfs/' + ipfsHash;
+			return url;
+		}
 	}
 
 	onUrlInputSubmit = () => {
@@ -358,7 +365,11 @@ export class Browser extends Component {
 	};
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
-		this.setState({ canGoBack, canGoForward, inputValue: url });
+		const data = { canGoBack, canGoForward };
+		if (!this.state.ipfsWebsite) {
+			data.inputValue = url;
+		}
+		this.setState(data);
 	};
 
 	onInitialUrlSubmit = url => {

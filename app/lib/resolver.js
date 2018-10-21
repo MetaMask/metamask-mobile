@@ -6,7 +6,7 @@ import EthContract from 'ethjs-contract';
 import registrarAbi from './contracts/registrar';
 import resolverAbi from './contracts/resolver';
 
-function ens(name, provider) {
+export default function ensResolve(name, provider) {
 	const eth = new Eth(new HttpProvider(getProvider(provider.type)));
 	const hash = namehash.hash(name);
 	const contract = new EthContract(eth);
@@ -60,14 +60,3 @@ function getRegistrar(type) {
 			return '0x0000000000000000000000000000000000000000';
 	}
 }
-
-export default (name, provider) => {
-	const path = name.split('.');
-	const tld = path[path.length - 1];
-	if (tld === 'eth') {
-		return ens(name, provider);
-	}
-	return new Promise((resolve, reject) => {
-		reject(null);
-	});
-};
