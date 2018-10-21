@@ -145,11 +145,7 @@ export class Browser extends Component {
 		 * Url coming from an external source
 		 * For ex. deeplinks
 		 */
-		url: PropTypes.string,
-		/**
-		 * The network provider
-		 */
-		provider: PropTypes.object
+		url: PropTypes.string
 	};
 
 	state = {
@@ -231,7 +227,8 @@ export class Browser extends Component {
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		const ipfsContent = await this.checkAndHandleIpfsContent(this.props.provider, sanitizedURL);
+		const { provider } = Engine.context.NetworkController;
+		const ipfsContent = await this.checkAndHandleIpfsContent(provider, sanitizedURL);
 		let currentEnsName = null;
 		let ipfsHash = null;
 		if (ipfsContent) {
@@ -283,7 +280,7 @@ export class Browser extends Component {
 
 		let ipfsHash;
 		try {
-			ipfsHash = await resolveEnsToIpfsContentId(hostname, provider);
+			ipfsHash = await resolveEnsToIpfsContentId({ provider, name: hostname });
 		} catch (err) {
 			this.timeoutHandler && clearTimeout(this.timeoutHandler);
 			Logger.error('Failed to resolve ENS name', err);
@@ -551,7 +548,6 @@ export class Browser extends Component {
 }
 
 const mapStateToProps = state => ({
-	provider: state.backgroundState.NetworkController.provider,
 	networkType: state.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
