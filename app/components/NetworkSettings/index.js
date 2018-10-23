@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
-import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 import { strings } from '../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -16,6 +15,11 @@ const styles = StyleSheet.create({
 	},
 	separator: {
 		marginTop: 15
+	},
+	iconRemove: {
+		height: 30,
+		marginLeft: 10,
+		alignSelf: 'center'
 	}
 });
 
@@ -60,10 +64,6 @@ class NetworkSettings extends Component {
 		this.changeNetwork('ropsten');
 	};
 
-	logout = () => {
-		persistor.purge();
-	};
-
 	setRpcTarget = rpcTarget => {
 		const { NetworkController } = Engine.context;
 		NetworkController.setRpcTarget(rpcTarget);
@@ -75,7 +75,8 @@ class NetworkSettings extends Component {
 	};
 
 	render() {
-		const { provider } = this.props;
+		const { provider, frequentRpcList } = this.props;
+
 		return (
 			<View style={styles.wrapper} testID={'network-settings-screen'}>
 				<SettingsList borderColor={colors.borderColor} defaultItemSize={50}>
@@ -98,18 +99,20 @@ class NetworkSettings extends Component {
 						onPress={this.rinkeby}
 						hasNavArrow={false}
 					/>
-					{this.props.frequentRpcList.map(url => {
+					{frequentRpcList.map(url => {
 						const rpcUrlSelected = provider.type === 'rpc' && provider.rpcTarget === url;
 						return (
 							<SettingsList.Item
 								icon={
 									rpcUrlSelected ? null : (
-										<Icon
-											name="remove-circle"
-											size={20}
-											color={colors.fontTertiary}
-											onPress={() => this.removeRpcTarget(url)} // eslint-disable-line
-										/>
+										<View style={styles.iconRemove}>
+											<Icon
+												name="remove-circle"
+												size={25}
+												color={colors.fontTertiary}
+												onPress={() => this.removeRpcTarget(url)} // eslint-disable-line
+											/>
+										</View>
 									)
 								}
 								title={url}
