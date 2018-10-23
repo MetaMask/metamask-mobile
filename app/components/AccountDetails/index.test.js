@@ -10,12 +10,13 @@ describe('Account Details', () => {
 		const initialState = {
 			backgroundState: {
 				PreferencesController: {
-					selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
+					selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+					identities: { '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' } }
 				}
 			}
 		};
 
-		const wrapper = shallow(<AccountDetails navigation={{ state: { params: { accounName: 'Account 1' } } }} />, {
+		const wrapper = shallow(<AccountDetails navigation={{ state: { params: {} } }} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();

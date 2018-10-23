@@ -39,6 +39,7 @@ exports[`Account Details should render correctly 1`] = `
       <TextInput
         allowFontScaling={true}
         editable={false}
+        onBlur={[Function]}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         style={
@@ -52,7 +53,9 @@ exports[`Account Details should render correctly 1`] = `
         }
         testID="account-label-text-input"
         underlineColorAndroid="transparent"
-      />
+      >
+        Account 1
+      </TextInput>
       <Component
         style={
           Object {
@@ -65,6 +68,11 @@ exports[`Account Details should render correctly 1`] = `
           name="edit"
           onPress={[Function]}
           size={22}
+          style={
+            Object {
+              "padding": 10,
+            }
+          }
           testID="edit-account-label-icon"
         />
       </Component>
