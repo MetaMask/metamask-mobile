@@ -15,7 +15,8 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.borderColor
 	},
 	balances: {
-		flex: 1
+		flex: 1,
+		justifyContent: 'center'
 	},
 	balance: {
 		fontSize: 16,
@@ -52,13 +53,20 @@ export default class TokenElement extends Component {
 	};
 
 	render() {
-		const { onPress, asset } = this.props;
+		const {
+			onPress,
+			asset,
+			asset: { symbol, balance, balanceFiat }
+		} = this.props;
+
 		return (
-			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${asset.symbol}`}>
+			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${symbol}`}>
 				<TokenImage asset={asset} />
 				<View style={styles.balances}>
-					<Text style={styles.balance}>{asset.symbol}</Text>
-					<Text style={styles.balanceFiat}>${asset.balanceFiat} USD</Text>
+					<Text style={styles.balance}>
+						{balance} {symbol}
+					</Text>
+					{balanceFiat ? <Text style={styles.balanceFiat}>{balanceFiat}</Text> : null}
 				</View>
 				<View styles={styles.arrow}>
 					<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />

@@ -1,7 +1,9 @@
 import {
 	AccountTrackerController,
 	AddressBookController,
+	AssetsContractController,
 	AssetsController,
+	AssetsDetectionController,
 	BlockHistoryController,
 	ComposableController,
 	CurrencyRateController,
@@ -11,6 +13,7 @@ import {
 	PhishingController,
 	PreferencesController,
 	ShapeShiftController,
+	TokenBalancesController,
 	TokenRatesController,
 	TransactionController
 } from 'gaba';
@@ -40,7 +43,9 @@ class Engine {
 					new KeyringController({ encryptor }, initialState.KeyringController),
 					new AccountTrackerController(),
 					new AddressBookController(),
+					new AssetsContractController(),
 					new AssetsController(),
+					new AssetsDetectionController(),
 					new BlockHistoryController(),
 					new CurrencyRateController(),
 					new NetworkController(
@@ -74,8 +79,8 @@ class Engine {
 					new PhishingController(),
 					new PreferencesController(),
 					new ShapeShiftController(),
+					new TokenBalancesController(),
 					new TokenRatesController(),
-					new AssetsController(),
 					new TransactionController()
 				],
 				initialState
@@ -102,6 +107,7 @@ class Engine {
 	refreshNetwork = () => {
 		const {
 			AccountTrackerController,
+			AssetsContractController,
 			BlockHistoryController,
 			NetworkController: { provider },
 			TransactionController
@@ -109,6 +115,7 @@ class Engine {
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
+		AssetsContractController.configure({ provider });
 		BlockHistoryController.configure({ provider, blockTracker });
 		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
@@ -125,24 +132,30 @@ export default {
 	get state() {
 		const {
 			AccountTrackerController,
+			AssetsContractController,
 			AssetsController,
+			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
+			TokenBalancesController,
 			TokenRatesController,
 			TransactionController
 		} = instance.datamodel.state;
 
 		return {
 			AccountTrackerController,
+			AssetsContractController,
 			AssetsController,
+			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
+			TokenBalancesController,
 			TokenRatesController,
 			TransactionController
 		};
