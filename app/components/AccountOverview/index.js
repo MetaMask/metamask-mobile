@@ -58,7 +58,7 @@ export default class AccountOverview extends Component {
 		 */
 		account: PropTypes.object,
 		/**
-		 * ETH to currnt currency conversion rate
+		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
 		/**
@@ -83,6 +83,8 @@ export default class AccountOverview extends Component {
 			conversionRate,
 			currentCurrency
 		} = this.props;
+
+		if (!address) return null;
 
 		return (
 			<View style={styles.wrapper} testID={'account-overview'}>

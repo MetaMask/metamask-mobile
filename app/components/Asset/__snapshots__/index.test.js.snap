@@ -1,31 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Asset should render correctly 1`] = `
-<ScrollView
-  style={
-    Object {
-      "backgroundColor": "#dfe4ea",
-      "flex": 1,
-    }
-  }
->
-  <Component
-    testID="asset"
-  >
-    <Component
-      style={
-        Object {
-          "height": 280,
-        }
-      }
-    >
-      <AssetOverview
-        asset={Object {}}
-      />
-    </Component>
-    <Component>
-      <Transactions />
-    </Component>
-  </Component>
-</ScrollView>
+<Connect(Asset)
+  transactions={Array []}
+/>
 `;

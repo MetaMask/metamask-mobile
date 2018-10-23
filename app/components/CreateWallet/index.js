@@ -1,29 +1,21 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { AsyncStorage, ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from 'react-native-button';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import Engine from '../../core/Engine';
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
+import { getOnboardingNavbarOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.white,
 		flex: 1,
 		padding: 20
-	},
-	logoWrapper: {
-		marginTop: Platform.OS === 'android' ? 40 : 100,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	image: {
-		width: 100,
-		height: 100
 	},
 	title: {
 		fontSize: Platform.OS === 'android' ? 30 : 35,
@@ -53,15 +45,8 @@ const styles = StyleSheet.create({
 	ctaWrapper: {
 		marginTop: 20
 	},
-	footer: {
-		marginTop: 40
-	},
 	errorMsg: {
 		color: colors.error,
-		...fontStyles.normal
-	},
-	seed: {
-		color: colors.fontSecondary,
 		...fontStyles.normal
 	}
 });
@@ -71,43 +56,28 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 /**
  * View where users can set their password for the first time
  */
-export default class CreatePassword extends Component {
+export default class CreateWallet extends Component {
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 	static propTypes = {
 		/**
-		 * Function that will be called once the form is submitted
+		 * The navigator object
 		 */
-		onPasswordSaved: PropTypes.func,
-		/**
-		 * Boolean that lets the view know if the parent is doing any processing
-		 * and if that's the case, show a spinner
-		 */
-		loading: PropTypes.bool,
-		/**
-		 * String that contains any error message
-		 */
-		error: PropTypes.string,
-		/**
-		 * Function that will display the import from seed view
-		 */
-		toggleImportFromSeed: PropTypes.func
+		navigation: PropTypes.object
 	};
 
 	state = {
 		password: '',
 		confirmPassword: '',
 		biometryType: null,
-		biometryChoice: false
+		biometryChoice: false,
+		loading: false,
+		error: null
 	};
 
 	mounted = true;
 
 	confirmPasswordInput = React.createRef();
-
-	componentDidMount() {
-		Keychain.getSupportedBiometryType().then(biometryType => {
-			this.mounted && this.setState({ biometryType, biometryChoice: true });
-		});
-	}
 
 	componentWillUnmount() {
 		this.mounted = false;
@@ -124,6 +94,13 @@ export default class CreatePassword extends Component {
 			Alert.alert('Error', error);
 		} else {
 			try {
+				this.setState({ loading: true });
+
+				const biometryType = await Keychain.getSupportedBiometryType();
+				if (biometryType) {
+					this.setState({ biometryType, biometryChoice: true });
+				}
+
 				const authOptions = {
 					accessControl: this.state.biometryChoice
 						? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -132,7 +109,13 @@ export default class CreatePassword extends Component {
 					authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
 				};
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-				this.props.onPasswordSaved(this.state.password);
+
+				const { KeyringController } = Engine.context;
+				await KeyringController.createNewVaultAndKeychain(this.state.password);
+				// mark the user as existing so it doesn't see the create password screen again
+				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				this.setState({ loading: false });
+				this.props.navigation.navigate('HomeNav');
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -140,12 +123,13 @@ export default class CreatePassword extends Component {
 						'Security Alert',
 						'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 					);
+					this.setState({ loading: false });
+				} else {
+					this.setState({ loading: false, error: error.toString() });
 				}
 			}
 		}
 	};
-
-	onPressImport = () => this.props.toggleImportFromSeed();
 
 	jumpToConfirmPassword = () => {
 		const { current } = this.confirmPasswordInput;
@@ -157,16 +141,9 @@ export default class CreatePassword extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'create-password-screen'}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						</View>
-						<Text style={styles.title}>{strings('createPassword.title')}</Text>
+						<Text style={styles.title}>{strings('createWallet.title')}</Text>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('createPassword.new_password')}</Text>
+							<Text style={styles.label}>{strings('createWallet.password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -180,7 +157,7 @@ export default class CreatePassword extends Component {
 							/>
 						</View>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('createPassword.confirm_password')}</Text>
+							<Text style={styles.label}>{strings('createWallet.confirm_password')}</Text>
 							<TextInput
 								ref={this.confirmPasswordInput}
 								style={styles.input}
@@ -195,21 +172,15 @@ export default class CreatePassword extends Component {
 							/>
 						</View>
 
-						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
+						{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 						<View style={styles.ctaWrapper}>
-							<StyledButton type={'orange'} onPress={this.onPressCreate} testID={'submit'}>
-								{this.props.loading ? (
+							<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'submit'}>
+								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
-									strings('createPassword.create_button')
+									strings('createWallet.create_button')
 								)}
 							</StyledButton>
-						</View>
-
-						<View style={styles.footer}>
-							<Button style={styles.seed} onPress={this.onPressImport} testID={'import-seed-button'}>
-								{strings('createPassword.import_with_seed_phrase')}
-							</Button>
 						</View>
 					</View>
 				</KeyboardAwareScrollView>

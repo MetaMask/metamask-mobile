@@ -52,7 +52,7 @@ exports[`HomePage should render correctly 1`] = `
     <Component
       style={
         Object {
-          "color": "#333333",
+          "color": "#4a4a4a",
           "fontFamily": "Roboto",
           "fontSize": 35,
           "fontWeight": "600",
@@ -117,7 +117,7 @@ exports[`HomePage should render correctly 1`] = `
       <Component
         style={
           Object {
-            "color": "#333333",
+            "color": "#4a4a4a",
             "fontFamily": "Roboto",
             "fontSize": 20,
             "fontWeight": "600",

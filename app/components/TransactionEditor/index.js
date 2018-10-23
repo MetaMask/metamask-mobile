@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 	},
 	max: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 12,
 		paddingTop: 6
 	},
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
 		textAlign: 'right'
 	},
 	overviewAccent: {
-		color: colors.blue
+		color: colors.primary
 	},
 	overviewEth: {
 		...fontStyles.normal,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
 	},
 	overviewAction: {
 		...fontStyles.nold,
-		color: colors.blue
+		color: colors.primary
 	},
 	hexData: {
 		...fontStyles.bold,
@@ -229,11 +229,11 @@ const styles = StyleSheet.create({
 	},
 	goBackText: {
 		...fontStyles.bold,
-		color: colors.blue,
+		color: colors.primary,
 		fontSize: 22
 	},
 	goBackIcon: {
-		color: colors.blue,
+		color: colors.primary,
 		flex: 0
 	}
 });
@@ -397,8 +397,9 @@ class TransactionEditor extends Component {
 	}
 
 	onScanSuccess = () => {
-		this.props.navigation.navigate('QrScanner', {
-			onScanSuccess: this.props.onScanSuccess
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: this.props.onScanSuccess,
+			addressOnly: true
 		});
 	};
 

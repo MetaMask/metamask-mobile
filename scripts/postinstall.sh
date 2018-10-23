@@ -2,7 +2,7 @@
 echo "PostInstall script:"
 
 echo "1. React Native nodeify..."
-node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream' --hack
+node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url' --hack
 
 # We need to submit a PR for this one.
 echo "2. Fix react-native-os buildTools version..."
@@ -86,3 +86,10 @@ TARGET="node_modules/react-native-keychain/android/build.gradle"
 sed -i'' -e 's/compile /api /' $TARGET;
 TARGET="node_modules/react-native-vector-icons/android/build.gradle"
 sed -i'' -e 's/compile /api /' $TARGET;
+
+# This one has been fixed on master
+# we can remove once they release a new version
+echo "9. Fix eth-name-hash to be compatible with android"
+TARGET="node_modules/idna-uts46-hx/node_modules/punycode/punycode.js"
+sed -i'' -e 's/fromCodePoint/fromCharCode/' $TARGET;
+echo "Done"

@@ -5,7 +5,7 @@ import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../store/';
 
 import App from '../App';
-import LockScreen from '../LockScreen';
+import FoxScreen from '../FoxScreen';
 
 /**
  * Top level of the component hierarchy
@@ -15,7 +15,7 @@ export default class Root extends Component {
 	render() {
 		return (
 			<Provider store={store}>
-				<PersistGate loading={<LockScreen />} persistor={persistor}>
+				<PersistGate loading={<FoxScreen />} persistor={persistor}>
 					<App />
 				</PersistGate>
 			</Provider>

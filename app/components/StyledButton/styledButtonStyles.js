@@ -10,8 +10,13 @@ const styles = StyleSheet.create({
 	text: {
 		fontSize: 18,
 		textAlign: 'center',
-		textTransform: 'uppercase',
 		...fontStyles.bold
+	},
+	blue: {
+		backgroundColor: colors.primary
+	},
+	blueText: {
+		color: colors.white
 	},
 	orange: {
 		backgroundColor: colors.primaryFox
@@ -70,6 +75,10 @@ function getStyles(type) {
 		case 'orange':
 			fontStyle = styles.orangeText;
 			containerStyle = styles.orange;
+			break;
+		case 'blue':
+			fontStyle = styles.blueText;
+			containerStyle = styles.blue;
 			break;
 		case 'confirm':
 			fontStyle = styles.confirmText;

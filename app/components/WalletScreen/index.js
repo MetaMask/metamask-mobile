@@ -2,6 +2,7 @@ import Wallet from '../Wallet';
 import Settings from '../Settings';
 import NetworkSettings from '../NetworkSettings';
 import SeedWords from '../SeedWords';
+import SyncWithExtension from '../SyncWithExtension';
 import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
 import AddAsset from '../AddAsset';
@@ -26,8 +27,14 @@ export default createStackNavigator({
 	NetworkSettings: {
 		screen: NetworkSettings
 	},
+	RevealPrivateCredential: {
+		screen: RevealPrivateCredential
+	},
 	SeedWords: {
 		screen: SeedWords
+	},
+	SyncWithExtension: {
+		screen: SyncWithExtension
 	},
 	Asset: {
 		screen: Asset
@@ -37,8 +44,5 @@ export default createStackNavigator({
 	},
 	AppSettings: {
 		screen: AppSettings
-	},
-	RevealPrivateCredential: {
-		screen: RevealPrivateCredential
 	}
 });

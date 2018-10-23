@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
+<Screen>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+        "padding": 30,
+      }
+    }
+    testID="sync-with-extension-screen"
+  >
+    <Component
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 32,
+          "fontWeight": "600",
+          "justifyContent": "center",
+          "marginBottom": 10,
+          "marginTop": 20,
+          "textAlign": "center",
+        }
+      }
+    >
+      Sync completed
+    </Component>
+    <AnimatedComponent
+      style={
+        Array [
+          undefined,
+          Object {
+            "transform": Array [
+              Object {
+                "scale": 0.4,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        name="check-circle"
+        size={150}
+        style={
+          Object {
+            "color": "#5ea40c",
+            "marginBottom": 30,
+          }
+        }
+      />
+    </AnimatedComponent>
+    <Component>
+      <Component
+        style={
+          Object {
+            "color": "#4a4a4a",
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "marginTop": 20,
+            "textAlign": "center",
+          }
+        }
+      >
+        We have synchronized all the information from your MetaMask extension and now you're ready to go!
+      </Component>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 40,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="blue"
+      >
+        Continue
+      </StyledButton>
+    </Component>
+  </Component>
+</Screen>
+`;

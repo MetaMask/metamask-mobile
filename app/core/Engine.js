@@ -1,7 +1,9 @@
 import {
 	AccountTrackerController,
 	AddressBookController,
+	AssetsContractController,
 	AssetsController,
+	AssetsDetectionController,
 	BlockHistoryController,
 	ComposableController,
 	CurrencyRateController,
@@ -11,12 +13,14 @@ import {
 	PhishingController,
 	PreferencesController,
 	ShapeShiftController,
+	TokenBalancesController,
 	TokenRatesController,
 	TransactionController
 } from 'gaba';
 
 import BlockTracker from 'eth-block-tracker';
 import Encryptor from './Encryptor';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const encryptor = new Encryptor();
 
@@ -40,7 +44,9 @@ class Engine {
 					new KeyringController({ encryptor }, initialState.KeyringController),
 					new AccountTrackerController(),
 					new AddressBookController(),
+					new AssetsContractController(),
 					new AssetsController(),
+					new AssetsDetectionController(),
 					new BlockHistoryController(),
 					new CurrencyRateController(),
 					new NetworkController(
@@ -74,8 +80,8 @@ class Engine {
 					new PhishingController(),
 					new PreferencesController(),
 					new ShapeShiftController(),
+					new TokenBalancesController(),
 					new TokenRatesController(),
-					new AssetsController(),
 					new TransactionController()
 				],
 				initialState
@@ -102,6 +108,7 @@ class Engine {
 	refreshNetwork = () => {
 		const {
 			AccountTrackerController,
+			AssetsContractController,
 			BlockHistoryController,
 			NetworkController: { provider },
 			TransactionController
@@ -109,10 +116,60 @@ class Engine {
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
 		const blockTracker = new BlockTracker({ provider });
+		AssetsContractController.configure({ provider });
 		BlockHistoryController.configure({ provider, blockTracker });
 		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
 		blockTracker.start();
+	};
+
+	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
+		const {
+			KeyringController,
+			PreferencesController,
+			NetworkController,
+			TransactionController
+		} = this.datamodel.context;
+
+		// Recreate accounts
+		await KeyringController.createNewVaultAndRestore(pass, seed);
+		for (let i = 0; i < accounts.hd.length - 1; i++) {
+			await KeyringController.addNewAccount();
+		}
+
+		// Restore preferences
+		const updatedPref = { ...preferences, identities: {} };
+		Object.keys(preferences.identities).forEach(address => {
+			const checksummedAddress = toChecksumAddress(address);
+			if (accounts.hd.includes(checksummedAddress)) {
+				updatedPref.identities[checksummedAddress] = preferences.identities[address];
+			}
+		});
+		await PreferencesController.update(updatedPref);
+		await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
+
+		TransactionController.update({
+			transactions: transactions.map(tx => ({
+				id: tx.id,
+				networkID: tx.metamaskNetworkId,
+				origin: tx.origin,
+				status: tx.status,
+				time: tx.time,
+				transactionHash: tx.hash,
+				rawTx: tx.rawTx,
+				transaction: {
+					from: tx.txParams.from,
+					to: tx.txParams.to,
+					nonce: tx.txParams.nonce,
+					gas: tx.txParams.gas,
+					gasPrice: tx.txParams.gasPrice,
+					value: tx.txParams.value
+				}
+			}))
+		});
+
+		// Select same network ?
+		NetworkController.setProviderType(network.provider.type);
 	};
 }
 
@@ -120,35 +177,44 @@ let instance;
 
 export default {
 	get context() {
-		return instance.datamodel.context;
+		return instance && instance.datamodel && instance.datamodel.context;
 	},
 	get state() {
 		const {
 			AccountTrackerController,
+			AssetsContractController,
 			AssetsController,
+			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
+			TokenBalancesController,
 			TokenRatesController,
 			TransactionController
 		} = instance.datamodel.state;
 
 		return {
 			AccountTrackerController,
+			AssetsContractController,
 			AssetsController,
+			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
+			TokenBalancesController,
 			TokenRatesController,
 			TransactionController
 		};
 	},
 	get datamodel() {
 		return instance.datamodel;
+	},
+	sync(data) {
+		return instance.sync(data);
 	},
 	init(state) {
 		instance = new Engine(state);

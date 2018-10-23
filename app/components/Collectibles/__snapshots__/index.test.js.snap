@@ -51,14 +51,14 @@ exports[`Collectibles should render correctly 1`] = `
     >
       <Icon
         allowFontScaling={false}
-        color="#007aff"
+        color="#008edf"
         name="plus"
         size={16}
       />
       <Component
         style={
           Object {
-            "color": "#007aff",
+            "color": "#008edf",
             "fontFamily": "Roboto",
             "fontSize": 15,
             "fontWeight": "400",
