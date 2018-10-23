@@ -74,10 +74,7 @@ export default class AccountOverview extends Component {
 	onSend = () => true;
 
 	goToAccountDetails = () => {
-		const {
-			account: { name }
-		} = this.props;
-		this.props.navigation.push('AccountDetails', { accountName: name });
+		this.props.navigation.push('AccountDetails');
 	};
 
 	render() {

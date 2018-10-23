@@ -72,6 +72,9 @@ const styles = StyleSheet.create({
 	icon: {
 		marginLeft: 10
 	},
+	iconEdit: {
+		padding: 10
+	},
 	actionsWrapper: {
 		marginLeft: 50,
 		marginRight: 50
@@ -95,7 +98,8 @@ class AccountDetails extends Component {
 
 	state = {
 		accountLabelEditable: false,
-		accountLabel: ''
+		accountLabel: '',
+		originalAccountLabel: ''
 	};
 
 	static propTypes = {
@@ -106,7 +110,17 @@ class AccountDetails extends Component {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		/* identities object required to get account name
+		*/
+		identities: PropTypes.object
+	};
+
+	componentDidMount = () => {
+		const { identities, selectedAddress } = this.props;
+		const accountLabel = identities[selectedAddress].name;
+		this.setState({ accountLabel });
 	};
 
 	copyAccountToClipboard = async () => {
@@ -143,8 +157,8 @@ class AccountDetails extends Component {
 		const { PreferencesController } = Engine.context;
 		const { selectedAddress } = this.props;
 		const { accountLabel } = this.state;
-		this.unsetAccountLabelEditable();
 		PreferencesController.setAccountLabel(selectedAddress, accountLabel);
+		this.setState({ accountLabelEditable: false });
 	};
 
 	onAccountLabelChange = accountLabel => {
@@ -155,20 +169,15 @@ class AccountDetails extends Component {
 		this.setState({ accountLabelEditable: true });
 	};
 
-	unsetAccountLabelEditable = () => {
-		this.setState({ accountLabelEditable: false });
+	cancelAccountLabelEdition = () => {
+		const { identities, selectedAddress } = this.props;
+		const accountLabel = identities[selectedAddress].name;
+		this.setState({ accountLabelEditable: false, accountLabel });
 	};
 
 	render() {
-		const {
-			selectedAddress,
-			navigation: {
-				state: {
-					params: { accountName }
-				}
-			}
-		} = this.props;
-		const { accountLabelEditable } = this.state;
+		const { selectedAddress } = this.props;
+		const { accountLabelEditable, accountLabel } = this.state;
 		return (
 			<ScrollView style={styles.wrapper} testID={'account-details-screen'}>
 				<View style={styles.accountWrapper}>
@@ -179,29 +188,16 @@ class AccountDetails extends Component {
 							editable={accountLabelEditable}
 							onChangeText={this.onAccountLabelChange}
 							onSubmitEditing={this.setAccountLabel}
+							onBlur={this.cancelAccountLabelEdition}
 							testID={'account-label-text-input'}
 						>
-							{accountName}
+							{accountLabel}
 						</TextInput>
 						<View style={styles.labelActionIcons}>
-							{accountLabelEditable ? (
-								<View>
-									<Icon
-										name="check"
-										size={22}
-										onPress={this.setAccountLabel}
-										testID={'set-account-label-icon'}
-									/>
-									<Icon
-										name="times"
-										size={22}
-										onPress={this.unsetAccountLabelEditable}
-										testID={'unset-account-label-icon'}
-									/>
-								</View>
-							) : (
+							{accountLabelEditable ? null : (
 								<Icon
 									name="edit"
+									style={styles.iconEdit}
 									size={22}
 									onPress={this.setAccountLabelEditable}
 									testID={'edit-account-label-icon'}
@@ -267,7 +263,8 @@ class AccountDetails extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	identities: state.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(AccountDetails);
