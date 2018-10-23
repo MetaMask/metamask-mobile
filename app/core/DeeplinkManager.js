@@ -32,14 +32,13 @@ export default class DeeplinkManager {
 			// Specific to the browser screen
 			// For ex. navigate to a specific dapp
 			case 'dapp':
-
 				// if ?secure=false then default to http
-				if(urlObj.query && urlObj.query.secure === "false"){
+				if (urlObj.query && urlObj.query.secure === 'false') {
 					urlObj.set('protocol', 'http:');
 				} else {
 					urlObj.set('protocol', 'https:');
 				}
-				
+
 				this.navigation.navigate('BrowserView', {
 					url: urlObj.href
 				});
