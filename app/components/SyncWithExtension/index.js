@@ -160,6 +160,15 @@ class SyncWithExtension extends Component {
 					return false;
 				}
 
+				if (message.event === 'error-sync') {
+					this.disconnectWebsockets();
+					Logger.error('Sync failed', message.data);
+					Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
+					this.loading = false;
+					this.setState({ loading: false });
+					return false;
+				}
+
 				if (message.event === 'syncing-data') {
 					this.incomingDataStr += message.data;
 					if (message.totalPkg === message.currentPkg) {
