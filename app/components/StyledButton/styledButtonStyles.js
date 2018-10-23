@@ -50,6 +50,14 @@ const styles = StyleSheet.create({
 	},
 	cancelText: {
 		color: colors.accentGray
+	},
+	warning: {
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.red
+	},
+	warningText: {
+		color: colors.red
 	}
 });
 
@@ -79,6 +87,10 @@ function getStyles(type) {
 		case 'transparent':
 			fontStyle = styles.normalText;
 			containerStyle = styles.transparent;
+			break;
+		case 'warning':
+			fontStyle = styles.warningText;
+			containerStyle = styles.warning;
 			break;
 		default:
 			throw new Error('Unknown button type');

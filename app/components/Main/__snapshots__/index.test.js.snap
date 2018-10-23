@@ -48,6 +48,7 @@ exports[`Main should render correctly 1`] = `
               "AddAsset": null,
               "Asset": null,
               "NetworkSettings": null,
+              "RevealPrivateCredential": null,
               "SeedWords": null,
               "Settings": null,
               "SyncWithExtension": null,
