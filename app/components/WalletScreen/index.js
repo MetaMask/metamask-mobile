@@ -2,6 +2,7 @@ import Wallet from '../Wallet';
 import Settings from '../Settings';
 import NetworkSettings from '../NetworkSettings';
 import SeedWords from '../SeedWords';
+import SyncWithExtension from '../SyncWithExtension';
 import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
 import AddAsset from '../AddAsset';
@@ -26,6 +27,9 @@ export default createStackNavigator({
 	},
 	SeedWords: {
 		screen: SeedWords
+	},
+	SyncWithExtension: {
+		screen: SyncWithExtension
 	},
 	Asset: {
 		screen: Asset

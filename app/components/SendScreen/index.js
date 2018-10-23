@@ -136,7 +136,7 @@ class SendScreen extends Component {
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.reset();
 		} catch (error) {
-			Alert.alert('Transaction error', error, [{ text: 'OK' }]);
+			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 		}
 	};
 

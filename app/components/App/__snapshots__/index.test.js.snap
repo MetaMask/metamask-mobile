@@ -1,10 +1,256 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`App should render correctly 1`] = `
-<CreatePassword
-  error={null}
-  loading={true}
-  onPasswordSaved={[Function]}
-  toggleImportFromSeed={[Function]}
+<Navigator
+  navigation={
+    Object {
+      "actions": Object {},
+      "addListener": [Function],
+      "dangerouslyGetParent": [Function],
+      "dispatch": [Function],
+      "getChildNavigation": [Function],
+      "getScreenProps": [Function],
+      "goBack": [Function],
+      "isFocused": [Function],
+      "navigate": [Function],
+      "router": Object {
+        "childRouters": Object {
+          "Entry": null,
+          "HomeNav": Object {
+            "childRouters": Object {
+              "Home": Object {
+                "childRouters": Object {
+                  "Main": Object {
+                    "childRouters": Object {
+                      "Browser": Object {
+                        "childRouters": Object {
+                          "AddBookmark": null,
+                          "Approval": null,
+                          "BrowserView": null,
+                        },
+                        "getActionCreators": [Function],
+                        "getActionForPathAndParams": [Function],
+                        "getComponentForRouteName": [Function],
+                        "getComponentForState": [Function],
+                        "getPathAndParamsForState": [Function],
+                        "getScreenOptions": [Function],
+                        "getStateForAction": [Function],
+                      },
+                      "Transfer": Object {
+                        "childRouters": Object {
+                          "TransactionSubmitted": null,
+                          "TransferView": null,
+                        },
+                        "getActionCreators": [Function],
+                        "getActionForPathAndParams": [Function],
+                        "getComponentForRouteName": [Function],
+                        "getComponentForState": [Function],
+                        "getPathAndParamsForState": [Function],
+                        "getScreenOptions": [Function],
+                        "getStateForAction": [Function],
+                      },
+                      "Wallet": Object {
+                        "childRouters": Object {
+                          "AccountDetails": null,
+                          "AddAsset": null,
+                          "Asset": null,
+                          "NetworkSettings": null,
+                          "SeedWords": null,
+                          "Settings": null,
+                          "SyncWithExtension": null,
+                          "Wallet": null,
+                        },
+                        "getActionCreators": [Function],
+                        "getActionForPathAndParams": [Function],
+                        "getComponentForRouteName": [Function],
+                        "getComponentForState": [Function],
+                        "getPathAndParamsForState": [Function],
+                        "getScreenOptions": [Function],
+                        "getStateForAction": [Function],
+                      },
+                    },
+                    "getActionCreators": [Function],
+                    "getActionForPathAndParams": [Function],
+                    "getComponentForRouteName": [Function],
+                    "getComponentForState": [Function],
+                    "getPathAndParamsForState": [Function],
+                    "getScreenOptions": [Function],
+                    "getStateForAction": [Function],
+                  },
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
+              "LockScreen": null,
+              "QRScanner": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
+          "LockScreen": null,
+          "Login": null,
+          "OnboardingRootNav": Object {
+            "childRouters": Object {
+              "Onboarding": Object {
+                "childRouters": Object {
+                  "CreateWallet": null,
+                  "ImportFromSeed": null,
+                  "ImportWallet": null,
+                  "Onboarding": null,
+                  "SyncWithExtension": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
+              "QRScanner": null,
+              "SyncWithExtensionSuccess": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
+        },
+        "getActionCreators": [Function],
+        "getActionForPathAndParams": [Function],
+        "getComponentForRouteName": [Function],
+        "getComponentForState": [Function],
+        "getPathAndParamsForState": [Function],
+        "getScreenOptions": [Function],
+        "getStateForAction": [Function],
+      },
+      "setParams": [Function],
+      "state": Object {
+        "index": 0,
+        "isTransitioning": false,
+        "routes": Array [
+          Object {
+            "key": "Entry",
+            "params": undefined,
+            "routeName": "Entry",
+          },
+          Object {
+            "index": 0,
+            "isTransitioning": false,
+            "key": "HomeNav",
+            "params": undefined,
+            "routeName": "HomeNav",
+            "routes": Array [
+              Object {
+                "closeId": 0,
+                "index": 0,
+                "isDrawerOpen": false,
+                "isTransitioning": false,
+                "key": "id-123-3",
+                "openId": 0,
+                "routeName": "Home",
+                "routes": Array [
+                  Object {
+                    "index": 1,
+                    "isTransitioning": false,
+                    "key": "Main",
+                    "params": undefined,
+                    "routeName": "Main",
+                    "routes": Array [
+                      Object {
+                        "index": 0,
+                        "isTransitioning": false,
+                        "key": "Browser",
+                        "params": undefined,
+                        "routeName": "Browser",
+                        "routes": Array [
+                          Object {
+                            "key": "id-123-0",
+                            "routeName": "BrowserView",
+                          },
+                        ],
+                      },
+                      Object {
+                        "index": 0,
+                        "isTransitioning": false,
+                        "key": "Wallet",
+                        "params": undefined,
+                        "routeName": "Wallet",
+                        "routes": Array [
+                          Object {
+                            "key": "id-123-1",
+                            "routeName": "Wallet",
+                          },
+                        ],
+                      },
+                      Object {
+                        "index": 0,
+                        "isTransitioning": false,
+                        "key": "Transfer",
+                        "params": undefined,
+                        "routeName": "Transfer",
+                        "routes": Array [
+                          Object {
+                            "key": "id-123-2",
+                            "routeName": "TransferView",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+                "toggleId": 0,
+              },
+            ],
+          },
+          Object {
+            "index": 0,
+            "isTransitioning": false,
+            "key": "OnboardingRootNav",
+            "params": undefined,
+            "routeName": "OnboardingRootNav",
+            "routes": Array [
+              Object {
+                "index": 0,
+                "isTransitioning": false,
+                "key": "id-123-5",
+                "routeName": "Onboarding",
+                "routes": Array [
+                  Object {
+                    "key": "id-123-4",
+                    "params": undefined,
+                    "routeName": "Onboarding",
+                  },
+                ],
+              },
+            ],
+          },
+          Object {
+            "key": "Login",
+            "params": undefined,
+            "routeName": "Login",
+          },
+          Object {
+            "key": "LockScreen",
+            "params": undefined,
+            "routeName": "LockScreen",
+          },
+        ],
+      },
+    }
+  }
 />
 `;

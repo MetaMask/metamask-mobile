@@ -1,36 +1,58 @@
 import React, { Component } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
-import { colors } from '../../styles/common';
+import PropTypes from 'prop-types';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		backgroundColor: colors.white,
-		alignItems: 'center',
-		justifyContent: 'center',
-		position: 'absolute',
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0
-	},
-	image: {
-		width: 100,
-		height: 100
-	}
-});
-
-const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
+import FoxScreen from '../FoxScreen';
+import Engine from '../../core/Engine';
 
 /**
  * Main view component for the Lock screen
  */
 export default class LockScreen extends Component {
+	static propTypes = {
+		/**
+		 * The navigator object
+		 */
+		navigation: PropTypes.object
+	};
+
+	componentDidMount() {
+		this.mounted = true;
+		// Because this is also the first screen
+		// We need to wait for the engine to bootstrap before we can continue
+		if (!Engine.context) {
+			this.waitForEngine();
+		} else {
+			this.unlockKeychain();
+		}
+	}
+
+	waitForEngine() {
+		setTimeout(() => {
+			Engine.context ? this.unlockKeychain() : this.waitForEngine();
+		}, 100);
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
+
+	async unlockKeychain() {
+		try {
+			// Retreive the credentials
+			const credentials = Keychain.getGenericPassword && (await Keychain.getGenericPassword());
+			if (credentials) {
+				// Restore vault with existing credentials
+				const { KeyringController } = Engine.context;
+				await KeyringController.submitPassword(credentials.password);
+				this.props.navigation.goBack();
+			}
+		} catch (error) {
+			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
+		}
+	}
+
 	render() {
-		return (
-			<View style={styles.wrapper} testID={'lock-screen'}>
-				<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-			</View>
-		);
+		return <FoxScreen />;
 	}
 }

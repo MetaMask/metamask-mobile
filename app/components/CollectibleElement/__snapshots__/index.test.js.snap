@@ -35,7 +35,7 @@ exports[`CollectibleElement should render correctly 1`] = `
     <Component
       style={
         Object {
-          "color": "#333333",
+          "color": "#4a4a4a",
           "fontFamily": "Roboto",
           "fontSize": 16,
           "fontWeight": "400",
@@ -47,7 +47,7 @@ exports[`CollectibleElement should render correctly 1`] = `
     <Component
       style={
         Object {
-          "color": "#333333",
+          "color": "#4a4a4a",
           "fontFamily": "Roboto",
           "fontSize": 12,
           "fontWeight": "400",

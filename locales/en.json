@@ -2,15 +2,33 @@
 	"navigation": {
 		"back": "Back"
 	},
+	"onboarding": {
+		"title": "Welcome",
+		"subtitle": "The decentralized web awaits",
+		"lets_get_started": "Let's get started!",
+		"already_using_metamask": "Already using MetaMask?",
+		"import_wallet_button": "Import Wallet",
+		"or": "OR",
+		"create_new_wallet_button": "Create New Wallet"
+	},
+	"importWallet": {
+		"title": "Import Wallet",
+		"sync_help":
+			"If you have access to your computer where you have your MetaMask Browser Extension installed, we recommend you to choose \"Sync from Browser Extension\", since it will preserve all your accounts, settings, etc.",
+		"sync_from_browser_extension_button": "Sync from Browser Extension",
+		"import_from_seed_help":
+			"If you don't have access to your computer, but you have your seed phrase you can choose \"Import from Seed phrase\"",
+		"import_from_seed_button": "Import from Seed"
+	},
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",
 		"login_button": "LOG IN",
-		"import_with_seed_phrase": "Import with seed phrase"
+		"go_back": "Go Back"
 	},
-	"createPassword": {
-		"title": "Create Password",
-		"new_password": "New Password (min. 8 characters)",
+	"createWallet": {
+		"title": "Create New Wallet",
+		"password": "Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"create_button": "CREATE",
 		"import_with_seed_phrase": "Import with seed phrase"
@@ -81,6 +99,8 @@
 		"network": "Network",
 		"network_status": "Network status",
 		"seed_words": "Seed Words",
+		"sync_with_extension": "Sync with MetaMask Extension",
+		"face_id": "Enable FaceID",
 		"logout": "Logout"
 	},
 	"network": {
@@ -157,9 +177,41 @@
 	"approval": {
 		"title": "Confirm Transaction"
 	},
+	"transactions": {
+		"sent_ether": "Sent Ether",
+		"hash": "Hash",
+		"from": "From",
+		"to": "To",
+		"details": "Details",
+		"amount": "Amount",
+		"gas_limit": "Gas Limit (Units)",
+		"gas_price": "Gas Price (GWEI)",
+		"total": "Total",
+		"view_on_etherscan": "VIEW ON ETHERSCAN"
+	},
 	"transactionSubmitted": {
 		"title": "Transaction Submitted",
 		"yourTxHashIs": "Your transaction hash is:",
-		"viewOnEtherscan": "View on etherscan.io"
+		"viewOnEtherscan": "VIEW ON ETHERSCAN"
+	},
+	"syncWithExtension": {
+		"title": "Sync data from Extension",
+		"label":
+			"Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
+		"button_continue": "Continue",
+		"please_wait": "Please wait while we sync your data...",
+		"error_title": "Bummer!",
+		"error_message": "Something went wrong... Please try again",
+		"warning_title": "Warning!",
+		"warning_message":
+			"This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
+		"warning_ok_button": "YES",
+		"warning_cancel_button": "NO"
+	},
+	"syncWithExtensionSuccess": {
+		"title": "Sync completed",
+		"sync_complete":
+			"We have synchronized all the information from your MetaMask extension and now you're ready to go!",
+		"button_continue": "Continue"
 	}
 }

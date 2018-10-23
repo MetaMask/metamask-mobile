@@ -90,6 +90,17 @@ export function toWei(value, unit = 'ether') {
 }
 
 /**
+ * Converts some unit to Gwei
+ *
+ * @param {number|string|BN} value - Value to convert
+ * @param {string} unit - Unit to convert from, ether by default
+ * @returns {Object} - BN instance containing the new number
+ */
+export function toGwei(value, unit = 'ether') {
+	return fromWei(value, unit) * 1000000000;
+}
+
+/**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
  * @param {number} wei - BN corresponding to an amount of wei

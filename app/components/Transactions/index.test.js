@@ -4,7 +4,7 @@ import Transactions from './';
 
 describe('Transactions', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<Transactions />);
+		const wrapper = shallow(<Transactions transactions={[]} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

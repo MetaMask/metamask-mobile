@@ -227,12 +227,13 @@ export class Browser extends Component {
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		const urlObj = new URL(url);
+		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
 		const tld = hostname.split('.').pop();
 		let ipfsContent = null;
 		let currentEnsName = null;
 		let ipfsHash = null;
+
 		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
 			ipfsContent = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 
@@ -399,7 +400,7 @@ export class Browser extends Component {
 		} else {
 			data.inputValue = url.replace(
 				`${this.state.ipfsGateway}${this.state.ipfsHash}`,
-				`http://${this.state.currentEnsName}`
+				`https://${this.state.currentEnsName}`
 			);
 		}
 		this.setState(data);

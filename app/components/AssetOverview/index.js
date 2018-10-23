@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
+import Image from 'react-native-remote-svg';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import StyledButton from '../StyledButton';
@@ -23,6 +24,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderRadius: 10,
 		marginBottom: 10
+	},
+	ethLogo: {
+		width: 70,
+		height: 70,
+		overflow: 'hidden',
+		borderRadius: 100,
+		marginRight: 20
 	},
 	balance: {
 		flex: 1,
@@ -56,13 +64,27 @@ const styles = StyleSheet.create({
 		marginLeft: 10
 	},
 	buttonText: {
-		marginLeft: 8,
+		marginLeft: Platform.OS === 'ios' ? 8 : 28,
+		marginTop: Platform.OS === 'ios' ? 0 : -17,
 		fontSize: 15,
 		color: colors.white,
 		textTransform: 'uppercase',
 		...fontStyles.bold
+	},
+	buttonContent: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'center'
+	},
+	buttonIcon: {
+		width: 15,
+		height: 15,
+		marginTop: Platform.OS === 'ios' ? 0 : 7
 	}
 });
+
+const ethLogo = require('../../images/eth-logo.svg'); // eslint-disable-line
 
 /**
  * View that displays the information of a specific asset (Token or ETH)
@@ -78,15 +100,23 @@ export default class AssetOverview extends Component {
 	onDeposit = () => true;
 	onSend = () => true;
 
+	renderLogo() {
+		const {
+			asset: { address, logo, symbol }
+		} = this.props;
+		if (symbol === 'ETH') {
+			return <Image source={ethLogo} style={styles.ethLogo} />;
+		}
+		return logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />;
+	}
+
 	render() {
 		const {
-			asset: { address, logo, symbol, balance, balanceFiat }
+			asset: { symbol, balance, balanceFiat }
 		} = this.props;
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
-				<View style={styles.assetLogo}>
-					{logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />}
-				</View>
+				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
 					<Text style={styles.amount}>
 						{' '}
@@ -99,16 +129,18 @@ export default class AssetOverview extends Component {
 						type={'confirm'}
 						onPress={this.onSend}
 						containerStyle={[styles.button, styles.leftButton]}
+						style={styles.buttonContent}
 					>
-						<MaterialIcon name={'send'} size={15} color={colors.white} />
+						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
 						<Text style={styles.buttonText}>{strings('assetOverview.send_button')}</Text>
 					</StyledButton>
 					<StyledButton
 						type={'confirm'}
 						onPress={this.onDeposit}
 						containerStyle={[styles.button, styles.rightButton]}
+						style={styles.buttonContent}
 					>
-						<FoundationIcon name={'download'} size={20} color={colors.white} />
+						<FoundationIcon name={'download'} size={20} color={colors.white} style={styles.buttonIcon} />
 						<Text style={styles.buttonText}>{strings('assetOverview.receive_button')}</Text>
 					</StyledButton>
 				</View>
