@@ -27,6 +27,18 @@ export function fromWei(value = 0, unit = 'ether') {
 }
 
 /**
+ * Converts token BN value to number
+ *
+ * @param {Object} value - BN instance to convert
+ * @param {number} decimals - Decimals to be considered on the conversion
+ * @returns {number} - Number
+ */
+export function calcTokenValue(value, decimals) {
+	const multiplier = Math.pow(10, decimals);
+	return value.div(multiplier).toNumber();
+}
+
+/**
  * Converts a hex string to a BN object
  *
  * @param {string} value - Number represented as a hex string
@@ -93,4 +105,22 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 	let value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
 	value = isNaN(value) ? '0.00' : value;
 	return `${value} ${currencyCode}`;
+}
+
+/**
+ * Calculates fiat balance of an asset
+ *
+ * @param {number} balance - Number corresponding to a balance of an asset
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @param {string} currencyCode - Current currency code to display
+ * @returns {string} - Currency-formatted string
+ */
+export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCode) {
+	if (!balance || !exchangeRate) {
+		return undefined;
+	}
+	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * 100) / 100).toFixed(2);
+	fiatFixed = isNaN(fiatFixed) ? '0.00' : fiatFixed;
+	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }

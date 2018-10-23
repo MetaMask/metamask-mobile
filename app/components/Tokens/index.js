@@ -6,6 +6,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import TokenElement from '../TokenElement';
+import { calcTokenValue, balanceToFiat } from '../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -51,7 +52,23 @@ export default class Tokens extends Component {
 		/**
 		 * Array of assets (in this case ERC20 tokens)
 		 */
-		assets: PropTypes.array
+		assets: PropTypes.array,
+		/**
+		 * ETH to current currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		 * Object containing token balances in the format address => balance
+		 */
+		tokenBalances: PropTypes.object,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		tokenExchangeRates: PropTypes.object
 	};
 
 	renderEmpty() {
@@ -67,8 +84,16 @@ export default class Tokens extends Component {
 	};
 
 	renderList() {
-		return this.props.assets.map(asset => {
-			asset.logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
+		const { assets, conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
+		return assets.map(asset => {
+			const logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
+			const exchangeRate = asset.address in tokenExchangeRates ? tokenExchangeRates[asset.address] : undefined;
+			const balance =
+				asset.address in tokenBalances
+					? calcTokenValue(tokenBalances[asset.address], asset.decimals)
+					: undefined;
+			const balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			asset = { ...asset, ...{ logo, balance, balanceFiat } };
 			return (
 				<TokenElement onPress={() => this.onItemPress(asset)} asset={asset} key={asset.address} /> // eslint-disable-line
 			);
