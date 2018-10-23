@@ -45,19 +45,6 @@ exports[`TokenElement should render correctly 1`] = `
        
       ABC
     </Component>
-<<<<<<< HEAD
-    <Component
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "400",
-        }
-      }
-    />
-=======
->>>>>>> f32760ebe3e94ab7e18face007349ab4ec4042fc
   </Component>
   <Component
     styles={
