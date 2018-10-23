@@ -36,7 +36,9 @@ export default function ActionView({
 	confirmText,
 	confirmButtonMode,
 	onCancelPress,
-	onConfirmPress
+	onConfirmPress,
+	showCancelButton,
+	showConfirmButton
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
@@ -44,22 +46,26 @@ export default function ActionView({
 				{children}
 			</KeyboardAwareScrollView>
 			<View style={styles.actionContainer}>
-				<StyledButton
-					testID={cancelTestID}
-					type={'cancel'}
-					onPress={onCancelPress}
-					containerStyle={[styles.button, styles.cancel]}
-				>
-					{cancelText.toUpperCase()}
-				</StyledButton>
-				<StyledButton
-					testID={confirmTestID}
-					type={confirmButtonMode}
-					onPress={onConfirmPress}
-					containerStyle={[styles.button, styles.confirm]}
-				>
-					{confirmText.toUpperCase()}
-				</StyledButton>
+				{showCancelButton && (
+					<StyledButton
+						testID={cancelTestID}
+						type={'cancel'}
+						onPress={onCancelPress}
+						containerStyle={[styles.button, styles.cancel]}
+					>
+						{cancelText.toUpperCase()}
+					</StyledButton>
+				)}
+				{showConfirmButton && (
+					<StyledButton
+						testID={confirmTestID}
+						type={confirmButtonMode}
+						onPress={onConfirmPress}
+						containerStyle={[styles.button, styles.confirm]}
+					>
+						{confirmText.toUpperCase()}
+					</StyledButton>
+				)}
 			</View>
 		</View>
 	);
@@ -70,7 +76,9 @@ ActionView.defaultProps = {
 	confirmButtonMode: 'normal',
 	confirmText: strings('actionView.confirm'),
 	confirmTestID: '',
-	cancelTestID: ''
+	cancelTestID: '',
+	showCancelButton: true,
+	showConfirmButton: true
 };
 
 ActionView.propTypes = {
@@ -105,5 +113,13 @@ ActionView.propTypes = {
 	/**
 	 * Called when the confirm button is clicked
 	 */
-	onConfirmPress: PropTypes.func
+	onConfirmPress: PropTypes.func,
+	/**
+	 * Whether cancel button is shown
+	 */
+	showCancelButton: PropTypes.bool,
+	/**
+	 * Whether confirm button is shown
+	 */
+	showConfirmButton: PropTypes.bool
 };

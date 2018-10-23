@@ -111,13 +111,38 @@
 		"title": "Seed Words",
 		"label": "These are your seed words, make sure you keep them safe!"
 	},
+	"reveal_credential": {
+		"seed_phrase_title": "Reveal Seed Words",
+		"private_key_title": "Show Private Key",
+		"cancel": "Cancel",
+		"confirm": "Next",
+		"seed_phrase_explanation":
+			"If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
+		"private_key_explanation": "Save it somewhere safe and secret.",
+		"seed_phrase_warning_explanation":
+			"DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
+		"private_key_warning_explanation":
+			"Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
+		"seed_phrase": "Your private seed phrase",
+		"private_key": "Your private key",
+		"copy_to_clipboard": "Copy to clipboard",
+		"enter_password": "Enter password to continue",
+		"seed_phrase_copied": "Seed phrase copied to clipboard",
+		"private_key_copied": "Private key copied to clipboard",
+		"warning_incorrect_password": "Incorrect password"
+	},
 	"assetOverview": {
 		"send_button": "SEND",
 		"receive_button": "RECEIVE"
 	},
 	"accountDetails": {
 		"title": "Account Details",
-		"public_address": "Public Address"
+		"publicAddress": "Public Address",
+		"shareAccount": "Share",
+		"viewAccount": "View account on Etherscan",
+		"showPrivateKey": "Show private key",
+		"accountCopiedToClipboard": "Public address copied to clipboard",
+		"sharePublicKey": "Sharing my public key: "
 	},
 	"qrScanner": {
 		"invalidQrCodeTitle": "Invalid QR Code",
