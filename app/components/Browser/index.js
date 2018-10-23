@@ -24,9 +24,13 @@ import WebviewProgressBar from '../WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
+import resolveEnsToIpfsContentId from '../../lib/ens-ipfs/resolver';
 import Button from '../Button';
 import { strings } from '../../../locales/i18n';
 import HomePage from '../HomePage';
+import URL from 'url-parse';
+
+const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -153,10 +157,17 @@ export class Browser extends Component {
 		url: this.props.defaultURL || '',
 		showOptions: false,
 		currentPageTitle: '',
-		bookmarks: []
+		bookmarks: [],
+		timeout: false,
+		ipfsWebsite: false,
+		ipfsGateway: 'https://ipfs.io/ipfs/',
+		ipfsHash: null,
+		currentEnsName: null
 	};
 
 	webview = React.createRef();
+
+	timeoutHandler = null;
 
 	loadBookmarks = async () => {
 		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
@@ -213,14 +224,93 @@ export class Browser extends Component {
 		}
 	}
 
-	go = url => {
+	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		this.setState({ url: sanitizedURL, progress: 0 });
+		const urlObj = new URL(sanitizedURL);
+		const { hostname, query, pathname } = urlObj;
+		const tld = hostname.split('.').pop();
+		let ipfsContent = null;
+		let currentEnsName = null;
+		let ipfsHash = null;
+
+		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+			ipfsContent = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
+
+			if (ipfsContent) {
+				const urlObj = new URL(sanitizedURL);
+				currentEnsName = urlObj.hostname;
+				ipfsHash = ipfsContent
+					.replace(this.state.ipfsGateway, '')
+					.split('/')
+					.shift();
+			}
+		}
+
+		const urlToGo = ipfsContent || sanitizedURL;
+		this.setState({
+			url: urlToGo,
+			progress: 0,
+			ipfsWebsite: true,
+			inputValue: sanitizedURL,
+			currentEnsName,
+			ipfsHash
+		});
+
+		this.timeoutHandler && clearTimeout(this.timeoutHandler);
+		this.timeoutHandler = setTimeout(() => {
+			this.urlTimedOut(urlToGo);
+		}, 60000);
 	};
 
-	onUrlInputSubmit = () => {
-		this.go(this.state.inputValue);
+	urlTimedOut(url) {
+		Logger.log('Browser::url::Timeout!', url);
+	}
+
+	urlNotFound(url) {
+		Logger.log('Browser::url::Not found!', url);
+	}
+
+	urlNotSupported(url) {
+		Logger.log('Browser::url::Not supported!', url);
+	}
+
+	urlErrored(url) {
+		Logger.log('Browser::url::Unknown error!', url);
+	}
+
+	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
+		const { provider } = Engine.context.NetworkController;
+		let ipfsHash;
+		try {
+			ipfsHash = await resolveEnsToIpfsContentId({ provider, name: hostname });
+		} catch (err) {
+			this.timeoutHandler && clearTimeout(this.timeoutHandler);
+			Logger.error('Failed to resolve ENS name', err);
+			err === 'unsupport' ? this.urlNotSupported(fullUrl) : this.urlErrored(fullUrl);
+			return null;
+		}
+
+		const gatewayUrl = this.state.ipfsGateway + ipfsHash + (pathname || '') + (query || '');
+
+		try {
+			const response = await fetch(gatewayUrl, { method: 'HEAD' });
+			const statusCode = response.status;
+			if (statusCode !== 200) {
+				this.urlNotFound(gatewayUrl);
+				return null;
+			}
+			return gatewayUrl;
+		} catch (err) {
+			// If there's an error our fallback mechanism is
+			// to point straight to the ipfs gateway
+			Logger.error('Failed to fetch ipfs website via ens', err);
+			return 'https://ipfs.io/ipfs/' + ipfsHash;
+		}
+	}
+
+	onUrlInputSubmit = async () => {
+		await this.go(this.state.inputValue);
 	};
 
 	goBack = () => {
@@ -228,7 +318,14 @@ export class Browser extends Component {
 			const { current } = this.webview;
 			current && current.goBack();
 		} else {
-			this.setState({ inputValue: '', url: '' });
+			this.setState({
+				inputValue: '',
+				url: '',
+				ipfsContent: null,
+				ipfsHash: null,
+				ipfsWebsite: null,
+				currentEnsName: null
+			});
 		}
 	};
 
@@ -297,10 +394,19 @@ export class Browser extends Component {
 	};
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
-		this.setState({ canGoBack, canGoForward, inputValue: url });
+		const data = { canGoBack, canGoForward };
+		if (!this.state.ipfsWebsite) {
+			data.inputValue = url;
+		} else {
+			data.inputValue = url.replace(
+				`${this.state.ipfsGateway}${this.state.ipfsHash}`,
+				`https://${this.state.currentEnsName}`
+			);
+		}
+		this.setState(data);
 	};
 
-	onInitialUrlSubmit = url => {
+	onInitialUrlSubmit = async url => {
 		if (url === '') {
 			return false;
 		}
@@ -311,9 +417,9 @@ export class Browser extends Component {
 		);
 		if (res === null) {
 			// In case of keywords we default to google search
-			this.go('https://www.google.com/search?q=' + escape(url));
+			await this.go('https://www.google.com/search?q=' + escape(url));
 		} else {
-			this.go(url);
+			await this.go(url);
 		}
 	};
 
