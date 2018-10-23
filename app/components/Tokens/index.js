@@ -6,7 +6,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import TokenElement from '../TokenElement';
-import { toNumber, balanceToFiat } from '../../util/number';
+import { calcTokenValue, balanceToFiat } from '../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -89,7 +89,9 @@ export default class Tokens extends Component {
 			const logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
 			const exchangeRate = asset.address in tokenExchangeRates ? tokenExchangeRates[asset.address] : undefined;
 			const balance =
-				asset.address in tokenBalances ? toNumber(tokenBalances[asset.address], asset.decimals) : undefined;
+				asset.address in tokenBalances
+					? calcTokenValue(tokenBalances[asset.address], asset.decimals)
+					: undefined;
 			const balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 			asset = { ...asset, ...{ logo, balance, balanceFiat } };
 			return (

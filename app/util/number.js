@@ -27,14 +27,15 @@ export function fromWei(value = 0, unit = 'ether') {
 }
 
 /**
- * Converts BN to number
+ * Converts token BN value to number
  *
  * @param {Object} value - BN instance to convert
  * @param {number} decimals - Decimals to be considered on the conversion
  * @returns {number} - Number
  */
-export function toNumber(value, decimals) {
-	return value.toNumber() / Math.pow(10, decimals);
+export function calcTokenValue(value, decimals) {
+	const multiplier = Math.pow(10, decimals);
+	return value.div(multiplier).toNumber();
 }
 
 /**
