@@ -41,7 +41,7 @@ exports[`AccountOverview should render correctly 1`] = `
       <Component
         style={
           Object {
-            "color": "#333333",
+            "color": "#4a4a4a",
             "flex": 1,
             "fontFamily": "Roboto",
             "fontSize": 43,
@@ -69,7 +69,7 @@ exports[`AccountOverview should render correctly 1`] = `
         testID="account-qr-button"
       >
         <QRCode
-          bgColor="#333333"
+          bgColor="#4a4a4a"
           fgColor="#FFFFFF"
           onLoad={[Function]}
           onLoadEnd={[Function]}

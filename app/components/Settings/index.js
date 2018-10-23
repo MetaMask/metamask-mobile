@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
-import { persistor } from '../../store';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 import { strings } from '../../../locales/i18n';
 
@@ -41,8 +41,9 @@ class Settings extends Component {
 		 */
 		navigation: PropTypes.object
 	};
-	logout = () => {
-		persistor.purge();
+	logout = async () => {
+		await Keychain.resetGenericPassword();
+		this.props.navigation.navigate('Entry');
 	};
 
 	goToNetworkSettings = () => {
@@ -51,6 +52,10 @@ class Settings extends Component {
 
 	goToSeedWords = () => {
 		this.props.navigation.push('SeedWords');
+	};
+
+	goToSyncWithExtension = () => {
+		this.props.navigation.push('SyncWithExtension', { existingUser: true });
 	};
 
 	render() {
@@ -78,6 +83,11 @@ class Settings extends Component {
 					/>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item title={strings('settings.seed_words')} onPress={this.goToSeedWords} />
+					<SettingsList.Header headerStyle={styles.separator} />
+					<SettingsList.Item
+						title={strings('settings.sync_with_extension')}
+						onPress={this.goToSyncWithExtension}
+					/>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item title={strings('settings.logout')} onPress={this.logout} />
 				</SettingsList>

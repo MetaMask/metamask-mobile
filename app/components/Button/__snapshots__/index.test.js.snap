@@ -6,7 +6,7 @@ exports[`Button should render correctly 1`] = `
     Array [
       Object {
         "alignItems": "center",
-        "backgroundColor": "#007aff",
+        "backgroundColor": "#008edf",
         "borderRadius": 4,
         "flex": 1,
         "height": 40,

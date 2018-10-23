@@ -86,16 +86,19 @@ export default class Tokens extends Component {
 	renderList() {
 		const { assets, conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
 		return assets.map(asset => {
-			const logo = asset.address in contractMap ? contractMap[asset.address].logo : undefined;
+			const logo = asset.logo || ((contractMap[asset.address] && contractMap[asset.address].logo) || undefined);
 			const exchangeRate = asset.address in tokenExchangeRates ? tokenExchangeRates[asset.address] : undefined;
 			const balance =
-				asset.address in tokenBalances
+				asset.balance ||
+				(asset.address in tokenBalances
 					? calcTokenValue(tokenBalances[asset.address], asset.decimals)
-					: undefined;
-			const balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+					: undefined);
+			const balanceFiat =
+				asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 			asset = { ...asset, ...{ logo, balance, balanceFiat } };
+
 			return (
-				<TokenElement onPress={() => this.onItemPress(asset)} asset={asset} key={asset.address} /> // eslint-disable-line
+				<TokenElement onPress={() => this.onItemPress(asset)} asset={asset} key={`asset_${asset.symbol}`} /> // eslint-disable-line
 			);
 		});
 	}

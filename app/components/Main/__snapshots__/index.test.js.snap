@@ -50,6 +50,7 @@ exports[`Main should render correctly 1`] = `
               "NetworkSettings": null,
               "SeedWords": null,
               "Settings": null,
+              "SyncWithExtension": null,
               "Wallet": null,
             },
             "getActionCreators": [Function],

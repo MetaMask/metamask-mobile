@@ -1,6 +1,6 @@
 'use strict';
 import React, { Component } from 'react';
-import { SafeAreaView, Alert, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { InteractionManager, SafeAreaView, Alert, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -56,24 +56,41 @@ export default class QrScanner extends Component {
 		navigation: PropTypes.object
 	};
 
+	mounted = false;
+	shouldReadBarCode = true;
+
+	componentDidMount() {
+		this.mounted = true;
+	}
+
 	goBack = () => {
 		this.props.navigation.goBack();
 	};
 
 	onBarCodeRead = response => {
+		if (!this.mounted) return false;
 		const content = response.data;
 
 		let data = {};
 
 		if (content.split('ethereum:').length > 1) {
+			this.shouldReadBarCode = false;
 			data = parse(content);
 		} else if (content.substring(0, 2).toLowerCase() === '0x') {
+			this.shouldReadBarCode = false;
 			data = { target_address: content };
+		} else if (content.split('metamask-sync:').length > 1) {
+			this.shouldReadBarCode = false;
+			data = { content };
 		} else {
 			Alert.alert(strings('qrScanner.invalidQrCodeTitle'), strings('qrScanner.invalidQrCodeMessage'));
+			return false;
 		}
-		this.props.navigation.state.params.onScanSuccess(data);
+		this.mounted = false;
 		this.props.navigation.goBack();
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.state.params.onScanSuccess(data);
+		});
 	};
 
 	render() {
@@ -82,7 +99,7 @@ export default class QrScanner extends Component {
 				<RNCamera
 					style={styles.preview}
 					type={'back'}
-					onBarCodeRead={this.onBarCodeRead}
+					onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}
 					flashMode={'auto'}
 					permissionDialogTitle={strings('qrScanner.allowCameraDialogTitle')}
 					permissionDialogMessage={strings('qrScanner.allowCameraDialogMessage')}

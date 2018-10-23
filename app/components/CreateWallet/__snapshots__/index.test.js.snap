@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CreatePassword should render correctly 1`] = `
+exports[`CreateWallet should render correctly 1`] = `
 <Screen>
   <KeyboardAwareScrollView
     enableAutomaticScroll={true}
@@ -17,7 +17,7 @@ exports[`CreatePassword should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#f1f2f6",
+        "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 20,
       }
@@ -27,30 +27,6 @@ exports[`CreatePassword should render correctly 1`] = `
     <Component
       testID="create-password-screen"
     >
-      <Component
-        style={
-          Object {
-            "alignItems": "center",
-            "justifyContent": "center",
-            "marginTop": 100,
-          }
-        }
-      >
-        <Image
-          resizeMethod="auto"
-          source={
-            Object {
-              "testUri": "../../../app/images/fox.png",
-            }
-          }
-          style={
-            Object {
-              "height": 100,
-              "width": 100,
-            }
-          }
-        />
-      </Component>
       <Component
         style={
           Object {
@@ -65,7 +41,7 @@ exports[`CreatePassword should render correctly 1`] = `
           }
         }
       >
-        Create Password
+        Create New Wallet
       </Component>
       <Component
         style={
@@ -83,7 +59,7 @@ exports[`CreatePassword should render correctly 1`] = `
             }
           }
         >
-          New Password (min. 8 characters)
+          Password (min. 8 characters)
         </Component>
         <TextInput
           allowFontScaling={true}
@@ -169,31 +145,10 @@ exports[`CreatePassword should render correctly 1`] = `
             }
           }
           testID="submit"
-          type="orange"
+          type="blue"
         >
           CREATE
         </StyledButton>
-      </Component>
-      <Component
-        style={
-          Object {
-            "marginTop": 40,
-          }
-        }
-      >
-        <Button
-          onPress={[Function]}
-          style={
-            Object {
-              "color": "#999999",
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            }
-          }
-          testID="import-seed-button"
-        >
-          Import with seed phrase
-        </Button>
       </Component>
     </Component>
   </KeyboardAwareScrollView>

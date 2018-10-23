@@ -5,7 +5,7 @@ import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	underlay: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.white,
 		left: 0,
 		position: 'absolute',
 		top: 0

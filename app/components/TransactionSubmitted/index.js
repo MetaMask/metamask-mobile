@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Animated, InteractionManager, Platform, Text, ActivityIndicator, View, StyleSheet } from 'react-native';
+import { InteractionManager, Animated, Platform, Text, ActivityIndicator, View, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -73,20 +73,18 @@ class TransactionSubmitted extends Component {
 		);
 	}
 
-	iconSpringVal = new Animated.Value(0.6);
+	iconSpringVal = new Animated.Value(0.4);
 
 	componentDidMount() {
 		this.animateIcon();
 	}
 
 	animateIcon() {
-		InteractionManager.runAfterInteractions(() => {
-			Animated.spring(this.iconSpringVal, {
-				toValue: 1,
-				friction: 2.5,
-				useNativeDriver: true
-			}).start();
-		});
+		Animated.spring(this.iconSpringVal, {
+			toValue: 1,
+			friction: 2,
+			useNativeDriver: true
+		}).start();
 	}
 
 	goToEtherscan = () => {
