@@ -84,6 +84,8 @@ export default class AccountOverview extends Component {
 			currentCurrency
 		} = this.props;
 
+		if (!address) return null;
+
 		return (
 			<View style={styles.wrapper} testID={'account-overview'}>
 				<View style={styles.row}>

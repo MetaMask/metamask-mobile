@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -13,7 +13,8 @@ import { strings } from '../../../locales/i18n';
 import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
-
+import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -30,6 +31,12 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		letterSpacing: 0.5,
 		...fontStyles.bold
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -81,8 +88,23 @@ class Wallet extends Component {
 		 */
 		collectibles: PropTypes.array
 	};
+
+	state = {
+		locked: false,
+		appState: 'active'
+	};
+
+	mounted = false;
+
 	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
+		AppState.addEventListener('change', this.handleAppStateChange);
+		this.mounted = true;
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
 	renderTabBar() {
@@ -109,7 +131,21 @@ class Wallet extends Component {
 		}
 	};
 
-	render() {
+	handleAppStateChange = async nextAppState => {
+		if (nextAppState !== 'active') {
+			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
+		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
+			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
+			if (bg_mode_ts && Date.now() - parseInt(bg_mode_ts) > LOCK_TIMEOUT) {
+				// If it's still mounted, lock it
+				this.mounted && this.props.navigation.navigate('LockScreen');
+			}
+			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
+		}
+		this.mounted && this.setState({ appState: nextAppState });
+	};
+
+	renderContent() {
 		const {
 			accounts,
 			conversionRate,
@@ -119,33 +155,72 @@ class Wallet extends Component {
 			tokens,
 			tokenBalances,
 			tokenExchangeRates,
-			collectibles
+			collectibles,
+			navigation
 		} = this.props;
+		let balance = 0;
+		let assets = tokens;
+		if (accounts[selectedAddress]) {
+			balance = fromWei(accounts[selectedAddress].balance, 'ether');
+			assets = [
+				{
+					name: 'Ether',
+					symbol: 'ETH',
+					balance,
+					balanceFiat: weiToFiat(
+						hexToBN(accounts[selectedAddress].balance),
+						conversionRate,
+						currentCurrency
+					).toUpperCase(),
+					logo: '../images/eth-logo.svg'
+				},
+				...tokens
+			];
+		} else {
+			assets = tokens;
+		}
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+
 		return (
-			<View style={styles.wrapper} testID={'wallet-screen'}>
+			<View style={styles.wrapper}>
 				<AccountOverview
 					account={account}
 					conversionRate={conversionRate}
 					currentCurrency={currentCurrency}
-					navigation={this.props.navigation}
+					navigation={navigation}
 				/>
 				<ScrollableTabView renderTabBar={this.renderTabBar}>
 					<Tokens
-						navigation={this.props.navigation}
+						navigation={navigation}
 						tabLabel={strings('wallet.tokens')}
-						assets={tokens}
+						assets={assets}
 						currentCurrency={currentCurrency}
 						conversionRate={conversionRate}
 						tokenBalances={tokenBalances}
 						tokenExchangeRates={tokenExchangeRates}
 					/>
 					<Collectibles
-						navigation={this.props.navigation}
+						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
 						assets={collectibles}
 					/>
 				</ScrollableTabView>
+			</View>
+		);
+	}
+
+	renderLoader() {
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	}
+
+	render() {
+		return (
+			<View style={styles.wrapper} testID={'wallet-screen'}>
+				{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
 			</View>
 		);
 	}

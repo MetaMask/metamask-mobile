@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { AsyncStorage, ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from 'react-native-button';
+import { getOnboardingNavbarOptions } from '../Navbar';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import Engine from '../../core/Engine';
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
@@ -12,18 +13,9 @@ import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.white,
 		flex: 1,
 		padding: 20
-	},
-	logoWrapper: {
-		marginTop: Platform.OS === 'android' ? 20 : 50,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	image: {
-		width: 100,
-		height: 100
 	},
 	title: {
 		fontSize: Platform.OS === 'android' ? 20 : 25,
@@ -53,16 +45,9 @@ const styles = StyleSheet.create({
 	ctaWrapper: {
 		marginTop: 20
 	},
-	footer: {
-		marginTop: 40
-	},
 	errorMsg: {
 		color: colors.error,
 		textAlign: 'center',
-		...fontStyles.normal
-	},
-	seed: {
-		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
 	seedPhrase: {
@@ -76,6 +61,8 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		borderRadius: 10,
 		height: 110,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
 		...fontStyles.normal
 	}
 });
@@ -87,24 +74,13 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * using a seed phrase
  */
 export default class ImportFromSeed extends Component {
+	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+
 	static propTypes = {
 		/**
-		 * Function that will be called once the form is submitted
+		 * The navigator object
 		 */
-		onImportFromSeed: PropTypes.func,
-		/**
-		 * Boolean that lets the view know if the parent is doing any processing
-		 * and if that's the case, show a spinner
-		 */
-		loading: PropTypes.bool,
-		/**
-		 * String that contains any error message
-		 */
-		error: PropTypes.string,
-		/**
-		 * Function that will toggle the visibility of this view
-		 */
-		toggleImportFromSeed: PropTypes.func
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -112,19 +88,15 @@ export default class ImportFromSeed extends Component {
 		confirmPassword: '',
 		seed: '',
 		biometryType: null,
-		biometryChoice: false
+		biometryChoice: false,
+		loading: false,
+		error: null
 	};
 
 	mounted = true;
 
 	passwordInput = React.createRef();
 	confirmPasswordInput = React.createRef();
-
-	componentDidMount() {
-		Keychain.getSupportedBiometryType().then(biometryType => {
-			this.mounted && this.setState({ biometryType, biometryChoice: true });
-		});
-	}
 
 	componentWillUnmount() {
 		this.mounted = false;
@@ -146,6 +118,13 @@ export default class ImportFromSeed extends Component {
 			Alert.alert('Error', error);
 		} else {
 			try {
+				this.setState({ loading: true });
+
+				const biometryType = await Keychain.getSupportedBiometryType();
+				if (biometryType) {
+					this.setState({ biometryType, biometryChoice: true });
+				}
+
 				const authOptions = {
 					accessControl: this.state.biometryChoice
 						? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -154,7 +133,13 @@ export default class ImportFromSeed extends Component {
 					authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
 				};
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-				this.props.onImportFromSeed(this.state.password, this.state.seed);
+				const { KeyringController } = Engine.context;
+
+				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
+				// mark the user as existing so it doesn't see the create password screen again
+				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+				this.setState({ loading: false });
+				this.props.navigation.navigate('HomeNav');
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -162,12 +147,13 @@ export default class ImportFromSeed extends Component {
 						'Security Alert',
 						'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 					);
+					this.setState({ loading: false });
+				} else {
+					this.setState({ loading: false, error: error.toString() });
 				}
 			}
 		}
 	};
-
-	onCancel = () => this.props.toggleImportFromSeed();
 
 	onBiometryChoiceChange = value => {
 		this.setState({ biometryChoice: value });
@@ -200,13 +186,6 @@ export default class ImportFromSeed extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'import-from-seed-screen'}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						</View>
 						<Text style={styles.title}>{strings('importFromSeed.title')}</Text>
 						<TextInput
 							value={this.state.seedWords}
@@ -251,21 +230,15 @@ export default class ImportFromSeed extends Component {
 							/>
 						</View>
 
-						{this.props.error && <Text style={styles.errorMsg}>{this.props.error}</Text>}
+						{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 						<View style={styles.ctaWrapper}>
-							<StyledButton type={'orange'} onPress={this.onPressImport} testID={'submit'}>
-								{this.props.loading ? (
+							<StyledButton type={'blue'} onPress={this.onPressImport} testID={'submit'}>
+								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
 									strings('importFromSeed.import_button')
 								)}
 							</StyledButton>
-						</View>
-
-						<View style={styles.footer}>
-							<Button style={styles.seed} onPress={this.onCancel}>
-								{strings('importFromSeed.cancel_button')}
-							</Button>
 						</View>
 					</View>
 				</KeyboardAwareScrollView>

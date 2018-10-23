@@ -8,7 +8,7 @@
 		"login_button": "INGRESAR",
 		"import_with_seed_phrase": "Importar con frase semilla"
 	},
-	"createPassword": {
+	"createWallet": {
 		"title": "Crear Contraseña",
 		"new_password": "Nueva Contraseña (min. 8 caracteres)",
 		"confirm_password": "Confirmar Contraseña",

@@ -11,13 +11,12 @@ export const colors = {
 	asphalt: '#747d8c',
 	black: '#000000',
 	beige: '#f9fafa',
-	blue: '#2f9ae0',
 	borderColor: '#CCCCCC',
 	borderRed: '#d0021b',
 	concrete: '#f1f2f6',
 	copy: '#4d4d4d',
 	error: '#FF0000',
-	fontPrimary: '#333333',
+	fontPrimary: '#4a4a4a',
 	fontSecondary: '#999999',
 	fontTertiary: '#AAAAAA',
 	gray: '#5d5d5d',
@@ -26,7 +25,7 @@ export const colors = {
 	inputBorderColor: '#dedede',
 	lightGray: '#d2d8dd',
 	lightRed: '#fff1f2',
-	primary: '#007aff',
+	primary: '#008edf',
 	primaryFox: '#f7861ce6',
 	red: '#f00',
 	slate: '#dfe4ea',
@@ -34,7 +33,10 @@ export const colors = {
 	tar: '#2f3542',
 	title: '#1B344D',
 	white: '#FFFFFF',
-	success: '#8dc63f'
+	success: '#5ea40c',
+	lightSuccess: '#eafad7',
+	warning: '#CA810A',
+	lightWarning: '#FFF2DB'
 };
 
 /**

@@ -11,7 +11,7 @@ exports[`Screen should render correctly 1`] = `
   <Component
     style={
       Object {
-        "backgroundColor": "#f1f2f6",
+        "backgroundColor": "#FFFFFF",
         "height": 1334,
         "left": 0,
         "position": "absolute",
