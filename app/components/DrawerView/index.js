@@ -407,7 +407,9 @@ class DrawerView extends Component {
 									testID={'navbar-account-button'}
 								>
 									<View style={styles.accountNameWrapper}>
-										<Text style={styles.accountName}>{account.name}</Text>
+										<Text style={styles.accountName} numberOfLines={1}>
+											{account.name}
+										</Text>
 										<Icon name="caret-down" size={24} style={styles.caretDown} />
 									</View>
 									<Text style={styles.accountBalance}>{account.balance} ETH</Text>

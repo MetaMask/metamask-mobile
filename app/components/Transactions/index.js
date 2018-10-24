@@ -208,6 +208,22 @@ export default class Transactions extends Component {
 		);
 	}
 
+	renderTxHash(transactionHash) {
+		if (!transactionHash) return null;
+		return (
+			<View>
+				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
+						0,
+						20
+					)} ... ${transactionHash.substr(-20)}`}</Text>
+					{this.renderCopyIcon(transactionHash)}
+				</View>
+			</View>
+		);
+	}
+
 	renderTxDetails(tx) {
 		const {
 			transaction: { gas, gasPrice, value, to, from },
@@ -220,14 +236,7 @@ export default class Transactions extends Component {
 
 		return (
 			<View style={styles.detailRowWrapper}>
-				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
-						0,
-						20
-					)} ... ${transactionHash.substr(-20)}`}</Text>
-					{this.renderCopyIcon(transactionHash)}
-				</View>
+				{this.renderTxHash(transactionHash)}
 				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={styles.detailRowText}>{renderFullAddress(from)}</Text>

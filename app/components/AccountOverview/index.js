@@ -78,7 +78,8 @@ const styles = StyleSheet.create({
 		paddingLeft: 0
 	},
 	depositIcon: {
-		marginTop: -5
+		marginTop: -5,
+		marginLeft: -0.5
 	},
 	copyIcon: {
 		marginLeft: -1

@@ -76,7 +76,7 @@ class Asset extends Component {
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
 				<View testID={'asset'}>
 					<View style={styles.assetOverviewWrapper}>
-						<AssetOverview asset={navigation && params} />
+						<AssetOverview navigation={navigation} asset={navigation && params} />
 					</View>
 					<View style={styles.wrapper}>
 						<Transactions
