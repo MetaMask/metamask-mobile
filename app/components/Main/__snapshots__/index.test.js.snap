@@ -29,27 +29,16 @@ exports[`Main should render correctly 1`] = `
             "getScreenOptions": [Function],
             "getStateForAction": [Function],
           },
-          "Transfer": Object {
-            "childRouters": Object {
-              "TransactionSubmitted": null,
-              "TransferView": null,
-            },
-            "getActionCreators": [Function],
-            "getActionForPathAndParams": [Function],
-            "getComponentForRouteName": [Function],
-            "getComponentForState": [Function],
-            "getPathAndParamsForState": [Function],
-            "getScreenOptions": [Function],
-            "getStateForAction": [Function],
-          },
           "Wallet": Object {
             "childRouters": Object {
               "AccountDetails": null,
               "AddAsset": null,
               "Asset": null,
               "NetworkSettings": null,
+              "ReceiveScreen": null,
               "RevealPrivateCredential": null,
               "SeedWords": null,
+              "SendScreen": null,
               "Settings": null,
               "SyncWithExtension": null,
               "Wallet": null,
@@ -99,19 +88,6 @@ exports[`Main should render correctly 1`] = `
               Object {
                 "key": "id-123-1",
                 "routeName": "Wallet",
-              },
-            ],
-          },
-          Object {
-            "index": 0,
-            "isTransitioning": false,
-            "key": "Transfer",
-            "params": undefined,
-            "routeName": "Transfer",
-            "routes": Array [
-              Object {
-                "key": "id-123-2",
-                "routeName": "TransferView",
               },
             ],
           },
