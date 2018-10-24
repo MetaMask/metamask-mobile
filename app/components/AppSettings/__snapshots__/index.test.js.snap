@@ -427,6 +427,7 @@ exports[`AppSettings should render correctly 1`] = `
       <Picker
         mode="dialog"
         onValueChange={[Function]}
+        selectedValue="en"
       >
         <PickerItem
           key="en"
