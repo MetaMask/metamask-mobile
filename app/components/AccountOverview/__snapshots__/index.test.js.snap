@@ -176,6 +176,7 @@ exports[`AccountOverview should render correctly 1`] = `
                 "width": 24,
               },
               Object {
+                "marginLeft": -0.5,
                 "marginTop": -5,
               },
             ]
