@@ -233,7 +233,6 @@ class Wallet extends Component {
 						transactions={transactions}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
-						adjustScroll={this.adjustScroll}
 					/>
 				</ScrollableTabView>
 			</View>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBottomTabNavigator } from 'react-navigation';
+import { createSwitchNavigator } from 'react-navigation';
 import { createIconSetFromFontello } from 'react-native-vector-icons';
 import { StyleSheet } from 'react-native';
 
@@ -15,7 +15,7 @@ import { strings } from '../../../locales/i18n';
  * Navigator component that wraps the
  * three main tabs: Browser, Wallet, Transfer
  */
-export default createBottomTabNavigator(
+export default createSwitchNavigator(
 	{
 		Browser: {
 			screen: BrowserScreen,

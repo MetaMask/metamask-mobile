@@ -51,7 +51,15 @@
 	"drawer": {
 		"send_button": "Send",
 		"deposit_button": "Deposit",
-		"coming_soon": "Coming soon..."
+		"coming_soon": "Coming soon...",
+		"tokens": "Tokens",
+		"collectibles": "Collectibles",
+		"transactionHistory": "Transaction History",
+		"copyAddress": "Copy address to clipboard",
+		"viewInEtherscan": "View in etherscan",
+		"dappBrowser": "Go to Dapp Browser",
+		"settings": "Settings",
+		"help": "Help"
 	},
 	"send": {
 		"title": "Send"

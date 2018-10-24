@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity, Clipboard } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Clipboard } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
@@ -11,7 +11,7 @@ import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.white,
 		flex: 1
 	},
 	emptyView: {
@@ -193,7 +193,7 @@ export default class Transactions extends Component {
 		const show = this.state.selectedTx !== hash;
 		this.setState({ selectedTx: show ? hash : null });
 		if (show) {
-			this.props.adjustScroll(index);
+			this.props.adjustScroll && this.props.adjustScroll(index);
 		}
 	}
 
@@ -297,7 +297,7 @@ export default class Transactions extends Component {
 		transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
 		return (
-			<View style={styles.wrapper}>
+			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>
 					{transactions.map((tx, i) => (
 						<TouchableOpacity
@@ -336,7 +336,7 @@ export default class Transactions extends Component {
 						</TouchableOpacity>
 					))}
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 }

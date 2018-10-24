@@ -199,7 +199,7 @@ class DrawerView extends Component {
 		this.props.navigation.navigate('Wallet', { page: 0 });
 		setTimeout(() => {
 			this.props.navigation.navigate('ReceiveScreen');
-		}, 1000);
+		}, 300);
 	};
 
 	onDeposit = () => {
@@ -211,17 +211,22 @@ class DrawerView extends Component {
 		this.props.navigation.navigate('Wallet', { page: 0 });
 		setTimeout(() => {
 			this.props.navigation.navigate('SendScreen');
-		}, 1000);
+		}, 300);
 	};
 
 	async goToWalletTab(tabIndex) {
 		await this.hideDrawer();
-		this.props.navigation.navigate('Wallet', { page: tabIndex });
+		this.props.navigation.navigate('Wallet', { page: 0 });
+		setTimeout(() => {
+			this.props.navigation.navigate('Wallet', { page: tabIndex });
+		}, 300);
 	}
 
 	goToBrowser = async () => {
 		await this.hideDrawer();
-		this.props.navigation.navigate('BrowserView');
+		setTimeout(() => {
+			this.props.navigation.navigate('BrowserView');
+		}, 300);
 	};
 
 	showTokens = () => {
@@ -244,7 +249,9 @@ class DrawerView extends Component {
 
 	showSettings = async () => {
 		await this.hideDrawer();
-		this.props.navigation.navigate('Settings');
+		setTimeout(() => {
+			this.props.navigation.navigate('Settings');
+		}, 300);
 	};
 
 	viewInEtherscan = () => {
@@ -276,18 +283,18 @@ class DrawerView extends Component {
 
 	sections = [
 		[
-			{ name: 'Tokens', icon: 'list', action: this.showTokens },
-			{ name: 'Collectibles', icon: 'list', action: this.showCollectibles },
-			{ name: 'Transaction History', icon: 'list', action: this.showTransactionHistory }
+			{ name: strings('drawer.tokens'), icon: 'list', action: this.showTokens },
+			{ name: strings('drawer.collectibles'), icon: 'list', action: this.showCollectibles },
+			{ name: strings('drawer.transactionHistory'), icon: 'list', action: this.showTransactionHistory }
 		],
 		[
-			{ name: 'Copy address to clipboard', icon: 'copy', action: this.copyAddressToClipboard },
-			{ name: 'View in etherscan', icon: 'eye', action: this.viewInEtherscan }
+			{ name: strings('drawer.copyAddress'), icon: 'copy', action: this.copyAddressToClipboard },
+			{ name: strings('drawer.viewInEtherscan'), icon: 'eye', action: this.viewInEtherscan }
 		],
 		[
-			{ name: 'Go to Browser', icon: 'globe', action: this.goToBrowser },
-			{ name: 'Settings', icon: 'cogs', action: this.showSettings },
-			{ name: 'Help', icon: 'question-circle', action: this.showHelp }
+			{ name: strings('drawer.dappBrowser'), icon: 'globe', action: this.goToBrowser },
+			{ name: strings('drawer.settings'), icon: 'cogs', action: this.showSettings },
+			{ name: strings('drawer.help'), icon: 'question-circle', action: this.showHelp }
 		]
 	];
 
