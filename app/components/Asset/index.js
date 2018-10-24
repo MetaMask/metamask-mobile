@@ -8,7 +8,7 @@ import Transactions from '../Transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.slate,
+		backgroundColor: colors.white,
 		flex: 1
 	},
 	assetOverviewWrapper: {
@@ -78,7 +78,7 @@ class Asset extends Component {
 					<View style={styles.assetOverviewWrapper}>
 						<AssetOverview asset={navigation && params} />
 					</View>
-					<View>
+					<View style={styles.wrapper}>
 						<Transactions
 							navigation={navigation}
 							transactions={transactions}

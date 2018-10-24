@@ -134,7 +134,7 @@ class AccountDetails extends Component {
 		const url = `https://etherscan.io/address/${selectedAddress}`;
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('BrowserView', {
+			this.props.navigation.navigate('Browser', {
 				url
 			});
 		});

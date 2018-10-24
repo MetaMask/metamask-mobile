@@ -2,9 +2,7 @@ import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
-import { View, Platform, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import Icon from 'react-native-vector-icons/Foundation';
-import { colors } from '../../styles/common';
+import { View, Platform, StyleSheet, Image } from 'react-native';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -33,15 +31,7 @@ export default function getNavbarOptions(title, navigation) {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerTruncatedBackTitle: strings('navigation.back'),
-		headerRight: (
-			<TouchableOpacity
-				testID={'navbar-settings-button'}
-				style={styles.rightButton}
-				onPress={() => navigation.navigate('Settings')} // eslint-disable-line react/jsx-no-bind
-			>
-				<Icon name="widget" size={28} color={colors.fontTertiary} />
-			</TouchableOpacity>
-		)
+		headerRight: null
 	};
 }
 
@@ -63,7 +53,7 @@ export function getModalNavbarOptions(title) {
 export function getOnboardingNavbarOptions() {
 	return {
 		headerStyle: {
-			shadowColor: 'red',
+			shadowColor: 'transparent',
 			elevation: 0,
 			backgroundColor: 'white',
 			borderBottomWidth: 0

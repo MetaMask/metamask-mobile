@@ -11,7 +11,19 @@ import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete
+		backgroundColor: colors.concrete,
+		flex: 1
+	},
+	emptyView: {
+		paddingTop: 80,
+		alignItems: 'center',
+		backgroundColor: colors.white,
+		flex: 1
+	},
+	text: {
+		fontSize: 20,
+		color: colors.fontTertiary,
+		...fontStyles.normal
 	},
 	row: {
 		backgroundColor: colors.white,
@@ -268,8 +280,20 @@ export default class Transactions extends Component {
 		return null;
 	}
 
+	renderEmpty() {
+		return (
+			<View style={styles.emptyView}>
+				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+			</View>
+		);
+	}
+
 	render() {
 		const { transactions, currentCurrency, conversionRate } = this.props;
+		if (!transactions.length) {
+			return this.renderEmpty();
+		}
+
 		transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
 		return (

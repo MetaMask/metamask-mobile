@@ -1,0 +1,390 @@
+import React, { Component } from 'react';
+import {
+	Alert,
+	Clipboard,
+	Platform,
+	ImageBackground,
+	TouchableOpacity,
+	SafeAreaView,
+	View,
+	Image,
+	StyleSheet,
+	Text
+} from 'react-native';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import FoundationIcon from 'react-native-vector-icons/Foundation';
+import { colors, fontStyles } from '../../styles/common';
+import Networks from '../../util/networks';
+import Identicon from '../Identicon';
+import StyledButton from '../StyledButton';
+import { fromWei } from '../../util/number';
+import Logger from '../../util/Logger';
+import { strings } from '../../../locales/i18n';
+import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+
+const styles = StyleSheet.create({
+	wrapper: {
+		flex: 1,
+		backgroundColor: colors.white
+	},
+	header: {
+		flexDirection: 'column',
+		paddingBottom: 17
+	},
+	network: {
+		flexDirection: 'row',
+		alignSelf: 'flex-end',
+		marginRight: 17,
+		marginTop: -13
+	},
+	networkName: {
+		textAlign: 'right',
+		fontSize: 11,
+		color: colors.fontSecondary,
+		...fontStyles.normal
+	},
+	networkIcon: {
+		width: 5,
+		height: 5,
+		borderRadius: 100,
+		marginRight: 5,
+		marginTop: 5
+	},
+	metamaskName: {
+		width: 94,
+		height: 12,
+		marginTop: 17,
+		marginLeft: 17,
+		marginRight: 50
+	},
+	account: {
+		backgroundColor: colors.white
+	},
+	accountBg: {
+		width: '100%',
+		height: 150
+	},
+	accountBgOverlay: {
+		backgroundColor: colors.overlay,
+		padding: 17
+	},
+	identiconWrapper: {
+		marginBottom: 12
+	},
+	accountName: {
+		fontSize: 20,
+		lineHeight: 24,
+		color: colors.white,
+		...fontStyles.normal
+	},
+	accountBalance: {
+		fontSize: 12,
+		lineHeight: 16,
+		color: colors.white,
+		...fontStyles.normal
+	},
+	accountAddress: {
+		fontSize: 12,
+		lineHeight: 16,
+		color: colors.white,
+		...fontStyles.normal
+	},
+	qrCodeWrapper: {
+		position: 'absolute',
+		right: 17,
+		top: 17
+	},
+	qrIcon: {
+		color: colors.white
+	},
+	buttons: {
+		flexDirection: 'row',
+		padding: 17
+	},
+	button: {
+		flex: 1,
+		flexDirection: 'row',
+		borderRadius: 30,
+		borderWidth: 1
+	},
+	leftButton: {
+		marginRight: 5
+	},
+	rightButton: {
+		marginLeft: 5
+	},
+	buttonText: {
+		marginLeft: Platform.OS === 'ios' ? 8 : 28,
+		marginTop: Platform.OS === 'ios' ? 0 : -17,
+		fontSize: 15,
+		color: colors.primary,
+		...fontStyles.normal
+	},
+	buttonContent: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'center'
+	},
+	buttonIcon: {
+		width: 15,
+		height: 15,
+		marginTop: Platform.OS === 'ios' ? 0 : 7
+	},
+	menu: {
+		marginLeft: 17
+	},
+	menuSection: {
+		borderTopWidth: 1,
+		borderColor: colors.borderColor,
+		paddingVertical: 12
+	},
+	menuItem: {
+		flexDirection: 'row',
+		paddingVertical: 12
+	},
+	menuItemName: {
+		paddingLeft: 10,
+		paddingTop: 2,
+		fontSize: 16,
+		color: colors.gray,
+		...fontStyles.normal
+	},
+	menuItemIcon: {
+		fontSize: 24,
+		color: colors.gray,
+		...fontStyles.normal
+	}
+});
+
+const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
+
+/**
+ * View component that displays the MetaMask fox
+ * in the middle of the screen
+ */
+class DrawerView extends Component {
+	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object,
+		/**
+		 * Object representing the selected the selected network
+		 */
+		network: PropTypes.object.isRequired,
+		/**
+		 * Selected address as string
+		 */
+		selectedAddress: PropTypes.string,
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
+		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object
+	};
+
+	onAccountPress = () => {
+		Logger.log('Should show account list');
+	};
+
+	showQrCode = async () => {
+		await this.hideDrawer();
+		this.props.navigation.navigate('Wallet', { page: 0 });
+		setTimeout(() => {
+			this.props.navigation.navigate('ReceiveScreen');
+		}, 1000);
+	};
+
+	onDeposit = () => {
+		Alert.alert(strings('drawer.coming_soon'));
+	};
+
+	onSend = async () => {
+		await this.hideDrawer();
+		this.props.navigation.navigate('Wallet', { page: 0 });
+		setTimeout(() => {
+			this.props.navigation.navigate('SendScreen');
+		}, 1000);
+	};
+
+	async goToWalletTab(tabIndex) {
+		await this.hideDrawer();
+		this.props.navigation.navigate('Wallet', { page: tabIndex });
+	}
+
+	goToBrowser = async () => {
+		await this.hideDrawer();
+		this.props.navigation.navigate('BrowserView');
+	};
+
+	showTokens = () => {
+		this.goToWalletTab(0);
+	};
+
+	showCollectibles = () => {
+		this.goToWalletTab(1);
+	};
+
+	showTransactionHistory = () => {
+		this.goToWalletTab(2);
+	};
+
+	copyAddressToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
+		Alert.alert(strings('accountDetails.accountCopiedToClipboard'));
+	};
+
+	showSettings = async () => {
+		await this.hideDrawer();
+		this.props.navigation.navigate('Settings');
+	};
+
+	viewInEtherscan = () => {
+		const { selectedAddress, network } = this.props;
+		const isRopsten = network.provider.type === 'ropsten';
+		const url = `https://${isRopsten ? 'ropsten.' : ''}etherscan.io/address/${selectedAddress}`;
+		this.goToBrowserUrl(url);
+	};
+
+	showHelp = () => {
+		this.goToBrowserUrl('https://support.metamask.io');
+	};
+
+	async goToBrowserUrl(url) {
+		await this.hideDrawer();
+		this.props.navigation.navigate('BrowserView', {
+			url
+		});
+	}
+
+	hideDrawer() {
+		return new Promise(resolve => {
+			this.props.navigation.dispatch(DrawerActions.closeDrawer());
+			setTimeout(() => {
+				resolve();
+			}, 300);
+		});
+	}
+
+	sections = [
+		[
+			{ name: 'Tokens', icon: 'list', action: this.showTokens },
+			{ name: 'Collectibles', icon: 'list', action: this.showCollectibles },
+			{ name: 'Transaction History', icon: 'list', action: this.showTransactionHistory }
+		],
+		[
+			{ name: 'Copy address to clipboard', icon: 'copy', action: this.copyAddressToClipboard },
+			{ name: 'View in etherscan', icon: 'eye', action: this.viewInEtherscan }
+		],
+		[
+			{ name: 'Go to Browser', icon: 'globe', action: this.goToBrowser },
+			{ name: 'Settings', icon: 'cogs', action: this.showSettings },
+			{ name: 'Help', icon: 'question-circle', action: this.showHelp }
+		]
+	];
+
+	render() {
+		const { network, accounts, identities, selectedAddress } = this.props;
+		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+		account.balance = fromWei(accounts[selectedAddress].balance, 'ether');
+		const { color, name } = Networks[network.provider.type];
+
+		return (
+			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
+				<View style={styles.header}>
+					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+					<View style={styles.network}>
+						<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
+						<Text style={styles.networkName} testID={'navbar-title-network'}>
+							{name}
+						</Text>
+					</View>
+				</View>
+				<View style={styles.account}>
+					<ImageBackground
+						source={require('../../images/drawer-bg.png')}
+						style={styles.accountBg}
+						resizeMode={'cover'}
+					>
+						<View style={styles.accountBgOverlay}>
+							<TouchableOpacity
+								style={styles.identiconWrapper}
+								onPress={this.onAccountPress}
+								testID={'navbar-account-button'}
+							>
+								<Identicon diameter={48} address={selectedAddress} />
+							</TouchableOpacity>
+							<View style={styles.accountInfo}>
+								<Text style={styles.accountName}>{account.name}</Text>
+								<Text style={styles.accountBalance}>{account.balance} ETH</Text>
+								<Text style={styles.accountAddress}>{`${account.address.substr(
+									0,
+									4
+								)}...${account.address.substr(-4)}`}</Text>
+							</View>
+						</View>
+						<TouchableOpacity
+							style={styles.qrCodeWrapper}
+							onPress={this.onAccountPress}
+							testID={'navbar-account-button'}
+						>
+							<Icon name="qrcode" onPress={this.showQrCode} size={32} style={styles.qrIcon} />
+						</TouchableOpacity>
+					</ImageBackground>
+				</View>
+				<View style={styles.buttons}>
+					<StyledButton
+						type={'normal'}
+						onPress={this.onSend}
+						containerStyle={[styles.button, styles.leftButton]}
+						style={styles.buttonContent}
+					>
+						<MaterialIcon name={'send'} size={15} color={colors.primary} style={styles.buttonIcon} />
+						<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+					</StyledButton>
+					<StyledButton
+						type={'normal'}
+						onPress={this.onDeposit}
+						containerStyle={[styles.button, styles.rightButton]}
+						style={styles.buttonContent}
+					>
+						<FoundationIcon name={'download'} size={20} color={colors.primary} style={styles.buttonIcon} />
+						<Text style={styles.buttonText}>{strings('drawer.deposit_button')}</Text>
+					</StyledButton>
+				</View>
+				<View style={styles.menu}>
+					{this.sections.map((section, i) => (
+						<View key={`section_${i}`} style={styles.menuSection}>
+							{section.map((item, j) => (
+								<TouchableOpacity
+									key={`item_${i}_${j}`}
+									style={styles.menuItem}
+									onPress={() => item.action()}
+								>
+									<Icon name={item.icon} size={item.iconSize || 32} style={styles.menuItemIcon} />
+									<Text style={styles.menuItemName}>{item.name}</Text>
+								</TouchableOpacity>
+							))}
+						</View>
+					))}
+				</View>
+			</SafeAreaView>
+		);
+	}
+}
+
+const mapStateToProps = state => ({
+	network: state.backgroundState.NetworkController,
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.backgroundState.AccountTrackerController.accounts,
+	identities: state.backgroundState.PreferencesController.identities
+});
+export default connect(mapStateToProps)(DrawerView);

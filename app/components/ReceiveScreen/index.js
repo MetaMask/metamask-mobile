@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode';
 import StyledButton from '../StyledButton';
+import NavbarTitle from '../NavbarTitle';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../util/Logger';
 import { strings } from '../../../locales/i18n';
@@ -50,6 +51,16 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Receive" screen
  */
 class ReceiveScreen extends Component {
+	static navigationOptions = {
+		headerTitle: <NavbarTitle title={strings('receive.title')} />,
+		headerTruncatedBackTitle: strings('navigation.back'),
+		headerBackTitle: strings('navigation.back'),
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		}
+	};
+
 	static propTypes = {
 		/**
 		 * String that represents the selected address

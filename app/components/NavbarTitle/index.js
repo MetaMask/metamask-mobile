@@ -29,6 +29,10 @@ const styles = StyleSheet.create({
 		width: 94,
 		height: 12,
 		marginBottom: 5
+	},
+	title: {
+		fontSize: 18,
+		...fontStyles.normal
 	}
 });
 
@@ -43,15 +47,23 @@ class NavbarTitle extends Component {
 		/**
 		 * Object representing the selected the selected network
 		 */
-		network: PropTypes.object.isRequired
+		network: PropTypes.object.isRequired,
+		/**
+		 * Name of the current view
+		 */
+		title: PropTypes.string.isRequired
 	};
 
 	render() {
-		const { network } = this.props;
+		const { network, title } = this.props;
 		const { color, name } = Networks[network.provider.type];
 		return (
 			<View style={styles.wrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				{!title ? (
+					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				) : (
+					<Text style={styles.title}>{title}</Text>
+				)}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
