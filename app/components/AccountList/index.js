@@ -1,23 +1,28 @@
 import React, { Component } from 'react';
-import Button from '../Button';
 import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
-import { connect } from 'react-redux';
 import { fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete,
-		flex: 1
+		backgroundColor: colors.white,
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10,
+		minHeight: 450
+	},
+	titleWrapper: {
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor
 	},
 	title: {
-		fontSize: 25,
-		marginVertical: 30,
+		textAlign: 'center',
+		fontSize: 18,
+		marginVertical: 12,
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
 		...fontStyles.bold
@@ -26,12 +31,15 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	account: {
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
 		flexDirection: 'row',
-		marginLeft: 20,
-		marginBottom: 20
+		paddingHorizontal: 20,
+		paddingVertical: 20
 	},
 	accountInfo: {
-		marginLeft: 15
+		marginLeft: 15,
+		flex: 1
 	},
 	accountLabel: {
 		fontSize: 18,
@@ -45,26 +53,29 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	selected: {
-		width: 30,
-		marginRight: 15
+		marginRight: 15,
+		alignContent: 'flex-end'
 	},
 	footer: {
+		borderTopWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
 		height: 80,
-		justifyContent: 'flex-end',
+		justifyContent: 'center',
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
+		paddingBottom: 30
 	},
-	icon: {
-		height: 50,
-		width: 10,
-		backgroundColor: colors.concrete
+	addAccountText: {
+		fontSize: 16,
+		color: colors.primary,
+		...fontStyles.normal
 	}
 });
 
 /**
  * View that contains the list of all the available accounts
  */
-class AccountList extends Component {
+export default class AccountList extends Component {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
@@ -143,7 +154,7 @@ class AccountList extends Component {
 				balance = accounts[key].balance;
 			}
 			const selected =
-				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
+				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.success} /> : null;
 
 			return (
 				<TouchableOpacity
@@ -151,12 +162,12 @@ class AccountList extends Component {
 					key={`account-${address}`}
 					onPress={() => this.onAccountChange(i)} // eslint-disable-line
 				>
-					<View style={styles.selected}>{selected}</View>
 					<Identicon address={address} diameter={38} />
 					<View style={styles.accountInfo}>
 						<Text style={styles.accountLabel}>{name}</Text>
 						<Text style={styles.accountBalance}>{fromWei(balance, 'ether')} ETH</Text>
 					</View>
+					<View style={styles.selected}>{selected}</View>
 				</TouchableOpacity>
 			);
 		});
@@ -165,26 +176,18 @@ class AccountList extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
-				<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
-					{strings('accounts.title')}
-				</Text>
-				<View style={styles.accountsWrapper}>{this.renderAccounts()}</View>
+				<View style={styles.titleWrapper}>
+					<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
+						{strings('accounts.title')}
+					</Text>
+				</View>
+				<ScrollView style={styles.accountsWrapper}>{this.renderAccounts()}</ScrollView>
 				<View style={styles.footer}>
-					<Button style={[styles.icon, styles.left]} onPress={this.addAccount}>
-						<Icon name="plus" testID={'add-account-button'} size={30} color={colors.fontSecondary} />
-					</Button>
-					<Button style={[styles.icon, styles.right]} onPress={this.openAccountSettings}>
-						<Icon name="cog" size={30} color={colors.fontSecondary} />
-					</Button>
+					<TouchableOpacity onPress={this.addAccount}>
+						<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
+					</TouchableOpacity>
 				</View>
 			</SafeAreaView>
 		);
 	}
 }
-
-const mapStateToProps = state => ({
-	accounts: state.backgroundState.AccountTrackerController.accounts,
-	identities: state.backgroundState.PreferencesController.identities,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
-});
-export default connect(mapStateToProps)(AccountList);

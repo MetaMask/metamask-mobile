@@ -115,7 +115,8 @@
 		"receive": "RECEIVE"
 	},
 	"accounts": {
-		"title": "My Accounts"
+		"title": "Accounts",
+		"create_new_account": "Create new account"
 	},
 	"settings": {
 		"title": "Settings",

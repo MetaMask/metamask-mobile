@@ -9,7 +9,8 @@ import {
 	View,
 	Image,
 	StyleSheet,
-	Text
+	Text,
+	ScrollView
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -20,10 +21,12 @@ import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
+import AccountList from '../AccountList';
 import { fromWei } from '../../util/number';
 import Logger from '../../util/Logger';
 import { strings } from '../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import Modal from 'react-native-modal';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -153,14 +156,22 @@ const styles = StyleSheet.create({
 		color: colors.gray,
 		...fontStyles.normal
 	},
-	menuItemIcon: {
-		fontSize: 24,
-		color: colors.gray,
-		...fontStyles.normal
+	menuItemIconImage: {
+		width: 24,
+		height: 24
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
 const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
+const ICON_IMAGES = {
+	tokens: require('../../images/tokens-icon.png'),
+	collectibles: require('../../images/collectibles-icon.png'),
+	'tx-history': require('../../images/tx-history-icon.png')
+};
 
 /**
  * View component that displays the MetaMask fox
@@ -190,8 +201,18 @@ class DrawerView extends Component {
 		identities: PropTypes.object
 	};
 
+	state = {
+		accountsModalVisible: false
+	};
+
 	onAccountPress = () => {
 		Logger.log('Should show account list');
+		this.setState({ accountsModalVisible: true });
+	};
+
+	hideAccountsModal = () => {
+		Logger.log('Should show account list');
+		this.setState({ accountsModalVisible: false });
 	};
 
 	showQrCode = async () => {
@@ -281,108 +302,166 @@ class DrawerView extends Component {
 		});
 	}
 
+	getIcon(name, size) {
+		return <Icon name={name} size={size || 24} color={colors.gray} />;
+	}
+
+	getImageIcon(name) {
+		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
+	}
+
 	sections = [
 		[
-			{ name: strings('drawer.tokens'), icon: 'list', action: this.showTokens },
-			{ name: strings('drawer.collectibles'), icon: 'list', action: this.showCollectibles },
-			{ name: strings('drawer.transactionHistory'), icon: 'list', action: this.showTransactionHistory }
+			{
+				name: strings('drawer.tokens'),
+				icon: this.getImageIcon('tokens'),
+				action: this.showTokens
+			},
+			{
+				name: strings('drawer.collectibles'),
+				icon: this.getImageIcon('collectibles'),
+				action: this.showCollectibles
+			},
+			{
+				name: strings('drawer.transactionHistory'),
+				icon: this.getImageIcon('tx-history'),
+				action: this.showTransactionHistory
+			}
 		],
 		[
-			{ name: strings('drawer.copyAddress'), icon: 'copy', action: this.copyAddressToClipboard },
-			{ name: strings('drawer.viewInEtherscan'), icon: 'eye', action: this.viewInEtherscan }
+			{
+				name: strings('drawer.copyAddress'),
+				icon: this.getIcon('copy'),
+				action: this.copyAddressToClipboard
+			},
+			{
+				name: strings('drawer.viewInEtherscan'),
+				icon: this.getIcon('eye'),
+				action: this.viewInEtherscan
+			}
 		],
 		[
-			{ name: strings('drawer.dappBrowser'), icon: 'globe', action: this.goToBrowser },
-			{ name: strings('drawer.settings'), icon: 'cogs', action: this.showSettings },
-			{ name: strings('drawer.help'), icon: 'question-circle', action: this.showHelp }
+			{
+				name: strings('drawer.dappBrowser'),
+				icon: this.getIcon('globe'),
+				action: this.goToBrowser
+			},
+			{
+				name: strings('drawer.settings'),
+				icon: this.getIcon('cogs'),
+				action: this.showSettings
+			},
+			{
+				name: strings('drawer.help'),
+				icon: this.getIcon('question-circle'),
+				action: this.showHelp
+			}
 		]
 	];
 
 	render() {
 		const { network, accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-		account.balance = fromWei(accounts[selectedAddress].balance, 'ether');
+		account.balance = (accounts[selectedAddress] && fromWei(accounts[selectedAddress].balance, 'ether')) || 0;
 		const { color, name } = Networks[network.provider.type];
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
-				<View style={styles.header}>
-					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
-					<View style={styles.network}>
-						<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
-						<Text style={styles.networkName} testID={'navbar-title-network'}>
-							{name}
-						</Text>
+				<ScrollView>
+					<View style={styles.header}>
+						<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+						<View style={styles.network}>
+							<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
+							<Text style={styles.networkName} testID={'navbar-title-network'}>
+								{name}
+							</Text>
+						</View>
 					</View>
-				</View>
-				<View style={styles.account}>
-					<ImageBackground
-						source={require('../../images/drawer-bg.png')}
-						style={styles.accountBg}
-						resizeMode={'cover'}
-					>
-						<View style={styles.accountBgOverlay}>
+					<View style={styles.account}>
+						<ImageBackground
+							source={require('../../images/drawer-bg.png')}
+							style={styles.accountBg}
+							resizeMode={'cover'}
+						>
+							<View style={styles.accountBgOverlay}>
+								<TouchableOpacity
+									style={styles.identiconWrapper}
+									onPress={this.onAccountPress}
+									testID={'navbar-account-identicon'}
+								>
+									<Identicon diameter={48} address={selectedAddress} />
+								</TouchableOpacity>
+								<TouchableOpacity
+									style={styles.accountInfo}
+									onPress={this.onAccountPress}
+									testID={'navbar-account-button'}
+								>
+									<Text style={styles.accountName}>{account.name}</Text>
+									<Text style={styles.accountBalance}>{account.balance} ETH</Text>
+									<Text style={styles.accountAddress}>{`${account.address.substr(
+										0,
+										4
+									)}...${account.address.substr(-4)}`}</Text>
+								</TouchableOpacity>
+							</View>
 							<TouchableOpacity
-								style={styles.identiconWrapper}
+								style={styles.qrCodeWrapper}
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<Identicon diameter={48} address={selectedAddress} />
+								<Icon name="qrcode" onPress={this.showQrCode} size={32} style={styles.qrIcon} />
 							</TouchableOpacity>
-							<View style={styles.accountInfo}>
-								<Text style={styles.accountName}>{account.name}</Text>
-								<Text style={styles.accountBalance}>{account.balance} ETH</Text>
-								<Text style={styles.accountAddress}>{`${account.address.substr(
-									0,
-									4
-								)}...${account.address.substr(-4)}`}</Text>
-							</View>
-						</View>
-						<TouchableOpacity
-							style={styles.qrCodeWrapper}
-							onPress={this.onAccountPress}
-							testID={'navbar-account-button'}
+						</ImageBackground>
+					</View>
+					<View style={styles.buttons}>
+						<StyledButton
+							type={'normal'}
+							onPress={this.onSend}
+							containerStyle={[styles.button, styles.leftButton]}
+							style={styles.buttonContent}
 						>
-							<Icon name="qrcode" onPress={this.showQrCode} size={32} style={styles.qrIcon} />
-						</TouchableOpacity>
-					</ImageBackground>
-				</View>
-				<View style={styles.buttons}>
-					<StyledButton
-						type={'normal'}
-						onPress={this.onSend}
-						containerStyle={[styles.button, styles.leftButton]}
-						style={styles.buttonContent}
-					>
-						<MaterialIcon name={'send'} size={15} color={colors.primary} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
-					</StyledButton>
-					<StyledButton
-						type={'normal'}
-						onPress={this.onDeposit}
-						containerStyle={[styles.button, styles.rightButton]}
-						style={styles.buttonContent}
-					>
-						<FoundationIcon name={'download'} size={20} color={colors.primary} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('drawer.deposit_button')}</Text>
-					</StyledButton>
-				</View>
-				<View style={styles.menu}>
-					{this.sections.map((section, i) => (
-						<View key={`section_${i}`} style={styles.menuSection}>
-							{section.map((item, j) => (
-								<TouchableOpacity
-									key={`item_${i}_${j}`}
-									style={styles.menuItem}
-									onPress={() => item.action()}
-								>
-									<Icon name={item.icon} size={item.iconSize || 32} style={styles.menuItemIcon} />
-									<Text style={styles.menuItemName}>{item.name}</Text>
-								</TouchableOpacity>
-							))}
-						</View>
-					))}
-				</View>
+							<MaterialIcon name={'send'} size={15} color={colors.primary} style={styles.buttonIcon} />
+							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+						</StyledButton>
+						<StyledButton
+							type={'normal'}
+							onPress={this.onDeposit}
+							containerStyle={[styles.button, styles.rightButton]}
+							style={styles.buttonContent}
+						>
+							<FoundationIcon
+								name={'download'}
+								size={20}
+								color={colors.primary}
+								style={styles.buttonIcon}
+							/>
+							<Text style={styles.buttonText}>{strings('drawer.deposit_button')}</Text>
+						</StyledButton>
+					</View>
+					<View style={styles.menu}>
+						{this.sections.map((section, i) => (
+							<View key={`section_${i}`} style={styles.menuSection}>
+								{section.map((item, j) => (
+									<TouchableOpacity
+										key={`item_${i}_${j}`}
+										style={styles.menuItem}
+										onPress={() => item.action()}
+									>
+										{item.icon}
+										<Text style={styles.menuItemName}>{item.name}</Text>
+									</TouchableOpacity>
+								))}
+							</View>
+						))}
+					</View>
+				</ScrollView>
+				<Modal
+					isVisible={this.state.accountsModalVisible}
+					style={styles.bottomModal}
+					onBackdropPress={this.hideAccountsModal}
+				>
+					<AccountList accounts={accounts} identities={identities} selectedAddress={selectedAddress} />
+				</Modal>
 			</SafeAreaView>
 		);
 	}
