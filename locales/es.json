@@ -117,7 +117,6 @@
 	},
 	"accountDetails": {
 		"title": "Detalles de la cuenta",
-		"publicAddress": "Dirección Pública",
 		"shareAccount": "Compartir",
 		"viewAccount": "Ver cuenta en Etherscan",
 		"showPrivateKey": "Mostrar dirección privada",
@@ -130,10 +129,6 @@
 		"allowCameraDialogTitle": "Permite acceso a la cámara",
 		"allowCameraDialogMessage": "Necesitamos tu permiso para escanear códigos QR",
 		"scanning": "escaneando..."
-	},
-	"receiveScreen": {
-		"publicAddress": "Dirección Pública",
-		"shareButton": "COMPARTIR"
 	},
 	"actionView": {
 		"cancel": "Cancelar",
