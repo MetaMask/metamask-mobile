@@ -11,6 +11,7 @@ import Entry from '../Entry';
 import LockScreen from '../LockScreen';
 import Main from '../Main';
 import DrawerView from '../DrawerView';
+import TransactionSubmitted from '../TransactionSubmitted';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -86,6 +87,9 @@ const HomeNav = createStackNavigator(
 		},
 		LockScreen: {
 			screen: LockScreen
+		},
+		TransactionSubmitted: {
+			screen: TransactionSubmitted
 		}
 	},
 	{

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
@@ -135,7 +135,11 @@ class SendScreen extends Component {
 
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
-		this.setState({ mode: 'edit' });
+		if (this.state.mode !== 'edit') {
+			this.setState({ mode: 'edit' });
+		} else {
+			this.props.navigation.goBack();
+		}
 	};
 
 	onConfirm = async transaction => {
@@ -166,7 +170,7 @@ class SendScreen extends Component {
 
 	render() {
 		return (
-			<View style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper}>
 				{this.state.ready ? (
 					<TransactionEditor
 						mode={this.state.mode}
@@ -179,7 +183,7 @@ class SendScreen extends Component {
 				) : (
 					this.renderLoader()
 				)}
-			</View>
+			</SafeAreaView>
 		);
 	}
 }

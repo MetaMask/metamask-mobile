@@ -77,11 +77,21 @@ const styles = StyleSheet.create({
 	identiconWrapper: {
 		marginBottom: 12
 	},
+	accountNameWrapper: {
+		flexDirection: 'row'
+	},
 	accountName: {
+		flex: 1,
 		fontSize: 20,
 		lineHeight: 24,
 		color: colors.white,
 		...fontStyles.normal
+	},
+	caretDown: {
+		textAlign: 'right',
+		marginRight: 7,
+		fontSize: 24,
+		color: colors.white
 	},
 	accountBalance: {
 		fontSize: 12,
@@ -157,8 +167,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	menuItemIconImage: {
-		width: 24,
-		height: 24
+		width: 22,
+		height: 22
 	},
 	bottomModal: {
 		justifyContent: 'flex-end',
@@ -219,7 +229,7 @@ class DrawerView extends Component {
 		await this.hideDrawer();
 		this.props.navigation.navigate('Wallet', { page: 0 });
 		setTimeout(() => {
-			this.props.navigation.navigate('ReceiveScreen');
+			this.props.navigation.navigate('AccountDetails');
 		}, 300);
 	};
 
@@ -396,7 +406,10 @@ class DrawerView extends Component {
 									onPress={this.onAccountPress}
 									testID={'navbar-account-button'}
 								>
-									<Text style={styles.accountName}>{account.name}</Text>
+									<View style={styles.accountNameWrapper}>
+										<Text style={styles.accountName}>{account.name}</Text>
+										<Icon name="caret-down" size={24} style={styles.caretDown} />
+									</View>
 									<Text style={styles.accountBalance}>{account.balance} ETH</Text>
 									<Text style={styles.accountAddress}>{`${account.address.substr(
 										0,

@@ -76,7 +76,10 @@
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
 		"add_collectibles": "ADD COLLECTIBLES",
-		"no_transactions": "You have no transactions!"
+		"no_transactions": "You have no transactions!",
+		"send_button": "Send",
+		"deposit_button": "Deposit",
+		"copy_address": "Copy"
 	},
 	"addAsset": {
 		"title": "Add Asset",

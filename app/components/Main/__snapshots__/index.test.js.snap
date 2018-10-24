@@ -35,7 +35,6 @@ exports[`Main should render correctly 1`] = `
               "AddAsset": null,
               "Asset": null,
               "NetworkSettings": null,
-              "ReceiveScreen": null,
               "RevealPrivateCredential": null,
               "SeedWords": null,
               "SendScreen": null,
