@@ -10,7 +10,7 @@ import { strings } from '../../../locales/i18n';
  * Component that manages transaction approval from the dapp browser
  */
 export default class Approval extends Component {
-	static navigationOptions = ({ navigation }) => getModalNavbarOptions(strings('approval.title'), navigation);
+	static navigationOptions = () => ({ navigation }) => getModalNavbarOptions(strings('approval.title'), navigation);
 
 	static propTypes = {
 		/**

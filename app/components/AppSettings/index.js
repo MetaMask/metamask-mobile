@@ -84,13 +84,13 @@ const styles = StyleSheet.create({
  * View that contains app settings
  */
 class AppSettings extends Component {
-	static navigationOptions = {
+	static navigationOptions = () => ({
 		title: strings('app_settings.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
 		}
-	};
+	});
 
 	static propTypes = {
 		/**
@@ -110,7 +110,7 @@ class AppSettings extends Component {
 
 	state = {
 		languages: {},
-		currentLanguage: I18n.language,
+		currentLanguage: I18n.locale,
 		currentCurrency: 'usd',
 		modalVisible: false,
 		rpcUrl: '',

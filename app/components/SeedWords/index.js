@@ -33,13 +33,13 @@ const styles = StyleSheet.create({
  * View that displays the current account seed words
  */
 export default class SeedWords extends Component {
-	static navigationOptions = {
+	static navigationOptions = () => ({
 		title: strings('seedWords.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
 		}
-	};
+	});
 
 	render() {
 		const { KeyringController } = Engine.context;

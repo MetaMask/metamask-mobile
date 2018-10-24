@@ -28,13 +28,13 @@ const styles = StyleSheet.create({
  * network settings
  */
 class NetworkSettings extends Component {
-	static navigationOptions = {
+	static navigationOptions = () => ({
 		title: strings('network.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
 		}
-	};
+	});
 
 	static propTypes = {
 		/**
