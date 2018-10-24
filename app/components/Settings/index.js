@@ -69,7 +69,9 @@ class Settings extends Component {
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
 						title={'ETH'}
-						titleInfo={`$ ${CurrencyRateController.conversionRate} USD`}
+						titleInfo={`${
+							CurrencyRateController.conversionRate
+						} ${CurrencyRateController.currentCurrency.toUpperCase()}`}
 						hasNavArrow={false}
 					/>
 					<SettingsList.Header headerStyle={styles.separator} />

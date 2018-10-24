@@ -92,6 +92,15 @@ class AppSettings extends Component {
 		}
 	});
 
+	state = {
+		languages: {},
+		currentLanguage: I18n.locale,
+		currentCurrency: 'usd',
+		modalVisible: false,
+		rpcUrl: '',
+		warningRpcUrl: ''
+	};
+
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -108,20 +117,13 @@ class AppSettings extends Component {
 		this.setState({ languages: getLanguages(), currentCurrency });
 	};
 
-	state = {
-		languages: {},
-		currentLanguage: I18n.locale,
-		currentCurrency: 'usd',
-		modalVisible: false,
-		rpcUrl: '',
-		warningRpcUrl: ''
-	};
-
 	static propTypes = {};
 
 	selectLanguage = language => {
+		const { navigation } = this.props;
 		setLocale(language);
 		this.setState({ currentLanguage: language });
+		navigation.navigate('Entry');
 	};
 
 	selectCurrency = async currency => {
