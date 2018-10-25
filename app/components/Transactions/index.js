@@ -8,6 +8,7 @@ import { fromWei, toGwei, weiToFiat, hexToBN, isBN, toBN } from '../../util/numb
 import { renderFullAddress } from '../../util/address';
 import { toLocaleDateTime } from '../../util/date';
 import { strings } from '../../../locales/i18n';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -174,7 +175,11 @@ export default class Transactions extends Component {
 		 * Callback function that will adjust the scroll
 		 * position once the transaction detail is visible
 		 */
-		adjustScroll: PropTypes.func
+		adjustScroll: PropTypes.func,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -298,17 +303,17 @@ export default class Transactions extends Component {
 	}
 
 	render() {
-		const { transactions, currentCurrency, conversionRate } = this.props;
-		if (!transactions.length) {
+		const { transactions, currentCurrency, conversionRate, selectedAddress } = this.props;
+		const txs = transactions.filter(tx => toChecksumAddress(tx.transaction.from) === selectedAddress);
+		if (!txs.length) {
 			return this.renderEmpty();
 		}
-
-		transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+		txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>
-					{transactions.map((tx, i) => (
+					{txs.map((tx, i) => (
 						<TouchableOpacity
 							style={styles.row}
 							key={`tx-${tx.id}`}

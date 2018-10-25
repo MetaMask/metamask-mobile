@@ -71,7 +71,7 @@ class Wallet extends Component {
 		 */
 		identities: PropTypes.object,
 		/**
-		 * An string that represents the selected address
+		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
 		/**
@@ -234,6 +234,7 @@ class Wallet extends Component {
 						transactions={transactions}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
+						selectedAddress={selectedAddress}
 					/>
 				</ScrollableTabView>
 			</View>

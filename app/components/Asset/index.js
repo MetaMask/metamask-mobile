@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../styles/common';
 import AssetOverview from '../AssetOverview';
 import Transactions from '../Transactions';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -39,7 +40,11 @@ class Asset extends Component {
 		/**
 		/* Selected currency
 		*/
-		currentCurrency: PropTypes.string
+		currentCurrency: PropTypes.string,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) => ({
@@ -70,7 +75,8 @@ class Asset extends Component {
 			navigation,
 			transactions,
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			selectedAddress
 		} = this.props;
 		return (
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
@@ -82,6 +88,7 @@ class Asset extends Component {
 						<Transactions
 							navigation={navigation}
 							transactions={transactions}
+							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							adjustScroll={this.adjustScroll}
@@ -96,7 +103,8 @@ class Asset extends Component {
 const mapStateToProps = state => ({
 	transactions: state.backgroundState.TransactionController.transactions,
 	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
+	selectedAddress: toChecksumAddress(state.backgroundState.PreferencesController.selectedAddress)
 });
 
 export default connect(mapStateToProps)(Asset);
