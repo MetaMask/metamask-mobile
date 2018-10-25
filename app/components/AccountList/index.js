@@ -7,6 +7,7 @@ import { ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } fr
 import { colors, fontStyles } from '../../styles/common';
 import { fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -92,7 +93,11 @@ export default class AccountList extends Component {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * An object containing all the keyrings
+		 */
+		keyrings: PropTypes.array
 	};
 
 	state = {
@@ -146,21 +151,26 @@ export default class AccountList extends Component {
 	};
 
 	renderAccounts() {
-		const { accounts, identities } = this.props;
-		return Object.keys(identities).map((key, i) => {
-			const { name, address } = identities[key];
+		const { accounts, identities, selectedAddress, keyrings } = this.props;
+		// This is a temporary fix until we can read the state from GABA
+		const allKeyrings = keyrings.length ? keyrings : Engine.context.KeyringController.keyrings;
+		const accountOrder = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		return accountOrder.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
+			const checksummedAddress = toChecksumAddress(addr);
+			const identity = identities[checksummedAddress];
+			const { name, address } = identity;
+			const isSelected = address === selectedAddress;
 			let balance = 0x0;
-			if (accounts[key]) {
-				balance = accounts[key].balance;
+			if (accounts[address]) {
+				balance = accounts[address].balance;
 			}
-			const selected =
-				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.success} /> : null;
+			const selected = isSelected ? <Icon name="check" size={30} color={colors.success} /> : null;
 
 			return (
 				<TouchableOpacity
 					style={styles.account}
 					key={`account-${address}`}
-					onPress={() => this.onAccountChange(i)} // eslint-disable-line
+					onPress={() => this.onAccountChange(index)} // eslint-disable-line
 				>
 					<Identicon address={address} diameter={38} />
 					<View style={styles.accountInfo}>

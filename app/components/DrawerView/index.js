@@ -208,7 +208,11 @@ class DrawerView extends Component {
 		/**
 		 * List of accounts from the PreferencesController
 		 */
-		identities: PropTypes.object
+		identities: PropTypes.object,
+		/**
+		 * List of keyrings
+		 */
+		keyrings: PropTypes.array
 	};
 
 	state = {
@@ -370,7 +374,7 @@ class DrawerView extends Component {
 	];
 
 	render() {
-		const { network, accounts, identities, selectedAddress } = this.props;
+		const { network, accounts, identities, selectedAddress, keyrings } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && fromWei(accounts[selectedAddress].balance, 'ether')) || 0;
 		const { color, name } = Networks[network.provider.type];
@@ -460,7 +464,7 @@ class DrawerView extends Component {
 									<TouchableOpacity
 										key={`item_${i}_${j}`}
 										style={styles.menuItem}
-										onPress={() => item.action()}
+										onPress={() => item.action()} // eslint-disable-line
 									>
 										{item.icon}
 										<Text style={styles.menuItemName}>{item.name}</Text>
@@ -475,7 +479,12 @@ class DrawerView extends Component {
 					style={styles.bottomModal}
 					onBackdropPress={this.hideAccountsModal}
 				>
-					<AccountList accounts={accounts} identities={identities} selectedAddress={selectedAddress} />
+					<AccountList
+						accounts={accounts}
+						identities={identities}
+						selectedAddress={selectedAddress}
+						keyrings={keyrings}
+					/>
 				</Modal>
 			</SafeAreaView>
 		);
@@ -486,6 +495,7 @@ const mapStateToProps = state => ({
 	network: state.backgroundState.NetworkController,
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.backgroundState.AccountTrackerController.accounts,
-	identities: state.backgroundState.PreferencesController.identities
+	identities: state.backgroundState.PreferencesController.identities,
+	keyrings: state.backgroundState.KeyringController.keyrings
 });
 export default connect(mapStateToProps)(DrawerView);
