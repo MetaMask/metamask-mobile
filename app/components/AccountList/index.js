@@ -3,7 +3,7 @@ import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
@@ -104,6 +104,8 @@ export default class AccountList extends Component {
 		selectedAccountIndex: 0
 	};
 
+	scrollViewRef = React.createRef();
+
 	getInitialSelectedAccountIndex = () => {
 		const { identities, selectedAddress } = this.props;
 		Object.keys(identities).forEach((address, i) => {
@@ -115,6 +117,23 @@ export default class AccountList extends Component {
 
 	componentDidMount() {
 		this.getInitialSelectedAccountIndex();
+	}
+
+	componentDidUpdate() {
+		InteractionManager.runAfterInteractions(() => {
+			!this.scrolling &&
+				this.scrollViewRef &&
+				this.scrollViewRef.current &&
+				this.scrollViewRef.current.scrollTo({
+					x: 0,
+					y: this.state.selectedAccountIndex * 68.2,
+					animated: true
+				});
+			this.scrolling = true;
+			setTimeout(() => {
+				this.scrolling = false;
+			}, 500);
+		});
 	}
 
 	onAccountChange = async newIndex => {
@@ -138,6 +157,9 @@ export default class AccountList extends Component {
 			const newIndex = Object.keys(this.props.identities).length - 1;
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
 			this.setState({ selectedAccountIndex: newIndex });
+			setTimeout(() => {
+				this.scrollViewRef.current.scrollToEnd();
+			}, 500);
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			console.error('error while trying to add a new account', e); // eslint-disable-line
@@ -191,7 +213,15 @@ export default class AccountList extends Component {
 						{strings('accounts.title')}
 					</Text>
 				</View>
-				<ScrollView style={styles.accountsWrapper}>{this.renderAccounts()}</ScrollView>
+				<ScrollView
+					ref={this.scrollViewRef}
+					style={styles.accountsWrapper}
+					onLayout={e => {
+						this.scrollViewHeight = e.nativeEvent.layout.y;
+					}}
+				>
+					{this.renderAccounts()}
+				</ScrollView>
 				<View style={styles.footer}>
 					<TouchableOpacity onPress={this.addAccount}>
 						<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
