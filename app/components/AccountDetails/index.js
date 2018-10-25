@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -263,7 +264,7 @@ class AccountDetails extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: toChecksumAddress(state.backgroundState.PreferencesController.selectedAddress),
 	identities: state.backgroundState.PreferencesController.identities
 });
 

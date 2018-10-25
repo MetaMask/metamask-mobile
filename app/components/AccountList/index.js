@@ -228,13 +228,7 @@ export default class AccountList extends Component {
 						{strings('accounts.title')}
 					</Text>
 				</View>
-				<ScrollView
-					ref={this.scrollViewRef}
-					style={styles.accountsWrapper}
-					onLayout={e => {
-						this.scrollViewHeight = e.nativeEvent.layout.y;
-					}}
-				>
+				<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
 					{this.renderAccounts()}
 				</ScrollView>
 				<View style={styles.footer}>

@@ -15,6 +15,7 @@ import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
@@ -261,7 +262,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
 	identities: state.backgroundState.PreferencesController.identities,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: toChecksumAddress(state.backgroundState.PreferencesController.selectedAddress),
 	tokens: state.backgroundState.AssetsController.tokens,
 	tokenBalances: state.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.backgroundState.TokenRatesController.contractExchangeRates,

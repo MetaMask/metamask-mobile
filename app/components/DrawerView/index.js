@@ -27,6 +27,7 @@ import Logger from '../../util/Logger';
 import { strings } from '../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -493,7 +494,7 @@ class DrawerView extends Component {
 
 const mapStateToProps = state => ({
 	network: state.backgroundState.NetworkController,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: toChecksumAddress(state.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.backgroundState.AccountTrackerController.accounts,
 	identities: state.backgroundState.PreferencesController.identities,
 	keyrings: state.backgroundState.KeyringController.keyrings
