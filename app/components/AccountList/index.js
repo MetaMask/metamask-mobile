@@ -105,6 +105,7 @@ export default class AccountList extends Component {
 	};
 
 	scrollViewRef = React.createRef();
+	lastPosition = 0;
 
 	getInitialSelectedAccountIndex = () => {
 		const { identities, selectedAddress } = this.props;
@@ -115,25 +116,33 @@ export default class AccountList extends Component {
 		});
 	};
 
-	componentDidMount() {
-		this.getInitialSelectedAccountIndex();
+	componentDidUpdate() {
+		this.scrollToCurrentAccount();
 	}
 
-	componentDidUpdate() {
+	scrollToCurrentAccount() {
+		const position = this.state.selectedAccountIndex * 68;
+		if (position < 400) return;
+		if (position - this.lastPosition < 68) return;
 		InteractionManager.runAfterInteractions(() => {
 			!this.scrolling &&
 				this.scrollViewRef &&
 				this.scrollViewRef.current &&
 				this.scrollViewRef.current.scrollTo({
 					x: 0,
-					y: this.state.selectedAccountIndex * 68.2,
+					y: position,
 					animated: true
 				});
 			this.scrolling = true;
 			setTimeout(() => {
 				this.scrolling = false;
+				this.lastPosition = position;
 			}, 500);
 		});
+	}
+
+	componentDidMount() {
+		this.getInitialSelectedAccountIndex();
 	}
 
 	onAccountChange = async newIndex => {
@@ -141,7 +150,13 @@ export default class AccountList extends Component {
 		const { PreferencesController } = Engine.context;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
-			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
+			const allKeyrings =
+				this.props.keyrings && this.props.keyrings.length
+					? this.props.keyrings
+					: Engine.context.KeyringController.keyrings;
+			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+
+			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			this.setState({ selectedAccountIndex: previousIndex });
@@ -175,16 +190,16 @@ export default class AccountList extends Component {
 	renderAccounts() {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
-		const allKeyrings = keyrings.length ? keyrings : Engine.context.KeyringController.keyrings;
-		const accountOrder = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-		return accountOrder.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.keyrings;
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
 			const checksummedAddress = toChecksumAddress(addr);
 			const identity = identities[checksummedAddress];
 			const { name, address } = identity;
-			const isSelected = address === selectedAddress;
+			const isSelected = toChecksumAddress(address) === toChecksumAddress(selectedAddress);
 			let balance = 0x0;
-			if (accounts[address]) {
-				balance = accounts[address].balance;
+			if (accounts[toChecksumAddress(address)]) {
+				balance = accounts[toChecksumAddress(address)].balance;
 			}
 			const selected = isSelected ? <Icon name="check" size={30} color={colors.success} /> : null;
 
