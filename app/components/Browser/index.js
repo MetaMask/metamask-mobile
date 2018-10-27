@@ -224,17 +224,27 @@ export class Browser extends Component {
 		}
 	}
 
+	isENSUrl(url) {
+		const urlObj = new URL(url);
+		const { hostname } = urlObj;
+		const tld = hostname.split('.').pop();
+		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+			return true;
+		}
+		return false;
+	}
+
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
-		const tld = hostname.split('.').pop();
+
 		let ipfsContent = null;
 		let currentEnsName = null;
 		let ipfsHash = null;
 
-		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+		if (this.isENSUrl(sanitizedURL)) {
 			ipfsContent = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 
 			if (ipfsContent) {
@@ -251,7 +261,7 @@ export class Browser extends Component {
 		this.setState({
 			url: urlToGo,
 			progress: 0,
-			ipfsWebsite: true,
+			ipfsWebsite: !!ipfsContent,
 			inputValue: sanitizedURL,
 			currentEnsName,
 			ipfsHash
@@ -397,11 +407,16 @@ export class Browser extends Component {
 		const data = { canGoBack, canGoForward };
 		if (!this.state.ipfsWebsite) {
 			data.inputValue = url;
-		} else {
+		} else if (url.search('mm_override=false') === -1) {
 			data.inputValue = url.replace(
 				`${this.state.ipfsGateway}${this.state.ipfsHash}`,
 				`https://${this.state.currentEnsName}`
 			);
+		} else if (this.isENSUrl(url)) {
+			this.go(url);
+			return;
+		} else {
+			data.inputValue = url;
 		}
 		this.setState(data);
 	};

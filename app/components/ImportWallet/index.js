@@ -199,25 +199,26 @@ class ImportWallet extends Component {
 				}
 
 				if (message.event === 'error-sync') {
-					this.disconnectWebsockets();
-					Logger.error('Sync failed', message.data);
-					Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
-					this.loading = false;
-					this.setState({ loading: false });
-					return false;
+					this.handleError(message);
+					Logger.error('Sync failed from extension');
 				}
 
 				if (message.event === 'syncing-data') {
 					this.incomingDataStr += message.data;
 					if (message.totalPkg === message.currentPkg) {
-						const data = JSON.parse(this.incomingDataStr);
-						this.incomingDataStr = null;
-						const { pwd, seed } = data.udata;
-						this.password = pwd;
-						this.seedWords = seed;
-						delete data.udata;
-						this.dataToSync = { ...data };
-						this.endSync();
+						try {
+							const data = JSON.parse(this.incomingDataStr);
+							this.incomingDataStr = null;
+							const { pwd, seed } = data.udata;
+							this.password = pwd;
+							this.seedWords = seed;
+							delete data.udata;
+							this.dataToSync = { ...data };
+							this.endSync();
+						} catch (e) {
+							this.handleError(message);
+							Logger.error('Sync failed at parsing', e);
+						}
 					}
 				}
 			}
@@ -229,6 +230,15 @@ class ImportWallet extends Component {
 		});
 
 		this.startSync();
+	}
+
+	handleError(message) {
+		this.disconnectWebsockets();
+		Logger.log('Sync failed', message, this.incomingDataStr);
+		Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
+		this.loading = false;
+		this.setState({ loading: false });
+		return false;
 	}
 
 	disconnectWebsockets() {
