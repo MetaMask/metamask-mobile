@@ -391,10 +391,10 @@ export class Browser extends Component {
 		this.setState({ showOptions: !this.state.showOptions });
 	};
 
-	handleScroll(event) {
-		this.setAnimation(event.nativeEvent.contentOffset.y > 64);
+	handleScroll = event => {
+		this.setAnimation(event.contentOffset.y > 64);
 		this.setState({ showUrlInput: !this.state.showUrlInput });
-	}
+	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
@@ -577,7 +577,7 @@ export class Browser extends Component {
 						ref={this.webview}
 						source={{ uri: url }}
 						style={baseStyles.flexGrow}
-						onScroll={this.handleScroll.bind(this)}
+						onScroll={this.handleScroll}
 					/>
 				) : (
 					this.renderLoader()
