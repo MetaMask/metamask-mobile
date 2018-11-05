@@ -8,7 +8,8 @@ import {
 	View,
 	TouchableWithoutFeedback,
 	AsyncStorage,
-	Alert
+	Alert,
+	Animated
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -162,8 +163,17 @@ export class Browser extends Component {
 		ipfsWebsite: false,
 		ipfsGateway: 'https://ipfs.io/ipfs/',
 		ipfsHash: null,
-		currentEnsName: null
+		currentEnsName: null,
+		showUrlInput: true,
+		urlInputHeight: new Animated.Value(64)
 	};
+
+	setAnimation(disable) {
+		Animated.timing(this.state.urlInputHeight, {
+			duration: 100,
+			toValue: disable ? 0 : 64
+		}).start();
+	}
 
 	webview = React.createRef();
 
@@ -381,6 +391,11 @@ export class Browser extends Component {
 		this.setState({ showOptions: !this.state.showOptions });
 	};
 
+	handleScroll(event) {
+		this.setAnimation(event.nativeEvent.contentOffset.y > 64);
+		this.setState({ showUrlInput: !this.state.showUrlInput });
+	}
+
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
@@ -520,7 +535,7 @@ export class Browser extends Component {
 
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.urlBar}>
+				<Animated.View style={[styles.urlBar, { height: this.state.urlInputHeight }]}>
 					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
 					{canGoForward ? (
 						<Icon
@@ -546,7 +561,7 @@ export class Browser extends Component {
 						value={inputValue}
 					/>
 					<MaterialIcon name="more-vert" onPress={this.toggleOptions} size={20} style={styles.icon} />
-				</View>
+				</Animated.View>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
@@ -562,6 +577,7 @@ export class Browser extends Component {
 						ref={this.webview}
 						source={{ uri: url }}
 						style={baseStyles.flexGrow}
+						onScroll={this.handleScroll.bind(this)}
 					/>
 				) : (
 					this.renderLoader()
