@@ -9,7 +9,8 @@ import {
 	TouchableWithoutFeedback,
 	AsyncStorage,
 	Alert,
-	Animated
+	Animated,
+	SafeAreaView
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -32,6 +33,9 @@ import HomePage from '../HomePage';
 import URL from 'url-parse';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
+const HEADER_MAX_HEIGHT = 50;
+const HEADER_MIN_HEIGHT = 30;
+const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -41,12 +45,10 @@ const styles = StyleSheet.create({
 	urlBar: {
 		alignItems: 'stretch',
 		backgroundColor: colors.concrete,
-		flexDirection: 'row',
-		paddingVertical: 11
+		flexDirection: 'row'
 	},
 	icon: {
 		color: colors.tar,
-		flex: 0,
 		height: 28,
 		lineHeight: 28,
 		textAlign: 'center',
@@ -62,7 +64,8 @@ const styles = StyleSheet.create({
 		borderRadius: 3,
 		flex: 1,
 		fontSize: 14,
-		padding: 8
+		padding: 8,
+		textAlign: 'center'
 	},
 	progressBarWrapper: {
 		height: 3,
@@ -89,7 +92,7 @@ const styles = StyleSheet.create({
 		shadowRadius: 3,
 		position: 'absolute',
 		zIndex: 99999999,
-		marginTop: 50,
+		bottom: 70,
 		right: 3,
 		width: 140,
 		borderWidth: StyleSheet.hairlineWidth,
@@ -116,6 +119,45 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		textAlign: 'center',
 		alignSelf: 'center'
+	},
+	webview: {
+		...baseStyles.flexGrow
+	},
+	currentUrlWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		flex: 1,
+		backgroundColor: colors.slate,
+		borderRadius: 20,
+		marginHorizontal: 10,
+		marginVertical: 7
+	},
+	lockIcon: {
+		marginTop: 2
+	},
+	currentUrl: {
+		...fontStyles.normal,
+		fontSize: 15,
+		textAlign: 'center'
+	},
+	bottomBar: {
+		flexDirection: 'row',
+		paddingTop: 10,
+		paddingHorizontal: 10
+	},
+	iconMore: {
+		alignSelf: 'flex-end',
+		alignContent: 'flex-end'
+	},
+	iconsLeft: {
+		flex: 1,
+		alignContent: 'flex-start',
+		flexDirection: 'row'
+	},
+	iconsRight: {
+		flex: 1,
+		alignContent: 'flex-end'
 	}
 });
 
@@ -155,6 +197,7 @@ export class Browser extends Component {
 		canGoForward: false,
 		entryScriptWeb3: null,
 		inputValue: '',
+		hostname: '',
 		url: this.props.defaultURL || '',
 		showOptions: false,
 		currentPageTitle: '',
@@ -164,19 +207,11 @@ export class Browser extends Component {
 		ipfsGateway: 'https://ipfs.io/ipfs/',
 		ipfsHash: null,
 		currentEnsName: null,
-		showUrlInput: true,
-		urlInputHeight: new Animated.Value(64)
+		editMode: false
 	};
 
-	setAnimation(disable) {
-		Animated.timing(this.state.urlInputHeight, {
-			duration: 100,
-			toValue: disable ? 0 : 64
-		}).start();
-	}
-
 	webview = React.createRef();
-
+	scrollY = new Animated.Value(0);
 	timeoutHandler = null;
 
 	loadBookmarks = async () => {
@@ -274,7 +309,8 @@ export class Browser extends Component {
 			ipfsWebsite: !!ipfsContent,
 			inputValue: sanitizedURL,
 			currentEnsName,
-			ipfsHash
+			ipfsHash,
+			hostname: this.formatHostname(hostname)
 		});
 
 		this.timeoutHandler && clearTimeout(this.timeoutHandler);
@@ -340,6 +376,7 @@ export class Browser extends Component {
 		} else {
 			this.setState({
 				inputValue: '',
+				hostname: '',
 				url: '',
 				ipfsContent: null,
 				ipfsHash: null,
@@ -391,11 +428,6 @@ export class Browser extends Component {
 		this.setState({ showOptions: !this.state.showOptions });
 	};
 
-	handleScroll = event => {
-		this.setAnimation(event.contentOffset.y > 64);
-		this.setState({ showUrlInput: !this.state.showUrlInput });
-	};
-
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
@@ -432,9 +464,15 @@ export class Browser extends Component {
 			return;
 		} else {
 			data.inputValue = url;
+			const urlObj = new URL(url);
+			data.hostname = this.formatHostname(urlObj.hostname);
 		}
 		this.setState(data);
 	};
+
+	formatHostname(hostname) {
+		return hostname.toLowerCase().replace('www.', '');
+	}
 
 	onInitialUrlSubmit = async url => {
 		if (url === '') {
@@ -519,33 +557,66 @@ export class Browser extends Component {
 		}
 	}
 
-	render() {
-		const { canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+	handleScroll = event => {
+		this.scrollY.setValue(event.contentOffset.y);
+	};
 
-		if (this.state.url === '') {
-			return (
-				<HomePage
-					bookmarks={this.state.bookmarks}
-					onBookmarkTapped={this.go}
-					onInitialUrlSubmit={this.onInitialUrlSubmit}
-					updateBookmarks={this.updateBookmarks}
-				/>
-			);
-		}
+	renderBottomBar(canGoForward) {
+		const bottomBarPosition = this.scrollY.interpolate({
+			inputRange: [0, HEADER_SCROLL_DISTANCE],
+			outputRange: [0, -100],
+			extrapolate: 'clamp'
+		});
+		return (
+			<Animated.View style={[styles.bottomBar, { marginBottom: bottomBarPosition }]}>
+				<View style={styles.iconsLeft}>
+					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
+					<Icon
+						disabled={!canGoForward}
+						name="angle-right"
+						onPress={this.goForward}
+						size={30}
+						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
+					/>
+				</View>
+				<View style={styles.iconsRight}>
+					<MaterialIcon
+						name="more-vert"
+						onPress={this.toggleOptions}
+						size={20}
+						style={[styles.icon, styles.iconMore]}
+					/>
+				</View>
+			</Animated.View>
+		);
+	}
+
+	isHttps() {
+		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
+	}
+
+	renderUrlBar(inputValue) {
+		const urlBarHeight = this.scrollY.interpolate({
+			inputRange: [0, HEADER_SCROLL_DISTANCE],
+			outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
+			extrapolate: 'clamp'
+		});
+
+		const urlBarScale = this.scrollY.interpolate({
+			inputRange: [0, HEADER_SCROLL_DISTANCE],
+			outputRange: [1, 0.7],
+			extrapolate: 'clamp'
+		});
+
+		const urlBarBg = this.scrollY.interpolate({
+			inputRange: [0, HEADER_SCROLL_DISTANCE],
+			outputRange: [colors.slate, colors.concrete],
+			extrapolate: 'clamp'
+		});
 
 		return (
-			<View style={styles.wrapper}>
-				<Animated.View style={[styles.urlBar, { height: this.state.urlInputHeight }]}>
-					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
-					{canGoForward ? (
-						<Icon
-							disabled={!canGoForward}
-							name="angle-right"
-							onPress={this.goForward}
-							size={30}
-							style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
-						/>
-					) : null}
+			<Animated.View style={[styles.urlBar, { height: urlBarHeight, transform: [{ scale: urlBarScale }] }]}>
+				{this.state.editMode ? (
 					<TextInput
 						autoCapitalize="none"
 						autoCorrect={false}
@@ -560,8 +631,35 @@ export class Browser extends Component {
 						style={styles.urlInput}
 						value={inputValue}
 					/>
-					<MaterialIcon name="more-vert" onPress={this.toggleOptions} size={20} style={styles.icon} />
-				</Animated.View>
+				) : (
+					<Animated.View style={[styles.currentUrlWrapper, { backgroundColor: urlBarBg }]}>
+						{this.isHttps() ? (
+							<Icon name="lock" size={16} style={[styles.optionIcon, styles.lockIcon]} />
+						) : null}
+						<Text style={styles.currentUrl}>{this.state.hostname}</Text>
+					</Animated.View>
+				)}
+			</Animated.View>
+		);
+	}
+
+	render() {
+		if (this.state.url === '') {
+			return (
+				<HomePage
+					bookmarks={this.state.bookmarks}
+					onBookmarkTapped={this.go}
+					onInitialUrlSubmit={this.onInitialUrlSubmit}
+					updateBookmarks={this.updateBookmarks}
+				/>
+			);
+		}
+
+		const { canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+
+		return (
+			<SafeAreaView style={styles.wrapper}>
+				{this.renderUrlBar(inputValue)}
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
@@ -576,13 +674,14 @@ export class Browser extends Component {
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}
 						source={{ uri: url }}
-						style={baseStyles.flexGrow}
+						style={styles.webview}
 						onScroll={this.handleScroll}
 					/>
 				) : (
 					this.renderLoader()
 				)}
-			</View>
+				{this.renderBottomBar(canGoForward)}
+			</SafeAreaView>
 		);
 	}
 }
