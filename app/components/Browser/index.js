@@ -560,8 +560,15 @@ export class Browser extends Component {
 		}
 	}
 
-	handleScroll = event => {
-		const newOffset = event.contentOffset.y;
+	handleScroll = e => {
+		if (this.state.progress < 1) {
+			return;
+		}
+
+		const newOffset = e.contentOffset.y;
+		if (this.prevScrollOffset === 0 && newOffset > HEADER_SCROLL_DISTANCE) {
+			return;
+		}
 
 		// In case they scroll past the top
 		if (newOffset <= 0) {
@@ -575,7 +582,6 @@ export class Browser extends Component {
 			// moving down
 			newAnimatedValue = 1 - newAnimatedValue;
 		}
-
 		this.scrollY.setValue(newAnimatedValue);
 	};
 
@@ -586,11 +592,11 @@ export class Browser extends Component {
 	onScrollBeginDrag = e => {
 		setTimeout(() => {
 			this.prevScrollOffset = e.contentOffset.y;
-		}, 50);
+		}, 150);
 	};
 
 	renderBottomBar(canGoForward) {
-		const bottomBarPosition = this.scrollY.interpolate({
+		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
 			inputRange: [0, 1],
 			outputRange: [0, -100]
 		});
@@ -633,7 +639,7 @@ export class Browser extends Component {
 			outputRange: [1, 0.7]
 		});
 
-		const urlBarBg = this.scrollY.interpolate({
+		const urlBarBg = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
 			inputRange: [0, 1],
 			outputRange: [colors.slate, colors.concrete]
 		});
