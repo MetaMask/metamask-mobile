@@ -1,7 +1,6 @@
 import React from 'react';
 import { createSwitchNavigator } from 'react-navigation';
 import { createIconSetFromFontello } from 'react-native-vector-icons';
-import { StyleSheet } from 'react-native';
 
 import BrowserScreen from '../BrowserScreen';
 import WalletScreen from '../WalletScreen';
@@ -37,12 +36,12 @@ export default createSwitchNavigator(
 		}
 	},
 	{
-		initialRouteName: 'Wallet',
+		initialRouteName: 'Browser',
 		tabBarOptions: {
 			activeTintColor: colors.primary,
 			inactiveTintColor: colors.inactive,
 			style: {
-				borderTopWidth: StyleSheet.hairlineWidth
+				borderTopWidth: 0
 			}
 		}
 	}

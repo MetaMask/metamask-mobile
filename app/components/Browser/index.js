@@ -35,7 +35,7 @@ import URL from 'url-parse';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const HEADER_MAX_HEIGHT = 50;
 const HEADER_MIN_HEIGHT = 30;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
+const HEADER_SCROLL_DISTANCE = 100;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -213,6 +213,7 @@ export class Browser extends Component {
 	webview = React.createRef();
 	scrollY = new Animated.Value(0);
 	timeoutHandler = null;
+	prevScrollOffset = 0;
 
 	loadBookmarks = async () => {
 		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
@@ -243,6 +244,7 @@ export class Browser extends Component {
 		});
 
 		this.checkForDeeplinks();
+		this.go('https://www.google.com/search?q=' + escape('metamask'));
 	}
 
 	checkForDeeplinks() {
@@ -522,6 +524,7 @@ export class Browser extends Component {
 			})();
 		`;
 		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		clearTimeout(this.timeoutHandler);
 	};
 
 	renderLoader() {
@@ -558,14 +561,38 @@ export class Browser extends Component {
 	}
 
 	handleScroll = event => {
-		this.scrollY.setValue(event.contentOffset.y);
+		const newOffset = event.contentOffset.y;
+
+		// In case they scroll past the top
+		if (newOffset <= 0) {
+			this.scrollY.setValue(0);
+			return;
+		}
+
+		const diff = Math.abs(newOffset - this.prevScrollOffset);
+		let newAnimatedValue = Math.max(0, Math.min(HEADER_SCROLL_DISTANCE, diff) / HEADER_SCROLL_DISTANCE);
+		if (newOffset < this.prevScrollOffset) {
+			// moving down
+			newAnimatedValue = 1 - newAnimatedValue;
+		}
+
+		this.scrollY.setValue(newAnimatedValue);
+	};
+
+	onScrollEnd = e => {
+		this.prevScrollOffset = e.contentOffset.y;
+	};
+
+	onScrollBeginDrag = e => {
+		setTimeout(() => {
+			this.prevScrollOffset = e.contentOffset.y;
+		}, 50);
 	};
 
 	renderBottomBar(canGoForward) {
 		const bottomBarPosition = this.scrollY.interpolate({
-			inputRange: [0, HEADER_SCROLL_DISTANCE],
-			outputRange: [0, -100],
-			extrapolate: 'clamp'
+			inputRange: [0, 1],
+			outputRange: [0, -100]
 		});
 		return (
 			<Animated.View style={[styles.bottomBar, { marginBottom: bottomBarPosition }]}>
@@ -596,22 +623,19 @@ export class Browser extends Component {
 	}
 
 	renderUrlBar(inputValue) {
-		const urlBarHeight = this.scrollY.interpolate({
-			inputRange: [0, HEADER_SCROLL_DISTANCE],
-			outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT],
-			extrapolate: 'clamp'
+		const urlBarHeight = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
+			inputRange: [0, 1],
+			outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT]
 		});
 
-		const urlBarScale = this.scrollY.interpolate({
-			inputRange: [0, HEADER_SCROLL_DISTANCE],
-			outputRange: [1, 0.7],
-			extrapolate: 'clamp'
+		const urlBarScale = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
+			inputRange: [0, 1],
+			outputRange: [1, 0.7]
 		});
 
 		const urlBarBg = this.scrollY.interpolate({
-			inputRange: [0, HEADER_SCROLL_DISTANCE],
-			outputRange: [colors.slate, colors.concrete],
-			extrapolate: 'clamp'
+			inputRange: [0, 1],
+			outputRange: [colors.slate, colors.concrete]
 		});
 
 		return (
@@ -675,7 +699,11 @@ export class Browser extends Component {
 						ref={this.webview}
 						source={{ uri: url }}
 						style={styles.webview}
+						scrollEventThrottle={16}
 						onScroll={this.handleScroll}
+						onScrollBeginDrag={this.onScrollBeginDrag}
+						onScrollEndDrag={this.onScrollEnd}
+						onMomentumScrollEnd={this.onScrollEnd}
 					/>
 				) : (
 					this.renderLoader()
