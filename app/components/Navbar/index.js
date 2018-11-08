@@ -2,8 +2,12 @@ import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
-import { View, Platform, StyleSheet, Image } from 'react-native';
+import NavbarBrowserTitle from '../NavbarBrowserTitle';
+import { TouchableOpacity, View, Platform, StyleSheet, Image } from 'react-native';
+
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../locales/i18n';
+import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -17,6 +21,10 @@ const styles = StyleSheet.create({
 	},
 	metamaskNameWrapper: {
 		marginLeft: Platform.OS === 'android' ? 20 : 0
+	},
+	closeIcon: {
+		marginRight: 15,
+		marginTop: 5
 	}
 });
 
@@ -32,6 +40,29 @@ export default function getNavbarOptions(title, navigation) {
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerTruncatedBackTitle: strings('navigation.back'),
 		headerRight: null
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * This is used by views that will show our custom navbar
+ * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ */
+export function getBrowserViewNavbarOptions(navigation) {
+	const url = navigation.getParam('url', '');
+	const urlObj = new URL(url);
+	const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+	const isHttps = url.toLowerCase().substr(0, 6) === 'https:';
+
+	return {
+		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
+		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
+		// eslint-disable-next-line
+		headerRight: (
+			<TouchableOpacity onPress={() => navigation.navigate('BrowserHome')}>
+				<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+			</TouchableOpacity>
+		)
 	};
 }
 

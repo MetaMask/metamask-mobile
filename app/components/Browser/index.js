@@ -21,7 +21,7 @@ import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { connect } from 'react-redux';
 import BackgroundBridge from '../../core/BackgroundBridge';
 import Engine from '../../core/Engine';
-import getNavbarOptions from '../Navbar';
+import { getBrowserViewNavbarOptions } from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
@@ -29,23 +29,16 @@ import Logger from '../../util/Logger';
 import resolveEnsToIpfsContentId from '../../lib/ens-ipfs/resolver';
 import Button from '../Button';
 import { strings } from '../../../locales/i18n';
-import HomePage from '../HomePage';
 import URL from 'url-parse';
+import Modal from 'react-native-modal';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
-const HEADER_MAX_HEIGHT = 50;
-const HEADER_MIN_HEIGHT = 30;
-const HEADER_SCROLL_DISTANCE = 100;
+const SCROLL_THRESHOLD = 100;
 
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
 		backgroundColor: colors.concrete
-	},
-	urlBar: {
-		alignItems: 'stretch',
-		backgroundColor: colors.concrete,
-		flexDirection: 'row'
 	},
 	icon: {
 		color: colors.tar,
@@ -69,7 +62,7 @@ const styles = StyleSheet.create({
 	},
 	progressBarWrapper: {
 		height: 3,
-		marginTop: -5
+		marginTop: 0
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -123,24 +116,6 @@ const styles = StyleSheet.create({
 	webview: {
 		...baseStyles.flexGrow
 	},
-	currentUrlWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		flex: 1,
-		backgroundColor: colors.slate,
-		borderRadius: 20,
-		marginHorizontal: 10,
-		marginVertical: 7
-	},
-	lockIcon: {
-		marginTop: 2
-	},
-	currentUrl: {
-		...fontStyles.normal,
-		fontSize: 15,
-		textAlign: 'center'
-	},
 	bottomBar: {
 		flexDirection: 'row',
 		paddingTop: 10,
@@ -165,7 +140,7 @@ const styles = StyleSheet.create({
  * Complete Web browser component with URL entry and history management
  */
 export class Browser extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
+	static navigationOptions = ({ navigation }) => getBrowserViewNavbarOptions(navigation);
 
 	static defaultProps = {
 		defaultProtocol: 'https://'
@@ -196,12 +171,12 @@ export class Browser extends Component {
 		canGoBack: false,
 		canGoForward: false,
 		entryScriptWeb3: null,
+		bookmarks: [],
 		inputValue: '',
 		hostname: '',
 		url: this.props.defaultURL || '',
 		showOptions: false,
 		currentPageTitle: '',
-		bookmarks: [],
 		timeout: false,
 		ipfsWebsite: false,
 		ipfsGateway: 'https://ipfs.io/ipfs/',
@@ -215,15 +190,7 @@ export class Browser extends Component {
 	timeoutHandler = null;
 	prevScrollOffset = 0;
 
-	loadBookmarks = async () => {
-		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
-		if (bookmarksStr) {
-			this.setState({ bookmarks: JSON.parse(bookmarksStr).reverse() });
-		}
-	};
-
 	async componentDidMount() {
-		await this.loadBookmarks();
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
 		const entryScriptWeb3 =
@@ -243,16 +210,23 @@ export class Browser extends Component {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
 
-		this.checkForDeeplinks();
-		this.go('https://www.google.com/search?q=' + escape('metamask'));
+		this.loadUrl();
+		this.loadBookmarks();
 	}
 
-	checkForDeeplinks() {
+	loadBookmarks = async () => {
+		const bookmarks = this.props.navigation.getParam('bookmarks', null);
+		if (bookmarks) {
+			this.setState({ bookmarks });
+		}
+	};
+
+	loadUrl() {
 		const { navigation } = this.props;
 		if (navigation) {
 			const url = navigation.getParam('url', null);
 			if (url) {
-				this.setState({ url });
+				this.go(url);
 			}
 		}
 	}
@@ -266,7 +240,7 @@ export class Browser extends Component {
 			const currentUrl = navigation.getParam('url', null);
 
 			if (currentUrl && prevUrl !== currentUrl && currentUrl !== this.state.url) {
-				this.checkForDeeplinks();
+				this.loadUrl();
 			}
 		}
 	}
@@ -376,15 +350,7 @@ export class Browser extends Component {
 			const { current } = this.webview;
 			current && current.goBack();
 		} else {
-			this.setState({
-				inputValue: '',
-				hostname: '',
-				url: '',
-				ipfsContent: null,
-				ipfsHash: null,
-				ipfsWebsite: null,
-				currentEnsName: null
-			});
+			this.props.navigation.pop();
 		}
 	};
 
@@ -476,28 +442,6 @@ export class Browser extends Component {
 		return hostname.toLowerCase().replace('www.', '');
 	}
 
-	onInitialUrlSubmit = async url => {
-		if (url === '') {
-			return false;
-		}
-
-		//Check if it's a url or a keyword
-		const res = url.match(
-			/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g
-		);
-		if (res === null) {
-			// In case of keywords we default to google search
-			await this.go('https://www.google.com/search?q=' + escape(url));
-		} else {
-			await this.go(url);
-		}
-	};
-
-	updateBookmarks = async bookmarks => {
-		this.setState({ bookmarks });
-		await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(bookmarks));
-	};
-
 	onURLChange = inputValue => {
 		this.setState({ inputValue });
 	};
@@ -566,7 +510,8 @@ export class Browser extends Component {
 		}
 
 		const newOffset = e.contentOffset.y;
-		if (this.prevScrollOffset === 0 && newOffset > HEADER_SCROLL_DISTANCE) {
+		// Avoid wrong position at the beginning
+		if (this.prevScrollOffset === 0 && newOffset > SCROLL_THRESHOLD) {
 			return;
 		}
 
@@ -577,7 +522,7 @@ export class Browser extends Component {
 		}
 
 		const diff = Math.abs(newOffset - this.prevScrollOffset);
-		let newAnimatedValue = Math.max(0, Math.min(HEADER_SCROLL_DISTANCE, diff) / HEADER_SCROLL_DISTANCE);
+		let newAnimatedValue = Math.max(0, Math.min(SCROLL_THRESHOLD, diff) / SCROLL_THRESHOLD);
 		if (newOffset < this.prevScrollOffset) {
 			// moving down
 			newAnimatedValue = 1 - newAnimatedValue;
@@ -596,7 +541,7 @@ export class Browser extends Component {
 	};
 
 	renderBottomBar(canGoForward) {
-		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
+		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, SCROLL_THRESHOLD).interpolate({
 			inputRange: [0, 1],
 			outputRange: [0, -100]
 		});
@@ -628,25 +573,14 @@ export class Browser extends Component {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
 	}
 
-	renderUrlBar(inputValue) {
-		const urlBarHeight = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
-			inputRange: [0, 1],
-			outputRange: [HEADER_MAX_HEIGHT, HEADER_MIN_HEIGHT]
-		});
+	toggleUrlModal() {
+		this.setState({ showUrlModal: !this.state.showUrlModal });
+	}
 
-		const urlBarScale = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
-			inputRange: [0, 1],
-			outputRange: [1, 0.7]
-		});
-
-		const urlBarBg = Animated.diffClamp(this.scrollY, 0, HEADER_SCROLL_DISTANCE).interpolate({
-			inputRange: [0, 1],
-			outputRange: [colors.slate, colors.concrete]
-		});
-
+	renderUrlModal(inputValue) {
 		return (
-			<Animated.View style={[styles.urlBar, { height: urlBarHeight, transform: [{ scale: urlBarScale }] }]}>
-				{this.state.editMode ? (
+			<Modal visible={this.state.showUrlModal}>
+				<View style={baseStyles.flexGrow}>
 					<TextInput
 						autoCapitalize="none"
 						autoCorrect={false}
@@ -661,39 +595,19 @@ export class Browser extends Component {
 						style={styles.urlInput}
 						value={inputValue}
 					/>
-				) : (
-					<Animated.View style={[styles.currentUrlWrapper, { backgroundColor: urlBarBg }]}>
-						{this.isHttps() ? (
-							<Icon name="lock" size={16} style={[styles.optionIcon, styles.lockIcon]} />
-						) : null}
-						<Text style={styles.currentUrl}>{this.state.hostname}</Text>
-					</Animated.View>
-				)}
-			</Animated.View>
+				</View>
+			</Modal>
 		);
 	}
 
 	render() {
-		if (this.state.url === '') {
-			return (
-				<HomePage
-					bookmarks={this.state.bookmarks}
-					onBookmarkTapped={this.go}
-					onInitialUrlSubmit={this.onInitialUrlSubmit}
-					updateBookmarks={this.updateBookmarks}
-				/>
-			);
-		}
-
-		const { canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+		const { canGoForward, entryScriptWeb3, url } = this.state;
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
-				{this.renderUrlBar(inputValue)}
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
-				{this.renderOptions()}
 				{entryScriptWeb3 ? (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
@@ -714,6 +628,7 @@ export class Browser extends Component {
 				) : (
 					this.renderLoader()
 				)}
+				{this.renderOptions()}
 				{this.renderBottomBar(canGoForward)}
 			</SafeAreaView>
 		);
