@@ -291,8 +291,13 @@ class DrawerView extends Component {
 	logout = () => {
 		Alert.alert(
 			strings('drawer.logout_title'),
+			'',
 			[
-				{ text: strings('drawer.logout_cancel'), onPress: null, style: 'cancel' },
+				{
+					text: strings('drawer.logout_cancel'),
+					onPress: () => null,
+					style: 'cancel'
+				},
 				{
 					text: strings('drawer.logout_ok'),
 					onPress: async () => {
