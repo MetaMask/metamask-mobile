@@ -52,14 +52,16 @@
 		"send_button": "Send",
 		"deposit_button": "Deposit",
 		"coming_soon": "Coming soon...",
-		"tokens": "Tokens",
-		"collectibles": "Collectibles",
-		"transactionHistory": "Transaction History",
+		"assets": "Your Assets",
 		"copyAddress": "Copy address to clipboard",
 		"viewInEtherscan": "View in etherscan",
 		"dappBrowser": "ÐApp Browser",
 		"settings": "Settings",
-		"help": "Help"
+		"help": "Get Help",
+		"logout": "Log out",
+		"logout_title": "Do you really want to log out?",
+		"logout_ok": "YES",
+		"logout_cancel": "NO"
 	},
 	"send": {
 		"title": "Send"

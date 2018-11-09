@@ -13,7 +13,7 @@ export default createStackNavigator(
 		BrowserHome: {
 			screen: BrowserHome
 		},
-		Browser: {
+		BrowserView: {
 			screen: Browser
 		},
 		AddBookmark: {

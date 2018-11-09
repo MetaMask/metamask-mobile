@@ -87,7 +87,7 @@ export default class BrowserHome extends Component {
 
 	go = async url => {
 		this.setState({ tabs: [...this.state.tabs, url] });
-		this.props.navigation.navigate('Browser', { url, bookmarks: this.state.bookmarks });
+		this.props.navigation.navigate('BrowserView', { url, bookmarks: this.state.bookmarks });
 	};
 
 	onInitialUrlSubmit = async url => {

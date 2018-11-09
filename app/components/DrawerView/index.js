@@ -15,6 +15,7 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { colors, fontStyles } from '../../styles/common';
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
 		right: 17,
 		top: 17
 	},
-	qrIcon: {
+	infoIcon: {
 		color: colors.white
 	},
 	buttons: {
@@ -179,9 +180,7 @@ const styles = StyleSheet.create({
 
 const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
 const ICON_IMAGES = {
-	tokens: require('../../images/tokens-icon.png'),
-	collectibles: require('../../images/collectibles-icon.png'),
-	'tx-history': require('../../images/tx-history-icon.png')
+	assets: require('../../images/tokens-icon.png')
 };
 
 /**
@@ -268,20 +267,12 @@ class DrawerView extends Component {
 	goToBrowser = async () => {
 		await this.hideDrawer();
 		setTimeout(() => {
-			this.props.navigation.navigate('BrowserView');
+			this.props.navigation.navigate('BrowserHome');
 		}, 300);
 	};
 
-	showTokens = () => {
+	showAssets = () => {
 		this.goToWalletTab(0);
-	};
-
-	showCollectibles = () => {
-		this.goToWalletTab(1);
-	};
-
-	showTransactionHistory = () => {
-		this.goToWalletTab(2);
 	};
 
 	copyAddressToClipboard = async () => {
@@ -295,6 +286,23 @@ class DrawerView extends Component {
 		setTimeout(() => {
 			this.props.navigation.navigate('Settings');
 		}, 300);
+	};
+
+	logout = () => {
+		Alert.alert(
+			strings('drawer.logout_title'),
+			[
+				{ text: strings('drawer.logout_cancel'), onPress: null, style: 'cancel' },
+				{
+					text: strings('drawer.logout_ok'),
+					onPress: async () => {
+						await Keychain.resetGenericPassword();
+						this.props.navigation.navigate('Entry');
+					}
+				}
+			],
+			{ cancelable: false }
+		);
 	};
 
 	viewInEtherscan = () => {
@@ -335,19 +343,14 @@ class DrawerView extends Component {
 	sections = [
 		[
 			{
-				name: strings('drawer.tokens'),
-				icon: this.getImageIcon('tokens'),
-				action: this.showTokens
+				name: strings('drawer.assets'),
+				icon: this.getImageIcon('assets'),
+				action: this.showAssets
 			},
 			{
-				name: strings('drawer.collectibles'),
-				icon: this.getImageIcon('collectibles'),
-				action: this.showCollectibles
-			},
-			{
-				name: strings('drawer.transactionHistory'),
-				icon: this.getImageIcon('tx-history'),
-				action: this.showTransactionHistory
+				name: strings('drawer.dappBrowser'),
+				icon: this.getIcon('globe'),
+				action: this.goToBrowser
 			}
 		],
 		[
@@ -364,11 +367,6 @@ class DrawerView extends Component {
 		],
 		[
 			{
-				name: strings('drawer.dappBrowser'),
-				icon: this.getIcon('globe'),
-				action: this.goToBrowser
-			},
-			{
 				name: strings('drawer.settings'),
 				icon: this.getIcon('cogs'),
 				action: this.showSettings
@@ -377,6 +375,11 @@ class DrawerView extends Component {
 				name: strings('drawer.help'),
 				icon: this.getIcon('question-circle'),
 				action: this.showHelp
+			},
+			{
+				name: strings('drawer.logout'),
+				icon: this.getIcon('sign-out'),
+				action: this.logout
 			}
 		]
 	];
@@ -427,7 +430,7 @@ class DrawerView extends Component {
 									<Text style={styles.accountBalance}>{account.balance} ETH</Text>
 									<Text style={styles.accountAddress}>{`${account.address.substr(
 										0,
-										4
+										6
 									)}...${account.address.substr(-4)}`}</Text>
 								</TouchableOpacity>
 							</View>
@@ -436,7 +439,7 @@ class DrawerView extends Component {
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<Icon name="qrcode" onPress={this.showQrCode} size={32} style={styles.qrIcon} />
+								<MaterialIcon name="info" onPress={this.showQrCode} size={32} style={styles.infoIcon} />
 							</TouchableOpacity>
 						</ImageBackground>
 					</View>
