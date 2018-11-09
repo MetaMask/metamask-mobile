@@ -33,6 +33,104 @@ exports[`Browser should render correctly 1`] = `
       size="small"
     />
   </Component>
+  <ReactNativeModal
+    animationIn="slideInDown"
+    animationInTiming={600}
+    animationOut="slideOutUp"
+    animationOutTiming={600}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-start",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <Component
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "height": 100,
+          "paddingHorizontal": 10,
+          "paddingTop": 50,
+        }
+      }
+    >
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        clearButtonMode="while-editing"
+        keyboardType="url"
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Enter website address"
+        placeholderTextColor="#747d8c"
+        returnKeyType="go"
+        style={
+          Object {
+            "backgroundColor": "#dfe4ea",
+            "borderRadius": 30,
+            "flex": 1,
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "height": 30,
+            "padding": 8,
+            "textAlign": "center",
+          }
+        }
+        textContentType="URL"
+        underlineColorAndroid="transparent"
+        value="https://metamask.io"
+      />
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "marginLeft": 10,
+            "marginTop": 7,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "color": "#008edf",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Cancel
+        </Component>
+      </TouchableOpacity>
+    </Component>
+  </ReactNativeModal>
   <AnimatedComponent
     style={
       Array [

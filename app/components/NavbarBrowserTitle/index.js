@@ -52,7 +52,7 @@ const metamask_name = require('../../images/metamask-name.png'); // eslint-disab
  * UI Component that renders inside the navbar
  * showing the view title and the selected network
  */
-class NavbarTitle extends Component {
+class NavbarBrowserTitle extends Component {
 	static propTypes = {
 		/**
 		 * Object representing the selected the selected network
@@ -89,4 +89,4 @@ class NavbarTitle extends Component {
 }
 
 const mapStateToProps = state => ({ network: state.backgroundState.NetworkController });
-export default connect(mapStateToProps)(NavbarTitle);
+export default connect(mapStateToProps)(NavbarBrowserTitle);

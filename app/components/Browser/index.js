@@ -365,7 +365,7 @@ export class Browser extends Component {
 
 	onUrlInputSubmit = async () => {
 		await this.go(this.state.inputValue);
-		this.hideUrlModal();
+		this.hideUrlModal(this.state.url);
 	};
 
 	goBack = () => {
@@ -596,13 +596,13 @@ export class Browser extends Component {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
 	}
 
-	hideUrlModal = () => {
-		const url = this.props.navigation.getParam('url', '');
-		this.props.navigation.navigate('BrowserView', { url, showUrlModal: false });
+	hideUrlModal = url => {
+		const urlParam = url || this.props.navigation.getParam('url', '');
+		this.props.navigation.setParams({ url: urlParam, showUrlModal: false });
 	};
 
 	renderUrlModal() {
-		const showUrlModal = this.props.navigation.getParam('showUrlModal', false);
+		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
 		return (
 			<Modal
