@@ -10,7 +10,8 @@ import {
 	AsyncStorage,
 	Alert,
 	Animated,
-	SafeAreaView
+	SafeAreaView,
+	TouchableOpacity
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -50,15 +51,6 @@ const styles = StyleSheet.create({
 	},
 	disabledIcon: {
 		color: colors.ash
-	},
-	urlInput: {
-		...fontStyles.normal,
-		backgroundColor: colors.slate,
-		borderRadius: 3,
-		flex: 1,
-		fontSize: 14,
-		padding: 8,
-		textAlign: 'center'
 	},
 	progressBarWrapper: {
 		height: 3,
@@ -133,6 +125,36 @@ const styles = StyleSheet.create({
 	iconsRight: {
 		flex: 1,
 		alignContent: 'flex-end'
+	},
+	urlModalContent: {
+		flexDirection: 'row',
+		paddingTop: 50,
+		paddingHorizontal: 10,
+		backgroundColor: colors.white,
+		height: 100
+	},
+	urlModal: {
+		justifyContent: 'flex-start',
+		margin: 0
+	},
+	urlInput: {
+		...fontStyles.normal,
+		backgroundColor: colors.slate,
+		borderRadius: 30,
+		fontSize: 14,
+		padding: 8,
+		textAlign: 'center',
+		flex: 1,
+		height: 30
+	},
+	cancelButton: {
+		marginTop: 7,
+		marginLeft: 10
+	},
+	cancelButtonText: {
+		fontSize: 14,
+		color: colors.primary,
+		...fontStyles.normal
 	}
 });
 
@@ -343,6 +365,7 @@ export class Browser extends Component {
 
 	onUrlInputSubmit = async () => {
 		await this.go(this.state.inputValue);
+		this.hideUrlModal();
 	};
 
 	goBack = () => {
@@ -573,14 +596,26 @@ export class Browser extends Component {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
 	}
 
-	toggleUrlModal() {
-		this.setState({ showUrlModal: !this.state.showUrlModal });
-	}
+	hideUrlModal = () => {
+		const url = this.props.navigation.getParam('url', '');
+		this.props.navigation.navigate('BrowserView', { url, showUrlModal: false });
+	};
 
-	renderUrlModal(inputValue) {
+	renderUrlModal() {
+		const showUrlModal = this.props.navigation.getParam('showUrlModal', false);
+
 		return (
-			<Modal visible={this.state.showUrlModal}>
-				<View style={baseStyles.flexGrow}>
+			<Modal
+				isVisible={showUrlModal}
+				style={styles.urlModal}
+				onBackdropPress={this.hideUrlModal}
+				animationIn="slideInDown"
+				animationOut="slideOutUp"
+				backdropOpacity={0}
+				animationInTiming={600}
+				animationOutTiming={600}
+			>
+				<View style={styles.urlModalContent}>
 					<TextInput
 						autoCapitalize="none"
 						autoCorrect={false}
@@ -593,8 +628,11 @@ export class Browser extends Component {
 						placeholderTextColor={colors.asphalt}
 						returnKeyType="go"
 						style={styles.urlInput}
-						value={inputValue}
+						value={this.state.url}
 					/>
+					<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
+						<Text style={styles.cancelButtonText}>Cancel</Text>
+					</TouchableOpacity>
 				</View>
 			</Modal>
 		);
@@ -628,6 +666,7 @@ export class Browser extends Component {
 				) : (
 					this.renderLoader()
 				)}
+				{this.renderUrlModal()}
 				{this.renderOptions()}
 				{this.renderBottomBar(canGoForward)}
 			</SafeAreaView>

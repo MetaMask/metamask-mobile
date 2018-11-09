@@ -56,9 +56,18 @@ export function getBrowserViewNavbarOptions(navigation) {
 
 	return {
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
-		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
-		// eslint-disable-next-line
+		headerTitle: (
+			<TouchableOpacity
+				// eslint-disable-next-line
+				onPress={() => {
+					navigation.navigate('BrowserView', { url, showUrlModal: true });
+				}}
+			>
+				<NavbarBrowserTitle hostname={hostname} https={isHttps} />
+			</TouchableOpacity>
+		),
 		headerRight: (
+			// eslint-disable-next-line
 			<TouchableOpacity onPress={() => navigation.navigate('BrowserHome')}>
 				<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
 			</TouchableOpacity>
