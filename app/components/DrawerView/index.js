@@ -22,8 +22,8 @@ import Networks from '../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
+import NetworkList from '../NetworkList';
 import { fromWei } from '../../util/number';
-import Logger from '../../util/Logger';
 import { strings } from '../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
@@ -217,17 +217,24 @@ class DrawerView extends Component {
 	};
 
 	state = {
-		accountsModalVisible: false
+		accountsModalVisible: false,
+		networksModalVisible: false
+	};
+
+	onNetworkPress = () => {
+		this.setState({ networksModalVisible: true });
 	};
 
 	onAccountPress = () => {
-		Logger.log('Should show account list');
 		this.setState({ accountsModalVisible: true });
 	};
 
 	hideAccountsModal = () => {
-		Logger.log('Should show account list');
 		this.setState({ accountsModalVisible: false });
+	};
+
+	hideNetworksModal = () => {
+		this.setState({ networksModalVisible: false });
 	};
 
 	showQrCode = async () => {
@@ -385,12 +392,12 @@ class DrawerView extends Component {
 				<ScrollView>
 					<View style={styles.header}>
 						<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
-						<View style={styles.network}>
+						<TouchableOpacity style={styles.network} onPress={this.onNetworkPress}>
 							<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
 							<Text style={styles.networkName} testID={'navbar-title-network'}>
 								{name}
 							</Text>
-						</View>
+						</TouchableOpacity>
 					</View>
 					<View style={styles.account}>
 						<ImageBackground
@@ -475,6 +482,9 @@ class DrawerView extends Component {
 						))}
 					</View>
 				</ScrollView>
+				<Modal isVisible={this.state.networksModalVisible} onBackdropPress={this.hideNetworksModal}>
+					<NetworkList onClose={this.hideNetworksModal} />
+				</Modal>
 				<Modal
 					isVisible={this.state.accountsModalVisible}
 					style={styles.bottomModal}

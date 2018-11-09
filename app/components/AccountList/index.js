@@ -190,7 +190,7 @@ export default class AccountList extends Component {
 	renderAccounts() {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
-		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.keyrings;
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
 			const checksummedAddress = toChecksumAddress(addr);
