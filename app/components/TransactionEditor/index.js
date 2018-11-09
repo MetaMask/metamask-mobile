@@ -13,6 +13,7 @@ import { toBN, isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { withNavigation } from 'react-navigation';
+import CustomGas from '../CustomGas';
 
 const styles = StyleSheet.create({
 	root: {
@@ -469,6 +470,12 @@ class TransactionEditor extends Component {
 									/>
 								</View>
 							)}
+							<View style={{ ...styles.formRow, ...styles.amountRow }}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
+								</View>
+								<CustomGas transaction={this.props.transaction} />
+							</View>
 						</View>
 					</ActionView>
 				)}
