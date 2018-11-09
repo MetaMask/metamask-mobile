@@ -315,6 +315,8 @@ export class Browser extends Component {
 		this.timeoutHandler = setTimeout(() => {
 			this.urlTimedOut(urlToGo);
 		}, 60000);
+
+		return urlToGo;
 	};
 
 	urlTimedOut(url) {
@@ -364,8 +366,8 @@ export class Browser extends Component {
 	}
 
 	onUrlInputSubmit = async () => {
-		await this.go(this.state.inputValue);
-		this.hideUrlModal(this.state.url);
+		const url = await this.go(this.state.inputValue);
+		this.hideUrlModal(url);
 	};
 
 	goBack = () => {
@@ -597,7 +599,7 @@ export class Browser extends Component {
 	}
 
 	hideUrlModal = url => {
-		const urlParam = url || this.props.navigation.getParam('url', '');
+		const urlParam = typeof url === 'string' ? url : this.props.navigation.state.params.url;
 		this.props.navigation.setParams({ url: urlParam, showUrlModal: false });
 	};
 
@@ -631,7 +633,7 @@ export class Browser extends Component {
 						value={this.state.url}
 					/>
 					<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
-						<Text style={styles.cancelButtonText}>Cancel</Text>
+						<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
 					</TouchableOpacity>
 				</View>
 			</Modal>

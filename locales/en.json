@@ -214,7 +214,8 @@
 		"share": "Share",
 		"bookmark": "Bookmark",
 		"error": "Ooops!",
-		"bookmarkAlreadyExists": "You already bookmarked this url"
+		"bookmarkAlreadyExists": "You already bookmarked this url",
+		"cancel": "Cancel"
 	},
 	"addBookmark": {
 		"title": "Add Bookmark",
