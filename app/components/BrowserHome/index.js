@@ -30,22 +30,8 @@ export default class BrowserHome extends Component {
 	};
 
 	state = {
-		approvedOrigin: false,
-		canGoBack: false,
-		canGoForward: false,
-		entryScriptWeb3: null,
-		inputValue: '',
-		hostname: '',
 		url: this.props.defaultURL || '',
-		showOptions: false,
-		currentPageTitle: '',
 		bookmarks: [],
-		timeout: false,
-		ipfsWebsite: false,
-		ipfsGateway: 'https://ipfs.io/ipfs/',
-		ipfsHash: null,
-		currentEnsName: null,
-		editMode: false,
 		tabs: []
 	};
 
@@ -105,7 +91,7 @@ export default class BrowserHome extends Component {
 		} else {
 			const hasProtocol = url.match(/^[a-z]*:\/\//);
 			const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-			this.go(sanitizedURL);
+			await this.go(sanitizedURL);
 		}
 	};
 

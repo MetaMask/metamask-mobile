@@ -72,7 +72,7 @@ exports[`Browser should render correctly 1`] = `
         Object {
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
-          "height": 100,
+          "height": 87,
           "paddingHorizontal": 10,
           "paddingTop": 50,
         }
@@ -89,6 +89,7 @@ exports[`Browser should render correctly 1`] = `
         placeholder="Enter website address"
         placeholderTextColor="#747d8c"
         returnKeyType="go"
+        selectTextOnFocus={true}
         style={
           Object {
             "backgroundColor": "#dfe4ea",
@@ -99,7 +100,8 @@ exports[`Browser should render correctly 1`] = `
             "fontWeight": "400",
             "height": 30,
             "padding": 8,
-            "textAlign": "center",
+            "paddingLeft": 15,
+            "textAlign": "left",
           }
         }
         textContentType="URL"

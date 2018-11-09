@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
 		paddingTop: 50,
 		paddingHorizontal: 10,
 		backgroundColor: colors.white,
-		height: 100
+		height: 87
 	},
 	urlModal: {
 		justifyContent: 'flex-start',
@@ -143,7 +143,8 @@ const styles = StyleSheet.create({
 		borderRadius: 30,
 		fontSize: 14,
 		padding: 8,
-		textAlign: 'center',
+		paddingLeft: 15,
+		textAlign: 'left',
 		flex: 1,
 		height: 30
 	},
@@ -208,6 +209,7 @@ export class Browser extends Component {
 	};
 
 	webview = React.createRef();
+	inputRef = React.createRef();
 	scrollY = new Animated.Value(0);
 	timeoutHandler = null;
 	prevScrollOffset = 0;
@@ -316,7 +318,7 @@ export class Browser extends Component {
 			this.urlTimedOut(urlToGo);
 		}, 60000);
 
-		return urlToGo;
+		return sanitizedURL;
 	};
 
 	urlTimedOut(url) {
@@ -606,6 +608,15 @@ export class Browser extends Component {
 	renderUrlModal() {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
+		if (showUrlModal && this.inputRef) {
+			setTimeout(() => {
+				const { current } = this.inputRef;
+				if (current && !current.isFocused()) {
+					current.focus();
+				}
+			}, 300);
+		}
+
 		return (
 			<Modal
 				isVisible={showUrlModal}
@@ -619,6 +630,7 @@ export class Browser extends Component {
 			>
 				<View style={styles.urlModalContent}>
 					<TextInput
+						ref={this.inputRef}
 						autoCapitalize="none"
 						autoCorrect={false}
 						clearButtonMode="while-editing"
@@ -631,6 +643,7 @@ export class Browser extends Component {
 						returnKeyType="go"
 						style={styles.urlInput}
 						value={this.state.url}
+						selectTextOnFocus
 					/>
 					<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
 						<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
