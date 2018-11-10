@@ -179,6 +179,7 @@ export default class HomePage extends Component {
 						<TouchableOpacity
 							style={styles.bookmarkTouchable}
 							onPress={() => this.props.onBookmarkTapped(item.url)} // eslint-disable-line react/jsx-no-bind
+							// eslint-disable-next-line react/jsx-no-bind
 							onLongPress={() => this.showRemoveMenu(i)}
 						>
 							<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />

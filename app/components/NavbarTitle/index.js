@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Image, View, StyleSheet, Text } from 'react-native';
+import { Platform, Image, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 
@@ -11,7 +11,8 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	network: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		marginLeft: Platform.OS === 'android' ? -52 : 0
 	},
 	networkName: {
 		fontSize: 11,
@@ -32,6 +33,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 18,
+		marginLeft: Platform.OS === 'android' ? -52 : 0,
 		...fontStyles.normal
 	}
 });

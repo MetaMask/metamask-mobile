@@ -205,7 +205,8 @@ export class Browser extends Component {
 		ipfsGateway: 'https://ipfs.io/ipfs/',
 		ipfsHash: null,
 		currentEnsName: null,
-		editMode: false
+		editMode: false,
+		loading: true
 	};
 
 	webview = React.createRef();
@@ -251,6 +252,7 @@ export class Browser extends Component {
 			const url = navigation.getParam('url', null);
 			if (url) {
 				this.go(url);
+				this.setState({ loading: false });
 			}
 		}
 	}
@@ -568,9 +570,11 @@ export class Browser extends Component {
 	};
 
 	renderBottomBar(canGoForward) {
+		const bottom = Platform.OS === 'ios' ? 0 : 10;
+		const distance = Platform.OS === 'ios' ? 100 : 200;
 		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, SCROLL_THRESHOLD).interpolate({
 			inputRange: [0, 1],
-			outputRange: [0, -100]
+			outputRange: [bottom, bottom - distance]
 		});
 		return (
 			<Animated.View style={[styles.bottomBar, { marginBottom: bottomBarPosition }]}>
@@ -653,6 +657,13 @@ export class Browser extends Component {
 		);
 	}
 
+	getUserAgent() {
+		if (Platform.OS === 'android') {
+			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
+		}
+		return 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/70.0.3538.75 Mobile/15E148 Safari/605.1';
+	}
+
 	render() {
 		const { canGoForward, entryScriptWeb3, url } = this.state;
 
@@ -661,7 +672,7 @@ export class Browser extends Component {
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
-				{entryScriptWeb3 ? (
+				{entryScriptWeb3 && !this.state.loading ? (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						injectedJavaScriptForMainFrameOnly
@@ -677,6 +688,7 @@ export class Browser extends Component {
 						onScrollBeginDrag={this.onScrollBeginDrag}
 						onScrollEndDrag={this.onScrollEnd}
 						onMomentumScrollEnd={this.onScrollEnd}
+						userAgent={this.getUserAgent()}
 					/>
 				) : (
 					this.renderLoader()

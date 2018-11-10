@@ -23,8 +23,11 @@ const styles = StyleSheet.create({
 		marginLeft: Platform.OS === 'android' ? 20 : 0
 	},
 	closeIcon: {
-		marginRight: 15,
+		marginRight: 20,
 		marginTop: 5
+	},
+	flex: {
+		flex: 1
 	}
 });
 
@@ -58,6 +61,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerTitle: (
 			<TouchableOpacity
+				style={styles.flex}
 				// eslint-disable-next-line
 				onPress={() => {
 					navigation.navigate('BrowserView', { url, showUrlModal: true });
