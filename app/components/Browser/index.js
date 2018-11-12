@@ -410,6 +410,13 @@ export class Browser extends Component {
 		}
 	};
 
+	close = () => {
+		if (this.props.navigation.state.params.showOptions) {
+			this.toggleOptions();
+		}
+		this.props.navigation.pop();
+	};
+
 	goForward = () => {
 		if (this.props.navigation.state.params.showOptions) {
 			this.toggleOptions();
@@ -582,6 +589,12 @@ export class Browser extends Component {
 								<Icon name="share" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>{strings('browser.share')}</Text>
 							</Button>
+							{Platform.OS === 'android' ? (
+								<Button onPress={this.close} style={styles.option}>
+									<Icon name="close" size={15} style={styles.optionIcon} />
+									<Text style={styles.optionText}>{strings('browser.close')}</Text>
+								</Button>
+							) : null}
 						</View>
 					</View>
 				</TouchableWithoutFeedback>

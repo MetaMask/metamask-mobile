@@ -217,7 +217,8 @@
 		"bookmarkAlreadyExists": "You already bookmarked this url",
 		"cancel": "Cancel",
 		"goBack": "Go Back",
-		"goForward": "Go Forward"
+		"goForward": "Go Forward",
+		"close": "Close"
 	},
 	"addBookmark": {
 		"title": "Add Bookmark",
