@@ -3,9 +3,10 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
-import { TouchableOpacity, View, Platform, StyleSheet, Image } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../locales/i18n';
 import URL from 'url-parse';
 
@@ -24,6 +25,10 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		marginRight: 20,
+		marginTop: 5
+	},
+	moreIcon: {
+		marginRight: 15,
 		marginTop: 5
 	},
 	flex: {
@@ -64,18 +69,29 @@ export function getBrowserViewNavbarOptions(navigation) {
 				style={styles.flex}
 				// eslint-disable-next-line
 				onPress={() => {
-					navigation.navigate('BrowserView', { url, showUrlModal: true });
+					navigation.navigate('BrowserView', { ...navigation.state.params, showUrlModal: true });
 				}}
 			>
 				<NavbarBrowserTitle hostname={hostname} https={isHttps} />
 			</TouchableOpacity>
 		),
-		headerRight: (
-			// eslint-disable-next-line
-			<TouchableOpacity onPress={() => navigation.navigate('BrowserHome')}>
-				<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
-			</TouchableOpacity>
-		)
+		headerRight:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line
+				<TouchableOpacity
+					onPress={() => {
+						// eslint-disable-next-line no-mixed-spaces-and-tabs
+						navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+					}}
+				>
+					<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line
+				<TouchableOpacity onPress={() => navigation.navigate('BrowserHome')}>
+					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+				</TouchableOpacity>
+			)
 	};
 }
 

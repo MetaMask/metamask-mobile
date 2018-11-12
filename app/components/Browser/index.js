@@ -71,18 +71,25 @@ const styles = StyleSheet.create({
 		right: 0
 	},
 	optionsWrapper: {
-		shadowColor: colors.gray,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3,
 		position: 'absolute',
 		zIndex: 99999999,
-		bottom: 70,
-		right: 3,
 		width: 140,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		backgroundColor: colors.concrete
+	},
+	optionsWrapperAndroid: {
+		top: 0,
+		right: 0,
+		elevation: 5
+	},
+	optionsWrapperIos: {
+		shadowColor: colors.gray,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
+		bottom: 70,
+		right: 3
 	},
 	option: {
 		backgroundColor: colors.concrete,
@@ -128,10 +135,10 @@ const styles = StyleSheet.create({
 	},
 	urlModalContent: {
 		flexDirection: 'row',
-		paddingTop: 50,
+		paddingTop: Platform.OS === 'android' ? 10 : 50,
 		paddingHorizontal: 10,
 		backgroundColor: colors.white,
-		height: 87
+		height: Platform.OS === 'android' ? 59 : 87
 	},
 	urlModal: {
 		justifyContent: 'flex-start',
@@ -139,14 +146,14 @@ const styles = StyleSheet.create({
 	},
 	urlInput: {
 		...fontStyles.normal,
-		backgroundColor: colors.slate,
+		backgroundColor: Platform.OS === 'android' ? colors.white : colors.slate,
 		borderRadius: 30,
-		fontSize: 14,
+		fontSize: Platform.OS === 'android' ? 16 : 14,
 		padding: 8,
 		paddingLeft: 15,
 		textAlign: 'left',
 		flex: 1,
-		height: 30
+		height: Platform.OS === 'android' ? 40 : 30
 	},
 	cancelButton: {
 		marginTop: 7,
@@ -156,6 +163,24 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.primary,
 		...fontStyles.normal
+	},
+	iconCloseButton: {
+		borderRadius: 300,
+		backgroundColor: colors.fontSecondary,
+		color: colors.white,
+		fontSize: 18,
+		padding: 0,
+		height: 20,
+		width: 20,
+		paddingBottom: 0,
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginTop: 10,
+		marginRight: 5
+	},
+	iconClose: {
+		color: colors.white,
+		fontSize: 18
 	}
 });
 
@@ -198,7 +223,6 @@ export class Browser extends Component {
 		inputValue: '',
 		hostname: '',
 		url: this.props.defaultURL || '',
-		showOptions: false,
 		currentPageTitle: '',
 		timeout: false,
 		ipfsWebsite: false,
@@ -375,6 +399,9 @@ export class Browser extends Component {
 	};
 
 	goBack = () => {
+		if (this.props.navigation.state.params.showOptions) {
+			this.toggleOptions();
+		}
 		if (this.state.canGoBack) {
 			const { current } = this.webview;
 			current && current.goBack();
@@ -384,17 +411,25 @@ export class Browser extends Component {
 	};
 
 	goForward = () => {
+		if (this.props.navigation.state.params.showOptions) {
+			this.toggleOptions();
+		}
 		const { current } = this.webview;
 		current && current.goForward();
 	};
 
 	reload = () => {
+		if (this.props.navigation.state.params.showOptions) {
+			this.toggleOptions();
+		}
 		const { current } = this.webview;
 		current && current.reload();
 	};
 
 	bookmark = () => {
-		this.toggleOptions();
+		if (this.props.navigation.state.params.showOptions) {
+			this.toggleOptions();
+		}
 		// Check it doesn't exist already
 		if (this.state.bookmarks.filter(i => i.url === this.state.inputValue).length) {
 			Alert.alert(strings('browser.error'), strings('browser.bookmarkAlreadyExists'));
@@ -414,6 +449,7 @@ export class Browser extends Component {
 	};
 
 	share = () => {
+		this.toggleOptions();
 		Share.open({
 			url: this.state.url
 		}).catch(err => {
@@ -422,7 +458,10 @@ export class Browser extends Component {
 	};
 
 	toggleOptions = () => {
-		this.setState({ showOptions: !this.state.showOptions });
+		this.props.navigation.setParams({
+			...this.props.navigation.state.params,
+			showOptions: !this.props.navigation.state.params.showOptions
+		});
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
@@ -509,11 +548,28 @@ export class Browser extends Component {
 	}
 
 	renderOptions() {
-		if (this.state.showOptions) {
+		if (this.props.navigation.state.params.showOptions) {
 			return (
 				<TouchableWithoutFeedback onPress={this.toggleOptions}>
 					<View style={styles.optionsOverlay}>
-						<View style={styles.optionsWrapper}>
+						<View
+							style={[
+								styles.optionsWrapper,
+								Platform.OS === 'android' ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
+							]}
+						>
+							{Platform.OS === 'android' && this.state.canGoBack ? (
+								<Button onPress={this.goForward} style={styles.option}>
+									<Icon name="arrow-left" size={15} style={styles.optionIcon} />
+									<Text style={styles.optionText}>{strings('browser.goBack')}</Text>
+								</Button>
+							) : null}
+							{Platform.OS === 'android' && this.state.canGoForward ? (
+								<Button onPress={this.goForward} style={styles.option}>
+									<Icon name="arrow-right" size={15} style={styles.optionIcon} />
+									<Text style={styles.optionText}>{strings('browser.goForward')}</Text>
+								</Button>
+							) : null}
 							<Button onPress={this.reload} style={styles.option}>
 								<Icon name="refresh" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>{strings('browser.reload')}</Text>
@@ -609,6 +665,11 @@ export class Browser extends Component {
 		this.props.navigation.setParams({ url: urlParam, showUrlModal: false });
 	};
 
+	clearInputText = () => {
+		const { current } = this.inputRef;
+		current.clear();
+	};
+
 	renderUrlModal() {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
@@ -628,7 +689,7 @@ export class Browser extends Component {
 				onBackdropPress={this.hideUrlModal}
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
-				backdropOpacity={0}
+				backdropOpacity={Platform.OS === 'android' ? 0.7 : 0}
 				animationInTiming={600}
 				animationOutTiming={600}
 			>
@@ -649,9 +710,16 @@ export class Browser extends Component {
 						value={this.state.url}
 						selectTextOnFocus
 					/>
-					<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
-						<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
-					</TouchableOpacity>
+
+					{Platform.OS === 'android' ? (
+						<TouchableOpacity onPress={this.clearInputText} style={styles.iconCloseButton}>
+							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
+						</TouchableOpacity>
+					) : (
+						<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
+							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
+						</TouchableOpacity>
+					)}
 				</View>
 			</Modal>
 		);
@@ -695,7 +763,7 @@ export class Browser extends Component {
 				)}
 				{this.renderUrlModal()}
 				{this.renderOptions()}
-				{this.renderBottomBar(canGoForward)}
+				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
 			</SafeAreaView>
 		);
 	}

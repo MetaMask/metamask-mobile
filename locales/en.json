@@ -215,7 +215,9 @@
 		"bookmark": "Bookmark",
 		"error": "Ooops!",
 		"bookmarkAlreadyExists": "You already bookmarked this url",
-		"cancel": "Cancel"
+		"cancel": "Cancel",
+		"goBack": "Go Back",
+		"goForward": "Go Forward"
 	},
 	"addBookmark": {
 		"title": "Add Bookmark",
