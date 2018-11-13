@@ -1,21 +1,20 @@
 import React from 'react';
-import Web3Webview from 'react-native-web3-webview';
 import { shallow } from 'enzyme';
 import { Browser } from './';
 
 describe('Browser', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
+		const wrapper = shallow(<Browser url="https://metamask.io" />);
 		expect(wrapper).toMatchSnapshot();
 	});
 
 	it('should have the back button always enabled', () => {
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
+		const wrapper = shallow(<Browser url="https://metamask.io" />);
 		expect(wrapper.find('[name="angle-left"]').prop('disabled')).not.toBe(false);
 	});
 
 	it('should render the forward button enabled if canGoForward', () => {
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
+		const wrapper = shallow(<Browser url="https://metamask.io" />);
 		expect(wrapper.find('[name="angle-right"]').length).toBe(1);
 		expect(wrapper.find('[name="angle-right"]').prop('disabled')).toBe(true);
 		wrapper.setState({ canGoForward: true });
@@ -25,9 +24,8 @@ describe('Browser', () => {
 	it('should go back', () => {
 		const MockWebView = { goBack() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'goBack');
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
-		wrapper.setState({ entryScriptWeb3: 'let inject=true;' });
-		wrapper.find(Web3Webview).simulate('NavigationStateChange', { canGoBack: true });
+		const wrapper = shallow(<Browser url="https://metamask.io" />);
+		wrapper.setState({ entryScriptWeb3: 'let inject=true;', canGoBack: true });
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="angle-left"]').simulate('press');
 		expect(stub).toBeCalled();
@@ -36,7 +34,7 @@ describe('Browser', () => {
 	it('should go forward', () => {
 		const MockWebView = { goForward() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'goForward');
-		const wrapper = shallow(<Browser defaultURL="https://metamask.io" />);
+		const wrapper = shallow(<Browser url="https://metamask.io" />);
 		wrapper.setState({ canGoForward: true });
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="angle-right"]').simulate('press');

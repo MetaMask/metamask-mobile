@@ -40,7 +40,7 @@ exports[`Browser should render correctly 1`] = `
     animationOutTiming={600}
     avoidKeyboard={false}
     backdropColor="black"
-    backdropOpacity={0}
+    backdropOpacity={0.7}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}
     hideModalContentWhileAnimating={false}
@@ -106,7 +106,7 @@ exports[`Browser should render correctly 1`] = `
         }
         textContentType="URL"
         underlineColorAndroid="transparent"
-        value="https://metamask.io"
+        value=""
       />
       <TouchableOpacity
         activeOpacity={0.2}

@@ -200,10 +200,6 @@ export class Browser extends Component {
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
-		 * Initial URL to load in the WebView
-		 */
-		defaultURL: PropTypes.string,
-		/**
 		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object,
@@ -222,7 +218,7 @@ export class Browser extends Component {
 		bookmarks: [],
 		inputValue: '',
 		hostname: '',
-		url: this.props.defaultURL || '',
+		url: this.props.url || '',
 		currentPageTitle: '',
 		timeout: false,
 		ipfsWebsite: false,
@@ -258,7 +254,6 @@ export class Browser extends Component {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
-
 		this.loadUrl();
 		this.loadBookmarks();
 	}
@@ -270,12 +265,12 @@ export class Browser extends Component {
 		}
 	};
 
-	loadUrl() {
+	async loadUrl() {
 		const { navigation } = this.props;
 		if (navigation) {
 			const url = navigation.getParam('url', null);
 			if (url) {
-				this.go(url);
+				await this.go(url);
 				this.setState({ loading: false });
 			}
 		}
@@ -343,7 +338,6 @@ export class Browser extends Component {
 		this.timeoutHandler = setTimeout(() => {
 			this.urlTimedOut(urlToGo);
 		}, 60000);
-
 		return sanitizedURL;
 	};
 
@@ -375,7 +369,7 @@ export class Browser extends Component {
 			return null;
 		}
 
-		const gatewayUrl = this.state.ipfsGateway + ipfsHash + (pathname || '') + (query || '');
+		const gatewayUrl = `${this.state.ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
 
 		try {
 			const response = await fetch(gatewayUrl, { method: 'HEAD' });
@@ -389,7 +383,7 @@ export class Browser extends Component {
 			// If there's an error our fallback mechanism is
 			// to point straight to the ipfs gateway
 			Logger.error('Failed to fetch ipfs website via ens', err);
-			return 'https://ipfs.io/ipfs/' + ipfsHash;
+			return `https://ipfs.io/ipfs/${ipfsHash}/`;
 		}
 	}
 
@@ -399,9 +393,7 @@ export class Browser extends Component {
 	};
 
 	goBack = () => {
-		if (this.props.navigation.state.params.showOptions) {
-			this.toggleOptions();
-		}
+		this.toggleOptionsIfNeeded();
 		if (this.state.canGoBack) {
 			const { current } = this.webview;
 			current && current.goBack();
@@ -411,32 +403,24 @@ export class Browser extends Component {
 	};
 
 	close = () => {
-		if (this.props.navigation.state.params.showOptions) {
-			this.toggleOptions();
-		}
+		this.toggleOptionsIfNeeded();
 		this.props.navigation.pop();
 	};
 
 	goForward = () => {
-		if (this.props.navigation.state.params.showOptions) {
-			this.toggleOptions();
-		}
+		this.toggleOptionsIfNeeded();
 		const { current } = this.webview;
 		current && current.goForward();
 	};
 
 	reload = () => {
-		if (this.props.navigation.state.params.showOptions) {
-			this.toggleOptions();
-		}
+		this.toggleOptionsIfNeeded();
 		const { current } = this.webview;
 		current && current.reload();
 	};
 
 	bookmark = () => {
-		if (this.props.navigation.state.params.showOptions) {
-			this.toggleOptions();
-		}
+		this.toggleOptionsIfNeeded();
 		// Check it doesn't exist already
 		if (this.state.bookmarks.filter(i => i.url === this.state.inputValue).length) {
 			Alert.alert(strings('browser.error'), strings('browser.bookmarkAlreadyExists'));
@@ -456,7 +440,7 @@ export class Browser extends Component {
 	};
 
 	share = () => {
-		this.toggleOptions();
+		this.toggleOptionsIfNeeded();
 		Share.open({
 			url: this.state.url
 		}).catch(err => {
@@ -464,11 +448,18 @@ export class Browser extends Component {
 		});
 	};
 
+	toggleOptionsIfNeeded() {
+		if (this.props.navigation && this.props.navigation.state.params.showOptions) {
+			this.toggleOptions();
+		}
+	}
+
 	toggleOptions = () => {
-		this.props.navigation.setParams({
-			...this.props.navigation.state.params,
-			showOptions: !this.props.navigation.state.params.showOptions
-		});
+		this.props.navigation &&
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				showOptions: !this.props.navigation.state.params.showOptions
+			});
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
@@ -499,8 +490,8 @@ export class Browser extends Component {
 			data.inputValue = url;
 		} else if (url.search('mm_override=false') === -1) {
 			data.inputValue = url.replace(
-				`${this.state.ipfsGateway}${this.state.ipfsHash}`,
-				`https://${this.state.currentEnsName}`
+				`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
+				`https://${this.state.currentEnsName}/`
 			);
 		} else if (this.isENSUrl(url)) {
 			this.go(url);
@@ -555,7 +546,8 @@ export class Browser extends Component {
 	}
 
 	renderOptions() {
-		if (this.props.navigation.state.params.showOptions) {
+		const showOptions = (this.props.navigation && this.props.navigation.getParam('showOptions', false)) || false;
+		if (showOptions) {
 			return (
 				<TouchableWithoutFeedback onPress={this.toggleOptions}>
 					<View style={styles.optionsOverlay}>
@@ -566,7 +558,7 @@ export class Browser extends Component {
 							]}
 						>
 							{Platform.OS === 'android' && this.state.canGoBack ? (
-								<Button onPress={this.goForward} style={styles.option}>
+								<Button onPress={this.goBack} style={styles.option}>
 									<Icon name="arrow-left" size={15} style={styles.optionIcon} />
 									<Text style={styles.optionText}>{strings('browser.goBack')}</Text>
 								</Button>
@@ -702,7 +694,7 @@ export class Browser extends Component {
 				onBackdropPress={this.hideUrlModal}
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
-				backdropOpacity={Platform.OS === 'android' ? 0.7 : 0}
+				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
 			>
@@ -720,7 +712,7 @@ export class Browser extends Component {
 						placeholderTextColor={colors.asphalt}
 						returnKeyType="go"
 						style={styles.urlInput}
-						value={this.state.url}
+						value={this.state.inputValue}
 						selectTextOnFocus
 					/>
 
@@ -742,7 +734,7 @@ export class Browser extends Component {
 		if (Platform.OS === 'android') {
 			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
 		}
-		return 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/70.0.3538.75 Mobile/15E148 Safari/605.1';
+		return null;
 	}
 
 	render() {
@@ -770,6 +762,7 @@ export class Browser extends Component {
 						onScrollEndDrag={this.onScrollEnd}
 						onMomentumScrollEnd={this.onScrollEnd}
 						userAgent={this.getUserAgent()}
+						javascriptEnabled
 					/>
 				) : (
 					this.renderLoader()
