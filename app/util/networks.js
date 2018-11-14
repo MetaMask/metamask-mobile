@@ -1,3 +1,5 @@
+import { colors } from '../styles/common';
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -25,5 +27,9 @@ export default {
 		name: 'Rinkeby Test Network',
 		networkId: 4,
 		color: '#f6c343'
+	},
+	rpc: {
+		name: 'Private Network',
+		color: colors.concrete
 	}
 };

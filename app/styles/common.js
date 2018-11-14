@@ -36,7 +36,8 @@ export const colors = {
 	success: '#5ea40c',
 	lightSuccess: '#eafad7',
 	warning: '#CA810A',
-	lightWarning: '#FFF2DB'
+	lightWarning: '#FFF2DB',
+	dimmed: '#00000080'
 };
 
 /**

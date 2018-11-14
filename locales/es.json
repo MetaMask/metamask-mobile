@@ -76,6 +76,25 @@
 	"accounts": {
 		"title": "Mis Cuentas"
 	},
+	"app_settings": {
+		"title": "Configuración",
+		"current_conversion": "Conversión actual",
+		"current_language": "Lenguaje Actual",
+		"new_RPC_URL": "Nueva URL del RPC",
+		"state_logs": "Logs de Estado",
+		"reveal_seed_words": "Revelar Palabras de Semilla",
+		"reset_account": "Reiniciar Cuenta",
+		"state_logs_button": "DESCARGAR LOGS DE ESTADO",
+		"reveal_seed_words_button": "REVELAR PALABRAS DE SEMILLA",
+		"reset_account_button": "REINICIAR CUENTA",
+		"reset_account_confirm_button": "REINICIAR",
+		"reset_account_cancel_button": "NO IMPORTA",
+		"reset_account_modal_title": "¿Reinciar Cuenta?",
+		"reset_account_modal_message": "Reiniciar tu cuenta borrará tu historial de transacciones.",
+		"save_rpc_url": "GUARDAR",
+		"invalid_rpc_prefix": "URIs requieren el apropiado HTTP/HTTPS prefijo",
+		"invalid_rpc_url": "RPC URL inválida"
+	},
 	"settings": {
 		"title": "Configuraciones",
 		"network": "Red",

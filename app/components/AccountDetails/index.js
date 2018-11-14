@@ -88,13 +88,13 @@ const styles = StyleSheet.create({
  * View that contains details about the selected Address
  */
 class AccountDetails extends Component {
-	static navigationOptions = {
+	static navigationOptions = () => ({
 		title: strings('accountDetails.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
 		}
-	};
+	});
 
 	state = {
 		accountLabelEditable: false,
