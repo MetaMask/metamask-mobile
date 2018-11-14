@@ -58,6 +58,14 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		color: colors.red
+	},
+	neutral: {
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.lightGray
+	},
+	neutralText: {
+		color: colors.lightGray
 	}
 });
 
@@ -91,6 +99,10 @@ function getStyles(type) {
 		case 'warning':
 			fontStyle = styles.warningText;
 			containerStyle = styles.warning;
+			break;
+		case 'neutral':
+			fontStyle = styles.neutralText;
+			containerStyle = styles.neutral;
 			break;
 		default:
 			throw new Error('Unknown button type');

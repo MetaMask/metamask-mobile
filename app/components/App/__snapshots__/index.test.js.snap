@@ -41,6 +41,7 @@ exports[`App should render correctly 1`] = `
                         "childRouters": Object {
                           "AccountDetails": null,
                           "AddAsset": null,
+                          "AppSettings": null,
                           "Asset": null,
                           "NetworkSettings": null,
                           "RevealPrivateCredential": null,

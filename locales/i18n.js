@@ -1,4 +1,4 @@
-import ReactNative from 'react-native';
+import ReactNative, { AsyncStorage } from 'react-native';
 import I18n from 'react-native-i18n';
 
 // Import all locales
@@ -13,11 +13,24 @@ I18n.translations = {
 	en,
 	es
 };
+// If language selected get locale
+getUserPreferableLocale();
 
 const currentLocale = I18n.currentLocale();
 
 // Is it a RTL language?
 export const isRTL = currentLocale.indexOf('he') === 0 || currentLocale.indexOf('ar') === 0;
+
+// Set locale
+export async function setLocale(locale) {
+	I18n.locale = locale;
+	await AsyncStorage.setItem('@MetaMask:language', locale);
+}
+
+// Get languages
+export function getLanguages() {
+	return { en: 'English', es: 'Spanish' };
+}
 
 // Allow RTL alignment in RTL languages
 ReactNative.I18nManager.allowRTL(isRTL);
@@ -25,6 +38,14 @@ ReactNative.I18nManager.allowRTL(isRTL);
 // The method we'll use instead of a regular string
 export function strings(name, params = {}) {
 	return I18n.t(name, params);
+}
+
+// Allow persist locale after app closed
+async function getUserPreferableLocale() {
+	const locale = await AsyncStorage.getItem('@MetaMask:language');
+	if (locale) {
+		I18n.locale = locale;
+	}
 }
 
 export default I18n;

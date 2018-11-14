@@ -181,7 +181,9 @@ export default class AccountList extends Component {
 		}
 	};
 
-	openAccountSettings = () => false;
+	openAccountSettings = () => {
+		this.props.navigation.navigate('AppSettings');
+	};
 
 	closeSideBar = () => {
 		this.props.navigation.closeDrawer();

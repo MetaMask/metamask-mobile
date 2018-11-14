@@ -37,6 +37,7 @@ export const colors = {
 	lightSuccess: '#eafad7',
 	warning: '#CA810A',
 	lightWarning: '#FFF2DB',
+	dimmed: '#00000080',
 	transparent: 'transparent',
 	overlay: 'rgba(0,0,0,.5)'
 };

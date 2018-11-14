@@ -32,13 +32,13 @@ const styles = StyleSheet.create({
  * Component that provides ability to add assets.
  */
 export default class AddAsset extends Component {
-	static navigationOptions = {
+	static navigationOptions = () => ({
 		title: strings('addAsset.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
 		}
-	};
+	});
 
 	state = {
 		address: '',
