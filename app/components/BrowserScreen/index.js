@@ -1,4 +1,5 @@
 import Browser from '../Browser';
+import BrowserHome from '../BrowserHome';
 import AddBookmark from '../AddBookmark';
 import Approval from '../Approval';
 import { createStackNavigator } from 'react-navigation';
@@ -9,6 +10,9 @@ import { createStackNavigator } from 'react-navigation';
  */
 export default createStackNavigator(
 	{
+		BrowserHome: {
+			screen: BrowserHome
+		},
 		BrowserView: {
 			screen: Browser
 		},

@@ -7,6 +7,7 @@ import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
 import AddAsset from '../AddAsset';
 import AppSettings from '../AppSettings';
+import SendScreen from '../SendScreen';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import { createStackNavigator } from 'react-navigation';
 
@@ -44,5 +45,8 @@ export default createStackNavigator({
 	},
 	AppSettings: {
 		screen: AppSettings
+	},
+	SendScreen: {
+		screen: SendScreen
 	}
 });

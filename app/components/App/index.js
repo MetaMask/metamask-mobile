@@ -10,7 +10,8 @@ import SyncWithExtensionSuccess from '../SyncWithExtensionSuccess';
 import Entry from '../Entry';
 import LockScreen from '../LockScreen';
 import Main from '../Main';
-import AccountList from '../AccountList';
+import DrawerView from '../DrawerView';
+import TransactionSubmitted from '../TransactionSubmitted';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -75,7 +76,8 @@ const HomeNav = createStackNavigator(
 					}
 				},
 				{
-					contentComponent: AccountList
+					contentComponent: DrawerView,
+					drawerWidth: 315
 				}
 			)
 		},
@@ -85,6 +87,9 @@ const HomeNav = createStackNavigator(
 		},
 		LockScreen: {
 			screen: LockScreen
+		},
+		TransactionSubmitted: {
+			screen: TransactionSubmitted
 		}
 	},
 	{

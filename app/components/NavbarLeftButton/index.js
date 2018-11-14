@@ -32,7 +32,7 @@ class NavbarLeftButton extends Component {
 		const { address, onPress } = this.props;
 		return (
 			<TouchableOpacity style={styles.leftButton} onPress={onPress} testID={'navbar-account-button'}>
-				<Identicon diameter={30} address={address} />
+				<Identicon diameter={28} address={address} />
 			</TouchableOpacity>
 		);
 	}

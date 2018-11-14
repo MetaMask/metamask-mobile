@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity, Clipboard } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Clipboard } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import Identicon from '../Identicon';
@@ -8,10 +8,23 @@ import { fromWei, toGwei, weiToFiat, hexToBN, isBN, toBN } from '../../util/numb
 import { renderFullAddress } from '../../util/address';
 import { toLocaleDateTime } from '../../util/date';
 import { strings } from '../../../locales/i18n';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete
+		backgroundColor: colors.white,
+		flex: 1
+	},
+	emptyView: {
+		paddingTop: 80,
+		alignItems: 'center',
+		backgroundColor: colors.white,
+		flex: 1
+	},
+	text: {
+		fontSize: 20,
+		color: colors.fontTertiary,
+		...fontStyles.normal
 	},
 	row: {
 		backgroundColor: colors.white,
@@ -162,7 +175,11 @@ export default class Transactions extends Component {
 		 * Callback function that will adjust the scroll
 		 * position once the transaction detail is visible
 		 */
-		adjustScroll: PropTypes.func
+		adjustScroll: PropTypes.func,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -181,7 +198,7 @@ export default class Transactions extends Component {
 		const show = this.state.selectedTx !== hash;
 		this.setState({ selectedTx: show ? hash : null });
 		if (show) {
-			this.props.adjustScroll(index);
+			this.props.adjustScroll && this.props.adjustScroll(index);
 		}
 	}
 
@@ -193,6 +210,22 @@ export default class Transactions extends Component {
 			<TouchableOpacity style={styles.copyIcon} onPress={copy}>
 				<Icon name={'copy'} size={15} color={colors.primary} />
 			</TouchableOpacity>
+		);
+	}
+
+	renderTxHash(transactionHash) {
+		if (!transactionHash) return null;
+		return (
+			<View>
+				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
+						0,
+						20
+					)} ... ${transactionHash.substr(-20)}`}</Text>
+					{this.renderCopyIcon(transactionHash)}
+				</View>
+			</View>
 		);
 	}
 
@@ -208,14 +241,7 @@ export default class Transactions extends Component {
 
 		return (
 			<View style={styles.detailRowWrapper}>
-				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
-						0,
-						20
-					)} ... ${transactionHash.substr(-20)}`}</Text>
-					{this.renderCopyIcon(transactionHash)}
-				</View>
+				{this.renderTxHash(transactionHash)}
 				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={styles.detailRowText}>{renderFullAddress(from)}</Text>
@@ -268,14 +294,26 @@ export default class Transactions extends Component {
 		return null;
 	}
 
+	renderEmpty() {
+		return (
+			<View style={styles.emptyView}>
+				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+			</View>
+		);
+	}
+
 	render() {
-		const { transactions, currentCurrency, conversionRate } = this.props;
-		transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+		const { transactions, currentCurrency, conversionRate, selectedAddress } = this.props;
+		const txs = transactions.filter(tx => toChecksumAddress(tx.transaction.from) === selectedAddress);
+		if (!txs.length) {
+			return this.renderEmpty();
+		}
+		txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
 		return (
-			<View style={styles.wrapper}>
+			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>
-					{transactions.map((tx, i) => (
+					{txs.map((tx, i) => (
 						<TouchableOpacity
 							style={styles.row}
 							key={`tx-${tx.id}`}
@@ -312,7 +350,7 @@ export default class Transactions extends Component {
 						</TouchableOpacity>
 					))}
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 }

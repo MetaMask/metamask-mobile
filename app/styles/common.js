@@ -19,7 +19,7 @@ export const colors = {
 	fontPrimary: '#4a4a4a',
 	fontSecondary: '#999999',
 	fontTertiary: '#AAAAAA',
-	gray: '#5d5d5d',
+	gray: '#7c7e84',
 	green: '#02c9b1',
 	inactive: '#808080',
 	inputBorderColor: '#dedede',
@@ -37,7 +37,9 @@ export const colors = {
 	lightSuccess: '#eafad7',
 	warning: '#CA810A',
 	lightWarning: '#FFF2DB',
-	dimmed: '#00000080'
+	dimmed: '#00000080',
+	transparent: 'transparent',
+	overlay: 'rgba(0,0,0,.5)'
 };
 
 /**

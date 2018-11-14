@@ -2,7 +2,17 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import ActionSheet from 'react-native-actionsheet';
-import { ScrollView, TouchableOpacity, Image, Text, Platform, StyleSheet, TextInput, View } from 'react-native';
+import {
+	InteractionManager,
+	ScrollView,
+	TouchableOpacity,
+	Image,
+	Text,
+	Platform,
+	StyleSheet,
+	TextInput,
+	View
+} from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 
@@ -140,6 +150,9 @@ export default class HomePage extends Component {
 
 	onInitialUrlSubmit = () => {
 		this.props.onInitialUrlSubmit(this.state.searchInputValue);
+		InteractionManager.runAfterInteractions(() => {
+			this.setState({ searchInputValue: '' });
+		});
 	};
 
 	getHost(url) {
@@ -166,6 +179,7 @@ export default class HomePage extends Component {
 						<TouchableOpacity
 							style={styles.bookmarkTouchable}
 							onPress={() => this.props.onBookmarkTapped(item.url)} // eslint-disable-line react/jsx-no-bind
+							// eslint-disable-next-line react/jsx-no-bind
 							onLongPress={() => this.showRemoveMenu(i)}
 						>
 							<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />
@@ -190,6 +204,7 @@ export default class HomePage extends Component {
 					options={['Remove', 'cancel']}
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
+					// eslint-disable-next-line react/jsx-no-bind
 					onPress={index => {
 						if (index === 0) {
 							const newBookmarks = this.props.bookmarks;

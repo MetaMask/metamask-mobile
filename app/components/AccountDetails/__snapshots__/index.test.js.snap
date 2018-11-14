@@ -33,6 +33,7 @@ exports[`Account Details should render correctly 1`] = `
           "flex": 1,
           "flexDirection": "row",
           "justifyContent": "center",
+          "marginTop": 10,
         }
       }
     >
@@ -70,6 +71,7 @@ exports[`Account Details should render correctly 1`] = `
           size={22}
           style={
             Object {
+              "color": "#7c7e84",
               "padding": 10,
             }
           }
@@ -88,21 +90,9 @@ exports[`Account Details should render correctly 1`] = `
     <Component
       style={
         Object {
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
-          "textAlign": "center",
-        }
-      }
-    >
-      Public Address
-    </Component>
-    <Component
-      style={
-        Object {
           "alignItems": "center",
           "justifyContent": "center",
-          "marginTop": 10,
+          "marginVertical": 15,
         }
       }
     >
@@ -124,6 +114,7 @@ exports[`Account Details should render correctly 1`] = `
           "flex": 1,
           "flexDirection": "row",
           "justifyContent": "center",
+          "marginBottom": 20,
           "marginLeft": 10,
           "marginRight": 10,
           "marginTop": 10,
@@ -145,11 +136,13 @@ exports[`Account Details should render correctly 1`] = `
       </Component>
       <Icon
         allowFontScaling={false}
+        color="#7c7e84"
         name="copy"
         onPress={[Function]}
         size={22}
         style={
           Object {
+            "color": "#7c7e84",
             "marginLeft": 10,
           }
         }

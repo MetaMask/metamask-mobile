@@ -4,12 +4,24 @@ exports[`Transactions should render correctly 1`] = `
 <Component
   style={
     Object {
-      "backgroundColor": "#f1f2f6",
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "paddingTop": 80,
     }
   }
 >
   <Component
-    testID="transactions"
-  />
+    style={
+      Object {
+        "color": "#AAAAAA",
+        "fontFamily": "Roboto",
+        "fontSize": 20,
+        "fontWeight": "400",
+      }
+    }
+  >
+    You have no transactions!
+  </Component>
 </Component>
 `;

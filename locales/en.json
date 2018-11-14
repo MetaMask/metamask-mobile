@@ -13,12 +13,14 @@
 	},
 	"importWallet": {
 		"title": "Import Wallet",
-		"sync_help":
-			"If you have access to your computer where you have your MetaMask Browser Extension installed, we recommend you to choose \"Sync from Browser Extension\", since it will preserve all your accounts, settings, etc.",
-		"sync_from_browser_extension_button": "Sync from Browser Extension",
-		"import_from_seed_help":
-			"If you don't have access to your computer, but you have your seed phrase you can choose \"Import from Seed phrase\"",
-		"import_from_seed_button": "Import from Seed"
+		"sync_help": "Sync your wallet with the extension",
+		"sync_help_step_one": "1. Open the extension",
+		"sync_help_step_two": "2. Go to settings",
+		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
+		"sync_help_step_four": "4. Scan the QR Code",
+		"sync_from_browser_extension_button": "Start Syncing",
+		"or": "OR",
+		"import_from_seed_button": "Import using Seed Phrase"
 	},
 	"login": {
 		"title": "Welcome Back!",
@@ -46,14 +48,40 @@
 		"wallet": "Wallet",
 		"transfer": "Transfer"
 	},
+	"drawer": {
+		"send_button": "Send",
+		"deposit_button": "Deposit",
+		"coming_soon": "Coming soon...",
+		"assets": "Your Assets",
+		"copyAddress": "Copy address to clipboard",
+		"viewInEtherscan": "View in etherscan",
+		"dappBrowser": "ÐApp Browser",
+		"settings": "Settings",
+		"help": "Get Help",
+		"logout": "Log out",
+		"logout_title": "Do you really want to log out?",
+		"logout_ok": "YES",
+		"logout_cancel": "NO"
+	},
+	"send": {
+		"title": "Send"
+	},
+	"receive": {
+		"title": "Receive"
+	},
 	"wallet": {
 		"title": "Wallet",
 		"tokens": "TOKENS",
 		"collectibles": "COLLECTIBLES",
+		"transactions": "TRANSACTIONS",
 		"no_collectibles": "You don't have any collectibles!",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
-		"add_collectibles": "ADD COLLECTIBLES"
+		"add_collectibles": "ADD COLLECTIBLES",
+		"no_transactions": "You have no transactions!",
+		"send_button": "Send",
+		"deposit_button": "Deposit",
+		"copy_address": "Copy"
 	},
 	"addAsset": {
 		"title": "Add Asset",
@@ -92,7 +120,8 @@
 		"receive": "RECEIVE"
 	},
 	"accounts": {
-		"title": "My Accounts"
+		"title": "Accounts",
+		"create_new_account": "Create new account"
 	},
 	"app_settings": {
 		"title": "App Settings",
@@ -156,11 +185,10 @@
 	},
 	"accountDetails": {
 		"title": "Account Details",
-		"publicAddress": "Public Address",
 		"shareAccount": "Share",
 		"viewAccount": "View account on Etherscan",
 		"showPrivateKey": "Show private key",
-		"accountCopiedToClipboard": "Public address copied to clipboard",
+		"accountCopiedToClipboard": "Your address has been copied to the clipboard",
 		"sharePublicKey": "Sharing my public key: "
 	},
 	"qrScanner": {
@@ -169,10 +197,6 @@
 		"allowCameraDialogTitle": "Allow camera access",
 		"allowCameraDialogMessage": "We need your permission to scan QR codes",
 		"scanning": "scanning..."
-	},
-	"receiveScreen": {
-		"publicAddress": "Public Address",
-		"shareButton": "SHARE"
 	},
 	"actionView": {
 		"cancel": "Cancel",
@@ -209,7 +233,11 @@
 		"share": "Share",
 		"bookmark": "Bookmark",
 		"error": "Ooops!",
-		"bookmarkAlreadyExists": "You already bookmarked this url"
+		"bookmarkAlreadyExists": "You already bookmarked this url",
+		"cancel": "Cancel",
+		"goBack": "Go Back",
+		"goForward": "Go Forward",
+		"close": "Close"
 	},
 	"addBookmark": {
 		"title": "Add Bookmark",
@@ -257,5 +285,12 @@
 		"sync_complete":
 			"We have synchronized all the information from your MetaMask extension and now you're ready to go!",
 		"button_continue": "Continue"
+	},
+	"networks": {
+		"title": "Networks",
+		"other_networks": "Other Networks",
+		"close": "Close",
+		"status_ok": "All Systems Operational",
+		"status_not_ok": "The network is having some issues"
 	}
 }

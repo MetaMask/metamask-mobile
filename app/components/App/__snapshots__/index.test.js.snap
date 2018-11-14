@@ -26,20 +26,8 @@ exports[`App should render correctly 1`] = `
                         "childRouters": Object {
                           "AddBookmark": null,
                           "Approval": null,
+                          "BrowserHome": null,
                           "BrowserView": null,
-                        },
-                        "getActionCreators": [Function],
-                        "getActionForPathAndParams": [Function],
-                        "getComponentForRouteName": [Function],
-                        "getComponentForState": [Function],
-                        "getPathAndParamsForState": [Function],
-                        "getScreenOptions": [Function],
-                        "getStateForAction": [Function],
-                      },
-                      "Transfer": Object {
-                        "childRouters": Object {
-                          "TransactionSubmitted": null,
-                          "TransferView": null,
                         },
                         "getActionCreators": [Function],
                         "getActionForPathAndParams": [Function],
@@ -58,6 +46,7 @@ exports[`App should render correctly 1`] = `
                           "NetworkSettings": null,
                           "RevealPrivateCredential": null,
                           "SeedWords": null,
+                          "SendScreen": null,
                           "Settings": null,
                           "SyncWithExtension": null,
                           "Wallet": null,
@@ -90,6 +79,7 @@ exports[`App should render correctly 1`] = `
               },
               "LockScreen": null,
               "QRScanner": null,
+              "TransactionSubmitted": null,
             },
             "getActionCreators": [Function],
             "getActionForPathAndParams": [Function],
@@ -161,12 +151,12 @@ exports[`App should render correctly 1`] = `
                 "index": 0,
                 "isDrawerOpen": false,
                 "isTransitioning": false,
-                "key": "id-123-3",
+                "key": "id-123-2",
                 "openId": 0,
                 "routeName": "Home",
                 "routes": Array [
                   Object {
-                    "index": 1,
+                    "index": 0,
                     "isTransitioning": false,
                     "key": "Main",
                     "params": undefined,
@@ -181,7 +171,7 @@ exports[`App should render correctly 1`] = `
                         "routes": Array [
                           Object {
                             "key": "id-123-0",
-                            "routeName": "BrowserView",
+                            "routeName": "BrowserHome",
                           },
                         ],
                       },
@@ -195,19 +185,6 @@ exports[`App should render correctly 1`] = `
                           Object {
                             "key": "id-123-1",
                             "routeName": "Wallet",
-                          },
-                        ],
-                      },
-                      Object {
-                        "index": 0,
-                        "isTransitioning": false,
-                        "key": "Transfer",
-                        "params": undefined,
-                        "routeName": "Transfer",
-                        "routes": Array [
-                          Object {
-                            "key": "id-123-2",
-                            "routeName": "TransferView",
                           },
                         ],
                       },
@@ -228,11 +205,11 @@ exports[`App should render correctly 1`] = `
               Object {
                 "index": 0,
                 "isTransitioning": false,
-                "key": "id-123-5",
+                "key": "id-123-4",
                 "routeName": "Onboarding",
                 "routes": Array [
                   Object {
-                    "key": "id-123-4",
+                    "key": "id-123-3",
                     "params": undefined,
                     "routeName": "Onboarding",
                   },

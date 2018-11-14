@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode';
 import { strings } from '../../../locales/i18n';
 import Identicon from '../Identicon';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
@@ -26,6 +27,7 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.concrete
 	},
 	accountLabelWrapper: {
+		marginTop: 10,
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -43,13 +45,8 @@ const styles = StyleSheet.create({
 	detailsWrapper: {
 		padding: 10
 	},
-	text: {
-		fontSize: 18,
-		textAlign: 'center',
-		...fontStyles.normal
-	},
 	qrCode: {
-		marginTop: 10,
+		marginVertical: 15,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
@@ -60,6 +57,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		padding: 10,
 		marginTop: 10,
+		marginBottom: 20,
 		marginRight: 10,
 		marginLeft: 10,
 		borderRadius: 5,
@@ -70,10 +68,12 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	icon: {
-		marginLeft: 10
+		marginLeft: 10,
+		color: colors.gray
 	},
 	iconEdit: {
-		padding: 10
+		padding: 10,
+		color: colors.gray
 	},
 	actionsWrapper: {
 		marginLeft: 50,
@@ -134,7 +134,7 @@ class AccountDetails extends Component {
 		const url = `https://etherscan.io/address/${selectedAddress}`;
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('BrowserView', {
+			this.props.navigation.navigate('Browser', {
 				url
 			});
 		});
@@ -195,7 +195,7 @@ class AccountDetails extends Component {
 						</TextInput>
 						<View style={styles.labelActionIcons}>
 							{accountLabelEditable ? null : (
-								<Icon
+								<MaterialIcon
 									name="edit"
 									style={styles.iconEdit}
 									size={22}
@@ -208,7 +208,6 @@ class AccountDetails extends Component {
 				</View>
 
 				<View style={styles.detailsWrapper}>
-					<Text style={styles.text}>{strings('accountDetails.publicAddress')}</Text>
 					<View style={styles.qrCode}>
 						<QRCode
 							value={selectedAddress}
@@ -225,6 +224,7 @@ class AccountDetails extends Component {
 							style={styles.icon}
 							name="copy"
 							size={22}
+							color={colors.gray}
 							onPress={this.copyAccountToClipboard}
 							testID={'copy-public-address-icon'}
 						/>

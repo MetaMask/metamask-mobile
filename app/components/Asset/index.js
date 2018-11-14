@@ -8,7 +8,7 @@ import Transactions from '../Transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.slate,
+		backgroundColor: colors.white,
 		flex: 1
 	},
 	assetOverviewWrapper: {
@@ -39,7 +39,11 @@ class Asset extends Component {
 		/**
 		/* Selected currency
 		*/
-		currentCurrency: PropTypes.string
+		currentCurrency: PropTypes.string,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) => ({
@@ -70,18 +74,20 @@ class Asset extends Component {
 			navigation,
 			transactions,
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			selectedAddress
 		} = this.props;
 		return (
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
 				<View testID={'asset'}>
 					<View style={styles.assetOverviewWrapper}>
-						<AssetOverview asset={navigation && params} />
+						<AssetOverview navigation={navigation} asset={navigation && params} />
 					</View>
-					<View>
+					<View style={styles.wrapper}>
 						<Transactions
 							navigation={navigation}
 							transactions={transactions}
+							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							adjustScroll={this.adjustScroll}
@@ -96,7 +102,8 @@ class Asset extends Component {
 const mapStateToProps = state => ({
 	transactions: state.backgroundState.TransactionController.transactions,
 	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(Asset);
