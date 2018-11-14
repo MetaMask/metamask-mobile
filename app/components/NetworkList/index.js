@@ -118,7 +118,7 @@ export default class NetworkList extends Component {
 		frequentRpcList: PropTypes.array
 	};
 
-	getAllNetworks = () => ['ropsten', 'kovan', 'rinkeby'].concat(this.props.frequentRpcList);
+	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'].concat(this.props.frequentRpcList);
 
 	getOtherNetworks = () => this.getAllNetworks.slice(1);
 
