@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
-import { getRenderableEthFee, getRenderableGweiFiat } from '../../util/custom-gas';
+import { getRenderableEthGasFee, getRenderableFiatGasFee } from '../../util/custom-gas';
 
 const styles = StyleSheet.create({
 	root: {
@@ -131,12 +131,12 @@ class CustomGas extends Component {
 		const { conversionRate, currentCurrency } = this.props;
 
 		if (fast && average && safeLow) {
-			const averageEth = getRenderableEthFee(average) + ' ETH';
-			const fastEth = getRenderableEthFee(fast) + ' ETH';
-			const safeLowEth = getRenderableEthFee(safeLow) + ' ETH';
-			const averageFiat = getRenderableGweiFiat(average, conversionRate, currentCurrency);
-			const fastFiat = getRenderableGweiFiat(fast, conversionRate, currentCurrency);
-			const safeLowFiat = getRenderableGweiFiat(safeLow, conversionRate, currentCurrency);
+			const averageEth = getRenderableEthGasFee(average) + ' ETH';
+			const fastEth = getRenderableEthGasFee(fast) + ' ETH';
+			const safeLowEth = getRenderableEthGasFee(safeLow) + ' ETH';
+			const averageFiat = getRenderableFiatGasFee(average, conversionRate, currentCurrency);
+			const fastFiat = getRenderableFiatGasFee(fast, conversionRate, currentCurrency);
+			const safeLowFiat = getRenderableFiatGasFee(safeLow, conversionRate, currentCurrency);
 			return (
 				<View style={styles.root}>
 					<TouchableOpacity
