@@ -1,8 +1,8 @@
 import { BN } from 'ethereumjs-util';
-import { fromWei, weiToFiat } from './number';
+import { fromWei } from './number';
 
 export function apiEstimateModifiedToWEI(estimate) {
-	return estimate * 100000000;
+	return new BN((estimate * 100000000).toString(), 10);
 }
 
 export function getRenderableEthFee(estimate, gasLimit = 21000) {
@@ -13,7 +13,7 @@ export function getRenderableEthFee(estimate, gasLimit = 21000) {
 }
 
 export function getRenderableGweiFiat(estimate, conversionRate, currencyCode) {
-	const wei = apiEstimateModifiedToWEI(estimate);
-	const fiat = weiToFiat(new BN(wei), conversionRate, currencyCode);
-	return fiat;
+	const eth = getRenderableEthFee(estimate);
+	const value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
+	return value + currencyCode;
 }
