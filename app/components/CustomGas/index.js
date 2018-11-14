@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
-import { getRenderableEthGasFee, getRenderableFiatGasFee } from '../../util/custom-gas';
+import { getRenderableEthGasFee, getRenderableFiatGasFee, apiEstimateModifiedToWEI } from '../../util/custom-gas';
+import { BN } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -56,31 +57,68 @@ class CustomGas extends Component {
 		/**
 		/* Selected currency
 		*/
-		currentCurrency: PropTypes.string
+		currentCurrency: PropTypes.string,
+		/**
+		 * Callback triggered when gas fee is selected
+		 */
+		handleGasFeeSelection: PropTypes.func
 	};
 
 	state = {
 		basicGasEstimates: {},
 		gasFastSelected: false,
 		gasAverageSelected: true,
-		gasSlowSelected: false
+		gasSlowSelected: false,
+		averageEth: 0,
+		fastEth: 0,
+		safeLowEth: 0,
+		averageFiat: 0,
+		fastFiat: 0,
+		safeLowFiat: 0,
+		averageGwei: 0,
+		fastGwei: 0,
+		safeLowGwei: 0,
+		didMount: false
 	};
 
 	onPressGasFast = () => {
+		const { handleGasFeeSelection } = this.props;
+		const { fastGwei } = this.state;
 		this.setState({ gasFastSelected: true, gasAverageSelected: false, gasSlowSelected: false });
+		handleGasFeeSelection(new BN((21000).toString(), 10), apiEstimateModifiedToWEI(fastGwei));
 	};
 
 	onPressGasAverage = () => {
+		const { handleGasFeeSelection } = this.props;
+		const { averageGwei } = this.state;
 		this.setState({ gasFastSelected: false, gasAverageSelected: true, gasSlowSelected: false });
+		handleGasFeeSelection(new BN((21000).toString(), 10), apiEstimateModifiedToWEI(averageGwei));
 	};
 
 	onPressGasSlow = () => {
+		const { handleGasFeeSelection } = this.props;
+		const { safeLowGwei } = this.state;
 		this.setState({ gasFastSelected: false, gasAverageSelected: false, gasSlowSelected: true });
+		handleGasFeeSelection(new BN((21000).toString(), 10), apiEstimateModifiedToWEI(safeLowGwei));
 	};
 
 	componentDidMount = async () => {
 		const basicGasEstimates = await this.fetchBasicGasEstimates();
-		this.setState({ basicGasEstimates });
+		const { average, fast, safeLow } = basicGasEstimates;
+		const { conversionRate, currentCurrency } = this.props;
+		this.setState({
+			averageEth: getRenderableEthGasFee(average) + ' ETH',
+			fastEth: getRenderableEthGasFee(fast) + ' ETH',
+			safeLowEth: getRenderableEthGasFee(safeLow) + ' ETH',
+			averageFiat: getRenderableFiatGasFee(average, conversionRate, currentCurrency),
+			fastFiat: getRenderableFiatGasFee(fast, conversionRate, currentCurrency),
+			safeLowFiat: getRenderableFiatGasFee(safeLow, conversionRate, currentCurrency),
+			averageGwei: average,
+			fastGwei: fast,
+			safeLowGwei: safeLow,
+			didMount: true
+		});
+		this.onPressGasAverage();
 	};
 
 	fetchBasicGasEstimates = async () =>
@@ -125,18 +163,8 @@ class CustomGas extends Component {
 			);
 
 	render() {
-		const {
-			basicGasEstimates: { fast, average, safeLow }
-		} = this.state;
-		const { conversionRate, currentCurrency } = this.props;
-
-		if (fast && average && safeLow) {
-			const averageEth = getRenderableEthGasFee(average) + ' ETH';
-			const fastEth = getRenderableEthGasFee(fast) + ' ETH';
-			const safeLowEth = getRenderableEthGasFee(safeLow) + ' ETH';
-			const averageFiat = getRenderableFiatGasFee(average, conversionRate, currentCurrency);
-			const fastFiat = getRenderableFiatGasFee(fast, conversionRate, currentCurrency);
-			const safeLowFiat = getRenderableFiatGasFee(safeLow, conversionRate, currentCurrency);
+		if (this.state.didMount) {
+			const { averageEth, averageFiat, fastEth, fastFiat, safeLowEth, safeLowFiat } = this.state;
 			return (
 				<View style={styles.root}>
 					<TouchableOpacity

@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	formRow: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		height: 200
 	},
 	fromRow: {
 		zIndex: 5
@@ -404,6 +405,10 @@ class TransactionEditor extends Component {
 		});
 	};
 
+	handleGasFeeSelection = (gasLimit, gasPrice) => {
+		this.setState({ gas: gasLimit, gasPrice });
+	};
+
 	render() {
 		const { amount, data, from = this.props.selectedAddress, gas, gasPrice, to } = this.state;
 		const { conversionRate, currentCurrency, hideData, mode } = this.props;
@@ -474,7 +479,10 @@ class TransactionEditor extends Component {
 								<View style={styles.label}>
 									<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
 								</View>
-								<CustomGas transaction={this.props.transaction} />
+								<CustomGas
+									transaction={this.props.transaction}
+									handleGasFeeSelection={this.handleGasFeeSelection}
+								/>
 							</View>
 						</View>
 					</ActionView>
@@ -528,8 +536,7 @@ class TransactionEditor extends Component {
 										<Text style={styles.overviewFiat}>
 											{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
 										</Text>
-										{/* TODO: Use real gas */}
-										<Text style={styles.overviewEth}>{fromWei(gas).toString()}</Text>
+										<Text style={styles.overviewEth}>{fromWei(totalGas).toString()}</Text>
 									</View>
 								</View>
 								<View style={styles.overviewRow}>
