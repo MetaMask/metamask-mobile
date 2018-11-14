@@ -1,13 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Modal } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Modal from 'react-native-modal';
 import { colors, baseStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
 
 const styles = StyleSheet.create({
 	modal: {
-		margin: 50,
-		width: 20
+		margin: 0,
+		width: '100%'
 	},
 	modalView: {
 		flex: 1,
@@ -57,13 +58,7 @@ export default function ActionModal({
 	modalVisible
 }) {
 	return (
-		<Modal
-			animationType="slide"
-			transparent={true} // eslint-disable-line
-			visible={modalVisible}
-			style={styles.modal}
-			onRequestClose={onRequestClose}
-		>
+		<Modal isVisible={modalVisible} style={styles.modal} onBackdropPress={onRequestClose}>
 			<View style={styles.modalView}>
 				<View style={styles.modalText}>
 					<View style={baseStyles.flexGrow}>{children}</View>
