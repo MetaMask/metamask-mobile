@@ -1,17 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ActionModal should render correctly 1`] = `
-<Component
-  animationType="slide"
-  hardwareAccelerated={false}
+<ReactNativeModal
+  animationIn="slideInUp"
+  animationInTiming={300}
+  animationOut="slideOutDown"
+  animationOutTiming={300}
+  avoidKeyboard={false}
+  backdropColor="black"
+  backdropOpacity={0.7}
+  backdropTransitionInTiming={300}
+  backdropTransitionOutTiming={300}
+  deviceHeight={null}
+  deviceWidth={null}
+  hideModalContentWhileAnimating={false}
+  isVisible={false}
+  onBackButtonPress={[Function]}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalShow={[Function]}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
   style={
     Object {
-      "margin": 50,
-      "width": 20,
+      "margin": 0,
+      "width": "100%",
     }
   }
-  transparent={true}
-  visible={true}
+  supportedOrientations={
+    Array [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeThreshold={100}
+  useNativeDriver={false}
 >
   <Component
     style={
@@ -107,5 +131,5 @@ exports[`ActionModal should render correctly 1`] = `
       </Component>
     </Component>
   </Component>
-</Component>
+</ReactNativeModal>
 `;
