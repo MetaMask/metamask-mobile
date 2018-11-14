@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../styles/common';
 import AssetOverview from '../AssetOverview';
 import Transactions from '../Transactions';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -104,7 +103,7 @@ const mapStateToProps = state => ({
 	transactions: state.backgroundState.TransactionController.transactions,
 	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
-	selectedAddress: toChecksumAddress(state.backgroundState.PreferencesController.selectedAddress)
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(Asset);
