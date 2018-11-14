@@ -100,6 +100,11 @@ const styles = StyleSheet.create({
 	mainnetSelected: {
 		marginLeft: -30,
 		marginTop: 3
+	},
+	otherNetworkIcon: {
+		backgroundColor: colors.transparent,
+		borderColor: colors.borderColor,
+		borderWidth: 2
 	}
 });
 
@@ -120,7 +125,7 @@ export default class NetworkList extends Component {
 
 	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'].concat(this.props.frequentRpcList);
 
-	getOtherNetworks = () => this.getAllNetworks.slice(1);
+	getOtherNetworks = () => this.getAllNetworks().slice(1);
 
 	onNetworkChange = async type => {
 		const { NetworkController } = Engine.context;
@@ -130,7 +135,7 @@ export default class NetworkList extends Component {
 	renderOtherNetworks() {
 		const { NetworkController } = Engine.context;
 		return this.getOtherNetworks().map((network, i) => {
-			const { color, name } = Networks[network];
+			const { color, name } = Networks[network] || { ...Networks.rpc, color: null };
 			const selected =
 				NetworkController.state.provider.type === network ? (
 					<Icon name="check" size={15} color={colors.fontSecondary} />
@@ -142,14 +147,7 @@ export default class NetworkList extends Component {
 					onPress={() => this.onNetworkChange(network)} // eslint-disable-line
 				>
 					<View style={styles.selected}>{selected}</View>
-					<View
-						style={[
-							styles.networkIcon,
-							color
-								? { backgroundColor: color }
-								: { backgroundColor: colors.white, borderColor: colors.borderColor }
-						]}
-					/>
+					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<View style={styles.networkInfo}>
 						<Text style={styles.networkLabel}>{name}</Text>
 					</View>

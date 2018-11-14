@@ -175,6 +175,11 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	otherNetworkIcon: {
+		backgroundColor: colors.transparent,
+		borderColor: colors.borderColor,
+		borderWidth: 1
 	}
 });
 
@@ -397,7 +402,7 @@ class DrawerView extends Component {
 		const { network, accounts, identities, selectedAddress, keyrings } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && fromWei(accounts[selectedAddress].balance, 'ether')) || 0;
-		const { color, name } = Networks[network.provider.type];
+		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
@@ -405,7 +410,12 @@ class DrawerView extends Component {
 					<View style={styles.header}>
 						<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 						<TouchableOpacity style={styles.network} onPress={this.onNetworkPress}>
-							<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
+							<View
+								style={[
+									styles.networkIcon,
+									color ? { backgroundColor: color } : styles.otherNetworkIcon
+								]}
+							/>
 							<Text style={styles.networkName} testID={'navbar-title-network'}>
 								{name}
 							</Text>

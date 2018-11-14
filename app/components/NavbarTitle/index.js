@@ -35,6 +35,11 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		marginLeft: Platform.OS === 'android' ? -52 : 0,
 		...fontStyles.normal
+	},
+	otherNetworkIcon: {
+		backgroundColor: colors.transparent,
+		borderColor: colors.borderColor,
+		borderWidth: 1
 	}
 });
 
@@ -58,7 +63,8 @@ class NavbarTitle extends Component {
 
 	render() {
 		const { network, title } = this.props;
-		const { color, name } = Networks[network.provider.type];
+		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
+
 		return (
 			<View style={styles.wrapper}>
 				{!title ? (
@@ -67,7 +73,7 @@ class NavbarTitle extends Component {
 					<Text style={styles.title}>{title}</Text>
 				)}
 				<View style={styles.network}>
-					<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
+					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>
