@@ -4,8 +4,9 @@ exports[`AccountOverview should render correctly 1`] = `
 <Component
   style={
     Object {
+      "alignItems": "center",
       "backgroundColor": "#FFFFFF",
-      "height": 130,
+      "height": 210,
       "paddingBottom": 0,
       "paddingHorizontal": 20,
       "paddingTop": 20,
@@ -13,84 +14,255 @@ exports[`AccountOverview should render correctly 1`] = `
   }
   testID="account-overview"
 >
-  <Component
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
     style={
       Object {
-        "flex": 1,
-        "flexDirection": "row",
+        "alignItems": "center",
+        "justifyContent": "center",
       }
     }
   >
+    <IdenticonComponent
+      address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+      diameter={46}
+      size="38"
+    />
     <Component
       style={
         Object {
-          "flex": 1,
+          "fontFamily": "Roboto",
+          "fontSize": 24,
+          "fontWeight": "400",
+          "paddingTop": 7,
         }
       }
-    >
-      <Component
-        style={
-          Object {
-            "fontFamily": "Roboto",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "paddingTop": 7,
-          }
-        }
-      />
-      <Component
-        style={
-          Object {
-            "color": "#4a4a4a",
-            "flex": 1,
-            "fontFamily": "Roboto",
-            "fontSize": 43,
-            "fontWeight": "400",
-            "lineHeight": 43,
-            "paddingTop": 15,
-          }
-        }
-      >
-        0.00 UNDEFINED
-      </Component>
-    </Component>
+    />
     <Component
       style={
         Object {
-          "alignItems": "flex-end",
-          "flex": 0,
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
           "paddingTop": 5,
         }
       }
     >
-      <TouchableOpacity
-        activeOpacity={0.2}
-        onPress={[Function]}
-        testID="account-qr-button"
-      >
-        <QRCode
-          bgColor="#4a4a4a"
-          fgColor="#FFFFFF"
-          onLoad={[Function]}
-          onLoadEnd={[Function]}
-          size={60}
-          value="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-        />
-        <Component
-          style={
-            Object {
-              "flex": 1,
-              "fontFamily": "Roboto",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "marginTop": 10,
-            }
-          }
-        >
-          0xe7...B0a1
-        </Component>
-      </TouchableOpacity>
+      $
+      0.00 UNDEFINED
     </Component>
+  </TouchableOpacity>
+  <Component
+    style={
+      Object {
+        "alignContent": "center",
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginTop": 20,
+        "maxWidth": 220,
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignContent": "center",
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+      type="normal"
+    >
+      <Component
+        style={
+          Object {
+            "alignContent": "center",
+            "backgroundColor": "#008edf",
+            "borderRadius": 100,
+            "color": "#FFFFFF",
+            "height": 36,
+            "justifyContent": "center",
+            "paddingLeft": 7,
+            "paddingTop": 10,
+            "width": 36,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#008edf"
+          name="send"
+          size={15}
+          style={
+            Array [
+              Object {
+                "alignContent": "center",
+                "color": "#FFFFFF",
+                "height": 24,
+                "justifyContent": "center",
+                "textAlign": "center",
+                "width": 24,
+              },
+              Object {
+                "paddingLeft": 0,
+                "paddingTop": 0,
+              },
+            ]
+          }
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#008edf",
+            "fontFamily": "Roboto",
+            "fontSize": 11,
+            "fontWeight": "400",
+            "marginTop": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        Send
+      </Component>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignContent": "center",
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+      type="normal"
+    >
+      <Component
+        style={
+          Object {
+            "alignContent": "center",
+            "backgroundColor": "#008edf",
+            "borderRadius": 100,
+            "color": "#FFFFFF",
+            "height": 36,
+            "justifyContent": "center",
+            "paddingLeft": 7,
+            "paddingTop": 10,
+            "width": 36,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#008edf"
+          name="download"
+          size={18}
+          style={
+            Array [
+              Object {
+                "alignContent": "center",
+                "color": "#FFFFFF",
+                "height": 24,
+                "justifyContent": "center",
+                "textAlign": "center",
+                "width": 24,
+              },
+              Object {
+                "marginLeft": -0.5,
+                "marginTop": -5,
+              },
+            ]
+          }
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#008edf",
+            "fontFamily": "Roboto",
+            "fontSize": 11,
+            "fontWeight": "400",
+            "marginTop": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        Deposit
+      </Component>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignContent": "center",
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+      type="normal"
+    >
+      <Component
+        style={
+          Object {
+            "alignContent": "center",
+            "backgroundColor": "#008edf",
+            "borderRadius": 100,
+            "color": "#FFFFFF",
+            "height": 36,
+            "justifyContent": "center",
+            "paddingLeft": 7,
+            "paddingTop": 10,
+            "width": 36,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#008edf"
+          name="copy"
+          size={15}
+          style={
+            Array [
+              Object {
+                "alignContent": "center",
+                "color": "#FFFFFF",
+                "height": 24,
+                "justifyContent": "center",
+                "textAlign": "center",
+                "width": 24,
+              },
+              Object {
+                "marginLeft": -1,
+              },
+            ]
+          }
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#008edf",
+            "fontFamily": "Roboto",
+            "fontSize": 11,
+            "fontWeight": "400",
+            "marginTop": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        Copy
+      </Component>
+    </TouchableOpacity>
   </Component>
 </Component>
 `;

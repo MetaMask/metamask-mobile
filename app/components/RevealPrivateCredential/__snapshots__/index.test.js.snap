@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`RevealPrivateCredential should render correctly 1`] = `
-<Component
+<SafeAreaView
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -127,5 +127,5 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
       </Component>
     </Component>
   </ActionView>
-</Component>
+</SafeAreaView>
 `;

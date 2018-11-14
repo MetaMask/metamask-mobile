@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Browser should render correctly 1`] = `
-<Component
+<SafeAreaView
   style={
     Object {
       "backgroundColor": "#f1f2f6",
@@ -12,79 +12,8 @@ exports[`Browser should render correctly 1`] = `
   <Component
     style={
       Object {
-        "alignItems": "stretch",
-        "backgroundColor": "#f1f2f6",
-        "flexDirection": "row",
-        "paddingVertical": 11,
-      }
-    }
-  >
-    <Icon
-      allowFontScaling={false}
-      name="angle-left"
-      onPress={[Function]}
-      size={30}
-      style={
-        Object {
-          "alignSelf": "center",
-          "color": "#2f3542",
-          "flex": 0,
-          "height": 28,
-          "lineHeight": 28,
-          "textAlign": "center",
-          "width": 36,
-        }
-      }
-    />
-    <TextInput
-      allowFontScaling={true}
-      autoCapitalize="none"
-      autoCorrect={false}
-      clearButtonMode="while-editing"
-      keyboardType="url"
-      onChangeText={[Function]}
-      onSubmitEditing={[Function]}
-      placeholder="Enter website address"
-      placeholderTextColor="#747d8c"
-      returnKeyType="go"
-      style={
-        Object {
-          "backgroundColor": "#dfe4ea",
-          "borderRadius": 3,
-          "flex": 1,
-          "fontFamily": "Roboto",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "padding": 8,
-        }
-      }
-      textContentType="URL"
-      underlineColorAndroid="transparent"
-      value=""
-    />
-    <Icon
-      allowFontScaling={false}
-      name="more-vert"
-      onPress={[Function]}
-      size={20}
-      style={
-        Object {
-          "alignSelf": "center",
-          "color": "#2f3542",
-          "flex": 0,
-          "height": 28,
-          "lineHeight": 28,
-          "textAlign": "center",
-          "width": 36,
-        }
-      }
-    />
-  </Component>
-  <Component
-    style={
-      Object {
         "height": 3,
-        "marginTop": -5,
+        "marginTop": 0,
       }
     }
   >
@@ -104,5 +33,196 @@ exports[`Browser should render correctly 1`] = `
       size="small"
     />
   </Component>
-</Component>
+  <ReactNativeModal
+    animationIn="slideInDown"
+    animationInTiming={600}
+    animationOut="slideOutUp"
+    animationOutTiming={600}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-start",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <Component
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "height": 87,
+          "paddingHorizontal": 10,
+          "paddingTop": 50,
+        }
+      }
+    >
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        clearButtonMode="while-editing"
+        keyboardType="url"
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Enter website address"
+        placeholderTextColor="#747d8c"
+        returnKeyType="go"
+        selectTextOnFocus={true}
+        style={
+          Object {
+            "backgroundColor": "#dfe4ea",
+            "borderRadius": 30,
+            "flex": 1,
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "height": 30,
+            "padding": 8,
+            "paddingLeft": 15,
+            "textAlign": "left",
+          }
+        }
+        textContentType="URL"
+        underlineColorAndroid="transparent"
+        value=""
+      />
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "marginLeft": 10,
+            "marginTop": 7,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "color": "#008edf",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Cancel
+        </Component>
+      </TouchableOpacity>
+    </Component>
+  </ReactNativeModal>
+  <AnimatedComponent
+    style={
+      Array [
+        Object {
+          "flexDirection": "row",
+          "paddingHorizontal": 10,
+          "paddingTop": 10,
+        },
+        Object {
+          "marginBottom": 0,
+        },
+      ]
+    }
+  >
+    <Component
+      style={
+        Object {
+          "alignContent": "flex-start",
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        name="angle-left"
+        onPress={[Function]}
+        size={30}
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#2f3542",
+            "height": 28,
+            "lineHeight": 28,
+            "textAlign": "center",
+            "width": 36,
+          }
+        }
+      />
+      <Icon
+        allowFontScaling={false}
+        disabled={true}
+        name="angle-right"
+        onPress={[Function]}
+        size={30}
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#ced6e0",
+            "height": 28,
+            "lineHeight": 28,
+            "textAlign": "center",
+            "width": 36,
+          }
+        }
+      />
+    </Component>
+    <Component
+      style={
+        Object {
+          "alignContent": "flex-end",
+          "flex": 1,
+        }
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        name="more-vert"
+        onPress={[Function]}
+        size={20}
+        style={
+          Array [
+            Object {
+              "alignSelf": "center",
+              "color": "#2f3542",
+              "height": 28,
+              "lineHeight": 28,
+              "textAlign": "center",
+              "width": 36,
+            },
+            Object {
+              "alignContent": "flex-end",
+              "alignSelf": "flex-end",
+            },
+          ]
+        }
+      />
+    </Component>
+  </AnimatedComponent>
+</SafeAreaView>
 `;

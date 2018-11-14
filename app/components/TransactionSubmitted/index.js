@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
-import { InteractionManager, Animated, Platform, Text, ActivityIndicator, View, StyleSheet } from 'react-native';
+import {
+	TouchableOpacity,
+	InteractionManager,
+	Animated,
+	Platform,
+	Text,
+	ActivityIndicator,
+	View,
+	StyleSheet
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import IonIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
@@ -44,6 +54,9 @@ const styles = StyleSheet.create({
 	icon: {
 		color: colors.success,
 		marginBottom: 30
+	},
+	closeIcon: {
+		marginLeft: 20
 	}
 });
 
@@ -78,6 +91,13 @@ class TransactionSubmitted extends Component {
 	componentDidMount() {
 		this.animateIcon();
 	}
+
+	goBack = () => {
+		this.props.navigation.navigate('Wallet', { page: 0 });
+		setTimeout(() => {
+			this.props.navigation.navigate('Wallet', { page: 2 });
+		}, 300);
+	};
 
 	animateIcon() {
 		Animated.spring(this.iconSpringVal, {
@@ -128,6 +148,11 @@ class TransactionSubmitted extends Component {
 
 		return (
 			<Screen>
+				<View>
+					<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
+						<IonIcon name={'ios-close'} size={50} color={colors.primary} />
+					</TouchableOpacity>
+				</View>
 				<View style={styles.wrapper} testID={'transaction-submitted-screen'}>
 					{hash ? this.renderView(hash) : this.renderLoader()}
 				</View>

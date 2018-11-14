@@ -7,6 +7,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors, fontStyles } from '../../styles/common';
 import AccountOverview from '../AccountOverview';
 import Tokens from '../Tokens';
+import Transactions from '../Transactions';
 import Collectibles from '../Collectibles';
 import getNavbarOptions from '../Navbar';
 import { strings } from '../../../locales/i18n';
@@ -14,6 +15,7 @@ import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+
 const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
 	wrapper: {
@@ -28,7 +30,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 0
 	},
 	textStyle: {
-		fontSize: 16,
+		fontSize: 12,
 		letterSpacing: 0.5,
 		...fontStyles.bold
 	},
@@ -68,13 +70,17 @@ class Wallet extends Component {
 		 */
 		identities: PropTypes.object,
 		/**
-		 * An string that represents the selected address
+		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
 		/**
 		 * An array that represents the user tokens
 		 */
 		tokens: PropTypes.array,
+		/**
+		 * An array that represents the user transactions
+		 */
+		transactions: PropTypes.array,
 		/**
 		 * An object containing token balances for current account and network in the format address => balance
 		 */
@@ -95,12 +101,28 @@ class Wallet extends Component {
 	};
 
 	mounted = false;
+	scrollableTabViewRef = React.createRef();
 
 	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
 		this.mounted = true;
 	}
+
+	componentDidUpdate(prevProps) {
+		const prevNavigation = prevProps.navigation;
+		const { navigation } = this.props;
+		if (prevNavigation && navigation) {
+			const prevPage = prevNavigation.getParam('page', null);
+			const currentPage = navigation.getParam('page', null);
+			if (currentPage && currentPage !== prevPage) {
+				this.handleTabChange(currentPage);
+			}
+		}
+	}
+	handleTabChange = page => {
+		this.scrollableTabViewRef && this.scrollableTabViewRef.current.goToPage(page);
+	};
 
 	componentWillUnmount() {
 		this.mounted = false;
@@ -156,7 +178,8 @@ class Wallet extends Component {
 			tokenBalances,
 			tokenExchangeRates,
 			collectibles,
-			navigation
+			navigation,
+			transactions
 		} = this.props;
 		let balance = 0;
 		let assets = tokens;
@@ -189,7 +212,7 @@ class Wallet extends Component {
 					currentCurrency={currentCurrency}
 					navigation={navigation}
 				/>
-				<ScrollableTabView renderTabBar={this.renderTabBar}>
+				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 					<Tokens
 						navigation={navigation}
 						tabLabel={strings('wallet.tokens')}
@@ -203,6 +226,14 @@ class Wallet extends Component {
 						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
 						assets={collectibles}
+					/>
+					<Transactions
+						navigation={navigation}
+						tabLabel={strings('wallet.transactions')}
+						transactions={transactions}
+						conversionRate={conversionRate}
+						currentCurrency={currentCurrency}
+						selectedAddress={selectedAddress}
 					/>
 				</ScrollableTabView>
 			</View>
@@ -235,7 +266,8 @@ const mapStateToProps = state => ({
 	tokens: state.backgroundState.AssetsController.tokens,
 	tokenBalances: state.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.backgroundState.AssetsController.collectibles
+	collectibles: state.backgroundState.AssetsController.collectibles,
+	transactions: state.backgroundState.TransactionController.transactions
 });
 
 export default connect(mapStateToProps)(Wallet);

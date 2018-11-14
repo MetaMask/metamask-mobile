@@ -1,23 +1,29 @@
 import React, { Component } from 'react';
-import Button from '../Button';
 import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
-import { connect } from 'react-redux';
 import { fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		backgroundColor: colors.concrete,
-		flex: 1
+		backgroundColor: colors.white,
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10,
+		minHeight: 450
+	},
+	titleWrapper: {
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor
 	},
 	title: {
-		fontSize: 25,
-		marginVertical: 30,
+		textAlign: 'center',
+		fontSize: 18,
+		marginVertical: 12,
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
 		...fontStyles.bold
@@ -26,12 +32,15 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	account: {
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
 		flexDirection: 'row',
-		marginLeft: 20,
-		marginBottom: 20
+		paddingHorizontal: 20,
+		paddingVertical: 20
 	},
 	accountInfo: {
-		marginLeft: 15
+		marginLeft: 15,
+		flex: 1
 	},
 	accountLabel: {
 		fontSize: 18,
@@ -45,26 +54,29 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	selected: {
-		width: 30,
-		marginRight: 15
+		marginRight: 15,
+		alignContent: 'flex-end'
 	},
 	footer: {
+		borderTopWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
 		height: 80,
-		justifyContent: 'flex-end',
+		justifyContent: 'center',
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
+		paddingBottom: 30
 	},
-	icon: {
-		height: 50,
-		width: 10,
-		backgroundColor: colors.concrete
+	addAccountText: {
+		fontSize: 16,
+		color: colors.primary,
+		...fontStyles.normal
 	}
 });
 
 /**
  * View that contains the list of all the available accounts
  */
-class AccountList extends Component {
+export default class AccountList extends Component {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
@@ -81,12 +93,19 @@ class AccountList extends Component {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * An object containing all the keyrings
+		 */
+		keyrings: PropTypes.array
 	};
 
 	state = {
 		selectedAccountIndex: 0
 	};
+
+	scrollViewRef = React.createRef();
+	lastPosition = 0;
 
 	getInitialSelectedAccountIndex = () => {
 		const { identities, selectedAddress } = this.props;
@@ -97,6 +116,31 @@ class AccountList extends Component {
 		});
 	};
 
+	componentDidUpdate() {
+		this.scrollToCurrentAccount();
+	}
+
+	scrollToCurrentAccount() {
+		const position = this.state.selectedAccountIndex * 68;
+		if (position < 400) return;
+		if (position - this.lastPosition < 68) return;
+		InteractionManager.runAfterInteractions(() => {
+			!this.scrolling &&
+				this.scrollViewRef &&
+				this.scrollViewRef.current &&
+				this.scrollViewRef.current.scrollTo({
+					x: 0,
+					y: position,
+					animated: true
+				});
+			this.scrolling = true;
+			setTimeout(() => {
+				this.scrolling = false;
+				this.lastPosition = position;
+			}, 500);
+		});
+	}
+
 	componentDidMount() {
 		this.getInitialSelectedAccountIndex();
 	}
@@ -106,7 +150,13 @@ class AccountList extends Component {
 		const { PreferencesController } = Engine.context;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
-			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
+			const allKeyrings =
+				this.props.keyrings && this.props.keyrings.length
+					? this.props.keyrings
+					: Engine.context.KeyringController.keyrings;
+			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+
+			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			this.setState({ selectedAccountIndex: previousIndex });
@@ -122,6 +172,9 @@ class AccountList extends Component {
 			const newIndex = Object.keys(this.props.identities).length - 1;
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
 			this.setState({ selectedAccountIndex: newIndex });
+			setTimeout(() => {
+				this.scrollViewRef.current.scrollToEnd();
+			}, 500);
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			console.error('error while trying to add a new account', e); // eslint-disable-line
@@ -137,28 +190,33 @@ class AccountList extends Component {
 	};
 
 	renderAccounts() {
-		const { accounts, identities } = this.props;
-		return Object.keys(identities).map((key, i) => {
-			const { name, address } = identities[key];
+		const { accounts, identities, selectedAddress, keyrings } = this.props;
+		// This is a temporary fix until we can read the state from GABA
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
+			const checksummedAddress = toChecksumAddress(addr);
+			const identity = identities[checksummedAddress];
+			const { name, address } = identity;
+			const isSelected = toChecksumAddress(address) === toChecksumAddress(selectedAddress);
 			let balance = 0x0;
-			if (accounts[key]) {
-				balance = accounts[key].balance;
+			if (accounts[toChecksumAddress(address)]) {
+				balance = accounts[toChecksumAddress(address)].balance;
 			}
-			const selected =
-				this.state.selectedAccountIndex === i ? <Icon name="check" size={30} color={colors.primary} /> : null;
+			const selected = isSelected ? <Icon name="check" size={30} color={colors.success} /> : null;
 
 			return (
 				<TouchableOpacity
 					style={styles.account}
 					key={`account-${address}`}
-					onPress={() => this.onAccountChange(i)} // eslint-disable-line
+					onPress={() => this.onAccountChange(index)} // eslint-disable-line
 				>
-					<View style={styles.selected}>{selected}</View>
 					<Identicon address={address} diameter={38} />
 					<View style={styles.accountInfo}>
 						<Text style={styles.accountLabel}>{name}</Text>
 						<Text style={styles.accountBalance}>{fromWei(balance, 'ether')} ETH</Text>
 					</View>
+					<View style={styles.selected}>{selected}</View>
 				</TouchableOpacity>
 			);
 		});
@@ -167,26 +225,20 @@ class AccountList extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
-				<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
-					{strings('accounts.title')}
-				</Text>
-				<View style={styles.accountsWrapper}>{this.renderAccounts()}</View>
+				<View style={styles.titleWrapper}>
+					<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
+						{strings('accounts.title')}
+					</Text>
+				</View>
+				<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
+					{this.renderAccounts()}
+				</ScrollView>
 				<View style={styles.footer}>
-					<Button style={[styles.icon, styles.left]} onPress={this.addAccount}>
-						<Icon name="plus" testID={'add-account-button'} size={30} color={colors.fontSecondary} />
-					</Button>
-					<Button style={[styles.icon, styles.right]} onPress={this.openAccountSettings}>
-						<Icon name="cog" size={30} color={colors.fontSecondary} />
-					</Button>
+					<TouchableOpacity onPress={this.addAccount}>
+						<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
+					</TouchableOpacity>
 				</View>
 			</SafeAreaView>
 		);
 	}
 }
-
-const mapStateToProps = state => ({
-	accounts: state.backgroundState.AccountTrackerController.accounts,
-	identities: state.backgroundState.PreferencesController.identities,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
-});
-export default connect(mapStateToProps)(AccountList);

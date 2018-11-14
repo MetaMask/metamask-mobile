@@ -8,7 +8,10 @@ import {
 	View,
 	TouchableWithoutFeedback,
 	AsyncStorage,
-	Alert
+	Alert,
+	Animated,
+	SafeAreaView,
+	TouchableOpacity
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -19,7 +22,7 @@ import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { connect } from 'react-redux';
 import BackgroundBridge from '../../core/BackgroundBridge';
 import Engine from '../../core/Engine';
-import getNavbarOptions from '../Navbar';
+import { getBrowserViewNavbarOptions } from '../Navbar';
 import WebviewProgressBar from '../WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
@@ -27,25 +30,19 @@ import Logger from '../../util/Logger';
 import resolveEnsToIpfsContentId from '../../lib/ens-ipfs/resolver';
 import Button from '../Button';
 import { strings } from '../../../locales/i18n';
-import HomePage from '../HomePage';
 import URL from 'url-parse';
+import Modal from 'react-native-modal';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
+const SCROLL_THRESHOLD = 100;
 
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
 		backgroundColor: colors.concrete
 	},
-	urlBar: {
-		alignItems: 'stretch',
-		backgroundColor: colors.concrete,
-		flexDirection: 'row',
-		paddingVertical: 11
-	},
 	icon: {
 		color: colors.tar,
-		flex: 0,
 		height: 28,
 		lineHeight: 28,
 		textAlign: 'center',
@@ -55,17 +52,9 @@ const styles = StyleSheet.create({
 	disabledIcon: {
 		color: colors.ash
 	},
-	urlInput: {
-		...fontStyles.normal,
-		backgroundColor: colors.slate,
-		borderRadius: 3,
-		flex: 1,
-		fontSize: 14,
-		padding: 8
-	},
 	progressBarWrapper: {
 		height: 3,
-		marginTop: -5
+		marginTop: 0
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -82,18 +71,25 @@ const styles = StyleSheet.create({
 		right: 0
 	},
 	optionsWrapper: {
-		shadowColor: colors.gray,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3,
 		position: 'absolute',
 		zIndex: 99999999,
-		marginTop: 50,
-		right: 3,
 		width: 140,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		backgroundColor: colors.concrete
+	},
+	optionsWrapperAndroid: {
+		top: 0,
+		right: 0,
+		elevation: 5
+	},
+	optionsWrapperIos: {
+		shadowColor: colors.gray,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
+		bottom: 70,
+		right: 3
 	},
 	option: {
 		backgroundColor: colors.concrete,
@@ -115,6 +111,76 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		textAlign: 'center',
 		alignSelf: 'center'
+	},
+	webview: {
+		...baseStyles.flexGrow
+	},
+	bottomBar: {
+		flexDirection: 'row',
+		paddingTop: 10,
+		paddingHorizontal: 10
+	},
+	iconMore: {
+		alignSelf: 'flex-end',
+		alignContent: 'flex-end'
+	},
+	iconsLeft: {
+		flex: 1,
+		alignContent: 'flex-start',
+		flexDirection: 'row'
+	},
+	iconsRight: {
+		flex: 1,
+		alignContent: 'flex-end'
+	},
+	urlModalContent: {
+		flexDirection: 'row',
+		paddingTop: Platform.OS === 'android' ? 10 : 50,
+		paddingHorizontal: 10,
+		backgroundColor: colors.white,
+		height: Platform.OS === 'android' ? 59 : 87
+	},
+	urlModal: {
+		justifyContent: 'flex-start',
+		margin: 0
+	},
+	urlInput: {
+		...fontStyles.normal,
+		backgroundColor: Platform.OS === 'android' ? colors.white : colors.slate,
+		borderRadius: 30,
+		fontSize: Platform.OS === 'android' ? 16 : 14,
+		padding: 8,
+		paddingLeft: 15,
+		textAlign: 'left',
+		flex: 1,
+		height: Platform.OS === 'android' ? 40 : 30
+	},
+	cancelButton: {
+		marginTop: 7,
+		marginLeft: 10
+	},
+	cancelButtonText: {
+		fontSize: 14,
+		color: colors.primary,
+		...fontStyles.normal
+	},
+	iconCloseButton: {
+		borderRadius: 300,
+		backgroundColor: colors.fontSecondary,
+		color: colors.white,
+		fontSize: 18,
+		padding: 0,
+		height: 20,
+		width: 20,
+		paddingBottom: 0,
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginTop: 10,
+		marginRight: 5
+	},
+	iconClose: {
+		color: colors.white,
+		fontSize: 18
 	}
 });
 
@@ -122,7 +188,7 @@ const styles = StyleSheet.create({
  * Complete Web browser component with URL entry and history management
  */
 export class Browser extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('Browser', navigation);
+	static navigationOptions = ({ navigation }) => getBrowserViewNavbarOptions(navigation);
 
 	static defaultProps = {
 		defaultProtocol: 'https://'
@@ -133,10 +199,6 @@ export class Browser extends Component {
 		 * Protocol string to append to URLs that have none
 		 */
 		defaultProtocol: PropTypes.string,
-		/**
-		 * Initial URL to load in the WebView
-		 */
-		defaultURL: PropTypes.string,
 		/**
 		 * react-navigation object used to switch between screens
 		 */
@@ -153,31 +215,27 @@ export class Browser extends Component {
 		canGoBack: false,
 		canGoForward: false,
 		entryScriptWeb3: null,
-		inputValue: '',
-		url: this.props.defaultURL || '',
-		showOptions: false,
-		currentPageTitle: '',
 		bookmarks: [],
+		inputValue: '',
+		hostname: '',
+		url: this.props.url || '',
+		currentPageTitle: '',
 		timeout: false,
 		ipfsWebsite: false,
 		ipfsGateway: 'https://ipfs.io/ipfs/',
 		ipfsHash: null,
-		currentEnsName: null
+		currentEnsName: null,
+		editMode: false,
+		loading: true
 	};
 
 	webview = React.createRef();
-
+	inputRef = React.createRef();
+	scrollY = new Animated.Value(0);
 	timeoutHandler = null;
-
-	loadBookmarks = async () => {
-		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
-		if (bookmarksStr) {
-			this.setState({ bookmarks: JSON.parse(bookmarksStr).reverse() });
-		}
-	};
+	prevScrollOffset = 0;
 
 	async componentDidMount() {
-		await this.loadBookmarks();
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
 
 		const entryScriptWeb3 =
@@ -196,16 +254,24 @@ export class Browser extends Component {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
-
-		this.checkForDeeplinks();
+		this.loadUrl();
+		this.loadBookmarks();
 	}
 
-	checkForDeeplinks() {
+	loadBookmarks = async () => {
+		const bookmarks = this.props.navigation.getParam('bookmarks', null);
+		if (bookmarks) {
+			this.setState({ bookmarks });
+		}
+	};
+
+	async loadUrl() {
 		const { navigation } = this.props;
 		if (navigation) {
 			const url = navigation.getParam('url', null);
 			if (url) {
-				this.setState({ url });
+				await this.go(url);
+				this.setState({ loading: false });
 			}
 		}
 	}
@@ -219,9 +285,19 @@ export class Browser extends Component {
 			const currentUrl = navigation.getParam('url', null);
 
 			if (currentUrl && prevUrl !== currentUrl && currentUrl !== this.state.url) {
-				this.checkForDeeplinks();
+				this.loadUrl();
 			}
 		}
+	}
+
+	isENSUrl(url) {
+		const urlObj = new URL(url);
+		const { hostname } = urlObj;
+		const tld = hostname.split('.').pop();
+		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+			return true;
+		}
+		return false;
 	}
 
 	go = async url => {
@@ -229,12 +305,12 @@ export class Browser extends Component {
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
-		const tld = hostname.split('.').pop();
+
 		let ipfsContent = null;
 		let currentEnsName = null;
 		let ipfsHash = null;
 
-		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+		if (this.isENSUrl(sanitizedURL)) {
 			ipfsContent = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 
 			if (ipfsContent) {
@@ -251,16 +327,18 @@ export class Browser extends Component {
 		this.setState({
 			url: urlToGo,
 			progress: 0,
-			ipfsWebsite: true,
+			ipfsWebsite: !!ipfsContent,
 			inputValue: sanitizedURL,
 			currentEnsName,
-			ipfsHash
+			ipfsHash,
+			hostname: this.formatHostname(hostname)
 		});
 
 		this.timeoutHandler && clearTimeout(this.timeoutHandler);
 		this.timeoutHandler = setTimeout(() => {
 			this.urlTimedOut(urlToGo);
 		}, 60000);
+		return sanitizedURL;
 	};
 
 	urlTimedOut(url) {
@@ -291,7 +369,7 @@ export class Browser extends Component {
 			return null;
 		}
 
-		const gatewayUrl = this.state.ipfsGateway + ipfsHash + (pathname || '') + (query || '');
+		const gatewayUrl = `${this.state.ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
 
 		try {
 			const response = await fetch(gatewayUrl, { method: 'HEAD' });
@@ -305,42 +383,44 @@ export class Browser extends Component {
 			// If there's an error our fallback mechanism is
 			// to point straight to the ipfs gateway
 			Logger.error('Failed to fetch ipfs website via ens', err);
-			return 'https://ipfs.io/ipfs/' + ipfsHash;
+			return `https://ipfs.io/ipfs/${ipfsHash}/`;
 		}
 	}
 
 	onUrlInputSubmit = async () => {
-		await this.go(this.state.inputValue);
+		const url = await this.go(this.state.inputValue);
+		this.hideUrlModal(url);
 	};
 
 	goBack = () => {
+		this.toggleOptionsIfNeeded();
 		if (this.state.canGoBack) {
 			const { current } = this.webview;
 			current && current.goBack();
 		} else {
-			this.setState({
-				inputValue: '',
-				url: '',
-				ipfsContent: null,
-				ipfsHash: null,
-				ipfsWebsite: null,
-				currentEnsName: null
-			});
+			this.props.navigation.pop();
 		}
 	};
 
+	close = () => {
+		this.toggleOptionsIfNeeded();
+		this.props.navigation.pop();
+	};
+
 	goForward = () => {
+		this.toggleOptionsIfNeeded();
 		const { current } = this.webview;
 		current && current.goForward();
 	};
 
 	reload = () => {
+		this.toggleOptionsIfNeeded();
 		const { current } = this.webview;
 		current && current.reload();
 	};
 
 	bookmark = () => {
-		this.toggleOptions();
+		this.toggleOptionsIfNeeded();
 		// Check it doesn't exist already
 		if (this.state.bookmarks.filter(i => i.url === this.state.inputValue).length) {
 			Alert.alert(strings('browser.error'), strings('browser.bookmarkAlreadyExists'));
@@ -360,6 +440,7 @@ export class Browser extends Component {
 	};
 
 	share = () => {
+		this.toggleOptionsIfNeeded();
 		Share.open({
 			url: this.state.url
 		}).catch(err => {
@@ -367,8 +448,18 @@ export class Browser extends Component {
 		});
 	};
 
+	toggleOptionsIfNeeded() {
+		if (this.props.navigation && this.props.navigation.state.params.showOptions) {
+			this.toggleOptions();
+		}
+	}
+
 	toggleOptions = () => {
-		this.setState({ showOptions: !this.state.showOptions });
+		this.props.navigation &&
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				showOptions: !this.props.navigation.state.params.showOptions
+			});
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
@@ -397,36 +488,25 @@ export class Browser extends Component {
 		const data = { canGoBack, canGoForward };
 		if (!this.state.ipfsWebsite) {
 			data.inputValue = url;
-		} else {
+		} else if (url.search('mm_override=false') === -1) {
 			data.inputValue = url.replace(
-				`${this.state.ipfsGateway}${this.state.ipfsHash}`,
-				`https://${this.state.currentEnsName}`
+				`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
+				`https://${this.state.currentEnsName}/`
 			);
+		} else if (this.isENSUrl(url)) {
+			this.go(url);
+			return;
+		} else {
+			data.inputValue = url;
+			const urlObj = new URL(url);
+			data.hostname = this.formatHostname(urlObj.hostname);
 		}
 		this.setState(data);
 	};
 
-	onInitialUrlSubmit = async url => {
-		if (url === '') {
-			return false;
-		}
-
-		//Check if it's a url or a keyword
-		const res = url.match(
-			/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([-.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g
-		);
-		if (res === null) {
-			// In case of keywords we default to google search
-			await this.go('https://www.google.com/search?q=' + escape(url));
-		} else {
-			await this.go(url);
-		}
-	};
-
-	updateBookmarks = async bookmarks => {
-		this.setState({ bookmarks });
-		await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(bookmarks));
-	};
+	formatHostname(hostname) {
+		return hostname.toLowerCase().replace('www.', '');
+	}
 
 	onURLChange = inputValue => {
 		this.setState({ inputValue });
@@ -454,6 +534,7 @@ export class Browser extends Component {
 			})();
 		`;
 		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		clearTimeout(this.timeoutHandler);
 	};
 
 	renderLoader() {
@@ -465,11 +546,29 @@ export class Browser extends Component {
 	}
 
 	renderOptions() {
-		if (this.state.showOptions) {
+		const showOptions = (this.props.navigation && this.props.navigation.getParam('showOptions', false)) || false;
+		if (showOptions) {
 			return (
 				<TouchableWithoutFeedback onPress={this.toggleOptions}>
 					<View style={styles.optionsOverlay}>
-						<View style={styles.optionsWrapper}>
+						<View
+							style={[
+								styles.optionsWrapper,
+								Platform.OS === 'android' ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
+							]}
+						>
+							{Platform.OS === 'android' && this.state.canGoBack ? (
+								<Button onPress={this.goBack} style={styles.option}>
+									<Icon name="arrow-left" size={15} style={styles.optionIcon} />
+									<Text style={styles.optionText}>{strings('browser.goBack')}</Text>
+								</Button>
+							) : null}
+							{Platform.OS === 'android' && this.state.canGoForward ? (
+								<Button onPress={this.goForward} style={styles.option}>
+									<Icon name="arrow-right" size={15} style={styles.optionIcon} />
+									<Text style={styles.optionText}>{strings('browser.goForward')}</Text>
+								</Button>
+							) : null}
 							<Button onPress={this.reload} style={styles.option}>
 								<Icon name="refresh" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>{strings('browser.reload')}</Text>
@@ -482,6 +581,12 @@ export class Browser extends Component {
 								<Icon name="share" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>{strings('browser.share')}</Text>
 							</Button>
+							{Platform.OS === 'android' ? (
+								<Button onPress={this.close} style={styles.option}>
+									<Icon name="close" size={15} style={styles.optionIcon} />
+									<Text style={styles.optionText}>{strings('browser.close')}</Text>
+								</Button>
+							) : null}
 						</View>
 					</View>
 				</TouchableWithoutFeedback>
@@ -489,34 +594,113 @@ export class Browser extends Component {
 		}
 	}
 
-	render() {
-		const { canGoForward, entryScriptWeb3, inputValue, url } = this.state;
+	handleScroll = e => {
+		if (this.state.progress < 1) {
+			return;
+		}
 
-		if (this.state.url === '') {
-			return (
-				<HomePage
-					bookmarks={this.state.bookmarks}
-					onBookmarkTapped={this.go}
-					onInitialUrlSubmit={this.onInitialUrlSubmit}
-					updateBookmarks={this.updateBookmarks}
-				/>
-			);
+		const newOffset = e.contentOffset.y;
+		// Avoid wrong position at the beginning
+		if (this.prevScrollOffset === 0 && newOffset > SCROLL_THRESHOLD) {
+			return;
+		}
+
+		// In case they scroll past the top
+		if (newOffset <= 0) {
+			this.scrollY.setValue(0);
+			return;
+		}
+
+		const diff = Math.abs(newOffset - this.prevScrollOffset);
+		let newAnimatedValue = Math.max(0, Math.min(SCROLL_THRESHOLD, diff) / SCROLL_THRESHOLD);
+		if (newOffset < this.prevScrollOffset) {
+			// moving down
+			newAnimatedValue = 1 - newAnimatedValue;
+		}
+		this.scrollY.setValue(newAnimatedValue);
+	};
+
+	onScrollEnd = e => {
+		this.prevScrollOffset = e.contentOffset.y;
+	};
+
+	onScrollBeginDrag = e => {
+		setTimeout(() => {
+			this.prevScrollOffset = e.contentOffset.y;
+		}, 150);
+	};
+
+	renderBottomBar(canGoForward) {
+		const bottom = Platform.OS === 'ios' ? 0 : 10;
+		const distance = Platform.OS === 'ios' ? 100 : 200;
+		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, SCROLL_THRESHOLD).interpolate({
+			inputRange: [0, 1],
+			outputRange: [bottom, bottom - distance]
+		});
+		return (
+			<Animated.View style={[styles.bottomBar, { marginBottom: bottomBarPosition }]}>
+				<View style={styles.iconsLeft}>
+					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
+					<Icon
+						disabled={!canGoForward}
+						name="angle-right"
+						onPress={this.goForward}
+						size={30}
+						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
+					/>
+				</View>
+				<View style={styles.iconsRight}>
+					<MaterialIcon
+						name="more-vert"
+						onPress={this.toggleOptions}
+						size={20}
+						style={[styles.icon, styles.iconMore]}
+					/>
+				</View>
+			</Animated.View>
+		);
+	}
+
+	isHttps() {
+		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
+	}
+
+	hideUrlModal = url => {
+		const urlParam = typeof url === 'string' ? url : this.props.navigation.state.params.url;
+		this.props.navigation.setParams({ url: urlParam, showUrlModal: false });
+	};
+
+	clearInputText = () => {
+		const { current } = this.inputRef;
+		current.clear();
+	};
+
+	renderUrlModal() {
+		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
+
+		if (showUrlModal && this.inputRef) {
+			setTimeout(() => {
+				const { current } = this.inputRef;
+				if (current && !current.isFocused()) {
+					current.focus();
+				}
+			}, 300);
 		}
 
 		return (
-			<View style={styles.wrapper}>
-				<View style={styles.urlBar}>
-					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
-					{canGoForward ? (
-						<Icon
-							disabled={!canGoForward}
-							name="angle-right"
-							onPress={this.goForward}
-							size={30}
-							style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
-						/>
-					) : null}
+			<Modal
+				isVisible={showUrlModal}
+				style={styles.urlModal}
+				onBackdropPress={this.hideUrlModal}
+				animationIn="slideInDown"
+				animationOut="slideOutUp"
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+			>
+				<View style={styles.urlModalContent}>
 					<TextInput
+						ref={this.inputRef}
 						autoCapitalize="none"
 						autoCorrect={false}
 						clearButtonMode="while-editing"
@@ -528,15 +712,40 @@ export class Browser extends Component {
 						placeholderTextColor={colors.asphalt}
 						returnKeyType="go"
 						style={styles.urlInput}
-						value={inputValue}
+						value={this.state.inputValue}
+						selectTextOnFocus
 					/>
-					<MaterialIcon name="more-vert" onPress={this.toggleOptions} size={20} style={styles.icon} />
+
+					{Platform.OS === 'android' ? (
+						<TouchableOpacity onPress={this.clearInputText} style={styles.iconCloseButton}>
+							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
+						</TouchableOpacity>
+					) : (
+						<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
+							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
+						</TouchableOpacity>
+					)}
 				</View>
+			</Modal>
+		);
+	}
+
+	getUserAgent() {
+		if (Platform.OS === 'android') {
+			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
+		}
+		return null;
+	}
+
+	render() {
+		const { canGoForward, entryScriptWeb3, url } = this.state;
+
+		return (
+			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
-				{this.renderOptions()}
-				{entryScriptWeb3 ? (
+				{entryScriptWeb3 && !this.state.loading ? (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						injectedJavaScriptForMainFrameOnly
@@ -546,12 +755,22 @@ export class Browser extends Component {
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}
 						source={{ uri: url }}
-						style={baseStyles.flexGrow}
+						style={styles.webview}
+						scrollEventThrottle={16}
+						onScroll={this.handleScroll}
+						onScrollBeginDrag={this.onScrollBeginDrag}
+						onScrollEndDrag={this.onScrollEnd}
+						onMomentumScrollEnd={this.onScrollEnd}
+						userAgent={this.getUserAgent()}
+						javascriptEnabled
 					/>
 				) : (
 					this.renderLoader()
 				)}
-			</View>
+				{this.renderUrlModal()}
+				{this.renderOptions()}
+				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
+			</SafeAreaView>
 		);
 	}
 }

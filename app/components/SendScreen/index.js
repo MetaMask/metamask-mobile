@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { withNavigation } from 'react-navigation';
-import { colors } from '../../styles/common';
+import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import TransactionEditor from '../TransactionEditor';
+import NavbarTitle from '../NavbarTitle';
 import { toBN, BNToHex, hexToBN } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -26,6 +28,16 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class SendScreen extends Component {
+	static navigationOptions = {
+		headerTitle: <NavbarTitle title={strings('send.title')} />,
+		headerTruncatedBackTitle: strings('navigation.back'),
+		headerBackTitle: strings('navigation.back'),
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		}
+	};
+
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -123,7 +135,11 @@ class SendScreen extends Component {
 
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
-		this.setState({ mode: 'edit' });
+		if (this.state.mode !== 'edit') {
+			this.setState({ mode: 'edit' });
+		} else {
+			this.props.navigation.goBack();
+		}
 	};
 
 	onConfirm = async transaction => {
@@ -154,7 +170,7 @@ class SendScreen extends Component {
 
 	render() {
 		return (
-			<View style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper}>
 				{this.state.ready ? (
 					<TransactionEditor
 						mode={this.state.mode}
@@ -167,7 +183,7 @@ class SendScreen extends Component {
 				) : (
 					this.renderLoader()
 				)}
-			</View>
+			</SafeAreaView>
 		);
 	}
 }
