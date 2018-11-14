@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, AsyncStorage, ActivityIndicator, Image, Text, View, ScrollView, StyleSheet } from 'react-native';
+import {
+	Platform,
+	Alert,
+	AsyncStorage,
+	ActivityIndicator,
+	Image,
+	Text,
+	View,
+	ScrollView,
+	StyleSheet
+} from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { connect } from 'react-redux';
 import PubNub from 'pubnub';
@@ -17,14 +27,13 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapper: {
-		flex: 1,
 		paddingVertical: 10,
 		paddingHorizontal: 30,
 		paddingBottom: 30,
 		alignItems: 'center'
 	},
 	fox: {
-		marginTop: 70,
+		marginTop: Platform.OS === 'android' ? 20 : 70,
 		width: 156,
 		height: 97
 	},
