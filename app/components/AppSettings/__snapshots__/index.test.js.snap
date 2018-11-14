@@ -1,0 +1,592 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AppSettings should render correctly 1`] = `
+<ScrollView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "paddingLeft": 20,
+      "paddingRight": 20,
+    }
+  }
+  testID="app-settings-screen"
+>
+  <ActionModal
+    cancelButtonMode="neutral"
+    cancelTestID=""
+    cancelText="NEVERMIND"
+    confirmButtonMode="warning"
+    confirmTestID=""
+    confirmText="RESET"
+    modalVisible={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    onRequestClose={[Function]}
+  >
+    <Component
+      style={
+        Object {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "padding": 20,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 22,
+            "fontWeight": "600",
+            "textAlign": "center",
+          }
+        }
+      >
+        Reset Account?
+      </Component>
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "textAlign": "center",
+          }
+        }
+      >
+        Resetting your account will clear your transaction history.
+      </Component>
+    </Component>
+  </ActionModal>
+  <Component
+    style={
+      Object {
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "marginBottom": 5,
+          "textAlign": "left",
+        }
+      }
+    >
+      Current Conversion
+    </Component>
+    <Component
+      style={
+        Object {
+          "borderColor": "#f1f2f6",
+          "borderRadius": 5,
+          "borderWidth": 2,
+        }
+      }
+    >
+      <Picker
+        mode="dialog"
+        onValueChange={[Function]}
+        selectedValue="usd"
+      >
+        <PickerItem
+          key="adx"
+          label="ADX - AdEx"
+          value="adx"
+        />
+        <PickerItem
+          key="adt"
+          label="ADT - adToken"
+          value="adt"
+        />
+        <PickerItem
+          key="ant"
+          label="ANT - Aragon"
+          value="ant"
+        />
+        <PickerItem
+          key="rep"
+          label="REP - Augur"
+          value="rep"
+        />
+        <PickerItem
+          key="aud"
+          label="AUD - Australian Dollar"
+          value="aud"
+        />
+        <PickerItem
+          key="bnt"
+          label="BNT - Bancor"
+          value="bnt"
+        />
+        <PickerItem
+          key="bat"
+          label="BAT - Basic Attention Token"
+          value="bat"
+        />
+        <PickerItem
+          key="btc"
+          label="BTC - Bitcoin"
+          value="btc"
+        />
+        <PickerItem
+          key="cad"
+          label="CAD - Canadian Dollar"
+          value="cad"
+        />
+        <PickerItem
+          key="time"
+          label="TIME - ChronoBank"
+          value="time"
+        />
+        <PickerItem
+          key="cvc"
+          label="CVC - Civic"
+          value="cvc"
+        />
+        <PickerItem
+          key="cfi"
+          label="CFI - Cofound.it"
+          value="cfi"
+        />
+        <PickerItem
+          key="crb"
+          label="CRB - CreditBit"
+          value="crb"
+        />
+        <PickerItem
+          key="dash"
+          label="DASH - Dash"
+          value="dash"
+        />
+        <PickerItem
+          key="dgd"
+          label="DGD - DigixDAO"
+          value="dgd"
+        />
+        <PickerItem
+          key="etc"
+          label="ETC - Ethereum Classic"
+          value="etc"
+        />
+        <PickerItem
+          key="eur"
+          label="EUR - Euro"
+          value="eur"
+        />
+        <PickerItem
+          key="1st"
+          label="1ST - FirstBlood"
+          value="1st"
+        />
+        <PickerItem
+          key="fun"
+          label="FUN - FunFair"
+          value="fun"
+        />
+        <PickerItem
+          key="gno"
+          label="GNO - Gnosis"
+          value="gno"
+        />
+        <PickerItem
+          key="gnt"
+          label="GNT - Golem"
+          value="gnt"
+        />
+        <PickerItem
+          key="hkd"
+          label="HKD - Hong Kong Dollar"
+          value="hkd"
+        />
+        <PickerItem
+          key="hmq"
+          label="HMQ - Humaniq"
+          value="hmq"
+        />
+        <PickerItem
+          key="rlc"
+          label="RLC - iEx.ec"
+          value="rlc"
+        />
+        <PickerItem
+          key="idr"
+          label="IDR - Indonesian Rupiah"
+          value="idr"
+        />
+        <PickerItem
+          key="jpy"
+          label="JPY - Japanese Yen"
+          value="jpy"
+        />
+        <PickerItem
+          key="lgd"
+          label="LGD - Legends Room"
+          value="lgd"
+        />
+        <PickerItem
+          key="lsk"
+          label="LSK - Lisk"
+          value="lsk"
+        />
+        <PickerItem
+          key="ltc"
+          label="LTC - Litecoin"
+          value="ltc"
+        />
+        <PickerItem
+          key="lun"
+          label="LUN - Lunyr"
+          value="lun"
+        />
+        <PickerItem
+          key="gup"
+          label="GUP - Matchpool"
+          value="gup"
+        />
+        <PickerItem
+          key="mtl"
+          label="MTL - Metal"
+          value="mtl"
+        />
+        <PickerItem
+          key="mco"
+          label="MCO - Monaco"
+          value="mco"
+        />
+        <PickerItem
+          key="xmr"
+          label="XMR - Monero"
+          value="xmr"
+        />
+        <PickerItem
+          key="myst"
+          label="MYST - Mysterium"
+          value="myst"
+        />
+        <PickerItem
+          key="xem"
+          label="XEM - NEM"
+          value="xem"
+        />
+        <PickerItem
+          key="nmr"
+          label="NMR - Numeraire"
+          value="nmr"
+        />
+        <PickerItem
+          key="omg"
+          label="OMG - OmiseGO"
+          value="omg"
+        />
+        <PickerItem
+          key="ptoy"
+          label="PTOY - Patientory"
+          value="ptoy"
+        />
+        <PickerItem
+          key="php"
+          label="PHP - Philippine Peso"
+          value="php"
+        />
+        <PickerItem
+          key="gbp"
+          label="GBP - Pound Sterling"
+          value="gbp"
+        />
+        <PickerItem
+          key="qtum"
+          label="QTUM - Qtum"
+          value="qtum"
+        />
+        <PickerItem
+          key="qrl"
+          label="QRL - Quantum-Resistant Ledger"
+          value="qrl"
+        />
+        <PickerItem
+          key="xrp"
+          label="XRP - Ripple"
+          value="xrp"
+        />
+        <PickerItem
+          key="rub"
+          label="RUB - Russian Ruble"
+          value="rub"
+        />
+        <PickerItem
+          key="sc"
+          label="SC - Siacoin"
+          value="sc"
+        />
+        <PickerItem
+          key="sgd"
+          label="SGD - Singapore Dollar"
+          value="sgd"
+        />
+        <PickerItem
+          key="sngls"
+          label="SNGLS - SingularDTV"
+          value="sngls"
+        />
+        <PickerItem
+          key="snt"
+          label="SNT - Status"
+          value="snt"
+        />
+        <PickerItem
+          key="steem"
+          label="STEEM - Steem"
+          value="steem"
+        />
+        <PickerItem
+          key="xlm"
+          label="XLM - Stellar Lumen"
+          value="xlm"
+        />
+        <PickerItem
+          key="storj"
+          label="STORJ - Storj"
+          value="storj"
+        />
+        <PickerItem
+          key="pay"
+          label="PAY - TenX"
+          value="pay"
+        />
+        <PickerItem
+          key="tkn"
+          label="TKN - TokenCard"
+          value="tkn"
+        />
+        <PickerItem
+          key="uah"
+          label="UAH - Ukrainian Hryvnia"
+          value="uah"
+        />
+        <PickerItem
+          key="usd"
+          label="USD - United States Dollar"
+          value="usd"
+        />
+        <PickerItem
+          key="trst"
+          label="TRST - WeTrust"
+          value="trst"
+        />
+        <PickerItem
+          key="wings"
+          label="WINGS - Wings"
+          value="wings"
+        />
+        <PickerItem
+          key="zec"
+          label="ZEC - Zcash"
+          value="zec"
+        />
+      </Picker>
+    </Component>
+  </Component>
+  <Component
+    style={
+      Object {
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "marginBottom": 5,
+          "textAlign": "left",
+        }
+      }
+    >
+      Current Language
+    </Component>
+    <Component
+      style={
+        Object {
+          "borderColor": "#f1f2f6",
+          "borderRadius": 5,
+          "borderWidth": 2,
+        }
+      }
+    >
+      <Picker
+        mode="dialog"
+        onValueChange={[Function]}
+        selectedValue="en"
+      >
+        <PickerItem
+          key="en"
+          label="English"
+          value="en"
+        />
+        <PickerItem
+          key="es"
+          label="Spanish"
+          value="es"
+        />
+      </Picker>
+    </Component>
+  </Component>
+  <Component
+    style={
+      Object {
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "marginBottom": 5,
+          "textAlign": "left",
+        }
+      }
+    >
+      New RPC URL
+    </Component>
+    <TextInput
+      allowFontScaling={true}
+      onChangeText={[Function]}
+      onSubmitEditing={[Function]}
+      style={
+        Object {
+          "borderColor": "#f1f2f6",
+          "borderRadius": 5,
+          "borderWidth": 2,
+          "padding": 10,
+        }
+      }
+      underlineColorAndroid="transparent"
+      value=""
+    />
+    <Component
+      style={
+        Object {
+          "color": "#FF0000",
+          "fontFamily": "Roboto",
+          "fontWeight": "400",
+        }
+      }
+    />
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="save"
+      onPress={[Function]}
+      style={
+        Object {
+          "alignSelf": "flex-end",
+          "flex": 1,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "padding": 5,
+          }
+        }
+      >
+        SAVE
+      </Component>
+    </TouchableOpacity>
+  </Component>
+  <Component
+    style={
+      Object {
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "marginBottom": 5,
+          "textAlign": "left",
+        }
+      }
+    >
+      Reveal Seed Words
+    </Component>
+    <StyledButton
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="warning"
+    >
+      REVEAL SEED WORDS
+    </StyledButton>
+  </Component>
+  <Component
+    style={
+      Object {
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "marginBottom": 5,
+          "textAlign": "left",
+        }
+      }
+    >
+      Reset Account
+    </Component>
+    <StyledButton
+      disabledContainerStyle={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      onPress={[Function]}
+      styleDisabled={
+        Object {
+          "opacity": 0.6,
+        }
+      }
+      type="orange"
+    >
+      RESET ACCOUNT
+    </StyledButton>
+  </Component>
+</ScrollView>
+`;

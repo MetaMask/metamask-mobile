@@ -32,7 +32,8 @@ const styles = StyleSheet.create({
  * Copmonent that provides ability to add a bookmark
  */
 export default class AddBookmark extends Component {
-	static navigationOptions = ({ navigation }) => getModalNavbarOptions(strings('addBookmark.title'), navigation);
+	static navigationOptions = () => ({ navigation }) =>
+		getModalNavbarOptions(strings('addBookmark.title'), navigation);
 
 	state = {
 		title: '',

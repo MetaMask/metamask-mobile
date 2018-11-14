@@ -46,7 +46,7 @@
     "@tradle/react-native-http": "^2.0.1",
     "base-64": "^0.1.0",
     "buffer": "^4.9.1",
-    "eth-block-tracker": "github:MetaMask/eth-block-tracker#3.0.1-subscription-fix",
+    "eth-block-tracker": "^3.0.1",
     "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#master",
     "eth-ens-namehash": "^2.0.8",
     "eth-url-parser": "^1.0.2",
@@ -56,7 +56,7 @@
     "ethjs-unit": "^0.1.6",
     "events": "^3.0.0",
     "fuse.js": "^3.2.0",
-    "gaba": "^1.0.0-beta.41",
+    "gaba": "^1.0.0-beta.43",
     "https-browserify": "0.0.1",
     "multihashes": "^0.4.14",
     "prop-types": "^15.6.2",
@@ -77,6 +77,7 @@
     "react-native-keychain": "^3.0.0",
     "react-native-level-fs": "^3.0.1",
     "react-native-linear-gradient": "^2.4.0",
+    "react-native-modal": "^7.0.0",
     "react-native-os": "^1.2.1",
     "react-native-progress": "^3.5.0",
     "react-native-qrcode": "^0.2.7",
@@ -97,6 +98,7 @@
     "stream-browserify": "^1.0.0",
     "url": "^0.10.3",
     "url-parse": "^1.4.3",
+    "valid-url": "^1.0.9",
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
