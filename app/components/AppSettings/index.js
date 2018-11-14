@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Picker, TouchableOpacity } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TextInput, ScrollView, Picker, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -23,9 +23,12 @@ const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) =
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1,
+		flex: 1
+	},
+	wrapperContent: {
 		paddingLeft: 20,
-		paddingRight: 20
+		paddingRight: 20,
+		paddingVertical: 20
 	},
 	text: {
 		fontSize: 18,
@@ -182,67 +185,69 @@ class AppSettings extends Component {
 
 	render() {
 		return (
-			<ScrollView style={styles.wrapper} testID={'app-settings-screen'}>
-				<ActionModal
-					modalVisible={this.state.modalVisible}
-					confirmText={strings('app_settings.reset_account_confirm_button')}
-					cancelText={strings('app_settings.reset_account_cancel_button')}
-					onCancelPress={this.cancelResetAccount}
-					onRequestClose={this.cancelResetAccount}
-					onConfirmPress={this.resetAccount}
-				>
-					<View style={styles.modalView}>
-						<Text style={styles.modalTitle}>{strings('app_settings.reset_account_modal_title')}</Text>
-						<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
-					</View>
-				</ActionModal>
+			<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
+				<ScrollView contentContainerStyle={styles.wrapperContent}>
+					<ActionModal
+						modalVisible={this.state.modalVisible}
+						confirmText={strings('app_settings.reset_account_confirm_button')}
+						cancelText={strings('app_settings.reset_account_cancel_button')}
+						onCancelPress={this.cancelResetAccount}
+						onRequestClose={this.cancelResetAccount}
+						onConfirmPress={this.resetAccount}
+					>
+						<View style={styles.modalView}>
+							<Text style={styles.modalTitle}>{strings('app_settings.reset_account_modal_title')}</Text>
+							<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
+						</View>
+					</ActionModal>
 
-				<View style={styles.setting}>
-					<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
-					<View style={styles.picker}>
-						<Picker selectedValue={this.state.currentCurrency} onValueChange={this.selectCurrency}>
-							{infuraCurrencyOptions.map(option => (
-								<Picker.Item value={option.value} label={option.label} key={option.key} />
-							))}
-						</Picker>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
+						<View style={styles.picker}>
+							<Picker selectedValue={this.state.currentCurrency} onValueChange={this.selectCurrency}>
+								{infuraCurrencyOptions.map(option => (
+									<Picker.Item value={option.value} label={option.label} key={option.key} />
+								))}
+							</Picker>
+						</View>
 					</View>
-				</View>
-				<View style={styles.setting}>
-					<Text style={styles.text}>{strings('app_settings.current_language')}</Text>
-					<View style={styles.picker}>
-						<Picker selectedValue={this.state.currentLanguage} onValueChange={this.selectLanguage}>
-							{Object.keys(this.state.languages).map(key => (
-								<Picker.Item value={key} label={this.state.languages[key]} key={key} />
-							))}
-						</Picker>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.current_language')}</Text>
+						<View style={styles.picker}>
+							<Picker selectedValue={this.state.currentLanguage} onValueChange={this.selectLanguage}>
+								{Object.keys(this.state.languages).map(key => (
+									<Picker.Item value={key} label={this.state.languages[key]} key={key} />
+								))}
+							</Picker>
+						</View>
 					</View>
-				</View>
-				<View style={styles.setting}>
-					<Text style={styles.text}>{strings('app_settings.new_RPC_URL')}</Text>
-					<TextInput
-						style={styles.input}
-						value={this.state.rpcUrl}
-						onSubmitEditing={this.addRpcUrl}
-						onChangeText={this.onRpcUrlChange}
-					/>
-					<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
-					<TouchableOpacity key="save" onPress={this.addRpcUrl} style={styles.touchable}>
-						<Text style={styles.touchableText}>{strings('app_settings.save_rpc_url')}</Text>
-					</TouchableOpacity>
-				</View>
-				<View style={styles.setting}>
-					<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
-					<StyledButton type="warning" onPress={this.goToRevealPrivateCredential}>
-						{strings('app_settings.reveal_seed_words_button')}
-					</StyledButton>
-				</View>
-				<View style={styles.setting}>
-					<Text style={styles.text}>{strings('app_settings.reset_account')}</Text>
-					<StyledButton type="orange" onPress={this.displayResetAccountModal}>
-						{strings('app_settings.reset_account_button')}
-					</StyledButton>
-				</View>
-			</ScrollView>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.new_RPC_URL')}</Text>
+						<TextInput
+							style={styles.input}
+							value={this.state.rpcUrl}
+							onSubmitEditing={this.addRpcUrl}
+							onChangeText={this.onRpcUrlChange}
+						/>
+						<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
+						<TouchableOpacity key="save" onPress={this.addRpcUrl} style={styles.touchable}>
+							<Text style={styles.touchableText}>{strings('app_settings.save_rpc_url')}</Text>
+						</TouchableOpacity>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
+						<StyledButton type="warning" onPress={this.goToRevealPrivateCredential}>
+							{strings('app_settings.reveal_seed_words_button')}
+						</StyledButton>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.reset_account')}</Text>
+						<StyledButton type="orange" onPress={this.displayResetAccountModal}>
+							{strings('app_settings.reset_account_button')}
+						</StyledButton>
+					</View>
+				</ScrollView>
+			</SafeAreaView>
 		);
 	}
 }
