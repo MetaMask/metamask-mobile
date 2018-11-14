@@ -94,6 +94,25 @@
 	"accounts": {
 		"title": "My Accounts"
 	},
+	"app_settings": {
+		"title": "App Settings",
+		"current_conversion": "Current Conversion",
+		"current_language": "Current Language",
+		"new_RPC_URL": "New RPC URL",
+		"state_logs": "State Logs",
+		"reveal_seed_words": "Reveal Seed Words",
+		"reset_account": "Reset Account",
+		"state_logs_button": "DOWNLOAD STATE LOGS",
+		"reveal_seed_words_button": "REVEAL SEED WORDS",
+		"reset_account_button": "RESET ACCOUNT",
+		"reset_account_confirm_button": "RESET",
+		"reset_account_cancel_button": "NEVERMIND",
+		"reset_account_modal_title": "Reset Account?",
+		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
+		"save_rpc_url": "SAVE",
+		"invalid_rpc_prefix": "URIs require the appropriate HTTP/HTTPS prefix",
+		"invalid_rpc_url": "Invalid RPC URL"
+	},
 	"settings": {
 		"title": "Settings",
 		"network": "Network",
@@ -112,7 +131,7 @@
 		"label": "These are your seed words, make sure you keep them safe!"
 	},
 	"reveal_credential": {
-		"seed_phrase_title": "Reveal Seed Words",
+		"seed_phrase_title": "Reveal Seed Phrase",
 		"private_key_title": "Show Private Key",
 		"cancel": "Cancel",
 		"confirm": "Next",
@@ -123,7 +142,7 @@
 			"DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
 		"private_key_warning_explanation":
 			"Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
-		"seed_phrase": "Your private seed phrase",
+		"seed_phrase": "Your seed phrase",
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
 		"enter_password": "Enter password to continue",

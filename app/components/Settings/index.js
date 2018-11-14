@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 import { strings } from '../../../locales/i18n';
+import Networks from '../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -22,14 +23,14 @@ const styles = StyleSheet.create({
  * app settings
  */
 class Settings extends Component {
-	static navigationOptions = {
+	static navigationOptions = () => ({
 		title: strings('settings.title'),
 		headerTruncatedBackTitle: strings('navigation.back'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
 		}
-	};
+	});
 
 	static propTypes = {
 		/**
@@ -60,6 +61,7 @@ class Settings extends Component {
 
 	render() {
 		const { CurrencyRateController, NetworkController, NetworkStatusController } = this.props.backgroundState;
+		const { name } = Networks[NetworkController.provider.type];
 
 		return (
 			<View style={styles.wrapper} testID={'settings-screen'}>
@@ -67,13 +69,15 @@ class Settings extends Component {
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
 						title={'ETH'}
-						titleInfo={`$ ${CurrencyRateController.conversionRate} USD`}
+						titleInfo={`${
+							CurrencyRateController.conversionRate
+						} ${CurrencyRateController.currentCurrency.toUpperCase()}`}
 						hasNavArrow={false}
 					/>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
 						title={strings('settings.network')}
-						titleInfo={NetworkController.provider.type}
+						titleInfo={name}
 						onPress={this.goToNetworkSettings}
 					/>
 					<SettingsList.Item

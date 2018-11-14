@@ -1,0 +1,135 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ActionModal should render correctly 1`] = `
+<ReactNativeModal
+  animationIn="slideInUp"
+  animationInTiming={300}
+  animationOut="slideOutDown"
+  animationOutTiming={300}
+  avoidKeyboard={false}
+  backdropColor="black"
+  backdropOpacity={0.7}
+  backdropTransitionInTiming={300}
+  backdropTransitionOutTiming={300}
+  deviceHeight={null}
+  deviceWidth={null}
+  hideModalContentWhileAnimating={false}
+  isVisible={false}
+  onBackButtonPress={[Function]}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalShow={[Function]}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  style={
+    Object {
+      "margin": 0,
+      "width": "100%",
+    }
+  }
+  supportedOrientations={
+    Array [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeThreshold={100}
+  useNativeDriver={false}
+>
+  <Component
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#00000080",
+        "flex": 1,
+        "flexDirection": "column",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 10,
+          "height": 300,
+          "width": 350,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      />
+      <Component
+        style={
+          Object {
+            "borderTopColor": "#d2d8dd",
+            "borderTopWidth": 1,
+            "flex": 0,
+            "flexDirection": "row",
+            "padding": 16,
+          }
+        }
+      >
+        <StyledButton
+          containerStyle={
+            Array [
+              Object {
+                "flex": 1,
+              },
+              Object {
+                "marginRight": 8,
+              },
+            ]
+          }
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID=""
+          type="neutral"
+        >
+          CANCEL
+        </StyledButton>
+        <StyledButton
+          containerStyle={
+            Array [
+              Object {
+                "flex": 1,
+              },
+              Object {
+                "marginLeft": 8,
+              },
+            ]
+          }
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID=""
+          type="warning"
+        >
+          CONFIRM
+        </StyledButton>
+      </Component>
+    </Component>
+  </Component>
+</ReactNativeModal>
+`;
