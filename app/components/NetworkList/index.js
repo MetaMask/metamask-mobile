@@ -111,8 +111,16 @@ export default class NetworkList extends Component {
 		/**
 		 * An function to handle the close event
 		 */
-		onClose: PropTypes.func
+		onClose: PropTypes.func,
+		/**
+		 * A list of custom RPCs to provide the user
+		 */
+		frequentRpcList: PropTypes.array
 	};
+
+	getAllNetworks = () => ['ropsten', 'kovan', 'rinkeby'].concat(this.props.frequentRpcList);
+
+	getOtherNetworks = () => this.getAllNetworks.slice(1);
 
 	onNetworkChange = async type => {
 		const { NetworkController } = Engine.context;
@@ -121,7 +129,7 @@ export default class NetworkList extends Component {
 
 	renderOtherNetworks() {
 		const { NetworkController } = Engine.context;
-		return ['ropsten', 'kovan', 'rinkeby'].map((network, i) => {
+		return this.getOtherNetworks().map((network, i) => {
 			const { color, name } = Networks[network];
 			const selected =
 				NetworkController.state.provider.type === network ? (
