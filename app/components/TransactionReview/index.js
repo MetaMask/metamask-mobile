@@ -7,7 +7,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
-import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { withNavigation } from 'react-navigation';
 
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports editing and reviewing a transaction
+ * Component that supports reviewing a transaction
  */
 class TransactionReview extends Component {
 	static propTypes = {
@@ -212,35 +212,16 @@ class TransactionReview extends Component {
 		 */
 		onConfirm: PropTypes.func,
 		/**
-		 * Called when a user changes modes to edit
-		 */
-		edit: PropTypes.func,
-		/**
 		 * Currently-active account address in the current keychain
 		 */
 		selectedAddress: PropTypes.string,
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.object,
-		/**
-		 * Amount BN object containing amount selected for transaction
-		 */
-		amount: PropTypes.string,
-		/**
-		 * Amount BN object containing gas selected for transaction
-		 */
-		gas: PropTypes.object,
-		/**
-		 * Amount BN object containing gasPrice selected for transaction
-		 */
-		gasPrice: PropTypes.object
+		transactionData: PropTypes.object
 	};
 
 	state = {
-		data: this.props.transaction.data,
-		from: this.props.transaction.from,
-		to: this.props.transaction.to,
 		toFocused: false
 	};
 
@@ -249,32 +230,9 @@ class TransactionReview extends Component {
 		onModeChange && onModeChange('edit');
 	};
 
-	onCancel = () => {
-		const { onCancel } = this.props;
-		onCancel && onCancel();
-	};
-
-	onConfirm = () => {
-		const { amount, gas, gasPrice, onConfirm, transaction } = this.props;
-		const { data, from, to } = this.state;
-		!this.validate() &&
-			onConfirm &&
-			onConfirm({
-				...transaction,
-				...{ value: amount, data, from, gas, gasPrice, to }
-			});
-	};
-
-	validate() {
-		if (this.validateAmount() || this.validateGas() || this.validateToAddress()) {
-			return true;
-		}
-	}
-
 	validateAmount() {
 		let error;
-		const { from } = this.state;
-		const { amount, gas, gasPrice } = this.props;
+		const { amount, gas, gasPrice, from } = this.props.transactionData;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
@@ -288,31 +246,22 @@ class TransactionReview extends Component {
 		return error;
 	}
 
-	validateGas() {
-		let error;
-		const { gas, gasPrice } = this.props;
-		gas && !isBN(gas) && (error = strings('transaction.invalidGas'));
-		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalidGasPrice'));
-		return error;
-	}
-
-	validateToAddress() {
-		let error;
-		const { to } = this.state;
-		!to && this.state.toFocused && (error = strings('transaction.required'));
-		to && !isValidAddress(to) && (error = strings('transaction.invalidAddress'));
-		return error;
-	}
-
 	render() {
-		const { from = this.props.selectedAddress, to } = this.state;
-		const { amount, conversionRate, currentCurrency, gas, gasPrice } = this.props;
+		const {
+			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to },
+			conversionRate,
+			currentCurrency
+		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
 
 		return (
 			<View style={styles.root}>
-				<ActionView confirmButtonMode="confirm" onCancelPress={this.onCancel} onConfirmPress={this.onConfirm}>
+				<ActionView
+					confirmButtonMode="confirm"
+					onCancelPress={this.props.onCancel}
+					onConfirmPress={this.props.onConfirm}
+				>
 					<View style={styles.reviewForm}>
 						<View style={styles.graphic}>
 							<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
@@ -337,7 +286,7 @@ class TransactionReview extends Component {
 								{weiToFiat(amount, conversionRate, currentCurrency).toUpperCase()}
 							</Text>
 							<Text style={styles.summaryEth}>{fromWei(amount).toString()}</Text>
-							<TouchableOpacity style={styles.goBack} onPress={this.props.edit}>
+							<TouchableOpacity style={styles.goBack} onPress={this.edit}>
 								<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
 								<Text style={styles.goBackText}>{strings('transaction.edit')}</Text>
 							</TouchableOpacity>

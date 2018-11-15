@@ -106,7 +106,7 @@ class TransactionEdit extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.object,
+		transactionData: PropTypes.object,
 		/**
 		 * Callback to open the qr scanner
 		 */
@@ -116,32 +116,29 @@ class TransactionEdit extends Component {
 		 */
 		handleUpdateAmount: PropTypes.func,
 		/**
-		 * Callback to update gas and gasPrice in parent state
+		 * Callback to update gas and gasPrice in transaction in parent state
 		 */
 		handleGasFeeSelection: PropTypes.func,
 		/**
-		 * Amount BN object containing amount selected for transaction
+		 * Callback to update data in transaction in parent state
 		 */
-		amount: PropTypes.string,
+		handleUpdateData: PropTypes.func,
 		/**
-		 * Amount BN object containing gas selected for transaction
+		 * Callback to update from address in transaction in parent state
 		 */
-		gas: PropTypes.object,
+		handleUpdateFromAddress: PropTypes.func,
 		/**
-		 * Amount BN object containing gasPrice selected for transaction
+		 * Callback to update to address in transaction in parent state
 		 */
-		gasPrice: PropTypes.object
+		handleUpdateToAddress: PropTypes.func
 	};
 
 	state = {
-		data: this.props.transaction.data,
-		from: this.props.transaction.from,
-		to: this.props.transaction.to,
 		toFocused: false
 	};
 
 	fillMax = () => {
-		const { gas, gasPrice } = this.props;
+		const { gas, gasPrice } = this.props.transactionData;
 		const { balance } = this.props.accounts[this.state.from];
 		this.setState({});
 		this.props.handleUpdateAmount({
@@ -151,11 +148,6 @@ class TransactionEdit extends Component {
 
 	onFocusToAddress = () => {
 		this.setState({ toFocused: true });
-	};
-
-	onCancel = () => {
-		const { onCancel } = this.props;
-		onCancel && onCancel();
 	};
 
 	review = async () => {
@@ -169,15 +161,15 @@ class TransactionEdit extends Component {
 	};
 
 	updateData = data => {
-		this.setState({ data });
+		this.props.handleUpdateData(data);
 	};
 
 	updateFromAddress = from => {
-		this.setState({ from });
+		this.props.handleUpdateFromAddress(from);
 	};
 
 	updateToAddress = to => {
-		this.setState({ to });
+		this.props.handleUpdateToAddress(to);
 	};
 
 	validate() {
@@ -188,8 +180,7 @@ class TransactionEdit extends Component {
 
 	validateAmount() {
 		let error;
-		const { from } = this.state;
-		const { amount, gas, gasPrice } = this.props;
+		const { amount, gas, gasPrice, from = this.props.selectedAddress } = this.props.transactionData;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
@@ -205,7 +196,7 @@ class TransactionEdit extends Component {
 
 	validateGas() {
 		let error;
-		const { gas, gasPrice } = this.props;
+		const { gas, gasPrice } = this.props.transactionData;
 		gas && !isBN(gas) && (error = strings('transaction.invalidGas'));
 		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalidGasPrice'));
 		return error;
@@ -213,7 +204,7 @@ class TransactionEdit extends Component {
 
 	validateToAddress() {
 		let error;
-		const { to } = this.state;
+		const { to } = this.props.transactionData;
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalidAddress'));
 		return error;
@@ -227,13 +218,15 @@ class TransactionEdit extends Component {
 	};
 
 	render() {
-		const { data, from = this.props.selectedAddress, to } = this.state;
-		const { hideData, amount, gas, gasPrice } = this.props;
+		const {
+			hideData,
+			transactionData: { amount, gas, gasPrice, data, from = this.props.selectedAddress, to }
+		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 
 		return (
 			<View style={styles.root}>
-				<ActionView confirmText="Next" onCancelPress={this.onCancel} onConfirmPress={this.review}>
+				<ActionView confirmText="Next" onCancelPress={this.props.onCancel} onConfirmPress={this.review}>
 					<View style={styles.form}>
 						<View style={{ ...styles.formRow, ...styles.fromRow }}>
 							<View style={styles.label}>
@@ -294,10 +287,7 @@ class TransactionEdit extends Component {
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
 							</View>
-							<CustomGas
-								transaction={this.props.transaction}
-								handleGasFeeSelection={this.props.handleGasFeeSelection}
-							/>
+							<CustomGas handleGasFeeSelection={this.props.handleGasFeeSelection} />
 						</View>
 					</View>
 				</ActionView>
