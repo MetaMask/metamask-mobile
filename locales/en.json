@@ -198,7 +198,8 @@
 		"recipientAddress": "Recipient Address",
 		"required": "Required",
 		"to": "To",
-		"total": "Total"
+		"total": "Total",
+		"loading": "Loading..."
 	},
 	"homePage": {
 		"letsGetStarted": "Let's get started!",

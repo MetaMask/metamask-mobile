@@ -200,7 +200,7 @@ class CustomGas extends Component {
 								...{ color: this.state.gasFastSelected ? colors.white : undefined }
 							}}
 						>
-							{fastFiat}
+							{fastFiat.toUpperCase()}
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
@@ -234,7 +234,7 @@ class CustomGas extends Component {
 								...{ color: this.state.gasAverageSelected ? colors.white : undefined }
 							}}
 						>
-							{averageFiat}
+							{averageFiat.toUpperCase()}
 						</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
@@ -268,7 +268,7 @@ class CustomGas extends Component {
 								...{ color: this.state.gasSlowSelected ? colors.white : undefined }
 							}}
 						>
-							{safeLowFiat}
+							{safeLowFiat.toUpperCase()}
 						</Text>
 					</TouchableOpacity>
 				</View>
@@ -276,7 +276,7 @@ class CustomGas extends Component {
 		}
 		return (
 			<View style={styles.root}>
-				<Text>Loading ...</Text>
+				<Text>{strings('transaction.loading')}</Text>
 			</View>
 		);
 	}

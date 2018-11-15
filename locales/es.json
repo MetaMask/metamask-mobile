@@ -178,6 +178,7 @@
 		"recipientAddress": "Dirección del receptor",
 		"required": "Necesario",
 		"to": "A",
-		"total": "Total"
+		"total": "Total",
+		"loading": "Cargando..."
 	}
 }
