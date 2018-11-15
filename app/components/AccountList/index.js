@@ -148,12 +148,12 @@ export default class AccountList extends Component {
 	onAccountChange = async newIndex => {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
+		const { keyrings } = this.props;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
+			// This is a temporary fix until we can read the state from GABA
 			const allKeyrings =
-				this.props.keyrings && this.props.keyrings.length
-					? this.props.keyrings
-					: Engine.context.KeyringController.keyrings;
+				keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
 			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
