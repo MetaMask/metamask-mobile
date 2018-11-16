@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TextInput, ScrollView, Picker, TouchableOpacity } from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -9,6 +9,7 @@ import infuraCurrencies from '../../util/infura-conversion.json';
 import Engine from '../../core/Engine';
 import ActionModal from '../ActionModal';
 import { isWebUri } from 'valid-url';
+import SelectComponent from '../SelectComponent';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -37,8 +38,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	setting: {
-		marginTop: 10,
-		marginBottom: 10
+		marginTop: Platform.OS === 'android' ? 20 : 22,
+		marginBottom: Platform.OS === 'android' ? 20 : 22
 	},
 	input: {
 		borderWidth: 2,
@@ -117,7 +118,9 @@ class AppSettings extends Component {
 
 	componentDidMount = () => {
 		const { currentCurrency } = this.props;
-		this.setState({ languages: getLanguages(), currentCurrency });
+		const languages = getLanguages();
+		this.setState({ languages, currentCurrency });
+		this.languageOptions = Object.keys(languages).map(key => ({ value: key, label: languages[key], key }));
 	};
 
 	static propTypes = {};
@@ -130,9 +133,13 @@ class AppSettings extends Component {
 	};
 
 	selectCurrency = async currency => {
+		this.setState({ currentCurrency: currency });
 		const { CurrencyRateController } = Engine.context;
 		await CurrencyRateController.updateCurrency(currency);
-		this.setState({ currentCurrency: currency });
+	};
+
+	goToSyncWithExtension = () => {
+		this.props.navigation.push('SyncWithExtension', { existingUser: true });
 	};
 
 	goToRevealPrivateCredential = () => {
@@ -204,21 +211,25 @@ class AppSettings extends Component {
 					<View style={styles.setting}>
 						<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
 						<View style={styles.picker}>
-							<Picker selectedValue={this.state.currentCurrency} onValueChange={this.selectCurrency}>
-								{infuraCurrencyOptions.map(option => (
-									<Picker.Item value={option.value} label={option.label} key={option.key} />
-								))}
-							</Picker>
+							<SelectComponent
+								selectedValue={this.state.currentCurrency}
+								onValueChange={this.selectCurrency}
+								label={strings('app_settings.current_conversion')}
+								options={infuraCurrencyOptions}
+							/>
 						</View>
 					</View>
 					<View style={styles.setting}>
 						<Text style={styles.text}>{strings('app_settings.current_language')}</Text>
 						<View style={styles.picker}>
-							<Picker selectedValue={this.state.currentLanguage} onValueChange={this.selectLanguage}>
-								{Object.keys(this.state.languages).map(key => (
-									<Picker.Item value={key} label={this.state.languages[key]} key={key} />
-								))}
-							</Picker>
+							{this.languageOptions && (
+								<SelectComponent
+									selectedValue={this.state.currentLanguage}
+									onValueChange={this.selectLanguage}
+									label={strings('app_settings.current_language')}
+									options={this.languageOptions}
+								/>
+							)}
 						</View>
 					</View>
 					<View style={styles.setting}>
@@ -233,6 +244,12 @@ class AppSettings extends Component {
 						<TouchableOpacity key="save" onPress={this.addRpcUrl} style={styles.touchable}>
 							<Text style={styles.touchableText}>{strings('app_settings.save_rpc_url')}</Text>
 						</TouchableOpacity>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.sync_with_extension')}</Text>
+						<StyledButton type="confirm" onPress={this.goToSyncWithExtension}>
+							{strings('app_settings.sync')}
+						</StyledButton>
 					</View>
 					<View style={styles.setting}>
 						<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
