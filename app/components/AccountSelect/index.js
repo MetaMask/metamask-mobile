@@ -11,8 +11,7 @@ import { weiToFiat, fromWei } from '../../util/number';
 
 const styles = StyleSheet.create({
 	root: {
-		flex: 1,
-		width: '100%'
+		flex: 1
 	},
 	componentContainer: {
 		position: 'relative',
