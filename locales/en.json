@@ -125,7 +125,7 @@
 	},
 	"app_settings": {
 		"title": "App Settings",
-		"current_conversion": "Current Conversion",
+		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
 		"new_RPC_URL": "New RPC URL",
 		"state_logs": "State Logs",
@@ -140,7 +140,9 @@
 		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
 		"save_rpc_url": "SAVE",
 		"invalid_rpc_prefix": "URIs require the appropriate HTTP/HTTPS prefix",
-		"invalid_rpc_url": "Invalid RPC URL"
+		"invalid_rpc_url": "Invalid RPC URL",
+		"sync_with_extension": "Sync with Metamask Extension",
+		"sync": "SYNC"
 	},
 	"settings": {
 		"title": "Settings",
@@ -292,5 +294,9 @@
 		"close": "Close",
 		"status_ok": "All Systems Operational",
 		"status_not_ok": "The network is having some issues"
+	},
+	"select": {
+		"cancel": "Cancel",
+		"done": "Done"
 	}
 }
