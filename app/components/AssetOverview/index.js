@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	buttonIcon: {
 		width: 15,
 		height: 15,
-		marginTop: Platform.OS === 'ios' ? 0 : 7
+		marginTop: 0
 	}
 });
 

@@ -2,13 +2,18 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	root: {
 		flex: 1
+	},
+	componentContainer: {
+		position: 'relative',
+		height: 50,
+		paddingBottom: 200
 	},
 	input: {
 		...fontStyles.bold,
@@ -51,8 +56,12 @@ const styles = StyleSheet.create({
 		paddingBottom: 12,
 		paddingTop: 10,
 		position: 'absolute',
-		top: 52,
-		width: '100%'
+		width: '100%',
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+		elevation: 10
 	},
 	content: {
 		flex: 1
@@ -60,7 +69,7 @@ const styles = StyleSheet.create({
 	qrIcon: {
 		position: 'absolute',
 		right: 16,
-		top: 16
+		top: Platform.OS === 'android' ? 20 : 16
 	}
 });
 
@@ -131,12 +140,14 @@ class AccountInput extends Component {
 	renderOptionList() {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
-			<View style={styles.optionList}>
-				{Object.keys(visibleOptions).map(address =>
-					this.renderOption(visibleOptions[address], () => {
-						this.selectAccount(visibleOptions[address]);
-					})
-				)}
+			<View style={styles.componentContainer}>
+				<View style={styles.optionList}>
+					{Object.keys(visibleOptions).map(address =>
+						this.renderOption(visibleOptions[address], () => {
+							this.selectAccount(visibleOptions[address]);
+						})
+					)}
+				</View>
 			</View>
 		);
 	}
