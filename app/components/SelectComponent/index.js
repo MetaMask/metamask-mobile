@@ -84,8 +84,13 @@ export default class SelectComponent extends Component {
 		this.setState({ pickerVisible: true });
 	};
 
-	getSelectedValue = () =>
-		this.props.options && this.props.options.filter(o => o.value === this.props.selectedValue)[0].label;
+	getSelectedValue = () => {
+		const el = this.props.options && this.props.options.filter(o => o.value === this.props.selectedValue);
+		if (el.length && el[0].label) {
+			return el[0].label;
+		}
+		return '';
+	};
 
 	renderAndroid() {
 		return (
