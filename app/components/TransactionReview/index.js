@@ -9,7 +9,6 @@ import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
-import { withNavigation } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	root: {
@@ -342,4 +341,4 @@ const mapStateToProps = state => ({
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
 
-export default withNavigation(connect(mapStateToProps)(TransactionReview));
+export default connect(mapStateToProps)(TransactionReview);

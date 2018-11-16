@@ -10,7 +10,6 @@ import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
-import { withNavigation } from 'react-navigation';
 import CustomGas from '../CustomGas';
 
 const styles = StyleSheet.create({
@@ -300,4 +299,4 @@ const mapStateToProps = state => ({
 	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
 });
 
-export default withNavigation(connect(mapStateToProps)(TransactionEdit));
+export default connect(mapStateToProps)(TransactionEdit);
