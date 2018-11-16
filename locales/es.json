@@ -180,5 +180,12 @@
 		"to": "A",
 		"total": "Total",
 		"loading": "Cargando..."
+	},
+	"customGas": {
+		"advancedOptions": "Advanced Options",
+		"hideAdvancedOptions": "Hide Advanced Options",
+		"gasLimit": "Gas Limit:",
+		"gasPrice": "Gas Price: (GWEI)",
+		"warningGasLimit": "Gas limit must be greater than 20999 and less than 7920027"
 	}
 }

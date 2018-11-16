@@ -201,6 +201,13 @@
 		"total": "Total",
 		"loading": "Loading..."
 	},
+	"customGas": {
+		"advancedOptions": "Advanced Options",
+		"hideAdvancedOptions": "Hide Advanced Options",
+		"gasLimit": "Gas Limit:",
+		"gasPrice": "Gas Price: (GWEI)",
+		"warningGasLimit": "Gas limit must be greater than 20999 and less than 7920027"
+	},
 	"homePage": {
 		"letsGetStarted": "Let's get started!",
 		"web3Awaits": "The decentralized web awaits",

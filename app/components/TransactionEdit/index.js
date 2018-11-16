@@ -19,8 +19,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	formRow: {
-		flexDirection: 'row',
-		height: 100
+		flexDirection: 'row'
 	},
 	fromRow: {
 		zIndex: 5
@@ -287,7 +286,7 @@ class TransactionEdit extends Component {
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
 							</View>
-							<CustomGas handleGasFeeSelection={this.props.handleGasFeeSelection} />
+							<CustomGas handleGasFeeSelection={this.props.handleGasFeeSelection} totalGas={totalGas} />
 						</View>
 					</View>
 				</ActionView>
