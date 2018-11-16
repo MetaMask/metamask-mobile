@@ -7,7 +7,6 @@ import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
-import { withNavigation } from 'react-navigation';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -188,4 +187,4 @@ const mapStateToProps = state => ({
 	accounts: state.backgroundState.AccountTrackerController.accounts
 });
 
-export default withNavigation(connect(mapStateToProps)(TransactionEditor));
+export default connect(mapStateToProps)(TransactionEditor);

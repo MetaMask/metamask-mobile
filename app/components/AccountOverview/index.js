@@ -1,49 +1,88 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import QRCode from 'react-native-qrcode';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Clipboard, Alert, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { weiToFiat, hexToBN } from '../../util/number';
+import Identicon from '../Identicon';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import FoundationIcon from 'react-native-vector-icons/Foundation';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		height: 130,
+		height: 210,
 		paddingTop: 20,
 		paddingHorizontal: 20,
-		paddingBottom: 0
+		paddingBottom: 0,
+		alignItems: 'center'
 	},
-	row: {
-		flex: 1,
-		flexDirection: 'row'
+	info: {
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
-	left: {
-		flex: 1
-	},
-	right: {
-		flex: 0,
-		alignItems: 'flex-end',
-		paddingTop: 5
-	},
-
 	label: {
 		paddingTop: 7,
-		fontSize: 20,
+		fontSize: 24,
 		...fontStyles.normal
 	},
 	amountFiat: {
-		flex: 1,
-		fontSize: 43,
-		lineHeight: 43,
-		paddingTop: 15,
-		color: colors.fontPrimary,
+		fontSize: 12,
+		paddingTop: 5,
+		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
-	address: {
+	actions: {
+		flexDirection: 'row',
+		marginTop: 20,
+		maxWidth: 220,
+		alignContent: 'center',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	button: {
 		flex: 1,
-		marginTop: 10,
-		fontSize: 12,
+		justifyContent: 'center',
+		alignContent: 'center',
+		alignItems: 'center'
+	},
+	buttonIconWrapper: {
+		width: 36,
+		height: 36,
+		paddingTop: 10,
+		paddingLeft: 7,
+		justifyContent: 'center',
+		alignContent: 'center',
+		color: colors.white,
+		borderRadius: 100,
+		backgroundColor: colors.primary
+	},
+	buttonIcon: {
+		width: 24,
+		height: 24,
+		justifyContent: 'center',
+		alignContent: 'center',
+		textAlign: 'center',
+		color: colors.white
+	},
+	buttonText: {
+		marginTop: 5,
+		textAlign: 'center',
+		color: colors.primary,
+		fontSize: 11,
 		...fontStyles.normal
+	},
+	sendIcon: {
+		paddingTop: 0,
+		paddingLeft: 0
+	},
+	depositIcon: {
+		marginTop: -5,
+		marginLeft: -0.5
+	},
+	copyIcon: {
+		marginLeft: -1
 	}
 });
 
@@ -70,8 +109,19 @@ export default class AccountOverview extends Component {
 		 */
 		navigation: PropTypes.object
 	};
-	onDeposit = () => true;
-	onSend = () => true;
+	onDeposit = () => {
+		Alert.alert(strings('drawer.coming_soon'));
+	};
+	onSend = () => {
+		this.props.navigation.navigate('SendScreen');
+	};
+	onCopy = async () => {
+		const {
+			account: { address }
+		} = this.props;
+		await Clipboard.setString(address);
+		Alert.alert(strings('accountDetails.accountCopiedToClipboard'));
+	};
 
 	goToAccountDetails = () => {
 		this.props.navigation.push('AccountDetails');
@@ -88,19 +138,47 @@ export default class AccountOverview extends Component {
 
 		return (
 			<View style={styles.wrapper} testID={'account-overview'}>
-				<View style={styles.row}>
-					<View style={styles.left}>
-						<Text style={styles.label}>{name}</Text>
-						<Text style={styles.amountFiat}>
-							{weiToFiat(hexToBN(balance), conversionRate, currentCurrency).toUpperCase()}
-						</Text>
-					</View>
-					<View style={styles.right}>
-						<TouchableOpacity onPress={this.goToAccountDetails} testID={'account-qr-button'}>
-							<QRCode value={address} size={60} bgColor={colors.fontPrimary} fgColor={colors.white} />
-							<Text style={styles.address}>{`${address.substr(0, 4)}...${address.substr(-4)}`}</Text>
-						</TouchableOpacity>
-					</View>
+				<TouchableOpacity style={styles.info} onPress={this.goToAccountDetails}>
+					<Identicon address={address} size="38" />
+					<Text style={styles.label}>{name}</Text>
+					<Text style={styles.amountFiat}>
+						${weiToFiat(hexToBN(balance), conversionRate, currentCurrency).toUpperCase()}
+					</Text>
+				</TouchableOpacity>
+				<View style={styles.actions}>
+					<TouchableOpacity type={'normal'} onPress={this.onSend} style={styles.button}>
+						<View style={styles.buttonIconWrapper}>
+							<MaterialIcon
+								name={'send'}
+								size={15}
+								color={colors.primary}
+								style={[styles.buttonIcon, styles.sendIcon]}
+							/>
+						</View>
+						<Text style={styles.buttonText}>{strings('wallet.send_button')}</Text>
+					</TouchableOpacity>
+					<TouchableOpacity type={'normal'} onPress={this.onDeposit} style={styles.button}>
+						<View style={styles.buttonIconWrapper}>
+							<FoundationIcon
+								name={'download'}
+								size={18}
+								color={colors.primary}
+								style={[styles.buttonIcon, styles.depositIcon]}
+							/>
+						</View>
+						<Text style={styles.buttonText}>{strings('wallet.deposit_button')}</Text>
+					</TouchableOpacity>
+					<TouchableOpacity type={'normal'} onPress={this.onCopy} style={styles.button}>
+						<View style={styles.buttonIconWrapper}>
+							<Icon
+								name={'copy'}
+								size={15}
+								color={colors.primary}
+								style={[styles.buttonIcon, styles.copyIcon]}
+							/>
+						</View>
+						<Text style={styles.buttonText}>{strings('wallet.copy_address')}</Text>
+					</TouchableOpacity>
 				</View>
 			</View>
 		);

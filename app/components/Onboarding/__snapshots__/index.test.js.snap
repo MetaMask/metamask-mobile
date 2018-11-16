@@ -1,16 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Onboarding should render correctly 1`] = `
-<Screen>
+<OnboardingScreenWithBg>
   <ScrollView
-    contentContainerStyle={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "paddingBottom": 30,
-        "paddingHorizontal": 60,
-        "paddingVertical": 10,
-      }
-    }
     style={
       Object {
         "flex": 1,
@@ -21,116 +13,84 @@ exports[`Onboarding should render correctly 1`] = `
     <Component
       style={
         Object {
-          "alignItems": "center",
-          "justifyContent": "center",
+          "paddingBottom": 30,
+          "paddingHorizontal": 40,
+          "paddingVertical": 10,
         }
       }
     >
-      <Image
-        resizeMethod="auto"
-        source={
-          Object {
-            "testUri": "../../../app/images/fox.png",
-          }
-        }
+      <Component
         style={
           Object {
-            "height": 119,
-            "marginTop": 45,
-            "width": 128,
+            "alignItems": "center",
+            "justifyContent": "center",
           }
         }
-      />
-    </Component>
-    <Component
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 32,
-          "fontWeight": "600",
-          "justifyContent": "center",
-          "marginBottom": 10,
-          "marginTop": 20,
-          "textAlign": "center",
-        }
-      }
-    >
-      Welcome
-    </Component>
-    <Component
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "justifyContent": "center",
-          "marginBottom": 20,
-          "textAlign": "center",
-        }
-      }
-    >
-      The decentralized web awaits
-    </Component>
-    <Component
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 22,
-          "fontWeight": "400",
-          "marginBottom": 30,
-          "marginTop": 50,
-          "textAlign": "center",
-        }
-      }
-    >
-      Let's get started!
-    </Component>
-    <Component
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
-          "marginBottom": 12,
-          "marginTop": 12,
-          "textAlign": "center",
-        }
-      }
-    >
-      Already using MetaMask?
-    </Component>
-    <Component
-      style={
-        Object {
-          "marginTop": 10,
-        }
-      }
-    >
-      <StyledButton
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        testID="onboarding-import-button"
-        type="blue"
       >
-        Import Wallet
-      </StyledButton>
-    </Component>
-    <Component
-      style={
-        Array [
+        <Image
+          resizeMethod="auto"
+          source={
+            Object {
+              "testUri": "../../../app/images/fox.png",
+            }
+          }
+          style={
+            Object {
+              "height": 119,
+              "marginTop": 45,
+              "width": 128,
+            }
+          }
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#4a4a4a",
+            "fontFamily": "Roboto",
+            "fontSize": 32,
+            "fontWeight": "600",
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginTop": 20,
+            "textAlign": "center",
+          }
+        }
+      >
+        Welcome
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#4a4a4a",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "justifyContent": "center",
+            "marginBottom": 20,
+            "textAlign": "center",
+          }
+        }
+      >
+        The decentralized web awaits
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#4a4a4a",
+            "fontFamily": "Roboto",
+            "fontSize": 22,
+            "fontWeight": "400",
+            "marginBottom": 30,
+            "marginTop": 50,
+            "textAlign": "center",
+          }
+        }
+      >
+        Let's get started!
+      </Component>
+      <Component
+        style={
           Object {
             "color": "#4a4a4a",
             "fontFamily": "Roboto",
@@ -139,40 +99,82 @@ exports[`Onboarding should render correctly 1`] = `
             "marginBottom": 12,
             "marginTop": 12,
             "textAlign": "center",
-          },
-          Object {
-            "marginBottom": 0,
-          },
-        ]
-      }
-    >
-      OR
-    </Component>
-    <Component
-      style={
-        Object {
-          "marginTop": 10,
-        }
-      }
-    >
-      <StyledButton
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
           }
         }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        testID="onboarding-new-button"
-        type="blue"
       >
-        Create New Wallet
-      </StyledButton>
+        Already using MetaMask?
+      </Component>
+      <Component
+        style={
+          Object {
+            "marginTop": 10,
+          }
+        }
+      >
+        <StyledButton
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="onboarding-import-button"
+          type="blue"
+        >
+          Import Wallet
+        </StyledButton>
+      </Component>
+      <Component
+        style={
+          Array [
+            Object {
+              "color": "#4a4a4a",
+              "fontFamily": "Roboto",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "marginBottom": 12,
+              "marginTop": 12,
+              "textAlign": "center",
+            },
+            Object {
+              "marginBottom": 0,
+            },
+          ]
+        }
+      >
+        OR
+      </Component>
+      <Component
+        style={
+          Object {
+            "marginTop": 10,
+          }
+        }
+      >
+        <StyledButton
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="onboarding-new-button"
+          type="blue"
+        >
+          Create New Wallet
+        </StyledButton>
+      </Component>
     </Component>
   </ScrollView>
-</Screen>
+</OnboardingScreenWithBg>
 `;

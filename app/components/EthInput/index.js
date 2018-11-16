@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { isBN, weiToFiat, isDecimal, toWei, fromWei } from '../../util/number';
@@ -24,12 +24,14 @@ const styles = StyleSheet.create({
 		flex: 0,
 		fontSize: 16,
 		minWidth: 44,
-		paddingRight: 8
+		paddingRight: 8,
+		paddingTop: 0
 	},
 	eth: {
 		...fontStyles.bold,
 		flex: 0,
-		fontSize: 16
+		fontSize: 16,
+		paddingTop: Platform.OS === 'android' ? 3 : 0
 	},
 	fiatValue: {
 		...fontStyles.normal,

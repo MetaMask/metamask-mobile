@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Image, View, StyleSheet, Text } from 'react-native';
+import { Platform, Image, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 
@@ -11,7 +11,8 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	network: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		marginLeft: Platform.OS === 'android' ? -52 : 0
 	},
 	networkName: {
 		fontSize: 11,
@@ -29,6 +30,16 @@ const styles = StyleSheet.create({
 		width: 94,
 		height: 12,
 		marginBottom: 5
+	},
+	title: {
+		fontSize: 18,
+		marginLeft: Platform.OS === 'android' ? -52 : 0,
+		...fontStyles.normal
+	},
+	otherNetworkIcon: {
+		backgroundColor: colors.transparent,
+		borderColor: colors.borderColor,
+		borderWidth: 1
 	}
 });
 
@@ -43,17 +54,26 @@ class NavbarTitle extends Component {
 		/**
 		 * Object representing the selected the selected network
 		 */
-		network: PropTypes.object.isRequired
+		network: PropTypes.object.isRequired,
+		/**
+		 * Name of the current view
+		 */
+		title: PropTypes.string.isRequired
 	};
 
 	render() {
-		const { network } = this.props;
-		const { color, name } = Networks[network.provider.type];
+		const { network, title } = this.props;
+		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
+
 		return (
 			<View style={styles.wrapper}>
-				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				{!title ? (
+					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				) : (
+					<Text style={styles.title}>{title}</Text>
+				)}
 				<View style={styles.network}>
-					<View style={[styles.networkIcon, color ? { backgroundColor: color } : null]} />
+					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>

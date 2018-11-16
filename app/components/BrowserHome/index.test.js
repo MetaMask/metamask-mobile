@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import Transfer from './';
+import BrowserHome from './';
 
-describe('Transfer', () => {
+describe('BrowserHome', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<Transfer />);
+		const wrapper = shallow(<BrowserHome />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

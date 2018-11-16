@@ -11,8 +11,12 @@ import { weiToFiat, fromWei } from '../../util/number';
 
 const styles = StyleSheet.create({
 	root: {
-		flex: 1,
-		zIndex: 100
+		flex: 1
+	},
+	componentContainer: {
+		position: 'relative',
+		height: 50,
+		paddingBottom: 200
 	},
 	activeOption: {
 		backgroundColor: colors.white,
@@ -54,9 +58,12 @@ const styles = StyleSheet.create({
 		paddingBottom: 12,
 		paddingTop: 10,
 		position: 'absolute',
-		top: 68,
-		width: '100%',
-		zIndex: 100
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+		elevation: 10,
+		width: '100%'
 	}
 });
 
@@ -144,13 +151,15 @@ class AccountSelect extends Component {
 	renderOptionList() {
 		const { accounts, identities, onChange } = this.props;
 		return (
-			<View style={styles.optionList}>
-				{Object.keys(identities).map(address =>
-					this.renderOption({ ...identities[address], ...accounts[address] }, () => {
-						this.setState({ isOpen: false, value: address });
-						onChange && onChange(address);
-					})
-				)}
+			<View style={styles.componentContainer} pointerEvents="box-none">
+				<View style={styles.optionList}>
+					{Object.keys(identities).map(address =>
+						this.renderOption({ ...identities[address], ...accounts[address] }, () => {
+							this.setState({ isOpen: false, value: address });
+							onChange && onChange(address);
+						})
+					)}
+				</View>
 			</View>
 		);
 	}

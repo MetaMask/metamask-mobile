@@ -35,6 +35,7 @@ exports[`WalletScreen should render correctly 1`] = `
           "NetworkSettings": null,
           "RevealPrivateCredential": null,
           "SeedWords": null,
+          "SendScreen": null,
           "Settings": null,
           "SyncWithExtension": null,
           "Wallet": null,

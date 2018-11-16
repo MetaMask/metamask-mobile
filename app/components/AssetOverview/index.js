@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	buttonIcon: {
 		width: 15,
 		height: 15,
-		marginTop: Platform.OS === 'ios' ? 0 : 7
+		marginTop: 0
 	}
 });
 
@@ -93,12 +93,23 @@ const ethLogo = require('../../images/eth-logo.svg'); // eslint-disable-line
 export default class AssetOverview extends Component {
 	static propTypes = {
 		/**
+		/* navigation object required to access the props
+		/* passed by the parent component
+		*/
+		navigation: PropTypes.object,
+		/**
 		 * Object that represents the asset to be displayed
 		 */
 		asset: PropTypes.object
 	};
-	onDeposit = () => true;
-	onSend = () => true;
+
+	onDeposit = () => {
+		Alert.alert(strings('drawer.coming_soon'));
+	};
+
+	onSend = async () => {
+		this.props.navigation.navigate('SendScreen');
+	};
 
 	renderLogo() {
 		const {

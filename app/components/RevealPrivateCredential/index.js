@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard, Alert } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
@@ -173,7 +173,7 @@ class RevealPrivateCredential extends Component {
 			}
 		} = this.props;
 		return (
-			<View style={styles.wrapper} testID={'reveal-private-credential-screen'}>
+			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
 				<ActionView
 					cancelText={strings('reveal_credential.cancel')}
 					confirmText={strings('reveal_credential.confirm')}
@@ -235,7 +235,7 @@ class RevealPrivateCredential extends Component {
 						)}
 					</View>
 				</ActionView>
-			</View>
+			</SafeAreaView>
 		);
 	}
 }
