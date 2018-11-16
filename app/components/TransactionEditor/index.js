@@ -87,13 +87,6 @@ class TransactionEditor extends Component {
 			});
 	};
 
-	onScanSuccess = () => {
-		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: this.props.onScanSuccess,
-			addressOnly: true
-		});
-	};
-
 	handleGasFeeSelection = (gasLimit, gasPrice) => {
 		this.setState({ gas: gasLimit, gasPrice });
 	};
@@ -166,6 +159,7 @@ class TransactionEditor extends Component {
 						hideData={this.props.hideData}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
+						onScanSuccess={this.props.onScanSuccess}
 						handleUpdateAmount={this.handleUpdateAmount}
 						handleUpdateData={this.handleUpdateData}
 						handleUpdateFromAddress={this.handleUpdateFromAddress}

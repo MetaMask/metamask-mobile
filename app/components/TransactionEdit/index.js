@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, hexToBN } from '../../util/number';
+import { toBN, isBN, hexToBN, fromWei } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
@@ -136,12 +136,16 @@ class TransactionEdit extends Component {
 	};
 
 	fillMax = () => {
-		const { gas, gasPrice } = this.props.transactionData;
-		const { balance } = this.props.accounts[this.state.from];
-		this.setState({});
-		this.props.handleUpdateAmount({
-			amount: !isBN(gas) || !isBN(gasPrice) ? hexToBN(balance) : hexToBN(balance).sub(gas.mul(gasPrice))
-		});
+		const { gas, gasPrice, from } = this.props.transactionData;
+		const { balance } = this.props.accounts[from];
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
+		this.props.handleUpdateAmount(
+			hexToBN(balance)
+				.sub(totalGas)
+				.gt(fromWei(0))
+				? hexToBN(balance).sub(totalGas)
+				: fromWei(0)
+		);
 	};
 
 	onFocusToAddress = () => {
