@@ -6,7 +6,7 @@ import EthInput from '../EthInput';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
@@ -23,15 +23,26 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	fromRow: {
-		zIndex: 5
+		marginRight: 0,
+		position: 'absolute',
+		zIndex: 5,
+		right: 15,
+		left: 15,
+		marginTop: Platform.OS === 'android' ? 0 : 30
 	},
 	toRow: {
-		marginTop: 16,
+		right: 15,
+		left: 15,
+		marginTop: Platform.OS === 'android' ? 100 : 120,
+		position: 'absolute',
 		zIndex: 4
 	},
+	notAbsolute: {
+		marginTop: 170
+	},
 	amountRow: {
-		marginTop: 16,
-		zIndex: 3
+		zIndex: 3,
+		marginTop: 20
 	},
 	label: {
 		flex: 0,
@@ -435,7 +446,7 @@ class TransactionEditor extends Component {
 									value={to}
 								/>
 							</View>
-							<View style={{ ...styles.formRow, ...styles.amountRow }}>
+							<View style={{ ...styles.formRow, ...styles.amountRow, ...styles.notAbsolute }}>
 								<View style={styles.label}>
 									<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
 									{this.validateAmount() ? (
