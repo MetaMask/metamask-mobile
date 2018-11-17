@@ -31,6 +31,11 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Object {
             "flexDirection": "row",
+            "left": 15,
+            "marginRight": 0,
+            "marginTop": 30,
+            "position": "absolute",
+            "right": 15,
             "zIndex": 5,
           }
         }
@@ -47,7 +52,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Component
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -67,7 +72,10 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Object {
             "flexDirection": "row",
-            "marginTop": 16,
+            "left": 15,
+            "marginTop": 120,
+            "position": "absolute",
+            "right": 15,
             "zIndex": 4,
           }
         }
@@ -84,7 +92,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Component
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -106,7 +114,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Object {
             "flexDirection": "row",
-            "marginTop": 16,
+            "marginTop": 170,
             "zIndex": 3,
           }
         }
@@ -123,7 +131,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Component
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -178,7 +186,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Component
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -203,9 +211,8 @@ exports[`TransactionEdit should render correctly 1`] = `
             Invalid gas price
           </Component>
         </Component>
-        <Connect(EthInput)
-          readonly={true}
-          value={"14a"}
+        <Connect(CustomGas)
+          totalGas={"14a"}
         />
       </Component>
       <Component
@@ -229,7 +236,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Component
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -261,42 +268,6 @@ exports[`TransactionEdit should render correctly 1`] = `
             }
           }
           underlineColorAndroid="transparent"
-        />
-      </Component>
-      <Component
-        style={
-          Object {
-            "flexDirection": "row",
-            "marginTop": 16,
-            "zIndex": 3,
-          }
-        }
-      >
-        <Component
-          style={
-            Object {
-              "flex": 0,
-              "paddingRight": 18,
-              "width": 96,
-            }
-          }
-        >
-          <Component
-            style={
-              Object {
-                "color": "#5d5d5d",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "600",
-              }
-            }
-          >
-            Gas Fee
-            :
-          </Component>
-        </Component>
-        <Connect(CustomGas)
-          totalGas={"14a"}
         />
       </Component>
     </Component>

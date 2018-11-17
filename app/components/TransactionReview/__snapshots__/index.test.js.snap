@@ -96,7 +96,7 @@ exports[`TransactionReview should render correctly 1`] = `
             size={22}
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "marginLeft": 3,
                 "marginTop": 3,
               }
@@ -247,7 +247,7 @@ exports[`TransactionReview should render correctly 1`] = `
           <Component
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "flex": 1,
                 "fontFamily": "Roboto",
                 "fontSize": 12,
@@ -317,7 +317,7 @@ exports[`TransactionReview should render correctly 1`] = `
           <Component
             style={
               Object {
-                "color": "#5d5d5d",
+                "color": "#7c7e84",
                 "flex": 1,
                 "fontFamily": "Roboto",
                 "fontSize": 12,
