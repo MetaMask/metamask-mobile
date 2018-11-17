@@ -109,10 +109,6 @@ class TransactionEdit extends Component {
 		 */
 		onModeChange: PropTypes.func,
 		/**
-		 * Currently-active account address in the current keychain
-		 */
-		selectedAddress: PropTypes.string,
-		/**
 		 * Transaction object associated with this transaction
 		 */
 		transactionData: PropTypes.object,
@@ -178,6 +174,7 @@ class TransactionEdit extends Component {
 	};
 
 	updateFromAddress = from => {
+		this.updateAmount();
 		this.props.handleUpdateFromAddress(from);
 	};
 
@@ -193,7 +190,7 @@ class TransactionEdit extends Component {
 
 	validateAmount() {
 		let error;
-		const { amount, gas, gasPrice, from = this.props.selectedAddress } = this.props.transactionData;
+		const { amount, gas, gasPrice, from } = this.props.transactionData;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
@@ -233,10 +230,9 @@ class TransactionEdit extends Component {
 	render() {
 		const {
 			hideData,
-			transactionData: { amount, gas, gasPrice, data, from = this.props.selectedAddress, to }
+			transactionData: { amount, gas, gasPrice, data, from, to, estimatedGas }
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-
 		return (
 			<View style={styles.root}>
 				<ActionView confirmText="Next" onCancelPress={this.props.onCancel} onConfirmPress={this.review}>
@@ -280,7 +276,11 @@ class TransactionEdit extends Component {
 								<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
 								{this.validateGas() && <Text style={styles.error}>{this.validateGas()}</Text>}
 							</View>
-							<EthInput readonly value={totalGas} />
+							<CustomGas
+								handleGasFeeSelection={this.props.handleGasFeeSelection}
+								totalGas={totalGas}
+								estimatedGas={estimatedGas}
+							/>
 						</View>
 						{!hideData && (
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
@@ -296,12 +296,6 @@ class TransactionEdit extends Component {
 								/>
 							</View>
 						)}
-						<View style={{ ...styles.formRow, ...styles.amountRow }}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
-							</View>
-							<CustomGas handleGasFeeSelection={this.props.handleGasFeeSelection} totalGas={totalGas} />
-						</View>
 					</View>
 				</ActionView>
 			</View>
@@ -310,8 +304,7 @@ class TransactionEdit extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	accounts: state.backgroundState.AccountTrackerController.accounts
 });
 
 export default connect(mapStateToProps)(TransactionEdit);

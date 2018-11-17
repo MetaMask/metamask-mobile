@@ -97,7 +97,11 @@ class CustomGas extends Component {
 		/**
 		 * Object BN containing total gas fee
 		 */
-		totalGas: PropTypes.object
+		totalGas: PropTypes.object,
+		/**
+		 * Object BN containing estimated gas limit
+		 */
+		estimatedGas: PropTypes.object
 	};
 
 	state = {
@@ -120,31 +124,33 @@ class CustomGas extends Component {
 		customGasPrice: '20',
 		customGasLimit: '21000',
 		warningGasLimit: '',
-		warningGasPrice: '',
-		fixedGasLimit: new BN((21000).toString(), 10)
+		warningGasPrice: ''
 	};
 
 	onPressGasFast = () => {
-		const { fastGwei, fixedGasLimit } = this.state;
+		const { fastGwei } = this.state;
+		const { estimatedGas } = this.props;
 		this.setState({ gasFastSelected: true, gasAverageSelected: false, gasSlowSelected: false, selected: 'fast' });
-		this.props.handleGasFeeSelection(fixedGasLimit, apiEstimateModifiedToWEI(fastGwei));
+		this.props.handleGasFeeSelection(estimatedGas, apiEstimateModifiedToWEI(fastGwei));
 	};
 
 	onPressGasAverage = () => {
-		const { averageGwei, fixedGasLimit } = this.state;
+		const { averageGwei } = this.state;
+		const { estimatedGas } = this.props;
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: true,
 			gasSlowSelected: false,
 			selected: 'average'
 		});
-		this.props.handleGasFeeSelection(fixedGasLimit, apiEstimateModifiedToWEI(averageGwei));
+		this.props.handleGasFeeSelection(estimatedGas, apiEstimateModifiedToWEI(averageGwei));
 	};
 
 	onPressGasSlow = () => {
-		const { safeLowGwei, fixedGasLimit } = this.state;
+		const { safeLowGwei } = this.state;
+		const { estimatedGas } = this.props;
 		this.setState({ gasFastSelected: false, gasAverageSelected: false, gasSlowSelected: true, selected: 'slow' });
-		this.props.handleGasFeeSelection(fixedGasLimit, apiEstimateModifiedToWEI(safeLowGwei));
+		this.props.handleGasFeeSelection(estimatedGas, apiEstimateModifiedToWEI(safeLowGwei));
 	};
 
 	onAdvancedOptions = () => {
@@ -154,20 +160,20 @@ class CustomGas extends Component {
 			fastGwei,
 			averageGwei,
 			safeLowGwei,
-			fixedGasLimit,
 			customGasLimit,
 			customGasPrice
 		} = this.state;
+		const { estimatedGas } = this.props;
 		if (advancedCustomGas) {
 			switch (selected) {
 				case 'slow':
-					this.props.handleGasFeeSelection(fixedGasLimit, apiEstimateModifiedToWEI(safeLowGwei));
+					this.props.handleGasFeeSelection(estimatedGas, apiEstimateModifiedToWEI(safeLowGwei));
 					break;
 				case 'average':
-					this.props.handleGasFeeSelection(fixedGasLimit, apiEstimateModifiedToWEI(averageGwei));
+					this.props.handleGasFeeSelection(estimatedGas, apiEstimateModifiedToWEI(averageGwei));
 					break;
 				case 'fast':
-					this.props.handleGasFeeSelection(fixedGasLimit, apiEstimateModifiedToWEI(fastGwei));
+					this.props.handleGasFeeSelection(estimatedGas, apiEstimateModifiedToWEI(fastGwei));
 					break;
 			}
 		} else {
@@ -179,14 +185,14 @@ class CustomGas extends Component {
 	componentDidMount = async () => {
 		const basicGasEstimates = await this.fetchBasicGasEstimates();
 		const { average, fast, safeLow } = basicGasEstimates;
-		const { conversionRate, currentCurrency } = this.props;
+		const { conversionRate, currentCurrency, estimatedGas } = this.props;
 		this.setState({
-			averageEth: getRenderableEthGasFee(average) + ' ETH',
-			fastEth: getRenderableEthGasFee(fast) + ' ETH',
-			safeLowEth: getRenderableEthGasFee(safeLow) + ' ETH',
-			averageFiat: getRenderableFiatGasFee(average, conversionRate, currentCurrency),
-			fastFiat: getRenderableFiatGasFee(fast, conversionRate, currentCurrency),
-			safeLowFiat: getRenderableFiatGasFee(safeLow, conversionRate, currentCurrency),
+			averageEth: getRenderableEthGasFee(average, estimatedGas) + ' ETH',
+			fastEth: getRenderableEthGasFee(fast, estimatedGas) + ' ETH',
+			safeLowEth: getRenderableEthGasFee(safeLow, estimatedGas) + ' ETH',
+			averageFiat: getRenderableFiatGasFee(average, conversionRate, currentCurrency, estimatedGas),
+			fastFiat: getRenderableFiatGasFee(fast, conversionRate, currentCurrency, estimatedGas),
+			safeLowFiat: getRenderableFiatGasFee(safeLow, conversionRate, currentCurrency, estimatedGas),
 			averageGwei: average,
 			fastGwei: fast,
 			safeLowGwei: safeLow,
@@ -238,9 +244,10 @@ class CustomGas extends Component {
 
 	onGasLimitChange = value => {
 		const { customGasPrice } = this.state;
-		this.validateGasLimit(new BN(value));
+		const bnValue = new BN(value);
+		this.validateGasLimit(bnValue);
 		this.setState({ customGasLimit: value });
-		this.props.handleGasFeeSelection(new BN(value, 10), apiEstimateModifiedToWEI(customGasPrice));
+		this.props.handleGasFeeSelection(bnValue, apiEstimateModifiedToWEI(customGasPrice));
 	};
 
 	validateGasLimit = value => {
