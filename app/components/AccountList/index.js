@@ -154,10 +154,7 @@ export default class AccountList extends Component {
 			// This is a temporary fix until we can read the state from GABA
 			const allKeyrings =
 				keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
-			// TODO fix hack for https://github.com/MetaMask/gaba/pull/26
-			const accountsOrdered = allKeyrings
-				? allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), [])
-				: [];
+			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
 			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
 		} catch (e) {
@@ -196,10 +193,7 @@ export default class AccountList extends Component {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
-		// TODO fix hack for https://github.com/MetaMask/gaba/pull/26
-		const accountsOrdered = allKeyrings
-			? allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), [])
-			: [];
+		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
 			const checksummedAddress = toChecksumAddress(addr);
 			const identity = identities[checksummedAddress];
