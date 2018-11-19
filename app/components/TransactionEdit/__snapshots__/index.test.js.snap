@@ -1,0 +1,277 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionEdit should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ActionView
+    cancelTestID=""
+    cancelText="Cancel"
+    confirmButtonMode="normal"
+    confirmTestID=""
+    confirmText="Next"
+    onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
+  >
+    <Component
+      style={
+        Object {
+          "flex": 1,
+          "padding": 16,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "flexDirection": "row",
+            "left": 15,
+            "marginRight": 0,
+            "marginTop": 30,
+            "position": "absolute",
+            "right": 15,
+            "zIndex": 5,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "flex": 0,
+              "paddingRight": 18,
+              "width": 96,
+            }
+          }
+        >
+          <Component
+            style={
+              Object {
+                "color": "#7c7e84",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+              }
+            }
+          >
+            From
+            :
+          </Component>
+        </Component>
+        <Connect(AccountSelect)
+          onChange={[Function]}
+          value="0x0"
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "flexDirection": "row",
+            "left": 15,
+            "marginTop": 120,
+            "position": "absolute",
+            "right": 15,
+            "zIndex": 4,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "flex": 0,
+              "paddingRight": 18,
+              "width": 96,
+            }
+          }
+        >
+          <Component
+            style={
+              Object {
+                "color": "#7c7e84",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+              }
+            }
+          >
+            To
+            :
+          </Component>
+        </Component>
+        <Connect(AccountInput)
+          onChange={[Function]}
+          onFocus={[Function]}
+          onScanSuccess={[Function]}
+          placeholder="Recipient Address"
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "flexDirection": "row",
+            "marginTop": 170,
+            "zIndex": 3,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "flex": 0,
+              "paddingRight": 18,
+              "width": 96,
+            }
+          }
+        >
+          <Component
+            style={
+              Object {
+                "color": "#7c7e84",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Amount
+            :
+          </Component>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            onPress={[Function]}
+          >
+            <Component
+              style={
+                Object {
+                  "color": "#008edf",
+                  "fontFamily": "Roboto",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "paddingTop": 6,
+                }
+              }
+            >
+              Max
+            </Component>
+          </TouchableOpacity>
+        </Component>
+        <Connect(EthInput)
+          onChange={[Function]}
+          value={0}
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "flexDirection": "row",
+            "marginTop": 16,
+            "zIndex": 3,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "flex": 0,
+              "paddingRight": 18,
+              "width": 96,
+            }
+          }
+        >
+          <Component
+            style={
+              Object {
+                "color": "#7c7e84",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Gas Fee
+            :
+          </Component>
+          <Component
+            style={
+              Object {
+                "color": "#f00",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "600",
+                "lineHeight": 12,
+                "paddingTop": 6,
+              }
+            }
+          >
+            Invalid gas price
+          </Component>
+        </Component>
+        <Connect(CustomGas)
+          gas={"5208"}
+          totalGas={"14a"}
+        />
+      </Component>
+      <Component
+        style={
+          Object {
+            "flexDirection": "row",
+            "marginTop": 16,
+            "zIndex": 3,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "flex": 0,
+              "paddingRight": 18,
+              "width": 96,
+            }
+          }
+        >
+          <Component
+            style={
+              Object {
+                "color": "#7c7e84",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Hex Data
+            :
+          </Component>
+        </Component>
+        <TextInput
+          allowFontScaling={true}
+          multiline={true}
+          onChangeText={[Function]}
+          placeholder="Optional"
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#dedede",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "minHeight": 64,
+              "paddingLeft": 10,
+              "paddingVertical": 6,
+            }
+          }
+          underlineColorAndroid="transparent"
+        />
+      </Component>
+    </Component>
+  </ActionView>
+</Component>
+`;

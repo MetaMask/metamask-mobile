@@ -211,6 +211,9 @@
 		"edit": "Edit",
 		"from": "From",
 		"gasFee": "Gas Fee",
+		"gasFeeFast": "Fast",
+		"gasFeeAverage": "Average",
+		"gasFeeSlow": "Slow",
 		"hexData": "Hex Data",
 		"insufficient": "Insufficient funds",
 		"invalidAddress": "Invalid address",
@@ -221,7 +224,15 @@
 		"recipientAddress": "Recipient Address",
 		"required": "Required",
 		"to": "To",
-		"total": "Total"
+		"total": "Total",
+		"loading": "Loading..."
+	},
+	"customGas": {
+		"advancedOptions": "Advanced Options",
+		"hideAdvancedOptions": "Hide Advanced Options",
+		"gasLimit": "Gas Limit:",
+		"gasPrice": "Gas Price: (GWEI)",
+		"warningGasLimit": "Gas limit must be greater than 20999 and less than 7920027"
 	},
 	"homePage": {
 		"letsGetStarted": "Let's get started!",
