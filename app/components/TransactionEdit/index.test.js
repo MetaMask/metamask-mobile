@@ -2,6 +2,7 @@ import React from 'react';
 import TransactionEdit from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
+import { BN } from 'ethereumjs-util';
 
 const mockStore = configureMockStore();
 
@@ -21,7 +22,7 @@ describe('TransactionEdit', () => {
 		const wrapper = shallow(
 			<TransactionEdit
 				navigation={{ state: { params: {} } }}
-				transactionData={{ amount: 0, gas: 0, gasPrice: 1, from: '0x0' }}
+				transactionData={{ amount: 0, gas: new BN(21000), gasPrice: 1, from: '0x0' }}
 			/>,
 			{
 				context: { store: mockStore(initialState) }
