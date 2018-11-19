@@ -231,7 +231,7 @@ class TransactionEdit extends Component {
 	render() {
 		const {
 			hideData,
-			transactionData: { amount, gas, gasPrice, data, from, to, estimatedGas }
+			transactionData: { amount, gas, gasPrice, data, from, to }
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
@@ -280,7 +280,7 @@ class TransactionEdit extends Component {
 							<CustomGas
 								handleGasFeeSelection={this.props.handleGasFeeSelection}
 								totalGas={totalGas}
-								estimatedGas={estimatedGas}
+								gas={gas}
 							/>
 						</View>
 						{!hideData && (

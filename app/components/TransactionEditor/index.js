@@ -4,10 +4,11 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN } from '../../util/number';
+import { isBN, hexToBN, toBN } from '../../util/number';
 import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	root: {
@@ -64,7 +65,6 @@ class TransactionEditor extends Component {
 		data: this.props.transaction.data,
 		from: this.props.transaction.from,
 		gas: this.props.transaction.gas,
-		estimatedGas: this.props.transaction.gas,
 		gasPrice: this.props.transaction.gasPrice,
 		to: this.props.transaction.to,
 		toFocused: false
@@ -103,8 +103,11 @@ class TransactionEditor extends Component {
 		this.setState({ from });
 	};
 
-	handleUpdateToAddress = to => {
-		this.setState({ to });
+	handleUpdateToAddress = async to => {
+		const { TransactionController } = Engine.context;
+		const { amount, from, data } = this.state;
+		const { gas } = await TransactionController.estimateGas({ amount, from, data, to });
+		this.setState({ to, gas: toBN(gas) });
 	};
 
 	validate() {
@@ -146,8 +149,8 @@ class TransactionEditor extends Component {
 	}
 
 	render() {
-		const { amount, gas, gasPrice, from, to, data, estimatedGas } = this.state;
-		const transactionData = { amount, gas, gasPrice, from, to, data, estimatedGas };
+		const { amount, gas, gasPrice, from, to, data } = this.state;
+		const transactionData = { amount, gas, gasPrice, from, to, data };
 		const { mode } = this.props;
 
 		return (
