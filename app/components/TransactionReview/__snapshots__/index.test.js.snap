@@ -1,0 +1,381 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReview should render correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ActionView
+    cancelTestID=""
+    cancelText="Cancel"
+    confirmButtonMode="confirm"
+    confirmTestID=""
+    confirmText="Confirm"
+    showCancelButton={true}
+    showConfirmButton={true}
+  >
+    <Component
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "borderBottomWidth": 1,
+            "borderColor": "#dedede",
+            "borderTopWidth": 1,
+            "flexDirection": "row",
+            "flexGrow": 0,
+            "flexShrink": 0,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "alignItems": "center",
+              "borderColor": "#dedede",
+              "borderRightWidth": 1,
+              "flexDirection": "row",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "height": 42,
+              "paddingRight": 32,
+              "width": "50%",
+            }
+          }
+        >
+          <IdenticonComponent
+            address="0x0"
+            diameter={18}
+          />
+          <Component
+            numberOfLines={1}
+            style={
+              Object {
+                "flex": 1,
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+                "marginLeft": 9,
+              }
+            }
+          >
+            0x0
+          </Component>
+        </Component>
+        <Component
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#d2d8dd",
+              "borderRadius": 15,
+              "borderWidth": 1,
+              "flex": 0,
+              "height": 30,
+              "left": "50%",
+              "marginTop": -15,
+              "position": "absolute",
+              "top": "50%",
+              "width": 30,
+              "zIndex": 1,
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            name="arrow-forward"
+            size={22}
+            style={
+              Object {
+                "color": "#7c7e84",
+                "marginLeft": 3,
+                "marginTop": 3,
+              }
+            }
+          />
+        </Component>
+        <Component
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "flexGrow": 1,
+              "flexShrink": 1,
+              "height": 42,
+              "paddingLeft": 32,
+              "width": "50%",
+            }
+          }
+        >
+          <IdenticonComponent
+            diameter={18}
+          />
+          <Component
+            numberOfLines={1}
+            style={
+              Object {
+                "flex": 1,
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+                "marginLeft": 9,
+              }
+            }
+          />
+        </Component>
+      </Component>
+      <Component
+        style={
+          Object {
+            "backgroundColor": "#f9fafa",
+            "borderBottomWidth": 1,
+            "borderColor": "#d2d8dd",
+            "padding": 16,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "alignItems": "center",
+              "borderColor": "#8c8e94",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "color": "#8c8e94",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "lineHeight": 22,
+              "textAlign": "center",
+              "width": 74,
+            }
+          }
+        >
+          CONFIRM
+        </Component>
+        <Component
+          style={
+            Object {
+              "color": "#4d4d4d",
+              "fontFamily": "Roboto",
+              "fontSize": 44,
+              "fontWeight": "400",
+              "paddingVertical": 4,
+            }
+          }
+        >
+          0.00 USD
+        </Component>
+        <Component
+          style={
+            Object {
+              "color": "#8c8e94",
+              "fontFamily": "Roboto",
+              "fontSize": 24,
+              "fontWeight": "400",
+            }
+          }
+        >
+          0
+        </Component>
+        <TouchableOpacity
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "left": -8,
+              "marginTop": 8,
+              "position": "relative",
+              "width": 150,
+            }
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            name="keyboard-arrow-left"
+            size={22}
+            style={
+              Object {
+                "color": "#008edf",
+                "flex": 0,
+              }
+            }
+          />
+          <Component
+            style={
+              Object {
+                "color": "#008edf",
+                "fontFamily": "Roboto",
+                "fontSize": 22,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Edit
+          </Component>
+        </TouchableOpacity>
+      </Component>
+      <Component
+        style={
+          Object {
+            "padding": 16,
+          }
+        }
+      >
+        <Component
+          style={
+            Object {
+              "alignItems": "center",
+              "borderBottomWidth": 1,
+              "borderColor": "#d2d8dd",
+              "flexDirection": "row",
+              "paddingVertical": 15,
+            }
+          }
+        >
+          <Component
+            style={
+              Object {
+                "color": "#7c7e84",
+                "flex": 1,
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "600",
+                "width": 60,
+              }
+            }
+          >
+            GAS FEE
+          </Component>
+          <Component>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              onPress={[Function]}
+            >
+              <Component
+                style={
+                  Object {
+                    "color": "#008edf",
+                    "fontFamily": "Roboto",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "marginBottom": 6,
+                    "textAlign": "right",
+                  }
+                }
+              >
+                EDIT
+              </Component>
+            </TouchableOpacity>
+            <Component
+              style={
+                Object {
+                  "color": "#4d4d4d",
+                  "fontFamily": "Roboto",
+                  "fontSize": 24,
+                  "fontWeight": "600",
+                  "textAlign": "right",
+                }
+              }
+            >
+              0.00 USD
+            </Component>
+            <Component
+              style={
+                Object {
+                  "color": "#8c8e94",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "textAlign": "right",
+                }
+              }
+            >
+              0.00000000000000033
+            </Component>
+          </Component>
+        </Component>
+        <Component
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "paddingVertical": 15,
+            }
+          }
+        >
+          <Component
+            style={
+              Object {
+                "color": "#7c7e84",
+                "flex": 1,
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "600",
+                "width": 60,
+              }
+            }
+          >
+            TOTAL
+          </Component>
+          <Component>
+            <Component
+              style={
+                Object {
+                  "fontFamily": "Roboto",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "marginBottom": 6,
+                  "textAlign": "right",
+                }
+              }
+            >
+              AMOUNT
+               +
+               
+              GAS FEE
+            </Component>
+            <Component
+              style={
+                Object {
+                  "color": "#008edf",
+                  "fontFamily": "Roboto",
+                  "fontSize": 24,
+                  "fontWeight": "600",
+                  "textAlign": "right",
+                }
+              }
+            >
+              0.00 USD
+            </Component>
+            <Component
+              style={
+                Object {
+                  "color": "#8c8e94",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "textAlign": "right",
+                }
+              }
+            >
+              0.00000000000000033
+            </Component>
+          </Component>
+        </Component>
+      </Component>
+    </Component>
+  </ActionView>
+</Component>
+`;

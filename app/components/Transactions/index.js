@@ -234,9 +234,11 @@ export default class Transactions extends Component {
 			transaction: { gas, gasPrice, value, to, from },
 			transactionHash
 		} = tx;
-		const { conversionRate, currentCurrency } = this.props;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const gasBN = hexToBN(gas);
+		const gasPriceBN = hexToBN(gasPrice);
 		const amount = hexToBN(value);
+		const { conversionRate, currentCurrency } = this.props;
+		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
 
 		return (
