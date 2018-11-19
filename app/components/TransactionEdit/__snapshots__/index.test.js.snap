@@ -212,6 +212,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           </Component>
         </Component>
         <Connect(CustomGas)
+          gas={"5208"}
           totalGas={"14a"}
         />
       </Component>
