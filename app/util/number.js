@@ -100,13 +100,6 @@ export function toGwei(value, unit = 'ether') {
 	return fromWei(value, unit) * 1000000000;
 }
 
-export function fromGwei(value, unit = 'ether') {
-	// to wei
-	const wei = toWei(value, 'gwei');
-	// to ether
-	return fromWei(wei, unit);
-}
-
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
@@ -141,11 +134,4 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * 100) / 100).toFixed(2);
 	fiatFixed = isNaN(fiatFixed) ? '0.00' : fiatFixed;
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
-}
-
-export function multiplyCurrencies(a, b) {
-	const bigNumberA = new BN(a);
-	const bigNumberB = new BN(b);
-
-	return bigNumberA.mul(bigNumberB);
 }
