@@ -8,7 +8,7 @@ import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'r
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN, fromWei } from '../../util/number';
-import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
+import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
 
@@ -209,6 +209,7 @@ class TransactionEdit extends Component {
 		const { gas, gasPrice } = this.props.transactionData;
 		gas && !isBN(gas) && (error = strings('transaction.invalidGas'));
 		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalidGasPrice'));
+		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('customGas.warningGasLimit'));
 		return error;
 	}
 

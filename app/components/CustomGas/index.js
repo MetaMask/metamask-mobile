@@ -245,17 +245,8 @@ class CustomGas extends Component {
 	onGasLimitChange = value => {
 		const { customGasPrice } = this.state;
 		const bnValue = new BN(value);
-		this.validateGasLimit(bnValue);
 		this.setState({ customGasLimit: value });
 		this.props.handleGasFeeSelection(bnValue, apiEstimateModifiedToWEI(customGasPrice));
-	};
-
-	validateGasLimit = value => {
-		if (value.lt(new BN(21000)) || value.gt(new BN(7920028))) {
-			this.setState({ warningGasLimit: strings('customGas.warningGasLimit'), customGasLimit: '21000' });
-		} else {
-			this.setState({ warningGasLimit: '' });
-		}
 	};
 
 	onGasPriceChange = value => {
