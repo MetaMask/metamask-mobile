@@ -2,16 +2,13 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { getRenderableEthGasFee, getRenderableFiatGasFee, apiEstimateModifiedToWEI } from '../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../util/number';
 
 const styles = StyleSheet.create({
-	root: {
-		flex: 1
-	},
 	selectors: {
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
@@ -262,104 +259,57 @@ class CustomGas extends Component {
 				<TouchableOpacity
 					key={'fast'}
 					onPress={this.onPressGasFast}
-					style={{
-						...styles.selector,
-						...styles.fast,
-						...{
-							backgroundColor: this.state.gasFastSelected ? colors.primary : colors.white
-						}
-					}}
+					style={[
+						styles.selector,
+						styles.fast,
+						{ backgroundColor: this.state.gasFastSelected ? colors.primary : colors.white }
+					]}
 				>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasFastSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{strings('transaction.gasFeeFast')}
 					</Text>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasFastSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{fastEth} ETH
 					</Text>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasFastSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{fastFiat.toUpperCase()}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
 					key={'average'}
 					onPress={this.onPressGasAverage}
-					style={{
-						...styles.selector,
-						...styles.average,
-						...{ backgroundColor: this.state.gasAverageSelected ? colors.primary : colors.white }
-					}}
+					style={[
+						styles.selector,
+						styles.average,
+						{ backgroundColor: this.state.gasAverageSelected ? colors.primary : colors.white }
+					]}
 				>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasAverageSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
 						{strings('transaction.gasFeeAverage')}
 					</Text>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasAverageSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
 						{averageEth} ETH
 					</Text>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasAverageSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
 						{averageFiat.toUpperCase()}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
 					key={'safeLow'}
 					onPress={this.onPressGasSlow}
-					style={{
-						...styles.selector,
-						...styles.slow,
-						...{ backgroundColor: this.state.gasSlowSelected ? colors.primary : colors.white }
-					}}
+					style={[
+						styles.selector,
+						styles.slow,
+						{ backgroundColor: this.state.gasSlowSelected ? colors.primary : colors.white }
+					]}
 				>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasSlowSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{strings('transaction.gasFeeSlow')}
 					</Text>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasSlowSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{safeLowEth} ETH
 					</Text>
-					<Text
-						style={{
-							...styles.text,
-							...{ color: this.state.gasSlowSelected ? colors.white : undefined }
-						}}
-					>
+					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{safeLowFiat.toUpperCase()}
 					</Text>
 				</TouchableOpacity>
@@ -397,7 +347,7 @@ class CustomGas extends Component {
 		if (this.state.didMount) {
 			const { advancedCustomGas } = this.state;
 			return (
-				<View style={styles.root}>
+				<View style={baseStyles.flexGrow}>
 					{advancedCustomGas ? this.renderCustomGasInput() : this.renderCustomGasSelector()}
 					<View style={styles.advancedOptions}>
 						<TouchableOpacity onPress={this.onAdvancedOptions}>
@@ -412,7 +362,7 @@ class CustomGas extends Component {
 			);
 		}
 		return (
-			<View style={styles.root}>
+			<View style={baseStyles.flexGrow}>
 				<Text>{strings('transaction.loading')}</Text>
 			</View>
 		);
