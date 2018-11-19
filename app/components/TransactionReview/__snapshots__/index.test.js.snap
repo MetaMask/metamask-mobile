@@ -261,6 +261,7 @@ exports[`TransactionReview should render correctly 1`] = `
           <Component>
             <TouchableOpacity
               activeOpacity={0.2}
+              onPress={[Function]}
             >
               <Component
                 style={

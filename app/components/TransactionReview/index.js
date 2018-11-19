@@ -294,7 +294,7 @@ class TransactionReview extends Component {
 							<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
 								<Text style={styles.overviewLabel}>{strings('transaction.gasFee').toUpperCase()}</Text>
 								<View style={styles.overviewContent}>
-									<TouchableOpacity>
+									<TouchableOpacity onPress={this.edit}>
 										<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
 											{strings('transaction.edit').toUpperCase()}
 										</Text>
