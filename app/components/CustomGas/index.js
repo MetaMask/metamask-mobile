@@ -4,7 +4,12 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
-import { getRenderableEthGasFee, getRenderableFiatGasFee, apiEstimateModifiedToWEI } from '../../util/custom-gas';
+import {
+	getRenderableEthGasFee,
+	getRenderableFiatGasFee,
+	apiEstimateModifiedToWEI,
+	fetchBasicGasEstimates
+} from '../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../util/number';
 
@@ -180,7 +185,7 @@ class CustomGas extends Component {
 	};
 
 	componentDidMount = async () => {
-		const basicGasEstimates = await this.fetchBasicGasEstimates();
+		const basicGasEstimates = await fetchBasicGasEstimates();
 		const { average, fast, safeLow } = basicGasEstimates;
 		const { conversionRate, currentCurrency, gas } = this.props;
 		this.setState({
@@ -197,47 +202,6 @@ class CustomGas extends Component {
 		});
 		this.onPressGasAverage();
 	};
-
-	fetchBasicGasEstimates = async () =>
-		await fetch('https://ethgasstation.info/json/ethgasAPI.json', {
-			headers: {},
-			referrer: 'http://ethgasstation.info/json/',
-			referrerPolicy: 'no-referrer-when-downgrade',
-			body: null,
-			method: 'GET',
-			mode: 'cors'
-		})
-			.then(r => r.json())
-			.then(
-				({
-					average,
-					avgWait,
-					block_time: blockTime,
-					blockNum,
-					fast,
-					fastest,
-					fastestWait,
-					fastWait,
-					safeLow,
-					safeLowWait,
-					speed
-				}) => {
-					const basicEstimates = {
-						average,
-						avgWait,
-						blockTime,
-						blockNum,
-						fast,
-						fastest,
-						fastestWait,
-						fastWait,
-						safeLow,
-						safeLowWait,
-						speed
-					};
-					return basicEstimates;
-				}
-			);
 
 	onGasLimitChange = value => {
 		const { customGasPrice } = this.state;

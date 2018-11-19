@@ -50,3 +50,50 @@ export function getRenderableFiatGasFee(estimate, conversionRate, currencyCode, 
 	const wei = getWeiGasFee(estimate, gasLimit);
 	return weiToFiat(wei, conversionRate, currencyCode);
 }
+
+/**
+ * Fetches gas estimated from gas station
+ *
+ * @returns {Object} - Object containing basic estimates
+ */
+export async function fetchBasicGasEstimates() {
+	return await fetch('https://ethgasstation.info/json/ethgasAPI.json', {
+		headers: {},
+		referrer: 'http://ethgasstation.info/json/',
+		referrerPolicy: 'no-referrer-when-downgrade',
+		body: null,
+		method: 'GET',
+		mode: 'cors'
+	})
+		.then(r => r.json())
+		.then(
+			({
+				average,
+				avgWait,
+				block_time: blockTime,
+				blockNum,
+				fast,
+				fastest,
+				fastestWait,
+				fastWait,
+				safeLow,
+				safeLowWait,
+				speed
+			}) => {
+				const basicEstimates = {
+					average,
+					avgWait,
+					blockTime,
+					blockNum,
+					fast,
+					fastest,
+					fastestWait,
+					fastWait,
+					safeLow,
+					safeLowWait,
+					speed
+				};
+				return basicEstimates;
+			}
+		);
+}
