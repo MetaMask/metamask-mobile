@@ -66,10 +66,12 @@ const styles = StyleSheet.create({
 	content: {
 		flex: 1
 	},
-	qrIcon: {
+	qrCodeButton: {
 		position: 'absolute',
-		right: 16,
-		top: Platform.OS === 'android' ? 20 : 16
+		right: 5,
+		top: Platform.OS === 'android' ? 8 : 6,
+		paddingVertical: 8,
+		paddingHorizontal: 10
 	}
 });
 
@@ -164,7 +166,7 @@ class AccountInput extends Component {
 		onChange && onChange(value);
 	};
 
-	showQRScanner = () => {
+	scan = () => {
 		const { showQRScanner } = this.props;
 		this.setState({ isOpen: false });
 		showQRScanner && showQRScanner();
@@ -185,7 +187,9 @@ class AccountInput extends Component {
 					style={styles.input}
 					value={value}
 				/>
-				<Icon name="qrcode" onPress={this.showQRScanner} size={24} style={styles.qrIcon} />
+				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
+					<Icon name="qrcode" size={Platform.OS === 'android' ? 32 : 28} />
+				</TouchableOpacity>
 				{isOpen && this.renderOptionList()}
 			</View>
 		);

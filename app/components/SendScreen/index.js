@@ -52,6 +52,8 @@ class SendScreen extends Component {
 		ready: false
 	};
 
+	mounted = false;
+
 	async reset() {
 		const transaction = {};
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
@@ -73,6 +75,7 @@ class SendScreen extends Component {
 	}
 
 	async componentDidMount() {
+		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
 	}
@@ -99,7 +102,7 @@ class SendScreen extends Component {
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
-		const newTxMeta = this.state.transaction;
+		const newTxMeta = { ...this.state.transaction };
 		newTxMeta.to = toChecksumAddress(target_address);
 
 		if (parameters) {
@@ -117,7 +120,7 @@ class SendScreen extends Component {
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
-		this.setState({ transaction: newTxMeta });
+		this.mounted && this.setState({ transaction: newTxMeta });
 	};
 
 	prepareTransaction(transaction) {
@@ -136,7 +139,7 @@ class SendScreen extends Component {
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
 		if (this.state.mode !== 'edit') {
-			this.setState({ mode: 'edit' });
+			this.mounted && this.setState({ mode: 'edit' });
 		} else {
 			this.props.navigation.goBack();
 		}
@@ -157,7 +160,7 @@ class SendScreen extends Component {
 	};
 
 	onModeChange = mode => {
-		this.setState({ mode });
+		this.mounted && this.setState({ mode });
 	};
 
 	renderLoader() {
@@ -173,11 +176,11 @@ class SendScreen extends Component {
 			<SafeAreaView style={styles.wrapper}>
 				{this.state.ready ? (
 					<TransactionEditor
+						navigation={this.props.navigation}
 						mode={this.state.mode}
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
 						onModeChange={this.onModeChange}
-						onScanSuccess={this.handleNewTxMeta}
 						transaction={this.state.transaction}
 					/>
 				) : (

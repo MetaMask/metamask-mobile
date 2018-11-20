@@ -255,7 +255,7 @@ class TransactionEdit extends Component {
 								onChange={this.updateToAddress}
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipientAddress')}
-								onScanSuccess={this.onScanSuccess}
+								showQRScanner={this.onScanSuccess}
 								value={to}
 							/>
 						</View>
