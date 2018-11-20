@@ -144,6 +144,20 @@
 		"sync_with_extension": "Sync with Metamask Extension",
 		"sync": "SYNC"
 	},
+	"appInformation": {
+		"title": "Information",
+		"links": "Links",
+		"privacyPolicy": "Privacy Policy",
+		"termsOfUse": "Terms of use",
+		"attributions": "Attributions",
+		"supportCenter": "Visit our Support Center",
+		"webSite": "Visit our web Site",
+		"emailUs": "Email Us!"
+	},
+	"AppConfigurations": {
+		"information_title": "INFO",
+		"settings_title": "SETTINGS"
+	},
 	"settings": {
 		"title": "Settings",
 		"network": "Network",

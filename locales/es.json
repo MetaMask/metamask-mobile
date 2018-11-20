@@ -95,6 +95,20 @@
 		"invalid_rpc_prefix": "URIs requieren el apropiado HTTP/HTTPS prefijo",
 		"invalid_rpc_url": "RPC URL inválida"
 	},
+	"appInformation": {
+		"title": "Información",
+		"links": "Enlaces",
+		"privacyPolicy": "Política de privacidad",
+		"termsOfUse": "Términos de uso",
+		"attributions": "Atribuciones",
+		"supportCenter": "Visita nuestro centro de atención",
+		"webSite": "Visita nuestro sitio web",
+		"emailUs": "¡Envíanos un correo!"
+	},
+	"AppConfigurations": {
+		"information_title": "INFORMACIÓN",
+		"settings_title": "CONFIGURACIONES"
+	},
 	"settings": {
 		"title": "Configuraciones",
 		"network": "Red",

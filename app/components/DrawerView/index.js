@@ -293,7 +293,7 @@ class DrawerView extends Component {
 	showSettings = async () => {
 		await this.hideDrawer();
 		setTimeout(() => {
-			this.props.navigation.navigate('AppSettings');
+			this.props.navigation.navigate('AppConfigurations');
 		}, 300);
 	};
 
