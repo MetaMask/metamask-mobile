@@ -287,7 +287,7 @@ class DrawerView extends Component {
 	copyAddressToClipboard = async () => {
 		const { selectedAddress } = this.props;
 		await Clipboard.setString(selectedAddress);
-		Alert.alert(strings('accountDetails.accountCopiedToClipboard'));
+		Alert.alert(strings('account_details.account_copied_to_clipboard'));
 	};
 
 	showSettings = async () => {
@@ -362,19 +362,19 @@ class DrawerView extends Component {
 				action: this.showAssets
 			},
 			{
-				name: strings('drawer.dappBrowser'),
+				name: strings('drawer.dapp_browser'),
 				icon: this.getIcon('globe'),
 				action: this.goToBrowser
 			}
 		],
 		[
 			{
-				name: strings('drawer.copyAddress'),
+				name: strings('drawer.copy_address'),
 				icon: this.getIcon('copy'),
 				action: this.copyAddressToClipboard
 			},
 			{
-				name: strings('drawer.viewInEtherscan'),
+				name: strings('drawer.view_in_etherscan'),
 				icon: this.getIcon('eye'),
 				action: this.viewInEtherscan
 			}

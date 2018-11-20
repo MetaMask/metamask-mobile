@@ -186,13 +186,13 @@ export default class ImportFromSeed extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'import-from-seed-screen'}>
-						<Text style={styles.title}>{strings('importFromSeed.title')}</Text>
+						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
 						<TextInput
 							value={this.state.seedWords}
 							numberOfLines={3}
 							multiline
 							style={styles.seedPhrase}
-							placeholder={strings('importFromSeed.seed_phrase_placeholder')}
+							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 							onChangeText={this.onSeedWordsChange}
 							testID={'input-seed-phrase'}
 							blurOnSubmit
@@ -200,7 +200,7 @@ export default class ImportFromSeed extends Component {
 							returnKeyType={'next'}
 						/>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('importFromSeed.new_password')}</Text>
+							<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
 							<TextInput
 								ref={this.passwordInput}
 								style={styles.input}
@@ -215,7 +215,7 @@ export default class ImportFromSeed extends Component {
 							/>
 						</View>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('importFromSeed.confirm_password')}</Text>
+							<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
 							<TextInput
 								ref={this.confirmPasswordInput}
 								style={styles.input}
@@ -236,7 +236,7 @@ export default class ImportFromSeed extends Component {
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
-									strings('importFromSeed.import_button')
+									strings('import_from_seed.import_button')
 								)}
 							</StyledButton>
 						</View>

@@ -120,7 +120,7 @@ export default class AccountOverview extends Component {
 			account: { address }
 		} = this.props;
 		await Clipboard.setString(address);
-		Alert.alert(strings('accountDetails.accountCopiedToClipboard'));
+		Alert.alert(strings('account_details.account_copied_to_clipboard'));
 	};
 
 	goToAccountDetails = () => {

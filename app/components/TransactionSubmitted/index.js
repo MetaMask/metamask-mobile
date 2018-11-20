@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
  */
 class TransactionSubmitted extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getModalNavbarOptions(strings('transactionSubmitted.title'), navigation);
+		getModalNavbarOptions(strings('transaction_submitted.title'), navigation);
 
 	static propTypes = {
 		/**
@@ -123,7 +123,7 @@ class TransactionSubmitted extends Component {
 	renderView(hash) {
 		return (
 			<View style={styles.content}>
-				<Text style={styles.subtitle}>{strings('transactionSubmitted.yourTxHashIs')}</Text>
+				<Text style={styles.subtitle}>{strings('transaction_submitted.your_tx_hash_is')}</Text>
 				<Text style={styles.hash}>{hash}</Text>
 				<Animated.View
 					style={[
@@ -136,7 +136,7 @@ class TransactionSubmitted extends Component {
 					<Icon name="check-circle" size={150} style={styles.icon} />
 				</Animated.View>
 				<StyledButton type={'normal'} onPress={this.goToEtherscan} containerStyle={styles.button}>
-					{strings('transactionSubmitted.viewOnEtherscan')}
+					{strings('transaction_submitted.view_on_etherscan')}
 				</StyledButton>
 			</View>
 		);

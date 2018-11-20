@@ -71,8 +71,11 @@ export default class AppConfigurations extends Component {
 		return (
 			<View style={styles.wrapper}>
 				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-					<AppSettings navigation={navigation} tabLabel={strings('AppConfigurations.settings_title')} />
-					<AppInformation navigation={navigation} tabLabel={strings('AppConfigurations.information_title')} />
+					<AppSettings navigation={navigation} tabLabel={strings('app_configurations.settings_title')} />
+					<AppInformation
+						navigation={navigation}
+						tabLabel={strings('app_configurations.information_title')}
+					/>
 				</ScrollableTabView>
 			</View>
 		);

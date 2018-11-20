@@ -110,8 +110,8 @@ export default class AddCustomCollectible extends Component {
 				<ActionView
 					cancelTestID={'add-custom-asset-cancel-button'}
 					confirmTestID={'add-custom-asset-confirm-button'}
-					cancelText={strings('addAsset.collectibles.cancel_add_collectible')}
-					confirmText={strings('addAsset.collectibles.add_collectible')}
+					cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
+					confirmText={strings('add_asset.collectibles.add_collectible')}
 					onCancelPress={this.cancelAddCollectible}
 					onConfirmPress={this.addCollectible}
 				>

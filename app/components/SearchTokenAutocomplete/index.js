@@ -56,8 +56,8 @@ export default class SearchTokenAutocomplete extends Component {
 		return (
 			<View style={styles.wrapper} testID={'search-token-screen'}>
 				<ActionView
-					cancelText={strings('addAsset.tokens.cancel_add_token')}
-					confirmText={strings('addAsset.tokens.add_token')}
+					cancelText={strings('add_asset.tokens.cancel_add_token')}
+					confirmText={strings('add_asset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
 					onConfirmPress={this.addToken}
 				>

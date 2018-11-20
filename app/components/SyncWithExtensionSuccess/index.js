@@ -79,7 +79,7 @@ export default class SyncWithExtensionSuccess extends Component {
 		return (
 			<Screen>
 				<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
-					<Text style={styles.title}>{strings('syncWithExtensionSuccess.title')}</Text>
+					<Text style={styles.title}>{strings('sync_with_extension_success.title')}</Text>
 					<Animated.View
 						style={[
 							styles.iconWrapper,
@@ -91,9 +91,9 @@ export default class SyncWithExtensionSuccess extends Component {
 						<Icon name="check-circle" size={150} style={styles.icon} />
 					</Animated.View>
 					<View>
-						<Text style={styles.text}>{strings('syncWithExtensionSuccess.sync_complete')}</Text>
+						<Text style={styles.text}>{strings('sync_with_extension_success.sync_complete')}</Text>
 						<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
-							{strings('syncWithExtensionSuccess.button_continue')}
+							{strings('sync_with_extension_success.button_continue')}
 						</StyledButton>
 					</View>
 				</View>

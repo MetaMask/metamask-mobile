@@ -124,28 +124,28 @@ export default class AppInformation extends Component {
 					<View style={styles.logoWrapper}>
 						<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
 					</View>
-					<Text style={styles.title}>{strings('appInformation.links')}</Text>
+					<Text style={styles.title}>{strings('app_information.links')}</Text>
 					<View style={styles.links}>
 						<TouchableOpacity onPress={this.onPrivacyPolicy}>
-							<Text style={styles.link}>{strings('appInformation.privacyPolicy')}</Text>
+							<Text style={styles.link}>{strings('app_information.privacy_policy')}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity onPress={this.onTermsOfUse}>
-							<Text style={styles.link}>{strings('appInformation.termsOfUse')}</Text>
+							<Text style={styles.link}>{strings('app_information.terms_of_use')}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity onPress={this.onAttributions}>
-							<Text style={styles.link}>{strings('appInformation.attributions')}</Text>
+							<Text style={styles.link}>{strings('app_information.attributions')}</Text>
 						</TouchableOpacity>
 					</View>
 					<View style={styles.division} />
 					<View style={styles.links}>
 						<TouchableOpacity onPress={this.onSupportCenter}>
-							<Text style={styles.link}>{strings('appInformation.supportCenter')}</Text>
+							<Text style={styles.link}>{strings('app_information.support_center')}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity onPress={this.onWebSite}>
-							<Text style={styles.link}>{strings('appInformation.webSite')}</Text>
+							<Text style={styles.link}>{strings('app_information.web_site')}</Text>
 						</TouchableOpacity>
 						<TouchableOpacity onPress={this.onEmailUs}>
-							<Text style={styles.link}>{strings('appInformation.emailUs')}</Text>
+							<Text style={styles.link}>{strings('app_information.email_us')}</Text>
 						</TouchableOpacity>
 					</View>
 				</ScrollView>

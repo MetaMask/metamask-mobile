@@ -72,9 +72,9 @@ export default function ActionView({
 }
 
 ActionView.defaultProps = {
-	cancelText: strings('actionView.cancel'),
+	cancelText: strings('action_view.cancel'),
 	confirmButtonMode: 'normal',
-	confirmText: strings('actionView.confirm'),
+	confirmText: strings('action_view.confirm'),
 	confirmTestID: '',
 	cancelTestID: '',
 	showCancelButton: true,

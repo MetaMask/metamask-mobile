@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
  */
 export default class AddBookmark extends Component {
 	static navigationOptions = () => ({ navigation }) =>
-		getModalNavbarOptions(strings('addBookmark.title'), navigation);
+		getModalNavbarOptions(strings('add_bookmark.title'), navigation);
 
 	state = {
 		title: '',
@@ -92,13 +92,13 @@ export default class AddBookmark extends Component {
 					<ActionView
 						cancelTestID={'add-bookmark-cancel-button'}
 						confirmTestID={'add-bookmark-confirm-button'}
-						cancelText={strings('addBookmark.cancelButton')}
-						confirmText={strings('addBookmark.addButton')}
+						cancelText={strings('add_bookmark.cancel_button')}
+						confirmText={strings('add_bookmark.add_button')}
 						onCancelPress={this.cancelAddBookmark}
 						onConfirmPress={this.addBookmark}
 					>
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('addBookmark.titleLabel')}</Text>
+							<Text style={fontStyles.normal}>{strings('add_bookmark.title_label')}</Text>
 							<TextInput
 								style={styles.textInput}
 								placeholder={''}
@@ -111,7 +111,7 @@ export default class AddBookmark extends Component {
 							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 						</View>
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('addBookmark.urlLabel')}</Text>
+							<Text style={fontStyles.normal}>{strings('add_bookmark.url_label')}</Text>
 							<TextInput
 								style={styles.textInput}
 								placeholder={''}

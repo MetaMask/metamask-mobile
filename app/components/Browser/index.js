@@ -423,7 +423,7 @@ export class Browser extends Component {
 		this.toggleOptionsIfNeeded();
 		// Check it doesn't exist already
 		if (this.state.bookmarks.filter(i => i.url === this.state.inputValue).length) {
-			Alert.alert(strings('browser.error'), strings('browser.bookmarkAlreadyExists'));
+			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
 			return false;
 		}
 
@@ -560,13 +560,13 @@ export class Browser extends Component {
 							{Platform.OS === 'android' && this.state.canGoBack ? (
 								<Button onPress={this.goBack} style={styles.option}>
 									<Icon name="arrow-left" size={15} style={styles.optionIcon} />
-									<Text style={styles.optionText}>{strings('browser.goBack')}</Text>
+									<Text style={styles.optionText}>{strings('browser.go_back')}</Text>
 								</Button>
 							) : null}
 							{Platform.OS === 'android' && this.state.canGoForward ? (
 								<Button onPress={this.goForward} style={styles.option}>
 									<Icon name="arrow-right" size={15} style={styles.optionIcon} />
-									<Text style={styles.optionText}>{strings('browser.goForward')}</Text>
+									<Text style={styles.optionText}>{strings('browser.go_forward')}</Text>
 								</Button>
 							) : null}
 							<Button onPress={this.reload} style={styles.option}>

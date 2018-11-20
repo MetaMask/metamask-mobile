@@ -227,7 +227,7 @@ class CustomGas extends Component {
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{strings('transaction.gasFeeFast')}
+						{strings('transaction.gas_fee_fast')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(fastGwei, gas)} ETH
@@ -248,7 +248,7 @@ class CustomGas extends Component {
 					<Text
 						style={[styles.textTitle, { color: this.state.gasAverageSelected ? colors.white : undefined }]}
 					>
-						{strings('transaction.gasFeeAverage')}
+						{strings('transaction.gas_fee_average')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(averageGwei, gas)} ETH
@@ -267,7 +267,7 @@ class CustomGas extends Component {
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{strings('transaction.gasFeeSlow')}
+						{strings('transaction.gas_fee_slow')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{getRenderableEthGasFee(safeLowGwei, gas)} ETH
@@ -286,7 +286,7 @@ class CustomGas extends Component {
 		return (
 			<View>
 				<Text style={styles.textTotalGas}>{fromWei(totalGas.toString())} ETH</Text>
-				<Text style={styles.text}>{strings('customGas.gasLimit')}</Text>
+				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
 				<TextInput
 					keyboardType="numeric"
 					style={styles.gasInput}
@@ -294,7 +294,7 @@ class CustomGas extends Component {
 					value={customGasLimit}
 				/>
 				<Text style={styles.warningText}>{warningGasLimit}</Text>
-				<Text style={styles.text}>{strings('customGas.gasPrice')}</Text>
+				<Text style={styles.text}>{strings('custom_gas.gas_price')}</Text>
 				<TextInput
 					keyboardType="numeric"
 					style={styles.gasInput}
@@ -316,8 +316,8 @@ class CustomGas extends Component {
 						<TouchableOpacity onPress={this.onAdvancedOptions}>
 							<Text style={styles.textAdvancedOptions}>
 								{advancedCustomGas
-									? strings('customGas.hideAdvancedOptions')
-									: strings('customGas.advancedOptions')}
+									? strings('custom_gas.hide_advanced_options')
+									: strings('custom_gas.advanced_options')}
 							</Text>
 						</TouchableOpacity>
 					</View>
