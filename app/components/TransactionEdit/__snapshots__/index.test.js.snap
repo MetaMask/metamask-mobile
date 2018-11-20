@@ -106,8 +106,8 @@ exports[`TransactionEdit should render correctly 1`] = `
         <Connect(AccountInput)
           onChange={[Function]}
           onFocus={[Function]}
-          onScanSuccess={[Function]}
           placeholder="Recipient Address"
+          showQRScanner={[Function]}
         />
       </Component>
       <Component
