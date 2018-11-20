@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Image } from 'react-native';
+import { Platform, Text, View, ScrollView, StyleSheet, Image } from 'react-native';
 import StyledButton from '../StyledButton';
 
 import { colors, fontStyles } from '../../styles/common';
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	fox: {
-		marginTop: 45,
+		marginTop: Platform.OS === 'android' ? 25 : 45,
 		width: 128,
 		height: 119
 	},
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 	bigText: {
 		textAlign: 'center',
 		fontSize: 22,
-		marginTop: 50,
+		marginTop: Platform.OS === 'android' ? 25 : 50,
 		marginBottom: 30,
 		color: colors.fontPrimary,
 		...fontStyles.normal
