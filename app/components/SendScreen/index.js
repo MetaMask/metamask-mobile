@@ -173,6 +173,7 @@ class SendScreen extends Component {
 			<SafeAreaView style={styles.wrapper}>
 				{this.state.ready ? (
 					<TransactionEditor
+						navigation={this.props.navigation}
 						mode={this.state.mode}
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}

@@ -164,7 +164,7 @@ class AccountInput extends Component {
 		onChange && onChange(value);
 	};
 
-	showQRScanner = () => {
+	scan = () => {
 		const { showQRScanner } = this.props;
 		this.setState({ isOpen: false });
 		showQRScanner && showQRScanner();
@@ -185,7 +185,7 @@ class AccountInput extends Component {
 					style={styles.input}
 					value={value}
 				/>
-				<Icon name="qrcode" onPress={this.showQRScanner} size={24} style={styles.qrIcon} />
+				<Icon name="qrcode" onPress={this.scan} size={24} style={styles.qrIcon} />
 				{isOpen && this.renderOptionList()}
 			</View>
 		);
