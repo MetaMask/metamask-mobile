@@ -66,11 +66,10 @@ const styles = StyleSheet.create({
 	content: {
 		flex: 1
 	},
-	qrIcon: {},
 	qrCodeButton: {
 		position: 'absolute',
 		right: 5,
-		top: Platform.OS === 'android' ? 20 : 7,
+		top: Platform.OS === 'android' ? 8 : 6,
 		paddingVertical: 8,
 		paddingHorizontal: 10
 	}
@@ -189,7 +188,7 @@ class AccountInput extends Component {
 					value={value}
 				/>
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
-					<Icon name="qrcode" size={24} style={styles.qrIcon} />
+					<Icon name="qrcode" size={Platform.OS === 'android' ? 32 : 28} />
 				</TouchableOpacity>
 				{isOpen && this.renderOptionList()}
 			</View>
