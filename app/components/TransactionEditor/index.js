@@ -53,11 +53,7 @@ class TransactionEditor extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.object,
-		/**
-		 * Callback to open the qr scanner
-		 */
-		onScanSuccess: PropTypes.func
+		transaction: PropTypes.object
 	};
 
 	state = {
@@ -148,6 +144,33 @@ class TransactionEditor extends Component {
 		return error;
 	}
 
+	handleNewTxMeta = async ({
+		target_address,
+		chain_id = null, // eslint-disable-line no-unused-vars
+		function_name = null, // eslint-disable-line no-unused-vars
+		parameters = null
+	}) => {
+		await this.handleUpdateToAddress(target_address);
+
+		if (parameters) {
+			const { value, gas, gasPrice } = parameters;
+			if (value) {
+				this.handleUpdateAmount(toBN(value));
+			}
+			if (gas) {
+				this.setState({ gas: toBN(gas) });
+			}
+			if (gasPrice) {
+				this.setState({ gas: toBN(gasPrice) });
+			}
+
+			// TODO: We should add here support for:
+			// - sending tokens (function_name + parameters.data)
+			// - calling smart contract functions (function_name + parameters.data)
+			// - chain_id ( switch to the specific network )
+		}
+	};
+
 	render() {
 		const { amount, gas, gasPrice, from, to, data } = this.state;
 		const transactionData = { amount, gas, gasPrice, from, to, data };
@@ -162,7 +185,7 @@ class TransactionEditor extends Component {
 						hideData={this.props.hideData}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
-						onScanSuccess={this.props.onScanSuccess}
+						onScanSuccess={this.handleNewTxMeta}
 						handleUpdateAmount={this.handleUpdateAmount}
 						handleUpdateData={this.handleUpdateData}
 						handleUpdateFromAddress={this.handleUpdateFromAddress}
