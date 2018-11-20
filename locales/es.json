@@ -191,10 +191,10 @@
 		"loading": "Cargando..."
 	},
 	"custom_gas": {
-		"advanced_options": "Advanced Options",
-		"hide_advanced_options": "Hide Advanced Options",
-		"gas_limit": "Gas Limit:",
-		"gas_price": "Gas Price: (GWEI)",
-		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027"
+		"advanced_options": "Opciones Avanzadas",
+		"hide_advanced_options": "Ocultar Opciones Avanzadas",
+		"gas_limit": "Límite de Gas:",
+		"gas_price": "Precio de Gas: (GWEI)",
+		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027"
 	}
 }
