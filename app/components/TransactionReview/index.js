@@ -234,7 +234,7 @@ class TransactionReview extends Component {
 		const { amount, gas, gasPrice, from } = this.props.transactionData;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
-		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
+		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
 		amount &&
 			fromAccount &&
 			isBN(gas) &&
@@ -292,7 +292,7 @@ class TransactionReview extends Component {
 						</View>
 						<View style={styles.overview}>
 							<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
-								<Text style={styles.overviewLabel}>{strings('transaction.gasFee').toUpperCase()}</Text>
+								<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
 								<View style={styles.overviewContent}>
 									<TouchableOpacity onPress={this.edit}>
 										<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
@@ -310,7 +310,7 @@ class TransactionReview extends Component {
 								<View style={styles.overviewContent}>
 									<Text style={styles.overviewInfo}>
 										{strings('transaction.amount').toUpperCase()} +{' '}
-										{strings('transaction.gasFee').toUpperCase()}
+										{strings('transaction.gas_fee').toUpperCase()}
 									</Text>
 									<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
 										{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}

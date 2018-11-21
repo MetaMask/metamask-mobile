@@ -110,11 +110,11 @@ class SyncWithExtension extends Component {
 	scanCode = () => {
 		if (this.props.navigation.getParam('existingUser', false)) {
 			Alert.alert(
-				strings('syncWithExtension.warning_title'),
-				strings('syncWithExtension.warning_message'),
+				strings('sync_with_extension.warning_title'),
+				strings('sync_with_extension.warning_message'),
 				[
-					{ text: strings('syncWithExtension.warning_cancel_button'), onPress: () => false },
-					{ text: strings('syncWithExtension.warning_ok_button'), onPress: () => this.showQrCode() }
+					{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false },
+					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
 				],
 				{ cancelable: false }
 			);
@@ -163,7 +163,10 @@ class SyncWithExtension extends Component {
 				if (message.event === 'error-sync') {
 					this.disconnectWebsockets();
 					Logger.error('Sync failed', message.data);
-					Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
+					Alert.alert(
+						strings('sync_with_extension.error_title'),
+						strings('sync_with_extension.error_message')
+					);
 					this.loading = false;
 					this.setState({ loading: false });
 					return false;
@@ -263,7 +266,7 @@ class SyncWithExtension extends Component {
 			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
 		} catch (e) {
 			Logger.error('Sync failed', e);
-			Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
+			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 			this.setState({ loading: false });
 		}
 		await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
@@ -278,7 +281,7 @@ class SyncWithExtension extends Component {
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
-					<Text style={styles.loadingText}>{strings('syncWithExtension.please_wait')}</Text>
+					<Text style={styles.loadingText}>{strings('sync_with_extension.please_wait')}</Text>
 				</View>
 			</View>
 		);
@@ -287,9 +290,9 @@ class SyncWithExtension extends Component {
 	renderInitialView() {
 		return (
 			<View>
-				<Text style={styles.text}>{strings('syncWithExtension.label')}</Text>
+				<Text style={styles.text}>{strings('sync_with_extension.label')}</Text>
 				<StyledButton type="blue" onPress={this.scanCode} containerStyle={styles.button}>
-					{strings('syncWithExtension.button_continue')}
+					{strings('sync_with_extension.button_continue')}
 				</StyledButton>
 			</View>
 		);

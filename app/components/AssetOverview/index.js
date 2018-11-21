@@ -143,7 +143,7 @@ export default class AssetOverview extends Component {
 						style={styles.buttonContent}
 					>
 						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('assetOverview.send_button')}</Text>
+						<Text style={styles.buttonText}>{strings('asset_overview.send_button')}</Text>
 					</StyledButton>
 					<StyledButton
 						type={'confirm'}
@@ -152,7 +152,7 @@ export default class AssetOverview extends Component {
 						style={styles.buttonContent}
 					>
 						<FoundationIcon name={'download'} size={20} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('assetOverview.receive_button')}</Text>
+						<Text style={styles.buttonText}>{strings('asset_overview.receive_button')}</Text>
 					</StyledButton>
 				</View>
 			</LinearGradient>

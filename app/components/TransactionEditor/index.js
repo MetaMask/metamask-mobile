@@ -117,7 +117,7 @@ class TransactionEditor extends Component {
 		const { amount, gas, gasPrice, from } = this.state;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
-		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
+		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
 		amount &&
 			fromAccount &&
 			isBN(gas) &&
@@ -131,8 +131,8 @@ class TransactionEditor extends Component {
 	validateGas() {
 		let error;
 		const { gas, gasPrice } = this.state;
-		gas && !isBN(gas) && (error = strings('transaction.invalidGas'));
-		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalidGasPrice'));
+		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
+		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
 		return error;
 	}
 
@@ -140,7 +140,7 @@ class TransactionEditor extends Component {
 		let error;
 		const { to } = this.state;
 		!to && this.state.toFocused && (error = strings('transaction.required'));
-		to && !isValidAddress(to) && (error = strings('transaction.invalidAddress'));
+		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
 		return error;
 	}
 

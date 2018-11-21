@@ -193,7 +193,7 @@ class TransactionEdit extends Component {
 		const { amount, gas, gasPrice, from } = this.props.transactionData;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
-		amount && !isBN(amount) && (error = strings('transaction.invalidAmount'));
+		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
 		amount &&
 			fromAccount &&
 			isBN(gas) &&
@@ -207,9 +207,9 @@ class TransactionEdit extends Component {
 	validateGas() {
 		let error;
 		const { gas, gasPrice } = this.props.transactionData;
-		gas && !isBN(gas) && (error = strings('transaction.invalidGas'));
-		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalidGasPrice'));
-		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('customGas.warningGasLimit'));
+		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
+		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
+		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('custom_gas.warning_gas_limit'));
 		return error;
 	}
 
@@ -217,7 +217,7 @@ class TransactionEdit extends Component {
 		let error;
 		const { to } = this.props.transactionData;
 		!to && this.state.toFocused && (error = strings('transaction.required'));
-		to && !isValidAddress(to) && (error = strings('transaction.invalidAddress'));
+		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
 		return error;
 	}
 
@@ -254,7 +254,7 @@ class TransactionEdit extends Component {
 							<AccountInput
 								onChange={this.updateToAddress}
 								onFocus={this.onFocusToAddress}
-								placeholder={strings('transaction.recipientAddress')}
+								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScanSuccess}
 								value={to}
 							/>
@@ -274,7 +274,7 @@ class TransactionEdit extends Component {
 						</View>
 						<View style={{ ...styles.formRow, ...styles.amountRow }}>
 							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.gasFee')}:</Text>
+								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
 								{this.validateGas() && <Text style={styles.error}>{this.validateGas()}</Text>}
 							</View>
 							<CustomGas
@@ -286,7 +286,7 @@ class TransactionEdit extends Component {
 						{!hideData && (
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>{strings('transaction.hexData')}:</Text>
+									<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
 								</View>
 								<TextInput
 									multiline

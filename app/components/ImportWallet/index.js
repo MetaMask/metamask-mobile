@@ -157,11 +157,11 @@ class ImportWallet extends Component {
 	scanCode = () => {
 		if (this.props.navigation.getParam('existingUser', false)) {
 			Alert.alert(
-				strings('syncWithExtension.warning_title'),
-				strings('syncWithExtension.warning_message'),
+				strings('sync_with_extension.warning_title'),
+				strings('sync_with_extension.warning_message'),
 				[
-					{ text: strings('syncWithExtension.warning_cancel_button'), onPress: () => false },
-					{ text: strings('syncWithExtension.warning_ok_button'), onPress: () => this.showQrCode() }
+					{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false },
+					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
 				],
 				{ cancelable: false }
 			);
@@ -244,7 +244,7 @@ class ImportWallet extends Component {
 	handleError(message) {
 		this.disconnectWebsockets();
 		Logger.log('Sync failed', message, this.incomingDataStr);
-		Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
+		Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 		this.loading = false;
 		this.setState({ loading: false });
 		return false;
@@ -320,7 +320,7 @@ class ImportWallet extends Component {
 			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
 		} catch (e) {
 			Logger.error('Sync failed', e);
-			Alert.alert(strings('syncWithExtension.error_title'), strings('syncWithExtension.error_message'));
+			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 			this.setState({ loading: false });
 		}
 		await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
@@ -333,11 +333,11 @@ class ImportWallet extends Component {
 	onPressSync = () => {
 		if (this.props.navigation.getParam('existingUser', false)) {
 			Alert.alert(
-				strings('syncWithExtension.warning_title'),
-				strings('syncWithExtension.warning_message'),
+				strings('sync_with_extension.warning_title'),
+				strings('sync_with_extension.warning_message'),
 				[
-					{ text: strings('syncWithExtension.warning_cancel_button'), onPress: () => false },
-					{ text: strings('syncWithExtension.warning_ok_button'), onPress: () => this.showQrCode() }
+					{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false },
+					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
 				],
 				{ cancelable: false }
 			);
@@ -351,7 +351,7 @@ class ImportWallet extends Component {
 			<View style={styles.wrapper}>
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
-					<Text style={styles.loadingText}>{strings('syncWithExtension.please_wait')}</Text>
+					<Text style={styles.loadingText}>{strings('sync_with_extension.please_wait')}</Text>
 				</View>
 			</View>
 		);
@@ -360,19 +360,19 @@ class ImportWallet extends Component {
 	renderInitialView() {
 		return (
 			<View>
-				<Text style={styles.subtitle}>{strings('importWallet.sync_help')}</Text>
+				<Text style={styles.subtitle}>{strings('import_wallet.sync_help')}</Text>
 				<View style={styles.steps}>
-					<Text style={styles.text}>{strings('importWallet.sync_help_step_one')}</Text>
-					<Text style={styles.text}>{strings('importWallet.sync_help_step_two')}</Text>
-					<Text style={styles.text}>{strings('importWallet.sync_help_step_three')}</Text>
-					<Text style={styles.text}>{strings('importWallet.sync_help_step_four')}</Text>
+					<Text style={styles.text}>{strings('import_wallet.sync_help_step_one')}</Text>
+					<Text style={styles.text}>{strings('import_wallet.sync_help_step_two')}</Text>
+					<Text style={styles.text}>{strings('import_wallet.sync_help_step_three')}</Text>
+					<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
 				</View>
 				<View style={styles.ctaWrapper}>
 					<StyledButton type={'blue'} onPress={this.onPressSync} testID={'onboarding-import-button'}>
-						{strings('importWallet.sync_from_browser_extension_button')}
+						{strings('import_wallet.sync_from_browser_extension_button')}
 					</StyledButton>
 				</View>
-				<Text style={[styles.text, styles.separator]}>{strings('importWallet.or')}</Text>
+				<Text style={[styles.text, styles.separator]}>{strings('import_wallet.or')}</Text>
 
 				<View style={styles.ctaWrapper}>
 					<StyledButton
@@ -381,7 +381,7 @@ class ImportWallet extends Component {
 						testID={'onboarding-new-button'}
 						containerStyle={styles.importFromSeedBtn}
 					>
-						{strings('importWallet.import_from_seed_button')}
+						{strings('import_wallet.import_from_seed_button')}
 					</StyledButton>
 				</View>
 			</View>
@@ -404,7 +404,7 @@ class ImportWallet extends Component {
 							resizeMethod={'auto'}
 						/>
 					</View>
-					<Text style={styles.title}>{strings('importWallet.title')}</Text>
+					<Text style={styles.title}>{strings('import_wallet.title')}</Text>
 					{this.renderContent()}
 				</ScrollView>
 			</OnboardingScreenWithBg>
