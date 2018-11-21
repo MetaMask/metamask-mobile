@@ -86,6 +86,8 @@ TARGET="node_modules/react-native-keychain/android/build.gradle"
 sed -i'' -e 's/compile /api /' $TARGET;
 TARGET="node_modules/react-native-vector-icons/android/build.gradle"
 sed -i'' -e 's/compile /api /' $TARGET;
+TARGET="node_modules/react-native-branch/android/build.gradle"
+sed -i'' -e 's/compile /api /' $TARGET;
 
 # This one has been fixed on master
 # we can remove once they release a new version
