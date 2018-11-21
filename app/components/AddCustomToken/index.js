@@ -137,8 +137,8 @@ export default class AddCustomToken extends Component {
 				<ActionView
 					cancelTestID={'add-custom-asset-cancel-button'}
 					confirmTestID={'add-custom-asset-confirm-button'}
-					cancelText={strings('addAsset.tokens.cancel_add_token')}
-					confirmText={strings('addAsset.tokens.add_token')}
+					cancelText={strings('add_asset.tokens.cancel_add_token')}
+					confirmText={strings('add_asset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
 					onConfirmPress={this.addToken}
 				>

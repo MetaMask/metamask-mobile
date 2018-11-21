@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
  */
 export default class SeedWords extends Component {
 	static navigationOptions = () => ({
-		title: strings('seedWords.title'),
+		title: strings('seed_words.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -47,7 +47,7 @@ export default class SeedWords extends Component {
 
 		return (
 			<View style={styles.wrapper} testID={'seed-words-screen'}>
-				<Text style={styles.text}>{strings('seedWords.label')}</Text>
+				<Text style={styles.text}>{strings('seed_words.label')}</Text>
 				<TextInput
 					value={seedWords}
 					numberOfLines={3}

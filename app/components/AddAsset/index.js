@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
  */
 export default class AddAsset extends Component {
 	static navigationOptions = () => ({
-		title: strings('addAsset.title'),
+		title: strings('add_asset.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -81,12 +81,12 @@ export default class AddAsset extends Component {
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
 						<SearchTokenAutocomplete
 							navigation={navigation}
-							tabLabel={strings('addAsset.search_token')}
+							tabLabel={strings('add_asset.search_token')}
 							testID={'tab-search-token'}
 						/>
 						<AddCustomToken
 							navigation={navigation}
-							tabLabel={strings('addAsset.custom_token')}
+							tabLabel={strings('add_asset.custom_token')}
 							testID={'tab-add-custom-token'}
 						/>
 					</ScrollableTabView>

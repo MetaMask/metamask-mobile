@@ -141,9 +141,9 @@ export default class CreateWallet extends Component {
 			<Screen>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 					<View testID={'create-password-screen'}>
-						<Text style={styles.title}>{strings('createWallet.title')}</Text>
+						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('createWallet.password')}</Text>
+							<Text style={styles.label}>{strings('create_wallet.password')}</Text>
 							<TextInput
 								style={styles.input}
 								value={this.state.password}
@@ -157,7 +157,7 @@ export default class CreateWallet extends Component {
 							/>
 						</View>
 						<View style={styles.field}>
-							<Text style={styles.label}>{strings('createWallet.confirm_password')}</Text>
+							<Text style={styles.label}>{strings('create_wallet.confirm_password')}</Text>
 							<TextInput
 								ref={this.confirmPasswordInput}
 								style={styles.input}
@@ -178,7 +178,7 @@ export default class CreateWallet extends Component {
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
-									strings('createWallet.create_button')
+									strings('create_wallet.create_button')
 								)}
 							</StyledButton>
 						</View>

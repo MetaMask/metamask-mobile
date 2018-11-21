@@ -11,7 +11,7 @@
 		"or": "OR",
 		"create_new_wallet_button": "Create New Wallet"
 	},
-	"importWallet": {
+	"import_wallet": {
 		"title": "Import Wallet",
 		"sync_help": "Sync your wallet with the extension",
 		"sync_help_step_one": "1. Open the extension",
@@ -28,14 +28,14 @@
 		"login_button": "LOG IN",
 		"go_back": "Go Back"
 	},
-	"createWallet": {
+	"create_wallet": {
 		"title": "Create New Wallet",
 		"password": "Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"create_button": "CREATE",
 		"import_with_seed_phrase": "Import with seed phrase"
 	},
-	"importFromSeed": {
+	"import_from_seed": {
 		"title": "Import from seed",
 		"seed_phrase_placeholder": "Enter your seed phrase here",
 		"new_password": "New Password (min. 8 characters)",
@@ -43,7 +43,7 @@
 		"import_button": "IMPORT",
 		"cancel_button": "Cancel"
 	},
-	"bottomTabBar": {
+	"bottom_tab_bar": {
 		"dapps": "ÐApps",
 		"wallet": "Wallet",
 		"transfer": "Transfer"
@@ -53,9 +53,9 @@
 		"deposit_button": "Deposit",
 		"coming_soon": "Coming soon...",
 		"assets": "Your Assets",
-		"copyAddress": "Copy address to clipboard",
-		"viewInEtherscan": "View in etherscan",
-		"dappBrowser": "ÐApp Browser",
+		"copy_address": "Copy address to clipboard",
+		"view_in_etherscan": "View in etherscan",
+		"dapp_browser": "ÐApp Browser",
 		"settings": "Settings",
 		"help": "Get Help",
 		"logout": "Log out",
@@ -83,7 +83,7 @@
 		"deposit_button": "Deposit",
 		"copy_address": "Copy"
 	},
-	"addAsset": {
+	"add_asset": {
 		"title": "Add Asset",
 		"search_token": "SEARCH",
 		"custom_token": "CUSTOM TOKEN",
@@ -144,6 +144,20 @@
 		"sync_with_extension": "Sync with Metamask Extension",
 		"sync": "SYNC"
 	},
+	"app_information": {
+		"title": "Information",
+		"links": "Links",
+		"privacy_policy": "Privacy Policy",
+		"terms_of_use": "Terms of use",
+		"attributions": "Attributions",
+		"support_center": "Visit our Support Center",
+		"web_site": "Visit our web Site",
+		"email_us": "Email Us!"
+	},
+	"app_configurations": {
+		"information_title": "INFO",
+		"settings_title": "SETTINGS"
+	},
 	"settings": {
 		"title": "Settings",
 		"network": "Network",
@@ -157,7 +171,7 @@
 		"title": "Network",
 		"selected": "selected"
 	},
-	"seedWords": {
+	"seed_words": {
 		"title": "Seed Words",
 		"label": "These are your seed words, make sure you keep them safe!"
 	},
@@ -181,26 +195,26 @@
 		"private_key_copied": "Private key copied to clipboard",
 		"warning_incorrect_password": "Incorrect password"
 	},
-	"assetOverview": {
+	"asset_overview": {
 		"send_button": "SEND",
 		"receive_button": "RECEIVE"
 	},
-	"accountDetails": {
+	"account_details": {
 		"title": "Account Details",
-		"shareAccount": "Share",
-		"viewAccount": "View account on Etherscan",
-		"showPrivateKey": "Show private key",
-		"accountCopiedToClipboard": "Your address has been copied to the clipboard",
-		"sharePublicKey": "Sharing my public key: "
+		"share_account": "Share",
+		"view_account": "View account on Etherscan",
+		"show_private_key": "Show private key",
+		"account_copied_to_clipboard": "Your address has been copied to the clipboard",
+		"share_public_key": "Sharing my public key: "
 	},
-	"qrScanner": {
-		"invalidQrCodeTitle": "Invalid QR Code",
-		"invaludQrCodeMessage": "The QR code that you are trying to scan it is not valid.",
-		"allowCameraDialogTitle": "Allow camera access",
-		"allowCameraDialogMessage": "We need your permission to scan QR codes",
+	"qr_scanner": {
+		"invalid_qr_code_title": "Invalid QR Code",
+		"invalid_qr_code_message": "The QR code that you are trying to scan it is not valid.",
+		"allow_camera_dialog_title": "Allow camera access",
+		"allow_camera_dialog_message": "We need your permission to scan QR codes",
 		"scanning": "scanning..."
 	},
-	"actionView": {
+	"action_view": {
 		"cancel": "Cancel",
 		"confirm": "Confirm"
 	},
@@ -210,54 +224,54 @@
 		"confirm": "Confirm",
 		"edit": "Edit",
 		"from": "From",
-		"gasFee": "Gas Fee",
-		"gasFeeFast": "Fast",
-		"gasFeeAverage": "Average",
-		"gasFeeSlow": "Slow",
-		"hexData": "Hex Data",
+		"gas_fee": "Gas Fee",
+		"gas_fee_fast": "Fast",
+		"gas_fee_average": "Average",
+		"gas_fee_slow": "Slow",
+		"hex_data": "Hex Data",
 		"insufficient": "Insufficient funds",
-		"invalidAddress": "Invalid address",
-		"invalidAmount": "Invalid amount",
-		"invalidGas": "Invalid gas amount",
-		"invalidGasPrice": "Invalid gas price",
+		"invalid_address": "Invalid address",
+		"invalid_amount": "Invalid amount",
+		"invalid_gas": "Invalid gas amount",
+		"invalid_gas_price": "Invalid gas price",
 		"max": "Max",
-		"recipientAddress": "Recipient Address",
+		"recipient_address": "Recipient Address",
 		"required": "Required",
 		"to": "To",
 		"total": "Total",
 		"loading": "Loading..."
 	},
-	"customGas": {
-		"advancedOptions": "Advanced Options",
-		"hideAdvancedOptions": "Hide Advanced Options",
-		"gasLimit": "Gas Limit:",
-		"gasPrice": "Gas Price: (GWEI)",
-		"warningGasLimit": "Gas limit must be greater than 20999 and less than 7920027"
+	"custom_gas": {
+		"advanced_options": "Advanced Options",
+		"hide_advanced_options": "Hide Advanced Options",
+		"gas_limit": "Gas Limit:",
+		"gas_price": "Gas Price: (GWEI)",
+		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027"
 	},
-	"homePage": {
-		"letsGetStarted": "Let's get started!",
-		"web3Awaits": "The decentralized web awaits",
+	"home_page": {
+		"lets_get_started": "Let's get started!",
+		"web3_awaits": "The decentralized web awaits",
 		"bookmarks": "Bookmarks",
-		"noBookmarks": "Your bookmarks will show up here",
-		"removeBookmarkTitle": "Do you want to remove this bookmark?"
+		"no_bookmarks": "Your bookmarks will show up here",
+		"remove_bookmark_title": "Do you want to remove this bookmark?"
 	},
 	"browser": {
 		"reload": "Reload",
 		"share": "Share",
 		"bookmark": "Bookmark",
 		"error": "Ooops!",
-		"bookmarkAlreadyExists": "You already bookmarked this url",
+		"bookmark_already_exists": "You already bookmarked this url",
 		"cancel": "Cancel",
-		"goBack": "Go Back",
-		"goForward": "Go Forward",
+		"go_back": "Go Back",
+		"go_forward": "Go Forward",
 		"close": "Close"
 	},
-	"addBookmark": {
+	"add_bookmark": {
 		"title": "Add Bookmark",
-		"titleLabel": "Name",
-		"urlLabel": "Url",
-		"addButton": "Add",
-		"cancelButton": "Cancel"
+		"title_label": "Name",
+		"url_label": "Url",
+		"add_button": "Add",
+		"cancel_button": "Cancel"
 	},
 	"approval": {
 		"title": "Confirm Transaction"
@@ -274,12 +288,12 @@
 		"total": "Total",
 		"view_on_etherscan": "VIEW ON ETHERSCAN"
 	},
-	"transactionSubmitted": {
+	"transaction_submitted": {
 		"title": "Transaction Submitted",
-		"yourTxHashIs": "Your transaction hash is:",
-		"viewOnEtherscan": "VIEW ON ETHERSCAN"
+		"your_tx_hash_is": "Your transaction hash is:",
+		"view_on_etherscan": "VIEW ON ETHERSCAN"
 	},
-	"syncWithExtension": {
+	"sync_with_extension": {
 		"title": "Sync data from Extension",
 		"label":
 			"Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
@@ -293,7 +307,7 @@
 		"warning_ok_button": "YES",
 		"warning_cancel_button": "NO"
 	},
-	"syncWithExtensionSuccess": {
+	"sync_with_extension_success": {
 		"title": "Sync completed",
 		"sync_complete":
 			"We have synchronized all the information from your MetaMask extension and now you're ready to go!",

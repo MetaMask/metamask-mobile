@@ -192,15 +192,15 @@ export default class HomePage extends Component {
 				);
 			});
 		} else {
-			content = <Text style={styles.noBookmarks}>{strings('homePage.noBookmarks')}</Text>;
+			content = <Text style={styles.noBookmarks}>{strings('home_page.no_bookmarks')}</Text>;
 		}
 		return (
 			<View style={styles.bookmarksWrapper}>
-				<Text style={styles.bookmarksTitle}>{strings('homePage.bookmarks')}</Text>
+				<Text style={styles.bookmarksTitle}>{strings('home_page.bookmarks')}</Text>
 				<View style={styles.bookmarksItemsWrapper}>{content}</View>
 				<ActionSheet
 					ref={this.createActionSheetRef}
-					title={strings('homePage.removeBookmarkTitle')}
+					title={strings('home_page.remove_bookmark_title')}
 					options={['Remove', 'cancel']}
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
@@ -224,8 +224,8 @@ export default class HomePage extends Component {
 					<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
 				</View>
 				<View style={styles.startPageContent}>
-					<Text style={styles.startPageTitle}>{strings('homePage.letsGetStarted')}</Text>
-					<Text style={styles.startPageSubtitle}>{strings('homePage.web3Awaits')}</Text>
+					<Text style={styles.startPageTitle}>{strings('home_page.lets_get_started')}</Text>
+					<Text style={styles.startPageSubtitle}>{strings('home_page.web3_awaits')}</Text>
 					<TextInput
 						style={styles.searchInput}
 						autoCapitalize="none"

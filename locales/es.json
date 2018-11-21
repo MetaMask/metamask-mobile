@@ -8,14 +8,14 @@
 		"login_button": "INGRESAR",
 		"import_with_seed_phrase": "Importar con frase semilla"
 	},
-	"createWallet": {
+	"create_wallet": {
 		"title": "Crear Contraseña",
 		"new_password": "Nueva Contraseña (min. 8 caracteres)",
 		"confirm_password": "Confirmar Contraseña",
 		"create_button": "CREAR",
 		"import_with_seed_phrase": "Importar con frase semilla"
 	},
-	"importFromSeed": {
+	"import_from_seed": {
 		"title": "Importar con frase semilla",
 		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
 		"new_password": "Nueva Contraseña (min. 8 caracteres)",
@@ -23,7 +23,7 @@
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar"
 	},
-	"bottomTabBar": {
+	"bottom_tab_bar": {
 		"dapps": "ÐApps",
 		"wallet": "Billetera",
 		"transfer": "Transferir"
@@ -37,7 +37,7 @@
 		"no_tokens": "No tienes ningun token",
 		"add_collectibles": "AGREGAR COLECCIONABLE"
 	},
-	"addAsset": {
+	"add_asset": {
 		"title": "Agregar Activo",
 		"search_token": "BUSCAR",
 		"custom_token": "TOKEN PERSONALIZADO",
@@ -95,6 +95,20 @@
 		"invalid_rpc_prefix": "URIs requieren el apropiado HTTP/HTTPS prefijo",
 		"invalid_rpc_url": "RPC URL inválida"
 	},
+	"app_information": {
+		"title": "Información",
+		"links": "Enlaces",
+		"privacy_policy": "Política de privacidad",
+		"terms_of_use": "Términos de uso",
+		"attributions": "Atribuciones",
+		"support_center": "Visita nuestro centro de atención",
+		"web_site": "Visita nuestro sitio web",
+		"email_us": "¡Envíanos un correo!"
+	},
+	"app_configurations": {
+		"information_title": "INFORMACIÓN",
+		"settings_title": "CONFIGURACIONES"
+	},
 	"settings": {
 		"title": "Configuraciones",
 		"network": "Red",
@@ -106,7 +120,7 @@
 		"title": "Red",
 		"selected": "seleccionada"
 	},
-	"seedWords": {
+	"seed_words": {
 		"title": "Frase Semilla",
 		"label": "Esta es tu frase semilla. Asegurate de guardarla y mantenerla segura"
 	},
@@ -130,26 +144,26 @@
 		"private_key_copied": "Dirección privada copiada en el portapapeles",
 		"warning_incorrect_password": "Incorrect password"
 	},
-	"assetOverview": {
+	"asset_overview": {
 		"send_button": "ENVIAR",
 		"receive_button": "RECIBIR"
 	},
-	"accountDetails": {
+	"account_details": {
 		"title": "Detalles de la cuenta",
-		"shareAccount": "Compartir",
-		"viewAccount": "Ver cuenta en Etherscan",
-		"showPrivateKey": "Mostrar dirección privada",
-		"accountCopiedToClipboard": "Dirección pública copiada en portapapeles",
-		"sharePublicKey": "Compartiendo mi dirección pública: "
+		"share_account": "Compartir",
+		"view_account": "Ver cuenta en Etherscan",
+		"show_private_key": "Mostrar dirección privada",
+		"account_copied_to_clipboard": "Dirección pública copiada en portapapeles",
+		"share_public_key": "Compartiendo mi dirección pública: "
 	},
-	"qrScanner": {
-		"invalidQrCodeTitle": "Código QR Inválido",
-		"invaludQrCodeMessage": "El código QR que has escaneado no es válido!",
-		"allowCameraDialogTitle": "Permite acceso a la cámara",
-		"allowCameraDialogMessage": "Necesitamos tu permiso para escanear códigos QR",
+	"qr_scanner": {
+		"invalid_qr_code_title": "Código QR Inválido",
+		"invalid_qr_code_message": "El código QR que has escaneado no es válido!",
+		"allow_camera_dialog_title": "Permite acceso a la cámara",
+		"allow_camera_dialog_message": "Necesitamos tu permiso para escanear códigos QR",
 		"scanning": "escaneando..."
 	},
-	"actionView": {
+	"action_view": {
 		"cancel": "Cancelar",
 		"confirm": "Confirmar"
 	},
@@ -159,28 +173,28 @@
 		"confirm": "Confirmar",
 		"edit": "Editar",
 		"from": "De",
-		"gasFee": "Tarifa de gas",
-		"gasFeeFast": "Rápida",
-		"gasFeeAverage": "Promedio",
-		"gasFeeSlow": "Lenta",
-		"hexData": "Hex Datos",
+		"gas_fee": "Tarifa de gas",
+		"gas_fee_fast": "Rápida",
+		"gas_fee_average": "Promedio",
+		"gas_fee_slow": "Lenta",
+		"hex_data": "Hex Datos",
 		"insufficient": "Fondos insuficientes",
-		"invalidAddress": "Dirección inválida",
-		"invalidAmount": "Monto invalido",
-		"invalidGas": "Cantidad de gas no válida",
-		"invalidGasPrice": "Precio de gas no válido",
+		"invalid_address": "Dirección inválida",
+		"invalid_amount": "Monto invalido",
+		"invalid_gas": "Cantidad de gas no válida",
+		"invalid_gas_price": "Precio de gas no válido",
 		"max": "Max",
-		"recipientAddress": "Dirección del receptor",
+		"recipient_address": "Dirección del receptor",
 		"required": "Necesario",
 		"to": "A",
 		"total": "Total",
 		"loading": "Cargando..."
 	},
-	"customGas": {
-		"advancedOptions": "Advanced Options",
-		"hideAdvancedOptions": "Hide Advanced Options",
-		"gasLimit": "Gas Limit:",
-		"gasPrice": "Gas Price: (GWEI)",
-		"warningGasLimit": "Gas limit must be greater than 20999 and less than 7920027"
+	"custom_gas": {
+		"advanced_options": "Opciones Avanzadas",
+		"hide_advanced_options": "Ocultar Opciones Avanzadas",
+		"gas_limit": "Límite de Gas:",
+		"gas_price": "Precio de Gas: (GWEI)",
+		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027"
 	}
 }

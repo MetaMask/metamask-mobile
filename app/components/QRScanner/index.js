@@ -83,7 +83,7 @@ export default class QrScanner extends Component {
 			this.shouldReadBarCode = false;
 			data = { content };
 		} else {
-			Alert.alert(strings('qrScanner.invalidQrCodeTitle'), strings('qrScanner.invalidQrCodeMessage'));
+			Alert.alert(strings('qr_scanner.invalid_qr_code_title'), strings('qr_scanner.invalid_qr_code_message'));
 			return false;
 		}
 		this.mounted = false;
@@ -101,15 +101,15 @@ export default class QrScanner extends Component {
 					type={'back'}
 					onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}
 					flashMode={'auto'}
-					permissionDialogTitle={strings('qrScanner.allowCameraDialogTitle')}
-					permissionDialogMessage={strings('qrScanner.allowCameraDialogMessage')}
+					permissionDialogTitle={strings('qr_scanner.allow_camera_dialog_title')}
+					permissionDialogMessage={strings('qr_scanner.allow_camera_dialog_message')}
 				>
 					<SafeAreaView style={styles.innerView}>
 						<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
 							<Icon name={'ios-close'} size={50} color={'white'} />
 						</TouchableOpacity>
 						<Image source={frameImage} style={styles.frame} />
-						<Text style={styles.text}>{strings('qrScanner.scanning')}</Text>
+						<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
 					</SafeAreaView>
 				</RNCamera>
 			</View>

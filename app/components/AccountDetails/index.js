@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
  */
 class AccountDetails extends Component {
 	static navigationOptions = () => ({
-		title: strings('accountDetails.title'),
+		title: strings('account_details.title'),
 		headerTitleStyle: {
 			fontSize: 20,
 			...fontStyles.normal
@@ -126,7 +126,7 @@ class AccountDetails extends Component {
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
 		await Clipboard.setString(selectedAddress);
-		Alert.alert(strings('accountDetails.accountCopiedToClipboard'));
+		Alert.alert(strings('account_details.account_copied_to_clipboard'));
 	};
 
 	goToEtherscan = () => {
@@ -134,7 +134,7 @@ class AccountDetails extends Component {
 		const url = `https://etherscan.io/address/${selectedAddress}`;
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('Browser', {
+			this.props.navigation.navigate('BrowserView', {
 				url
 			});
 		});
@@ -147,7 +147,7 @@ class AccountDetails extends Component {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: `${strings('accountDetails.sharePublicKey')} ${selectedAddress}`
+			message: `${strings('account_details.share_public_key')} ${selectedAddress}`
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
@@ -238,7 +238,7 @@ class AccountDetails extends Component {
 						onPress={this.onShare}
 						testID={'share-account-button'}
 					>
-						{strings('accountDetails.shareAccount')}
+						{strings('account_details.share_account')}
 					</StyledButton>
 					<StyledButton
 						containerStyle={styles.button}
@@ -246,7 +246,7 @@ class AccountDetails extends Component {
 						onPress={this.goToEtherscan}
 						testID={'view-account-button'}
 					>
-						{strings('accountDetails.viewAccount')}
+						{strings('account_details.view_account')}
 					</StyledButton>
 					<StyledButton
 						containerStyle={styles.button}
@@ -254,7 +254,7 @@ class AccountDetails extends Component {
 						onPress={this.goToRevealPrivateKey}
 						testID={'show-private-key-button'}
 					>
-						{strings('accountDetails.showPrivateKey')}
+						{strings('account_details.show_private_key')}
 					</StyledButton>
 				</View>
 			</ScrollView>

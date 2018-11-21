@@ -6,7 +6,7 @@ import SyncWithExtension from '../SyncWithExtension';
 import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
 import AddAsset from '../AddAsset';
-import AppSettings from '../AppSettings';
+import AppConfigurations from '../AppConfigurations';
 import SendScreen from '../SendScreen';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import { createStackNavigator } from 'react-navigation';
@@ -43,8 +43,8 @@ export default createStackNavigator({
 	AddAsset: {
 		screen: AddAsset
 	},
-	AppSettings: {
-		screen: AppSettings
+	AppConfigurations: {
+		screen: AppConfigurations
 	},
 	SendScreen: {
 		screen: SendScreen
