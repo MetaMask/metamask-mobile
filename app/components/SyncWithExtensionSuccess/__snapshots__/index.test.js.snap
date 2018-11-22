@@ -36,7 +36,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
           Object {
             "transform": Array [
               Object {
-                "scale": undefined,
+                "scale": 0.4,
               },
             ],
           },

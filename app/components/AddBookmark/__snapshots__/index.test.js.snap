@@ -57,7 +57,7 @@ exports[`AddBookmark should render correctly 1`] = `
           }
           testID="add-bookmark-title"
           underlineColorAndroid="transparent"
-          value=""
+          value={null}
         />
         <Text
           style={
@@ -103,7 +103,7 @@ exports[`AddBookmark should render correctly 1`] = `
           }
           testID="add-bookmark-url"
           underlineColorAndroid="transparent"
-          value=""
+          value={null}
         />
         <Text
           style={
