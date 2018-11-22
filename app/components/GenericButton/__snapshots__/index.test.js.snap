@@ -5,7 +5,7 @@ exports[`GenericButton should render correctly on android 1`] = `
   background={Object {}}
   delayPressIn={0}
 >
-  <Component />
+  <View />
 </DummyTouchableNativeFeedback>
 `;
 
