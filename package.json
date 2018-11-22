@@ -109,7 +109,7 @@
     "assert": "^1.4.1",
     "babel-jest": "^23.6.0",
     "concat-cli": "^4.0.0",
-    "detox": "^9.0.1",
+    "detox": "^9.0.4",
     "enzyme": "^3.7.0",
     "enzyme-adapter-react-16": "^1.6.0",
     "enzyme-to-json": "^3.3.4",
