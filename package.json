@@ -45,6 +45,7 @@
   "dependencies": {
     "@tradle/react-native-http": "^2.0.1",
     "base-64": "^0.1.0",
+    "bignumber.js": "^7.2.1",
     "buffer": "^4.9.1",
     "eth-block-tracker": "^3.0.1",
     "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#master",
@@ -122,7 +123,7 @@
   },
   "babel": {
     "presets": [
-      "react-native"
+      "module:metro-react-native-babel-preset"
     ]
   },
   "eslintConfig": {
