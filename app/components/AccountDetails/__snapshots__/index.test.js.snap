@@ -10,7 +10,7 @@ exports[`Account Details should render correctly 1`] = `
   }
   testID="account-details-screen"
 >
-  <Component
+  <View
     style={
       Object {
         "alignItems": "center",
@@ -26,7 +26,7 @@ exports[`Account Details should render correctly 1`] = `
       address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
       diameter={46}
     />
-    <Component
+    <View
       style={
         Object {
           "alignItems": "center",
@@ -57,7 +57,7 @@ exports[`Account Details should render correctly 1`] = `
       >
         Account 1
       </TextInput>
-      <Component
+      <View
         style={
           Object {
             "alignItems": "center",
@@ -77,17 +77,17 @@ exports[`Account Details should render correctly 1`] = `
           }
           testID="edit-account-label-icon"
         />
-      </Component>
-    </Component>
-  </Component>
-  <Component
+      </View>
+    </View>
+  </View>
+  <View
     style={
       Object {
         "padding": 10,
       }
     }
   >
-    <Component
+    <View
       style={
         Object {
           "alignItems": "center",
@@ -104,8 +104,8 @@ exports[`Account Details should render correctly 1`] = `
         size={120}
         value="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
       />
-    </Component>
-    <Component
+    </View>
+    <View
       style={
         Object {
           "alignItems": "center",
@@ -122,7 +122,7 @@ exports[`Account Details should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -133,7 +133,7 @@ exports[`Account Details should render correctly 1`] = `
         testID="public-address-text"
       >
         0xe7E125654064EEa56229f273dA586F10DF96B0a1
-      </Component>
+      </Text>
       <Icon
         allowFontScaling={false}
         color="#7c7e84"
@@ -148,9 +148,9 @@ exports[`Account Details should render correctly 1`] = `
         }
         testID="copy-public-address-icon"
       />
-    </Component>
-  </Component>
-  <Component
+    </View>
+  </View>
+  <View
     style={
       Object {
         "marginLeft": 50,
@@ -224,6 +224,6 @@ exports[`Account Details should render correctly 1`] = `
     >
       Show private key
     </StyledButton>
-  </Component>
+  </View>
 </ScrollView>
 `;

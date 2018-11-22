@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleImage should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "borderRadius": 100,
@@ -25,5 +25,5 @@ exports[`CollectibleImage should render correctly 1`] = `
       }
     }
   />
-</Component>
+</View>
 `;

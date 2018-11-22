@@ -61,7 +61,7 @@ class NavbarTitle extends Component {
 		title: PropTypes.string.isRequired
 	};
 
-	render() {
+	render = () => {
 		const { network, title } = this.props;
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
 
@@ -80,7 +80,7 @@ class NavbarTitle extends Component {
 				</View>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({ network: state.backgroundState.NetworkController });

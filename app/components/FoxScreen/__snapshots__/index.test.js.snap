@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`FoxScreen should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "alignItems": "center",
@@ -17,7 +17,7 @@ exports[`FoxScreen should render correctly 1`] = `
   }
   testID="fox-screen"
 >
-  <Image
+  <Component
     resizeMethod="auto"
     source={
       Object {
@@ -31,5 +31,5 @@ exports[`FoxScreen should render correctly 1`] = `
       }
     }
   />
-</Component>
+</View>
 `;

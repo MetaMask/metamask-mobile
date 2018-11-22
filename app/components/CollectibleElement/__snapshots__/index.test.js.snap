@@ -25,14 +25,14 @@ exports[`CollectibleElement should render correctly 1`] = `
       }
     }
   />
-  <Component
+  <View
     style={
       Object {
         "flex": 1,
       }
     }
   >
-    <Component
+    <Text
       style={
         Object {
           "color": "#4a4a4a",
@@ -43,8 +43,8 @@ exports[`CollectibleElement should render correctly 1`] = `
       }
     >
       NAME
-    </Component>
-    <Component
+    </Text>
+    <Text
       style={
         Object {
           "color": "#4a4a4a",
@@ -57,7 +57,7 @@ exports[`CollectibleElement should render correctly 1`] = `
       Collectible Identifier
       : 
       123
-    </Component>
-  </Component>
+    </Text>
+  </View>
 </TouchableOpacity>
 `;

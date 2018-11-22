@@ -104,48 +104,46 @@ export default class AddCustomCollectible extends Component {
 		current && current.focus();
 	};
 
-	render() {
-		return (
-			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
-				<ActionView
-					cancelTestID={'add-custom-asset-cancel-button'}
-					confirmTestID={'add-custom-asset-confirm-button'}
-					cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
-					confirmText={strings('add_asset.collectibles.add_collectible')}
-					onCancelPress={this.cancelAddCollectible}
-					onConfirmPress={this.addCollectible}
-				>
-					<View style={styles.rowWrapper}>
-						<Text style={fontStyles.normal}>{strings('collectible.collectible_address')}</Text>
-						<TextInput
-							style={styles.textInput}
-							placeholder={'0x...'}
-							value={this.state.address}
-							onChangeText={this.onAddressChange}
-							onBlur={this.validateCustomCollectibleAddress}
-							testID={'input-collectible-address'}
-							onSubmitEditing={this.jumpToAssetTokenId}
-						/>
-						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
-					</View>
-					<View style={styles.rowWrapper}>
-						<Text style={fontStyles.normal}>{strings('collectible.collectible_token_id')}</Text>
-						<TextInput
-							style={styles.textInput}
-							value={this.state.tokenId}
-							keyboardType="numeric"
-							placeholder={''}
-							onChangeText={this.onTokenIdChange}
-							onBlur={this.validateCustomCollectibleTokenId}
-							testID={'input-token-decimals'}
-							ref={this.assetTokenIdInput}
-							onSubmitEditing={this.addCollectible}
-							returnKeyType={'done'}
-						/>
-						<Text style={styles.warningText}>{this.state.warningTokenId}</Text>
-					</View>
-				</ActionView>
-			</View>
-		);
-	}
+	render = () => (
+		<View style={styles.wrapper} testID={'add-custom-token-screen'}>
+			<ActionView
+				cancelTestID={'add-custom-asset-cancel-button'}
+				confirmTestID={'add-custom-asset-confirm-button'}
+				cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
+				confirmText={strings('add_asset.collectibles.add_collectible')}
+				onCancelPress={this.cancelAddCollectible}
+				onConfirmPress={this.addCollectible}
+			>
+				<View style={styles.rowWrapper}>
+					<Text style={fontStyles.normal}>{strings('collectible.collectible_address')}</Text>
+					<TextInput
+						style={styles.textInput}
+						placeholder={'0x...'}
+						value={this.state.address}
+						onChangeText={this.onAddressChange}
+						onBlur={this.validateCustomCollectibleAddress}
+						testID={'input-collectible-address'}
+						onSubmitEditing={this.jumpToAssetTokenId}
+					/>
+					<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+				</View>
+				<View style={styles.rowWrapper}>
+					<Text style={fontStyles.normal}>{strings('collectible.collectible_token_id')}</Text>
+					<TextInput
+						style={styles.textInput}
+						value={this.state.tokenId}
+						keyboardType="numeric"
+						placeholder={''}
+						onChangeText={this.onTokenIdChange}
+						onBlur={this.validateCustomCollectibleTokenId}
+						testID={'input-token-decimals'}
+						ref={this.assetTokenIdInput}
+						onSubmitEditing={this.addCollectible}
+						returnKeyType={'done'}
+					/>
+					<Text style={styles.warningText}>{this.state.warningTokenId}</Text>
+				</View>
+			</ActionView>
+		</View>
+	);
 }

@@ -113,7 +113,7 @@ export default class AssetOverview extends Component {
 		this.props.navigation.navigate('SendScreen');
 	};
 
-	renderLogo() {
+	renderLogo = () => {
 		const {
 			asset: { address, logo, symbol }
 		} = this.props;
@@ -121,9 +121,9 @@ export default class AssetOverview extends Component {
 			return <Image source={ethLogo} style={styles.ethLogo} />;
 		}
 		return logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />;
-	}
+	};
 
-	render() {
+	render = () => {
 		const {
 			asset: { symbol, balance, balanceFiat }
 		} = this.props;
@@ -161,5 +161,5 @@ export default class AssetOverview extends Component {
 				</View>
 			</LinearGradient>
 		);
-	}
+	};
 }

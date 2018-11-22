@@ -54,7 +54,7 @@ export default class FadeView extends Component {
 		});
 	}
 
-	render() {
+	render = () => {
 		const { style, children, ...rest } = this.props;
 
 		const containerStyle = {
@@ -70,5 +70,5 @@ export default class FadeView extends Component {
 				{this.state.visible ? children : null}
 			</Animated.View>
 		);
-	}
+	};
 }

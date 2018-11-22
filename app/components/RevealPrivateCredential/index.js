@@ -163,7 +163,7 @@ class RevealPrivateCredential extends Component {
 		Alert.alert(strings(`reveal_credential.${privateCredentialName}_copied`));
 	};
 
-	render() {
+	render = () => {
 		const { unlocked, privateCredential } = this.state;
 		const {
 			navigation: {
@@ -237,7 +237,7 @@ class RevealPrivateCredential extends Component {
 				</ActionView>
 			</SafeAreaView>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

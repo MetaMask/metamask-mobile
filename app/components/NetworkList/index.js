@@ -190,27 +190,25 @@ export default class NetworkList extends Component {
 		);
 	}
 
-	render() {
-		return (
-			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
-				<View style={styles.titleWrapper}>
-					<Text testID={'networks-list-title'} style={styles.title} onPress={this.closeSideBar}>
-						{strings('networks.title')}
-					</Text>
+	render = () => (
+		<SafeAreaView style={styles.wrapper} testID={'account-list'}>
+			<View style={styles.titleWrapper}>
+				<Text testID={'networks-list-title'} style={styles.title} onPress={this.closeSideBar}>
+					{strings('networks.title')}
+				</Text>
+			</View>
+			<ScrollView style={styles.networksWrapper}>
+				{this.renderMainnet()}
+				<View style={styles.otherNetworksHeader}>
+					<Text style={styles.otherNetworksText}>{strings('networks.other_networks')}</Text>
 				</View>
-				<ScrollView style={styles.networksWrapper}>
-					{this.renderMainnet()}
-					<View style={styles.otherNetworksHeader}>
-						<Text style={styles.otherNetworksText}>{strings('networks.other_networks')}</Text>
-					</View>
-					{this.renderOtherNetworks()}
-				</ScrollView>
-				<View style={styles.footer}>
-					<TouchableOpacity onPress={this.props.onClose}>
-						<Text style={styles.closeButton}>{strings('networks.close')}</Text>
-					</TouchableOpacity>
-				</View>
-			</SafeAreaView>
-		);
-	}
+				{this.renderOtherNetworks()}
+			</ScrollView>
+			<View style={styles.footer}>
+				<TouchableOpacity onPress={this.props.onClose}>
+					<Text style={styles.closeButton}>{strings('networks.close')}</Text>
+				</TouchableOpacity>
+			</View>
+		</SafeAreaView>
+	);
 }

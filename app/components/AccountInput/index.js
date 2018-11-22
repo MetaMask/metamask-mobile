@@ -172,7 +172,7 @@ class AccountInput extends Component {
 		showQRScanner && showQRScanner();
 	};
 
-	render() {
+	render = () => {
 		const { isOpen } = this.state;
 		const { placeholder, value } = this.props;
 		return (
@@ -193,7 +193,7 @@ class AccountInput extends Component {
 				{isOpen && this.renderOptionList()}
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = ({ backgroundState: { PreferencesController } }) => ({

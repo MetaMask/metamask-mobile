@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SeedWords should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "backgroundColor": "#dfe4ea",
@@ -11,7 +11,7 @@ exports[`SeedWords should render correctly 1`] = `
   }
   testID="seed-words-screen"
 >
-  <Component
+  <Text
     style={
       Object {
         "fontFamily": "Roboto",
@@ -23,7 +23,7 @@ exports[`SeedWords should render correctly 1`] = `
     }
   >
     These are your seed words, make sure you keep them safe!
-  </Component>
+  </Text>
   <TextInput
     allowFontScaling={true}
     multiline={true}
@@ -47,5 +47,5 @@ exports[`SeedWords should render correctly 1`] = `
     underlineColorAndroid="transparent"
     value="one two three four five six seven eight nine ten eleven twelve"
   />
-</Component>
+</View>
 `;

@@ -66,7 +66,7 @@ export default class AddAsset extends Component {
 		);
 	}
 
-	render() {
+	render = () => {
 		const {
 			navigation: {
 				state: {
@@ -95,5 +95,5 @@ export default class AddAsset extends Component {
 				)}
 			</View>
 		);
-	}
+	};
 }

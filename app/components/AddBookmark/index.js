@@ -85,48 +85,46 @@ export default class AddBookmark extends Component {
 		current && current.focus();
 	};
 
-	render() {
-		return (
-			<Screen>
-				<View style={styles.wrapper} testID={'add-bookmark-screen'}>
-					<ActionView
-						cancelTestID={'add-bookmark-cancel-button'}
-						confirmTestID={'add-bookmark-confirm-button'}
-						cancelText={strings('add_bookmark.cancel_button')}
-						confirmText={strings('add_bookmark.add_button')}
-						onCancelPress={this.cancelAddBookmark}
-						onConfirmPress={this.addBookmark}
-					>
-						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('add_bookmark.title_label')}</Text>
-							<TextInput
-								style={styles.textInput}
-								placeholder={''}
-								value={this.state.title}
-								onChangeText={this.onTitleChange}
-								testID={'add-bookmark-title'}
-								onSubmitEditing={this.jumpToUrl}
-								returnKeyType={'next'}
-							/>
-							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
-						</View>
-						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('add_bookmark.url_label')}</Text>
-							<TextInput
-								style={styles.textInput}
-								placeholder={''}
-								value={this.state.url}
-								onChangeText={this.onUrlChange}
-								testID={'add-bookmark-url'}
-								ref={this.urlInput}
-								onSubmitEditing={this.addToken}
-								returnKeyType={'done'}
-							/>
-							<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
-						</View>
-					</ActionView>
-				</View>
-			</Screen>
-		);
-	}
+	render = () => (
+		<Screen>
+			<View style={styles.wrapper} testID={'add-bookmark-screen'}>
+				<ActionView
+					cancelTestID={'add-bookmark-cancel-button'}
+					confirmTestID={'add-bookmark-confirm-button'}
+					cancelText={strings('add_bookmark.cancel_button')}
+					confirmText={strings('add_bookmark.add_button')}
+					onCancelPress={this.cancelAddBookmark}
+					onConfirmPress={this.addBookmark}
+				>
+					<View style={styles.rowWrapper}>
+						<Text style={fontStyles.normal}>{strings('add_bookmark.title_label')}</Text>
+						<TextInput
+							style={styles.textInput}
+							placeholder={''}
+							value={this.state.title}
+							onChangeText={this.onTitleChange}
+							testID={'add-bookmark-title'}
+							onSubmitEditing={this.jumpToUrl}
+							returnKeyType={'next'}
+						/>
+						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
+					</View>
+					<View style={styles.rowWrapper}>
+						<Text style={fontStyles.normal}>{strings('add_bookmark.url_label')}</Text>
+						<TextInput
+							style={styles.textInput}
+							placeholder={''}
+							value={this.state.url}
+							onChangeText={this.onUrlChange}
+							testID={'add-bookmark-url'}
+							ref={this.urlInput}
+							onSubmitEditing={this.addToken}
+							returnKeyType={'done'}
+						/>
+						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+					</View>
+				</ActionView>
+			</View>
+		</Screen>
+	);
 }
