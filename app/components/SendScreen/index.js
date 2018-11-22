@@ -80,6 +80,10 @@ class SendScreen extends Component {
 		this.checkForDeeplinks();
 	}
 
+	componentWillUnmount() {
+		this.mounted = false;
+	}
+
 	componentDidUpdate(prevProps) {
 		const prevNavigation = prevProps.navigation;
 		const { navigation } = this.props;
