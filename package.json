@@ -43,9 +43,7 @@
     ]
   },
   "dependencies": {
-    "@babel/core": "^7.1.6",
     "@tradle/react-native-http": "^2.0.1",
-    "babel-core": "^7.0.0-bridge.0",
     "base-64": "^0.1.0",
     "bignumber.js": "^7.2.1",
     "buffer": "^4.9.1",
@@ -97,7 +95,6 @@
     "redux": "^4.0.0",
     "redux-mock-store": "^1.5.3",
     "redux-persist": "^5.10.0",
-    "regenerator-runtime": "^0.13.1",
     "stream": "0.0.2",
     "stream-browserify": "^1.0.0",
     "url": "^0.10.3",
@@ -106,7 +103,9 @@
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.1.6",
     "assert": "^1.4.1",
+    "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^23.6.0",
     "concat-cli": "^4.0.0",
     "detox": "^9.0.4",
@@ -122,6 +121,7 @@
     "prettier": "1.13.7",
     "react-dom": "^16.6.0",
     "react-test-renderer": "^16.6.3",
+    "regenerator-runtime": "^0.13.1",
     "rn-nodeify": "github:tradle/rn-nodeify",
     "web3": "^0.20.7"
   },
