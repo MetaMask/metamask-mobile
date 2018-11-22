@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
 	addText: {
 		fontSize: 15,
 		color: colors.primary,
-		textTransform: 'uppercase',
 		...fontStyles.normal
 	}
 });
@@ -81,7 +80,7 @@ export default class Collectibles extends Component {
 						testID={'add-collectible-button'}
 					>
 						<Icon name="plus" size={16} color={colors.primary} />
-						<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
+						<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
 					</TouchableOpacity>
 				</View>
 			</ScrollView>

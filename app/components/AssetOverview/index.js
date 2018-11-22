@@ -64,11 +64,10 @@ const styles = StyleSheet.create({
 		marginLeft: 10
 	},
 	buttonText: {
-		marginLeft: Platform.OS === 'ios' ? 8 : 28,
-		marginTop: Platform.OS === 'ios' ? 0 : -17,
+		marginLeft: 8,
+		marginTop: Platform.OS === 'ios' ? 0 : -2,
 		fontSize: 15,
 		color: colors.white,
-		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	buttonContent: {
@@ -81,6 +80,9 @@ const styles = StyleSheet.create({
 		width: 15,
 		height: 15,
 		marginTop: 0
+	},
+	flexRow: {
+		flexDirection: 'row'
 	}
 });
 
@@ -141,18 +143,20 @@ export default class AssetOverview extends Component {
 						onPress={this.onSend}
 						containerStyle={[styles.button, styles.leftButton]}
 						style={styles.buttonContent}
+						childGroupStyle={styles.flexRow}
 					>
 						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('asset_overview.send_button')}</Text>
+						<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
 					</StyledButton>
 					<StyledButton
 						type={'confirm'}
 						onPress={this.onDeposit}
 						containerStyle={[styles.button, styles.rightButton]}
 						style={styles.buttonContent}
+						childGroupStyle={styles.flexRow}
 					>
 						<FoundationIcon name={'download'} size={20} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('asset_overview.receive_button')}</Text>
+						<Text style={styles.buttonText}>{strings('asset_overview.receive_button').toUpperCase()}</Text>
 					</StyledButton>
 				</View>
 			</LinearGradient>
