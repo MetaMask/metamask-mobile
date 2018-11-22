@@ -91,6 +91,7 @@
     "react-native-web3-webview": "^1.2.1",
     "react-navigation": "^2.6.2",
     "react-redux": "^5.0.7",
+    "react-test-renderer": "^16.6.3",
     "readable-stream": "^1.0.33",
     "redux": "^4.0.0",
     "redux-mock-store": "^1.5.3",
