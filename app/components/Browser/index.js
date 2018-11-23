@@ -254,6 +254,9 @@ export class Browser extends Component {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
+		Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams => {
+			this.props.navigation.push('EthSign', { messageParams });
+		});
 		this.loadUrl();
 		this.loadBookmarks();
 	}
