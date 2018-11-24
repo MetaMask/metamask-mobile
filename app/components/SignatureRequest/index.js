@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { fromWei } from '../../util/number';
+import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
 	root: {
@@ -14,7 +15,40 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	text: {
-		...fontStyles.normal
+		...fontStyles.normal,
+		fontSize: 16,
+		padding: 5
+	},
+	accountInformation: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		margin: 20
+	},
+	account: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	identicon: {
+		padding: 5
+	},
+	warningText: {
+		...fontStyles.normal,
+		color: colors.red,
+		textAlign: 'center',
+		padding: 10
+	},
+	signatureText: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		fontSize: 20,
+		padding: 10,
+		color: colors.black
+	},
+	children: {
+		flex: 1,
+		borderTopColor: colors.lightGray,
+		borderTopWidth: 1
 	}
 });
 
@@ -27,6 +61,10 @@ class SignatureRequest extends Component {
 		 * Map of accounts to information objects including balances
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object,
 		/**
 		 * Callback triggered when this message signature is rejected
 		 */
@@ -50,8 +88,9 @@ class SignatureRequest extends Component {
 	};
 
 	render() {
-		const { children, message, accounts, selectedAddress } = this.props;
+		const { children, message, accounts, selectedAddress, identities } = this.props;
 		const balance = fromWei(accounts[selectedAddress].balance, 'ether');
+		const accountLabel = identities[selectedAddress].name;
 		return (
 			<View style={styles.root}>
 				<ActionView
@@ -62,16 +101,30 @@ class SignatureRequest extends Component {
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}
 				>
-					<View>
-						<Text style={styles.text}>{strings('signature_request.sign_requested')}</Text>
+					<View style={styles.accountInformation}>
+						<View>
+							<Text>{strings('signature_request.account_title')}</Text>
+							<View style={styles.account}>
+								<View style={styles.identicon}>
+									<Identicon address={selectedAddress} diameter={20} />
+								</View>
+								<Text style={styles.text}>{accountLabel}</Text>
+							</View>
+						</View>
+						<View>
+							<Text>{strings('signature_request.balance_title')}</Text>
+							<Text style={styles.text}>{balance} ETH</Text>
+						</View>
 					</View>
-					<View>
-						<Text style={styles.text}>
-							{selectedAddress} {balance}
-						</Text>
-						<Text style={styles.text}>{message || strings('signature_request.signing')}</Text>
+					<Text style={styles.signatureText}>{strings('signature_request.sign_requested')}</Text>
+					{message ? (
+						<Text style={styles.warningText}>{message}</Text>
+					) : (
+						<Text style={styles.text}>{strings('signature_request.signing')}</Text>
+					)}
+					<View style={styles.children}>
+						<KeyboardAwareScrollView>{children}</KeyboardAwareScrollView>
 					</View>
-					<KeyboardAwareScrollView>{children}</KeyboardAwareScrollView>
 				</ActionView>
 			</View>
 		);
@@ -80,7 +133,8 @@ class SignatureRequest extends Component {
 
 const mapStateToProps = state => ({
 	accounts: state.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	identities: state.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(SignatureRequest);

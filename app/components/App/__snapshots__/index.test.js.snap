@@ -28,6 +28,7 @@ exports[`App should render correctly 1`] = `
                           "Approval": null,
                           "BrowserHome": null,
                           "BrowserView": null,
+                          "EthSign": null,
                         },
                         "getActionCreators": [Function],
                         "getActionForPathAndParams": [Function],

@@ -11,8 +11,20 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	text: {
-		...fontStyles.normal
+	informationRow: {
+		borderBottomColor: colors.lightGray,
+		borderBottomWidth: 1,
+		padding: 20
+	},
+	messageLabelText: {
+		...fontStyles.normal,
+		margin: 5,
+		fontSize: 16
+	},
+	messageText: {
+		...fontStyles.normal,
+		margin: 5,
+		color: colors.black
 	}
 });
 
@@ -76,10 +88,9 @@ export default class EthSign extends Component {
 					onConfirm={this.confirmSignature}
 					message={strings('signature_request.eth_sign.warning')}
 				>
-					<View>
-						<Text style={styles.text}>{strings('signature_request.eth_sign.message')}</Text>
-						<Text style={styles.text}>{messageParams.data}</Text>
-						<Text style={styles.text}>{messageParams.metamaskId}</Text>
+					<View style={styles.informationRow}>
+						<Text style={styles.messageLabelText}>{strings('signature_request.eth_sign.message')}</Text>
+						<Text style={styles.messageText}>{messageParams.data}</Text>
 					</View>
 				</SignatureRequest>
 			</View>

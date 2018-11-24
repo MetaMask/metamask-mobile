@@ -203,6 +203,8 @@
 		"sign": "FIRMAR",
 		"sign_requested": "Tu firma es solicitada",
 		"signing": "Estás firmando",
+		"account_title": "Cuenta:",
+		"balance_title": "Balance:",
 		"eth_sign": {
 			"warning":
 				"Firmar este mensaje puede tener efectos secundarios peligrosos. Solo firme mensajes de sitios en los que confíe plenamente con toda su cuenta. Este método peligroso será eliminado en una versión futura.",

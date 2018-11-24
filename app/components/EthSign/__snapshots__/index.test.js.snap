@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EthSign should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <Connect(SignatureRequest)
+    message="Signing this message can have dangerous side effects. Only sign messages from sites you fully trust with your entire account. This dangerous method will be removed in a future version."
+    navigation={
+      Object {
+        "state": Object {
+          "params": Object {
+            "messageParams": Object {
+              "from": "0x2",
+              "message": "0x879",
+            },
+          },
+        },
+      }
+    }
+    onCancel={[Function]}
+    onConfirm={[Function]}
+  >
+    <Component
+      style={
+        Object {
+          "borderBottomColor": "#d2d8dd",
+          "borderBottomWidth": 1,
+          "padding": 20,
+        }
+      }
+    >
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "margin": 5,
+          }
+        }
+      >
+        Message:
+      </Component>
+      <Component
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "margin": 5,
+          }
+        }
+      />
+    </Component>
+  </Connect(SignatureRequest)>
+</View>
+`;
