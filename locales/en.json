@@ -323,5 +323,17 @@
 	"select": {
 		"cancel": "Cancel",
 		"done": "Done"
+	},
+	"signature_request": {
+		"title": "Signature Request",
+		"cancel": "CANCEL",
+		"sign": "SIGN",
+		"sign_requested": "Your signature is being requested",
+		"signing": "You are signing",
+		"eth_sign": {
+			"warning":
+				"Signing this message can have dangerous side effects. Only sign messages from sites you fully trust with your entire account. This dangerous method will be removed in a future version.",
+			"message": "Message:"
+		}
 	}
 }

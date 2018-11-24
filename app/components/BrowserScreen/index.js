@@ -2,6 +2,7 @@ import Browser from '../Browser';
 import BrowserHome from '../BrowserHome';
 import AddBookmark from '../AddBookmark';
 import Approval from '../Approval';
+import EthSign from '../EthSign';
 import { createStackNavigator } from 'react-navigation';
 
 /**
@@ -21,6 +22,9 @@ export default createStackNavigator(
 		},
 		Approval: {
 			screen: Approval
+		},
+		EthSign: {
+			screen: EthSign
 		}
 	},
 	{

@@ -1,0 +1,88 @@
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { StyleSheet, View, Text } from 'react-native';
+import { colors, fontStyles } from '../../styles/common';
+import Engine from '../../core/Engine';
+import SignatureRequest from '../SignatureRequest';
+import { strings } from '../../../locales/i18n';
+
+const styles = StyleSheet.create({
+	root: {
+		backgroundColor: colors.white,
+		flex: 1
+	},
+	text: {
+		...fontStyles.normal
+	}
+});
+
+/**
+ * Component that supports eth_sign
+ */
+export default class EthSign extends Component {
+	static navigationOptions = () => ({
+		title: strings('signature_request.title'),
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		}
+	});
+	static propTypes = {
+		/**
+		 * react-navigation object used for switching between screens
+		 */
+		navigation: PropTypes.object
+	};
+
+	signMessage = async () => {
+		const {
+			params: { messageParams }
+		} = this.props.navigation.state;
+		const { KeyringController, MessageManager } = Engine.context;
+		const messageId = messageParams.metamaskId;
+		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
+		const rawSig = await KeyringController.signMessage(cleanMessageParams);
+		MessageManager.setMessageStatusSigned(messageId, rawSig);
+	};
+
+	rejectMessage = () => {
+		const {
+			params: { messageParams }
+		} = this.props.navigation.state;
+		const { MessageManager } = Engine.context;
+		const messageId = messageParams.metamaskId;
+		MessageManager.rejectMessage(messageId);
+	};
+
+	cancelSignature = () => {
+		this.rejectMessage();
+		this.props.navigation.pop();
+	};
+
+	confirmSignature = () => {
+		this.signMessage();
+		this.props.navigation.pop();
+	};
+
+	render() {
+		const {
+			params: { messageParams }
+		} = this.props.navigation.state;
+		return (
+			<View style={styles.root}>
+				<SignatureRequest
+					navigation={this.props.navigation}
+					onCancel={this.cancelSignature}
+					onConfirm={this.confirmSignature}
+					message={strings('signature_request.eth_sign.warning')}
+				>
+					<View>
+						<Text style={styles.text}>{strings('signature_request.eth_sign.message')}</Text>
+						<Text style={styles.text}>{messageParams.data}</Text>
+						<Text style={styles.text}>{messageParams.metamaskId}</Text>
+					</View>
+				</SignatureRequest>
+			</View>
+		);
+	}
+}
