@@ -54,7 +54,7 @@ export default class PersonalSign extends Component {
 		const { KeyringController, PersonalMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		const cleanMessageParams = await PersonalMessageManager.approveMessage(messageParams);
-		const rawSig = await KeyringController.signMessage(cleanMessageParams);
+		const rawSig = await KeyringController.signPersonalMessage(cleanMessageParams);
 		PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
 	};
 
