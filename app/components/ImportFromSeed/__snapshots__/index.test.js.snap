@@ -24,10 +24,10 @@ exports[`ImportFromSeed should render correctly 1`] = `
     }
     viewIsInsideTabBar={false}
   >
-    <Component
+    <View
       testID="import-from-seed-screen"
     >
-      <Component
+      <Text
         style={
           Object {
             "color": "#1B344D",
@@ -42,7 +42,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         }
       >
         Import from seed
-      </Component>
+      </Text>
       <TextInput
         allowFontScaling={true}
         blurOnSubmit={true}
@@ -73,14 +73,14 @@ exports[`ImportFromSeed should render correctly 1`] = `
         testID="input-seed-phrase"
         underlineColorAndroid="transparent"
       />
-      <Component
+      <View
         style={
           Object {
             "marginBottom": 10,
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontSize": 16,
@@ -90,7 +90,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         >
           New Password (min. 8 characters)
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -113,15 +113,15 @@ exports[`ImportFromSeed should render correctly 1`] = `
           underlineColorAndroid="#CCCCCC"
           value=""
         />
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "marginBottom": 10,
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontSize": 16,
@@ -131,7 +131,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
         >
           Confirm Password
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -154,8 +154,8 @@ exports[`ImportFromSeed should render correctly 1`] = `
           underlineColorAndroid="#CCCCCC"
           value=""
         />
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "marginTop": 20,
@@ -179,8 +179,8 @@ exports[`ImportFromSeed should render correctly 1`] = `
         >
           IMPORT
         </StyledButton>
-      </Component>
-    </Component>
+      </View>
+    </View>
   </KeyboardAwareScrollView>
 </Screen>
 `;

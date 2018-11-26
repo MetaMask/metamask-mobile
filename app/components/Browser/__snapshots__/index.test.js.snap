@@ -9,7 +9,7 @@ exports[`Browser should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <View
     style={
       Object {
         "height": 3,
@@ -18,8 +18,8 @@ exports[`Browser should render correctly 1`] = `
     }
   >
     <WebviewProgressBar />
-  </Component>
-  <Component
+  </View>
+  <View
     style={
       Object {
         "alignItems": "center",
@@ -30,9 +30,12 @@ exports[`Browser should render correctly 1`] = `
     }
   >
     <Component
+      animating={true}
+      color="#999999"
+      hidesWhenStopped={true}
       size="small"
     />
-  </Component>
+  </View>
   <ReactNativeModal
     animationIn="slideInDown"
     animationInTiming={600}
@@ -69,7 +72,7 @@ exports[`Browser should render correctly 1`] = `
     swipeThreshold={100}
     useNativeDriver={false}
   >
-    <Component
+    <View
       style={
         Object {
           "backgroundColor": "#FFFFFF",
@@ -120,7 +123,7 @@ exports[`Browser should render correctly 1`] = `
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "color": "#008edf",
@@ -131,9 +134,9 @@ exports[`Browser should render correctly 1`] = `
           }
         >
           Cancel
-        </Component>
+        </Text>
       </TouchableOpacity>
-    </Component>
+    </View>
   </ReactNativeModal>
   <AnimatedComponent
     style={
@@ -149,7 +152,7 @@ exports[`Browser should render correctly 1`] = `
       ]
     }
   >
-    <Component
+    <View
       style={
         Object {
           "alignContent": "flex-start",
@@ -191,8 +194,8 @@ exports[`Browser should render correctly 1`] = `
           }
         }
       />
-    </Component>
-    <Component
+    </View>
+    <View
       style={
         Object {
           "alignContent": "flex-end",
@@ -222,7 +225,7 @@ exports[`Browser should render correctly 1`] = `
           ]
         }
       />
-    </Component>
+    </View>
   </AnimatedComponent>
 </SafeAreaView>
 `;

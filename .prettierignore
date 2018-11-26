@@ -10,3 +10,5 @@ package-lock.json
 package.json
 app/util/blockies.js
 /shim.js
+babel.config.js
+jest.preprocessor.js

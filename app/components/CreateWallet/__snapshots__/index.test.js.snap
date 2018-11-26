@@ -24,10 +24,10 @@ exports[`CreateWallet should render correctly 1`] = `
     }
     viewIsInsideTabBar={false}
   >
-    <Component
+    <View
       testID="create-password-screen"
     >
-      <Component
+      <Text
         style={
           Object {
             "color": "#1B344D",
@@ -42,15 +42,15 @@ exports[`CreateWallet should render correctly 1`] = `
         }
       >
         Create New Wallet
-      </Component>
-      <Component
+      </Text>
+      <View
         style={
           Object {
             "marginBottom": 10,
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontSize": 16,
@@ -60,7 +60,7 @@ exports[`CreateWallet should render correctly 1`] = `
           }
         >
           Password (min. 8 characters)
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -83,15 +83,15 @@ exports[`CreateWallet should render correctly 1`] = `
           underlineColorAndroid="#CCCCCC"
           value=""
         />
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "marginBottom": 10,
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontSize": 16,
@@ -101,7 +101,7 @@ exports[`CreateWallet should render correctly 1`] = `
           }
         >
           Confirm Password
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -124,8 +124,8 @@ exports[`CreateWallet should render correctly 1`] = `
           underlineColorAndroid="#CCCCCC"
           value=""
         />
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "marginTop": 20,
@@ -149,8 +149,8 @@ exports[`CreateWallet should render correctly 1`] = `
         >
           CREATE
         </StyledButton>
-      </Component>
-    </Component>
+      </View>
+    </View>
   </KeyboardAwareScrollView>
 </Screen>
 `;

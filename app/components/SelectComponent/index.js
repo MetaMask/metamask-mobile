@@ -92,67 +92,50 @@ export default class SelectComponent extends Component {
 		return '';
 	};
 
-	renderAndroid() {
-		return (
-			<View style={baseStyles.flexGrow}>
-				<Picker
-					selectedValue={this.props.selectedValue}
-					onValueChange={this.onValueChange}
-					prompt={this.props.label}
-				>
-					{this.props.options.map(option => (
-						<PickerItem value={option.value} label={option.label} key={option.key} />
-					))}
-				</Picker>
-			</View>
-		);
-	}
+	renderAndroid = () => (
+		<View style={baseStyles.flexGrow}>
+			<Picker
+				selectedValue={this.props.selectedValue}
+				onValueChange={this.onValueChange}
+				prompt={this.props.label}
+			>
+				{this.props.options.map(option => (
+					<PickerItem value={option.value} label={option.label} key={option.key} />
+				))}
+			</Picker>
+		</View>
+	);
 
-	renderIOS() {
-		return (
-			<View style={baseStyles.flexGrow}>
-				<TouchableOpacity onPress={this.showPicker}>
-					<View style={styles.dropdown}>
-						<Text style={styles.selectedOption} numberOfLines={1}>
-							{this.getSelectedValue()}
-						</Text>
-						<Icon
-							name={'arrow-drop-down'}
-							size={24}
-							color={colors.fontPrimary}
-							style={styles.iconDropdown}
-						/>
+	renderIOS = () => (
+		<View style={baseStyles.flexGrow}>
+			<TouchableOpacity onPress={this.showPicker}>
+				<View style={styles.dropdown}>
+					<Text style={styles.selectedOption} numberOfLines={1}>
+						{this.getSelectedValue()}
+					</Text>
+					<Icon name={'arrow-drop-down'} size={24} color={colors.fontPrimary} style={styles.iconDropdown} />
+				</View>
+			</TouchableOpacity>
+			<Modal isVisible={this.state.pickerVisible} style={styles.bottomModal} onBackdropPress={this.hidePicker}>
+				<View style={styles.modalContent}>
+					<View style={styles.accesoryBar}>
+						<Text style={styles.label}>{this.props.label}</Text>
 					</View>
-				</TouchableOpacity>
-				<Modal
-					isVisible={this.state.pickerVisible}
-					style={styles.bottomModal}
-					onBackdropPress={this.hidePicker}
-				>
-					<View style={styles.modalContent}>
-						<View style={styles.accesoryBar}>
-							<Text style={styles.label}>{this.props.label}</Text>
-						</View>
-						<Picker
-							itemStyle={styles.itemStyle}
-							selectedValue={this.props.selectedValue}
-							onValueChange={this.onValueChange}
-						>
-							{this.props.options.map(option => (
-								<PickerItem value={option.value} label={option.label} key={option.key} />
-							))}
-						</Picker>
-					</View>
-				</Modal>
-			</View>
-		);
-	}
+					<Picker
+						itemStyle={styles.itemStyle}
+						selectedValue={this.props.selectedValue}
+						onValueChange={this.onValueChange}
+					>
+						{this.props.options.map(option => (
+							<PickerItem value={option.value} label={option.label} key={option.key} />
+						))}
+					</Picker>
+				</View>
+			</Modal>
+		</View>
+	);
 
-	render() {
-		return (
-			<View style={baseStyles.flexGrow}>
-				{Platform.OS === 'android' ? this.renderAndroid() : this.renderIOS()}
-			</View>
-		);
-	}
+	render = () => (
+		<View style={baseStyles.flexGrow}>{Platform.OS === 'android' ? this.renderAndroid() : this.renderIOS()}</View>
+	);
 }

@@ -93,26 +93,24 @@ export default class QrScanner extends Component {
 		});
 	};
 
-	render() {
-		return (
-			<View style={styles.container}>
-				<RNCamera
-					style={styles.preview}
-					type={'back'}
-					onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}
-					flashMode={'auto'}
-					permissionDialogTitle={strings('qr_scanner.allow_camera_dialog_title')}
-					permissionDialogMessage={strings('qr_scanner.allow_camera_dialog_message')}
-				>
-					<SafeAreaView style={styles.innerView}>
-						<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
-							<Icon name={'ios-close'} size={50} color={'white'} />
-						</TouchableOpacity>
-						<Image source={frameImage} style={styles.frame} />
-						<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
-					</SafeAreaView>
-				</RNCamera>
-			</View>
-		);
-	}
+	render = () => (
+		<View style={styles.container}>
+			<RNCamera
+				style={styles.preview}
+				type={'back'}
+				onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}
+				flashMode={'auto'}
+				permissionDialogTitle={strings('qr_scanner.allow_camera_dialog_title')}
+				permissionDialogMessage={strings('qr_scanner.allow_camera_dialog_message')}
+			>
+				<SafeAreaView style={styles.innerView}>
+					<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
+						<Icon name={'ios-close'} size={50} color={'white'} />
+					</TouchableOpacity>
+					<Image source={frameImage} style={styles.frame} />
+					<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
+				</SafeAreaView>
+			</RNCamera>
+		</View>
+	);
 }

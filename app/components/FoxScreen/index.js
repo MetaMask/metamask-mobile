@@ -27,11 +27,9 @@ const foxImage = require('../../images/fox.png'); // eslint-disable-line import/
  * in the middle of the screen
  */
 export default class FoxScreen extends Component {
-	render() {
-		return (
-			<View style={styles.wrapper} testID={'fox-screen'}>
-				<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-			</View>
-		);
-	}
+	render = () => (
+		<View style={styles.wrapper} testID={'fox-screen'}>
+			<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+		</View>
+	);
 }

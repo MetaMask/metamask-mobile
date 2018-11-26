@@ -24,7 +24,7 @@ export default class IdenticonComponent extends Component {
 		diameter: 46
 	};
 
-	render() {
+	render = () => {
 		const { diameter, address } = this.props;
 
 		return address ? (
@@ -37,5 +37,5 @@ export default class IdenticonComponent extends Component {
 				}}
 			/>
 		) : null;
-	}
+	};
 }

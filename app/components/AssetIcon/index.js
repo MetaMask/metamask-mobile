@@ -26,10 +26,10 @@ export default class AssetIcon extends Component {
 		logo: PropTypes.string
 	};
 
-	render() {
+	render = () => {
 		const { logo } = this.props;
 		if (!logo) return;
 		const uri = getAssetLogoPath(logo);
 		return logo ? <Image source={{ uri }} style={styles.logo} /> : null;
-	}
+	};
 }

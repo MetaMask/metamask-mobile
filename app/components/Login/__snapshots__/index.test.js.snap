@@ -24,10 +24,10 @@ exports[`Login should render correctly 1`] = `
     }
     viewIsInsideTabBar={false}
   >
-    <Component
+    <View
       testID="login"
     >
-      <Component
+      <View
         style={
           Object {
             "alignItems": "center",
@@ -36,7 +36,7 @@ exports[`Login should render correctly 1`] = `
           }
         }
       >
-        <Image
+        <Component
           resizeMethod="auto"
           source={
             Object {
@@ -50,8 +50,8 @@ exports[`Login should render correctly 1`] = `
             }
           }
         />
-      </Component>
-      <Component
+      </View>
+      <Text
         style={
           Object {
             "color": "#1B344D",
@@ -66,15 +66,15 @@ exports[`Login should render correctly 1`] = `
         }
       >
         Welcome Back!
-      </Component>
-      <Component
+      </Text>
+      <View
         style={
           Object {
             "marginBottom": 10,
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontSize": 16,
@@ -84,7 +84,7 @@ exports[`Login should render correctly 1`] = `
           }
         >
           Password
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -106,8 +106,8 @@ exports[`Login should render correctly 1`] = `
           underlineColorAndroid="#CCCCCC"
           value=""
         />
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "marginTop": 20,
@@ -130,8 +130,8 @@ exports[`Login should render correctly 1`] = `
         >
           LOG IN
         </StyledButton>
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "marginTop": 40,
@@ -150,8 +150,8 @@ exports[`Login should render correctly 1`] = `
         >
           Go Back
         </Button>
-      </Component>
-    </Component>
+      </View>
+    </View>
   </KeyboardAwareScrollView>
 </Screen>
 `;

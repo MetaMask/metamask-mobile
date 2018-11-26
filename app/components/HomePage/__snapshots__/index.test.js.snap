@@ -16,7 +16,7 @@ exports[`HomePage should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <View
     style={
       Object {
         "alignItems": "center",
@@ -26,7 +26,7 @@ exports[`HomePage should render correctly 1`] = `
       }
     }
   >
-    <Image
+    <Component
       resizeMethod="auto"
       source={
         Object {
@@ -40,8 +40,8 @@ exports[`HomePage should render correctly 1`] = `
         }
       }
     />
-  </Component>
-  <Component
+  </View>
+  <View
     style={
       Object {
         "alignItems": "center",
@@ -49,7 +49,7 @@ exports[`HomePage should render correctly 1`] = `
       }
     }
   >
-    <Component
+    <Text
       style={
         Object {
           "color": "#4a4a4a",
@@ -64,8 +64,8 @@ exports[`HomePage should render correctly 1`] = `
       }
     >
       Let's get started!
-    </Component>
-    <Component
+    </Text>
+    <Text
       style={
         Object {
           "color": "#999999",
@@ -76,7 +76,7 @@ exports[`HomePage should render correctly 1`] = `
       }
     >
       The decentralized web awaits
-    </Component>
+    </Text>
     <TextInput
       allowFontScaling={true}
       autoCapitalize="none"
@@ -106,7 +106,7 @@ exports[`HomePage should render correctly 1`] = `
       underlineColorAndroid="transparent"
       value=""
     />
-    <Component
+    <View
       style={
         Object {
           "alignSelf": "flex-start",
@@ -114,7 +114,7 @@ exports[`HomePage should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "color": "#4a4a4a",
@@ -128,9 +128,9 @@ exports[`HomePage should render correctly 1`] = `
         }
       >
         Bookmarks
-      </Component>
-      <Component>
-        <Component
+      </Text>
+      <View>
+        <Text
           style={
             Object {
               "color": "#999999",
@@ -140,8 +140,8 @@ exports[`HomePage should render correctly 1`] = `
           }
         >
           Your bookmarks will show up here
-        </Component>
-      </Component>
+        </Text>
+      </View>
       <ActionSheet
         cancelButtonIndex={1}
         destructiveButtonIndex={0}
@@ -154,7 +154,7 @@ exports[`HomePage should render correctly 1`] = `
         }
         title="Do you want to remove this bookmark?"
       />
-    </Component>
-  </Component>
+    </View>
+  </View>
 </ScrollView>
 `;

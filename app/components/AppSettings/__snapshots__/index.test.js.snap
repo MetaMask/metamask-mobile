@@ -31,7 +31,7 @@ exports[`AppSettings should render correctly 1`] = `
       onConfirmPress={[Function]}
       onRequestClose={[Function]}
     >
-      <Component
+      <View
         style={
           Object {
             "alignItems": "center",
@@ -42,7 +42,7 @@ exports[`AppSettings should render correctly 1`] = `
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontFamily": "Roboto",
@@ -53,8 +53,8 @@ exports[`AppSettings should render correctly 1`] = `
           }
         >
           Reset Account?
-        </Component>
-        <Component
+        </Text>
+        <Text
           style={
             Object {
               "fontFamily": "Roboto",
@@ -65,10 +65,10 @@ exports[`AppSettings should render correctly 1`] = `
           }
         >
           Resetting your account will clear your transaction history.
-        </Component>
-      </Component>
+        </Text>
+      </View>
     </ActionModal>
-    <Component
+    <View
       style={
         Object {
           "marginBottom": 22,
@@ -76,7 +76,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -88,8 +88,8 @@ exports[`AppSettings should render correctly 1`] = `
         }
       >
         Base Currency
-      </Component>
-      <Component
+      </Text>
+      <View
         style={
           Object {
             "borderColor": "#f1f2f6",
@@ -402,9 +402,9 @@ exports[`AppSettings should render correctly 1`] = `
           }
           selectedValue="usd"
         />
-      </Component>
-    </Component>
-    <Component
+      </View>
+    </View>
+    <View
       style={
         Object {
           "marginBottom": 22,
@@ -412,7 +412,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -424,8 +424,8 @@ exports[`AppSettings should render correctly 1`] = `
         }
       >
         Current Language
-      </Component>
-      <Component
+      </Text>
+      <View
         style={
           Object {
             "borderColor": "#f1f2f6",
@@ -434,8 +434,8 @@ exports[`AppSettings should render correctly 1`] = `
           }
         }
       />
-    </Component>
-    <Component
+    </View>
+    <View
       style={
         Object {
           "marginBottom": 22,
@@ -443,7 +443,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -455,7 +455,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       >
         New RPC URL
-      </Component>
+      </Text>
       <TextInput
         allowFontScaling={true}
         onChangeText={[Function]}
@@ -471,7 +471,7 @@ exports[`AppSettings should render correctly 1`] = `
         underlineColorAndroid="transparent"
         value=""
       />
-      <Component
+      <Text
         style={
           Object {
             "color": "#FF0000",
@@ -491,7 +491,7 @@ exports[`AppSettings should render correctly 1`] = `
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontFamily": "Roboto",
@@ -502,10 +502,10 @@ exports[`AppSettings should render correctly 1`] = `
           }
         >
           SAVE
-        </Component>
+        </Text>
       </TouchableOpacity>
-    </Component>
-    <Component
+    </View>
+    <View
       style={
         Object {
           "marginBottom": 22,
@@ -513,7 +513,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -525,7 +525,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       >
         Sync with Metamask Extension
-      </Component>
+      </Text>
       <StyledButton
         disabledContainerStyle={
           Object {
@@ -542,8 +542,8 @@ exports[`AppSettings should render correctly 1`] = `
       >
         SYNC
       </StyledButton>
-    </Component>
-    <Component
+    </View>
+    <View
       style={
         Object {
           "marginBottom": 22,
@@ -551,7 +551,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -563,7 +563,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       >
         Reveal Seed Words
-      </Component>
+      </Text>
       <StyledButton
         disabledContainerStyle={
           Object {
@@ -580,8 +580,8 @@ exports[`AppSettings should render correctly 1`] = `
       >
         REVEAL SEED WORDS
       </StyledButton>
-    </Component>
-    <Component
+    </View>
+    <View
       style={
         Object {
           "marginBottom": 22,
@@ -589,7 +589,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -601,7 +601,7 @@ exports[`AppSettings should render correctly 1`] = `
         }
       >
         Reset Account
-      </Component>
+      </Text>
       <StyledButton
         disabledContainerStyle={
           Object {
@@ -618,7 +618,7 @@ exports[`AppSettings should render correctly 1`] = `
       >
         RESET ACCOUNT
       </StyledButton>
-    </Component>
+    </View>
   </ScrollView>
 </SafeAreaView>
 `;

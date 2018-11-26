@@ -222,23 +222,21 @@ export default class AccountList extends Component {
 		});
 	}
 
-	render() {
-		return (
-			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
-				<View style={styles.titleWrapper}>
-					<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
-						{strings('accounts.title')}
-					</Text>
-				</View>
-				<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
-					{this.renderAccounts()}
-				</ScrollView>
-				<View style={styles.footer}>
-					<TouchableOpacity onPress={this.addAccount}>
-						<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
-					</TouchableOpacity>
-				</View>
-			</SafeAreaView>
-		);
-	}
+	render = () => (
+		<SafeAreaView style={styles.wrapper} testID={'account-list'}>
+			<View style={styles.titleWrapper}>
+				<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
+					{strings('accounts.title')}
+				</Text>
+			</View>
+			<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
+				{this.renderAccounts()}
+			</ScrollView>
+			<View style={styles.footer}>
+				<TouchableOpacity onPress={this.addAccount}>
+					<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
+				</TouchableOpacity>
+			</View>
+		</SafeAreaView>
+	);
 }

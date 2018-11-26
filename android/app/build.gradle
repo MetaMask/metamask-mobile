@@ -141,7 +141,7 @@ android {
             reset()
             enable enableSeparateBuildPerCPUArchitecture
             universalApk false  // If true, also generate a universal APK
-            include "armeabi-v7a", "x86"
+            include "armeabi-v7a", "x86", "arm64-v8a"
         }
     }
     buildTypes {
@@ -155,7 +155,7 @@ android {
         variant.outputs.each { output ->
             // For each separate APK per architecture, set a unique version code as described here:
             // http://tools.android.com/tech-docs/new-build-system/user-guide/apk-splits
-            def versionCodes = ["armeabi-v7a":1, "x86":2]
+            def versionCodes = ["armeabi-v7a":1, "x86":2, "arm64-v8a": 3]
             def abi = output.getFilter(OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
                 output.versionCodeOverride =
@@ -166,7 +166,7 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-branch')
+    api project(':react-native-branch')
     api project(':react-native-web3-webview')
     api project(':react-native-camera')
     api project(':react-native-share')
@@ -182,8 +182,8 @@ dependencies {
     api project(':react-native-fs')
     api project(':react-native-vector-icons')
     api fileTree(dir: "libs", include: ["*.jar"])
-    api "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
-    api "com.facebook.react:react-native:+"  // From node_modules
+    implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+    implementation "com.facebook.react:react-native:+"  // From node_modules
     api('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }

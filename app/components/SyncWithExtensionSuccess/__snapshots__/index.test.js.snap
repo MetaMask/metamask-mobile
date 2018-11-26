@@ -2,7 +2,7 @@
 
 exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
 <Screen>
-  <Component
+  <View
     style={
       Object {
         "alignItems": "center",
@@ -13,7 +13,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
     }
     testID="sync-with-extension-screen"
   >
-    <Component
+    <Text
       style={
         Object {
           "color": "#4a4a4a",
@@ -28,7 +28,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
       }
     >
       Sync completed
-    </Component>
+    </Text>
     <AnimatedComponent
       style={
         Array [
@@ -55,8 +55,8 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
         }
       />
     </AnimatedComponent>
-    <Component>
-      <Component
+    <View>
+      <Text
         style={
           Object {
             "color": "#4a4a4a",
@@ -69,7 +69,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
         }
       >
         We have synchronized all the information from your MetaMask extension and now you're ready to go!
-      </Component>
+      </Text>
       <StyledButton
         containerStyle={
           Object {
@@ -91,7 +91,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
       >
         Continue
       </StyledButton>
-    </Component>
-  </Component>
+    </View>
+  </View>
 </Screen>
 `;

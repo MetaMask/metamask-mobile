@@ -25,12 +25,12 @@ export default class TokenElement extends Component {
 		asset: PropTypes.object
 	};
 
-	render() {
+	render = () => {
 		const { asset } = this.props;
 		return (
 			<View style={styles.itemLogoWrapper}>
 				{asset.logo ? <AssetIcon logo={asset.logo} /> : <Identicon address={asset.address} />}
 			</View>
 		);
-	}
+	};
 }

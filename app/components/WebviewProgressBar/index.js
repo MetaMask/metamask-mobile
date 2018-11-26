@@ -48,19 +48,17 @@ export default class WebviewProgressBar extends Component {
 		this.mounted && this.setState({ visible: true });
 	}
 
-	render() {
-		return (
-			<FadeView visible={this.state.visible}>
-				<ProgressBar
-					progress={this.props.progress}
-					color={colors.primary}
-					width={null}
-					height={3}
-					borderRadius={0}
-					borderWidth={0}
-					useNativeDriver
-				/>
-			</FadeView>
-		);
-	}
+	render = () => (
+		<FadeView visible={this.state.visible}>
+			<ProgressBar
+				progress={this.props.progress}
+				color={colors.primary}
+				width={null}
+				height={3}
+				borderRadius={0}
+				borderWidth={0}
+				useNativeDriver
+			/>
+		</FadeView>
+	);
 }

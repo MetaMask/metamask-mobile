@@ -398,7 +398,7 @@ class DrawerView extends Component {
 		]
 	];
 
-	render() {
+	render = () => {
 		const { network, accounts, identities, selectedAddress, keyrings } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && fromWei(accounts[selectedAddress].balance, 'ether')) || 0;
@@ -521,7 +521,7 @@ class DrawerView extends Component {
 				</Modal>
 			</SafeAreaView>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

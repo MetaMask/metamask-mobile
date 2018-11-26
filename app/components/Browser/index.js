@@ -537,15 +537,13 @@ export class Browser extends Component {
 		clearTimeout(this.timeoutHandler);
 	};
 
-	renderLoader() {
-		return (
-			<View style={styles.loader}>
-				<ActivityIndicator size="small" />
-			</View>
-		);
-	}
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
 
-	renderOptions() {
+	renderOptions = () => {
 		const showOptions = (this.props.navigation && this.props.navigation.getParam('showOptions', false)) || false;
 		if (showOptions) {
 			return (
@@ -592,7 +590,7 @@ export class Browser extends Component {
 				</TouchableWithoutFeedback>
 			);
 		}
-	}
+	};
 
 	handleScroll = e => {
 		if (this.state.progress < 1) {
@@ -630,7 +628,7 @@ export class Browser extends Component {
 		}, 150);
 	};
 
-	renderBottomBar(canGoForward) {
+	renderBottomBar = canGoForward => {
 		const bottom = Platform.OS === 'ios' ? 0 : 10;
 		const distance = Platform.OS === 'ios' ? 100 : 200;
 		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, SCROLL_THRESHOLD).interpolate({
@@ -659,7 +657,7 @@ export class Browser extends Component {
 				</View>
 			</Animated.View>
 		);
-	}
+	};
 
 	isHttps() {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
@@ -675,7 +673,7 @@ export class Browser extends Component {
 		current.clear();
 	};
 
-	renderUrlModal() {
+	renderUrlModal = () => {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
 		if (showUrlModal && this.inputRef) {
@@ -728,16 +726,16 @@ export class Browser extends Component {
 				</View>
 			</Modal>
 		);
-	}
+	};
 
-	getUserAgent() {
+	getUserAgent = () => {
 		if (Platform.OS === 'android') {
 			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
 		}
 		return null;
-	}
+	};
 
-	render() {
+	render = () => {
 		const { canGoForward, entryScriptWeb3, url } = this.state;
 
 		return (
@@ -772,7 +770,7 @@ export class Browser extends Component {
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
 			</SafeAreaView>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReview should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -18,14 +18,14 @@ exports[`TransactionReview should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <Component
+    <View
       style={
         Object {
           "flex": 1,
         }
       }
     >
-      <Component
+      <View
         style={
           Object {
             "borderBottomWidth": 1,
@@ -38,7 +38,7 @@ exports[`TransactionReview should render correctly 1`] = `
           }
         }
       >
-        <Component
+        <View
           style={
             Object {
               "alignItems": "center",
@@ -57,7 +57,7 @@ exports[`TransactionReview should render correctly 1`] = `
             address="0x0"
             diameter={18}
           />
-          <Component
+          <Text
             numberOfLines={1}
             style={
               Object {
@@ -70,9 +70,9 @@ exports[`TransactionReview should render correctly 1`] = `
             }
           >
             0x0
-          </Component>
-        </Component>
-        <Component
+          </Text>
+        </View>
+        <View
           style={
             Object {
               "backgroundColor": "#FFFFFF",
@@ -102,8 +102,8 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             }
           />
-        </Component>
-        <Component
+        </View>
+        <View
           style={
             Object {
               "alignItems": "center",
@@ -119,7 +119,7 @@ exports[`TransactionReview should render correctly 1`] = `
           <IdenticonComponent
             diameter={18}
           />
-          <Component
+          <Text
             numberOfLines={1}
             style={
               Object {
@@ -131,9 +131,9 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             }
           />
-        </Component>
-      </Component>
-      <Component
+        </View>
+      </View>
+      <View
         style={
           Object {
             "backgroundColor": "#f9fafa",
@@ -143,7 +143,7 @@ exports[`TransactionReview should render correctly 1`] = `
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "alignItems": "center",
@@ -161,8 +161,8 @@ exports[`TransactionReview should render correctly 1`] = `
           }
         >
           CONFIRM
-        </Component>
-        <Component
+        </Text>
+        <Text
           style={
             Object {
               "color": "#4d4d4d",
@@ -174,8 +174,8 @@ exports[`TransactionReview should render correctly 1`] = `
           }
         >
           0.00 USD
-        </Component>
-        <Component
+        </Text>
+        <Text
           style={
             Object {
               "color": "#8c8e94",
@@ -186,7 +186,7 @@ exports[`TransactionReview should render correctly 1`] = `
           }
         >
           0
-        </Component>
+        </Text>
         <TouchableOpacity
           activeOpacity={0.2}
           onPress={[Function]}
@@ -212,7 +212,7 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             }
           />
-          <Component
+          <Text
             style={
               Object {
                 "color": "#008edf",
@@ -223,17 +223,17 @@ exports[`TransactionReview should render correctly 1`] = `
             }
           >
             Edit
-          </Component>
+          </Text>
         </TouchableOpacity>
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "padding": 16,
           }
         }
       >
-        <Component
+        <View
           style={
             Object {
               "alignItems": "center",
@@ -244,7 +244,7 @@ exports[`TransactionReview should render correctly 1`] = `
             }
           }
         >
-          <Component
+          <Text
             style={
               Object {
                 "color": "#7c7e84",
@@ -257,13 +257,13 @@ exports[`TransactionReview should render correctly 1`] = `
             }
           >
             GAS FEE
-          </Component>
-          <Component>
+          </Text>
+          <View>
             <TouchableOpacity
               activeOpacity={0.2}
               onPress={[Function]}
             >
-              <Component
+              <Text
                 style={
                   Object {
                     "color": "#008edf",
@@ -276,9 +276,9 @@ exports[`TransactionReview should render correctly 1`] = `
                 }
               >
                 EDIT
-              </Component>
+              </Text>
             </TouchableOpacity>
-            <Component
+            <Text
               style={
                 Object {
                   "color": "#4d4d4d",
@@ -290,8 +290,8 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             >
               0.00 USD
-            </Component>
-            <Component
+            </Text>
+            <Text
               style={
                 Object {
                   "color": "#8c8e94",
@@ -303,10 +303,10 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             >
               0.00000000000000033
-            </Component>
-          </Component>
-        </Component>
-        <Component
+            </Text>
+          </View>
+        </View>
+        <View
           style={
             Object {
               "alignItems": "center",
@@ -315,7 +315,7 @@ exports[`TransactionReview should render correctly 1`] = `
             }
           }
         >
-          <Component
+          <Text
             style={
               Object {
                 "color": "#7c7e84",
@@ -328,9 +328,9 @@ exports[`TransactionReview should render correctly 1`] = `
             }
           >
             TOTAL
-          </Component>
-          <Component>
-            <Component
+          </Text>
+          <View>
+            <Text
               style={
                 Object {
                   "fontFamily": "Roboto",
@@ -345,8 +345,8 @@ exports[`TransactionReview should render correctly 1`] = `
                +
                
               GAS FEE
-            </Component>
-            <Component
+            </Text>
+            <Text
               style={
                 Object {
                   "color": "#008edf",
@@ -358,8 +358,8 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             >
               0.00 USD
-            </Component>
-            <Component
+            </Text>
+            <Text
               style={
                 Object {
                   "color": "#8c8e94",
@@ -371,11 +371,11 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             >
               0.00000000000000033
-            </Component>
-          </Component>
-        </Component>
-      </Component>
-    </Component>
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
   </ActionView>
-</Component>
+</View>
 `;

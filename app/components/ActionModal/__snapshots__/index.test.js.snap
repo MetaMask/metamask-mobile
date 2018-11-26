@@ -37,7 +37,7 @@ exports[`ActionModal should render correctly 1`] = `
   swipeThreshold={100}
   useNativeDriver={false}
 >
-  <Component
+  <View
     style={
       Object {
         "alignItems": "center",
@@ -48,7 +48,7 @@ exports[`ActionModal should render correctly 1`] = `
       }
     }
   >
-    <Component
+    <View
       style={
         Object {
           "backgroundColor": "#FFFFFF",
@@ -58,14 +58,14 @@ exports[`ActionModal should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <View
         style={
           Object {
             "flex": 1,
           }
         }
       />
-      <Component
+      <View
         style={
           Object {
             "borderTopColor": "#d2d8dd",
@@ -128,8 +128,8 @@ exports[`ActionModal should render correctly 1`] = `
         >
           CONFIRM
         </StyledButton>
-      </Component>
-    </Component>
-  </Component>
+      </View>
+    </View>
+  </View>
 </ReactNativeModal>
 `;
