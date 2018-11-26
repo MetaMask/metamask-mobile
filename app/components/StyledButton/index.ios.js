@@ -57,7 +57,7 @@ export default class StyledButton extends Component {
 		disabledContainerStyle: { opacity: 0.6 }
 	};
 
-	render() {
+	render = () => {
 		const { type, onPress, style, children, disabled, styleDisabled, testID, disabledContainerStyle } = this.props;
 		const { fontStyle, containerStyle } = getStyles(type);
 
@@ -74,5 +74,5 @@ export default class StyledButton extends Component {
 				{children}
 			</Button>
 		);
-	}
+	};
 }

@@ -12,13 +12,11 @@ import FoxScreen from '../FoxScreen';
  * App component is wrapped by the provider from react-redux
  */
 export default class Root extends Component {
-	render() {
-		return (
-			<Provider store={store}>
-				<PersistGate loading={<FoxScreen />} persistor={persistor}>
-					<App />
-				</PersistGate>
-			</Provider>
-		);
-	}
+	render = () => (
+		<Provider store={store}>
+			<PersistGate loading={<FoxScreen />} persistor={persistor}>
+				<App />
+			</PersistGate>
+		</Provider>
+	);
 }

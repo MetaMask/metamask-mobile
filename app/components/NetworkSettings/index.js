@@ -74,7 +74,7 @@ class NetworkSettings extends Component {
 		PreferencesController.removeFromFrequentRpcList(rpcTarget);
 	};
 
-	render() {
+	render = () => {
 		const { provider, frequentRpcList } = this.props;
 
 		return (
@@ -126,7 +126,7 @@ class NetworkSettings extends Component {
 				</SettingsList>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

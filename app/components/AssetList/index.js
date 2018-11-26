@@ -51,7 +51,7 @@ export default class AssetSearch extends Component {
 		handleSelectAsset(searchResults[key]);
 	};
 
-	render() {
+	render = () => {
 		const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 
 		return (
@@ -78,5 +78,5 @@ export default class AssetSearch extends Component {
 				})}
 			</View>
 		);
-	}
+	};
 }

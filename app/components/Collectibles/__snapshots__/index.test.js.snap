@@ -9,10 +9,10 @@ exports[`Collectibles should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <View
     testID="collectibles"
   >
-    <Component
+    <View
       style={
         Object {
           "alignItems": "center",
@@ -23,7 +23,7 @@ exports[`Collectibles should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "color": "#AAAAAA",
@@ -34,8 +34,8 @@ exports[`Collectibles should render correctly 1`] = `
         }
       >
         You don't have any collectibles!
-      </Component>
-    </Component>
+      </Text>
+    </View>
     <TouchableOpacity
       activeOpacity={0.2}
       onPress={[Function]}
@@ -55,20 +55,19 @@ exports[`Collectibles should render correctly 1`] = `
         name="plus"
         size={16}
       />
-      <Component
+      <Text
         style={
           Object {
             "color": "#008edf",
             "fontFamily": "Roboto",
             "fontSize": 15,
             "fontWeight": "400",
-            "textTransform": "uppercase",
           }
         }
       >
         ADD COLLECTIBLES
-      </Component>
+      </Text>
     </TouchableOpacity>
-  </Component>
+  </View>
 </ScrollView>
 `;

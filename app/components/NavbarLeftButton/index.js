@@ -28,14 +28,14 @@ class NavbarLeftButton extends Component {
 		onPress: PropTypes.func
 	};
 
-	render() {
+	render = () => {
 		const { address, onPress } = this.props;
 		return (
 			<TouchableOpacity style={styles.leftButton} onPress={onPress} testID={'navbar-account-button'}>
 				<Identicon diameter={28} address={address} />
 			</TouchableOpacity>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({ address: state.backgroundState.PreferencesController.selectedAddress });

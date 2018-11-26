@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ModalNavbarTitle should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "alignItems": "center",
@@ -9,7 +9,7 @@ exports[`ModalNavbarTitle should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <Text
     style={
       Object {
         "fontFamily": "Roboto",
@@ -19,6 +19,6 @@ exports[`ModalNavbarTitle should render correctly 1`] = `
     }
   >
     Test
-  </Component>
-</Component>
+  </Text>
+</View>
 `;

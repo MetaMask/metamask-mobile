@@ -45,6 +45,7 @@
   "dependencies": {
     "@tradle/react-native-http": "^2.0.1",
     "base-64": "^0.1.0",
+    "bignumber.js": "^7.2.1",
     "buffer": "^4.9.1",
     "eth-block-tracker": "^3.0.1",
     "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#master",
@@ -61,8 +62,8 @@
     "multihashes": "^0.4.14",
     "prop-types": "^15.6.2",
     "pubnub": "^4.21.5",
-    "react": "16.4.1",
-    "react-native": "0.56.0",
+    "react": "^16.6.3",
+    "react-native": "0.57.5",
     "react-native-actionsheet": "^2.4.2",
     "react-native-aes-crypto": "github:appman-agm/react-native-aes#9af842442f7e250f967eaaea434e8d3864a4d2ca",
     "react-native-branch": "^2.3.3",
@@ -102,28 +103,27 @@
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.1.6",
     "assert": "^1.4.1",
-    "babel-jest": "23.4.0",
-    "babel-preset-react-native": "5.0.2",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-jest": "^23.6.0",
     "concat-cli": "^4.0.0",
-    "detox": "^9.0.1",
-    "enzyme": "^3.0.0",
-    "enzyme-adapter-react-16": "^1.1.1",
+    "detox": "^9.0.4",
+    "enzyme": "^3.7.0",
+    "enzyme-adapter-react-16": "^1.6.0",
     "enzyme-to-json": "^3.3.4",
     "eslint": "^5.2.0",
     "eslint-config-react-native": "^3.0.0",
     "husky": "^1.0.0-rc.13",
-    "jest": "23.4.1",
+    "jest": "^23.6.0",
     "lint-staged": "^7.2.0",
+    "metro-react-native-babel-preset": "^0.49.2",
     "prettier": "1.13.7",
-    "react-dom": "^16.4.1",
+    "react-dom": "^16.6.0",
+    "react-test-renderer": "^16.6.3",
+    "regenerator-runtime": "^0.13.1",
     "rn-nodeify": "github:tradle/rn-nodeify",
     "web3": "^0.20.7"
-  },
-  "babel": {
-    "presets": [
-      "react-native"
-    ]
   },
   "eslintConfig": {
     "parser": "babel-eslint",
@@ -193,7 +193,7 @@
       "<rootDir>/app/util/testSetup.js"
     ],
     "transform": {
-      "^.+\\.js$": "<rootDir>/node_modules/react-native/jest/preprocessor.js"
+      "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?react-native|react-navigation|react-navigation-redux-helpers)"

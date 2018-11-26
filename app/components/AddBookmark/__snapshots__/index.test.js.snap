@@ -2,7 +2,7 @@
 
 exports[`AddBookmark should render correctly 1`] = `
 <Screen>
-  <Component
+  <View
     style={
       Object {
         "backgroundColor": "#FFFFFF",
@@ -22,14 +22,14 @@ exports[`AddBookmark should render correctly 1`] = `
       showCancelButton={true}
       showConfirmButton={true}
     >
-      <Component
+      <View
         style={
           Object {
             "padding": 20,
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontFamily": "Roboto",
@@ -38,7 +38,7 @@ exports[`AddBookmark should render correctly 1`] = `
           }
         >
           Name
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -59,7 +59,7 @@ exports[`AddBookmark should render correctly 1`] = `
           underlineColorAndroid="transparent"
           value={null}
         />
-        <Component
+        <Text
           style={
             Object {
               "color": "#FF0000",
@@ -68,15 +68,15 @@ exports[`AddBookmark should render correctly 1`] = `
             }
           }
         />
-      </Component>
-      <Component
+      </View>
+      <View
         style={
           Object {
             "padding": 20,
           }
         }
       >
-        <Component
+        <Text
           style={
             Object {
               "fontFamily": "Roboto",
@@ -85,7 +85,7 @@ exports[`AddBookmark should render correctly 1`] = `
           }
         >
           Url
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -105,7 +105,7 @@ exports[`AddBookmark should render correctly 1`] = `
           underlineColorAndroid="transparent"
           value={null}
         />
-        <Component
+        <Text
           style={
             Object {
               "color": "#FF0000",
@@ -114,8 +114,8 @@ exports[`AddBookmark should render correctly 1`] = `
             }
           }
         />
-      </Component>
+      </View>
     </ActionView>
-  </Component>
+  </View>
 </Screen>
 `;

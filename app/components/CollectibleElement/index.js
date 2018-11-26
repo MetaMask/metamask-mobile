@@ -41,7 +41,7 @@ export default class CollectibleElement extends Component {
 		asset: PropTypes.object
 	};
 
-	render() {
+	render = () => {
 		const { asset } = this.props;
 		return (
 			<TouchableOpacity style={styles.itemWrapper} key={`asset-${asset.tokenId}`}>
@@ -54,5 +54,5 @@ export default class CollectibleElement extends Component {
 				</View>
 			</TouchableOpacity>
 		);
-	}
+	};
 }

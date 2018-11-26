@@ -10,7 +10,7 @@ exports[`Onboarding should render correctly 1`] = `
     }
     testID="onboarding-screen"
   >
-    <Component
+    <View
       style={
         Object {
           "paddingBottom": 30,
@@ -19,7 +19,7 @@ exports[`Onboarding should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <View
         style={
           Object {
             "alignItems": "center",
@@ -27,7 +27,7 @@ exports[`Onboarding should render correctly 1`] = `
           }
         }
       >
-        <Image
+        <Component
           resizeMethod="auto"
           source={
             Object {
@@ -42,8 +42,8 @@ exports[`Onboarding should render correctly 1`] = `
             }
           }
         />
-      </Component>
-      <Component
+      </View>
+      <Text
         style={
           Object {
             "color": "#4a4a4a",
@@ -58,8 +58,8 @@ exports[`Onboarding should render correctly 1`] = `
         }
       >
         Welcome
-      </Component>
-      <Component
+      </Text>
+      <Text
         style={
           Object {
             "color": "#4a4a4a",
@@ -73,8 +73,8 @@ exports[`Onboarding should render correctly 1`] = `
         }
       >
         The decentralized web awaits
-      </Component>
-      <Component
+      </Text>
+      <Text
         style={
           Object {
             "color": "#4a4a4a",
@@ -88,8 +88,8 @@ exports[`Onboarding should render correctly 1`] = `
         }
       >
         Let's get started!
-      </Component>
-      <Component
+      </Text>
+      <Text
         style={
           Object {
             "color": "#4a4a4a",
@@ -103,8 +103,8 @@ exports[`Onboarding should render correctly 1`] = `
         }
       >
         Already using MetaMask?
-      </Component>
-      <Component
+      </Text>
+      <View
         style={
           Object {
             "marginTop": 10,
@@ -128,8 +128,8 @@ exports[`Onboarding should render correctly 1`] = `
         >
           Import Wallet
         </StyledButton>
-      </Component>
-      <Component
+      </View>
+      <Text
         style={
           Array [
             Object {
@@ -148,8 +148,8 @@ exports[`Onboarding should render correctly 1`] = `
         }
       >
         OR
-      </Component>
-      <Component
+      </Text>
+      <View
         style={
           Object {
             "marginTop": 10,
@@ -173,8 +173,8 @@ exports[`Onboarding should render correctly 1`] = `
         >
           Create New Wallet
         </StyledButton>
-      </Component>
-    </Component>
+      </View>
+    </View>
   </ScrollView>
 </OnboardingScreenWithBg>
 `;

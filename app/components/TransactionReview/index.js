@@ -229,7 +229,7 @@ class TransactionReview extends Component {
 		onModeChange && onModeChange('edit');
 	};
 
-	validateAmount() {
+	validateAmount = () => {
 		let error;
 		const { amount, gas, gasPrice, from } = this.props.transactionData;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
@@ -243,9 +243,9 @@ class TransactionReview extends Component {
 			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
 			(error = strings('transaction.insufficient'));
 		return error;
-	}
+	};
 
-	render() {
+	render = () => {
 		const {
 			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to },
 			conversionRate,
@@ -331,7 +331,7 @@ class TransactionReview extends Component {
 				</ActionView>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

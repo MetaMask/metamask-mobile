@@ -296,15 +296,13 @@ export default class Transactions extends Component {
 		return null;
 	}
 
-	renderEmpty() {
-		return (
-			<View style={styles.emptyView}>
-				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
-			</View>
-		);
-	}
+	renderEmpty = () => (
+		<View style={styles.emptyView}>
+			<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+		</View>
+	);
 
-	render() {
+	render = () => {
 		const { transactions, currentCurrency, conversionRate, selectedAddress } = this.props;
 		const txs = transactions.filter(tx => toChecksumAddress(tx.transaction.from) === selectedAddress);
 		if (!txs.length) {
@@ -354,5 +352,5 @@ export default class Transactions extends Component {
 				</View>
 			</ScrollView>
 		);
-	}
+	};
 }

@@ -68,7 +68,7 @@ class NavbarBrowserTitle extends Component {
 		https: PropTypes.bool
 	};
 
-	render() {
+	render = () => {
 		const { https, network, hostname } = this.props;
 		const { color, name } = Networks[network.provider.type];
 		return (
@@ -85,7 +85,7 @@ class NavbarBrowserTitle extends Component {
 				</View>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({ network: state.backgroundState.NetworkController });

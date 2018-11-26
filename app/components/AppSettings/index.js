@@ -190,83 +190,81 @@ class AppSettings extends Component {
 		this.setState({ rpcUrl: url });
 	};
 
-	render() {
-		return (
-			<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
-				<ScrollView contentContainerStyle={styles.wrapperContent}>
-					<ActionModal
-						modalVisible={this.state.modalVisible}
-						confirmText={strings('app_settings.reset_account_confirm_button')}
-						cancelText={strings('app_settings.reset_account_cancel_button')}
-						onCancelPress={this.cancelResetAccount}
-						onRequestClose={this.cancelResetAccount}
-						onConfirmPress={this.resetAccount}
-					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('app_settings.reset_account_modal_title')}</Text>
-							<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
-						</View>
-					</ActionModal>
+	render = () => (
+		<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
+			<ScrollView contentContainerStyle={styles.wrapperContent}>
+				<ActionModal
+					modalVisible={this.state.modalVisible}
+					confirmText={strings('app_settings.reset_account_confirm_button')}
+					cancelText={strings('app_settings.reset_account_cancel_button')}
+					onCancelPress={this.cancelResetAccount}
+					onRequestClose={this.cancelResetAccount}
+					onConfirmPress={this.resetAccount}
+				>
+					<View style={styles.modalView}>
+						<Text style={styles.modalTitle}>{strings('app_settings.reset_account_modal_title')}</Text>
+						<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
+					</View>
+				</ActionModal>
 
-					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
-						<View style={styles.picker}>
-							<SelectComponent
-								selectedValue={this.state.currentCurrency}
-								onValueChange={this.selectCurrency}
-								label={strings('app_settings.current_conversion')}
-								options={infuraCurrencyOptions}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.current_language')}</Text>
-						<View style={styles.picker}>
-							{this.languageOptions && (
-								<SelectComponent
-									selectedValue={this.state.currentLanguage}
-									onValueChange={this.selectLanguage}
-									label={strings('app_settings.current_language')}
-									options={this.languageOptions}
-								/>
-							)}
-						</View>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.new_RPC_URL')}</Text>
-						<TextInput
-							style={styles.input}
-							value={this.state.rpcUrl}
-							onSubmitEditing={this.addRpcUrl}
-							onChangeText={this.onRpcUrlChange}
+				<View style={styles.setting}>
+					<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
+					<View style={styles.picker}>
+						<SelectComponent
+							selectedValue={this.state.currentCurrency}
+							onValueChange={this.selectCurrency}
+							label={strings('app_settings.current_conversion')}
+							options={infuraCurrencyOptions}
 						/>
-						<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
-						<TouchableOpacity key="save" onPress={this.addRpcUrl} style={styles.touchable}>
-							<Text style={styles.touchableText}>{strings('app_settings.save_rpc_url')}</Text>
-						</TouchableOpacity>
 					</View>
-					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.sync_with_extension')}</Text>
-						<StyledButton type="confirm" onPress={this.goToSyncWithExtension}>
-							{strings('app_settings.sync')}
-						</StyledButton>
+				</View>
+				<View style={styles.setting}>
+					<Text style={styles.text}>{strings('app_settings.current_language')}</Text>
+					<View style={styles.picker}>
+						{this.languageOptions && (
+							<SelectComponent
+								selectedValue={this.state.currentLanguage}
+								onValueChange={this.selectLanguage}
+								label={strings('app_settings.current_language')}
+								options={this.languageOptions}
+							/>
+						)}
 					</View>
-					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
-						<StyledButton type="warning" onPress={this.goToRevealPrivateCredential}>
-							{strings('app_settings.reveal_seed_words_button')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.reset_account')}</Text>
-						<StyledButton type="orange" onPress={this.displayResetAccountModal}>
-							{strings('app_settings.reset_account_button')}
-						</StyledButton>
-					</View>
-				</ScrollView>
-			</SafeAreaView>
-		);
-	}
+				</View>
+				<View style={styles.setting}>
+					<Text style={styles.text}>{strings('app_settings.new_RPC_URL')}</Text>
+					<TextInput
+						style={styles.input}
+						value={this.state.rpcUrl}
+						onSubmitEditing={this.addRpcUrl}
+						onChangeText={this.onRpcUrlChange}
+					/>
+					<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
+					<TouchableOpacity key="save" onPress={this.addRpcUrl} style={styles.touchable}>
+						<Text style={styles.touchableText}>{strings('app_settings.save_rpc_url')}</Text>
+					</TouchableOpacity>
+				</View>
+				<View style={styles.setting}>
+					<Text style={styles.text}>{strings('app_settings.sync_with_extension')}</Text>
+					<StyledButton type="confirm" onPress={this.goToSyncWithExtension}>
+						{strings('app_settings.sync')}
+					</StyledButton>
+				</View>
+				<View style={styles.setting}>
+					<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
+					<StyledButton type="warning" onPress={this.goToRevealPrivateCredential}>
+						{strings('app_settings.reveal_seed_words_button')}
+					</StyledButton>
+				</View>
+				<View style={styles.setting}>
+					<Text style={styles.text}>{strings('app_settings.reset_account')}</Text>
+					<StyledButton type="orange" onPress={this.displayResetAccountModal}>
+						{strings('app_settings.reset_account_button')}
+					</StyledButton>
+				</View>
+			</ScrollView>
+		</SafeAreaView>
+	);
 }
 
 const mapStateToProps = state => ({

@@ -142,7 +142,7 @@ class TransactionSubmitted extends Component {
 		);
 	}
 
-	render() {
+	render = () => {
 		const { navigation } = this.props;
 		const hash = navigation.getParam('hash', null);
 
@@ -158,7 +158,7 @@ class TransactionSubmitted extends Component {
 				</View>
 			</Screen>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({ network: state.backgroundState.NetworkController.provider.type });

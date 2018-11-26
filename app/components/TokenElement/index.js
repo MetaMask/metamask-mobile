@@ -62,7 +62,7 @@ export default class TokenElement extends Component {
 		asset: PropTypes.object
 	};
 
-	render() {
+	render = () => {
 		const {
 			onPress,
 			asset,
@@ -87,5 +87,5 @@ export default class TokenElement extends Component {
 				</View>
 			</TouchableOpacity>
 		);
-	}
+	};
 }

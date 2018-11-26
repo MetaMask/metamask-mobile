@@ -393,23 +393,17 @@ class ImportWallet extends Component {
 		return this.renderInitialView();
 	}
 
-	render() {
-		return (
-			<OnboardingScreenWithBg>
-				<ScrollView style={styles.flex} contentContainerStyle={styles.wrapper} testID={'import-wallet-screen'}>
-					<View style={styles.logoWrapper}>
-						<Image
-							source={require('../../images/sync-icon.png')}
-							style={styles.fox}
-							resizeMethod={'auto'}
-						/>
-					</View>
-					<Text style={styles.title}>{strings('import_wallet.title')}</Text>
-					{this.renderContent()}
-				</ScrollView>
-			</OnboardingScreenWithBg>
-		);
-	}
+	render = () => (
+		<OnboardingScreenWithBg>
+			<ScrollView style={styles.flex} contentContainerStyle={styles.wrapper} testID={'import-wallet-screen'}>
+				<View style={styles.logoWrapper}>
+					<Image source={require('../../images/sync-icon.png')} style={styles.fox} resizeMethod={'auto'} />
+				</View>
+				<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+				{this.renderContent()}
+			</ScrollView>
+		</OnboardingScreenWithBg>
+	);
 }
 
 const mapStateToProps = state => ({

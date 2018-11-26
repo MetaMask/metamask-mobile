@@ -70,7 +70,7 @@ export default class AssetSearch extends Component {
 		this.props.onSearch({ searchQuery, results });
 	};
 
-	render() {
+	render = () => {
 		const { searchQuery } = this.state;
 
 		return (
@@ -85,5 +85,5 @@ export default class AssetSearch extends Component {
 				/>
 			</View>
 		);
-	}
+	};
 }

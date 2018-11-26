@@ -21,7 +21,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <Component
+    <View
       style={
         Array [
           Object {
@@ -36,18 +36,18 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
         ]
       }
     >
-      <Component>
+      <Text>
         Save it somewhere safe and secret.
-      </Component>
-    </Component>
-    <Component
+      </Text>
+    </View>
+    <View
       style={
         Object {
           "backgroundColor": "#fff1f2",
         }
       }
     >
-      <Component
+      <View
         style={
           Array [
             Object {
@@ -73,7 +73,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             }
           }
         />
-        <Component
+        <Text
           style={
             Object {
               "fontFamily": "Roboto",
@@ -84,20 +84,20 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
           }
         >
           Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
-        </Component>
-      </Component>
-    </Component>
-    <Component
+        </Text>
+      </View>
+    </View>
+    <View
       style={
         Object {
           "padding": 20,
         }
       }
     >
-      <Component>
-        <Component>
+      <View>
+        <Text>
           Enter password to continue
-        </Component>
+        </Text>
         <TextInput
           allowFontScaling={true}
           onChangeText={[Function]}
@@ -115,7 +115,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
           testID="private-credential-password-text-input"
           underlineColorAndroid="transparent"
         />
-        <Component
+        <Text
           style={
             Object {
               "color": "#FF0000",
@@ -124,8 +124,8 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             }
           }
         />
-      </Component>
-    </Component>
+      </View>
+    </View>
   </ActionView>
 </SafeAreaView>
 `;

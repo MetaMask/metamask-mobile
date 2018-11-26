@@ -135,51 +135,45 @@ export default class Login extends Component {
 
 	setPassword = val => this.setState({ password: val });
 
-	render() {
-		return (
-			<Screen>
-				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-					<View testID={'login'}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-						</View>
-						<Text style={styles.title}>{strings('login.title')}</Text>
-						<View style={styles.field}>
-							<Text style={styles.label}>{strings('login.password')}</Text>
-							<TextInput
-								style={styles.input}
-								value={this.state.password}
-								onChangeText={this.setPassword}
-								secureTextEntry
-								placeholder={''}
-								underlineColorAndroid={colors.borderColor}
-								onSubmitEditing={this.onLogin}
-								returnKeyType={'done'}
-							/>
-						</View>
-						{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
-						<View style={styles.ctaWrapper}>
-							<StyledButton type={'orange'} onPress={this.onLogin}>
-								{this.state.loading ? (
-									<ActivityIndicator size="small" color="white" />
-								) : (
-									strings('login.login_button')
-								)}
-							</StyledButton>
-						</View>
-
-						<View style={styles.footer}>
-							<Button style={styles.goBack} onPress={this.onPressGoBack}>
-								{strings('login.go_back')}
-							</Button>
-						</View>
+	render = () => (
+		<Screen>
+			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+				<View testID={'login'}>
+					<View style={styles.logoWrapper}>
+						<Image source={require('../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
 					</View>
-				</KeyboardAwareScrollView>
-			</Screen>
-		);
-	}
+					<Text style={styles.title}>{strings('login.title')}</Text>
+					<View style={styles.field}>
+						<Text style={styles.label}>{strings('login.password')}</Text>
+						<TextInput
+							style={styles.input}
+							value={this.state.password}
+							onChangeText={this.setPassword}
+							secureTextEntry
+							placeholder={''}
+							underlineColorAndroid={colors.borderColor}
+							onSubmitEditing={this.onLogin}
+							returnKeyType={'done'}
+						/>
+					</View>
+					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					<View style={styles.ctaWrapper}>
+						<StyledButton type={'orange'} onPress={this.onLogin}>
+							{this.state.loading ? (
+								<ActivityIndicator size="small" color="white" />
+							) : (
+								strings('login.login_button')
+							)}
+						</StyledButton>
+					</View>
+
+					<View style={styles.footer}>
+						<Button style={styles.goBack} onPress={this.onPressGoBack}>
+							{strings('login.go_back')}
+						</Button>
+					</View>
+				</View>
+			</KeyboardAwareScrollView>
+		</Screen>
+	);
 }

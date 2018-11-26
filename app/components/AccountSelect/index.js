@@ -164,14 +164,12 @@ class AccountSelect extends Component {
 		);
 	}
 
-	render() {
-		return (
-			<View style={styles.root}>
-				{this.renderActiveOption()}
-				{this.state.isOpen && this.renderOptionList()}
-			</View>
-		);
-	}
+	render = () => (
+		<View style={styles.root}>
+			{this.renderActiveOption()}
+			{this.state.isOpen && this.renderOptionList()}
+		</View>
+	);
 }
 
 const mapStateToProps = ({

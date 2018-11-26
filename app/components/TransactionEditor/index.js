@@ -171,7 +171,7 @@ class TransactionEditor extends Component {
 		}
 	};
 
-	render() {
+	render = () => {
 		const { amount, gas, gasPrice, from, to, data } = this.state;
 		const transactionData = { amount, gas, gasPrice, from, to, data };
 		const { mode } = this.props;
@@ -207,7 +207,7 @@ class TransactionEditor extends Component {
 				)}
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({
