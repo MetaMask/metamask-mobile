@@ -23,6 +23,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
+		margin: 20,
+		marginBottom: 40
+	},
+	signingInformation: {
 		margin: 20
 	},
 	account: {
@@ -38,6 +42,13 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		padding: 10
 	},
+	signText: {
+		...fontStyles.normal,
+		fontSize: 16,
+		padding: 5,
+		textAlign: 'center'
+	},
+	header: {},
 	signatureText: {
 		...fontStyles.normal,
 		textAlign: 'center',
@@ -48,7 +59,8 @@ const styles = StyleSheet.create({
 	children: {
 		flex: 1,
 		borderTopColor: colors.lightGray,
-		borderTopWidth: 1
+		borderTopWidth: 1,
+		height: '100%'
 	}
 });
 
@@ -93,14 +105,7 @@ class SignatureRequest extends Component {
 		const accountLabel = identities[selectedAddress].name;
 		return (
 			<View style={styles.root}>
-				<ActionView
-					cancelTestID={'request-signature-cancel-button'}
-					confirmTestID={'request-signature-confirm-button'}
-					cancelText={strings('signature_request.cancel')}
-					confirmText={strings('signature_request.sign')}
-					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.props.onConfirm}
-				>
+				<View style={styles.header}>
 					<View style={styles.accountInformation}>
 						<View>
 							<Text>{strings('signature_request.account_title')}</Text>
@@ -116,12 +121,23 @@ class SignatureRequest extends Component {
 							<Text style={styles.text}>{balance} ETH</Text>
 						</View>
 					</View>
-					<Text style={styles.signatureText}>{strings('signature_request.sign_requested')}</Text>
-					{message ? (
-						<Text style={styles.warningText}>{message}</Text>
-					) : (
-						<Text style={styles.text}>{strings('signature_request.signing')}</Text>
-					)}
+					<View style={styles.signingInformation}>
+						<Text style={styles.signatureText}>{strings('signature_request.sign_requested')}</Text>
+						{message ? (
+							<Text style={styles.warningText}>{message}</Text>
+						) : (
+							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
+						)}
+					</View>
+				</View>
+				<ActionView
+					cancelTestID={'request-signature-cancel-button'}
+					confirmTestID={'request-signature-confirm-button'}
+					cancelText={strings('signature_request.cancel')}
+					confirmText={strings('signature_request.sign')}
+					onCancelPress={this.props.onCancel}
+					onConfirmPress={this.props.onConfirm}
+				>
 					<View style={styles.children}>
 						<KeyboardAwareScrollView>{children}</KeyboardAwareScrollView>
 					</View>

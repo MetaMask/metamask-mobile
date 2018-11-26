@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../locales/i18n';
+import { hexToText } from 'gaba/util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -29,9 +30,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports eth_sign
+ * Component that supports eth_sign and personal_sign
  */
-export default class EthSign extends Component {
+export default class PersonalSign extends Component {
 	static navigationOptions = () => ({
 		title: strings('signature_request.title'),
 		headerTitleStyle: {
@@ -50,20 +51,20 @@ export default class EthSign extends Component {
 		const {
 			params: { messageParams }
 		} = this.props.navigation.state;
-		const { KeyringController, MessageManager } = Engine.context;
+		const { KeyringController, PersonalMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		const cleanMessageParams = await MessageManager.approveMessage(messageParams);
+		const cleanMessageParams = await PersonalMessageManager.approveMessage(messageParams);
 		const rawSig = await KeyringController.signMessage(cleanMessageParams);
-		MessageManager.setMessageStatusSigned(messageId, rawSig);
+		PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
 	};
 
 	rejectMessage = () => {
 		const {
 			params: { messageParams }
 		} = this.props.navigation.state;
-		const { MessageManager } = Engine.context;
+		const { PersonalMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		MessageManager.rejectMessage(messageId);
+		PersonalMessageManager.rejectMessage(messageId);
 	};
 
 	cancelSignature = () => {
@@ -86,11 +87,10 @@ export default class EthSign extends Component {
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
-					message={strings('signature_request.eth_sign.warning')}
 				>
 					<View style={styles.informationRow}>
-						<Text style={styles.messageLabelText}>{strings('signature_request.eth_sign.message')}</Text>
-						<Text style={styles.messageText}>{messageParams.data}</Text>
+						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
+						<Text style={styles.messageText}>{hexToText(messageParams.data)}</Text>
 					</View>
 				</SignatureRequest>
 			</View>

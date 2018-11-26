@@ -9,14 +9,8 @@ exports[`SignatureRequest should render correctly 1`] = `
     }
   }
 >
-  <ActionView
-    cancelTestID="request-signature-cancel-button"
-    cancelText="CANCEL"
-    confirmButtonMode="normal"
-    confirmTestID="request-signature-confirm-button"
-    confirmText="SIGN"
-    showCancelButton={true}
-    showConfirmButton={true}
+  <Component
+    style={Object {}}
   >
     <Component
       style={
@@ -25,6 +19,7 @@ exports[`SignatureRequest should render correctly 1`] = `
           "flexDirection": "row",
           "justifyContent": "space-between",
           "margin": 20,
+          "marginBottom": 40,
         }
       }
     >
@@ -88,35 +83,55 @@ exports[`SignatureRequest should render correctly 1`] = `
     <Component
       style={
         Object {
-          "color": "#000000",
-          "fontFamily": "Roboto",
-          "fontSize": 20,
-          "fontWeight": "400",
-          "padding": 10,
-          "textAlign": "center",
+          "margin": 20,
         }
       }
     >
-      Your signature is being requested
-    </Component>
-    <Component
-      style={
-        Object {
-          "fontFamily": "Roboto",
-          "fontSize": 16,
-          "fontWeight": "400",
-          "padding": 5,
+      <Component
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "padding": 10,
+            "textAlign": "center",
+          }
         }
-      }
-    >
-      You are signing
+      >
+        Your signature is being requested
+      </Component>
+      <Component
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "padding": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        You are signing:
+      </Component>
     </Component>
+  </Component>
+  <ActionView
+    cancelTestID="request-signature-cancel-button"
+    cancelText="CANCEL"
+    confirmButtonMode="normal"
+    confirmTestID="request-signature-confirm-button"
+    confirmText="SIGN"
+    showCancelButton={true}
+    showConfirmButton={true}
+  >
     <Component
       style={
         Object {
           "borderTopColor": "#d2d8dd",
           "borderTopWidth": 1,
           "flex": 1,
+          "height": "100%",
         }
       }
     >

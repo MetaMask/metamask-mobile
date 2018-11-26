@@ -8,7 +8,7 @@ import {
 	ComposableController,
 	CurrencyRateController,
 	KeyringController,
-	MessageManager,
+	PersonalMessageManager,
 	NetworkController,
 	NetworkStatusController,
 	PhishingController,
@@ -50,7 +50,7 @@ class Engine {
 					new AssetsDetectionController(),
 					new BlockHistoryController(),
 					new CurrencyRateController(),
-					new MessageManager(),
+					new PersonalMessageManager(),
 					new NetworkController(
 						{
 							providerConfig: {
@@ -67,11 +67,23 @@ class Engine {
 										}
 									},
 									eth_sign: async (payload, next, end) => {
-										const { MessageManager } = this.datamodel.context;
+										const { PersonalMessageManager } = this.datamodel.context;
 										try {
-											const rawSig = await await MessageManager.addUnapprovedMessageAsync({
+											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 												data: payload.params[1],
 												from: payload.params[0]
+											});
+											end(undefined, rawSig);
+										} catch (error) {
+											end(error);
+										}
+									},
+									personal_sign: async (payload, next, end) => {
+										const { PersonalMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+												data: payload.params[0],
+												from: payload.params[1]
 											});
 											end(undefined, rawSig);
 										} catch (error) {
@@ -201,7 +213,7 @@ export default {
 			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
-			MessageManager,
+			PersonalMessageManager,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
@@ -217,7 +229,7 @@ export default {
 			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
-			MessageManager,
+			PersonalMessageManager,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,

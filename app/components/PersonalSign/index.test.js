@@ -1,11 +1,11 @@
 import React from 'react';
-import EthSign from './';
+import PersonalSign from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 
 const mockStore = configureMockStore();
 
-describe('EthSign', () => {
+describe('PersonalSign', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			backgroundState: {
@@ -19,7 +19,7 @@ describe('EthSign', () => {
 			}
 		};
 		const wrapper = shallow(
-			<EthSign navigation={{ state: { params: { messageParams: { from: '0x2', message: '0x879' } } } }} />,
+			<PersonalSign navigation={{ state: { params: { messageParams: { from: '0x2', message: '0x879' } } } }} />,
 			{
 				context: { store: mockStore(initialState) }
 			}
