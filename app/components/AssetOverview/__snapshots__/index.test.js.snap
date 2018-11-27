@@ -28,10 +28,10 @@ exports[`AssetOverview should render correctly 1`] = `
       }
     }
   >
-    <MyImage
+    <Component
       source={
         Object {
-          "testUri": "../../../app/images/eth-logo.svg",
+          "testUri": "../../../app/images/eth-logo.png",
         }
       }
       style={
