@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
 		width: 50,
 		height: 50,
 		overflow: 'hidden',
-		borderRadius: 100,
 		marginRight: 20
 	}
 });

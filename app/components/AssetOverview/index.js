@@ -26,10 +26,7 @@ const styles = StyleSheet.create({
 	},
 	ethLogo: {
 		width: 70,
-		height: 70,
-		overflow: 'hidden',
-		borderRadius: 100,
-		marginRight: 20
+		height: 70
 	},
 	balance: {
 		flex: 1,
