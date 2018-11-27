@@ -11,8 +11,8 @@ def getPassword(String currentUser, String keyChain) {
 	} else if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
 		exec {
 			// In order for this to work you need to store it:
-			// secret-tool store --label='mm' server mm user mm key mm-upload-key PASSWORD_GOES_HERE
-			commandLine 'secret-tool', 'lookup', 'server', currentUser, 'user', currentUser, 'key', keyChain
+			// secret-tool store --label='mm' server mm user mm key mm-upload-key
+            commandLine 'secret-tool', 'lookup', 'server', currentUser, 'user', currentUser, 'key', keyChain
 			standardOutput = stdout
 			errorOutput = stderr
 			ignoreExitValue true
