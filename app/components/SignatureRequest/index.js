@@ -113,7 +113,9 @@ class SignatureRequest extends Component {
 								<View style={styles.identicon}>
 									<Identicon address={selectedAddress} diameter={20} />
 								</View>
-								<Text style={styles.text}>{accountLabel}</Text>
+								<View>
+									<Text style={styles.text}>{accountLabel}</Text>
+								</View>
 							</View>
 						</View>
 						<View>

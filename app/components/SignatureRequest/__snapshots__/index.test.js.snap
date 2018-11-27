@@ -47,17 +47,19 @@ exports[`SignatureRequest should render correctly 1`] = `
               diameter={20}
             />
           </Component>
-          <Component
-            style={
-              Object {
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "padding": 5,
+          <Component>
+            <Component
+              style={
+                Object {
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "padding": 5,
+                }
               }
-            }
-          >
-            Account 1
+            >
+              Account 1
+            </Component>
           </Component>
         </Component>
       </Component>
