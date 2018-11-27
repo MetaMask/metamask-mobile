@@ -195,7 +195,7 @@ class Wallet extends Component {
 						conversionRate,
 						currentCurrency
 					).toUpperCase(),
-					logo: '../images/eth-logo.svg'
+					logo: '../images/eth-logo.png'
 				},
 				...tokens
 			];
