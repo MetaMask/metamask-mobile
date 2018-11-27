@@ -118,7 +118,9 @@ class SignatureRequest extends Component {
 						</View>
 						<View>
 							<Text>{strings('signature_request.balance_title')}</Text>
-							<Text style={styles.text}>{balance} ETH</Text>
+							<Text style={styles.text}>
+								{balance} {strings('unit.eth')}
+							</Text>
 						</View>
 					</View>
 					<View style={styles.signingInformation}>

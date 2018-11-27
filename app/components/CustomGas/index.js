@@ -230,7 +230,7 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_fast')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(fastGwei, gas)} ETH
+						{getRenderableEthGasFee(fastGwei, gas)} {strings('unit.eth')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas).toUpperCase()}
@@ -251,7 +251,7 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_average')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(averageGwei, gas)} ETH
+						{getRenderableEthGasFee(averageGwei, gas)} {strings('unit.eth')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas).toUpperCase()}
@@ -270,7 +270,7 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_slow')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(safeLowGwei, gas)} ETH
+						{getRenderableEthGasFee(safeLowGwei, gas)} {strings('unit.eth')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas).toUpperCase()}
@@ -285,7 +285,9 @@ class CustomGas extends Component {
 		const { totalGas } = this.props;
 		return (
 			<View>
-				<Text style={styles.textTotalGas}>{fromWei(totalGas.toString())} ETH</Text>
+				<Text style={styles.textTotalGas}>
+					{fromWei(totalGas.toString())} {strings('unit.eth')}
+				</Text>
 				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
 				<TextInput
 					keyboardType="numeric"

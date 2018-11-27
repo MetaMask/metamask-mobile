@@ -4,6 +4,7 @@ import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { isBN, weiToFiat, isDecimal, toWei, fromWei } from '../../util/number';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
@@ -94,7 +95,7 @@ class EthInput extends Component {
 						value={isBN(value) ? fromWei(value).toString() : value}
 					/>
 					<Text style={styles.eth} numberOfLines={1}>
-						ETH
+						{strings('unit.eth')}
 					</Text>
 				</View>
 				<Text style={styles.fiatValue} numberOfLines={1}>

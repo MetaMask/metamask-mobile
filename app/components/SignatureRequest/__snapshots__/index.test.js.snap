@@ -76,7 +76,8 @@ exports[`SignatureRequest should render correctly 1`] = `
           }
         >
           0
-           ETH
+           
+          ETH
         </Component>
       </Component>
     </Component>
