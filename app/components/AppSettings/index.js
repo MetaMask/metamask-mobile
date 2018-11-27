@@ -133,9 +133,10 @@ class AppSettings extends Component {
 	};
 
 	selectCurrency = async currency => {
-		this.setState({ currentCurrency: currency });
 		const { CurrencyRateController } = Engine.context;
-		await CurrencyRateController.updateCurrency(currency);
+		CurrencyRateController.configure({ currentCurrency: currency });
+		const controllerState = await CurrencyRateController.updateExchangeRate();
+		this.setState({ currentCurrency: controllerState.currentCurrency });
 	};
 
 	goToSyncWithExtension = () => {
