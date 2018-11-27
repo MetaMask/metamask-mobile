@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import Image from 'react-native-remote-svg';
 import { colors, fontStyles } from '../../styles/common';
 import TokenImage from '../TokenImage';
 
@@ -45,7 +44,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../images/eth-logo.svg'); // eslint-disable-line
+const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that renders an ERC-20 Token list element
