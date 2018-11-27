@@ -64,6 +64,8 @@ TARGET="node_modules/react-native-vector-icons/android/build.gradle"
 sed -i'' -e 's/26.0.1/27.0.3/' $TARGET;
 TARGET="node_modules/detox/android/detox/build.gradle"
 sed -i'' -e 's/26.0.2/27.0.3/' $TARGET;
+TARGET="node_modules/react-native-branch/android/build.gradle"
+sed -i'' -e 's/23.0.1/27.0.3/' $TARGET;
 echo "Done"
 
 echo "9. Fix all android build warnings..."
@@ -86,7 +88,11 @@ TARGET="node_modules/react-native-keychain/android/build.gradle"
 sed -i'' -e 's/compile /api /' $TARGET;
 TARGET="node_modules/react-native-vector-icons/android/build.gradle"
 sed -i'' -e 's/compile /api /' $TARGET;
+
 TARGET="node_modules/react-native-branch/android/build.gradle"
+sed -i'' -e 's/ 23/ 27/' $TARGET;
+sed -i'' -e 's/ 22/ 27/' $TARGET;
+sed -i'' -e 's/ 16/ 19/' $TARGET;
 sed -i'' -e 's/compile /api /' $TARGET;
 
 # This one has been fixed on master

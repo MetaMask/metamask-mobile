@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { Image, Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
-import Image from 'react-native-remote-svg';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import StyledButton from '../StyledButton';
@@ -27,10 +26,7 @@ const styles = StyleSheet.create({
 	},
 	ethLogo: {
 		width: 70,
-		height: 70,
-		overflow: 'hidden',
-		borderRadius: 100,
-		marginRight: 20
+		height: 70
 	},
 	balance: {
 		flex: 1,
@@ -86,7 +82,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../images/eth-logo.svg'); // eslint-disable-line
+const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that displays the information of a specific asset (Token or ETH)

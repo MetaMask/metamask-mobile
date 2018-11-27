@@ -1,3 +1,29 @@
+def getPassword(String currentUser, String keyChain) {
+    def stdout = new ByteArrayOutputStream()
+    def stderr = new ByteArrayOutputStream()
+	if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+		exec {
+			commandLine 'security', '-q', 'find-generic-password', '-a', currentUser, '-s', keyChain, '-w'
+			standardOutput = stdout
+			errorOutput = stderr
+			ignoreExitValue true
+		}
+	} else if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+		exec {
+			// In order for this to work you need to store it:
+			// secret-tool store --label='mm' server mm user mm key mm-upload-key
+            commandLine 'secret-tool', 'lookup', 'server', currentUser, 'user', currentUser, 'key', keyChain
+			standardOutput = stdout
+			errorOutput = stderr
+			ignoreExitValue true
+		}
+	} else {
+		throw new GradleException('Unsupported OS! Only MacOSx and Linux are supported')
+	}
+    //noinspection GroovyAssignabilityCheck
+    stdout.toString().trim()
+}
+
 buildscript {
     repositories {
         maven { url 'https://maven.fabric.io/public' }
@@ -115,6 +141,9 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
+def pass = getPassword("mm","mm-upload-key")
+
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -136,6 +165,16 @@ android {
             javaMaxHeapSize "2048M"
         }
     }
+
+	signingConfigs {
+        release {
+            storeFile file('../keystores/release.keystore')
+            storePassword pass
+            keyAlias 'key0'
+            keyPassword pass
+        }
+    }
+
     splits {
         abi {
             reset()
@@ -148,6 +187,7 @@ android {
         release {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
     // applicationVariants are e.g. debug, release
@@ -166,25 +206,26 @@ android {
 }
 
 dependencies {
-    api project(':react-native-branch')
-    api project(':react-native-web3-webview')
-    api project(':react-native-camera')
-    api project(':react-native-share')
-    api project(':react-native-i18n')
-    api project(':react-native-fabric')
-    api 'com.android.support:multidex:1.0.1'
-    api "com.android.support:support-annotations:27.1.1"
-    api project(':react-native-aes-crypto')
-    api project(':react-native-keychain')
-    api project(':react-native-os')
-    api project(':react-native-linear-gradient')
-    api project(':react-native-randombytes')
-    api project(':react-native-fs')
-    api project(':react-native-vector-icons')
-    api fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'com.android.support:multidex:1.0.1'
+    implementation "com.android.support:support-annotations:27.1.1"
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     implementation "com.facebook.react:react-native:+"  // From node_modules
-    api('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
+
+    implementation project(':react-native-branch')
+    implementation project(':react-native-web3-webview')
+    implementation project(':react-native-camera')
+    implementation project(':react-native-share')
+    implementation project(':react-native-i18n')
+    implementation project(':react-native-fabric')
+    implementation project(':react-native-aes-crypto')
+    implementation project(':react-native-keychain')
+    implementation project(':react-native-os')
+    implementation project(':react-native-linear-gradient')
+    implementation project(':react-native-randombytes')
+    implementation project(':react-native-fs')
+    implementation project(':react-native-vector-icons')
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }
 
