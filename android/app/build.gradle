@@ -171,7 +171,7 @@ android {
             storeFile file('../keystores/release.keystore')
             storePassword pass
             keyAlias 'key0'
-			keyPassword pass
+            keyPassword pass
         }
     }
 
@@ -187,7 +187,7 @@ android {
         release {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-			signingConfig signingConfigs.release
+            signingConfig signingConfigs.release
         }
     }
     // applicationVariants are e.g. debug, release
