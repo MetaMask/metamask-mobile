@@ -130,7 +130,7 @@ class Engine {
 			const allLastIncomingTxBlocks =
 				(lastIncomingTxBlockInfoStr && JSON.parse(lastIncomingTxBlockInfoStr)) || {};
 			let blockNumber = null;
-			if (allLastIncomingTxBlocks[selectedAddress]) {
+			if (allLastIncomingTxBlocks[selectedAddress] && allLastIncomingTxBlocks[selectedAddress][`${networkId}`]) {
 				blockNumber = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].blockNumber;
 				// Let's make sure we're not doing this too often...
 				const timeSinceLastCheck = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].lastCheck;

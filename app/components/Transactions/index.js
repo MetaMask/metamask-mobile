@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
 		color: colors.gray,
 		fontSize: 9,
 		letterSpacing: 0.5,
+		width: 75,
 		...fontStyles.bold
 	},
 	statusConfirmed: {
