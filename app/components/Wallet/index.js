@@ -16,6 +16,7 @@ import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
 import Engine from '../../core/Engine';
+import Networks from '../../util/networks';
 
 const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
@@ -93,7 +94,11 @@ class Wallet extends Component {
 		/**
 		 * An array that represents the user collectibles
 		 */
-		collectibles: PropTypes.array
+		collectibles: PropTypes.array,
+		/**
+		 * A string represeting the network name
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -181,7 +186,8 @@ class Wallet extends Component {
 			tokenExchangeRates,
 			collectibles,
 			navigation,
-			transactions
+			transactions,
+			networkType
 		} = this.props;
 		let balance = 0;
 		let assets = tokens;
@@ -236,6 +242,7 @@ class Wallet extends Component {
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						selectedAddress={selectedAddress}
+						networkId={Networks[networkType].networkId}
 					/>
 				</ScrollableTabView>
 			</View>
@@ -267,7 +274,8 @@ const mapStateToProps = state => ({
 	tokenBalances: state.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.backgroundState.AssetsController.collectibles,
-	transactions: state.backgroundState.TransactionController.transactions
+	transactions: state.backgroundState.TransactionController.transactions,
+	networkType: state.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(Wallet);
