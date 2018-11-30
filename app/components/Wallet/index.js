@@ -15,6 +15,7 @@ import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+import Engine from '../../core/Engine';
 
 const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
@@ -103,10 +104,28 @@ class Wallet extends Component {
 	mounted = false;
 	scrollableTabViewRef = React.createRef();
 
-	componentDidMount() {
+	async componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
 		this.mounted = true;
+
+		const { TransactionController } = Engine.datamodel.context;
+
+		try {
+			// Check if we have lastIncomingTxBlock in async storage
+			const lastIncomingTxBlock = await AsyncStorage.getItem('@MetaMask:lastIncomingTxBlock');
+			//Fetch txs and get the new lastIncomingTxBlock number
+			const newlastIncomingTxBlock = await TransactionController.fetchAll(
+				this.props.selectedAddress,
+				lastIncomingTxBlock
+			);
+			// Store it so next time we ask for the newer txs only
+			if (newlastIncomingTxBlock && newlastIncomingTxBlock !== lastIncomingTxBlock) {
+				await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlock', newlastIncomingTxBlock);
+			}
+		} catch (e) {
+			Logger.error('Error while fetching all txs', e);
+		}
 	}
 
 	componentDidUpdate(prevProps) {
@@ -144,7 +163,7 @@ class Wallet extends Component {
 
 	handleDeeplinks = async ({ error, params }) => {
 		if (error) {
-			Logger.error('Error from Branch: ' + error);
+			Logger.error('Error from Branch: ', error);
 			return;
 		}
 		if (params['+non_branch_link']) {

@@ -278,6 +278,7 @@
 	},
 	"transactions": {
 		"sent_ether": "Sent Ether",
+		"received_ether": "Received Ether",
 		"hash": "Hash",
 		"from": "From",
 		"to": "To",

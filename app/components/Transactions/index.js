@@ -304,7 +304,11 @@ export default class Transactions extends Component {
 
 	render = () => {
 		const { transactions, currentCurrency, conversionRate, selectedAddress } = this.props;
-		const txs = transactions.filter(tx => toChecksumAddress(tx.transaction.from) === selectedAddress);
+		const txs = transactions.filter(
+			tx =>
+				toChecksumAddress(tx.transaction.from) === selectedAddress ||
+				toChecksumAddress(tx.transaction.to) === selectedAddress
+		);
 		if (!txs.length) {
 			return this.renderEmpty();
 		}
@@ -326,7 +330,11 @@ export default class Transactions extends Component {
 								<View style={styles.subRow}>
 									<Identicon address={tx.transaction.to} diameter={24} />
 									<View style={styles.info}>
-										<Text style={styles.address}>{strings('transactions.sent_ether')}</Text>
+										<Text style={styles.address}>
+											{toChecksumAddress(tx.transaction.to) === selectedAddress
+												? strings('transactions.received_ether')
+												: strings('transactions.sent_ether')}
+										</Text>
 										<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
 											{tx.status.toUpperCase()}
 										</Text>
