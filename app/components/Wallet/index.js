@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
+import { InteractionManager, ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -112,7 +112,7 @@ class Wallet extends Component {
 	async componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
-		Engine.refreshTransactionHistory();
+		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
 		this.mounted = true;
 	}
 
