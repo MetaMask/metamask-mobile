@@ -130,6 +130,7 @@ export default class NetworkList extends Component {
 	onNetworkChange = async type => {
 		const { NetworkController } = Engine.context;
 		NetworkController.setProviderType(type);
+		Engine.refreshTransactionHistory();
 	};
 
 	renderOtherNetworks() {

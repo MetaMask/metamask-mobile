@@ -107,26 +107,8 @@ class Wallet extends Component {
 	async componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
+		Engine.refreshTransactionHistory();
 		this.mounted = true;
-
-		const { TransactionController } = Engine.datamodel.context;
-		const { selectedAddress } = this.props;
-		try {
-			// Check if we have lastIncomingTxBlock in async storage
-			const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem('@MetaMask:lastIncomingTxBlock');
-			const allLastIncomingTxBlocks =
-				(lastIncomingTxBlockInfoStr && JSON.parse(lastIncomingTxBlockInfoStr)) || {};
-			const lastIncomingTxBlock = allLastIncomingTxBlocks[selectedAddress] || null;
-			//Fetch txs and get the new lastIncomingTxBlock number
-			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, lastIncomingTxBlock);
-			// Store it so next time we ask for the newer txs only
-			if (newlastIncomingTxBlock && newlastIncomingTxBlock !== lastIncomingTxBlock) {
-				allLastIncomingTxBlocks[selectedAddress] = newlastIncomingTxBlock;
-				await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlock', JSON.stringify(allLastIncomingTxBlocks));
-			}
-		} catch (e) {
-			Logger.error('Error while fetching all txs', e);
-		}
 	}
 
 	componentDidUpdate(prevProps) {

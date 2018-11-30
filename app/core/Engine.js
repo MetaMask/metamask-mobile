@@ -19,8 +19,12 @@ import {
 
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { AsyncStorage } from 'react-native';
+import Logger from '../util/Logger';
+import Networks from '../util/networks';
 
 const encryptor = new Encryptor();
+const TX_CHECK_MAX_FREQUENCY = 5000;
 
 /**
  * Core controller responsible for composing other GABA controllers together
@@ -116,6 +120,43 @@ class Engine {
 		TransactionController.configure({ provider });
 	};
 
+	refreshTransactionHistory = async forceCheck => {
+		const { TransactionController, PreferencesController, NetworkController } = this.datamodel.context;
+		const { selectedAddress } = PreferencesController.state;
+		const { type: networkType } = NetworkController.state.provider;
+		const { networkId } = Networks[networkType];
+		try {
+			const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem('@MetaMask:lastIncomingTxBlock');
+			const allLastIncomingTxBlocks =
+				(lastIncomingTxBlockInfoStr && JSON.parse(lastIncomingTxBlockInfoStr)) || {};
+			let blockNumber = null;
+			if (allLastIncomingTxBlocks[selectedAddress]) {
+				blockNumber = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].blockNumber;
+				// Let's make sure we're not doing this too often...
+				const timeSinceLastCheck = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].lastCheck;
+				const delta = Date.now() - timeSinceLastCheck;
+				if (delta < TX_CHECK_MAX_FREQUENCY && !forceCheck) {
+					return false;
+				}
+			} else {
+				allLastIncomingTxBlocks[selectedAddress] = {};
+			}
+			//Fetch txs and get the new lastIncomingTxBlock number
+			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, blockNumber);
+			// Store it so next time we ask for the newer txs only
+			if (newlastIncomingTxBlock && newlastIncomingTxBlock !== blockNumber) {
+				allLastIncomingTxBlocks[selectedAddress][`${networkId}`] = {
+					block: newlastIncomingTxBlock,
+					lastCheck: Date.now()
+				};
+				// Store the latest state
+				await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlock', JSON.stringify(allLastIncomingTxBlocks));
+			}
+		} catch (e) {
+			Logger.error('Error while fetching all txs', e);
+		}
+	};
+
 	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
 		const {
 			KeyringController,
@@ -208,6 +249,9 @@ export default {
 	},
 	sync(data) {
 		return instance.sync(data);
+	},
+	refreshTransactionHistory(forceCheck = false) {
+		return instance.refreshTransactionHistory(forceCheck);
 	},
 	init(state) {
 		instance = new Engine(state);
