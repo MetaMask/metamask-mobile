@@ -10,7 +10,7 @@ import { fromWei } from '../../util/number';
 import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
-	root: {
+	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
 	},
@@ -104,7 +104,7 @@ class SignatureRequest extends Component {
 		const balance = fromWei(accounts[selectedAddress].balance, 'ether');
 		const accountLabel = identities[selectedAddress].name;
 		return (
-			<View style={styles.root}>
+			<View style={styles.wrapper}>
 				<View style={styles.header}>
 					<View style={styles.accountInformation}>
 						<View>

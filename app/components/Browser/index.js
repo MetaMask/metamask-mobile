@@ -32,6 +32,7 @@ import Button from '../Button';
 import { strings } from '../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
+import PersonalSign from '../PersonalSign';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -181,6 +182,10 @@ const styles = StyleSheet.create({
 	iconClose: {
 		color: colors.white,
 		fontSize: 18
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
@@ -200,7 +205,7 @@ export class Browser extends Component {
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
-		 * react-navigation object used to switch between screens
+		 * react-navigation object used teth_so switch between screens
 		 */
 		navigation: PropTypes.object,
 		/**
@@ -226,7 +231,9 @@ export class Browser extends Component {
 		ipfsHash: null,
 		currentEnsName: null,
 		editMode: false,
-		loading: true
+		loading: true,
+		signMessage: false,
+		signMessageParams: { data: '' }
 	};
 
 	webview = React.createRef();
@@ -255,7 +262,7 @@ export class Browser extends Component {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-			this.props.navigation.push('PersonalSign', { messageParams });
+			this.setState({ signMessage: true, signMessageParams: messageParams });
 		});
 		this.loadUrl();
 		this.loadBookmarks();
@@ -733,6 +740,34 @@ export class Browser extends Component {
 		);
 	}
 
+	onSignAction = () => {
+		this.setState({ signMessage: false });
+	};
+
+	renderSigningModal = () => {
+		const { signMessage, signMessageParams } = this.state;
+		if (signMessage) {
+			return (
+				<Modal
+					isVisible={signMessage}
+					animationIn="slideInUp"
+					animationOut="slideOutDown"
+					style={styles.bottomModal}
+					backdropOpacity={0.7}
+					animationInTiming={600}
+					animationOutTiming={600}
+					onBackdropPress={this.onSignAction}
+				>
+					<PersonalSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+					/>
+				</Modal>
+			);
+		}
+	};
+
 	getUserAgent() {
 		if (Platform.OS === 'android') {
 			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
@@ -771,6 +806,7 @@ export class Browser extends Component {
 					this.renderLoader()
 				)}
 				{this.renderUrlModal()}
+				{this.renderSigningModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
 			</SafeAreaView>

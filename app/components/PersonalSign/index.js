@@ -10,7 +10,9 @@ import { hexToText } from 'gaba/util';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		flex: 1
+		minHeight: 450,
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10
 	},
 	informationRow: {
 		borderBottomColor: colors.lightGray,
@@ -26,6 +28,14 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		margin: 5,
 		color: colors.black
+	},
+	title: {
+		textAlign: 'center',
+		fontSize: 18,
+		marginVertical: 12,
+		marginHorizontal: 20,
+		color: colors.fontPrimary,
+		...fontStyles.bold
 	}
 });
 
@@ -44,13 +54,14 @@ export default class PersonalSign extends Component {
 		/**
 		 * react-navigation object used for switching between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		onCancel: PropTypes.func,
+		onConfirm: PropTypes.func,
+		messageParams: PropTypes.object
 	};
 
 	signMessage = async () => {
-		const {
-			params: { messageParams }
-		} = this.props.navigation.state;
+		const { messageParams } = this.props;
 		const { KeyringController, PersonalMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		const cleanMessageParams = await PersonalMessageManager.approveMessage(messageParams);
@@ -59,9 +70,7 @@ export default class PersonalSign extends Component {
 	};
 
 	rejectMessage = () => {
-		const {
-			params: { messageParams }
-		} = this.props.navigation.state;
+		const { messageParams } = this.props;
 		const { PersonalMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
 		PersonalMessageManager.rejectMessage(messageId);
@@ -69,20 +78,23 @@ export default class PersonalSign extends Component {
 
 	cancelSignature = () => {
 		this.rejectMessage();
-		this.props.navigation.pop();
+		this.props.onCancel();
 	};
 
 	confirmSignature = () => {
 		this.signMessage();
-		this.props.navigation.pop();
+		this.props.onConfirm();
 	};
 
 	render() {
-		const {
-			params: { messageParams }
-		} = this.props.navigation.state;
+		const { messageParams } = this.props;
 		return (
 			<View style={styles.root}>
+				<View style={styles.titleWrapper}>
+					<Text style={styles.title} onPress={this.cancelSignature}>
+						Signature Request
+					</Text>
+				</View>
 				<SignatureRequest
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}

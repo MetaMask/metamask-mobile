@@ -2,7 +2,6 @@ import Browser from '../Browser';
 import BrowserHome from '../BrowserHome';
 import AddBookmark from '../AddBookmark';
 import Approval from '../Approval';
-import PersonalSign from '../PersonalSign';
 import { createStackNavigator } from 'react-navigation';
 
 /**
@@ -22,9 +21,6 @@ export default createStackNavigator(
 		},
 		Approval: {
 			screen: Approval
-		},
-		PersonalSign: {
-			screen: PersonalSign
 		}
 	},
 	{
