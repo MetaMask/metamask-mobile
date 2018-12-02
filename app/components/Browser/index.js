@@ -33,6 +33,7 @@ import { strings } from '../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import PersonalSign from '../PersonalSign';
+import TypedSign from '../TypedSign';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -233,7 +234,8 @@ export class Browser extends Component {
 		editMode: false,
 		loading: true,
 		signMessage: false,
-		signMessageParams: { data: '' }
+		signMessageParams: { data: '' },
+		signType: ''
 	};
 
 	webview = React.createRef();
@@ -262,7 +264,10 @@ export class Browser extends Component {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-			this.setState({ signMessage: true, signMessageParams: messageParams });
+			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
+		});
+		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
+			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
 		});
 		this.loadUrl();
 		this.loadBookmarks();
@@ -745,7 +750,7 @@ export class Browser extends Component {
 	};
 
 	renderSigningModal = () => {
-		const { signMessage, signMessageParams } = this.state;
+		const { signMessage, signMessageParams, signType } = this.state;
 		if (signMessage) {
 			return (
 				<Modal
@@ -758,11 +763,20 @@ export class Browser extends Component {
 					animationOutTiming={600}
 					onBackdropPress={this.onSignAction}
 				>
-					<PersonalSign
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-					/>
+					{signType === 'personal' && (
+						<PersonalSign
+							messageParams={signMessageParams}
+							onCancel={this.onSignAction}
+							onConfirm={this.onSignAction}
+						/>
+					)}
+					{signType === 'typed' && (
+						<TypedSign
+							messageParams={signMessageParams}
+							onCancel={this.onSignAction}
+							onConfirm={this.onSignAction}
+						/>
+					)}
 				</Modal>
 			);
 		}

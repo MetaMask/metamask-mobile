@@ -5,7 +5,6 @@ import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../locales/i18n';
-import { hexToText } from 'gaba/util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -40,9 +39,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports eth_sign and personal_sign
+ * Component that supports eth_signTypedData and eth_signTypedDataV3
  */
-export default class PersonalSign extends Component {
+export default class TypedSign extends Component {
 	static navigationOptions = () => ({
 		title: strings('signature_request.title'),
 		headerTitleStyle: {
@@ -64,25 +63,26 @@ export default class PersonalSign extends Component {
 		 */
 		onConfirm: PropTypes.func,
 		/**
-		 * Personal message to be displayed to the user
+		 * Typed message to be displayed to the user
 		 */
 		messageParams: PropTypes.object
 	};
 
 	signMessage = async () => {
 		const { messageParams } = this.props;
-		const { KeyringController, PersonalMessageManager } = Engine.context;
+		const { KeyringController, TypedMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		const cleanMessageParams = await PersonalMessageManager.approveMessage(messageParams);
-		const rawSig = await KeyringController.signPersonalMessage(cleanMessageParams);
-		PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+		const version = messageParams.version;
+		const cleanMessageParams = await TypedMessageManager.approveMessage(messageParams);
+		const rawSig = await KeyringController.signTypedMessage(cleanMessageParams, version);
+		TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
 	};
 
 	rejectMessage = () => {
 		const { messageParams } = this.props;
-		const { PersonalMessageManager } = Engine.context;
+		const { TypedMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		PersonalMessageManager.rejectMessage(messageId);
+		TypedMessageManager.rejectMessage(messageId);
 	};
 
 	cancelSignature = () => {
@@ -95,8 +95,25 @@ export default class PersonalSign extends Component {
 		this.props.onConfirm();
 	};
 
-	render() {
+	renderData = () => {
 		const { messageParams } = this.props;
+		if (messageParams.version === 'V1') {
+			return (
+				<View>
+					{messageParams.data.map(obj => (
+						<View key={obj.name}>
+							<Text style={styles.messageText}>{obj.name}:</Text>
+							<Text style={styles.messageText} key={obj.name}>
+								- {obj.value}
+							</Text>
+						</View>
+					))}
+				</View>
+			);
+		}
+	};
+
+	render() {
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -111,7 +128,7 @@ export default class PersonalSign extends Component {
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text style={styles.messageText}>{hexToText(messageParams.data)}</Text>
+						{this.renderData()}
 					</View>
 				</SignatureRequest>
 			</View>

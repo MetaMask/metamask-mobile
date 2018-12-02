@@ -1,11 +1,11 @@
 import React from 'react';
-import PersonalSign from './';
+import TypedSign from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 
 const mockStore = configureMockStore();
 
-describe('PersonalSign', () => {
+describe('TypedSign', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			backgroundState: {
@@ -19,9 +19,9 @@ describe('PersonalSign', () => {
 			}
 		};
 		const wrapper = shallow(
-			<PersonalSign
+			<TypedSign
 				navigation={{ state: { params: { messageParams: { from: '0x2', message: '0x879' } } } }}
-				messageParams={{ data: '0x879' }}
+				messageParams={{ data: { type: 'string', name: 'Message', value: 'Hi, Alice!' } }}
 			/>,
 			{
 				context: { store: mockStore(initialState) }
