@@ -145,7 +145,7 @@ class SignatureRequest extends Component {
 					<Image source={ethLogo} style={styles.domainLogo} />
 				</View>
 				<Text style={styles.domainTitle}>{currentPageTitle}</Text>
-				{domain && <Text style={styles.domainText}>Origin: {domain.name}</Text>}
+				{domain && <Text style={styles.domainText}>{domain.name}</Text>}
 			</View>
 		);
 	};

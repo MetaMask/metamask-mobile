@@ -35,6 +35,9 @@ const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
 		...fontStyles.bold
+	},
+	message: {
+		marginLeft: 20
 	}
 });
 
@@ -99,16 +102,33 @@ export default class TypedSign extends Component {
 		this.props.onConfirm();
 	};
 
+	renderTypedMessageV3 = obj =>
+		Object.keys(obj).map(key => (
+			<View style={styles.message} key={key}>
+				{typeof obj[key] === 'object' ? (
+					<View>
+						<Text>{key}:</Text>
+						<View>{this.renderTypedMessageV3(obj[key])}</View>
+					</View>
+				) : (
+					<Text>
+						{key}: {obj[key]}
+					</Text>
+				)}
+			</View>
+		));
+
 	renderTypedMessage = () => {
 		const { messageParams } = this.props;
 		if (messageParams.version === 'V1') {
 			return (
-				<View>
+				<View style={styles.message}>
 					{messageParams.data.map(obj => (
 						<View key={obj.name}>
 							<Text style={styles.messageText}>{obj.name}:</Text>
 							<Text style={styles.messageText} key={obj.name}>
-								- {obj.value}
+								{' '}
+								{obj.value}
 							</Text>
 						</View>
 					))}
@@ -117,18 +137,7 @@ export default class TypedSign extends Component {
 		}
 		if (messageParams.version === 'V3') {
 			const { message } = JSON.parse(messageParams.data);
-			return (
-				<View>
-					{message &&
-						Object.keys(message).map(key => (
-							<View key={key}>
-								<Text>
-									{key}: {JSON.stringify(message[key])}
-								</Text>
-							</View>
-						))}
-				</View>
-			);
+			return this.renderTypedMessageV3(message);
 		}
 	};
 
