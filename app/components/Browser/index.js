@@ -767,6 +767,7 @@ export class Browser extends Component {
 							messageParams={signMessageParams}
 							onCancel={this.onSignAction}
 							onConfirm={this.onSignAction}
+							currentPageTitle={currentPageTitle}
 						/>
 					)}
 					{signType === 'typed' && (

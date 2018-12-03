@@ -139,14 +139,13 @@ class SignatureRequest extends Component {
 
 	renderDomainInformation = () => {
 		const { domain, currentPageTitle } = this.props;
-		if (!domain) return;
 		return (
 			<View style={styles.domainWrapper}>
 				<View style={styles.assetLogo}>
 					<Image source={ethLogo} style={styles.domainLogo} />
 				</View>
 				<Text style={styles.domainTitle}>{currentPageTitle}</Text>
-				<Text style={styles.domainText}>{domain.origin}</Text>
+				{domain && <Text style={styles.domainText}>Origin: {domain.name}</Text>}
 			</View>
 		);
 	};
