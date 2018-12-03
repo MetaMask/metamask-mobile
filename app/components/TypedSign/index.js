@@ -9,7 +9,7 @@ import { strings } from '../../../locales/i18n';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: 500,
+		minHeight: 600,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10
 	},
@@ -65,7 +65,11 @@ export default class TypedSign extends Component {
 		/**
 		 * Typed message to be displayed to the user
 		 */
-		messageParams: PropTypes.object
+		messageParams: PropTypes.object,
+		/**
+		 * Current browser page title
+		 */
+		currentPageTitle: PropTypes.string
 	};
 
 	signMessage = async () => {
@@ -95,7 +99,7 @@ export default class TypedSign extends Component {
 		this.props.onConfirm();
 	};
 
-	renderData = () => {
+	renderTypedMessage = () => {
 		const { messageParams } = this.props;
 		if (messageParams.version === 'V1') {
 			return (
@@ -111,9 +115,29 @@ export default class TypedSign extends Component {
 				</View>
 			);
 		}
+		if (messageParams.version === 'V3') {
+			const { message } = JSON.parse(messageParams.data);
+			return (
+				<View>
+					{message &&
+						Object.keys(message).map(key => (
+							<View key={key}>
+								<Text>
+									{key}: {JSON.stringify(message[key])}
+								</Text>
+							</View>
+						))}
+				</View>
+			);
+		}
 	};
 
 	render() {
+		const { messageParams, currentPageTitle } = this.props;
+		let domain;
+		if (messageParams.version === 'V3') {
+			domain = JSON.parse(messageParams.data).domain;
+		}
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -125,10 +149,12 @@ export default class TypedSign extends Component {
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
+					domain={domain}
+					currentPageTitle={currentPageTitle}
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						{this.renderData()}
+						{this.renderTypedMessage()}
 					</View>
 				</SignatureRequest>
 			</View>

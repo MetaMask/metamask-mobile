@@ -10,7 +10,7 @@ import { hexToText } from 'gaba/util';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: 500,
+		minHeight: 600,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10
 	},

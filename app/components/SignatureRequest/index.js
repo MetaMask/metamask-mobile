@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Image } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		marginBottom: 40
 	},
 	signingInformation: {
-		margin: 20
+		margin: 10
 	},
 	account: {
 		flex: 1,
@@ -49,6 +49,20 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	header: {},
+	domainText: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		fontSize: 16,
+		padding: 5,
+		color: colors.black
+	},
+	domainTitle: {
+		...fontStyles.bold,
+		textAlign: 'center',
+		fontSize: 16,
+		padding: 5,
+		color: colors.black
+	},
 	signatureText: {
 		...fontStyles.normal,
 		textAlign: 'center',
@@ -61,8 +75,24 @@ const styles = StyleSheet.create({
 		borderTopColor: colors.lightGray,
 		borderTopWidth: 1,
 		height: '100%'
+	},
+	domainLogo: {
+		width: 70,
+		height: 70,
+		overflow: 'hidden',
+		borderRadius: 100
+	},
+	assetLogo: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 10
+	},
+	domainWrapper: {
+		margin: 10
 	}
 });
+
+const ethLogo = require('../../images/fox.png'); // eslint-disable-line
 
 /**
  * Component that renders scrollable content inside signature request user interface
@@ -96,7 +126,29 @@ class SignatureRequest extends Component {
 		/**
 		 * Custom message to be displayed to the user
 		 */
-		message: PropTypes.string
+		message: PropTypes.string,
+		/**
+		 * Object containing domain information for the signature request
+		 */
+		domain: PropTypes.object,
+		/**
+		 * Current browser page title
+		 */
+		currentPageTitle: PropTypes.string
+	};
+
+	renderDomainInformation = () => {
+		const { domain, currentPageTitle } = this.props;
+		if (!domain) return;
+		return (
+			<View style={styles.domainWrapper}>
+				<View style={styles.assetLogo}>
+					<Image source={ethLogo} style={styles.domainLogo} />
+				</View>
+				<Text style={styles.domainTitle}>{currentPageTitle}</Text>
+				<Text style={styles.domainText}>{domain.origin}</Text>
+			</View>
+		);
 	};
 
 	render() {
@@ -125,6 +177,7 @@ class SignatureRequest extends Component {
 							</Text>
 						</View>
 					</View>
+					{this.renderDomainInformation()}
 					<View style={styles.signingInformation}>
 						<Text style={styles.signatureText}>{strings('signature_request.sign_requested')}</Text>
 						{message ? (

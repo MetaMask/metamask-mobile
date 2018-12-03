@@ -105,6 +105,21 @@ class Engine {
 										} catch (error) {
 											end(error);
 										}
+									},
+									eth_signTypedData_v3: async (payload, next, end) => {
+										const { TypedMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+												{
+													data: payload.params[1],
+													from: payload.params[0]
+												},
+												'V3'
+											);
+											end(undefined, rawSig);
+										} catch (error) {
+											end(error);
+										}
 									}
 								},
 								getAccounts: end => {

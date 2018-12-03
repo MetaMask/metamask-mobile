@@ -479,8 +479,7 @@ export class Browser extends Component {
 
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
-			data = typeof data === 'string' ? JSON.parse(data) : data;
-
+			data = data.includes('GET_TITLE_FOR_BOOKMARK') ? JSON.parse(JSON.parse(data)) : JSON.parse(data);
 			if (!data || !data.type) {
 				return;
 			}
@@ -750,7 +749,7 @@ export class Browser extends Component {
 	};
 
 	renderSigningModal = () => {
-		const { signMessage, signMessageParams, signType } = this.state;
+		const { signMessage, signMessageParams, signType, currentPageTitle } = this.state;
 		if (signMessage) {
 			return (
 				<Modal
@@ -775,6 +774,7 @@ export class Browser extends Component {
 							messageParams={signMessageParams}
 							onCancel={this.onSignAction}
 							onConfirm={this.onSignAction}
+							currentPageTitle={currentPageTitle}
 						/>
 					)}
 				</Modal>
