@@ -1,72 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TypedSign should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "borderTopLeftRadius": 10,
-      "borderTopRightRadius": 10,
-      "minHeight": 500,
-    }
-  }
->
-  <Component>
-    <Component
-      onPress={[Function]}
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "600",
-          "marginHorizontal": 20,
-          "marginVertical": 12,
-          "textAlign": "center",
-        }
-      }
-    >
-      Signature Request
-    </Component>
-  </Component>
-  <Connect(SignatureRequest)
-    navigation={
-      Object {
-        "state": Object {
-          "params": Object {
-            "messageParams": Object {
-              "from": "0x2",
-              "message": "0x879",
-            },
-          },
-        },
-      }
-    }
-    onCancel={[Function]}
-    onConfirm={[Function]}
-  >
-    <Component
-      style={
-        Object {
-          "borderBottomColor": "#d2d8dd",
-          "borderBottomWidth": 1,
-          "padding": 20,
-        }
-      }
-    >
-      <Component
-        style={
-          Object {
-            "fontFamily": "Roboto",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "margin": 5,
-          }
-        }
-      >
-        Message:
-      </Component>
-    </Component>
-  </Connect(SignatureRequest)>
-</View>
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
 `;
