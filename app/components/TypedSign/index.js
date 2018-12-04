@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports eth_signTypedData and eth_signTypedDataV3
+ * Component that supports eth_signTypedData and eth_signTypedData_v3
  */
 export default class TypedSign extends Component {
 	static navigationOptions = () => ({

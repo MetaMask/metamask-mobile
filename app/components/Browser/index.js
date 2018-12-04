@@ -206,7 +206,7 @@ export class Browser extends Component {
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
-		 * react-navigation object used teth_so switch between screens
+		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object,
 		/**

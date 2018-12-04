@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
 		padding: 5,
 		textAlign: 'center'
 	},
-	header: {},
 	domainText: {
 		...fontStyles.normal,
 		textAlign: 'center',
@@ -128,7 +127,7 @@ class SignatureRequest extends Component {
 		 */
 		message: PropTypes.string,
 		/**
-		 * Object containing domain information for the signature request
+		 * Object containing domain information for the signature request for EIP712
 		 */
 		domain: PropTypes.object,
 		/**
@@ -150,7 +149,6 @@ class SignatureRequest extends Component {
 	};
 
 	renderPageInformation = () => {
-		this.fetchPageLogo();
 		const { domain, currentPageInformation } = this.props;
 		const apiLogoUrl = this.fetchPageLogo(currentPageInformation.url);
 		return (
