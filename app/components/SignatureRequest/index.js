@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 	domainText: {
 		...fontStyles.normal,
 		textAlign: 'center',
-		fontSize: 16,
+		fontSize: 12,
 		padding: 5,
 		color: colors.black
 	},
@@ -132,19 +132,20 @@ class SignatureRequest extends Component {
 		 */
 		domain: PropTypes.object,
 		/**
-		 * Current browser page title
+		 * Object containing current page title and url
 		 */
-		currentPageTitle: PropTypes.string
+		currentPageInformation: PropTypes.object
 	};
 
 	renderDomainInformation = () => {
-		const { domain, currentPageTitle } = this.props;
+		const { domain, currentPageInformation } = this.props;
 		return (
 			<View style={styles.domainWrapper}>
 				<View style={styles.assetLogo}>
 					<Image source={ethLogo} style={styles.domainLogo} />
 				</View>
-				<Text style={styles.domainTitle}>{currentPageTitle}</Text>
+				<Text style={styles.domainTitle}>{currentPageInformation.title}</Text>
+				<Text style={styles.domainText}>{currentPageInformation.url}</Text>
 				{domain && <Text style={styles.domainText}>{domain.name}</Text>}
 			</View>
 		);

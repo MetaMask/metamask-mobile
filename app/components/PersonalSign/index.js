@@ -68,9 +68,9 @@ export default class PersonalSign extends Component {
 		 */
 		messageParams: PropTypes.object,
 		/**
-		 * Current browser page title
+		 * Object containing current page title and url
 		 */
-		currentPageTitle: PropTypes.string
+		currentPageInformation: PropTypes.object
 	};
 
 	signMessage = async () => {
@@ -100,7 +100,7 @@ export default class PersonalSign extends Component {
 	};
 
 	render() {
-		const { messageParams, currentPageTitle } = this.props;
+		const { messageParams, currentPageInformation } = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -112,7 +112,7 @@ export default class PersonalSign extends Component {
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
-					currentPageTitle={currentPageTitle}
+					currentPageInformation={currentPageInformation}
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>

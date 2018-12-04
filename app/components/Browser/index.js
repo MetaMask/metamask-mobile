@@ -226,6 +226,7 @@ export class Browser extends Component {
 		hostname: '',
 		url: this.props.url || '',
 		currentPageTitle: '',
+		currentPageUrl: '',
 		timeout: false,
 		ipfsWebsite: false,
 		ipfsGateway: 'https://ipfs.io/ipfs/',
@@ -489,7 +490,7 @@ export class Browser extends Component {
 					break;
 				case 'GET_TITLE_FOR_BOOKMARK':
 					if (data.title) {
-						this.setState({ currentPageTitle: data.title });
+						this.setState({ currentPageTitle: data.title, currentPageUrl: data.url });
 					}
 					break;
 			}
@@ -542,7 +543,8 @@ export class Browser extends Component {
 				window.postMessage(
 					JSON.stringify({
 						type: 'GET_TITLE_FOR_BOOKMARK',
-						title: document.title
+						title: document.title,
+						url: location.href
 					})
 				)
 			})();
@@ -747,7 +749,7 @@ export class Browser extends Component {
 	};
 
 	renderSigningModal = () => {
-		const { signMessage, signMessageParams, signType, currentPageTitle } = this.state;
+		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
 		if (signMessage) {
 			return (
 				<Modal
@@ -765,7 +767,7 @@ export class Browser extends Component {
 							messageParams={signMessageParams}
 							onCancel={this.onSignAction}
 							onConfirm={this.onSignAction}
-							currentPageTitle={currentPageTitle}
+							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
 						/>
 					)}
 					{signType === 'typed' && (
@@ -773,7 +775,7 @@ export class Browser extends Component {
 							messageParams={signMessageParams}
 							onCancel={this.onSignAction}
 							onConfirm={this.onSignAction}
-							currentPageTitle={currentPageTitle}
+							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
 						/>
 					)}
 				</Modal>
