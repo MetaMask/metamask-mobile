@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../images/fox.png'); // eslint-disable-line
+const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * Component that renders scrollable content inside signature request user interface
@@ -137,12 +137,30 @@ class SignatureRequest extends Component {
 		currentPageInformation: PropTypes.object
 	};
 
-	renderDomainInformation = () => {
+	state = {
+		apiLogoUrl: null
+	};
+
+	fetchPageLogo = async url => {
+		const apiLogoUrl = `http://icons.duckduckgo.com/ip2/${url}.ico`;
+		const res = await fetch(apiLogoUrl);
+		if (res.status === 200) {
+			this.setState({ apiLogoUrl });
+		}
+	};
+
+	renderPageInformation = () => {
+		this.fetchPageLogo();
 		const { domain, currentPageInformation } = this.props;
+		const apiLogoUrl = this.fetchPageLogo(currentPageInformation.url);
 		return (
 			<View style={styles.domainWrapper}>
 				<View style={styles.assetLogo}>
-					<Image source={ethLogo} style={styles.domainLogo} />
+					{this.state.apiLogoUrl ? (
+						<Image source={{ uri: apiLogoUrl }} style={styles.domainLogo} />
+					) : (
+						<Image source={ethLogo} style={styles.domainLogo} />
+					)}
 				</View>
 				<Text style={styles.domainTitle}>{currentPageInformation.title}</Text>
 				<Text style={styles.domainText}>{currentPageInformation.url}</Text>
@@ -177,7 +195,7 @@ class SignatureRequest extends Component {
 							</Text>
 						</View>
 					</View>
-					{this.renderDomainInformation()}
+					{this.renderPageInformation()}
 					<View style={styles.signingInformation}>
 						<Text style={styles.signatureText}>{strings('signature_request.sign_requested')}</Text>
 						{message ? (
