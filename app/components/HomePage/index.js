@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
 

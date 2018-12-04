@@ -15,7 +15,6 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { colors, fontStyles } from '../../styles/common';
@@ -29,6 +28,7 @@ import { strings } from '../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -310,7 +310,7 @@ class DrawerView extends Component {
 				{
 					text: strings('drawer.logout_ok'),
 					onPress: async () => {
-						await Keychain.resetGenericPassword();
+						await SecureKeychain.resetGenericPassword();
 						this.props.navigation.navigate('Entry');
 					}
 				}

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 
 import FoxScreen from '../FoxScreen';
 import Engine from '../../core/Engine';
+import SecureKeychain from '../../core/SecureKeychain';
 
 /**
  * Main view component for the Lock screen
@@ -40,7 +40,7 @@ export default class LockScreen extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const credentials = Keychain.getGenericPassword && (await Keychain.getGenericPassword());
+			const credentials = SecureKeychain.getGenericPassword && (await SecureKeychain.getGenericPassword());
 			if (credentials) {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;

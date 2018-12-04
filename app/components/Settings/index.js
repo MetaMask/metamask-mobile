@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { StyleSheet, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 import { strings } from '../../../locales/i18n';
 import Networks from '../../util/networks';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -43,7 +43,7 @@ class Settings extends Component {
 		navigation: PropTypes.object
 	};
 	logout = async () => {
-		await Keychain.resetGenericPassword();
+		await SecureKeychain.resetGenericPassword();
 		this.props.navigation.navigate('Entry');
 	};
 
