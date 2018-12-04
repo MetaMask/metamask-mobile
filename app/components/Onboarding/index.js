@@ -88,38 +88,32 @@ export default class Onboarding extends Component {
 		this.props.navigation.push('ImportWallet');
 	};
 
-	render() {
-		return (
-			<OnboardingScreenWithBg>
-				<ScrollView style={styles.flex} testID={'onboarding-screen'}>
-					<View style={styles.wrapper}>
-						<View style={styles.logoWrapper}>
-							<Image source={require('../../images/fox.png')} style={styles.fox} resizeMethod={'auto'} />
-						</View>
-						<Text style={styles.title}>{strings('onboarding.title')}</Text>
-						<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
-
-						<Text style={styles.bigText}>{strings('onboarding.lets_get_started')}</Text>
-						<Text style={styles.smallText}>{strings('onboarding.already_using_metamask')}</Text>
-
-						<View style={styles.ctaWrapper}>
-							<StyledButton
-								type={'blue'}
-								onPress={this.onPressImport}
-								testID={'onboarding-import-button'}
-							>
-								{strings('onboarding.import_wallet_button')}
-							</StyledButton>
-						</View>
-						<Text style={[styles.smallText, styles.separator]}>{strings('onboarding.or')}</Text>
-						<View style={styles.ctaWrapper}>
-							<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'onboarding-new-button'}>
-								{strings('onboarding.create_new_wallet_button')}
-							</StyledButton>
-						</View>
+	render = () => (
+		<OnboardingScreenWithBg>
+			<ScrollView style={styles.flex} testID={'onboarding-screen'}>
+				<View style={styles.wrapper}>
+					<View style={styles.logoWrapper}>
+						<Image source={require('../../images/fox.png')} style={styles.fox} resizeMethod={'auto'} />
 					</View>
-				</ScrollView>
-			</OnboardingScreenWithBg>
-		);
-	}
+					<Text style={styles.title}>{strings('onboarding.title')}</Text>
+					<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
+
+					<Text style={styles.bigText}>{strings('onboarding.lets_get_started')}</Text>
+					<Text style={styles.smallText}>{strings('onboarding.already_using_metamask')}</Text>
+
+					<View style={styles.ctaWrapper}>
+						<StyledButton type={'blue'} onPress={this.onPressImport} testID={'onboarding-import-button'}>
+							{strings('onboarding.import_wallet_button')}
+						</StyledButton>
+					</View>
+					<Text style={[styles.smallText, styles.separator]}>{strings('onboarding.or')}</Text>
+					<View style={styles.ctaWrapper}>
+						<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'onboarding-new-button'}>
+							{strings('onboarding.create_new_wallet_button')}
+						</StyledButton>
+					</View>
+				</View>
+			</ScrollView>
+		</OnboardingScreenWithBg>
+	);
 }

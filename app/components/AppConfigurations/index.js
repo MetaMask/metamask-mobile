@@ -66,7 +66,7 @@ export default class AppConfigurations extends Component {
 		);
 	}
 
-	render() {
+	render = () => {
 		const { navigation } = this.props;
 		return (
 			<View style={styles.wrapper}>
@@ -79,5 +79,5 @@ export default class AppConfigurations extends Component {
 				</ScrollableTabView>
 			</View>
 		);
-	}
+	};
 }

@@ -59,7 +59,7 @@ class Settings extends Component {
 		this.props.navigation.push('SyncWithExtension', { existingUser: true });
 	};
 
-	render() {
+	render = () => {
 		const { CurrencyRateController, NetworkController, NetworkStatusController } = this.props.backgroundState;
 		const { name } = Networks[NetworkController.provider.type];
 
@@ -97,7 +97,7 @@ class Settings extends Component {
 				</SettingsList>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({ backgroundState: state.backgroundState });

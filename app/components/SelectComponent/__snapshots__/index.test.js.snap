@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SelectComponent should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "flex": 1,
     }
   }
 >
-  <Component
+  <View
     style={
       Object {
         "flex": 1,
@@ -19,14 +19,14 @@ exports[`SelectComponent should render correctly 1`] = `
       activeOpacity={0.2}
       onPress={[Function]}
     >
-      <Component
+      <View
         style={
           Object {
             "flexDirection": "row",
           }
         }
       >
-        <Component
+        <Text
           numberOfLines={1}
           style={
             Object {
@@ -57,7 +57,7 @@ exports[`SelectComponent should render correctly 1`] = `
             }
           }
         />
-      </Component>
+      </View>
     </TouchableOpacity>
     <ReactNativeModal
       animationIn="slideInUp"
@@ -95,14 +95,14 @@ exports[`SelectComponent should render correctly 1`] = `
       swipeThreshold={100}
       useNativeDriver={false}
     >
-      <Component
+      <View
         style={
           Object {
             "backgroundColor": "#FFFFFF",
           }
         }
       >
-        <Component
+        <View
           style={
             Object {
               "backgroundColor": "#dfe4ea",
@@ -111,7 +111,7 @@ exports[`SelectComponent should render correctly 1`] = `
             }
           }
         >
-          <Component
+          <Text
             style={
               Object {
                 "flex": 1,
@@ -124,8 +124,8 @@ exports[`SelectComponent should render correctly 1`] = `
             }
           >
             Choose an option
-          </Component>
-        </Component>
+          </Text>
+        </View>
         <Picker
           mode="dialog"
           onValueChange={[Function]}
@@ -140,8 +140,8 @@ exports[`SelectComponent should render correctly 1`] = `
             label="option 2"
           />
         </Picker>
-      </Component>
+      </View>
     </ReactNativeModal>
-  </Component>
-</Component>
+  </View>
+</View>
 `;

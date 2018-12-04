@@ -41,7 +41,7 @@ export default class SeedWords extends Component {
 		}
 	});
 
-	render() {
+	render = () => {
 		const { KeyringController } = Engine.context;
 		const seedWords = JSON.stringify(KeyringController.keyring.keyrings[0].mnemonic).replace(/"/g, '');
 
@@ -58,5 +58,5 @@ export default class SeedWords extends Component {
 				/>
 			</View>
 		);
-	}
+	};
 }

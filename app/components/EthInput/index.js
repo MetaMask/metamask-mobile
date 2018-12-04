@@ -77,7 +77,7 @@ class EthInput extends Component {
 		onChange && onChange(isDecimal(value) ? toWei(value) : value);
 	};
 
-	render() {
+	render = () => {
 		const { conversionRate, currentCurrency, readonly, value } = this.props;
 		return (
 			<View style={styles.root}>
@@ -103,7 +103,7 @@ class EthInput extends Component {
 				</Text>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = ({ backgroundState: { CurrencyRateController } }) => ({

@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Screen should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "flex": 1,
     }
   }
 >
-  <Component
+  <View
     style={
       Object {
         "backgroundColor": "#FFFFFF",
@@ -26,7 +26,7 @@ exports[`Screen should render correctly 1`] = `
       barStyle="dark-content"
       showHideTransition="fade"
     />
-  </Component>
+  </View>
   <SafeAreaView
     style={
       Object {
@@ -34,9 +34,9 @@ exports[`Screen should render correctly 1`] = `
       }
     }
   >
-    <Component>
+    <View>
       Foobar
-    </Component>
+    </View>
   </SafeAreaView>
-</Component>
+</View>
 `;

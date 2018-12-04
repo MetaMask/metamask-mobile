@@ -99,7 +99,6 @@ class AppSettings extends Component {
 	state = {
 		languages: {},
 		currentLanguage: I18n.locale,
-		currentCurrency: 'usd',
 		modalVisible: false,
 		rpcUrl: '',
 		warningRpcUrl: ''
@@ -133,9 +132,8 @@ class AppSettings extends Component {
 	};
 
 	selectCurrency = async currency => {
-		this.setState({ currentCurrency: currency });
 		const { CurrencyRateController } = Engine.context;
-		await CurrencyRateController.updateCurrency(currency);
+		CurrencyRateController.configure({ currentCurrency: currency });
 	};
 
 	goToSyncWithExtension = () => {
@@ -190,7 +188,8 @@ class AppSettings extends Component {
 		this.setState({ rpcUrl: url });
 	};
 
-	render() {
+	render = () => {
+		const { currentCurrency } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
 				<ScrollView contentContainerStyle={styles.wrapperContent}>
@@ -212,7 +211,7 @@ class AppSettings extends Component {
 						<Text style={styles.text}>{strings('app_settings.current_conversion')}</Text>
 						<View style={styles.picker}>
 							<SelectComponent
-								selectedValue={this.state.currentCurrency}
+								selectedValue={currentCurrency}
 								onValueChange={this.selectCurrency}
 								label={strings('app_settings.current_conversion')}
 								options={infuraCurrencyOptions}
@@ -266,7 +265,7 @@ class AppSettings extends Component {
 				</ScrollView>
 			</SafeAreaView>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

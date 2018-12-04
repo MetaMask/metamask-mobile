@@ -308,7 +308,7 @@ class CustomGas extends Component {
 		);
 	};
 
-	render() {
+	render = () => {
 		if (this.state.ready) {
 			const { advancedCustomGas } = this.state;
 			return (
@@ -331,7 +331,7 @@ class CustomGas extends Component {
 				<Text>{strings('transaction.loading')}</Text>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

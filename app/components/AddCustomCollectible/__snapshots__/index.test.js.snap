@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddCustomCollectible should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -21,14 +21,14 @@ exports[`AddCustomCollectible should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <Component
+    <View
       style={
         Object {
           "padding": 20,
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -37,7 +37,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         }
       >
         Collectible Address
-      </Component>
+      </Text>
       <TextInput
         allowFontScaling={true}
         onBlur={[Function]}
@@ -58,7 +58,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         underlineColorAndroid="transparent"
         value=""
       />
-      <Component
+      <Text
         style={
           Object {
             "color": "#FF0000",
@@ -67,15 +67,15 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           }
         }
       />
-    </Component>
-    <Component
+    </View>
+    <View
       style={
         Object {
           "padding": 20,
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -84,7 +84,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         }
       >
         Collectible Identifier
-      </Component>
+      </Text>
       <TextInput
         allowFontScaling={true}
         keyboardType="numeric"
@@ -107,7 +107,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         underlineColorAndroid="transparent"
         value=""
       />
-      <Component
+      <Text
         style={
           Object {
             "color": "#FF0000",
@@ -116,7 +116,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           }
         }
       />
-    </Component>
+    </View>
   </ActionView>
-</Component>
+</View>
 `;

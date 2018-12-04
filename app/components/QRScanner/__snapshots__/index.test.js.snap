@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`QrScanner should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "backgroundColor": "#000000",
@@ -9,7 +9,7 @@ exports[`QrScanner should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <View
     flashMode="auto"
     onBarCodeRead={[Function]}
     permissionDialogMessage="We need your permission to scan QR codes"
@@ -47,7 +47,7 @@ exports[`QrScanner should render correctly 1`] = `
           size={50}
         />
       </TouchableOpacity>
-      <Image
+      <Component
         source={
           Object {
             "testUri": "../../../app/images/frame.png",
@@ -64,7 +64,7 @@ exports[`QrScanner should render correctly 1`] = `
           }
         }
       />
-      <Component
+      <Text
         style={
           Object {
             "color": "#FFFFFF",
@@ -77,8 +77,8 @@ exports[`QrScanner should render correctly 1`] = `
         }
       >
         scanning...
-      </Component>
+      </Text>
     </SafeAreaView>
-  </Component>
-</Component>
+  </View>
+</View>
 `;

@@ -188,7 +188,7 @@ class TransactionEdit extends Component {
 		}
 	}
 
-	validateAmount() {
+	validateAmount = () => {
 		let error;
 		const { amount, gas, gasPrice, from } = this.props.transactionData;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
@@ -202,24 +202,24 @@ class TransactionEdit extends Component {
 			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
 			(error = strings('transaction.insufficient'));
 		return error;
-	}
+	};
 
-	validateGas() {
+	validateGas = () => {
 		let error;
 		const { gas, gasPrice } = this.props.transactionData;
 		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
 		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
 		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('custom_gas.warning_gas_limit'));
 		return error;
-	}
+	};
 
-	validateToAddress() {
+	validateToAddress = () => {
 		let error;
 		const { to } = this.props.transactionData;
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
 		return error;
-	}
+	};
 
 	onScanSuccess = () => {
 		this.props.navigation.navigate('QRScanner', {
@@ -228,7 +228,7 @@ class TransactionEdit extends Component {
 		});
 	};
 
-	render() {
+	render = () => {
 		const {
 			hideData,
 			transactionData: { amount, gas, gasPrice, data, from, to }
@@ -301,7 +301,7 @@ class TransactionEdit extends Component {
 				</ActionView>
 			</View>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

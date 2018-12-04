@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
 	addText: {
 		fontSize: 15,
 		color: colors.primary,
-		textTransform: 'uppercase',
 		...fontStyles.normal
 	}
 });
@@ -54,13 +53,11 @@ export default class Collectibles extends Component {
 		assets: PropTypes.array
 	};
 
-	renderEmpty() {
-		return (
-			<View style={styles.emptyView}>
-				<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
-			</View>
-		);
-	}
+	renderEmpty = () => (
+		<View style={styles.emptyView}>
+			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
+		</View>
+	);
 
 	renderList() {
 		return this.props.assets.map(asset => <CollectibleElement asset={asset} key={asset.tokenId} />);
@@ -70,21 +67,19 @@ export default class Collectibles extends Component {
 		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
 	};
 
-	render() {
-		return (
-			<ScrollView style={styles.wrapper}>
-				<View testID={'collectibles'}>
-					{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-					<TouchableOpacity
-						style={styles.add}
-						onPress={this.goToAddCollectible}
-						testID={'add-collectible-button'}
-					>
-						<Icon name="plus" size={16} color={colors.primary} />
-						<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-					</TouchableOpacity>
-				</View>
-			</ScrollView>
-		);
-	}
+	render = () => (
+		<ScrollView style={styles.wrapper}>
+			<View testID={'collectibles'}>
+				{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
+				<TouchableOpacity
+					style={styles.add}
+					onPress={this.goToAddCollectible}
+					testID={'add-collectible-button'}
+				>
+					<Icon name="plus" size={16} color={colors.primary} />
+					<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
+				</TouchableOpacity>
+			</View>
+		</ScrollView>
+	);
 }

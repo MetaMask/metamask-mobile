@@ -57,7 +57,7 @@ export default class Approval extends Component {
 		return meta;
 	}
 
-	render() {
+	render = () => {
 		const {
 			params: { transactionMeta }
 		} = this.props.navigation.state;
@@ -71,5 +71,5 @@ export default class Approval extends Component {
 				transaction={transaction}
 			/>
 		);
-	}
+	};
 }
