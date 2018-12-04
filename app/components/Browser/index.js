@@ -480,7 +480,9 @@ export class Browser extends Component {
 
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
-			data = data.includes('GET_TITLE_FOR_BOOKMARK') ? JSON.parse(JSON.parse(data)) : JSON.parse(data);
+			data = typeof data === 'string' ? JSON.parse(data) : data;
+			// Android workaround
+			data = typeof data === 'string' && data.includes('GET_TITLE_FOR_BOOKMARK') ? JSON.parse(data) : data;
 			if (!data || !data.type) {
 				return;
 			}
