@@ -36,7 +36,7 @@ export default class Entry extends Component {
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
 
-				console.log('KeyringController?'.KeyringController);
+				console.log('KeyringController?', KeyringController);
 
 				this.goToWallet();
 			} else {

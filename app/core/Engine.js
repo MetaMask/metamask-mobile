@@ -85,7 +85,7 @@ class Engine {
 			);
 
 			const {
-				KeyringController: { keyring },
+				KeyringController: keyring ,
 				NetworkController: network,
 				TransactionController: transaction
 			} = this.datamodel.context;
