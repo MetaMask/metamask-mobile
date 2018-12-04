@@ -9,9 +9,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     }
   }
 >
-  <View
-    style={Object {}}
-  >
+  <View>
     <View
       style={
         Object {

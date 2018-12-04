@@ -1,7 +1,76 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PersonalSign should render correctly 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 10,
+      "borderTopRightRadius": 10,
+      "minHeight": 600,
+    }
+  }
+>
+  <View>
+    <Text
+      onPress={[Function]}
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "600",
+          "marginHorizontal": 20,
+          "marginVertical": 12,
+          "textAlign": "center",
+        }
+      }
+    >
+      Signature Request
+    </Text>
+  </View>
+  <Connect(SignatureRequest)
+    currentPageInformation={
+      Object {
+        "title": "title",
+        "url": "url",
+      }
+    }
+    onCancel={[Function]}
+    onConfirm={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "borderBottomColor": "#d2d8dd",
+          "borderBottomWidth": 1,
+          "padding": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "margin": 5,
+          }
+        }
+      >
+        Message:
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "margin": 5,
+          }
+        }
+      />
+    </View>
+  </Connect(SignatureRequest)>
+</View>
 `;
