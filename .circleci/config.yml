@@ -21,7 +21,7 @@ jobs:
   prep-deps:
     <<: *defaults
     macos:
-      xcode: "9.4.1"
+      xcode: "10.1"
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -35,7 +35,7 @@ jobs:
   lint:
     <<: *defaults
     macos:
-      xcode: "9.4.1"
+      xcode: "10.1"
     steps:
       - checkout
       - attach_workspace:
@@ -45,7 +45,7 @@ jobs:
   test-unit:
     <<: *defaults
     macos:
-      xcode: "9.4.1"
+      xcode: "10.1"
     steps:
       - checkout
       - attach_workspace:
@@ -59,7 +59,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: "9.4.1"
+      xcode: "10.1"
     steps:
       - checkout
       - attach_workspace:
@@ -78,7 +78,7 @@ jobs:
   upload-coverage:
     <<: *defaults
     macos:
-      xcode: "9.4.1"
+      xcode: "10.1"
     steps:
       - checkout
       - attach_workspace:
@@ -89,7 +89,7 @@ jobs:
   all-tests-pass:
     <<: *defaults
     macos:
-      xcode: "9.4.1"
+      xcode: "10.1"
     steps:
         - run:
             name: All Tests Passed
