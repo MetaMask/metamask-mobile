@@ -7,7 +7,6 @@ describe('Engine', () => {
 		expect(engine.datamodel.context).toHaveProperty('AssetsContractController');
 		expect(engine.datamodel.context).toHaveProperty('AssetsController');
 		expect(engine.datamodel.context).toHaveProperty('AssetsDetectionController');
-		expect(engine.datamodel.context).toHaveProperty('BlockHistoryController');
 		expect(engine.datamodel.context).toHaveProperty('CurrencyRateController');
 		expect(engine.datamodel.context).toHaveProperty('KeyringController');
 		expect(engine.datamodel.context).toHaveProperty('NetworkController');

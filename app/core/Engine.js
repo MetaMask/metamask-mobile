@@ -4,7 +4,6 @@ import {
 	AssetsContractController,
 	AssetsController,
 	AssetsDetectionController,
-	BlockHistoryController,
 	ComposableController,
 	CurrencyRateController,
 	KeyringController,
@@ -18,7 +17,6 @@ import {
 	TransactionController
 } from 'gaba';
 
-import BlockTracker from 'eth-block-tracker';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 
@@ -47,7 +45,6 @@ class Engine {
 					new AssetsContractController(),
 					new AssetsController(),
 					new AssetsDetectionController(),
-					new BlockHistoryController(),
 					new CurrencyRateController(),
 					new NetworkController(
 						{
@@ -88,7 +85,7 @@ class Engine {
 			);
 
 			const {
-				KeyringController: { keyring },
+				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction
 			} = this.datamodel.context;
@@ -109,18 +106,14 @@ class Engine {
 		const {
 			AccountTrackerController,
 			AssetsContractController,
-			BlockHistoryController,
 			NetworkController: { provider },
 			TransactionController
 		} = this.datamodel.context;
 
 		provider.sendAsync = provider.sendAsync.bind(provider);
-		const blockTracker = new BlockTracker({ provider });
 		AssetsContractController.configure({ provider });
-		BlockHistoryController.configure({ provider, blockTracker });
 		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
-		blockTracker.start();
 	};
 
 	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
