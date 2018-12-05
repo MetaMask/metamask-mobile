@@ -323,5 +323,18 @@
 	"select": {
 		"cancel": "Cancel",
 		"done": "Done"
+	},
+	"signature_request": {
+		"title": "Signature Request",
+		"cancel": "CANCEL",
+		"sign": "SIGN",
+		"sign_requested": "Your signature is being requested",
+		"signing": "You are signing:",
+		"account_title": "Account:",
+		"balance_title": "Balance:",
+		"message": "Message:"
+	},
+	"unit": {
+		"eth": "ETH"
 	}
 }
