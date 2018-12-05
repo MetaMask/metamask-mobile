@@ -59,8 +59,20 @@ export default class Collectibles extends Component {
 		</View>
 	);
 
+	onItemPress = asset => {
+		this.props.navigation.push('Collectible', asset);
+	};
+
 	renderList() {
-		return this.props.assets.map(asset => <CollectibleElement asset={asset} key={asset.tokenId} />);
+		return this.props.assets.map(asset => (
+			<CollectibleElement
+				asset={asset}
+				key={asset.tokenId}
+				onPress={() => {
+					this.onItemPress(asset);
+				}}
+			/> // eslint-disable-line
+		));
 	}
 
 	goToAddCollectible = () => {

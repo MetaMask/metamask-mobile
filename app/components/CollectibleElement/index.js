@@ -36,16 +36,20 @@ const styles = StyleSheet.create({
 export default class CollectibleElement extends Component {
 	static propTypes = {
 		/**
+		 * Callback triggered on press
+		 */
+		onPress: PropTypes.func,
+		/**
 		 * Asset object (in this case ERC721 token)
 		 */
 		asset: PropTypes.object
 	};
 
 	render = () => {
-		const { asset } = this.props;
+		const { asset, onPress } = this.props;
 		return (
-			<TouchableOpacity style={styles.itemWrapper} key={`asset-${asset.tokenId}`}>
-				<CollectibleImage asset={asset} />
+			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${asset.tokenId}`}>
+				<CollectibleImage collectible={asset} />
 				<View style={styles.balances}>
 					<Text style={styles.name}>{asset.name}</Text>
 					<Text style={styles.tokenId}>

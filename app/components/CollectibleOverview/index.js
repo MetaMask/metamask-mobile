@@ -1,53 +1,50 @@
 import React, { Component } from 'react';
-import { Image, Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
-import AssetIcon from '../AssetIcon';
-import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import CollectibleImage from '../CollectibleImage';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		padding: 20,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	assetLogo: {
 		marginTop: 15,
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 10,
-		marginBottom: 10
+		backgroundColor: colors.white,
+		borderRadius: 20,
+		width: 300
 	},
-	ethLogo: {
-		width: 70,
-		height: 70
-	},
-	balance: {
+	collectibleInformation: {
 		flex: 1,
 		alignItems: 'center',
 		marginTop: 10,
-		marginBottom: 10
+		marginBottom: 10,
+		padding: 20
 	},
 	buttons: {
 		flex: 1,
 		flexDirection: 'row',
 		marginTop: 30
 	},
-	amount: {
-		fontSize: 30,
+	collectibleName: {
+		fontSize: 20,
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
-	amountFiat: {
+	collectibleAttribute: {
 		fontSize: 18,
 		color: colors.fontSecondary,
-		...fontStyles.light
+		...fontStyles.normal
 	},
 	button: {
 		flex: 1,
@@ -88,13 +85,8 @@ const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
  * View that displays the information of a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
  */
-export default class AssetOverview extends Component {
+export default class CollectibleOverview extends Component {
 	static propTypes = {
-		/**
-		/* navigation object required to access the props
-		/* passed by the parent component
-		*/
-		navigation: PropTypes.object,
 		/**
 		 * Object that represents the asset to be displayed
 		 */
@@ -106,31 +98,29 @@ export default class AssetOverview extends Component {
 	};
 
 	onSend = async () => {
-		this.props.navigation.navigate('SendScreen');
+		Alert.alert(strings('drawer.coming_soon'));
 	};
 
-	renderLogo = () => {
-		const {
-			asset: { address, logo, symbol }
-		} = this.props;
-		if (symbol === 'ETH') {
-			return <Image source={ethLogo} style={styles.ethLogo} />;
-		}
-		return logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />;
+	renderImage = () => {
+		const { asset } = this.props;
+		return <CollectibleImage renderFull={1} collectible={asset} />;
 	};
 
 	render = () => {
 		const {
-			asset: { symbol, balance, balanceFiat }
+			asset: { address, tokenId, name }
 		} = this.props;
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
-				<View style={styles.assetLogo}>{this.renderLogo()}</View>
-				<View style={styles.balance}>
-					<Text style={styles.amount}>
-						{balance} {symbol}
+				<View style={styles.assetLogo}>{this.renderImage()}</View>
+				<View style={styles.collectibleInformation}>
+					<Text style={styles.collectibleName}>{name}</Text>
+					<Text style={styles.collectibleAttribute}>
+						{strings('collectible.collectible_token_id')}: {tokenId}
 					</Text>
-					<Text style={styles.amountFiat}>{balanceFiat}</Text>
+					<Text style={styles.collectibleAttribute}>
+						{strings('collectible.collectible_address')}: {address}
+					</Text>
 				</View>
 				<View style={styles.buttons}>
 					<StyledButton
