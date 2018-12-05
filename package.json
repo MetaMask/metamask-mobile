@@ -131,6 +131,7 @@
       "react-native"
     ],
     "globals": {
+      "process": true,
       "beforeAll": true,
       "afterAll": true,
       "describe": true,

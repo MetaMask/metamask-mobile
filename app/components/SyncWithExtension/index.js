@@ -144,8 +144,8 @@ class SyncWithExtension extends Component {
 		// And rotate keys before going opensource
 		// See https://github.com/MetaMask/MetaMask/issues/145
 		this.pubnub = new PubNub({
-			subscribeKey: 'sub-c-30b2ba04-c37e-11e8-bd78-d63445bede87',
-			publishKey: 'pub-c-d40e77d5-5cd3-4ca2-82eb-792a1f4573db',
+			subscribeKey: process.env['MM_PUBNUB_SUB_KEY'], // eslint-disable-line dot-notation
+			publishKey: process.env['MM_PUBNUB_PUB_KEY'], // eslint-disable-line dot-notation
 			cipherKey: this.cipherKey,
 			ssl: true
 		});

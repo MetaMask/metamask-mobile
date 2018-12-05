@@ -25,9 +25,9 @@
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
 
   NSURL *jsCodeLocation;
-  NSString* foxCode = [[[NSProcessInfo processInfo]environment]objectForKey:@"MM_FOX_CODE"];
-
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+
+  NSString* foxCode = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"MetaMask"

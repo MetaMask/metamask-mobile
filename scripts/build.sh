@@ -90,6 +90,8 @@ checkParameters(){
 prebuild(){
 	# Concat InpageBridge + Web3 + setProvider
 	./node_modules/.bin/concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js
+	# Load JS specific env variables
+	source .js.env
 }
 
 prebuild_ios(){
@@ -115,7 +117,7 @@ buildAndroid(){
 
 buildIosSimulator(){
 	prebuild_ios
-	react-native run-ios --simulator='iPhone X'
+	react-native run-ios
 }
 
 buildIosDevice(){

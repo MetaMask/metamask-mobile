@@ -35,9 +35,6 @@ export default class Entry extends Component {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
-
-				console.log('KeyringController?', KeyringController);
-
 				this.goToWallet();
 			} else {
 				this.goToLogin();

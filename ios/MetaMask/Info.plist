@@ -109,6 +109,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>fox_code</key>
+	<string>$(MM_FOX_CODE)</string>
 	<key>branch_key</key>
 	<dict>
 		<key>live</key>
