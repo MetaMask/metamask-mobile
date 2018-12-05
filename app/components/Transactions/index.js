@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
 export default class Transactions extends Component {
 	static propTypes = {
 		/**
-		 * ETH to currnt currency conversion rate
+		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
 		/**
@@ -261,7 +261,9 @@ export default class Transactions extends Component {
 				<View style={styles.detailRowInfo}>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.amount')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{fromWei(value, 'ether')} ETH</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{fromWei(value, 'ether')} {strings('unit.eth')}
+						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]} />
@@ -275,7 +277,9 @@ export default class Transactions extends Component {
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{fromWei(total, 'ether')} ETH</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{fromWei(total, 'ether')} {strings('unit.eth')}
+						</Text>
 					</View>
 					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
 						<Text style={[styles.detailRowText, styles.alignRight]}>

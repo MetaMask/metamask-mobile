@@ -68,7 +68,7 @@ class Settings extends Component {
 				<SettingsList borderColor={colors.borderColor} defaultItemSize={50}>
 					<SettingsList.Header headerStyle={styles.separator} />
 					<SettingsList.Item
-						title={'ETH'}
+						title={strings('unit.eth')}
 						titleInfo={`${
 							CurrencyRateController.conversionRate
 						} ${CurrencyRateController.currentCurrency.toUpperCase()}`}
