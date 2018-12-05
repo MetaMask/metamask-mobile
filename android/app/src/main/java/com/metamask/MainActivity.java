@@ -1,8 +1,11 @@
 package com.metamask;
 
 import com.facebook.react.ReactActivity;
+import com.facebook.react.ReactActivityDelegate;
 import io.branch.rnbranch.*;
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 
 public class MainActivity extends ReactActivity {
 
@@ -27,4 +30,18 @@ public class MainActivity extends ReactActivity {
 		super.onNewIntent(intent);
 		setIntent(intent);
 	}
+
+	@Override
+    protected ReactActivityDelegate createReactActivityDelegate() {
+        return new ReactActivityDelegate(this, getMainComponentName()) {
+            @Nullable
+            @Override
+            protected Bundle getLaunchOptions() {
+                Bundle bundle = new Bundle();
+                bundle.putString("foxCode", BuildConfig.foxCode);
+                return bundle;
+            }
+        };
+	}
+
 }

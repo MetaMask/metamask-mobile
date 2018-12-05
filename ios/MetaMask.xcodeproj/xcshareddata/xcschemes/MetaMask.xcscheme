@@ -105,6 +105,11 @@
             value = "disable"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "MM_FOX_CODE"
+            value = "$(MM_FOX_CODE)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>

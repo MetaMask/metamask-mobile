@@ -15,10 +15,9 @@ import SecureKeychain from '../../core/SecureKeychain';
 export default class Root extends Component {
 	constructor(props) {
 		super(props);
-
-		// TO-DO: Salt needs to come from props
-		SecureKeychain.init('SALTY AF');
+		SecureKeychain.init(props.foxCode); // eslint-disable-line
 	}
+
 	render = () => (
 		<Provider store={store}>
 			<PersistGate loading={<FoxScreen />} persistor={persistor}>

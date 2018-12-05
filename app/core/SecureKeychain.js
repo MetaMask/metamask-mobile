@@ -8,20 +8,20 @@ const privates = new WeakMap();
 const encryptor = new Encryptor();
 
 class SecureKeychain {
-	constructor(salt) {
+	constructor(code) {
 		if (!SecureKeychain.instance) {
-			privates.set(this, { salt });
+			privates.set(this, { code });
 			SecureKeychain.instance = this;
 		}
 		return SecureKeychain.instance;
 	}
 
 	encryptPassword(password) {
-		return encryptor.encrypt(privates.get(this).salt, { password });
+		return encryptor.encrypt(privates.get(this).code, { password });
 	}
 
 	decryptPassword(str) {
-		return encryptor.decrypt(privates.get(this).salt, str);
+		return encryptor.decrypt(privates.get(this).code, str);
 	}
 }
 let instance;
