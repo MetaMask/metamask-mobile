@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SignatureRequest should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -9,10 +9,10 @@ exports[`SignatureRequest should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <View
     style={Object {}}
   >
-    <Component
+    <View
       style={
         Object {
           "flex": 1,
@@ -23,11 +23,11 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       }
     >
-      <Component>
-        <Component>
+      <View>
+        <Text>
           Account:
-        </Component>
-        <Component
+        </Text>
+        <View
           style={
             Object {
               "flex": 1,
@@ -35,7 +35,7 @@ exports[`SignatureRequest should render correctly 1`] = `
             }
           }
         >
-          <Component
+          <View
             style={
               Object {
                 "padding": 5,
@@ -46,9 +46,9 @@ exports[`SignatureRequest should render correctly 1`] = `
               address="0x2"
               diameter={20}
             />
-          </Component>
-          <Component>
-            <Component
+          </View>
+          <View>
+            <Text
               style={
                 Object {
                   "fontFamily": "Roboto",
@@ -59,15 +59,15 @@ exports[`SignatureRequest should render correctly 1`] = `
               }
             >
               Account 1
-            </Component>
-          </Component>
-        </Component>
-      </Component>
-      <Component>
-        <Component>
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View>
+        <Text>
           Balance:
-        </Component>
-        <Component
+        </Text>
+        <Text
           style={
             Object {
               "fontFamily": "Roboto",
@@ -80,17 +80,17 @@ exports[`SignatureRequest should render correctly 1`] = `
           0
            
           ETH
-        </Component>
-      </Component>
-    </Component>
-    <Component
+        </Text>
+      </View>
+    </View>
+    <View
       style={
         Object {
           "margin": 20,
         }
       }
     >
-      <Component
+      <Text
         style={
           Object {
             "color": "#000000",
@@ -103,8 +103,8 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       >
         Your signature is being requested
-      </Component>
-      <Component
+      </Text>
+      <Text
         style={
           Object {
             "fontFamily": "Roboto",
@@ -116,9 +116,9 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       >
         You are signing:
-      </Component>
-    </Component>
-  </Component>
+      </Text>
+    </View>
+  </View>
   <ActionView
     cancelTestID="request-signature-cancel-button"
     cancelText="CANCEL"
@@ -128,7 +128,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <Component
+    <View
       style={
         Object {
           "borderTopColor": "#d2d8dd",
@@ -147,7 +147,7 @@ exports[`SignatureRequest should render correctly 1`] = `
         keyboardOpeningTime={250}
         viewIsInsideTabBar={false}
       />
-    </Component>
+    </View>
   </ActionView>
-</Component>
+</View>
 `;
