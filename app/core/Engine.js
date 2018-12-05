@@ -85,13 +85,13 @@ class Engine {
 			);
 
 			const {
-				KeyringController,
+				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction
 			} = this.datamodel.context;
 
 			network.refreshNetwork();
-			transaction.configure({ sign: KeyringController.signTransaction.bind(keyring) });
+			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
 			this.refreshNetwork();
 			Engine.instance = this;
