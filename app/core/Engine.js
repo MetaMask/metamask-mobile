@@ -20,7 +20,6 @@ import {
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { AsyncStorage } from 'react-native';
-import Logger from '../util/Logger';
 import Networks from '../util/networks';
 
 const encryptor = new Encryptor();
@@ -153,7 +152,7 @@ class Engine {
 				await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlock', JSON.stringify(allLastIncomingTxBlocks));
 			}
 		} catch (e) {
-			Logger.error('Error while fetching all txs', e);
+			console.log('Error while fetching all txs', e); // eslint-disable-line
 		}
 	};
 
