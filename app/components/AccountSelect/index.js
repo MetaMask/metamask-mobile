@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, fromWei } from '../../util/number';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
@@ -136,7 +137,9 @@ class AccountSelect extends Component {
 						<Text style={styles.name}>{account.name}</Text>
 					</View>
 					<View>
-						<Text style={styles.info}>{fromWei(balance).toString()} ETH</Text>
+						<Text style={styles.info}>
+							{fromWei(balance).toString()} {strings('unit.eth')}
+						</Text>
 					</View>
 					<View>
 						<Text style={styles.info}>
