@@ -52,7 +52,5 @@ export default class LockScreen extends Component {
 		}
 	}
 
-	render() {
-		return <FoxScreen />;
-	}
+	render = () => <FoxScreen />;
 }

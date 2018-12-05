@@ -66,7 +66,7 @@ class Asset extends Component {
 		});
 	};
 
-	render() {
+	render = () => {
 		const {
 			navigation: {
 				state: { params }
@@ -96,7 +96,7 @@ class Asset extends Component {
 				</View>
 			</ScrollView>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

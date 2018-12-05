@@ -136,55 +136,53 @@ export default class CreateWallet extends Component {
 		current && current.focus();
 	};
 
-	render() {
-		return (
-			<Screen>
-				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-					<View testID={'create-password-screen'}>
-						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
-						<View style={styles.field}>
-							<Text style={styles.label}>{strings('create_wallet.password')}</Text>
-							<TextInput
-								style={styles.input}
-								value={this.state.password}
-								onChangeText={val => this.setState({ password: val })} // eslint-disable-line  react/jsx-no-bind
-								secureTextEntry
-								placeholder={''}
-								underlineColorAndroid={colors.borderColor}
-								testID={'input-password'}
-								onSubmitEditing={this.jumpToConfirmPassword}
-								returnKeyType={'next'}
-							/>
-						</View>
-						<View style={styles.field}>
-							<Text style={styles.label}>{strings('create_wallet.confirm_password')}</Text>
-							<TextInput
-								ref={this.confirmPasswordInput}
-								style={styles.input}
-								value={this.state.confirmPassword}
-								onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
-								secureTextEntry
-								placeholder={''}
-								underlineColorAndroid={colors.borderColor}
-								testID={'input-password-confirm'}
-								onSubmitEditing={this.onPressCreate}
-								returnKeyType={'done'}
-							/>
-						</View>
-
-						{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
-						<View style={styles.ctaWrapper}>
-							<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'submit'}>
-								{this.state.loading ? (
-									<ActivityIndicator size="small" color="white" />
-								) : (
-									strings('create_wallet.create_button')
-								)}
-							</StyledButton>
-						</View>
+	render = () => (
+		<Screen>
+			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+				<View testID={'create-password-screen'}>
+					<Text style={styles.title}>{strings('create_wallet.title')}</Text>
+					<View style={styles.field}>
+						<Text style={styles.label}>{strings('create_wallet.password')}</Text>
+						<TextInput
+							style={styles.input}
+							value={this.state.password}
+							onChangeText={val => this.setState({ password: val })} // eslint-disable-line  react/jsx-no-bind
+							secureTextEntry
+							placeholder={''}
+							underlineColorAndroid={colors.borderColor}
+							testID={'input-password'}
+							onSubmitEditing={this.jumpToConfirmPassword}
+							returnKeyType={'next'}
+						/>
 					</View>
-				</KeyboardAwareScrollView>
-			</Screen>
-		);
-	}
+					<View style={styles.field}>
+						<Text style={styles.label}>{strings('create_wallet.confirm_password')}</Text>
+						<TextInput
+							ref={this.confirmPasswordInput}
+							style={styles.input}
+							value={this.state.confirmPassword}
+							onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
+							secureTextEntry
+							placeholder={''}
+							underlineColorAndroid={colors.borderColor}
+							testID={'input-password-confirm'}
+							onSubmitEditing={this.onPressCreate}
+							returnKeyType={'done'}
+						/>
+					</View>
+
+					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					<View style={styles.ctaWrapper}>
+						<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'submit'}>
+							{this.state.loading ? (
+								<ActivityIndicator size="small" color="white" />
+							) : (
+								strings('create_wallet.create_button')
+							)}
+						</StyledButton>
+					</View>
+				</View>
+			</KeyboardAwareScrollView>
+		</Screen>
+	);
 }

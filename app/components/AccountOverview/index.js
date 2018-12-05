@@ -127,7 +127,7 @@ export default class AccountOverview extends Component {
 		this.props.navigation.push('AccountDetails');
 	};
 
-	render() {
+	render = () => {
 		const {
 			account: { name, balance, address },
 			conversionRate,
@@ -182,5 +182,5 @@ export default class AccountOverview extends Component {
 				</View>
 			</View>
 		);
-	}
+	};
 }

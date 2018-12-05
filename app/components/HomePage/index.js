@@ -169,7 +169,7 @@ export default class HomePage extends Component {
 		this.actionSheet = ref;
 	};
 
-	renderBookmarks() {
+	renderBookmarks = () => {
 		let content = null;
 		if (this.props.bookmarks.length) {
 			content = this.props.bookmarks.map((item, i) => {
@@ -215,34 +215,32 @@ export default class HomePage extends Component {
 				/>
 			</View>
 		);
-	}
+	};
 
-	render() {
-		return (
-			<ScrollView style={styles.startPageWrapper} contentContainerStyle={styles.startPageWrapperContent}>
-				<View style={styles.foxWrapper}>
-					<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-				</View>
-				<View style={styles.startPageContent}>
-					<Text style={styles.startPageTitle}>{strings('home_page.lets_get_started')}</Text>
-					<Text style={styles.startPageSubtitle}>{strings('home_page.web3_awaits')}</Text>
-					<TextInput
-						style={styles.searchInput}
-						autoCapitalize="none"
-						autoCorrect={false}
-						clearButtonMode="while-editing"
-						keyboardType="url"
-						textContentType={'URL'}
-						onChangeText={this.onInitialUrlChange}
-						onSubmitEditing={this.onInitialUrlSubmit}
-						placeholder="Search or type URL"
-						placeholderTextColor={colors.asphalt}
-						returnKeyType="go"
-						value={this.state.searchInputValue}
-					/>
-					{this.renderBookmarks()}
-				</View>
-			</ScrollView>
-		);
-	}
+	render = () => (
+		<ScrollView style={styles.startPageWrapper} contentContainerStyle={styles.startPageWrapperContent}>
+			<View style={styles.foxWrapper}>
+				<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+			</View>
+			<View style={styles.startPageContent}>
+				<Text style={styles.startPageTitle}>{strings('home_page.lets_get_started')}</Text>
+				<Text style={styles.startPageSubtitle}>{strings('home_page.web3_awaits')}</Text>
+				<TextInput
+					style={styles.searchInput}
+					autoCapitalize="none"
+					autoCorrect={false}
+					clearButtonMode="while-editing"
+					keyboardType="url"
+					textContentType={'URL'}
+					onChangeText={this.onInitialUrlChange}
+					onSubmitEditing={this.onInitialUrlSubmit}
+					placeholder="Search or type URL"
+					placeholderTextColor={colors.asphalt}
+					returnKeyType="go"
+					value={this.state.searchInputValue}
+				/>
+				{this.renderBookmarks()}
+			</View>
+		</ScrollView>
+	);
 }

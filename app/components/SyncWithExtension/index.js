@@ -303,16 +303,14 @@ class SyncWithExtension extends Component {
 		return this.renderInitialView();
 	}
 
-	render() {
-		return (
-			<Screen>
-				<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
-					<Text style={styles.title}>Sync from Browser Extension</Text>
-					{this.renderContent()}
-				</View>
-			</Screen>
-		);
-	}
+	render = () => (
+		<Screen>
+			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
+				<Text style={styles.title}>Sync from Browser Extension</Text>
+				{this.renderContent()}
+			</View>
+		</Screen>
+	);
 }
 
 const mapStateToProps = state => ({

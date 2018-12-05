@@ -100,14 +100,12 @@ export default class BrowserHome extends Component {
 		await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(bookmarks));
 	};
 
-	render() {
-		return (
-			<HomePage
-				bookmarks={this.state.bookmarks}
-				onBookmarkTapped={this.go}
-				onInitialUrlSubmit={this.onInitialUrlSubmit}
-				updateBookmarks={this.updateBookmarks}
-			/>
-		);
-	}
+	render = () => (
+		<HomePage
+			bookmarks={this.state.bookmarks}
+			onBookmarkTapped={this.go}
+			onInitialUrlSubmit={this.onInitialUrlSubmit}
+			updateBookmarks={this.updateBookmarks}
+		/>
+	);
 }

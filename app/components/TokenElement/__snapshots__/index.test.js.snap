@@ -24,7 +24,7 @@ exports[`TokenElement should render correctly 1`] = `
       }
     }
   />
-  <Component
+  <View
     style={
       Object {
         "flex": 1,
@@ -32,7 +32,7 @@ exports[`TokenElement should render correctly 1`] = `
       }
     }
   >
-    <Component
+    <Text
       style={
         Object {
           "color": "#4a4a4a",
@@ -44,9 +44,9 @@ exports[`TokenElement should render correctly 1`] = `
     >
        
       ABC
-    </Component>
-  </Component>
-  <Component
+    </Text>
+  </View>
+  <View
     styles={
       Object {
         "alignSelf": "flex-end",
@@ -65,6 +65,6 @@ exports[`TokenElement should render correctly 1`] = `
         }
       }
     />
-  </Component>
+  </View>
 </TouchableOpacity>
 `;

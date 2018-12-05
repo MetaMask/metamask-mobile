@@ -57,7 +57,5 @@ export default class Entry extends Component {
 		this.props.navigation.navigate('Login');
 	}
 
-	render() {
-		return <FoxScreen />;
-	}
+	render = () => <FoxScreen />;
 }

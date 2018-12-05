@@ -195,7 +195,7 @@ class Wallet extends Component {
 						conversionRate,
 						currentCurrency
 					).toUpperCase(),
-					logo: '../images/eth-logo.svg'
+					logo: '../images/eth-logo.png'
 				},
 				...tokens
 			];
@@ -248,13 +248,11 @@ class Wallet extends Component {
 		);
 	}
 
-	render() {
-		return (
-			<View style={styles.wrapper} testID={'wallet-screen'}>
-				{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
-			</View>
-		);
-	}
+	render = () => (
+		<View style={styles.wrapper} testID={'wallet-screen'}>
+			{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
+		</View>
+	);
 }
 
 const mapStateToProps = state => ({

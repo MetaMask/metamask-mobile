@@ -57,9 +57,9 @@ class SendScreen extends Component {
 	async reset() {
 		const transaction = {};
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
-		transaction.gas = toBN(gas);
-		transaction.gasPrice = toBN(gasPrice);
-		return this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
+		transaction.gas = hexToBN(gas);
+		transaction.gasPrice = hexToBN(gasPrice);
+		return this.mounted && this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
 	}
 
 	checkForDeeplinks() {
@@ -71,13 +71,17 @@ class SendScreen extends Component {
 			}
 		}
 
-		this.setState({ ready: true });
+		this.mounted && this.setState({ ready: true });
 	}
 
 	async componentDidMount() {
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
 	}
 
 	componentDidUpdate(prevProps) {
@@ -171,24 +175,22 @@ class SendScreen extends Component {
 		);
 	}
 
-	render() {
-		return (
-			<SafeAreaView style={styles.wrapper}>
-				{this.state.ready ? (
-					<TransactionEditor
-						navigation={this.props.navigation}
-						mode={this.state.mode}
-						onCancel={this.onCancel}
-						onConfirm={this.onConfirm}
-						onModeChange={this.onModeChange}
-						transaction={this.state.transaction}
-					/>
-				) : (
-					this.renderLoader()
-				)}
-			</SafeAreaView>
-		);
-	}
+	render = () => (
+		<SafeAreaView style={styles.wrapper}>
+			{this.state.ready ? (
+				<TransactionEditor
+					navigation={this.props.navigation}
+					mode={this.state.mode}
+					onCancel={this.onCancel}
+					onConfirm={this.onConfirm}
+					onModeChange={this.onModeChange}
+					transaction={this.state.transaction}
+				/>
+			) : (
+				this.renderLoader()
+			)}
+		</SafeAreaView>
+	);
 }
 
 export default withNavigation(SendScreen);

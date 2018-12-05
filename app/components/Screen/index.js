@@ -23,7 +23,7 @@ export default class Screen extends Component {
 		children: PropTypes.node
 	};
 
-	render() {
+	render = () => {
 		const { height, width } = Dimensions.get('window');
 
 		return (
@@ -34,5 +34,5 @@ export default class Screen extends Component {
 				<SafeAreaView style={baseStyles.flexGrow}>{this.props.children}</SafeAreaView>
 			</View>
 		);
-	}
+	};
 }

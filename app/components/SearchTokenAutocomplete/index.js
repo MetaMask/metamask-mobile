@@ -50,7 +50,7 @@ export default class SearchTokenAutocomplete extends Component {
 		this.props.navigation.goBack();
 	};
 
-	render() {
+	render = () => {
 		const { searchResults, selectedAsset } = this.state;
 
 		return (
@@ -70,5 +70,5 @@ export default class SearchTokenAutocomplete extends Component {
 				</ActionView>
 			</View>
 		);
-	}
+	};
 }

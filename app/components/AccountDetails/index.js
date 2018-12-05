@@ -175,7 +175,7 @@ class AccountDetails extends Component {
 		this.setState({ accountLabelEditable: false, accountLabel });
 	};
 
-	render() {
+	render = () => {
 		const { selectedAddress } = this.props;
 		const { accountLabelEditable, accountLabel } = this.state;
 		return (
@@ -259,7 +259,7 @@ class AccountDetails extends Component {
 				</View>
 			</ScrollView>
 		);
-	}
+	};
 }
 
 const mapStateToProps = state => ({

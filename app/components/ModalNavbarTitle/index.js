@@ -25,12 +25,12 @@ export default class ModalNavbarTitle extends Component {
 		title: PropTypes.string.isRequired
 	};
 
-	render() {
+	render = () => {
 		const { title } = this.props;
 		return (
 			<View style={styles.wrapper}>
 				<Text style={styles.title}>{title}</Text>
 			</View>
 		);
-	}
+	};
 }

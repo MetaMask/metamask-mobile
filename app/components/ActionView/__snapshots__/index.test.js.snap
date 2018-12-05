@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ActionView should render correctly 1`] = `
-<Component
+<View
   style={
     Object {
       "flex": 1,
@@ -28,7 +28,7 @@ exports[`ActionView should render correctly 1`] = `
     }
     viewIsInsideTabBar={false}
   />
-  <Component
+  <View
     style={
       Object {
         "borderTopColor": "#d2d8dd",
@@ -91,6 +91,6 @@ exports[`ActionView should render correctly 1`] = `
     >
       CONFIRM
     </StyledButton>
-  </Component>
-</Component>
+  </View>
+</View>
 `;

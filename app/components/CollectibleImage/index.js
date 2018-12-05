@@ -29,7 +29,7 @@ export default class CollectibleImage extends Component {
 		asset: PropTypes.object
 	};
 
-	render() {
+	render = () => {
 		const { asset } = this.props;
 		return (
 			<View style={styles.imageWrapper}>
@@ -40,5 +40,5 @@ export default class CollectibleImage extends Component {
 				)}
 			</View>
 		);
-	}
+	};
 }
