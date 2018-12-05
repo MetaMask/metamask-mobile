@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { isBN, weiToFiat, isDecimal, toWei, fromWei } from '../../util/number';
+import { weiToFiat, isDecimal, toWei } from '../../util/number';
 
 const styles = StyleSheet.create({
 	root: {
@@ -48,6 +48,10 @@ const styles = StyleSheet.create({
  * Form component that allows users to type an amount of ETH and its fiat value is rendered dynamically
  */
 class EthInput extends Component {
+	state = {
+		amount: ''
+	};
+
 	static propTypes = {
 		/**
 		 * ETH-to-current currency conversion rate from CurrencyRateController
@@ -74,10 +78,12 @@ class EthInput extends Component {
 	onChange = value => {
 		const { onChange } = this.props;
 		onChange && onChange(isDecimal(value) ? toWei(value) : value);
+		this.setState({ amount: value });
 	};
 
 	render = () => {
 		const { conversionRate, currentCurrency, readonly, value } = this.props;
+		const { amount } = this.state;
 		return (
 			<View style={styles.root}>
 				<View style={styles.split}>
@@ -91,7 +97,7 @@ class EthInput extends Component {
 						placeholder={'0.00'}
 						spellCheck={false}
 						style={styles.input}
-						value={isBN(value) ? fromWei(value).toString() : value}
+						value={amount}
 					/>
 					<Text style={styles.eth} numberOfLines={1}>
 						ETH
