@@ -50,7 +50,8 @@ export default class Collectibles extends Component {
 		/**
 		 * Array of assets (in this case Collectibles)
 		 */
-		assets: PropTypes.array
+		assets: PropTypes.array,
+		onPressAsset: PropTypes.func
 	};
 
 	renderEmpty = () => (
@@ -63,15 +64,19 @@ export default class Collectibles extends Component {
 		this.props.navigation.push('Collectible', asset);
 	};
 
+	handleOnPressAsset = asset => {
+		this.props.onPressAsset(asset);
+	};
+
 	renderList() {
 		return this.props.assets.map(asset => (
 			<CollectibleElement
 				asset={asset}
 				key={asset.tokenId}
 				onPress={() => {
-					this.onItemPress(asset);
-				}}
-			/> // eslint-disable-line
+					this.handleOnPressAsset(asset);
+				}} // eslint-disable-line
+			/>
 		));
 	}
 

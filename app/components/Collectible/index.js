@@ -1,10 +1,25 @@
 import React, { Component } from 'react';
-import { ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { ScrollView, View, StyleSheet, Dimensions, InteractionManager, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import CollectibleOverview from '../CollectibleOverview';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
+	root: {
+		backgroundColor: colors.white,
+		minHeight: 600,
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10
+	},
+	title: {
+		textAlign: 'center',
+		fontSize: 18,
+		marginVertical: 12,
+		marginHorizontal: 20,
+		color: colors.fontPrimary,
+		...fontStyles.bold
+	},
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
@@ -23,7 +38,9 @@ export default class Collectible extends Component {
 		/* navigation object required to access the props
 		/* passed by the parent component
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		asset: PropTypes.object,
+		onHide: PropTypes.func
 	};
 
 	static navigationOptions = ({ navigation }) => ({
@@ -47,20 +64,22 @@ export default class Collectible extends Component {
 	};
 
 	render = () => {
-		const {
-			navigation: {
-				state: { params }
-			},
-			navigation
-		} = this.props;
+		const { asset, navigation, onHide } = this.props;
 		return (
-			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
-				<View testID={'asset'}>
-					<View style={styles.assetOverviewWrapper}>
-						<CollectibleOverview navigation={navigation} asset={navigation && params} />
-					</View>
+			<View style={styles.root}>
+				<View>
+					<Text style={styles.title} onPress={onHide}>
+						{strings('wallet.collectible')}
+					</Text>
 				</View>
-			</ScrollView>
+				<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
+					<View testID={'asset'}>
+						<View style={styles.assetOverviewWrapper}>
+							<CollectibleOverview navigation={navigation} asset={asset} />
+						</View>
+					</View>
+				</ScrollView>
+			</View>
 		);
 	};
 }

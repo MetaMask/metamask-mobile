@@ -63,7 +63,7 @@
 	},
 	"collectible": {
 		"collectible_address": "Dirección del Coleccionable",
-		"collectible_token_id": "Identificador del Coleccionable",
+		"collectible_token_id": "ID",
 		"address_must_be_valid": "Dirección del coleccionable debe ser válida.",
 		"address_cant_be_empty": "Dirección del coleccionable no puede estar vacía.",
 		"token_id_cant_be_empty": "Identificador del coleccionable no puede estar vacío."
