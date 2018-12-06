@@ -98,9 +98,10 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       >
         <Component
+          onError={[Function]}
           source={
             Object {
-              "testUri": "../../../app/images/eth-logo.png",
+              "uri": "http://icons.duckduckgo.com/ip2/url.ico",
             }
           }
           style={
