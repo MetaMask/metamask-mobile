@@ -29,6 +29,7 @@ local.properties
 *.iml
 android/app/src/main/assets/crashlytics-build.properties
 android/app/src/main/res/values/com_crashlytics_export_strings.xml
+android/app/bin/
 
 # node.js
 node_modules/

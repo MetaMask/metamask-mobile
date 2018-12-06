@@ -310,7 +310,7 @@ class DrawerView extends Component {
 				{
 					text: strings('drawer.logout_ok'),
 					onPress: async () => {
-						await Keychain.resetGenericPassword();
+						await Keychain.resetGenericPassword({ service: 'com.metamask' });
 						this.props.navigation.navigate('Entry');
 					}
 				}

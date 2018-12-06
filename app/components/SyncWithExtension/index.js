@@ -236,7 +236,7 @@ class SyncWithExtension extends Component {
 		let password;
 		try {
 			// This could also come from the previous step if it's a first time user
-			const credentials = await Keychain.getGenericPassword();
+			const credentials = await Keychain.getGenericPassword({ service: 'com.metamask' });
 			if (credentials) {
 				password = credentials.password;
 			} else {
@@ -257,7 +257,8 @@ class SyncWithExtension extends Component {
 					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
 					: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
 				accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-				authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+				authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS,
+				service: 'com.metamask'
 			};
 			await Keychain.setGenericPassword('metamask-user', password, authOptions);
 		}

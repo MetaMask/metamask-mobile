@@ -43,7 +43,7 @@ class Settings extends Component {
 		navigation: PropTypes.object
 	};
 	logout = async () => {
-		await Keychain.resetGenericPassword();
+		await Keychain.resetGenericPassword({ service: 'com.metamask' });
 		this.props.navigation.navigate('Entry');
 	};
 

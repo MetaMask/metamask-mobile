@@ -30,7 +30,7 @@ export default class Entry extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const credentials = await Keychain.getGenericPassword();
+			const credentials = await Keychain.getGenericPassword({ service: 'com.metamask' });
 			if (credentials) {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;

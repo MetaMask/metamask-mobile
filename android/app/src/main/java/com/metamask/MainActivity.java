@@ -1,10 +1,10 @@
 package com.metamask;
 
-import com.facebook.react.ReactActivity;
+import com.facebook.react.ReactFragmentActivity;
 import io.branch.rnbranch.*;
 import android.content.Intent;
 
-public class MainActivity extends ReactActivity {
+public class MainActivity extends ReactFragmentActivity {
 
     /**
      * Returns the name of the main component registered from JavaScript.
