@@ -1,6 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PersonalSign should render correctly 1`] = `
+<<<<<<< HEAD
 <View
   style={
     Object {
@@ -73,4 +74,9 @@ exports[`PersonalSign should render correctly 1`] = `
     </View>
   </Connect(SignatureRequest)>
 </View>
+=======
+<ContextConsumer>
+  <Component />
+</ContextConsumer>
+>>>>>>> master
 `;

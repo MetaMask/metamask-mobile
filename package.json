@@ -49,7 +49,6 @@
     "base-64": "^0.1.0",
     "bignumber.js": "^7.2.1",
     "buffer": "^4.9.1",
-    "eth-block-tracker": "^3.0.1",
     "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#master",
     "eth-ens-namehash": "^2.0.8",
     "eth-url-parser": "^1.0.2",
