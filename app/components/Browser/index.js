@@ -32,6 +32,8 @@ import Button from '../Button';
 import { strings } from '../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
+import PersonalSign from '../PersonalSign';
+import TypedSign from '../TypedSign';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -181,6 +183,10 @@ const styles = StyleSheet.create({
 	iconClose: {
 		color: colors.white,
 		fontSize: 18
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
@@ -220,13 +226,17 @@ export class Browser extends Component {
 		hostname: '',
 		url: this.props.url || '',
 		currentPageTitle: '',
+		currentPageUrl: '',
 		timeout: false,
 		ipfsWebsite: false,
 		ipfsGateway: 'https://ipfs.io/ipfs/',
 		ipfsHash: null,
 		currentEnsName: null,
 		editMode: false,
-		loading: true
+		loading: true,
+		signMessage: false,
+		signMessageParams: { data: '' },
+		signType: ''
 	};
 
 	webview = React.createRef();
@@ -255,7 +265,10 @@ export class Browser extends Component {
 			this.props.navigation.push('Approval', { transactionMeta });
 		});
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-			this.props.navigation.push('PersonalSign', { messageParams });
+			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
+		});
+		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
+			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
 		});
 		this.loadUrl();
 		this.loadBookmarks();
@@ -468,7 +481,8 @@ export class Browser extends Component {
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
-
+			// Android workaround
+			data = typeof data === 'string' && data.includes('GET_TITLE_FOR_BOOKMARK') ? JSON.parse(data) : data;
 			if (!data || !data.type) {
 				return;
 			}
@@ -478,7 +492,7 @@ export class Browser extends Component {
 					break;
 				case 'GET_TITLE_FOR_BOOKMARK':
 					if (data.title) {
-						this.setState({ currentPageTitle: data.title });
+						this.setState({ currentPageTitle: data.title, currentPageUrl: data.url });
 					}
 					break;
 			}
@@ -531,7 +545,8 @@ export class Browser extends Component {
 				window.postMessage(
 					JSON.stringify({
 						type: 'GET_TITLE_FOR_BOOKMARK',
-						title: document.title
+						title: document.title,
+						url: location.href
 					})
 				)
 			})();
@@ -731,12 +746,51 @@ export class Browser extends Component {
 		);
 	};
 
-	getUserAgent = () => {
+	onSignAction = () => {
+		this.setState({ signMessage: false });
+	};
+
+	renderSigningModal = () => {
+		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
+		if (signMessage) {
+			return (
+				<Modal
+					isVisible={signMessage}
+					animationIn="slideInUp"
+					animationOut="slideOutDown"
+					style={styles.bottomModal}
+					backdropOpacity={0.7}
+					animationInTiming={600}
+					animationOutTiming={600}
+					onBackdropPress={this.onSignAction}
+				>
+					{signType === 'personal' && (
+						<PersonalSign
+							messageParams={signMessageParams}
+							onCancel={this.onSignAction}
+							onConfirm={this.onSignAction}
+							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+						/>
+					)}
+					{signType === 'typed' && (
+						<TypedSign
+							messageParams={signMessageParams}
+							onCancel={this.onSignAction}
+							onConfirm={this.onSignAction}
+							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+						/>
+					)}
+				</Modal>
+			);
+		}
+	};
+
+	getUserAgent() {
 		if (Platform.OS === 'android') {
 			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
 		}
 		return null;
-	};
+	}
 
 	render = () => {
 		const { canGoForward, entryScriptWeb3, url } = this.state;
@@ -769,6 +823,7 @@ export class Browser extends Component {
 					this.renderLoader()
 				)}
 				{this.renderUrlModal()}
+				{this.renderSigningModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
 			</SafeAreaView>

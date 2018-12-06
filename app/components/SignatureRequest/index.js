@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Image } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -10,7 +10,7 @@ import { fromWei } from '../../util/number';
 import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
-	root: {
+	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
 	},
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		marginBottom: 40
 	},
 	signingInformation: {
-		margin: 20
+		margin: 10
 	},
 	account: {
 		flex: 1,
@@ -48,7 +48,20 @@ const styles = StyleSheet.create({
 		padding: 5,
 		textAlign: 'center'
 	},
-	header: {},
+	domainText: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		fontSize: 12,
+		padding: 5,
+		color: colors.black
+	},
+	domainTitle: {
+		...fontStyles.bold,
+		textAlign: 'center',
+		fontSize: 16,
+		padding: 5,
+		color: colors.black
+	},
 	signatureText: {
 		...fontStyles.normal,
 		textAlign: 'center',
@@ -61,8 +74,24 @@ const styles = StyleSheet.create({
 		borderTopColor: colors.lightGray,
 		borderTopWidth: 1,
 		height: '100%'
+	},
+	domainLogo: {
+		width: 70,
+		height: 70,
+		overflow: 'hidden',
+		borderRadius: 100
+	},
+	assetLogo: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 10
+	},
+	domainWrapper: {
+		margin: 10
 	}
 });
+
+const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * Component that renders scrollable content inside signature request user interface
@@ -96,7 +125,48 @@ class SignatureRequest extends Component {
 		/**
 		 * Custom message to be displayed to the user
 		 */
-		message: PropTypes.string
+		message: PropTypes.string,
+		/**
+		 * Object containing domain information for the signature request for EIP712
+		 */
+		domain: PropTypes.object,
+		/**
+		 * Object containing current page title and url
+		 */
+		currentPageInformation: PropTypes.object
+	};
+
+	state = {
+		apiLogoUrl: null
+	};
+
+	componentDidMount = () => {
+		this.setPageLogo();
+	};
+
+	setPageLogo = async () => {
+		const { currentPageInformation } = this.props;
+		const apiLogoUrl = `http://icons.duckduckgo.com/ip2/${currentPageInformation.url}.ico`;
+		this.setState({ apiLogoUrl: { uri: apiLogoUrl } });
+	};
+
+	onSetPageError = async () => {
+		await this.setState({ apiLogoUrl: ethLogo });
+	};
+
+	renderPageInformation = () => {
+		const { domain, currentPageInformation } = this.props;
+		const { apiLogoUrl } = this.state;
+		return (
+			<View style={styles.domainWrapper}>
+				<View style={styles.assetLogo}>
+					<Image source={apiLogoUrl} style={styles.domainLogo} onError={this.onSetPageError} />
+				</View>
+				<Text style={styles.domainTitle}>{currentPageInformation.title}</Text>
+				<Text style={styles.domainText}>{currentPageInformation.url}</Text>
+				{domain && <Text style={styles.domainText}>{domain.name}</Text>}
+			</View>
+		);
 	};
 
 	render() {
@@ -104,7 +174,7 @@ class SignatureRequest extends Component {
 		const balance = fromWei(accounts[selectedAddress].balance, 'ether');
 		const accountLabel = identities[selectedAddress].name;
 		return (
-			<View style={styles.root}>
+			<View style={styles.wrapper}>
 				<View style={styles.header}>
 					<View style={styles.accountInformation}>
 						<View>
@@ -125,6 +195,7 @@ class SignatureRequest extends Component {
 							</Text>
 						</View>
 					</View>
+					{this.renderPageInformation()}
 					<View style={styles.signingInformation}>
 						<Text style={styles.signatureText}>{strings('signature_request.sign_requested')}</Text>
 						{message ? (

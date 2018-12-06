@@ -82,9 +82,7 @@ export default class BrowserHome extends Component {
 		}
 
 		//Check if it's a url or a keyword
-		const res = url.match(
-			/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.]+$/g
-		); /*eslint no-useless-escape: "error"*/
+		const res = url.match(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.]+$/g);
 		if (res === null) {
 			// In case of keywords we default to google search
 			this.go('https://www.google.com/search?q=' + escape(url));

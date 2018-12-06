@@ -15,13 +15,16 @@ import {
 	ShapeShiftController,
 	TokenBalancesController,
 	TokenRatesController,
-	TransactionController
+	TransactionController,
+	TypedMessageManager
 } from 'gaba';
 
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
+import Networks from '../util/networks';
 
 const encryptor = new Encryptor();
+const TX_CHECK_MAX_FREQUENCY = 5000;
 
 /**
  * Core controller responsible for composing other GABA controllers together
@@ -32,6 +35,12 @@ class Engine {
 	 * ComposableController reference containing all child controllers
 	 */
 	datamodel;
+
+	/**
+	 * Object containing the info for the latest incoming tx block
+	 * for each address and network
+	 */
+	lastIncomingTxBlockInfo;
 
 	/**
 	 * Creates a CoreController instance
@@ -86,6 +95,36 @@ class Engine {
 										} catch (error) {
 											end(error);
 										}
+									},
+									eth_signTypedData: async (payload, next, end) => {
+										const { TypedMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+												{
+													data: payload.params[0],
+													from: payload.params[1]
+												},
+												'V1'
+											);
+											end(undefined, rawSig);
+										} catch (error) {
+											end(error);
+										}
+									},
+									eth_signTypedData_v3: async (payload, next, end) => {
+										const { TypedMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+												{
+													data: payload.params[1],
+													from: payload.params[0]
+												},
+												'V3'
+											);
+											end(undefined, rawSig);
+										} catch (error) {
+											end(error);
+										}
 									}
 								},
 								getAccounts: end => {
@@ -105,7 +144,8 @@ class Engine {
 					new ShapeShiftController(),
 					new TokenBalancesController(),
 					new TokenRatesController(),
-					new TransactionController()
+					new TransactionController(),
+					new TypedMessageManager()
 				],
 				initialState
 			);
@@ -140,6 +180,40 @@ class Engine {
 		AssetsContractController.configure({ provider });
 		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
+	};
+
+	refreshTransactionHistory = async forceCheck => {
+		const { TransactionController, PreferencesController, NetworkController } = this.datamodel.context;
+		const { selectedAddress } = PreferencesController.state;
+		const { type: networkType } = NetworkController.state.provider;
+		const { networkId } = Networks[networkType];
+		try {
+			const allLastIncomingTxBlocks = this.lastIncomingTxBlockInfo || {};
+			let blockNumber = null;
+			if (allLastIncomingTxBlocks[selectedAddress] && allLastIncomingTxBlocks[selectedAddress][`${networkId}`]) {
+				blockNumber = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].blockNumber;
+				// Let's make sure we're not doing this too often...
+				const timeSinceLastCheck = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].lastCheck;
+				const delta = Date.now() - timeSinceLastCheck;
+				if (delta < TX_CHECK_MAX_FREQUENCY && !forceCheck) {
+					return false;
+				}
+			} else {
+				allLastIncomingTxBlocks[selectedAddress] = {};
+			}
+			//Fetch txs and get the new lastIncomingTxBlock number
+			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, blockNumber);
+			// Store it so next time we ask for the newer txs only
+			if (newlastIncomingTxBlock && newlastIncomingTxBlock !== blockNumber) {
+				allLastIncomingTxBlocks[selectedAddress][`${networkId}`] = {
+					block: newlastIncomingTxBlock,
+					lastCheck: Date.now()
+				};
+				this.lastIncomingTxBlockInfo = allLastIncomingTxBlocks;
+			}
+		} catch (e) {
+			console.log('Error while fetching all txs', e); // eslint-disable-line
+		}
 	};
 
 	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
@@ -212,7 +286,8 @@ export default {
 			PreferencesController,
 			TokenBalancesController,
 			TokenRatesController,
-			TransactionController
+			TransactionController,
+			TypedMessageManager
 		} = instance.datamodel.state;
 
 		return {
@@ -228,7 +303,8 @@ export default {
 			PreferencesController,
 			TokenBalancesController,
 			TokenRatesController,
-			TransactionController
+			TransactionController,
+			TypedMessageManager
 		};
 	},
 	get datamodel() {
@@ -236,6 +312,9 @@ export default {
 	},
 	sync(data) {
 		return instance.sync(data);
+	},
+	refreshTransactionHistory(forceCheck = false) {
+		return instance.refreshTransactionHistory(forceCheck);
 	},
 	init(state) {
 		instance = new Engine(state);
