@@ -9,9 +9,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     }
   }
 >
-  <View
-    style={Object {}}
-  >
+  <View>
     <View
       style={
         Object {
@@ -86,7 +84,69 @@ exports[`SignatureRequest should render correctly 1`] = `
     <View
       style={
         Object {
-          "margin": 20,
+          "margin": 10,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "borderRadius": 10,
+            "justifyContent": "center",
+          }
+        }
+      >
+        <Component
+          onError={[Function]}
+          source={
+            Object {
+              "uri": "http://icons.duckduckgo.com/ip2/url.ico",
+            }
+          }
+          style={
+            Object {
+              "borderRadius": 100,
+              "height": 70,
+              "overflow": "hidden",
+              "width": 70,
+            }
+          }
+        />
+      </View>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "padding": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        title
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "padding": 5,
+            "textAlign": "center",
+          }
+        }
+      >
+        url
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "margin": 10,
         }
       }
     >
