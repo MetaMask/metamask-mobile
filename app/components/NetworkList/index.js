@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import Networks from '../../util/networks';
@@ -130,6 +130,7 @@ export default class NetworkList extends Component {
 	onNetworkChange = async type => {
 		const { NetworkController } = Engine.context;
 		NetworkController.setProviderType(type);
+		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
 	};
 
 	renderOtherNetworks() {
