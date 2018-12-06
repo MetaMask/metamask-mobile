@@ -57,9 +57,9 @@ class SendScreen extends Component {
 	async reset() {
 		const transaction = {};
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
-		transaction.gas = toBN(gas);
-		transaction.gasPrice = toBN(gasPrice);
-		return this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
+		transaction.gas = hexToBN(gas);
+		transaction.gasPrice = hexToBN(gasPrice);
+		return this.mounted && this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
 	}
 
 	checkForDeeplinks() {
@@ -71,7 +71,7 @@ class SendScreen extends Component {
 			}
 		}
 
-		this.setState({ ready: true });
+		this.mounted && this.setState({ ready: true });
 	}
 
 	async componentDidMount() {

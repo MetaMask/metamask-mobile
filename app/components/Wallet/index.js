@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
+import { InteractionManager, ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -17,6 +17,8 @@ import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
 import Collectible from '../Collectible';
+import Engine from '../../core/Engine';
+import Networks from '../../util/networks';
 
 const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
@@ -98,7 +100,11 @@ class Wallet extends Component {
 		/**
 		 * An array that represents the user collectibles
 		 */
-		collectibles: PropTypes.array
+		collectibles: PropTypes.array,
+		/**
+		 * A string represeting the network name
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -110,9 +116,10 @@ class Wallet extends Component {
 	mounted = false;
 	scrollableTabViewRef = React.createRef();
 
-	componentDidMount() {
+	async componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
+		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
 		this.mounted = true;
 	}
 
@@ -151,7 +158,7 @@ class Wallet extends Component {
 
 	handleDeeplinks = async ({ error, params }) => {
 		if (error) {
-			Logger.error('Error from Branch: ' + error);
+			Logger.error('Error from Branch: ', error);
 			return;
 		}
 		if (params['+non_branch_link']) {
@@ -215,7 +222,8 @@ class Wallet extends Component {
 			tokenExchangeRates,
 			collectibles,
 			navigation,
-			transactions
+			transactions,
+			networkType
 		} = this.props;
 		let balance = 0;
 		let assets = tokens;
@@ -271,6 +279,7 @@ class Wallet extends Component {
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						selectedAddress={selectedAddress}
+						networkId={Networks[networkType].networkId}
 					/>
 				</ScrollableTabView>
 				{this.renderAssetModal()}
@@ -303,7 +312,8 @@ const mapStateToProps = state => ({
 	tokenBalances: state.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.backgroundState.AssetsController.collectibles,
-	transactions: state.backgroundState.TransactionController.transactions
+	transactions: state.backgroundState.TransactionController.transactions,
+	networkType: state.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(Wallet);

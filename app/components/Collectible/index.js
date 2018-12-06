@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ScrollView, View, StyleSheet, Dimensions, InteractionManager, Text } from 'react-native';
+import { ScrollView, View, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import CollectibleOverview from '../CollectibleOverview';
@@ -56,18 +56,6 @@ export default class Collectible extends Component {
 			...fontStyles.normal
 		}
 	});
-
-	scrollViewRef = React.createRef();
-
-	adjustScroll = index => {
-		InteractionManager.runAfterInteractions(() => {
-			const { current } = this.scrollViewRef;
-			const rowHeight = 100;
-			const rows = index * rowHeight;
-			const topPadding = Dimensions.get('window').height / 2 - 120;
-			current.scrollTo({ y: rows + topPadding });
-		});
-	};
 
 	render = () => {
 		const { asset, navigation, onHide } = this.props;

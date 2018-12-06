@@ -196,5 +196,15 @@
 		"gas_limit": "Límite de Gas:",
 		"gas_price": "Precio de Gas: (GWEI)",
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027"
+	},
+	"signature_request": {
+		"title": "Petición de Firma",
+		"cancel": "CANCELAR",
+		"sign": "FIRMAR",
+		"sign_requested": "Tu firma es solicitada",
+		"signing": "Estás firmando:",
+		"account_title": "Cuenta:",
+		"balance_title": "Balance:",
+		"message": "Mensaje:"
 	}
 }

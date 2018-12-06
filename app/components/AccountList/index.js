@@ -157,6 +157,7 @@ export default class AccountList extends Component {
 			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
 			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
+			InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			this.setState({ selectedAccountIndex: previousIndex });
@@ -214,7 +215,9 @@ export default class AccountList extends Component {
 					<Identicon address={address} diameter={38} />
 					<View style={styles.accountInfo}>
 						<Text style={styles.accountLabel}>{name}</Text>
-						<Text style={styles.accountBalance}>{fromWei(balance, 'ether')} ETH</Text>
+						<Text style={styles.accountBalance}>
+							{fromWei(balance, 'ether')} {strings('unit.eth')}
+						</Text>
 					</View>
 					<View style={styles.selected}>{selected}</View>
 				</TouchableOpacity>
