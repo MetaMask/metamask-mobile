@@ -446,7 +446,9 @@ class DrawerView extends Component {
 										</Text>
 										<Icon name="caret-down" size={24} style={styles.caretDown} />
 									</View>
-									<Text style={styles.accountBalance}>{account.balance} ETH</Text>
+									<Text style={styles.accountBalance}>
+										{account.balance} {strings('unit.eth')}
+									</Text>
 									<Text style={styles.accountAddress}>{`${account.address.substr(
 										0,
 										6

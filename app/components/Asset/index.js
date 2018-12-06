@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../styles/common';
 import AssetOverview from '../AssetOverview';
 import Transactions from '../Transactions';
+import Networks from '../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -43,7 +44,11 @@ class Asset extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * A string represeting the network name
+		 */
+		networkType: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) => ({
@@ -75,7 +80,8 @@ class Asset extends Component {
 			transactions,
 			conversionRate,
 			currentCurrency,
-			selectedAddress
+			selectedAddress,
+			networkType
 		} = this.props;
 		return (
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
@@ -91,6 +97,7 @@ class Asset extends Component {
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							adjustScroll={this.adjustScroll}
+							networkId={Networks[networkType].networkId}
 						/>
 					</View>
 				</View>
@@ -100,10 +107,11 @@ class Asset extends Component {
 }
 
 const mapStateToProps = state => ({
-	transactions: state.backgroundState.TransactionController.transactions,
 	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
+	transactions: state.backgroundState.TransactionController.transactions,
+	networkType: state.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(Asset);
