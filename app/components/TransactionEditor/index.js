@@ -103,7 +103,7 @@ class TransactionEditor extends Component {
 		const { TransactionController } = Engine.context;
 		const { amount, from, data } = this.state;
 		const { gas } = await TransactionController.estimateGas({ amount, from, data, to });
-		this.setState({ to, gas: toBN(gas) });
+		this.setState({ to, gas: hexToBN(gas) });
 	};
 
 	validate() {

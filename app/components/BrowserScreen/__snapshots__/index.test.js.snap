@@ -32,6 +32,7 @@ exports[`BrowserScreen should render correctly 1`] = `
           "Approval": null,
           "BrowserHome": null,
           "BrowserView": null,
+          "PersonalSign": null,
         },
         "getActionCreators": [Function],
         "getActionForPathAndParams": [Function],
