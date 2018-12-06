@@ -7,6 +7,7 @@ import {
 	ComposableController,
 	CurrencyRateController,
 	KeyringController,
+	PersonalMessageManager,
 	NetworkController,
 	NetworkStatusController,
 	PhishingController,
@@ -19,7 +20,6 @@ import {
 
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { AsyncStorage } from 'react-native';
 import Networks from '../util/networks';
 
 const encryptor = new Encryptor();
@@ -36,6 +36,12 @@ class Engine {
 	datamodel;
 
 	/**
+	 * Object containing the info for the latest incoming tx block
+	 * for each address and network
+	 */
+	lastIncomingTxBlockInfo;
+
+	/**
 	 * Creates a CoreController instance
 	 */
 	constructor(initialState = {}) {
@@ -49,6 +55,7 @@ class Engine {
 					new AssetsController(),
 					new AssetsDetectionController(),
 					new CurrencyRateController(),
+					new PersonalMessageManager(),
 					new NetworkController(
 						{
 							providerConfig: {
@@ -60,6 +67,30 @@ class Engine {
 												payload.params[0]
 											)).result;
 											end(undefined, hash);
+										} catch (error) {
+											end(error);
+										}
+									},
+									eth_sign: async (payload, next, end) => {
+										const { PersonalMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+												data: payload.params[1],
+												from: payload.params[0]
+											});
+											end(undefined, rawSig);
+										} catch (error) {
+											end(error);
+										}
+									},
+									personal_sign: async (payload, next, end) => {
+										const { PersonalMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+												data: payload.params[0],
+												from: payload.params[1]
+											});
+											end(undefined, rawSig);
 										} catch (error) {
 											end(error);
 										}
@@ -125,9 +156,7 @@ class Engine {
 		const { type: networkType } = NetworkController.state.provider;
 		const { networkId } = Networks[networkType];
 		try {
-			const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem('@MetaMask:lastIncomingTxBlock');
-			const allLastIncomingTxBlocks =
-				(lastIncomingTxBlockInfoStr && JSON.parse(lastIncomingTxBlockInfoStr)) || {};
+			const allLastIncomingTxBlocks = this.lastIncomingTxBlockInfo || {};
 			let blockNumber = null;
 			if (allLastIncomingTxBlocks[selectedAddress] && allLastIncomingTxBlocks[selectedAddress][`${networkId}`]) {
 				blockNumber = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].blockNumber;
@@ -148,8 +177,7 @@ class Engine {
 					block: newlastIncomingTxBlock,
 					lastCheck: Date.now()
 				};
-				// Store the latest state
-				await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlock', JSON.stringify(allLastIncomingTxBlocks));
+				this.lastIncomingTxBlockInfo = allLastIncomingTxBlocks;
 			}
 		} catch (e) {
 			console.log('Error while fetching all txs', e); // eslint-disable-line
@@ -220,6 +248,7 @@ export default {
 			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
+			PersonalMessageManager,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
@@ -235,6 +264,7 @@ export default {
 			AssetsDetectionController,
 			CurrencyRateController,
 			KeyringController,
+			PersonalMessageManager,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
