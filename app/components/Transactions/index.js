@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
 		color: colors.gray,
 		fontSize: 9,
 		letterSpacing: 0.5,
+		width: 75,
 		...fontStyles.bold
 	},
 	statusConfirmed: {
@@ -179,7 +180,11 @@ export default class Transactions extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * A string that represents the selected network id
+		 */
+		networkId: PropTypes.number
 	};
 
 	state = {
@@ -307,8 +312,13 @@ export default class Transactions extends Component {
 	);
 
 	render = () => {
-		const { transactions, currentCurrency, conversionRate, selectedAddress } = this.props;
-		const txs = transactions.filter(tx => toChecksumAddress(tx.transaction.from) === selectedAddress);
+		const { transactions, currentCurrency, conversionRate, selectedAddress, networkId } = this.props;
+		const txs = transactions.filter(
+			tx =>
+				(toChecksumAddress(tx.transaction.from) === selectedAddress ||
+					toChecksumAddress(tx.transaction.to) === selectedAddress) &&
+				networkId.toString() === tx.networkID
+		);
 		if (!txs.length) {
 			return this.renderEmpty();
 		}
@@ -317,42 +327,53 @@ export default class Transactions extends Component {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>
-					{txs.map((tx, i) => (
-						<TouchableOpacity
-							style={styles.row}
-							key={`tx-${tx.id}`}
-							onPress={() => this.toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
-						>
-							<View style={styles.rowContent}>
-								<Text style={styles.date}>{`#${hexToBN(
-									tx.transaction.nonce
-								).toString()} - ${toLocaleDateTime(tx.time)}`}</Text>
-								<View style={styles.subRow}>
-									<Identicon address={tx.transaction.to} diameter={24} />
-									<View style={styles.info}>
-										<Text style={styles.address}>{strings('transactions.sent_ether')}</Text>
-										<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
-											{tx.status.toUpperCase()}
-										</Text>
-									</View>
-									<View style={styles.amounts}>
-										<Text style={styles.amount}>
-											- {fromWei(tx.transaction.value, 'ether')} {strings('unit.eth')}
-										</Text>
-										<Text style={styles.amountFiat}>
-											-{' '}
-											{weiToFiat(
-												hexToBN(tx.transaction.value),
-												conversionRate,
-												currentCurrency
-											).toUpperCase()}
-										</Text>
+					{txs.map((tx, i) => {
+						const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
+						const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+						return (
+							<TouchableOpacity
+								style={styles.row}
+								key={`tx-${tx.id}`}
+								onPress={() => this.toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
+							>
+								<View style={styles.rowContent}>
+									<Text style={styles.date}>
+										{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+										{`${toLocaleDateTime(tx.time)}`}
+									</Text>
+									<View style={styles.subRow}>
+										<Identicon address={tx.transaction.to} diameter={24} />
+										<View style={styles.info}>
+											<Text style={styles.address}>
+												{incoming
+													? selfSent
+														? strings('transactions.self_sent_ether')
+														: strings('transactions.received_ether')
+													: strings('transactions.sent_ether')}
+											</Text>
+											<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
+												{tx.status.toUpperCase()}
+											</Text>
+										</View>
+										<View style={styles.amounts}>
+											<Text style={styles.amount}>
+												- {fromWei(tx.transaction.value, 'ether')} {strings('unit.eth')}
+											</Text>
+											<Text style={styles.amountFiat}>
+												-{' '}
+												{weiToFiat(
+													hexToBN(tx.transaction.value),
+													conversionRate,
+													currentCurrency
+												).toUpperCase()}
+											</Text>
+										</View>
 									</View>
 								</View>
-							</View>
-							{tx.transactionHash === this.state.selectedTx ? this.renderTxDetails(tx) : null}
-						</TouchableOpacity>
-					))}
+								{tx.transactionHash === this.state.selectedTx ? this.renderTxDetails(tx) : null}
+							</TouchableOpacity>
+						);
+					})}
 				</View>
 			</ScrollView>
 		);
