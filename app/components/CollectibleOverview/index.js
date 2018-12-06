@@ -3,7 +3,6 @@ import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import FoundationIcon from 'react-native-vector-icons/Foundation';
 import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -46,15 +45,14 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
+	collectibleAddress: {
+		fontSize: 14,
+		color: colors.fontSecondary,
+		...fontStyles.normal
+	},
 	button: {
 		flex: 1,
 		flexDirection: 'row'
-	},
-	leftButton: {
-		marginRight: 10
-	},
-	rightButton: {
-		marginLeft: 10
 	},
 	buttonText: {
 		marginLeft: 8,
@@ -79,11 +77,8 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
-
 /**
- * View that displays the information of a specific asset (Token or ETH)
- * including the overview (Amount, Balance, Symbol, Logo)
+ * View that displays the information of a specific ERC-721 Token
  */
 export default class CollectibleOverview extends Component {
 	static propTypes = {
@@ -103,7 +98,7 @@ export default class CollectibleOverview extends Component {
 
 	renderImage = () => {
 		const { asset } = this.props;
-		return <CollectibleImage renderFull={1} collectible={asset} />;
+		return <CollectibleImage renderFull collectible={asset} />;
 	};
 
 	render = () => {
@@ -118,30 +113,19 @@ export default class CollectibleOverview extends Component {
 					<Text style={styles.collectibleAttribute}>
 						{strings('collectible.collectible_token_id')}: {tokenId}
 					</Text>
-					<Text style={styles.collectibleAttribute}>
-						{strings('collectible.collectible_address')}: {address}
-					</Text>
+					<Text style={styles.collectibleAttribute}>{strings('collectible.collectible_address')}:</Text>
+					<Text style={styles.collectibleAddress}>{address}</Text>
 				</View>
 				<View style={styles.buttons}>
 					<StyledButton
 						type={'confirm'}
 						onPress={this.onSend}
-						containerStyle={[styles.button, styles.leftButton]}
+						containerStyle={styles.button}
 						style={styles.buttonContent}
 						childGroupStyle={styles.flexRow}
 					>
 						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
 						<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
-					</StyledButton>
-					<StyledButton
-						type={'confirm'}
-						onPress={this.onDeposit}
-						containerStyle={[styles.button, styles.rightButton]}
-						style={styles.buttonContent}
-						childGroupStyle={styles.flexRow}
-					>
-						<FoundationIcon name={'download'} size={20} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('asset_overview.receive_button').toUpperCase()}</Text>
 					</StyledButton>
 				</View>
 			</LinearGradient>

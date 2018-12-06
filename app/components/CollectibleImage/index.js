@@ -39,6 +39,9 @@ export default class CollectibleImage extends Component {
 		 * Collectible object (in this case ERC721 token)
 		 */
 		collectible: PropTypes.object,
+		/**
+		 * Whether collectible image has to render in full size
+		 */
 		renderFull: PropTypes.bool
 	};
 

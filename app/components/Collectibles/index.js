@@ -51,6 +51,9 @@ export default class Collectibles extends Component {
 		 * Array of assets (in this case Collectibles)
 		 */
 		assets: PropTypes.array,
+		/**
+		 * Callback triggered when collectible pressed from collectibles list
+		 */
 		onPressAsset: PropTypes.func
 	};
 
@@ -73,9 +76,7 @@ export default class Collectibles extends Component {
 			<CollectibleElement
 				asset={asset}
 				key={asset.tokenId}
-				onPress={() => {
-					this.handleOnPressAsset(asset);
-				}} // eslint-disable-line
+				onPress={() => this.handleOnPressAsset(asset)} // eslint-disable-line
 			/>
 		));
 	}
