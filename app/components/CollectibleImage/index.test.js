@@ -5,7 +5,7 @@ import CollectibleImage from './';
 describe('CollectibleImage', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
-			<CollectibleImage asset={{ name: 'NAME', image: 'IMAGE', tokenId: 123, address: '0x123' }} />
+			<CollectibleImage collectible={{ name: 'NAME', image: 'IMAGE', tokenId: 123, address: '0x123' }} />
 		);
 		expect(wrapper).toMatchSnapshot();
 	});

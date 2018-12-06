@@ -39,7 +39,13 @@ export default class Collectible extends Component {
 		/* passed by the parent component
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * Object that represents the asset to be displayed
+		 */
 		asset: PropTypes.object,
+		/**
+		 * Callback triggered on modal hide
+		 */
 		onHide: PropTypes.func
 	};
 

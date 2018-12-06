@@ -16,7 +16,7 @@ exports[`CollectibleElement should render correctly 1`] = `
   }
 >
   <CollectibleImage
-    asset={
+    collectible={
       Object {
         "address": "0x123",
         "image": "IMAGE",
@@ -54,7 +54,7 @@ exports[`CollectibleElement should render correctly 1`] = `
         }
       }
     >
-      Collectible Identifier
+      ID
       : 
       123
     </Text>
