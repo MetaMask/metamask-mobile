@@ -17,5 +17,6 @@ describe('Engine', () => {
 		expect(engine.datamodel.context).toHaveProperty('ShapeShiftController');
 		expect(engine.datamodel.context).toHaveProperty('TokenBalancesController');
 		expect(engine.datamodel.context).toHaveProperty('TokenRatesController');
+		expect(engine.datamodel.context).toHaveProperty('TypedMessageManager');
 	});
 });
