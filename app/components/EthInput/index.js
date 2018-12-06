@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { weiToFiat, isDecimal, toWei } from '../../util/number';
+import { weiToFiat, isDecimal, toWei, fromWei, isBN } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
  */
 class EthInput extends Component {
 	state = {
-		amount: ''
+		amount: isBN(this.props.value) ? fromWei(this.props.value) : this.props.value
 	};
 
 	static propTypes = {
