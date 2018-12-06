@@ -140,25 +140,27 @@ class SignatureRequest extends Component {
 		apiLogoUrl: null
 	};
 
-	fetchPageLogo = async url => {
-		const apiLogoUrl = `http://icons.duckduckgo.com/ip2/${url}.ico`;
-		const res = await fetch(apiLogoUrl);
-		if (res.status === 200) {
-			this.setState({ apiLogoUrl });
-		}
+	componentDidMount = () => {
+		this.setPageLogo();
+	};
+
+	setPageLogo = async () => {
+		const { currentPageInformation } = this.props;
+		const apiLogoUrl = `http://icons.duckduckgo.com/ip2/${currentPageInformation.url}.ico`;
+		this.setState({ apiLogoUrl: { uri: apiLogoUrl } });
+	};
+
+	onSetPageError = async () => {
+		await this.setState({ apiLogoUrl: ethLogo });
 	};
 
 	renderPageInformation = () => {
 		const { domain, currentPageInformation } = this.props;
-		const apiLogoUrl = this.fetchPageLogo(currentPageInformation.url);
+		const { apiLogoUrl } = this.state;
 		return (
 			<View style={styles.domainWrapper}>
 				<View style={styles.assetLogo}>
-					{this.state.apiLogoUrl ? (
-						<Image source={{ uri: apiLogoUrl }} style={styles.domainLogo} />
-					) : (
-						<Image source={ethLogo} style={styles.domainLogo} />
-					)}
+					<Image source={apiLogoUrl} style={styles.domainLogo} onError={this.onSetPageError} />
 				</View>
 				<Text style={styles.domainTitle}>{currentPageInformation.title}</Text>
 				<Text style={styles.domainText}>{currentPageInformation.url}</Text>
