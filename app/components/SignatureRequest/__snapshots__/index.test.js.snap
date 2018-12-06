@@ -9,13 +9,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     }
   }
 >
-<<<<<<< HEAD
   <View>
-=======
-  <View
-    style={Object {}}
-  >
->>>>>>> master
     <View
       style={
         Object {
@@ -90,7 +84,6 @@ exports[`SignatureRequest should render correctly 1`] = `
     <View
       style={
         Object {
-<<<<<<< HEAD
           "margin": 10,
         }
       }
@@ -153,9 +146,6 @@ exports[`SignatureRequest should render correctly 1`] = `
       style={
         Object {
           "margin": 10,
-=======
-          "margin": 20,
->>>>>>> master
         }
       }
     >
