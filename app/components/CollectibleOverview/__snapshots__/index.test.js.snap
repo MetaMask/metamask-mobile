@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AssetOverview should render correctly 1`] = `
+exports[`CollectibleOverview should render correctly 1`] = `
 <LinearGradient
   colors={
     Array [
@@ -10,9 +10,9 @@ exports[`AssetOverview should render correctly 1`] = `
   }
   style={
     Object {
-      "borderBottomColor": "#CCCCCC",
-      "borderBottomWidth": 0.5,
+      "alignItems": "center",
       "flex": 1,
+      "justifyContent": "center",
       "padding": 20,
     }
   }
@@ -21,25 +21,23 @@ exports[`AssetOverview should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
-        "borderRadius": 10,
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 20,
         "justifyContent": "center",
-        "marginBottom": 10,
         "marginTop": 15,
+        "width": 300,
       }
     }
   >
-    <Component
-      source={
+    <CollectibleImage
+      collectible={
         Object {
-          "testUri": "../../../app/images/eth-logo.png",
+          "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
+          "name": "Leopard",
+          "tokenId": 6904,
         }
       }
-      style={
-        Object {
-          "height": 70,
-          "width": 70,
-        }
-      }
+      renderFull={true}
     />
   </View>
   <View
@@ -49,6 +47,7 @@ exports[`AssetOverview should render correctly 1`] = `
         "flex": 1,
         "marginBottom": 10,
         "marginTop": 10,
+        "padding": 20,
       }
     }
   >
@@ -57,14 +56,24 @@ exports[`AssetOverview should render correctly 1`] = `
         Object {
           "color": "#4a4a4a",
           "fontFamily": "Roboto",
-          "fontSize": 30,
+          "fontSize": 20,
           "fontWeight": "400",
         }
       }
     >
-      4
-       
-      ETH
+      Leopard
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 20,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Cryptokitties
     </Text>
     <Text
       style={
@@ -72,11 +81,38 @@ exports[`AssetOverview should render correctly 1`] = `
           "color": "#999999",
           "fontFamily": "Roboto",
           "fontSize": 18,
-          "fontWeight": "300",
+          "fontWeight": "400",
         }
       }
     >
-      1500
+      ID
+      : 
+      6904
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Collectible Address
+      :
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 14,
+          "fontWeight": "400",
+        }
+      }
+    >
+      0x06012c8cf97BEaD5deAe237070F9587f8E7A266d
     </Text>
   </View>
   <View
@@ -95,15 +131,10 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       }
       containerStyle={
-        Array [
-          Object {
-            "flex": 1,
-            "flexDirection": "row",
-          },
-          Object {
-            "marginRight": 10,
-          },
-        ]
+        Object {
+          "flex": 1,
+          "flexDirection": "row",
+        }
       }
       disabledContainerStyle={
         Object {
@@ -152,72 +183,6 @@ exports[`AssetOverview should render correctly 1`] = `
         }
       >
         SEND
-      </Text>
-    </StyledButton>
-    <StyledButton
-      childGroupStyle={
-        Object {
-          "flexDirection": "row",
-        }
-      }
-      containerStyle={
-        Array [
-          Object {
-            "flex": 1,
-            "flexDirection": "row",
-          },
-          Object {
-            "marginLeft": 10,
-          },
-        ]
-      }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      onPress={[Function]}
-      style={
-        Object {
-          "alignItems": "flex-start",
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "center",
-        }
-      }
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      type="confirm"
-    >
-      <Icon
-        allowFontScaling={false}
-        color="#FFFFFF"
-        name="download"
-        size={20}
-        style={
-          Object {
-            "height": 15,
-            "marginTop": 0,
-            "width": 15,
-          }
-        }
-      />
-      <Text
-        style={
-          Object {
-            "color": "#FFFFFF",
-            "fontFamily": "Roboto",
-            "fontSize": 15,
-            "fontWeight": "600",
-            "marginLeft": 8,
-            "marginTop": 0,
-          }
-        }
-      >
-        RECEIVE
       </Text>
     </StyledButton>
   </View>
