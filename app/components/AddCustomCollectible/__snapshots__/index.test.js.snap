@@ -83,7 +83,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           }
         }
       >
-        Collectible Identifier
+        ID
       </Text>
       <TextInput
         allowFontScaling={true}

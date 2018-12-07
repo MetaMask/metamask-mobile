@@ -7,6 +7,7 @@ import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
 import AddAsset from '../AddAsset';
 import AppConfigurations from '../AppConfigurations';
+import Collectible from '../Collectible';
 import SendScreen from '../SendScreen';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import { createStackNavigator } from 'react-navigation';
@@ -45,6 +46,9 @@ export default createStackNavigator({
 	},
 	AppConfigurations: {
 		screen: AppConfigurations
+	},
+	Collectible: {
+		screen: Collectible
 	},
 	SendScreen: {
 		screen: SendScreen
