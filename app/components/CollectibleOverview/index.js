@@ -7,6 +7,7 @@ import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -110,6 +111,10 @@ export default class CollectibleOverview extends Component {
 				<View style={styles.assetLogo}>{this.renderImage()}</View>
 				<View style={styles.collectibleInformation}>
 					<Text style={styles.collectibleName}>{name}</Text>
+					{contractMap[address] &&
+						name !== contractMap[address].name && (
+							<Text style={styles.collectibleName}>{contractMap[address].name}</Text>
+						)}
 					<Text style={styles.collectibleAttribute}>
 						{strings('collectible.collectible_token_id')}: {tokenId}
 					</Text>

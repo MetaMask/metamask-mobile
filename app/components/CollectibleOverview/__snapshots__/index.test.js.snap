@@ -32,7 +32,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
     <CollectibleImage
       collectible={
         Object {
-          "address": "0x123",
+          "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
           "name": "Leopard",
           "tokenId": 6904,
         }
@@ -62,6 +62,18 @@ exports[`CollectibleOverview should render correctly 1`] = `
       }
     >
       Leopard
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 20,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Cryptokitties
     </Text>
     <Text
       style={
@@ -100,7 +112,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
         }
       }
     >
-      0x123
+      0x06012c8cf97BEaD5deAe237070F9587f8E7A266d
     </Text>
   </View>
   <View

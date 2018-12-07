@@ -4,6 +4,7 @@ import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	itemWrapper: {
@@ -26,6 +27,11 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	collectibleName: {
+		fontSize: 12,
+		color: colors.fontPrimary,
+		...fontStyles.bold
 	}
 });
 
@@ -46,15 +52,20 @@ export default class CollectibleElement extends Component {
 	};
 
 	render = () => {
-		const { asset, onPress } = this.props;
+		const {
+			asset,
+			asset: { address, tokenId, name },
+			onPress
+		} = this.props;
 		return (
-			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${asset.tokenId}`}>
+			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${tokenId}`}>
 				<CollectibleImage collectible={asset} />
 				<View style={styles.balances}>
-					<Text style={styles.name}>{asset.name}</Text>
+					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.tokenId}>
-						{strings('collectible.collectible_token_id')}: {asset.tokenId}
+						{strings('collectible.collectible_token_id')}: {tokenId}
 					</Text>
+					{contractMap[address] && <Text style={styles.collectibleName}>{contractMap[address].name}</Text>}
 				</View>
 			</TouchableOpacity>
 		);
