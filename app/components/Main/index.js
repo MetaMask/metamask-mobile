@@ -11,8 +11,8 @@ import { colors } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 
 /**
- * Navigator component that wraps the
- * three main tabs: Browser, Wallet, Transfer
+ * Navigator component that wraps
+ * the 2 main sections: Browser, Wallet
  */
 export default createSwitchNavigator(
 	{
