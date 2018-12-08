@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
+import {
+	Switch,
+	AsyncStorage,
+	ActivityIndicator,
+	Alert,
+	Text,
+	View,
+	TextInput,
+	StyleSheet,
+	Platform
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../StyledButton';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
@@ -39,7 +49,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderColor,
 		padding: 10,
 		borderRadius: 4,
-		fontSize: Platform.OS === 'android' ? 15 : 20,
+		fontSize: Platform.OS === 'android' ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -48,6 +58,20 @@ const styles = StyleSheet.create({
 	errorMsg: {
 		color: colors.error,
 		...fontStyles.normal
+	},
+	biometrics: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginTop: 20,
+		marginBottom: 30
+	},
+	biometryLabel: {
+		flex: 1,
+		fontSize: 16,
+		...fontStyles.normal
+	},
+	biometrySwitch: {
+		flex: 0
 	}
 });
 
@@ -79,6 +103,12 @@ export default class CreateWallet extends Component {
 
 	confirmPasswordInput = React.createRef();
 
+	async componentDidMount() {
+		const biometryType = await Keychain.getSupportedBiometryType();
+		if (biometryType) {
+			this.setState({ biometryType, biometryChoice: true });
+		}
+	}
 	componentWillUnmount() {
 		this.mounted = false;
 	}
@@ -95,11 +125,6 @@ export default class CreateWallet extends Component {
 		} else {
 			try {
 				this.setState({ loading: true });
-
-				const biometryType = await Keychain.getSupportedBiometryType();
-				if (biometryType) {
-					this.setState({ biometryType, biometryChoice: true });
-				}
 
 				const authOptions = {
 					accessControl: this.state.biometryChoice
@@ -173,6 +198,18 @@ export default class CreateWallet extends Component {
 					</View>
 
 					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					{this.state.biometryType && (
+						<View style={styles.biometrics}>
+							<Text style={styles.biometryLabel}>
+								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+							</Text>
+							<Switch
+								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								value={this.state.biometryChoice}
+								style={styles.biometrySwitch}
+							/>
+						</View>
+					)}
 					<View style={styles.ctaWrapper}>
 						<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'submit'}>
 							{this.state.loading ? (
