@@ -344,5 +344,12 @@
 		"enable_touchid": "Enable TouchID authentication",
 		"enable_faceid": "Enable FaceID authentication",
 		"enable_fingerprint": "Enable Fingerprint authentication"
+	},
+	"authentication": {
+		"auth_prompt_title": "MetaMask - Authentication required",
+		"auth_prompt_desc": "Please authenticate in order to use the app",
+		"fingerprint_prompt_title": "MetaMask - Authentication required",
+		"fingerprint_prompt_desc": "Use your fingerprint to unlock the app",
+		"fingerprint_prompt_cancel": "Cancel"
 	}
 }

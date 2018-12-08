@@ -4,6 +4,7 @@ import * as Keychain from 'react-native-keychain'; // eslint-disable-line import
 
 import FoxScreen from '../FoxScreen';
 import Engine from '../../core/Engine';
+import { strings } from '../../../locales/i18n';
 
 /**
  * Main view component for the Lock screen
@@ -40,7 +41,14 @@ export default class LockScreen extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const credentials = Keychain.getGenericPassword && (await Keychain.getGenericPassword());
+			const credentials = await Keychain.getGenericPassword({
+				service: 'com.metamask',
+				authenticationPromptTitle: strings('authentication.auth_prompt_title'),
+				authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
+				fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
+				fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
+				fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
+			});
 			if (credentials) {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;

@@ -156,7 +156,12 @@ export default class ImportFromSeed extends Component {
 						: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
 					accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
 					authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS,
-					service: 'com.metamask'
+					service: 'com.metamask',
+					authenticationPromptTitle: strings('authentication.auth_prompt_title'),
+					authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
+					fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
+					fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
+					fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
 				};
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 				const { KeyringController } = Engine.context;
