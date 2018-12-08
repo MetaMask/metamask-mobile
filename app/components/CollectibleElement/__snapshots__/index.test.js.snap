@@ -16,9 +16,9 @@ exports[`CollectibleElement should render correctly 1`] = `
   }
 >
   <CollectibleImage
-    asset={
+    collectible={
       Object {
-        "address": "0x123",
+        "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
         "image": "IMAGE",
         "name": "NAME",
         "tokenId": 123,
@@ -54,9 +54,21 @@ exports[`CollectibleElement should render correctly 1`] = `
         }
       }
     >
-      Collectible Identifier
+      ID
       : 
       123
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "600",
+        }
+      }
+    >
+      Cryptokitties
     </Text>
   </View>
 </TouchableOpacity>

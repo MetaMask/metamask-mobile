@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Collectible should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 10,
+      "borderTopRightRadius": 10,
+      "minHeight": 600,
+    }
+  }
+>
+  <View>
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "600",
+          "marginHorizontal": 20,
+          "marginVertical": 12,
+          "textAlign": "center",
+        }
+      }
+    >
+      Collectible
+    </Text>
+  </View>
+  <ScrollView
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      testID="asset"
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <CollectibleOverview
+          asset={
+            Object {
+              "address": "0x123",
+              "name": "Leopard",
+              "tokenId": 6904,
+            }
+          }
+        />
+      </View>
+    </View>
+  </ScrollView>
+</View>
+`;
