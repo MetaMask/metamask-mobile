@@ -109,11 +109,13 @@ export default class CreateWallet extends Component {
 			this.setState({ biometryType, biometryChoice: true });
 		}
 	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
 
 	onPressCreate = async () => {
+		if (this.state.loading) return;
 		let error = null;
 		if (this.state.password.length < 8) {
 			error = 'The password needs to be at least 8 chars long';

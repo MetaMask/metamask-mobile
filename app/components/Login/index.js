@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, ActivityIndicator, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import { Switch, Alert, ActivityIndicator, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Button from 'react-native-button';
@@ -64,6 +64,20 @@ const styles = StyleSheet.create({
 	goBack: {
 		color: colors.fontSecondary,
 		...fontStyles.normal
+	},
+	biometrics: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginTop: 20,
+		marginBottom: 30
+	},
+	biometryLabel: {
+		flex: 1,
+		fontSize: 16,
+		...fontStyles.normal
+	},
+	biometrySwitch: {
+		flex: 0
 	}
 });
 
@@ -82,7 +96,6 @@ export default class Login extends Component {
 
 	state = {
 		password: '',
-		confirmPassword: '',
 		biometryType: null,
 		biometryChoice: false,
 		loading: false,
@@ -91,16 +104,21 @@ export default class Login extends Component {
 
 	mounted = true;
 
+	async componentDidMount() {
+		const biometryType = await Keychain.getSupportedBiometryType();
+		if (biometryType) {
+			this.setState({ biometryType, biometryChoice: true });
+		}
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
 
 	onLogin = async () => {
+		if (this.state.loading) return;
 		try {
-			const biometryType = await Keychain.getSupportedBiometryType();
-			if (biometryType) {
-				this.setState({ biometryType, biometryChoice: true });
-			}
+			this.setState({ loading: true });
 			const authOptions = {
 				accessControl: this.state.biometryChoice
 					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -158,6 +176,18 @@ export default class Login extends Component {
 						/>
 					</View>
 					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					{this.state.biometryType && (
+						<View style={styles.biometrics}>
+							<Text style={styles.biometryLabel}>
+								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+							</Text>
+							<Switch
+								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								value={this.state.biometryChoice}
+								style={styles.biometrySwitch}
+							/>
+						</View>
+					)}
 					<View style={styles.ctaWrapper}>
 						<StyledButton type={'orange'} onPress={this.onLogin}>
 							{this.state.loading ? (

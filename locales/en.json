@@ -338,5 +338,10 @@
 	},
 	"unit": {
 		"eth": "ETH"
+	},
+	"biometrics": {
+		"enable_touchid": "Enable TouchID authentication",
+		"enable_faceid": "Enable FaceID authentication",
+		"enable_fingerprint": "Enable Fingerprint authentication"
 	}
 }
