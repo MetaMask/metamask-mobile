@@ -214,6 +214,10 @@ export default class CreateWallet extends Component {
 								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 								value={this.state.biometryChoice}
 								style={styles.biometrySwitch}
+								trackColor={
+									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+								}
+								ios_backgroundColor={colors.slate}
 							/>
 						</View>
 					)}

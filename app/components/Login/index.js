@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const WRONG_PASSWORD_ERROR = 'Error: decrypt failed';
 
 /**
  * View where returning users can authenticate
@@ -119,6 +120,11 @@ export default class Login extends Component {
 		if (this.state.loading) return;
 		try {
 			this.setState({ loading: true });
+			const { KeyringController } = Engine.context;
+
+			// Restore vault with user entered password
+			await KeyringController.submitPassword(this.state.password);
+
 			const authOptions = {
 				accessControl: this.state.biometryChoice
 					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
@@ -133,15 +139,14 @@ export default class Login extends Component {
 				fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
 			};
 			await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-			const { KeyringController } = Engine.context;
 
-			// Restore vault with user entered password
-			await KeyringController.submitPassword(this.state.password);
 			this.setState({ loading: false });
 			this.props.navigation.navigate('HomeNav');
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
-			if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+			if (error.toString() === WRONG_PASSWORD_ERROR) {
+				this.setState({ loading: false, error: strings('login.invalid_password') });
+			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
@@ -190,6 +195,10 @@ export default class Login extends Component {
 								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 								value={this.state.biometryChoice}
 								style={styles.biometrySwitch}
+								trackColor={
+									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+								}
+								ios_backgroundColor={colors.slate}
 							/>
 						</View>
 					)}
