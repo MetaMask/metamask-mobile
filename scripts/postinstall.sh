@@ -101,3 +101,11 @@ echo "9. Fix eth-name-hash to be compatible with android"
 TARGET="node_modules/idna-uts46-hx/node_modules/punycode/punycode.js"
 sed -i'' -e 's/fromCodePoint/fromCharCode/' $TARGET;
 echo "Done"
+
+# Fix old gradle
+echo "10. Fix modules with old gradle versions"
+TARGET="node_modules/react-native-vector-icons/android/build.gradle"
+sed -i'' -e 's/com.android.tools.build:gradle:2.3./com.android.tools.build:gradle:3.2.1/' $TARGET;
+sed -i'' -e  '/jcenter()/a \
+google() \
+' $TARGET;
