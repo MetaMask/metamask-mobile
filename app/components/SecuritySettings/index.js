@@ -98,6 +98,7 @@ class SecuritySettings extends Component {
 	};
 
 	onBiometryChange = async enabled => {
+		this.setState({ biometryChoice: enabled });
 		// Remove from keychain
 		// Save password again
 		const baseAuthOptions = {
@@ -121,11 +122,11 @@ class SecuritySettings extends Component {
 				...baseAuthOptions
 			};
 			await Keychain.setGenericPassword('metamask-user', credentials.password, authOptions);
-			this.setState({ biometryChoice: enabled });
+
 			if (!enabled) {
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			} else {
-				await AsyncStorage.set('@MetaMask:biometryChoice', this.state.biometryType);
+				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
 			}
 		}
 	};

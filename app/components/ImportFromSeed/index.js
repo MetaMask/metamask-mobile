@@ -174,7 +174,7 @@ export default class ImportFromSeed extends Component {
 				if (!this.state.biometryChoice) {
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				} else {
-					await AsyncStorage.set('@MetaMask:biometryChoice', this.state.biometryType);
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
 				}
 
 				// mark the user as existing so it doesn't see the create password screen again
