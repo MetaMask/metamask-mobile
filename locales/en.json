@@ -158,7 +158,8 @@
 	},
 	"app_configurations": {
 		"information_title": "INFO",
-		"settings_title": "SETTINGS"
+		"security_title": "SECURITY",
+		"settings_title": "GENERAL"
 	},
 	"settings": {
 		"title": "Settings",

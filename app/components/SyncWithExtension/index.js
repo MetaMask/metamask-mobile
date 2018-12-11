@@ -272,7 +272,14 @@ class SyncWithExtension extends Component {
 				fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
 				fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
 			};
+
 			await Keychain.setGenericPassword('metamask-user', password, authOptions);
+
+			if (!this.state.biometryChoice) {
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			} else {
+				await AsyncStorage.set('@MetaMask:biometryChoice', this.state.biometryType);
+			}
 		}
 
 		try {

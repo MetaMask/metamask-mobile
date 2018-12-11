@@ -122,6 +122,13 @@ export default class ImportFromSeed extends Component {
 	passwordInput = React.createRef();
 	confirmPasswordInput = React.createRef();
 
+	async componentDidMount() {
+		const biometryType = await Keychain.getSupportedBiometryType();
+		if (biometryType) {
+			this.setState({ biometryType, biometryChoice: true });
+		}
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
@@ -145,10 +152,9 @@ export default class ImportFromSeed extends Component {
 			try {
 				this.setState({ loading: true });
 
-				const biometryType = await Keychain.getSupportedBiometryType();
-				if (biometryType) {
-					this.setState({ biometryType, biometryChoice: true });
-				}
+				const { KeyringController } = Engine.context;
+
+				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
 				const authOptions = {
 					accessControl: this.state.biometryChoice
@@ -164,9 +170,13 @@ export default class ImportFromSeed extends Component {
 					fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
 				};
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-				const { KeyringController } = Engine.context;
 
-				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
+				if (!this.state.biometryChoice) {
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				} else {
+					await AsyncStorage.set('@MetaMask:biometryChoice', this.state.biometryType);
+				}
+
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });

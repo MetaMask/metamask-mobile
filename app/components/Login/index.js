@@ -1,6 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Switch, Alert, ActivityIndicator, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import {
+	AsyncStorage,
+	Switch,
+	Alert,
+	ActivityIndicator,
+	Text,
+	View,
+	TextInput,
+	StyleSheet,
+	Platform,
+	Image
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Button from 'react-native-button';
@@ -138,7 +149,14 @@ export default class Login extends Component {
 				fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
 				fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
 			};
+
 			await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+
+			if (!this.state.biometryChoice) {
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			} else {
+				await AsyncStorage.set('@MetaMask:biometryChoice', this.state.biometryType);
+			}
 
 			this.setState({ loading: false });
 			this.props.navigation.navigate('HomeNav');

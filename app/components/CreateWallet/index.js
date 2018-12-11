@@ -127,6 +127,8 @@ export default class CreateWallet extends Component {
 		} else {
 			try {
 				this.setState({ loading: true });
+				const { KeyringController } = Engine.context;
+				await KeyringController.createNewVaultAndKeychain(this.state.password);
 
 				const authOptions = {
 					accessControl: this.state.biometryChoice
@@ -141,10 +143,15 @@ export default class CreateWallet extends Component {
 					fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
 					fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
 				};
+
 				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
-				const { KeyringController } = Engine.context;
-				await KeyringController.createNewVaultAndKeychain(this.state.password);
+				if (!this.state.biometryChoice) {
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				} else {
+					await AsyncStorage.set('@MetaMask:biometryChoice', this.state.biometryType);
+				}
+
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });

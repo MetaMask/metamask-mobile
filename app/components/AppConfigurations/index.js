@@ -6,6 +6,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import AppSettings from '../AppSettings';
+import SecuritySettings from '../SecuritySettings';
 import AppInformation from '../AppInformation';
 
 const styles = StyleSheet.create({
@@ -72,6 +73,7 @@ export default class AppConfigurations extends Component {
 			<View style={styles.wrapper}>
 				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 					<AppSettings navigation={navigation} tabLabel={strings('app_configurations.settings_title')} />
+					<SecuritySettings navigation={navigation} tabLabel={strings('app_configurations.security_title')} />
 					<AppInformation
 						navigation={navigation}
 						tabLabel={strings('app_configurations.information_title')}
