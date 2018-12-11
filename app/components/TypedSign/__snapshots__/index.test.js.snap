@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PersonalSign should render correctly 1`] = `
+exports[`TypedSign should render correctly 1`] = `
 <View
   style={
     Object {
@@ -60,16 +60,6 @@ exports[`PersonalSign should render correctly 1`] = `
       >
         Message:
       </Text>
-      <Text
-        style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "margin": 5,
-          }
-        }
-      />
     </View>
   </Connect(SignatureRequest)>
 </View>

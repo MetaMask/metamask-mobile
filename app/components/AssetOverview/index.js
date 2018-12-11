@@ -128,7 +128,6 @@ export default class AssetOverview extends Component {
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
 					<Text style={styles.amount}>
-						{' '}
 						{balance} {symbol}
 					</Text>
 					<Text style={styles.amountFiat}>{balanceFiat}</Text>

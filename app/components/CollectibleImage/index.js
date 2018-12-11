@@ -5,16 +5,28 @@ import Image from 'react-native-remote-svg';
 import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
-	imageWrapper: {
+	listWrapper: {
 		width: 50,
 		height: 50,
 		overflow: 'hidden',
 		borderRadius: 100,
 		marginRight: 20
 	},
-	image: {
+	fullWrapper: {
+		width: 200,
+		height: 200,
+		overflow: 'hidden',
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	listImage: {
 		width: 50,
 		height: 50
+	},
+	fullImage: {
+		width: 200,
+		height: 200
 	}
 });
 
@@ -24,19 +36,26 @@ const styles = StyleSheet.create({
 export default class CollectibleImage extends Component {
 	static propTypes = {
 		/**
-		 * Asset object (in this case ERC721 token)
+		 * Collectible object (in this case ERC721 token)
 		 */
-		asset: PropTypes.object
+		collectible: PropTypes.object,
+		/**
+		 * Whether collectible image has to render in full size
+		 */
+		renderFull: PropTypes.bool
 	};
 
 	render = () => {
-		const { asset } = this.props;
+		const {
+			collectible: { image, address, tokenId },
+			renderFull
+		} = this.props;
 		return (
-			<View style={styles.imageWrapper}>
-				{asset.image && asset.image.length !== 0 ? (
-					<Image source={{ uri: asset.image }} style={styles.image} />
+			<View style={renderFull ? styles.fullWrapper : styles.listWrapper}>
+				{image && image.length !== 0 ? (
+					<Image source={{ uri: image }} style={renderFull ? styles.fullImage : styles.listImage} />
 				) : (
-					<Identicon address={asset.address + asset.tokenId} />
+					<Identicon address={address + tokenId} />
 				)}
 			</View>
 		);

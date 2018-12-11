@@ -5,7 +5,6 @@ import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../locales/i18n';
-import { hexToText } from 'gaba/util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -36,13 +35,16 @@ const styles = StyleSheet.create({
 		marginHorizontal: 20,
 		color: colors.fontPrimary,
 		...fontStyles.bold
+	},
+	message: {
+		marginLeft: 20
 	}
 });
 
 /**
- * Component that supports eth_sign and personal_sign
+ * Component that supports eth_signTypedData and eth_signTypedData_v3
  */
-export default class PersonalSign extends Component {
+export default class TypedSign extends Component {
 	static navigationOptions = () => ({
 		title: strings('signature_request.title'),
 		headerTitleStyle: {
@@ -64,7 +66,7 @@ export default class PersonalSign extends Component {
 		 */
 		onConfirm: PropTypes.func,
 		/**
-		 * Personal message to be displayed to the user
+		 * Typed message to be displayed to the user
 		 */
 		messageParams: PropTypes.object,
 		/**
@@ -75,18 +77,19 @@ export default class PersonalSign extends Component {
 
 	signMessage = async () => {
 		const { messageParams } = this.props;
-		const { KeyringController, PersonalMessageManager } = Engine.context;
+		const { KeyringController, TypedMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		const cleanMessageParams = await PersonalMessageManager.approveMessage(messageParams);
-		const rawSig = await KeyringController.signPersonalMessage(cleanMessageParams);
-		PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+		const version = messageParams.version;
+		const cleanMessageParams = await TypedMessageManager.approveMessage(messageParams);
+		const rawSig = await KeyringController.signTypedMessage(cleanMessageParams, version);
+		TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
 	};
 
 	rejectMessage = () => {
 		const { messageParams } = this.props;
-		const { PersonalMessageManager } = Engine.context;
+		const { TypedMessageManager } = Engine.context;
 		const messageId = messageParams.metamaskId;
-		PersonalMessageManager.rejectMessage(messageId);
+		TypedMessageManager.rejectMessage(messageId);
 	};
 
 	cancelSignature = () => {
@@ -99,8 +102,51 @@ export default class PersonalSign extends Component {
 		this.props.onConfirm();
 	};
 
+	renderTypedMessageV3 = obj =>
+		Object.keys(obj).map(key => (
+			<View style={styles.message} key={key}>
+				{typeof obj[key] === 'object' ? (
+					<View>
+						<Text>{key}:</Text>
+						<View>{this.renderTypedMessageV3(obj[key])}</View>
+					</View>
+				) : (
+					<Text>
+						{key}: {obj[key]}
+					</Text>
+				)}
+			</View>
+		));
+
+	renderTypedMessage = () => {
+		const { messageParams } = this.props;
+		if (messageParams.version === 'V1') {
+			return (
+				<View style={styles.message}>
+					{messageParams.data.map(obj => (
+						<View key={obj.name}>
+							<Text style={styles.messageText}>{obj.name}:</Text>
+							<Text style={styles.messageText} key={obj.name}>
+								{' '}
+								{obj.value}
+							</Text>
+						</View>
+					))}
+				</View>
+			);
+		}
+		if (messageParams.version === 'V3') {
+			const { message } = JSON.parse(messageParams.data);
+			return this.renderTypedMessageV3(message);
+		}
+	};
+
 	render() {
 		const { messageParams, currentPageInformation } = this.props;
+		let domain;
+		if (messageParams.version === 'V3') {
+			domain = JSON.parse(messageParams.data).domain;
+		}
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -112,11 +158,12 @@ export default class PersonalSign extends Component {
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
+					domain={domain}
 					currentPageInformation={currentPageInformation}
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text style={styles.messageText}>{hexToText(messageParams.data)}</Text>
+						{this.renderTypedMessage()}
 					</View>
 				</SignatureRequest>
 			</View>

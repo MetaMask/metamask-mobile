@@ -15,7 +15,8 @@ import {
 	ShapeShiftController,
 	TokenBalancesController,
 	TokenRatesController,
-	TransactionController
+	TransactionController,
+	TypedMessageManager
 } from 'gaba';
 
 import Encryptor from './Encryptor';
@@ -94,11 +95,41 @@ class Engine {
 										} catch (error) {
 											end(error);
 										}
+									},
+									eth_signTypedData: async (payload, next, end) => {
+										const { TypedMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+												{
+													data: payload.params[0],
+													from: payload.params[1]
+												},
+												'V1'
+											);
+											end(undefined, rawSig);
+										} catch (error) {
+											end(error);
+										}
+									},
+									eth_signTypedData_v3: async (payload, next, end) => {
+										const { TypedMessageManager } = this.datamodel.context;
+										try {
+											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+												{
+													data: payload.params[1],
+													from: payload.params[0]
+												},
+												'V3'
+											);
+											end(undefined, rawSig);
+										} catch (error) {
+											end(error);
+										}
 									}
 								},
 								getAccounts: end => {
 									const { KeyringController } = this.datamodel.context;
-									const isUnlocked = KeyringController.keyring.memStore.getState().isUnlocked;
+									const isUnlocked = KeyringController.isUnlocked();
 									const selectedAddress = this.datamodel.context.PreferencesController.state
 										.selectedAddress;
 									end(null, isUnlocked && selectedAddress ? [selectedAddress] : []);
@@ -113,7 +144,8 @@ class Engine {
 					new ShapeShiftController(),
 					new TokenBalancesController(),
 					new TokenRatesController(),
-					new TransactionController()
+					new TransactionController(),
+					new TypedMessageManager()
 				],
 				initialState
 			);
@@ -254,7 +286,8 @@ export default {
 			PreferencesController,
 			TokenBalancesController,
 			TokenRatesController,
-			TransactionController
+			TransactionController,
+			TypedMessageManager
 		} = instance.datamodel.state;
 
 		return {
@@ -270,7 +303,8 @@ export default {
 			PreferencesController,
 			TokenBalancesController,
 			TokenRatesController,
-			TransactionController
+			TransactionController,
+			TypedMessageManager
 		};
 	},
 	get datamodel() {

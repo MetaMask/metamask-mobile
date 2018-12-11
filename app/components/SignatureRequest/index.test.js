@@ -19,7 +19,7 @@ describe('SignatureRequest', () => {
 			}
 		};
 
-		const wrapper = shallow(<SignatureRequest />, {
+		const wrapper = shallow(<SignatureRequest currentPageInformation={{ title: 'title', url: 'url' }} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();

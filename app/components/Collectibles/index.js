@@ -50,7 +50,11 @@ export default class Collectibles extends Component {
 		/**
 		 * Array of assets (in this case Collectibles)
 		 */
-		assets: PropTypes.array
+		assets: PropTypes.array,
+		/**
+		 * Callback triggered when collectible pressed from collectibles list
+		 */
+		onPressAsset: PropTypes.func
 	};
 
 	renderEmpty = () => (
@@ -59,8 +63,22 @@ export default class Collectibles extends Component {
 		</View>
 	);
 
+	onItemPress = asset => {
+		this.props.navigation.push('Collectible', asset);
+	};
+
+	handleOnPressAsset = asset => {
+		this.props.onPressAsset(asset);
+	};
+
 	renderList() {
-		return this.props.assets.map(asset => <CollectibleElement asset={asset} key={asset.tokenId} />);
+		return this.props.assets.map(asset => (
+			<CollectibleElement
+				asset={asset}
+				key={asset.tokenId}
+				onPress={() => this.handleOnPressAsset(asset)} // eslint-disable-line
+			/>
+		));
 	}
 
 	goToAddCollectible = () => {
