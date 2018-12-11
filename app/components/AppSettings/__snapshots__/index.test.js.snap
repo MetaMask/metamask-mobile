@@ -562,44 +562,6 @@ exports[`AppSettings should render correctly 1`] = `
           }
         }
       >
-        Reveal Seed Words
-      </Text>
-      <StyledButton
-        disabledContainerStyle={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        onPress={[Function]}
-        styleDisabled={
-          Object {
-            "opacity": 0.6,
-          }
-        }
-        type="warning"
-      >
-        REVEAL SEED WORDS
-      </StyledButton>
-    </View>
-    <View
-      style={
-        Object {
-          "marginBottom": 22,
-          "marginTop": 22,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "fontFamily": "Roboto",
-            "fontSize": 18,
-            "fontWeight": "400",
-            "marginBottom": 5,
-            "textAlign": "left",
-          }
-        }
-      >
         Reset Account
       </Text>
       <StyledButton
