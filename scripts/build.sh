@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PLATFORM=$1
 MODE=$2
