@@ -128,7 +128,7 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
  * @returns {string} - Currency-formatted string
  */
 export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCode) {
-	if (!balance || !exchangeRate) {
+	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === null) {
 		return undefined;
 	}
 	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * 100) / 100).toFixed(2);
