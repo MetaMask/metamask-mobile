@@ -3,12 +3,15 @@
  */
 export class BackgroundBridge {
 	_engine;
+	_rpcOverrides;
 	_webview;
+	_accounts;
 
 	_onInpageRequest(payload) {
 		const { current } = this._webview;
 		const { provider } = this._engine.context.NetworkController;
-		provider.sendAsync(payload, (error, response) => {
+		const override = this._rpcOverrides && this._rpcOverrides[payload.method];
+		const done = (error, response) => {
 			current &&
 				current.postMessage(
 					JSON.stringify({
@@ -16,7 +19,18 @@ export class BackgroundBridge {
 						payload: { error, response, __mmID: payload.__mmID }
 					})
 				);
-		});
+		};
+		if (override) {
+			override(payload)
+				.then(response => {
+					done(undefined, response);
+				})
+				.catch(error => {
+					done(error);
+				});
+		} else {
+			provider.sendAsync(payload, done);
+		}
 	}
 
 	/**
@@ -24,9 +38,11 @@ export class BackgroundBridge {
 	 *
 	 * @param {Engine} engine - An Engine instance
 	 * @param {object} webview - React ref pointing to a WebView
+	 * @param {object} rpcOverrides - Map of rpc method overrides
 	 */
-	constructor(engine, webview) {
+	constructor(engine, webview, rpcOverrides) {
 		this._engine = engine;
+		this._rpcOverrides = rpcOverrides;
 		this._webview = webview;
 		engine.context.NetworkController.subscribe(this.sendStateUpdate);
 		engine.context.PreferencesController.subscribe(this.sendStateUpdate);
@@ -52,14 +68,33 @@ export class BackgroundBridge {
 	sendStateUpdate = () => {
 		const { current } = this._webview;
 		const { network, selectedAddress } = this._engine.datamodel.flatState;
+		const payload = { network };
+		if (this._accounts) {
+			payload.selectedAddress = selectedAddress;
+		}
 		current &&
 			current.postMessage(
 				JSON.stringify({
 					type: 'STATE_UPDATE',
-					payload: { network, selectedAddress }
+					payload
 				})
 			);
 	};
+
+	/**
+	 * Called to disable inpage account updates
+	 */
+	disableAccounts() {
+		this._accounts = false;
+	}
+
+	/**
+	 * Called to enable inpage account updates
+	 */
+	enableAccounts() {
+		this._accounts = true;
+		this.sendStateUpdate();
+	}
 }
 
 export default BackgroundBridge;
