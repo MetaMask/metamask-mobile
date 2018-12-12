@@ -1,4 +1,4 @@
-![Melfina logo](logo.png?raw=true) 
+![MetaMask logo](logo.png?raw=true)
 
 
 MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.

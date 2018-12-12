@@ -1,5 +1,15 @@
 import React, { Component } from 'react';
-import { Platform, SafeAreaView, StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import {
+	Platform,
+	SafeAreaView,
+	StyleSheet,
+	Text,
+	View,
+	TextInput,
+	ScrollView,
+	Switch,
+	TouchableOpacity
+} from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -10,6 +20,7 @@ import Engine from '../../core/Engine';
 import ActionModal from '../ActionModal';
 import { isWebUri } from 'valid-url';
 import SelectComponent from '../SelectComponent';
+import { clearHosts, setPrivacyMode } from '../../actions';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -35,6 +46,14 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		textAlign: 'left',
 		marginBottom: 5,
+		...fontStyles.normal
+	},
+	subtext: {
+		color: colors.fontSecondary,
+		fontSize: 14,
+		marginBottom: 8,
+		marginTop: 5,
+		textAlign: 'left',
 		...fontStyles.normal
 	},
 	setting: {
@@ -100,19 +119,36 @@ class AppSettings extends Component {
 		languages: {},
 		currentLanguage: I18n.locale,
 		modalVisible: false,
+		approvalModalVisible: false,
 		rpcUrl: '',
 		warningRpcUrl: ''
 	};
 
 	static propTypes = {
 		/**
+		 * Map of hostnames with approved account access
+		 */
+		approvedHosts: PropTypes.object,
+		/**
+		 * Called to clear all hostnames with account access
+		 */
+		clearHosts: PropTypes.func,
+		/**
+		/* State current currency
+		*/
+		currentCurrency: PropTypes.number,
+		/**
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
 		/**
-		/* State current currency
-		*/
-		currentCurrency: PropTypes.number
+		 * Indicates whether privacy mode is enabled
+		 */
+		privacyMode: PropTypes.bool,
+		/**
+		 * Called to toggle privacy mode
+		 */
+		setPrivacyMode: PropTypes.func
 	};
 
 	componentDidMount = () => {
@@ -144,6 +180,10 @@ class AppSettings extends Component {
 		this.setState({ modalVisible: true });
 	};
 
+	displayClearApprovalsModal = () => {
+		this.setState({ approvalModalVisible: true });
+	};
+
 	resetAccount = () => {
 		const { TransactionController } = Engine.context;
 		const { navigation } = this.props;
@@ -151,8 +191,17 @@ class AppSettings extends Component {
 		navigation.navigate('Wallet');
 	};
 
+	clearApprovals = () => {
+		this.props.clearHosts();
+		this.cancelClearApprovals();
+	};
+
 	cancelResetAccount = () => {
 		this.setState({ modalVisible: false });
+	};
+
+	cancelClearApprovals = () => {
+		this.setState({ approvalModalVisible: false });
 	};
 
 	addRpcUrl = () => {
@@ -184,13 +233,18 @@ class AppSettings extends Component {
 		this.setState({ rpcUrl: url });
 	};
 
+	togglePrivacy = value => {
+		this.props.setPrivacyMode(value);
+	};
+
 	render = () => {
-		const { currentCurrency } = this.props;
+		const { modalVisible, approvalModalVisible } = this.state;
+		const { approvedHosts, currentCurrency, privacyMode } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
 				<ScrollView contentContainerStyle={styles.wrapperContent}>
 					<ActionModal
-						modalVisible={this.state.modalVisible}
+						modalVisible={modalVisible}
 						confirmText={strings('app_settings.reset_account_confirm_button')}
 						cancelText={strings('app_settings.reset_account_cancel_button')}
 						onCancelPress={this.cancelResetAccount}
@@ -200,6 +254,21 @@ class AppSettings extends Component {
 						<View style={styles.modalView}>
 							<Text style={styles.modalTitle}>{strings('app_settings.reset_account_modal_title')}</Text>
 							<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
+						</View>
+					</ActionModal>
+					<ActionModal
+						modalVisible={approvalModalVisible}
+						confirmText={strings('app_settings.clear')}
+						cancelText={strings('app_settings.reset_account_cancel_button')}
+						onCancelPress={this.cancelClearApprovals}
+						onRequestClose={this.cancelClearApprovals}
+						onConfirmPress={this.clearApprovals}
+					>
+						<View style={styles.modalView}>
+							<Text style={styles.modalTitle}>{strings('app_settings.clear_approvals_modal_title')}</Text>
+							<Text style={styles.modalText}>
+								{strings('app_settings.clear_approvals_modal_message')}
+							</Text>
 						</View>
 					</ActionModal>
 
@@ -241,6 +310,23 @@ class AppSettings extends Component {
 						</TouchableOpacity>
 					</View>
 					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.privacy_mode')}</Text>
+						<View>
+							<Text style={styles.subtext}>{strings('app_settings.privacy_mode_desc')}</Text>
+							<Switch value={privacyMode} onValueChange={this.togglePrivacy} />
+						</View>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.clear_desc')}</Text>
+						<StyledButton
+							type="confirm"
+							onPress={this.displayClearApprovalsModal}
+							disabled={Object.keys(approvedHosts).length === 0}
+						>
+							{strings('app_settings.clear_approved_dapps')}
+						</StyledButton>
+					</View>
+					<View style={styles.setting}>
 						<Text style={styles.text}>{strings('app_settings.sync_with_extension')}</Text>
 						<StyledButton type="confirm" onPress={this.goToSyncWithExtension}>
 							{strings('app_settings.sync')}
@@ -259,7 +345,17 @@ class AppSettings extends Component {
 }
 
 const mapStateToProps = state => ({
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency
+	approvedHosts: state.approvedHosts,
+	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
+	privacyMode: state.privacyMode
 });
 
-export default connect(mapStateToProps)(AppSettings);
+const mapDispatchToProps = dispatch => ({
+	clearHosts: () => dispatch(clearHosts()),
+	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(AppSettings);

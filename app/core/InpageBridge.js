@@ -16,15 +16,14 @@ class InpageBridge {
 					break;
 			}
 		} catch (error) {
-			/* eslint-disable-line no-empty */
+			console.error(error); // eslint-disable-line no-console
 		}
 	}
 
 	_onBackgroundResponse({ __mmID, error, response }) {
 		const callback = this._pending[__mmID];
-		if (response.error) {
-			/* eslint-disable-next-line no-console */
-			console.error(response.error.message);
+		if (!error && response.error) {
+			error = response.error;
 		}
 		callback && callback(error, response);
 		delete this._pending[__mmID];
@@ -41,8 +40,8 @@ class InpageBridge {
 	constructor() {
 		this._pending = {};
 		this.isMetamask = true;
-		this._network = 'INITIAL_NETWORK';
-		this._selectedAddress = 'INITIAL_SELECTED_ADDRESS';
+		this._network = undefined; // INITIAL_NETWORK
+		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		document.addEventListener('message', ({ data }) => {
 			this._onMessage(data);
 		});
@@ -85,7 +84,7 @@ class InpageBridge {
 				throw new Error(
 					`This provider requires a callback to be passed when executing methods like ${
 						payload.method
-					}. This is because all methods are always executed asynchonously. See https://git.io/fNi6S for more information.`
+					}. This is because all methods are always executed asynchronously. See https://git.io/fNi6S for more information.`
 				);
 		}
 
@@ -104,7 +103,11 @@ class InpageBridge {
 	 */
 	sendAsync(payload, callback) {
 		const random = Math.floor(Math.random() * 100 + 1);
-		payload = { ...payload, ...{ __mmID: Date.now() * random } };
+		payload = {
+			...payload,
+			__mmID: Date.now() * random,
+			hostname: window.location.hostname
+		};
 		this._pending[payload.__mmID] = callback;
 		window.postMessage(
 			{
@@ -113,6 +116,24 @@ class InpageBridge {
 			},
 			'*'
 		);
+	}
+
+	/**
+	 * Called by dapps to request access to user accounts
+	 *
+	 * @param {object} params - Configuration object for account access
+	 * @returns {Promise<Array<string>>} - Promise resolving to array of user accounts
+	 */
+	enable(params) {
+		return new Promise((resolve, reject) => {
+			this.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+				if (error) {
+					reject(error);
+					return;
+				}
+				resolve(result);
+			});
+		});
 	}
 }
 
