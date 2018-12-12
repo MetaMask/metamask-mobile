@@ -41,6 +41,10 @@ const metamask_name = require('../../images/metamask-name.png'); // eslint-disab
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
  * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ *
+ * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
 export default function getNavbarOptions(title, navigation) {
 	return {
@@ -51,6 +55,13 @@ export default function getNavbarOptions(title, navigation) {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * This is used by views that will show our custom navbar which contains Title
+ *
+ * @param {string} title - Title in string format
+ * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
+ */
 export function getNavigationOptionsTitle(title) {
 	return {
 		title,
@@ -64,6 +75,9 @@ export function getNavigationOptionsTitle(title) {
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
  * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ *
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
 export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
@@ -107,6 +121,9 @@ export function getBrowserViewNavbarOptions(navigation) {
 /**
  * Function that returns the navigation options
  * for our modals
+ *
+ * @param {string} title - Title in string format
+ * @returns {Object} - Corresponding navbar options containing headerTitle
  */
 export function getModalNavbarOptions(title) {
 	return {
@@ -118,6 +135,8 @@ export function getModalNavbarOptions(title) {
  * Function that returns the navigation options
  * for our the onboarding screens,
  * which is just the metamask log and the Back button
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getOnboardingNavbarOptions() {
 	return {
