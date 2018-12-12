@@ -309,9 +309,7 @@ class ImportWallet extends Component {
 			const authOptions = {
 				accessControl: this.state.biometryChoice
 					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-				accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED,
-				authenticationType: SecureKeychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
 			};
 			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
 		}

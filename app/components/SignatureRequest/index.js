@@ -26,6 +26,10 @@ const styles = StyleSheet.create({
 		margin: 20,
 		marginBottom: 40
 	},
+	accountInfoCol: {
+		flex: 1,
+		height: 40
+	},
 	signingInformation: {
 		margin: 10
 	},
@@ -80,6 +84,9 @@ const styles = StyleSheet.create({
 		height: 70,
 		overflow: 'hidden',
 		borderRadius: 100
+	},
+	ethLogo: {
+		borderRadius: 0
 	},
 	assetLogo: {
 		alignItems: 'center',
@@ -137,7 +144,8 @@ class SignatureRequest extends Component {
 	};
 
 	state = {
-		apiLogoUrl: null
+		apiLogoUrl: null,
+		apiLogoStyles: null
 	};
 
 	componentDidMount = () => {
@@ -151,16 +159,20 @@ class SignatureRequest extends Component {
 	};
 
 	onSetPageError = async () => {
-		await this.setState({ apiLogoUrl: ethLogo });
+		await this.setState({ apiLogoUrl: ethLogo, apiLogoStyles: styles.ethLogo });
 	};
 
 	renderPageInformation = () => {
 		const { domain, currentPageInformation } = this.props;
-		const { apiLogoUrl } = this.state;
+		const { apiLogoUrl, apiLogoStyles } = this.state;
 		return (
 			<View style={styles.domainWrapper}>
 				<View style={styles.assetLogo}>
-					<Image source={apiLogoUrl} style={styles.domainLogo} onError={this.onSetPageError} />
+					<Image
+						source={apiLogoUrl}
+						style={[styles.domainLogo, apiLogoStyles]}
+						onError={this.onSetPageError}
+					/>
 				</View>
 				<Text style={styles.domainTitle}>{currentPageInformation.title}</Text>
 				<Text style={styles.domainText}>{currentPageInformation.url}</Text>
@@ -177,7 +189,7 @@ class SignatureRequest extends Component {
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
 					<View style={styles.accountInformation}>
-						<View>
+						<View style={styles.accountInfoCol}>
 							<Text>{strings('signature_request.account_title')}</Text>
 							<View style={styles.account}>
 								<View style={styles.identicon}>
@@ -188,7 +200,7 @@ class SignatureRequest extends Component {
 								</View>
 							</View>
 						</View>
-						<View>
+						<View style={styles.accountInfoCol}>
 							<Text>{strings('signature_request.balance_title')}</Text>
 							<Text style={styles.text}>
 								{balance} {strings('unit.eth')}

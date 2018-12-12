@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SecuritySettings should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="app-settings-screen"
+>
+  <ScrollView
+    contentContainerStyle={
+      Object {
+        "paddingLeft": 20,
+        "paddingRight": 20,
+        "paddingVertical": 20,
+      }
+    }
+  >
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="NEVERMIND"
+      confirmButtonMode="warning"
+      confirmTestID=""
+      confirmText="RESET"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          Reset Account?
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          Resetting your account will clear your transaction history.
+        </Text>
+      </View>
+    </ActionModal>
+    <View
+      style={
+        Object {
+          "marginBottom": 22,
+          "marginTop": 22,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "marginBottom": 5,
+            "textAlign": "left",
+          }
+        }
+      >
+        Reveal Seed Words
+      </Text>
+      <StyledButton
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="warning"
+      >
+        REVEAL SEED WORDS
+      </StyledButton>
+    </View>
+  </ScrollView>
+</SafeAreaView>
+`;

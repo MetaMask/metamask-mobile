@@ -1,17 +1,19 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { Platform, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../locales/i18n';
+import DeviceSize from '../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		minHeight: 600,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
+		borderTopRightRadius: 10,
+		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	informationRow: {
 		borderBottomColor: colors.lightGray,
@@ -24,9 +26,10 @@ const styles = StyleSheet.create({
 		fontSize: 16
 	},
 	messageText: {
-		...fontStyles.normal,
 		margin: 5,
-		color: colors.black
+		color: colors.black,
+		...fontStyles.normal,
+		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'Roboto'
 	},
 	title: {
 		textAlign: 'center',
@@ -38,6 +41,9 @@ const styles = StyleSheet.create({
 	},
 	message: {
 		marginLeft: 20
+	},
+	msgKey: {
+		fontWeight: 'bold'
 	}
 });
 
@@ -107,12 +113,12 @@ export default class TypedSign extends Component {
 			<View style={styles.message} key={key}>
 				{typeof obj[key] === 'object' ? (
 					<View>
-						<Text>{key}:</Text>
+						<Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
 						<View>{this.renderTypedMessageV3(obj[key])}</View>
 					</View>
 				) : (
-					<Text>
-						{key}: {obj[key]}
+					<Text style={styles.messageText}>
+						<Text style={styles.msgKey}>{key}:</Text> {obj[key]}
 					</Text>
 				)}
 			</View>
@@ -123,9 +129,9 @@ export default class TypedSign extends Component {
 		if (messageParams.version === 'V1') {
 			return (
 				<View style={styles.message}>
-					{messageParams.data.map(obj => (
-						<View key={obj.name}>
-							<Text style={styles.messageText}>{obj.name}:</Text>
+					{messageParams.data.map((obj, i) => (
+						<View key={`${obj.name}_${i}`}>
+							<Text style={[styles.messageText, styles.msgKey]}>{obj.name}:</Text>
 							<Text style={styles.messageText} key={obj.name}>
 								{' '}
 								{obj.value}

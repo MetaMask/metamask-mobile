@@ -40,7 +40,7 @@ export default class LockScreen extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const credentials = SecureKeychain.getGenericPassword && (await SecureKeychain.getGenericPassword());
+			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;

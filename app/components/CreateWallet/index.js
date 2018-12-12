@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, ActivityIndicator, Alert, Text, View, TextInput, StyleSheet, Platform } from 'react-native';
+import {
+	Switch,
+	AsyncStorage,
+	ActivityIndicator,
+	Alert,
+	Text,
+	View,
+	TextInput,
+	StyleSheet,
+	Platform
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
@@ -39,7 +49,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderColor,
 		padding: 10,
 		borderRadius: 4,
-		fontSize: Platform.OS === 'android' ? 15 : 20,
+		fontSize: Platform.OS === 'android' ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
@@ -48,6 +58,20 @@ const styles = StyleSheet.create({
 	errorMsg: {
 		color: colors.error,
 		...fontStyles.normal
+	},
+	biometrics: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginTop: 20,
+		marginBottom: 30
+	},
+	biometryLabel: {
+		flex: 1,
+		fontSize: 16,
+		...fontStyles.normal
+	},
+	biometrySwitch: {
+		flex: 0
 	}
 });
 
@@ -79,39 +103,47 @@ export default class CreateWallet extends Component {
 
 	confirmPasswordInput = React.createRef();
 
+	async componentDidMount() {
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		if (biometryType) {
+			this.setState({ biometryType, biometryChoice: true });
+		}
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
 
 	onPressCreate = async () => {
+		if (this.state.loading) return;
 		let error = null;
 		if (this.state.password.length < 8) {
-			error = 'The password needs to be at least 8 chars long';
+			error = strings('create_wallet.password_length_error');
 		} else if (this.state.password !== this.state.confirmPassword) {
-			error = `Password doesn't match`;
+			error = strings('create_wallet.password_dont_match');
 		}
 		if (error) {
 			Alert.alert('Error', error);
 		} else {
 			try {
 				this.setState({ loading: true });
-
-				const biometryType = await SecureKeychain.getSupportedBiometryType();
-				if (biometryType) {
-					this.setState({ biometryType, biometryChoice: true });
-				}
+				const { KeyringController } = Engine.context;
+				await KeyringController.createNewVaultAndKeychain(this.state.password);
 
 				const authOptions = {
 					accessControl: this.state.biometryChoice
 						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-						: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-					accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED,
-					authenticationType: SecureKeychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+						: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
 				};
+
 				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
-				const { KeyringController } = Engine.context;
-				await KeyringController.createNewVaultAndKeychain(this.state.password);
+				if (!this.state.biometryChoice) {
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				} else {
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				}
+
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
@@ -172,6 +204,22 @@ export default class CreateWallet extends Component {
 					</View>
 
 					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					{this.state.biometryType && (
+						<View style={styles.biometrics}>
+							<Text style={styles.biometryLabel}>
+								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+							</Text>
+							<Switch
+								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								value={this.state.biometryChoice}
+								style={styles.biometrySwitch}
+								trackColor={
+									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+								}
+								ios_backgroundColor={colors.slate}
+							/>
+						</View>
+					)}
 					<View style={styles.ctaWrapper}>
 						<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'submit'}>
 							{this.state.loading ? (

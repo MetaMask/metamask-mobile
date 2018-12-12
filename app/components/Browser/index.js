@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {
+	AppState,
 	Text,
 	ActivityIndicator,
 	Platform,
@@ -34,6 +35,7 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import PersonalSign from '../PersonalSign';
 import TypedSign from '../TypedSign';
+import AppConstants from '../../core/AppConstants';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -217,6 +219,7 @@ export class Browser extends Component {
 	};
 
 	state = {
+		appState: 'active',
 		approvedOrigin: false,
 		canGoBack: false,
 		canGoForward: false,
@@ -247,6 +250,7 @@ export class Browser extends Component {
 
 	async componentDidMount() {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
+		AppState.addEventListener('change', this.handleAppStateChange);
 
 		const entryScriptWeb3 =
 			Platform.OS === 'ios'
@@ -305,6 +309,25 @@ export class Browser extends Component {
 			}
 		}
 	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+		AppState.removeEventListener('change', this.handleAppStateChange);
+	}
+
+	handleAppStateChange = async nextAppState => {
+		if (nextAppState !== 'active') {
+			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
+		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
+			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
+			if (bg_mode_ts && Date.now() - Number.parseInt(bg_mode_ts, 10) > AppConstants.LOCK_TIMEOUT) {
+				// If it's still mounted, lock it
+				this.mounted && this.props.navigation.navigate('LockScreen');
+			}
+			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
+		}
+		this.mounted && this.setState({ appState: nextAppState });
+	};
 
 	isENSUrl(url) {
 		const urlObj = new URL(url);

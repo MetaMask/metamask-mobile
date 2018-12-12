@@ -140,10 +140,6 @@ class AppSettings extends Component {
 		this.props.navigation.push('SyncWithExtension', { existingUser: true });
 	};
 
-	goToRevealPrivateCredential = () => {
-		this.props.navigation.navigate('RevealPrivateCredential', { privateCredentialName: 'seed_phrase' });
-	};
-
 	displayResetAccountModal = () => {
 		this.setState({ modalVisible: true });
 	};
@@ -248,12 +244,6 @@ class AppSettings extends Component {
 						<Text style={styles.text}>{strings('app_settings.sync_with_extension')}</Text>
 						<StyledButton type="confirm" onPress={this.goToSyncWithExtension}>
 							{strings('app_settings.sync')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
-						<StyledButton type="warning" onPress={this.goToRevealPrivateCredential}>
-							{strings('app_settings.reveal_seed_words_button')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting}>
