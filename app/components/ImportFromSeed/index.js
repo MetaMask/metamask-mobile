@@ -137,13 +137,13 @@ export default class ImportFromSeed extends Component {
 		if (this.state.loading) return;
 		let error = null;
 		if (this.state.password.length < 8) {
-			error = 'The password needs to be at least 8 chars long';
+			error = strings('import_from_seed.password_length_error');
 		} else if (this.state.password !== this.state.confirmPassword) {
-			error = `Password doesn't match`;
+			error = strings('import_from_seed.password_dont_match');
 		}
 
 		if (this.state.seed.split(' ').length !== 12) {
-			error = 'The seed needs to be 12 words';
+			error = strings('import_from_seed.seed_word_count_error');
 		}
 
 		if (error) {

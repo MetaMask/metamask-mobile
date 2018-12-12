@@ -118,9 +118,9 @@ export default class CreateWallet extends Component {
 		if (this.state.loading) return;
 		let error = null;
 		if (this.state.password.length < 8) {
-			error = 'The password needs to be at least 8 chars long';
+			error = strings('create_wallet.password_length_error');
 		} else if (this.state.password !== this.state.confirmPassword) {
-			error = `Password doesn't match`;
+			error = strings('create_wallet.password_dont_match');
 		}
 		if (error) {
 			Alert.alert('Error', error);

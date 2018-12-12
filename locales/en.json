@@ -34,7 +34,9 @@
 		"password": "Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"create_button": "CREATE",
-		"import_with_seed_phrase": "Import with seed phrase"
+		"import_with_seed_phrase": "Import with seed phrase",
+		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_dont_match": "Passwords don't match"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -42,7 +44,10 @@
 		"new_password": "New Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"import_button": "IMPORT",
-		"cancel_button": "Cancel"
+		"cancel_button": "Cancel",
+		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_dont_match": "Passwords don't match",
+		"seed_word_count_error": "The seed needs to be 12 words"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
