@@ -311,7 +311,7 @@ class SyncWithExtension extends Component {
 	render = () => (
 		<Screen>
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
-				<Text style={styles.title}>Sync from Browser Extension</Text>
+				<Text style={styles.title}>{strings('sync_with_extension.title')}</Text>
 				{this.renderContent()}
 			</View>
 		</Screen>
