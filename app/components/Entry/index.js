@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { AsyncStorage } from 'react-native';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import FoxScreen from '../FoxScreen';
-import { strings } from '../../../locales/i18n';
+import SecureKeychain from '../../core/SecureKeychain';
 /**
  * Entry Screen that decides which screen to show
  * depending on the state of the user
@@ -31,14 +30,7 @@ export default class Entry extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const credentials = await Keychain.getGenericPassword({
-				service: 'com.metamask',
-				authenticationPromptTitle: strings('authentication.auth_prompt_title'),
-				authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
-				fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
-				fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
-				fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
-			});
+			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;

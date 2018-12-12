@@ -13,13 +13,13 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../StyledButton';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../Navbar';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -104,7 +104,7 @@ export default class CreateWallet extends Component {
 	confirmPasswordInput = React.createRef();
 
 	async componentDidMount() {
-		const biometryType = await Keychain.getSupportedBiometryType();
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
 			this.setState({ biometryType, biometryChoice: true });
 		}
@@ -132,19 +132,11 @@ export default class CreateWallet extends Component {
 
 				const authOptions = {
 					accessControl: this.state.biometryChoice
-						? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-						: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-					accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-					authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS,
-					service: 'com.metamask',
-					authenticationPromptTitle: strings('authentication.auth_prompt_title'),
-					authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
-					fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
-					fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
-					fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
+						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+						: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
 				};
 
-				await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
 				if (!this.state.biometryChoice) {
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');

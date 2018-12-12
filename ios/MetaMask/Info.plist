@@ -36,7 +36,7 @@
 	<key>Fabric</key>
 	<dict>
 		<key>APIKey</key>
-		<string>9216d1fa651341733ac1220be0cb2e62d4f703a1</string>
+		<string>$(MM_FABRIC_API_KEY)</string>
 		<key>Kits</key>
 		<array>
 			<dict>
@@ -109,12 +109,14 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>fox_code</key>
+	<string>$(MM_FOX_CODE)</string>
 	<key>branch_key</key>
 	<dict>
 		<key>live</key>
-		<string>key_live_miz18CYAqYay29Ahgs0o2bejutcU3qqL</string>
+		<string>$(MM_BRANCH_KEY_LIVE)</string>
 		<key>test</key>
-		<string>key_test_pfrX7t9xE4pyZZydcD6k6eikEubI7xA1</string>
+		<string>$(MM_BRANCH_KEY_TEST)</string>
 	</dict>
 </dict>
 </plist>

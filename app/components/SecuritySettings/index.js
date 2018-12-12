@@ -3,7 +3,7 @@ import { Switch, AsyncStorage, Platform, SafeAreaView, StyleSheet, Text, View, S
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import SecureKeychain from '../../core/SecureKeychain';
 import StyledButton from '../StyledButton';
 import ActionModal from '../ActionModal';
 import { strings } from '../../../locales/i18n';
@@ -86,7 +86,7 @@ class SecuritySettings extends Component {
 	};
 
 	componentDidMount = async () => {
-		const biometryType = await Keychain.getSupportedBiometryType();
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
 			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
 			let bioEnabled = false;
@@ -99,29 +99,15 @@ class SecuritySettings extends Component {
 
 	onBiometryChange = async enabled => {
 		this.setState({ biometryChoice: enabled });
-		// Remove from keychain
-		// Save password again
-		const baseAuthOptions = {
-			service: 'com.metamask',
-			authenticationPromptTitle: strings('authentication.auth_prompt_title'),
-			authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
-			fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
-			fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
-			fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
-		};
-
-		const credentials = await Keychain.getGenericPassword(baseAuthOptions);
+		const credentials = await SecureKeychain.getGenericPassword();
 		if (credentials) {
-			await Keychain.resetGenericPassword({ service: 'com.metamask' });
+			await SecureKeychain.resetGenericPassword();
 			const authOptions = {
 				accessControl: enabled
-					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-				accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-				authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS,
-				...baseAuthOptions
+					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
 			};
-			await Keychain.setGenericPassword('metamask-user', credentials.password, authOptions);
+			await SecureKeychain.setGenericPassword('metamask-user', credentials.password, authOptions);
 
 			if (!enabled) {
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
