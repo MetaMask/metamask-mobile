@@ -7,6 +7,7 @@ import ActionView from '../ActionView';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../core/Engine';
 import { connect } from 'react-redux';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -94,13 +95,10 @@ class RevealPrivateCredential extends Component {
 		warningIncorrectPassword: ''
 	};
 
-	static navigationOptions = ({ navigation }) => ({
-		title: strings(`reveal_credential.${navigation.getParam('privateCredentialName', '')}_title`),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(
+			strings(`reveal_credential.${navigation.getParam('privateCredentialName', '')}_title`)
+		);
 
 	static propTypes = {
 		/**

@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import { colors, fontStyles } from '../../styles/common';
+import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
 import SettingsList from 'react-native-settings-list'; // eslint-disable-line import/default
 import { strings } from '../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -28,13 +29,7 @@ const styles = StyleSheet.create({
  * network settings
  */
 class NetworkSettings extends Component {
-	static navigationOptions = () => ({
-		title: strings('network.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('network.title'));
 
 	static propTypes = {
 		/**

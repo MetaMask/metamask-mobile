@@ -3,6 +3,7 @@ import { TextInput, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -33,13 +34,7 @@ const styles = StyleSheet.create({
  * View that displays the current account seed words
  */
 export default class SeedWords extends Component {
-	static navigationOptions = () => ({
-		title: strings('seed_words.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('seed_words.title'));
 
 	render = () => {
 		const { KeyringController } = Engine.context;

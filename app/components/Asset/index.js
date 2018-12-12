@@ -2,10 +2,11 @@ import React, { Component } from 'react';
 import { ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../styles/common';
+import { colors } from '../../styles/common';
 import AssetOverview from '../AssetOverview';
 import Transactions from '../Transactions';
 import Networks from '../../util/networks';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -51,13 +52,8 @@ class Asset extends Component {
 		networkType: PropTypes.string
 	};
 
-	static navigationOptions = ({ navigation }) => ({
-		title: `${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`,
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(`${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`);
 
 	scrollViewRef = React.createRef();
 

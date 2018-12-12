@@ -6,6 +6,7 @@ import Engine from '../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../locales/i18n';
 import DeviceSize from '../../util/DeviceSize';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	root: {
@@ -51,13 +52,8 @@ const styles = StyleSheet.create({
  * Component that supports eth_signTypedData and eth_signTypedData_v3
  */
 export default class TypedSign extends Component {
-	static navigationOptions = () => ({
-		title: strings('signature_request.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('signature_request.title'));
+
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens

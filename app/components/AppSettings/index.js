@@ -10,6 +10,7 @@ import Engine from '../../core/Engine';
 import ActionModal from '../ActionModal';
 import { isWebUri } from 'valid-url';
 import SelectComponent from '../SelectComponent';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -88,13 +89,7 @@ const styles = StyleSheet.create({
  * View that contains app settings
  */
 class AppSettings extends Component {
-	static navigationOptions = () => ({
-		title: strings('app_settings.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
 
 	state = {
 		languages: {},

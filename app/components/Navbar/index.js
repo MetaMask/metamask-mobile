@@ -4,7 +4,7 @@ import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import { Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
-
+import { fontStyles } from '../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../locales/i18n';
@@ -51,6 +51,15 @@ export default function getNavbarOptions(title, navigation) {
 	};
 }
 
+export function getNavigationOptionsTitle(title) {
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		}
+	};
+}
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar

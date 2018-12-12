@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -88,13 +89,7 @@ const styles = StyleSheet.create({
  * View that contains details about the selected Address
  */
 class AccountDetails extends Component {
-	static navigationOptions = () => ({
-		title: strings('account_details.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('account_details.title'));
 
 	state = {
 		accountLabelEditable: false,

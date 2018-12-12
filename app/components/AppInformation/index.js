@@ -13,6 +13,7 @@ import {
 import { colors, fontStyles } from '../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -63,13 +64,7 @@ const foxImage = require('../../images/fox.png'); // eslint-disable-line import/
  * View that contains app information
  */
 export default class AppInformation extends Component {
-	static navigationOptions = () => ({
-		title: strings('app_settings.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
 
 	static propTypes = {
 		/**
