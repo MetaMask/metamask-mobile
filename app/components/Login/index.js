@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, ActivityIndicator, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Button from 'react-native-button';
 import Engine from '../../core/Engine';
 import StyledButton from '../StyledButton';
@@ -10,6 +9,7 @@ import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -97,22 +97,24 @@ export default class Login extends Component {
 
 	onLogin = async () => {
 		try {
-			const biometryType = await Keychain.getSupportedBiometryType();
+			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				this.setState({ biometryType, biometryChoice: true });
 			}
 			const authOptions = {
 				accessControl: this.state.biometryChoice
-					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-				accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-				authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE,
+				accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED,
+				authenticationType: SecureKeychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
 			};
-			await Keychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-			const { KeyringController } = Engine.context;
-
 			// Restore vault with user entered password
+			const { KeyringController } = Engine.context;
 			await KeyringController.submitPassword(this.state.password);
+
+			// If valid, store the password on the keychain
+			await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+
 			this.setState({ loading: false });
 			this.props.navigation.navigate('HomeNav');
 		} catch (error) {

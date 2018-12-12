@@ -164,6 +164,14 @@ android {
         dexOptions {
             javaMaxHeapSize "2048M"
         }
+
+        manifestPlaceholders = [
+                MM_FABRIC_API_KEY: "$System.env.MM_FABRIC_API_KEY",
+                MM_BRANCH_KEY_TEST: "$System.env.MM_BRANCH_KEY_TEST",
+                MM_BRANCH_KEY_LIVE: "$System.env.MM_BRANCH_KEY_LIVE"
+        ]
+
+
     }
 
 	signingConfigs {
@@ -190,6 +198,10 @@ android {
             signingConfig signingConfigs.release
         }
     }
+	buildTypes.each {
+    	it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
+
+	}
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { AsyncStorage } from 'react-native';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
 import FoxScreen from '../FoxScreen';
+import SecureKeychain from '../../core/SecureKeychain';
 /**
  * Entry Screen that decides which screen to show
  * depending on the state of the user
@@ -30,7 +30,7 @@ export default class Entry extends Component {
 	async unlockKeychain() {
 		try {
 			// Retreive the credentials
-			const credentials = await Keychain.getGenericPassword();
+			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;
