@@ -19,6 +19,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
+*.xcconfig
 
 # android / intellij
 build/
@@ -29,6 +30,9 @@ local.properties
 *.iml
 android/app/src/main/assets/crashlytics-build.properties
 android/app/src/main/res/values/com_crashlytics_export_strings.xml
+android/.project
+android/app/.project
+android/app/bin/
 
 # node.js
 node_modules/
@@ -55,3 +59,11 @@ coverage
 /android/app/src/main/assets/InpageBridge.js
 /android/app/src/main/assets/InpageBridgeWeb3.js
 /app/core/InpageBridgeWeb3.js
+
+# environment variables
+.js.env
+.ios.env
+.android.env
+
+# editor
+.vscode

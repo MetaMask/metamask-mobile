@@ -11,7 +11,6 @@ import {
 	ScrollView,
 	StyleSheet
 } from 'react-native';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import { connect } from 'react-redux';
 import PubNub from 'pubnub';
 import Logger from '../../util/Logger';
@@ -21,6 +20,7 @@ import { strings } from '../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../Navbar';
 import OnboardingScreenWithBg from '../OnboardingScreenWithBg';
 import StyledButton from '../StyledButton';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -191,8 +191,8 @@ class ImportWallet extends Component {
 		// And rotate keys before going opensource
 		// See https://github.com/MetaMask/MetaMask/issues/145
 		this.pubnub = new PubNub({
-			subscribeKey: 'sub-c-30b2ba04-c37e-11e8-bd78-d63445bede87',
-			publishKey: 'pub-c-d40e77d5-5cd3-4ca2-82eb-792a1f4573db',
+			subscribeKey: process.env['MM_PUBNUB_SUB_KEY'], // eslint-disable-line dot-notation
+			publishKey: process.env['MM_PUBNUB_PUB_KEY'], // eslint-disable-line dot-notation
 			cipherKey: this.cipherKey,
 			ssl: true
 		});
@@ -290,7 +290,7 @@ class ImportWallet extends Component {
 		let password;
 		try {
 			// This could also come from the previous step if it's a first time user
-			const credentials = await Keychain.getGenericPassword();
+			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				password = credentials.password;
 			} else {
@@ -301,19 +301,19 @@ class ImportWallet extends Component {
 		}
 
 		if (password === this.password) {
-			const biometryType = await Keychain.getSupportedBiometryType();
+			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				this.setState({ biometryType, biometryChoice: true });
 			}
 
 			const authOptions = {
 				accessControl: this.state.biometryChoice
-					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-				accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-				authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE,
+				accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED,
+				authenticationType: SecureKeychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
 			};
-			await Keychain.setGenericPassword('metamask-user', password, authOptions);
+			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
 		}
 
 		try {
