@@ -98,8 +98,18 @@ prebuild_ios(){
 	prebuild
 }
 
-prebuild_android(){
+prebuild_android_release(){
 	adb uninstall com.metamask || true
+	prebuild
+	# Copy JS files for injection
+	yes | cp -rf app/core/InpageBridge.js android/app/src/main/assets/.
+	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
+	# Copy fonts with iconset
+	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
+
+}
+
+prebuild_android(){
 	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridge.js android/app/src/main/assets/.
@@ -126,7 +136,7 @@ buildIosDevice(){
 }
 
 buildAndroidRelease(){
-	prebuild_android
+	prebuild_android_release
 	cd android &&
 	./gradlew assembleRelease &&
 	adb install app/build/outputs/apk/release/app-release.apk
