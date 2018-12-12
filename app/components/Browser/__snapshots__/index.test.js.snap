@@ -138,6 +138,90 @@ exports[`Browser should render correctly 1`] = `
       </TouchableOpacity>
     </View>
   </ReactNativeModal>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={600}
+    animationOut="slideOutDown"
+    animationOutTiming={600}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-end",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    useNativeDriver={false}
+  />
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={600}
+    animationOut="slideOutDown"
+    animationOutTiming={600}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-end",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <Connect(AccountApproval)
+      currentPageInformation={
+        Object {
+          "icon": undefined,
+          "title": "",
+          "url": "",
+        }
+      }
+      onCancel={[Function]}
+      onConfirm={[Function]}
+    />
+  </ReactNativeModal>
   <AnimatedComponent
     style={
       Array [
