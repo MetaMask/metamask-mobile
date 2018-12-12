@@ -19,8 +19,8 @@ import { fromWei, weiToFiat, hexToBN } from '../../util/number';
 import Collectible from '../Collectible';
 import Engine from '../../core/Engine';
 import Networks from '../../util/networks';
+import AppConstants from '../../core/AppConstants';
 
-const LOCK_TIMEOUT = 3000;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -172,7 +172,7 @@ class Wallet extends Component {
 			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
 		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
 			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
-			if (bg_mode_ts && Date.now() - parseInt(bg_mode_ts) > LOCK_TIMEOUT) {
+			if (bg_mode_ts && Date.now() - Number.parseInt(bg_mode_ts, 10) > AppConstants.LOCK_TIMEOUT) {
 				// If it's still mounted, lock it
 				this.mounted && this.props.navigation.navigate('LockScreen');
 			}

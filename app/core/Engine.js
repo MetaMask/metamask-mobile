@@ -22,9 +22,9 @@ import {
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';
+import AppConstants from './AppConstants';
 
 const encryptor = new Encryptor();
-const TX_CHECK_MAX_FREQUENCY = 5000;
 
 /**
  * Core controller responsible for composing other GABA controllers together
@@ -195,7 +195,7 @@ class Engine {
 				// Let's make sure we're not doing this too often...
 				const timeSinceLastCheck = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].lastCheck;
 				const delta = Date.now() - timeSinceLastCheck;
-				if (delta < TX_CHECK_MAX_FREQUENCY && !forceCheck) {
+				if (delta < AppConstants.TX_CHECK_MAX_FREQUENCY && !forceCheck) {
 					return false;
 				}
 			} else {

@@ -21,7 +21,14 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       }
     >
-      <View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "height": 40,
+          }
+        }
+      >
         <Text>
           Account:
         </Text>
@@ -61,7 +68,14 @@ exports[`SignatureRequest should render correctly 1`] = `
           </View>
         </View>
       </View>
-      <View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "height": 40,
+          }
+        }
+      >
         <Text>
           Balance:
         </Text>
@@ -105,12 +119,15 @@ exports[`SignatureRequest should render correctly 1`] = `
             }
           }
           style={
-            Object {
-              "borderRadius": 100,
-              "height": 70,
-              "overflow": "hidden",
-              "width": 70,
-            }
+            Array [
+              Object {
+                "borderRadius": 100,
+                "height": 70,
+                "overflow": "hidden",
+                "width": 70,
+              },
+              null,
+            ]
           }
         />
       </View>

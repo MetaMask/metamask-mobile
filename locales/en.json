@@ -26,14 +26,17 @@
 		"title": "Welcome Back!",
 		"password": "Password",
 		"login_button": "LOG IN",
-		"go_back": "Go Back"
+		"go_back": "Go Back",
+		"invalid_password": "Invalid password"
 	},
 	"create_wallet": {
 		"title": "Create New Wallet",
 		"password": "Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"create_button": "CREATE",
-		"import_with_seed_phrase": "Import with seed phrase"
+		"import_with_seed_phrase": "Import with seed phrase",
+		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_dont_match": "Passwords don't match"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -41,7 +44,10 @@
 		"new_password": "New Password (min. 8 characters)",
 		"confirm_password": "Confirm Password",
 		"import_button": "IMPORT",
-		"cancel_button": "Cancel"
+		"cancel_button": "Cancel",
+		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_dont_match": "Passwords don't match",
+		"seed_word_count_error": "The seed needs to be 12 words"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -157,7 +163,8 @@
 	},
 	"app_configurations": {
 		"information_title": "INFO",
-		"settings_title": "SETTINGS"
+		"security_title": "SECURITY",
+		"settings_title": "GENERAL"
 	},
 	"settings": {
 		"title": "Settings",
@@ -339,5 +346,17 @@
 	},
 	"unit": {
 		"eth": "ETH"
+	},
+	"biometrics": {
+		"enable_touchid": "Enable TouchID authentication",
+		"enable_faceid": "Enable FaceID authentication",
+		"enable_fingerprint": "Enable Fingerprint authentication"
+	},
+	"authentication": {
+		"auth_prompt_title": "Authentication required",
+		"auth_prompt_desc": "Please authenticate in order to use MetaMask",
+		"fingerprint_prompt_title": "Authentication required",
+		"fingerprint_prompt_desc": "Use your fingerprint to unlock MetaMask",
+		"fingerprint_prompt_cancel": "Cancel"
 	}
 }

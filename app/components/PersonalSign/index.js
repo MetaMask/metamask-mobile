@@ -6,13 +6,15 @@ import Engine from '../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../locales/i18n';
 import { hexToText } from 'gaba/util';
+import DeviceSize from '../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		minHeight: 600,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
+		borderTopRightRadius: 10,
+		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	informationRow: {
 		borderBottomColor: colors.lightGray,
@@ -25,9 +27,11 @@ const styles = StyleSheet.create({
 		fontSize: 16
 	},
 	messageText: {
-		...fontStyles.normal,
+		flex: 1,
 		margin: 5,
-		color: colors.black
+		fontSize: 14,
+		color: colors.fontPrimary,
+		...fontStyles.normal
 	},
 	title: {
 		textAlign: 'center',
@@ -116,7 +120,13 @@ export default class PersonalSign extends Component {
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-						<Text style={styles.messageText}>{hexToText(messageParams.data)}</Text>
+						{hexToText(messageParams.data)
+							.split('\n')
+							.map((line, i) => (
+								<Text key={`txt_${i}`} style={styles.messageText}>
+									{line}
+								</Text>
+							))}
 					</View>
 				</SignatureRequest>
 			</View>

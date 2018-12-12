@@ -16,6 +16,7 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
 	  android:hardwareAccelerated="true"
+	  android:usesCleartextTraffic="${isDebug}"
 	>
       <activity
         android:launchMode="singleTask"

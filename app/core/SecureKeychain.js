@@ -1,12 +1,24 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
 import Encryptor from './Encryptor';
-/**
- * TO DO
- */
+import { strings } from '../../locales/i18n';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor();
+const defaultOptions = {
+	service: 'com.metamask',
+	authenticationPromptTitle: strings('authentication.auth_prompt_title'),
+	authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
+	fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
+	fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
+	fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel')
+};
 
+/**
+ * Class that wraps Keychain from react-native-keychain
+ * abstracting metamask specific functionality and settings
+ * and also adding an extra layer of encryption before writing into
+ * the phone's keychain
+ */
 class SecureKeychain {
 	constructor(code) {
 		if (!SecureKeychain.instance) {
@@ -42,11 +54,12 @@ export default {
 	},
 
 	resetGenericPassword() {
-		return Keychain.resetGenericPassword();
+		const options = { service: defaultOptions.service };
+		return Keychain.resetGenericPassword(options);
 	},
 
 	async getGenericPassword() {
-		const keychainObject = await Keychain.getGenericPassword();
+		const keychainObject = await Keychain.getGenericPassword(defaultOptions);
 		if (keychainObject.password) {
 			const encryptedPassword = keychainObject.password;
 			const decrypted = await instance.decryptPassword(encryptedPassword);
@@ -58,7 +71,7 @@ export default {
 
 	async setGenericPassword(key, password, authOptions) {
 		const encryptedPassword = await instance.encryptPassword(password);
-		return Keychain.setGenericPassword(key, encryptedPassword, authOptions);
+		return Keychain.setGenericPassword(key, encryptedPassword, { ...defaultOptions, ...authOptions });
 	},
 
 	ACCESS_CONTROL: Keychain.ACCESS_CONTROL,

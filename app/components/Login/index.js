@@ -1,6 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, ActivityIndicator, Text, View, TextInput, StyleSheet, Platform, Image } from 'react-native';
+import {
+	AsyncStorage,
+	Switch,
+	Alert,
+	ActivityIndicator,
+	Text,
+	View,
+	TextInput,
+	StyleSheet,
+	Platform,
+	Image
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../core/Engine';
@@ -64,10 +75,25 @@ const styles = StyleSheet.create({
 	goBack: {
 		color: colors.fontSecondary,
 		...fontStyles.normal
+	},
+	biometrics: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginTop: 20,
+		marginBottom: 30
+	},
+	biometryLabel: {
+		flex: 1,
+		fontSize: 16,
+		...fontStyles.normal
+	},
+	biometrySwitch: {
+		flex: 0
 	}
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const WRONG_PASSWORD_ERROR = 'Error: decrypt failed';
 
 /**
  * View where returning users can authenticate
@@ -82,7 +108,6 @@ export default class Login extends Component {
 
 	state = {
 		password: '',
-		confirmPassword: '',
 		biometryType: null,
 		biometryChoice: false,
 		loading: false,
@@ -91,35 +116,48 @@ export default class Login extends Component {
 
 	mounted = true;
 
+	async componentDidMount() {
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		if (biometryType) {
+			this.setState({ biometryType, biometryChoice: true });
+		}
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
 
 	onLogin = async () => {
+		if (this.state.loading) return;
 		try {
-			const biometryType = await SecureKeychain.getSupportedBiometryType();
-			if (biometryType) {
-				this.setState({ biometryType, biometryChoice: true });
-			}
+			this.setState({ loading: true });
+			const { KeyringController } = Engine.context;
+
+			// Restore vault with user entered password
+			await KeyringController.submitPassword(this.state.password);
+
 			const authOptions = {
 				accessControl: this.state.biometryChoice
 					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-				accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED,
-				authenticationType: SecureKeychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
 			};
-			// Restore vault with user entered password
-			const { KeyringController } = Engine.context;
+
+			await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 			await KeyringController.submitPassword(this.state.password);
 
-			// If valid, store the password on the keychain
-			await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+			if (!this.state.biometryChoice) {
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			} else {
+				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+			}
 
 			this.setState({ loading: false });
 			this.props.navigation.navigate('HomeNav');
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
-			if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+			if (error.toString() === WRONG_PASSWORD_ERROR) {
+				this.setState({ loading: false, error: strings('login.invalid_password') });
+			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
@@ -159,6 +197,22 @@ export default class Login extends Component {
 						/>
 					</View>
 					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					{this.state.biometryType && (
+						<View style={styles.biometrics}>
+							<Text style={styles.biometryLabel}>
+								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+							</Text>
+							<Switch
+								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+								value={this.state.biometryChoice}
+								style={styles.biometrySwitch}
+								trackColor={
+									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+								}
+								ios_backgroundColor={colors.slate}
+							/>
+						</View>
+					)}
 					<View style={styles.ctaWrapper}>
 						<StyledButton type={'orange'} onPress={this.onLogin}>
 							{this.state.loading ? (

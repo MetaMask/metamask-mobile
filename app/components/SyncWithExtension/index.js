@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import SecureKeychain from '../../core/SecureKeychain';
 import PubNub from 'pubnub';
 import { colors, fontStyles } from '../../styles/common';
 import Logger from '../../util/Logger';
@@ -236,7 +236,7 @@ class SyncWithExtension extends Component {
 		let password;
 		try {
 			// This could also come from the previous step if it's a first time user
-			const credentials = await Keychain.getGenericPassword();
+			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
 				password = credentials.password;
 			} else {
@@ -247,19 +247,24 @@ class SyncWithExtension extends Component {
 		}
 
 		if (password === this.password) {
-			const biometryType = await Keychain.getSupportedBiometryType();
+			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				this.setState({ biometryType, biometryChoice: true });
 			}
 
 			const authOptions = {
 				accessControl: this.state.biometryChoice
-					? Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-				accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED,
-				authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS
+					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
 			};
-			await Keychain.setGenericPassword('metamask-user', password, authOptions);
+
+			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+
+			if (!this.state.biometryChoice) {
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			} else {
+				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+			}
 		}
 
 		try {

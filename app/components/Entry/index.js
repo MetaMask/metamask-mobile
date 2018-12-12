@@ -41,7 +41,7 @@ export default class Entry extends Component {
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
-			this.goToOnboarding();
+			this.goToLogin();
 		}
 	}
 
