@@ -99,7 +99,6 @@ prebuild_ios(){
 }
 
 prebuild_android(){
-	adb uninstall com.metamask || true
 	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridge.js android/app/src/main/assets/.
@@ -126,6 +125,7 @@ buildIosDevice(){
 }
 
 buildAndroidRelease(){
+	adb uninstall com.metamask || true
 	prebuild_android
 	cd android &&
 	./gradlew assembleRelease &&
