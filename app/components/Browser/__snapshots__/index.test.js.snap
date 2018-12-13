@@ -109,7 +109,6 @@ exports[`Browser should render correctly 1`] = `
             "textAlign": "left",
           }
         }
-        textContentType="URL"
         underlineColorAndroid="transparent"
         value=""
       />

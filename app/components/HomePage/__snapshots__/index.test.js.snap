@@ -102,7 +102,6 @@ exports[`HomePage should render correctly 1`] = `
           "width": "100%",
         }
       }
-      textContentType="URL"
       underlineColorAndroid="transparent"
       value=""
     />
