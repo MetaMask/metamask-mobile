@@ -3,7 +3,9 @@ import Engine from '../../core/Engine';
 import { store } from '../../store';
 
 const initialState = {
-	backgroundState: {}
+	engine: {
+		backgroundState: {}
+	}
 };
 
 function initalizeEngine(state = {}) {

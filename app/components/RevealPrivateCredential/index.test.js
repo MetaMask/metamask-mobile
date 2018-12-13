@@ -8,9 +8,11 @@ const mockStore = configureMockStore();
 describe('RevealPrivateCredential', () => {
 	it('should render correctly', () => {
 		const initialState = {
-			backgroundState: {
-				PreferencesController: {
-					selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
+			engine: {
+				backgroundState: {
+					PreferencesController: {
+						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
+					}
 				}
 			}
 		};

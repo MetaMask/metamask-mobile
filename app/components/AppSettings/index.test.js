@@ -8,9 +8,11 @@ const mockStore = configureMockStore();
 describe('AppSettings', () => {
 	it('should render correctly', () => {
 		const initialState = {
-			backgroundState: {
-				CurrencyRateController: {
-					currentCurrency: 'usd'
+			engine: {
+				backgroundState: {
+					CurrencyRateController: {
+						currentCurrency: 'usd'
+					}
 				}
 			}
 		};

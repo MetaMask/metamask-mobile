@@ -1,10 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BrowserHome should render correctly 1`] = `
-<HomePage
-  bookmarks={Array []}
+<Connect(HomePage)
   onBookmarkTapped={[Function]}
   onInitialUrlSubmit={[Function]}
-  updateBookmarks={[Function]}
 />
 `;
