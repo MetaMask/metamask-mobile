@@ -222,7 +222,6 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-shake')
     implementation 'com.android.support:multidex:1.0.1'
     implementation "com.android.support:support-annotations:27.1.1"
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
@@ -241,6 +240,8 @@ dependencies {
     implementation project(':react-native-randombytes')
     implementation project(':react-native-fs')
     implementation project(':react-native-vector-icons')
+	implementation project(':react-native-shake')
+
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
