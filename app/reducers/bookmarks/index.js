@@ -2,7 +2,10 @@ import { REHYDRATE } from 'redux-persist';
 const bookmarksReducer = (state = [], action) => {
 	switch (action.type) {
 		case REHYDRATE:
-			return [...state, ...action.payload.bookmarks];
+			if (action.payload && action.payload.bookmarks) {
+				return [...state, ...action.payload.bookmarks];
+			}
+			return state;
 		case 'ADD_BOOKMARK':
 			return [...state, action.bookmark];
 		case 'REMOVE_BOOKMARK':
