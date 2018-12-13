@@ -7,13 +7,15 @@ import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import { strings } from '../../../locales/i18n';
 import { colors, fontStyles } from '../../styles/common';
+import DeviceSize from '../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		height: 600
+		height: 600,
+		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	wrapper: {
 		paddingHorizontal: 36
