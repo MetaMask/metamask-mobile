@@ -161,5 +161,5 @@ class TransactionSubmitted extends Component {
 	};
 }
 
-const mapStateToProps = state => ({ network: state.backgroundState.NetworkController.provider.type });
+const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController.provider.type });
 export default connect(mapStateToProps)(TransactionSubmitted);

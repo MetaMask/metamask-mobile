@@ -107,11 +107,11 @@ class Asset extends Component {
 }
 
 const mapStateToProps = state => ({
-	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
-	transactions: state.backgroundState.TransactionController.transactions,
-	networkType: state.backgroundState.NetworkController.provider.type
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(Asset);

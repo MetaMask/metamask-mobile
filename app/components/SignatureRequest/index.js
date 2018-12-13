@@ -235,9 +235,9 @@ class SignatureRequest extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
-	identities: state.backgroundState.PreferencesController.identities
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(SignatureRequest);
