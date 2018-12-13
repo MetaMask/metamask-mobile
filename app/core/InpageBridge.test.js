@@ -83,6 +83,7 @@ describe('InpageBridge', () => {
 	});
 
 	it('should forward asynchronous RPC request', () => {
+		global.window.location = { hostname: 'hostname' };
 		const stub = spyOn(global.window, 'postMessage');
 		INSTANCE.sendAsync({ method: 'foo' }, () => {
 			/* eslint-disable-line no-empty */

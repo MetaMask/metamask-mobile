@@ -8,6 +8,9 @@ const mockStore = configureMockStore();
 describe('AppSettings', () => {
 	it('should render correctly', () => {
 		const initialState = {
+			privacy: {
+				approvedHosts: {}
+			},
 			engine: {
 				backgroundState: {
 					CurrencyRateController: {

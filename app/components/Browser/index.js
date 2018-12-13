@@ -36,6 +36,8 @@ import Modal from 'react-native-modal';
 import PersonalSign from '../PersonalSign';
 import TypedSign from '../TypedSign';
 import AppConstants from '../../core/AppConstants';
+import AccountApproval from '../AccountApproval';
+import { approveHost } from '../../actions/privacy';
 import { addBookmark } from '../../actions/bookmarks';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
@@ -205,6 +207,14 @@ export class Browser extends Component {
 
 	static propTypes = {
 		/**
+		 * Called to approve account access for a given hostname
+		 */
+		approveHost: PropTypes.func,
+		/**
+		 * Map of hostnames with approved account access
+		 */
+		approvedHosts: PropTypes.object,
+		/**
 		 * Protocol string to append to URLs that have none
 		 */
 		defaultProtocol: PropTypes.string,
@@ -212,6 +222,18 @@ export class Browser extends Component {
 		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object,
+		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string,
+		/**
+		 * Indicates whether privacy mode is enabled
+		 */
+		privacyMode: PropTypes.bool,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * Url coming from an external source
 		 * For ex. deeplinks
@@ -226,25 +248,28 @@ export class Browser extends Component {
 	state = {
 		appState: 'active',
 		approvedOrigin: false,
+		bookmarks: [],
 		canGoBack: false,
 		canGoForward: false,
-		entryScriptWeb3: null,
-		bookmarks: [],
-		inputValue: '',
-		hostname: '',
-		url: this.props.url || '',
+		currentEnsName: null,
 		currentPageTitle: '',
 		currentPageUrl: '',
-		timeout: false,
-		ipfsWebsite: false,
+		currentPageIcon: undefined,
+		editMode: false,
+		entryScriptWeb3: null,
+		fullHostname: '',
+		hostname: '',
+		inputValue: '',
 		ipfsGateway: 'https://ipfs.io/ipfs/',
 		ipfsHash: null,
-		currentEnsName: null,
-		editMode: false,
+		ipfsWebsite: false,
 		loading: true,
+		showApprovalDialog: false,
 		signMessage: false,
 		signMessageParams: { data: '' },
-		signType: ''
+		signType: '',
+		timeout: false,
+		url: this.props.url || ''
 	};
 
 	webview = React.createRef();
@@ -252,9 +277,23 @@ export class Browser extends Component {
 	scrollY = new Animated.Value(0);
 	timeoutHandler = null;
 	prevScrollOffset = 0;
+	approvalRequest;
 
 	async componentDidMount() {
-		this.backgroundBridge = new BackgroundBridge(Engine, this.webview);
+		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
+			eth_requestAccounts: ({ hostname, params }) => {
+				const { approvedHosts, privacyMode, selectedAddress } = this.props;
+				const promise = new Promise((resolve, reject) => {
+					this.approvalRequest = { resolve, reject };
+				});
+				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
+					this.approvalRequest.resolve([selectedAddress]);
+				} else {
+					this.setState({ showApprovalDialog: true });
+				}
+				return promise;
+			}
+		});
 		AppState.addEventListener('change', this.handleAppStateChange);
 
 		const entryScriptWeb3 =
@@ -262,11 +301,10 @@ export class Browser extends Component {
 				? await RNFS.readFile(`${RNFS.MainBundlePath}/InpageBridgeWeb3.js`, 'utf8')
 				: await RNFS.readFileAssets(`InpageBridgeWeb3.js`);
 
-		const { networkType, selectedAddress } = this.props;
-
-		const updatedentryScriptWeb3 = entryScriptWeb3
-			.replace('INITIAL_NETWORK', Networks[networkType].networkId.toString())
-			.replace('INITIAL_SELECTED_ADDRESS', selectedAddress);
+		const updatedentryScriptWeb3 = entryScriptWeb3.replace(
+			'undefined; // INITIAL_NETWORK',
+			`'${Networks[this.props.networkType].networkId.toString()}'`
+		);
 
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 });
 
@@ -517,7 +555,11 @@ export class Browser extends Component {
 					break;
 				case 'GET_TITLE_FOR_BOOKMARK':
 					if (data.title) {
-						this.setState({ currentPageTitle: data.title, currentPageUrl: data.url });
+						this.setState({
+							currentPageTitle: data.title,
+							currentPageUrl: data.url,
+							currentPageIcon: data.icon
+						});
 					}
 					break;
 			}
@@ -528,6 +570,8 @@ export class Browser extends Component {
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		const data = { canGoBack, canGoForward };
+		const urlObj = new URL(url);
+		data.fullHostname = urlObj.hostname;
 		if (!this.state.ipfsWebsite) {
 			data.inputValue = url;
 		} else if (url.search('mm_override=false') === -1) {
@@ -540,7 +584,6 @@ export class Browser extends Component {
 			return;
 		} else {
 			data.inputValue = url;
-			const urlObj = new URL(url);
 			data.hostname = this.formatHostname(urlObj.hostname);
 		}
 		this.setState(data);
@@ -563,15 +606,27 @@ export class Browser extends Component {
 	};
 
 	onLoadEnd = () => {
+		const { approvedHosts, privacyMode } = this.props;
+		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
+			this.backgroundBridge.enableAccounts();
+		}
+
 		// We need to get the title of the page first
 		const { current } = this.webview;
 		const js = `
 			(function () {
+				const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
+				const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
+
+				const siteName = document.querySelector('head > meta[property="og:site_name"]');
+				const title = siteName || document.querySelector('head > meta[name="title"]');
+
 				window.postMessage(
 					JSON.stringify({
 						type: 'GET_TITLE_FOR_BOOKMARK',
-						title: document.title,
-						url: location.href
+						title: title ? title.content : document.title,
+						url: location.href,
+						icon: icon && icon.href
 					})
 				)
 			})();
@@ -777,37 +832,69 @@ export class Browser extends Component {
 
 	renderSigningModal = () => {
 		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
-		if (signMessage) {
-			return (
-				<Modal
-					isVisible={signMessage}
-					animationIn="slideInUp"
-					animationOut="slideOutDown"
-					style={styles.bottomModal}
-					backdropOpacity={0.7}
-					animationInTiming={600}
-					animationOutTiming={600}
-					onBackdropPress={this.onSignAction}
-				>
-					{signType === 'personal' && (
-						<PersonalSign
-							messageParams={signMessageParams}
-							onCancel={this.onSignAction}
-							onConfirm={this.onSignAction}
-							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-						/>
-					)}
-					{signType === 'typed' && (
-						<TypedSign
-							messageParams={signMessageParams}
-							onCancel={this.onSignAction}
-							onConfirm={this.onSignAction}
-							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-						/>
-					)}
-				</Modal>
-			);
-		}
+		return (
+			<Modal
+				isVisible={signMessage}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onSignAction}
+			>
+				{signType === 'personal' && (
+					<PersonalSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+				{signType === 'typed' && (
+					<TypedSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+			</Modal>
+		);
+	};
+
+	onAccountsConfirm = () => {
+		const { approveHost, selectedAddress } = this.props;
+		this.setState({ showApprovalDialog: false });
+		approveHost(this.state.fullHostname);
+		this.backgroundBridge.enableAccounts();
+		this.approvalRequest.resolve([selectedAddress]);
+	};
+
+	onAccountsReject = () => {
+		this.setState({ showApprovalDialog: false });
+		this.approvalRequest.reject('User rejected account access');
+	};
+
+	renderApprovalModal = () => {
+		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon } = this.state;
+		return (
+			<Modal
+				isVisible={showApprovalDialog}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+			>
+				<AccountApproval
+					onCancel={this.onAccountsReject}
+					onConfirm={this.onAccountsConfirm}
+					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl, icon: currentPageIcon }}
+				/>
+			</Modal>
+		);
 	};
 
 	getUserAgent() {
@@ -816,6 +903,10 @@ export class Browser extends Component {
 		}
 		return null;
 	}
+
+	onLoadStart = () => {
+		this.backgroundBridge.disableAccounts();
+	};
 
 	render = () => {
 		const { canGoForward, entryScriptWeb3, url } = this.state;
@@ -830,6 +921,7 @@ export class Browser extends Component {
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						injectedJavaScriptForMainFrameOnly
 						onProgress={this.onLoadProgress}
+						onLoadStart={this.onLoadStart}
 						onLoadEnd={this.onLoadEnd}
 						onMessage={this.onMessage}
 						onNavigationStateChange={this.onPageChange}
@@ -849,6 +941,7 @@ export class Browser extends Component {
 				)}
 				{this.renderUrlModal()}
 				{this.renderSigningModal()}
+				{this.renderApprovalModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
 			</SafeAreaView>
@@ -857,12 +950,15 @@ export class Browser extends Component {
 }
 
 const mapStateToProps = state => ({
+	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	privacyMode: state.privacy.privacyMode
 });
 
 const mapDispatchToProps = dispatch => ({
+	approveHost: hostname => dispatch(approveHost(hostname)),
 	addBookmark: bookmark => dispatch(addBookmark(bookmark))
 });
 
