@@ -44,13 +44,16 @@ describe('BackgroundBridge', () => {
 		expect(stub2).toBeCalled();
 	});
 
-	it('should relay response from provider', () => {
-		const bridge = new BackgroundBridge(MOCK_ENGINE, MOCK_WEBVIEW);
-		bridge.onMessage({ type: 'FOO' });
-		const stub = spyOn(MOCK_WEBVIEW.current, 'postMessage');
-		bridge.onMessage({ type: 'INPAGE_REQUEST', payload: { method: 'net_version' } });
-		expect(stub).toBeCalledWith(JSON.stringify({ type: 'INPAGE_RESPONSE', payload: { response: true } }));
-	});
+	it('should relay response from provider', () =>
+		new Promise(resolve => {
+			const bridge = new BackgroundBridge(MOCK_ENGINE, MOCK_WEBVIEW);
+			const stub = spyOn(MOCK_WEBVIEW.current, 'postMessage');
+			bridge.onMessage({ type: 'INPAGE_REQUEST', payload: { method: 'net_version' } });
+			setTimeout(() => {
+				expect(stub).toBeCalledWith(JSON.stringify({ type: 'INPAGE_RESPONSE', payload: { response: true } }));
+				resolve();
+			}, 250);
+		}));
 
 	it('should emit state update', () => {
 		const stub = spyOn(MOCK_WEBVIEW.current, 'postMessage');
@@ -59,8 +62,7 @@ describe('BackgroundBridge', () => {
 			JSON.stringify({
 				type: 'STATE_UPDATE',
 				payload: {
-					network: 'bar',
-					selectedAddress: 'foo'
+					network: 'bar'
 				}
 			})
 		);
