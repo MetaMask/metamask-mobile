@@ -23,6 +23,7 @@ import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';
 import AppConstants from './AppConstants';
+import { store } from '../store';
 
 const encryptor = new Encryptor();
 
@@ -127,12 +128,14 @@ class Engine {
 										}
 									}
 								},
-								getAccounts: end => {
+								getAccounts: (end, payload) => {
+									const { approvedHosts, privacyMode } = store.getState();
+									const isEnabled = !privacyMode || approvedHosts[payload.hostname];
 									const { KeyringController } = this.datamodel.context;
 									const isUnlocked = KeyringController.isUnlocked();
 									const selectedAddress = this.datamodel.context.PreferencesController.state
 										.selectedAddress;
-									end(null, isUnlocked && selectedAddress ? [selectedAddress] : []);
+									end(null, isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : []);
 								}
 							}
 						},

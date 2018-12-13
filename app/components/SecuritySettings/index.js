@@ -166,7 +166,7 @@ class SecuritySettings extends Component {
 }
 
 const mapStateToProps = state => ({
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
 });
 
 export default connect(mapStateToProps)(SecuritySettings);
