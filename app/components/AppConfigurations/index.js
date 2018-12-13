@@ -8,6 +8,7 @@ import { strings } from '../../../locales/i18n';
 import AppSettings from '../AppSettings';
 import SecuritySettings from '../SecuritySettings';
 import AppInformation from '../AppInformation';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -32,13 +33,7 @@ const styles = StyleSheet.create({
  * Main view for app configurations
  */
 export default class AppConfigurations extends Component {
-	static navigationOptions = () => ({
-		title: strings('app_settings.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
 
 	static propTypes = {
 		/**

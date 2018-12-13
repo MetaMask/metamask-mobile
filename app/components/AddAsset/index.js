@@ -8,6 +8,7 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import AddCustomCollectible from '../AddCustomCollectible';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -32,13 +33,7 @@ const styles = StyleSheet.create({
  * Component that provides ability to add assets.
  */
 export default class AddAsset extends Component {
-	static navigationOptions = () => ({
-		title: strings('add_asset.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('add_asset.title'));
 
 	state = {
 		address: '',
