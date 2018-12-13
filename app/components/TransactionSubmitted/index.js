@@ -16,7 +16,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
-import { getModalNavbarOptions } from '../Navbar';
+import { getNavigationOptionsTitle } from '../Navbar';
 import StyledButton from '../StyledButton';
 
 const styles = StyleSheet.create({
@@ -61,11 +61,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Copmonent that provides ability to add a bookmark
+ * Component that provides ability to render transaction submitted view
  */
 class TransactionSubmitted extends Component {
-	static navigationOptions = ({ navigation }) =>
-		getModalNavbarOptions(strings('transaction_submitted.title'), navigation);
+	static navigationOptions = () => getNavigationOptionsTitle(strings('transaction_submitted.title'));
 
 	static propTypes = {
 		/**

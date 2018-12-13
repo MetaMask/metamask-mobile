@@ -7,6 +7,7 @@ import SecureKeychain from '../../core/SecureKeychain';
 import StyledButton from '../StyledButton';
 import ActionModal from '../ActionModal';
 import { strings } from '../../../locales/i18n';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -65,13 +66,7 @@ const styles = StyleSheet.create({
  * View that contains app settings
  */
 class SecuritySettings extends Component {
-	static navigationOptions = () => ({
-		title: strings('app_settings.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
 
 	state = {
 		biometryChoice: null,
