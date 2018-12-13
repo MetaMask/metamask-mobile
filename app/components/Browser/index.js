@@ -28,6 +28,7 @@ import WebviewProgressBar from '../WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Logger from '../../util/Logger';
+import onUrlSubmit from '../../util/browser';
 import resolveEnsToIpfsContentId from '../../lib/ens-ipfs/resolver';
 import Button from '../Button';
 import { strings } from '../../../locales/i18n';
@@ -470,7 +471,10 @@ export class Browser extends Component {
 	}
 
 	onUrlInputSubmit = async () => {
-		const url = await this.go(this.state.inputValue);
+		const { inputValue } = this.state;
+		const { defaultProtocol } = this.props;
+		const sanitizedInput = onUrlSubmit(inputValue, defaultProtocol);
+		const url = await this.go(sanitizedInput);
 		this.hideUrlModal(url);
 	};
 
@@ -801,7 +805,6 @@ export class Browser extends Component {
 						autoCorrect={false}
 						clearButtonMode="while-editing"
 						keyboardType="url"
-						textContentType={'URL'}
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder="Enter website address"
