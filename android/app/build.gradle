@@ -222,6 +222,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-shake')
     implementation 'com.android.support:multidex:1.0.1'
     implementation "com.android.support:support-annotations:27.1.1"
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"

@@ -86,6 +86,7 @@
     "react-native-remote-svg": "^1.2.0",
     "react-native-scrollable-tab-view": "^0.8.0",
     "react-native-settings-list": "^1.8.0",
+    "react-native-shake": "^3.2.4",
     "react-native-share": "^1.1.1",
     "react-native-vector-icons": "^4.6.0",
     "react-native-web3-webview": "^1.2.1",

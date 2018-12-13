@@ -20,6 +20,7 @@ import Collectible from '../Collectible';
 import Engine from '../../core/Engine';
 import Networks from '../../util/networks';
 import AppConstants from '../../core/AppConstants';
+import Feedback from '../../core/Feedback';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -120,6 +121,11 @@ class Wallet extends Component {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
 		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
+		this.feedback = new Feedback({
+			action: () => {
+				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
+			}
+		});
 		this.mounted = true;
 	}
 
@@ -141,6 +147,7 @@ class Wallet extends Component {
 	componentWillUnmount() {
 		this.mounted = false;
 		AppState.removeEventListener('change', this.handleAppStateChange);
+		this.feedback.stopListening();
 	}
 
 	renderTabBar() {
