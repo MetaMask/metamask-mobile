@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import CollectibleOverview from '../CollectibleOverview';
 import { strings } from '../../../locales/i18n';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	root: {
@@ -49,13 +50,8 @@ export default class Collectible extends Component {
 		onHide: PropTypes.func
 	};
 
-	static navigationOptions = ({ navigation }) => ({
-		title: `${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`,
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(`${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`);
 
 	render = () => {
 		const { asset, navigation, onHide } = this.props;

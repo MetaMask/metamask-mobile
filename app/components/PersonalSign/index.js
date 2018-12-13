@@ -7,6 +7,7 @@ import SignatureRequest from '../SignatureRequest';
 import { strings } from '../../../locales/i18n';
 import { hexToText } from 'gaba/util';
 import DeviceSize from '../../util/DeviceSize';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	root: {
@@ -47,13 +48,7 @@ const styles = StyleSheet.create({
  * Component that supports eth_sign and personal_sign
  */
 export default class PersonalSign extends Component {
-	static navigationOptions = () => ({
-		title: strings('signature_request.title'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	});
+	static navigationOptions = () => getNavigationOptionsTitle(strings('signature_request.title'));
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
