@@ -313,7 +313,14 @@ class AppSettings extends Component {
 						<Text style={styles.text}>{strings('app_settings.privacy_mode')}</Text>
 						<View>
 							<Text style={styles.subtext}>{strings('app_settings.privacy_mode_desc')}</Text>
-							<Switch value={privacyMode} onValueChange={this.togglePrivacy} />
+							<Switch
+								value={privacyMode}
+								onValueChange={this.togglePrivacy}
+								trackColor={
+									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+								}
+								ios_backgroundColor={colors.slate}
+							/>
 						</View>
 					</View>
 					<View style={styles.setting}>
