@@ -21,12 +21,12 @@ class InpageBridge {
 	}
 
 	_onBackgroundResponse({ __mmID, error, response }) {
-		const callback = this._pending[__mmID];
+		const callback = this._pending[`${__mmID}`];
 		if (!error && response.error) {
 			error = response.error;
 		}
 		callback && callback(error, response);
-		delete this._pending[__mmID];
+		delete this._pending[`${__mmID}`];
 	}
 
 	_onStateUpdate(state) {
@@ -108,7 +108,7 @@ class InpageBridge {
 			__mmID: Date.now() * random,
 			hostname: window.location.hostname
 		};
-		this._pending[payload.__mmID] = callback;
+		this._pending[`${payload.__mmID}`] = callback;
 		window.postMessage(
 			{
 				payload,
