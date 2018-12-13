@@ -1,18 +1,19 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import HomePage from './';
-import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
+
+const mockStore = configureMockStore();
 
 describe('HomePage', () => {
 	it('should render correctly', () => {
-		const mockStore = configureMockStore();
-		const store = mockStore({});
-		const wrapper = shallow(
-			<Provider store={store}>
-				<HomePage />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
+		const initialState = {
+			bookmarks: [{ url: 'url', name: 'name' }]
+		};
+
+		const wrapper = shallow(<HomePage />, {
+			context: { store: mockStore(initialState) }
+		});
+		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });
