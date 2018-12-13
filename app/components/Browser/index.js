@@ -293,7 +293,8 @@ export class Browser extends Component {
 					this.setState({ showApprovalDialog: true });
 				}
 				return promise;
-			}
+			},
+			web3_clientVersion: () => Promise.resolve('MetaMask/0.1.0/Alpha/Mobile')
 		});
 		AppState.addEventListener('change', this.handleAppStateChange);
 

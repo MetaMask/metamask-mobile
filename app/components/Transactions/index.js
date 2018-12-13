@@ -287,11 +287,13 @@ export default class Transactions extends Component {
 						</Text>
 					</View>
 				</View>
-				<TouchableOpacity
-					onPress={() => this.viewOnEtherscan(tx.transactionHash, tx.networkID)} // eslint-disable-line react/jsx-no-bind
-				>
-					<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
-				</TouchableOpacity>
+				{tx.transactionHash && (
+					<TouchableOpacity
+						onPress={() => this.viewOnEtherscan(tx.transactionHash, tx.networkID)} // eslint-disable-line react/jsx-no-bind
+					>
+						<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	}
