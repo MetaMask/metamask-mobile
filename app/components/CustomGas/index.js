@@ -335,8 +335,8 @@ class CustomGas extends Component {
 }
 
 const mapStateToProps = state => ({
-	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
 });
 
 export default connect(mapStateToProps)(CustomGas);

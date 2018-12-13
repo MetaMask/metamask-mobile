@@ -9,12 +9,14 @@ const mockStore = configureMockStore();
 describe('TransactionEdit', () => {
 	it('should render correctly', () => {
 		const initialState = {
-			backgroundState: {
-				AccountTrackerController: {
-					accounts: { '0x2': { balance: '0' } }
-				},
-				PreferencesController: {
-					selectedAddress: '0x2'
+			engine: {
+				backgroundState: {
+					AccountTrackerController: {
+						accounts: { '0x2': { balance: '0' } }
+					},
+					PreferencesController: {
+						selectedAddress: '0x2'
+					}
 				}
 			}
 		};

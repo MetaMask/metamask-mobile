@@ -592,7 +592,14 @@ exports[`AppSettings should render correctly 1`] = `
           Disabling privacy mode will allow every website to read your public accounts by default.
         </Text>
         <Switch
+          ios_backgroundColor="#dfe4ea"
           onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f1f2f6",
+              "true": "#008edf",
+            }
+          }
         />
       </View>
     </View>

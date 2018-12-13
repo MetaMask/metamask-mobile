@@ -38,5 +38,5 @@ class NavbarLeftButton extends Component {
 	};
 }
 
-const mapStateToProps = state => ({ address: state.backgroundState.PreferencesController.selectedAddress });
+const mapStateToProps = state => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
 export default connect(mapStateToProps)(NavbarLeftButton);

@@ -37,7 +37,8 @@ import PersonalSign from '../PersonalSign';
 import TypedSign from '../TypedSign';
 import AppConstants from '../../core/AppConstants';
 import AccountApproval from '../AccountApproval';
-import { approveHost } from '../../actions';
+import { approveHost } from '../../actions/privacy';
+import { addBookmark } from '../../actions/bookmarks';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -237,7 +238,11 @@ export class Browser extends Component {
 		 * Url coming from an external source
 		 * For ex. deeplinks
 		 */
-		url: PropTypes.string
+		url: PropTypes.string,
+		/**
+		 * Function to store bookmarks
+		 */
+		addBookmark: PropTypes.func
 	};
 
 	state = {
@@ -508,10 +513,7 @@ export class Browser extends Component {
 			title: this.state.currentPageTitle || '',
 			url: this.state.inputValue,
 			onAddBookmark: async ({ name, url }) => {
-				const newBookmarks = this.state.bookmarks;
-				newBookmarks.push({ name, url });
-				this.setState({ bookmarks: newBookmarks });
-				await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(newBookmarks));
+				this.props.addBookmark({ name, url });
 			}
 		});
 	};
@@ -948,14 +950,16 @@ export class Browser extends Component {
 }
 
 const mapStateToProps = state => ({
-	approvedHosts: state.approvedHosts,
-	networkType: state.backgroundState.NetworkController.provider.type,
-	privacyMode: state.privacyMode,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	approvedHosts: state.privacy.approvedHosts,
+	bookmarks: state.bookmarks,
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	privacyMode: state.privacy.privacyMode
 });
 
 const mapDispatchToProps = dispatch => ({
-	approveHost: hostname => dispatch(approveHost(hostname))
+	approveHost: hostname => dispatch(approveHost(hostname)),
+	addBookmark: bookmark => dispatch(addBookmark(bookmark))
 });
 
 export default connect(

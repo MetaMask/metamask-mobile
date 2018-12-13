@@ -20,7 +20,7 @@ import Engine from '../../core/Engine';
 import ActionModal from '../ActionModal';
 import { isWebUri } from 'valid-url';
 import SelectComponent from '../SelectComponent';
-import { clearHosts, setPrivacyMode } from '../../actions';
+import { clearHosts, setPrivacyMode } from '../../actions/privacy';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -313,7 +313,14 @@ class AppSettings extends Component {
 						<Text style={styles.text}>{strings('app_settings.privacy_mode')}</Text>
 						<View>
 							<Text style={styles.subtext}>{strings('app_settings.privacy_mode_desc')}</Text>
-							<Switch value={privacyMode} onValueChange={this.togglePrivacy} />
+							<Switch
+								value={privacyMode}
+								onValueChange={this.togglePrivacy}
+								trackColor={
+									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+								}
+								ios_backgroundColor={colors.slate}
+							/>
 						</View>
 					</View>
 					<View style={styles.setting}>
@@ -345,9 +352,9 @@ class AppSettings extends Component {
 }
 
 const mapStateToProps = state => ({
-	approvedHosts: state.approvedHosts,
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
-	privacyMode: state.privacyMode
+	approvedHosts: state.privacy.approvedHosts,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	privacyMode: state.privacy.privacyMode
 });
 
 const mapDispatchToProps = dispatch => ({

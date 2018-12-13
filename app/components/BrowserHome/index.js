@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { AsyncStorage } from 'react-native';
 import PropTypes from 'prop-types';
 import getNavbarOptions from '../Navbar';
 import HomePage from '../HomePage';
@@ -31,19 +30,10 @@ export default class BrowserHome extends Component {
 
 	state = {
 		url: this.props.defaultURL || '',
-		bookmarks: [],
 		tabs: []
 	};
 
-	loadBookmarks = async () => {
-		const bookmarksStr = await AsyncStorage.getItem('@MetaMask:bookmarks');
-		if (bookmarksStr) {
-			this.setState({ bookmarks: JSON.parse(bookmarksStr).reverse() });
-		}
-	};
-
 	async componentDidMount() {
-		await this.loadBookmarks();
 		this.checkForDeeplinks();
 	}
 
@@ -73,7 +63,7 @@ export default class BrowserHome extends Component {
 
 	go = async url => {
 		this.setState({ tabs: [...this.state.tabs, url] });
-		this.props.navigation.navigate('BrowserView', { url, bookmarks: this.state.bookmarks });
+		this.props.navigation.navigate('BrowserView', { url });
 	};
 
 	onInitialUrlSubmit = async url => {
@@ -93,17 +83,5 @@ export default class BrowserHome extends Component {
 		}
 	};
 
-	updateBookmarks = async bookmarks => {
-		this.setState({ bookmarks });
-		await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(bookmarks));
-	};
-
-	render = () => (
-		<HomePage
-			bookmarks={this.state.bookmarks}
-			onBookmarkTapped={this.go}
-			onInitialUrlSubmit={this.onInitialUrlSubmit}
-			updateBookmarks={this.updateBookmarks}
-		/>
-	);
+	render = () => <HomePage onBookmarkTapped={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} />;
 }

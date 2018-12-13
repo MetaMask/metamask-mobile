@@ -15,7 +15,7 @@
     "build:ios:release": "./scripts/build.sh ios release",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "jest ./app/ --forceExit",
-    "test:unit:update": "jest -u ./app/ --forceExit",
+    "test:unit:update": "time jest -u ./app/ --forceExit",
     "test:e2e": "npm run test:e2e:ios && npm run test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
