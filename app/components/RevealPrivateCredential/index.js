@@ -241,7 +241,7 @@ class RevealPrivateCredential extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(RevealPrivateCredential);

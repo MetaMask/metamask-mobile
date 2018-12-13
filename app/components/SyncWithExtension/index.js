@@ -319,8 +319,8 @@ class SyncWithExtension extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
-	accounts: state.backgroundState.AccountTrackerController.accounts
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts
 });
 
 export default connect(mapStateToProps)(SyncWithExtension);

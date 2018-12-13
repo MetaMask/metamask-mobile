@@ -263,8 +263,8 @@ class AccountDetails extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
-	identities: state.backgroundState.PreferencesController.identities
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(AccountDetails);

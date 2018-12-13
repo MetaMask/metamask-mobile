@@ -130,8 +130,8 @@ class NetworkSettings extends Component {
 }
 
 const mapStateToProps = state => ({
-	frequentRpcList: state.backgroundState.PreferencesController.frequentRpcList,
-	provider: state.backgroundState.NetworkController.provider
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	provider: state.engine.backgroundState.NetworkController.provider
 });
 
 export default connect(mapStateToProps)(NetworkSettings);

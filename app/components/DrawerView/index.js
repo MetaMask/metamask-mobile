@@ -527,11 +527,11 @@ class DrawerView extends Component {
 }
 
 const mapStateToProps = state => ({
-	network: state.backgroundState.NetworkController,
-	selectedAddress: toChecksumAddress(state.backgroundState.PreferencesController.selectedAddress),
-	accounts: state.backgroundState.AccountTrackerController.accounts,
-	identities: state.backgroundState.PreferencesController.identities,
-	keyrings: state.backgroundState.KeyringController.keyrings,
-	frequentRpcList: state.backgroundState.PreferencesController.frequentRpcList
+	network: state.engine.backgroundState.NetworkController,
+	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
 export default connect(mapStateToProps)(DrawerView);

@@ -335,10 +335,10 @@ class TransactionReview extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(TransactionReview);

@@ -303,17 +303,17 @@ class Wallet extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.backgroundState.CurrencyRateController.currentCurrency,
-	identities: state.backgroundState.PreferencesController.identities,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress,
-	tokens: state.backgroundState.AssetsController.tokens,
-	tokenBalances: state.backgroundState.TokenBalancesController.contractBalances,
-	tokenExchangeRates: state.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: state.backgroundState.AssetsController.collectibles,
-	transactions: state.backgroundState.TransactionController.transactions,
-	networkType: state.backgroundState.NetworkController.provider.type
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(Wallet);

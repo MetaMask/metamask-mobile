@@ -36,6 +36,7 @@ import Modal from 'react-native-modal';
 import PersonalSign from '../PersonalSign';
 import TypedSign from '../TypedSign';
 import AppConstants from '../../core/AppConstants';
+import { addBookmark } from '../../actions/bookmarks';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -215,7 +216,11 @@ export class Browser extends Component {
 		 * Url coming from an external source
 		 * For ex. deeplinks
 		 */
-		url: PropTypes.string
+		url: PropTypes.string,
+		/**
+		 * Function to store bookmarks
+		 */
+		addBookmark: PropTypes.func
 	};
 
 	state = {
@@ -470,10 +475,7 @@ export class Browser extends Component {
 			title: this.state.currentPageTitle || '',
 			url: this.state.inputValue,
 			onAddBookmark: async ({ name, url }) => {
-				const newBookmarks = this.state.bookmarks;
-				newBookmarks.push({ name, url });
-				this.setState({ bookmarks: newBookmarks });
-				await AsyncStorage.setItem('@MetaMask:bookmarks', JSON.stringify(newBookmarks));
+				this.props.addBookmark({ name, url });
 			}
 		});
 	};
@@ -855,8 +857,16 @@ export class Browser extends Component {
 }
 
 const mapStateToProps = state => ({
-	networkType: state.backgroundState.NetworkController.provider.type,
-	selectedAddress: state.backgroundState.PreferencesController.selectedAddress
+	bookmarks: state.bookmarks,
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
-export default connect(mapStateToProps)(Browser);
+const mapDispatchToProps = dispatch => ({
+	addBookmark: bookmark => dispatch(addBookmark(bookmark))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Browser);

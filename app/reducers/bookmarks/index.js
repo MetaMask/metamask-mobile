@@ -1,19 +1,12 @@
-const initialState = {
-	bookmarks: []
-};
-
-const bookmarksReducer = (state = initialState, action) => {
+import { REHYDRATE } from 'redux-persist';
+const bookmarksReducer = (state = [], action) => {
 	switch (action.type) {
+		case REHYDRATE:
+			return [...state, ...action.payload.bookmarks];
 		case 'ADD_BOOKMARK':
-			return {
-				...state,
-				bookmarks: state.bookmarks.push(action.payload)
-			};
+			return [...state, action.bookmark];
 		case 'REMOVE_BOOKMARK':
-			return {
-				...state,
-				bookmarks: state.bookmarks.filter(item => item.url === action.payload.url)
-			};
+			return state.filter(item => item.url !== action.bookmark.url);
 		default:
 			return state;
 	}

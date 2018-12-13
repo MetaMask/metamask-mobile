@@ -168,7 +168,7 @@ class HomePage extends Component {
 	};
 
 	removeBookmark = () => {
-		this.props.removeBookmark(this.props.bookmarks(this.bookmarkIndexToRemove));
+		this.props.removeBookmark(this.props.bookmarks[this.bookmarkIndexToRemove]);
 	};
 
 	createActionSheetRef = ref => {

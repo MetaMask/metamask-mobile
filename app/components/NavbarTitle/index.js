@@ -83,5 +83,5 @@ class NavbarTitle extends Component {
 	};
 }
 
-const mapStateToProps = state => ({ network: state.backgroundState.NetworkController });
+const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController });
 export default connect(mapStateToProps)(NavbarTitle);
