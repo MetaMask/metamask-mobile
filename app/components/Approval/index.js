@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import TransactionEditor from '../TransactionEditor';
 import { BNToHex, hexToBN } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import Screen from '../Screen';
 import { getNavigationOptionsTitle } from '../Navbar';
 
 /**
@@ -63,13 +64,15 @@ export default class Approval extends Component {
 		} = this.props.navigation.state;
 		const { transaction } = this.sanitizeTransactionMeta(transactionMeta);
 		return (
-			<TransactionEditor
-				mode={this.state.mode}
-				onCancel={this.onCancel}
-				onConfirm={this.onConfirm}
-				onModeChange={this.onModeChange}
-				transaction={transaction}
-			/>
+			<Screen>
+				<TransactionEditor
+					mode={this.state.mode}
+					onCancel={this.onCancel}
+					onConfirm={this.onConfirm}
+					onModeChange={this.onModeChange}
+					transaction={transaction}
+				/>
+			</Screen>
 		);
 	};
 }

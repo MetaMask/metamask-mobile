@@ -357,6 +357,10 @@ export class Browser extends Component {
 	componentWillUnmount() {
 		this.mounted = false;
 		AppState.removeEventListener('change', this.handleAppStateChange);
+		// Remove all Engine listeners
+		Engine.context.TransactionController.hub.removeAllListeners();
+		Engine.context.PersonalMessageManager.hub.removeAllListeners();
+		Engine.context.TypedMessageManager.hub.removeAllListeners();
 	}
 
 	handleAppStateChange = async nextAppState => {
