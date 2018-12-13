@@ -1,6 +1,8 @@
 import { REHYDRATE } from 'redux-persist';
 import Engine from '../core/Engine';
 import { store } from '../store';
+import bookmarksReducer from './bookmarks';
+import { combineReducers } from 'redux';
 
 const initialState = {
 	backgroundState: {}
@@ -14,15 +16,20 @@ function initalizeEngine(state = {}) {
 		});
 }
 
-const rootReducer = (state = initialState, action) => {
-	switch (action.type) {
-		case REHYDRATE:
-			initalizeEngine(action.payload && action.payload.backgroundState);
-			return { ...state, ...action.payload };
-		case 'UPDATE_BG_STATE':
-			return { ...state, backgroundState: Engine.state };
-		default:
-			return state;
-	}
-};
+const rootReducer = combineReducers({
+	engine: (state = initialState, action) => {
+		switch (action.type) {
+			case REHYDRATE:
+				initalizeEngine(action.payload && action.payload.backgroundState);
+				return { ...state, ...action.payload };
+			case 'UPDATE_BG_STATE':
+				return { ...state, backgroundState: Engine.state };
+			default:
+				return state;
+		}
+	},
+	bookmarks: bookmarksReducer
+})
+
+
 export default rootReducer;
