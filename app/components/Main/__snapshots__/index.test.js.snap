@@ -42,7 +42,6 @@ exports[`Main should render correctly 1`] = `
               "RevealPrivateCredential": null,
               "SeedWords": null,
               "SendScreen": null,
-              "Settings": null,
               "SyncWithExtension": null,
               "Wallet": null,
             },

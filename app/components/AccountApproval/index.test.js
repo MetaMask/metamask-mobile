@@ -8,10 +8,12 @@ const mockStore = configureMockStore();
 describe('AccountApproval', () => {
 	it('should render correctly', () => {
 		const initialState = {
-			backgroundState: {
-				PreferencesController: {
-					selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-					identities: { '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' } }
+			engine: {
+				backgroundState: {
+					PreferencesController: {
+						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+						identities: { '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' } }
+					}
 				}
 			}
 		};
