@@ -101,7 +101,12 @@ export function getBrowserViewNavbarOptions(navigation) {
 		headerRight:
 			Platform.OS === 'android' ? (
 				// eslint-disable-next-line
-				<TouchableOpacity onPress={() => navigation.pop()}>
+				<TouchableOpacity
+					onPress={() => {
+						// eslint-disable-next-line no-mixed-spaces-and-tabs
+						navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+					}}
+				>
 					<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
 				</TouchableOpacity>
 			) : (
