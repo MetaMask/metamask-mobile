@@ -5,7 +5,7 @@ import { strings } from '../../../locales/i18n';
 import { colors, fontStyles } from '../../styles/common';
 import ActionView from '../ActionView';
 import Screen from '../Screen';
-import { getModalNavbarOptions } from '../Navbar';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -32,8 +32,7 @@ const styles = StyleSheet.create({
  * Copmonent that provides ability to add a bookmark
  */
 export default class AddBookmark extends Component {
-	static navigationOptions = () => ({ navigation }) =>
-		getModalNavbarOptions(strings('add_bookmark.title'), navigation);
+	static navigationOptions = () => getNavigationOptionsTitle(strings('add_bookmark.title'));
 
 	state = {
 		title: '',

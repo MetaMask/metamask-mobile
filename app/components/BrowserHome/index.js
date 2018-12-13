@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import getNavbarOptions from '../Navbar';
 import HomePage from '../HomePage';
+import onUrlSubmit from '../../util/browser';
 
 /**
  * Complete Web browser component with URL entry and history management
@@ -70,17 +71,9 @@ export default class BrowserHome extends Component {
 		if (url === '') {
 			return false;
 		}
-
-		//Check if it's a url or a keyword
-		const res = url.match(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.]+$/g);
-		if (res === null) {
-			// In case of keywords we default to google search
-			this.go('https://www.google.com/search?q=' + escape(url));
-		} else {
-			const hasProtocol = url.match(/^[a-z]*:\/\//);
-			const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-			await this.go(sanitizedURL);
-		}
+		const { defaultProtocol } = this.props;
+		const sanitizedInput = onUrlSubmit(url, defaultProtocol);
+		await this.go(sanitizedInput);
 	};
 
 	render = () => <HomePage onBookmarkTapped={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} />;
