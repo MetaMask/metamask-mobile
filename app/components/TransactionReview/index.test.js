@@ -8,16 +8,18 @@ const mockStore = configureMockStore();
 describe('TransactionReview', () => {
 	it('should render correctly', () => {
 		const initialState = {
-			backgroundState: {
-				AccountTrackerController: {
-					accounts: { '0x2': { balance: '0' } }
-				},
-				PreferencesController: {
-					selectedAddress: '0x2'
-				},
-				CurrencyRateController: {
-					currentCurrency: 'usd',
-					conversionRate: 0.1
+			engine: {
+				backgroundState: {
+					AccountTrackerController: {
+						accounts: { '0x2': { balance: '0' } }
+					},
+					PreferencesController: {
+						selectedAddress: '0x2'
+					},
+					CurrencyRateController: {
+						currentCurrency: 'usd',
+						conversionRate: 0.1
+					}
 				}
 			}
 		};

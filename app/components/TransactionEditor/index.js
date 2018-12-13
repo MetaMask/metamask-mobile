@@ -211,7 +211,7 @@ class TransactionEditor extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.backgroundState.AccountTrackerController.accounts
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts
 });
 
 export default connect(mapStateToProps)(TransactionEditor);

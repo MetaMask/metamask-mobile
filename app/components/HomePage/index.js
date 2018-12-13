@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import ActionSheet from 'react-native-actionsheet';
+import { connect } from 'react-redux';
 import {
 	InteractionManager,
 	ScrollView,
@@ -15,6 +16,7 @@ import {
 } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import { removeBookmark } from '../../actions/bookmarks';
 
 const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
@@ -116,7 +118,7 @@ const styles = StyleSheet.create({
 /**
  * Main view component for the Lock screen
  */
-export default class HomePage extends Component {
+class HomePage extends Component {
 	static propTypes = {
 		/**
 		 * Array containing all the bookmark items
@@ -131,9 +133,9 @@ export default class HomePage extends Component {
 		 */
 		onInitialUrlSubmit: PropTypes.any,
 		/**
-		 * function to be called when bookmarks are updated
+		 * function that removes a bookmark
 		 */
-		updateBookmarks: PropTypes.any
+		removeBookmark: PropTypes.func
 	};
 
 	state = {
@@ -163,6 +165,10 @@ export default class HomePage extends Component {
 	showRemoveMenu = index => {
 		this.bookmarkIndexToRemove = index;
 		this.actionSheet.show();
+	};
+
+	removeBookmark = () => {
+		this.props.removeBookmark(this.props.bookmarks[this.bookmarkIndexToRemove]);
 	};
 
 	createActionSheetRef = ref => {
@@ -205,13 +211,7 @@ export default class HomePage extends Component {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					// eslint-disable-next-line react/jsx-no-bind
-					onPress={index => {
-						if (index === 0) {
-							const newBookmarks = this.props.bookmarks;
-							newBookmarks.splice(this.bookmarkIndexToRemove, 1);
-							this.props.updateBookmarks(newBookmarks);
-						}
-					}}
+					onPress={index => (index === 0 ? this.removeBookmark() : null)}
 				/>
 			</View>
 		);
@@ -244,3 +244,16 @@ export default class HomePage extends Component {
 		</ScrollView>
 	);
 }
+
+const mapStateToProps = state => ({
+	bookmarks: state.bookmarks
+});
+
+const mapDispatchToProps = dispatch => ({
+	removeBookmark: bookmark => dispatch(removeBookmark(bookmark))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(HomePage);

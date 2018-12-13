@@ -8,10 +8,12 @@ const mockStore = configureMockStore();
 describe('CustomGas', () => {
 	it('should render correctly', () => {
 		const initialState = {
-			backgroundState: {
-				CurrencyRateController: {
-					currentCurrency: 'usd',
-					conversionRate: 0.1
+			engine: {
+				backgroundState: {
+					CurrencyRateController: {
+						currentCurrency: 'usd',
+						conversionRate: 0.1
+					}
 				}
 			}
 		};
