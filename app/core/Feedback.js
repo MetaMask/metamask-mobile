@@ -2,6 +2,9 @@
 import RNShake from 'react-native-shake';
 
 export default class Feedback {
+	intervalBetweenEvents = 800;
+	lastCall = null;
+
 	constructor({ maxDelay, eventsRequired, action }) {
 		this.count = 0;
 		this.timer = null;
@@ -12,11 +15,15 @@ export default class Feedback {
 	}
 
 	onShake = () => {
+		this.lastEventReceived = Date.now();
 		this.count += 1;
 		if (this.count === this.eventsRequired) {
-			this.action.call();
-			this.count = 0;
-			clearInterval(this.timer);
+			if (!this.lastCall || Date.now() - this.lastCall > this.intervalBetweenEvents) {
+				this.lastCall = Date.now();
+				this.action.call();
+				this.count = 0;
+				clearInterval(this.timer);
+			}
 		} else {
 			this.timer = setTimeout(() => {
 				this.count = 0;

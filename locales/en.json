@@ -60,7 +60,7 @@
 		"coming_soon": "Coming soon...",
 		"assets": "Your Assets",
 		"copy_address": "Copy address to clipboard",
-		"view_in_etherscan": "View in etherscan",
+		"view_in_etherscan": "View on etherscan",
 		"dapp_browser": "ÐApp Browser",
 		"settings": "Settings",
 		"help": "Get Help",
@@ -208,7 +208,8 @@
 		"enter_password": "Enter password to continue",
 		"seed_phrase_copied": "Seed phrase copied to clipboard",
 		"private_key_copied": "Private key copied to clipboard",
-		"warning_incorrect_password": "Incorrect password"
+		"warning_incorrect_password": "Incorrect password",
+		"unknown_error": "Couldn't unlock your account. Please try again."
 	},
 	"asset_overview": {
 		"send_button": "SEND",
