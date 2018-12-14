@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>metamask.io</string>
+		<string>applinks:metamask.io</string>
 		<string>applinks:mx4z.app.link</string>
 		<string>applinks:mx4z-alternate.app.link</string>
 	</array>
