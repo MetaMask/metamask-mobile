@@ -120,7 +120,11 @@ class Wallet extends Component {
 	async componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
-		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
+		InteractionManager.runAfterInteractions(() => {
+			Engine.refreshTransactionHistory();
+			const { AssetsDetectionController } = Engine.context;
+			AssetsDetectionController.detectAssets();
+		});
 		this.feedback = new Feedback({
 			action: () => {
 				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
@@ -198,23 +202,21 @@ class Wallet extends Component {
 
 	renderAssetModal = () => {
 		const { showAsset, asset } = this.state;
-		if (showAsset) {
-			return (
-				<Modal
-					isVisible={showAsset}
-					animationIn="slideInUp"
-					animationOut="slideOutDown"
-					style={styles.bottomModal}
-					backdropOpacity={0.7}
-					animationInTiming={600}
-					animationOutTiming={600}
-					onBackdropPress={this.onHideAsset}
-					onBackButtonPress={this.onHideAsset}
-				>
-					<Collectible asset={asset} onHide={this.onHideAsset} />
-				</Modal>
-			);
-		}
+		return (
+			<Modal
+				isVisible={showAsset}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onHideAsset}
+				onBackButtonPress={this.onHideAsset}
+			>
+				<Collectible asset={asset} onHide={this.onHideAsset} />
+			</Modal>
+		);
 	};
 
 	renderContent() {

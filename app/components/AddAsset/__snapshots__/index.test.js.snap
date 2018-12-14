@@ -1,53 +1,55 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddAsset should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "backgroundColor": "#dfe4ea",
-      "flex": 1,
+<Screen>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#dfe4ea",
+        "flex": 1,
+      }
     }
-  }
-  testID="add-token-screen"
->
-  <ScrollableTabView
-    contentProps={Object {}}
-    initialPage={0}
-    locked={false}
-    onChangeTab={[Function]}
-    onScroll={[Function]}
-    page={-1}
-    prerenderingSiblingsNumber={0}
-    renderTabBar={[Function]}
-    scrollWithoutAnimation={false}
-    tabBarPosition="top"
+    testID="add-token-screen"
   >
-    <SearchTokenAutocomplete
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {
-              "assetType": "token",
+    <ScrollableTabView
+      contentProps={Object {}}
+      initialPage={0}
+      locked={false}
+      onChangeTab={[Function]}
+      onScroll={[Function]}
+      page={-1}
+      prerenderingSiblingsNumber={0}
+      renderTabBar={[Function]}
+      scrollWithoutAnimation={false}
+      tabBarPosition="top"
+    >
+      <SearchTokenAutocomplete
+        navigation={
+          Object {
+            "state": Object {
+              "params": Object {
+                "assetType": "token",
+              },
             },
-          },
+          }
         }
-      }
-      tabLabel="SEARCH"
-      testID="tab-search-token"
-    />
-    <AddCustomToken
-      navigation={
-        Object {
-          "state": Object {
-            "params": Object {
-              "assetType": "token",
+        tabLabel="SEARCH"
+        testID="tab-search-token"
+      />
+      <AddCustomToken
+        navigation={
+          Object {
+            "state": Object {
+              "params": Object {
+                "assetType": "token",
+              },
             },
-          },
+          }
         }
-      }
-      tabLabel="CUSTOM TOKEN"
-      testID="tab-add-custom-token"
-    />
-  </ScrollableTabView>
-</View>
+        tabLabel="CUSTOM TOKEN"
+        testID="tab-add-custom-token"
+      />
+    </ScrollableTabView>
+  </View>
+</Screen>
 `;

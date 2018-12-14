@@ -84,7 +84,7 @@ exports[`AccountOverview should render correctly 1`] = `
           Object {
             "alignContent": "center",
             "backgroundColor": "#008edf",
-            "borderRadius": 100,
+            "borderRadius": 18,
             "color": "#FFFFFF",
             "height": 36,
             "justifyContent": "center",
@@ -150,7 +150,7 @@ exports[`AccountOverview should render correctly 1`] = `
           Object {
             "alignContent": "center",
             "backgroundColor": "#008edf",
-            "borderRadius": 100,
+            "borderRadius": 18,
             "color": "#FFFFFF",
             "height": 36,
             "justifyContent": "center",
@@ -216,7 +216,7 @@ exports[`AccountOverview should render correctly 1`] = `
           Object {
             "alignContent": "center",
             "backgroundColor": "#008edf",
-            "borderRadius": 100,
+            "borderRadius": 18,
             "color": "#FFFFFF",
             "height": 36,
             "justifyContent": "center",

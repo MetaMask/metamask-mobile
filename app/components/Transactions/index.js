@@ -317,8 +317,8 @@ export default class Transactions extends Component {
 		const { transactions, currentCurrency, conversionRate, selectedAddress, networkId } = this.props;
 		const txs = transactions.filter(
 			tx =>
-				(toChecksumAddress(tx.transaction.from) === selectedAddress ||
-					toChecksumAddress(tx.transaction.to) === selectedAddress) &&
+				((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
+					(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
 				networkId.toString() === tx.networkID
 		);
 		if (!txs.length) {
