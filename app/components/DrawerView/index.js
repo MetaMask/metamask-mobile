@@ -37,13 +37,14 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		flexDirection: 'column',
-		paddingBottom: 17
+		paddingBottom: 5
 	},
 	network: {
+		paddingVertical: 8,
 		flexDirection: 'row',
 		alignSelf: 'flex-end',
 		marginRight: 17,
-		marginTop: -13
+		marginTop: Platform.OS === 'android' ? -23 : -21
 	},
 	networkName: {
 		textAlign: 'right',
@@ -62,6 +63,7 @@ const styles = StyleSheet.create({
 		width: 94,
 		height: 12,
 		marginTop: 17,
+		paddingVertical: 8,
 		marginLeft: 17,
 		marginRight: 50
 	},
