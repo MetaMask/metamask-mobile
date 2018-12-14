@@ -70,6 +70,13 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
+	footerButton: {
+		flex: 1,
+		alignContent: 'center',
+		alignItems: 'center',
+		justifyContent: 'center',
+		height: 60
+	},
 	closeButton: {
 		fontSize: 16,
 		color: colors.primary,
@@ -206,7 +213,7 @@ export default class NetworkList extends Component {
 				{this.renderOtherNetworks()}
 			</ScrollView>
 			<View style={styles.footer}>
-				<TouchableOpacity onPress={this.props.onClose}>
+				<TouchableOpacity style={styles.footerButton} onPress={this.props.onClose}>
 					<Text style={styles.closeButton}>{strings('networks.close')}</Text>
 				</TouchableOpacity>
 			</View>
