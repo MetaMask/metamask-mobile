@@ -196,7 +196,11 @@ class AccountInput extends Component {
 	};
 }
 
-const mapStateToProps = ({ backgroundState: { PreferencesController } }) => ({
+const mapStateToProps = ({
+	engine: {
+		backgroundState: { PreferencesController }
+	}
+}) => ({
 	accounts: PreferencesController.identities,
 	activeAddress: PreferencesController.selectedAddress
 });

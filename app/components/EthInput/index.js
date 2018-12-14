@@ -112,7 +112,11 @@ class EthInput extends Component {
 	};
 }
 
-const mapStateToProps = ({ backgroundState: { CurrencyRateController } }) => ({
+const mapStateToProps = ({
+	engine: {
+		backgroundState: { CurrencyRateController }
+	}
+}) => ({
 	conversionRate: CurrencyRateController.conversionRate,
 	currentCurrency: CurrencyRateController.currentCurrency
 });

@@ -176,7 +176,9 @@ class AccountSelect extends Component {
 }
 
 const mapStateToProps = ({
-	backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
+	engine: {
+		backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
+	}
 }) => ({
 	accounts: AccountTrackerController.accounts,
 	conversionRate: CurrencyRateController.conversionRate,
