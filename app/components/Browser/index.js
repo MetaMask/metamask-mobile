@@ -942,6 +942,7 @@ export class Browser extends Component {
 						onScrollEndDrag={this.onScrollEnd}
 						onMomentumScrollEnd={this.onScrollEnd}
 						userAgent={this.getUserAgent()}
+						sendCookies
 						javascriptEnabled
 					/>
 				) : (
