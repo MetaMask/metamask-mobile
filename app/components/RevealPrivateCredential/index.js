@@ -1,5 +1,15 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard, Alert } from 'react-native';
+import {
+	AsyncStorage,
+	SafeAreaView,
+	StyleSheet,
+	View,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	Clipboard,
+	Alert
+} from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
@@ -8,6 +18,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../core/Engine';
 import { connect } from 'react-redux';
 import { getNavigationOptionsTitle } from '../Navbar';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -110,14 +121,28 @@ class RevealPrivateCredential extends Component {
 		navigation: PropTypes.object
 	};
 
+	async componentDidMount() {
+		// Try to use biometrics to unloc
+		// (if available)
+		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		if (biometryType) {
+			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
+			if (biometryChoice !== '' && biometryChoice === biometryType) {
+				const credentials = await SecureKeychain.getGenericPassword();
+				if (credentials) {
+					this.tryUnlockWithPassword(credentials.password);
+				}
+			}
+		}
+	}
+
 	cancel = () => {
 		const { navigation } = this.props;
 		navigation.pop();
 	};
 
-	tryUnlock = async () => {
+	async tryUnlockWithPassword(password) {
 		const { KeyringController } = Engine.context;
-		const { password } = this.state;
 		const {
 			selectedAddress,
 			navigation: {
@@ -128,15 +153,12 @@ class RevealPrivateCredential extends Component {
 		} = this.props;
 
 		try {
-			await KeyringController.submitPassword(password);
 			if (privateCredentialName === 'seed_phrase') {
-				const privateCredential = JSON.stringify(KeyringController.keyring.keyrings[0].mnemonic).replace(
-					/"/g,
-					''
-				);
+				const mnemonic = await KeyringController.exportSeedPhrase(password);
+				const privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
 				this.setState({ privateCredential, unlocked: true });
 			} else if (privateCredentialName === 'private_key') {
-				const privateCredential = await KeyringController.exportAccount(selectedAddress);
+				const privateCredential = await KeyringController.exportAccount(password, selectedAddress);
 				this.setState({ privateCredential, unlocked: true });
 			}
 		} catch (e) {
@@ -150,6 +172,11 @@ class RevealPrivateCredential extends Component {
 				warningIncorrectPassword: msg
 			});
 		}
+	}
+
+	tryUnlock = () => {
+		const { password } = this.state;
+		this.tryUnlockWithPassword(password);
 	};
 
 	onPasswordChange = password => {
