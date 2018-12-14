@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
 		width: 50,
 		height: 50,
 		overflow: 'hidden',
-		borderRadius: 100,
+		borderRadius: 25,
 		marginRight: 20
 	},
 	fullWrapper: {

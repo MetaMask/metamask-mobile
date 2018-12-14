@@ -81,9 +81,10 @@ const styles = StyleSheet.create({
 		height: '100%'
 	},
 	domainLogo: {
-		width: 70,
-		height: 70,
-		borderRadius: 100
+		marginTop: 15,
+		width: 64,
+		height: 64,
+		borderRadius: 32
 	},
 	assetLogo: {
 		alignItems: 'center',

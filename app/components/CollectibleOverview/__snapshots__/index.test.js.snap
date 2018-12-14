@@ -1,25 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleOverview should render correctly 1`] = `
-<LinearGradient
-  colors={
-    Array [
-      "#dfe4ea",
-      "#FFFFFF",
-    ]
-  }
-  end={
-    Object {
-      "x": 0.5,
-      "y": 1,
-    }
-  }
-  start={
-    Object {
-      "x": 0.5,
-      "y": 0,
-    }
-  }
+<View
   style={
     Object {
       "alignItems": "center",
@@ -37,6 +19,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
         "borderRadius": 20,
         "justifyContent": "center",
         "marginTop": 15,
+        "paddingVertical": 15,
         "width": 300,
       }
     }
@@ -78,18 +61,6 @@ exports[`CollectibleOverview should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 20,
-          "fontWeight": "400",
-        }
-      }
-    >
-      Cryptokitties
-    </Text>
-    <Text
-      style={
-        Object {
           "color": "#999999",
           "fontFamily": "Roboto",
           "fontSize": 18,
@@ -111,20 +82,23 @@ exports[`CollectibleOverview should render correctly 1`] = `
         }
       }
     >
-      Collectible Address
-      :
+      Type
+      : 
+      Cryptokitties
     </Text>
     <Text
       style={
         Object {
           "color": "#999999",
           "fontFamily": "Roboto",
-          "fontSize": 14,
+          "fontSize": 18,
           "fontWeight": "400",
         }
       }
     >
-      0x06012c8cf97BEaD5deAe237070F9587f8E7A266d
+      Address
+      : 
+      0x06...0x06
     </Text>
   </View>
   <View
@@ -198,5 +172,5 @@ exports[`CollectibleOverview should render correctly 1`] = `
       </Text>
     </StyledButton>
   </View>
-</LinearGradient>
+</View>
 `;

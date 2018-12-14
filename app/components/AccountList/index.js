@@ -174,7 +174,7 @@ export default class AccountList extends Component {
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
 			this.setState({ selectedAccountIndex: newIndex });
 			setTimeout(() => {
-				this.scrollViewRef.current.scrollToEnd();
+				this.scrollViewRef && this.scrollViewRef.current && this.scrollViewRef.current.scrollToEnd();
 			}, 500);
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong

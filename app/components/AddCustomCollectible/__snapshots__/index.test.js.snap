@@ -15,7 +15,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
     cancelText="CANCEL"
     confirmButtonMode="normal"
     confirmTestID="add-custom-asset-confirm-button"
-    confirmText="ADD COLLECTIBLE"
+    confirmText="ADD"
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}
@@ -36,7 +36,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           }
         }
       >
-        Collectible Address
+        Address
       </Text>
       <TextInput
         allowFontScaling={true}
