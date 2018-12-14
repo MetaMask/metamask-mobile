@@ -1,22 +1,32 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import AccountList from './';
-import { Provider } from 'react-redux';
+import NetworkList from './';
 import configureMockStore from 'redux-mock-store';
 
 const mockStore = configureMockStore();
-const store = mockStore({});
 
-describe('Accounts', () => {
+describe('NetworkList', () => {
 	it('should render correctly', () => {
-		const address = '0xe7E125654064EEa56229f273dA586F10DF96B0a1';
-		const accounts = {};
-		accounts[address] = { name: 'account 1', address, balance: 0 };
-		const wrapper = shallow(
-			<Provider store={store}>
-				<AccountList accounts={accounts} selectedAddress={address} />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
+		const initialState = {
+			privacy: {
+				approvedHosts: {}
+			},
+			engine: {
+				backgroundState: {
+					NetworkController: {
+						provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' }
+					},
+					PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] },
+					NetworkStatusController: {
+						networkStatus: { infura: { mainnet: 'ok', ropsten: 'ok', kovan: 'ok', rinkeby: 'ok' } }
+					}
+				}
+			}
+		};
+
+		const wrapper = shallow(<NetworkList />, {
+			context: { store: mockStore(initialState) }
+		});
+		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

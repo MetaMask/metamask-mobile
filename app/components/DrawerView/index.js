@@ -217,11 +217,7 @@ class DrawerView extends Component {
 		/**
 		 * List of keyrings
 		 */
-		keyrings: PropTypes.array,
-		/**
-		 * A list of custom RPCs to provide the user
-		 */
-		frequentRpcList: PropTypes.array
+		keyrings: PropTypes.array
 	};
 
 	state = {
@@ -507,7 +503,7 @@ class DrawerView extends Component {
 					</View>
 				</ScrollView>
 				<Modal isVisible={this.state.networksModalVisible} onBackdropPress={this.hideNetworksModal}>
-					<NetworkList onClose={this.hideNetworksModal} frequentRpcList={this.props.frequentRpcList} />
+					<NetworkList onClose={this.hideNetworksModal} />
 				</Modal>
 				<Modal
 					isVisible={this.state.accountsModalVisible}
@@ -531,7 +527,6 @@ const mapStateToProps = state => ({
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings,
-	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+	keyrings: state.engine.backgroundState.KeyringController.keyrings
 });
 export default connect(mapStateToProps)(DrawerView);
