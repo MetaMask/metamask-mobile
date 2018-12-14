@@ -4,7 +4,7 @@ import WebsiteIcon from './';
 
 describe('WebsiteIcon', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<WebsiteIcon title="title" url="url" />);
+		const wrapper = shallow(<WebsiteIcon title="title" url="url.com" />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
