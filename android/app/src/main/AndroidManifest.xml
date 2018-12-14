@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.metamask"
 	xmlns:tools="http://schemas.android.com/tools"
+	android:targetSandboxVersion="1"
 >
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -16,7 +17,6 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
 	  android:hardwareAccelerated="true"
-	  android:usesCleartextTraffic="${isDebug}"
 	>
       <activity
         android:launchMode="singleTask"
