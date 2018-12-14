@@ -1,4 +1,4 @@
-package com.metamask;
+package io.metamask;
 
 import android.app.Application;
 
