@@ -157,7 +157,11 @@ export default class AccountList extends Component {
 			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
 			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
-			InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
+			InteractionManager.runAfterInteractions(() => {
+				Engine.refreshTransactionHistory();
+				const { AssetsDetectionController } = Engine.context;
+				AssetsDetectionController.detectAssets();
+			});
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			this.setState({ selectedAccountIndex: previousIndex });

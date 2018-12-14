@@ -120,7 +120,11 @@ class Wallet extends Component {
 	async componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
-		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
+		InteractionManager.runAfterInteractions(() => {
+			Engine.refreshTransactionHistory();
+			const { AssetsDetectionController } = Engine.context;
+			AssetsDetectionController.detectAssets();
+		});
 		this.feedback = new Feedback({
 			action: () => {
 				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
