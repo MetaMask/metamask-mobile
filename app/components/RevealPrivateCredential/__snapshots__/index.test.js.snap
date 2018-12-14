@@ -121,6 +121,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
               "color": "#FF0000",
               "fontFamily": "Roboto",
               "fontWeight": "400",
+              "marginTop": 10,
             }
           }
         />

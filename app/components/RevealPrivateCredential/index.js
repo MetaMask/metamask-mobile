@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	warningText: {
+		marginTop: 10,
 		color: colors.error,
 		...fontStyles.normal
 	},
@@ -83,6 +84,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	}
 });
+
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 
 /**
  * View that displays private account information as private key or seed phrase
@@ -137,9 +140,14 @@ class RevealPrivateCredential extends Component {
 				this.setState({ privateCredential, unlocked: true });
 			}
 		} catch (e) {
+			let msg = strings('reveal_credential.warning_incorrect_password');
+			if (e.toString() !== WRONG_PASSWORD_ERROR) {
+				msg = strings('reveal_credential.unknown_error');
+			}
+
 			this.setState({
 				unlock: false,
-				warningIncorrectPassword: strings('reveal_credential.warning_incorrect_password')
+				warningIncorrectPassword: msg
 			});
 		}
 	};
