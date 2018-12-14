@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import getNavbarOptions from '../Navbar';
 import HomePage from '../HomePage';
 import onUrlSubmit from '../../util/browser';
+import Feedback from '../../core/Feedback';
+import AppConstants from '../../core/AppConstants';
 
 /**
  * Complete Web browser component with URL entry and history management
@@ -36,6 +38,15 @@ export default class BrowserHome extends Component {
 
 	async componentDidMount() {
 		this.checkForDeeplinks();
+		this.feedback = new Feedback({
+			action: () => {
+				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
+			}
+		});
+	}
+
+	componentWillUnmount() {
+		this.feedback.stopListening();
 	}
 
 	checkForDeeplinks() {
