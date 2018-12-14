@@ -111,7 +111,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line
-				<TouchableOpacity onPress={() => navigation.navigate('BrowserHome')}>
+				<TouchableOpacity onPress={() => navigation.pop()}>
 					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
 				</TouchableOpacity>
 			)
