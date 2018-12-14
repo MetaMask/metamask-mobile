@@ -6,6 +6,7 @@ import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, Vie
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import Networks from '../../util/networks';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
 /**
  * View that contains the list of all the available networks
  */
-export default class NetworkList extends Component {
+export class NetworkList extends Component {
 	static propTypes = {
 		/**
 		 * An function to handle the close event
@@ -127,10 +128,18 @@ export default class NetworkList extends Component {
 		/**
 		 * A list of custom RPCs to provide the user
 		 */
-		frequentRpcList: PropTypes.array
+		frequentRpcList: PropTypes.array,
+		/**
+		 * NetworkController povider object
+		 */
+		provider: PropTypes.object,
+		/**
+		 * Networks status object
+		 */
+		networkStatus: PropTypes.object
 	};
 
-	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'].concat(this.props.frequentRpcList);
+	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
 
 	getOtherNetworks = () => this.getAllNetworks().slice(1);
 
@@ -140,36 +149,63 @@ export default class NetworkList extends Component {
 		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
 	};
 
-	renderOtherNetworks() {
+	onSetRpcTarget = async rpcTarget => {
 		const { NetworkController } = Engine.context;
+		NetworkController.setRpcTarget(rpcTarget);
+	};
+
+	removeRpcTarget = rpcTarget => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController.removeFromFrequentRpcList(rpcTarget);
+	};
+
+	networkElement = (selected, onPress, name, color, i, network) => (
+		<TouchableOpacity
+			style={styles.network}
+			key={`network-${i}`}
+			onPress={() => onPress(network)} // eslint-disable-line
+		>
+			<View style={styles.selected}>{selected}</View>
+			<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
+			<View style={styles.networkInfo}>
+				<Text style={styles.networkLabel}>{name}</Text>
+			</View>
+		</TouchableOpacity>
+	);
+
+	renderOtherNetworks = () => {
+		const { provider } = this.props;
 		return this.getOtherNetworks().map((network, i) => {
-			const { color, name } = Networks[network] || { ...Networks.rpc, color: null };
+			const { color, name } = Networks[network];
 			const selected =
-				NetworkController.state.provider.type === network ? (
-					<Icon name="check" size={15} color={colors.fontSecondary} />
-				) : null;
-			return (
-				<TouchableOpacity
-					style={styles.network}
-					key={`network-${i}`}
-					onPress={() => this.onNetworkChange(network)} // eslint-disable-line
-				>
-					<View style={styles.selected}>{selected}</View>
-					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
-					<View style={styles.networkInfo}>
-						<Text style={styles.networkLabel}>{name}</Text>
-					</View>
-				</TouchableOpacity>
-			);
+				provider.type === network ? <Icon name="check" size={20} color={colors.fontSecondary} /> : null;
+			return this.networkElement(selected, this.onNetworkChange, name, color, i, network);
 		});
-	}
+	};
+
+	renderRpcNetworks = () => {
+		const { frequentRpcList, provider } = this.props;
+		return frequentRpcList.map((network, i) => {
+			const { color, name } = { name: network, color: null };
+			const selected =
+				provider.rpcTarget === network && provider.type === 'rpc' ? (
+					<Icon name="check" size={20} color={colors.fontSecondary} />
+				) : (
+					<Icon
+						name="minus-circle"
+						size={20}
+						color={colors.fontTertiary}
+						onPress={() => this.removeRpcTarget(network)} // eslint-disable-line
+					/>
+				);
+			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, network);
+		});
+	};
 
 	renderMainnet() {
-		const { NetworkController, NetworkStatusController } = Engine.context;
+		const { provider, networkStatus } = this.props;
 		const isMainnet =
-			NetworkController.state.provider.type === 'mainnet' ? (
-				<Icon name="check" size={15} color={colors.fontSecondary} />
-			) : null;
+			provider.type === 'mainnet' ? <Icon name="check" size={15} color={colors.fontSecondary} /> : null;
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
 
 		return (
@@ -188,7 +224,7 @@ export default class NetworkList extends Component {
 					</View>
 					<View>
 						<Text style={styles.mainnetStatus}>
-							{NetworkStatusController.state.networkStatus.infura.mainnet
+							{networkStatus.infura.mainnet
 								? strings('networks.status_ok')
 								: strings('networks.status_not_ok')}
 						</Text>
@@ -211,6 +247,7 @@ export default class NetworkList extends Component {
 					<Text style={styles.otherNetworksText}>{strings('networks.other_networks')}</Text>
 				</View>
 				{this.renderOtherNetworks()}
+				{this.renderRpcNetworks()}
 			</ScrollView>
 			<View style={styles.footer}>
 				<TouchableOpacity style={styles.footerButton} onPress={this.props.onClose}>
@@ -220,3 +257,11 @@ export default class NetworkList extends Component {
 		</SafeAreaView>
 	);
 }
+
+const mapStateToProps = state => ({
+	provider: state.engine.backgroundState.NetworkController.provider,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+	networkStatus: state.engine.backgroundState.NetworkStatusController.networkStatus
+});
+
+export default connect(mapStateToProps)(NetworkList);

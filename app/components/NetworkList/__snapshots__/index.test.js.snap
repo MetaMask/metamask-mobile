@@ -1,16 +1,472 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Accounts should render correctly 1`] = `
-<NetworkList
-  accounts={
+exports[`NetworkList should render correctly 1`] = `
+<SafeAreaView
+  style={
     Object {
-      "0xe7E125654064EEa56229f273dA586F10DF96B0a1": Object {
-        "address": "0xe7E125654064EEa56229f273dA586F10DF96B0a1",
-        "balance": 0,
-        "name": "account 1",
-      },
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 10,
+      "minHeight": 450,
     }
   }
-  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-/>
+  testID="account-list"
+>
+  <View
+    style={
+      Object {
+        "borderBottomWidth": 0.5,
+        "borderColor": "#CCCCCC",
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "600",
+          "marginHorizontal": 20,
+          "marginVertical": 12,
+          "textAlign": "center",
+        }
+      }
+      testID="networks-list-title"
+    >
+      Networks
+    </Text>
+  </View>
+  <ScrollView
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <View>
+      <TouchableOpacity
+        activeOpacity={0.2}
+        key="network-mainnet"
+        onPress={[Function]}
+        style={
+          Array [
+            Object {
+              "borderBottomWidth": 0.5,
+              "borderColor": "#CCCCCC",
+              "flexDirection": "row",
+              "paddingHorizontal": 20,
+              "paddingLeft": 45,
+              "paddingVertical": 20,
+            },
+            Object {
+              "borderBottomWidth": 0,
+              "flexDirection": "column",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            Object {
+              "flex": 0,
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              Array [
+                Object {
+                  "marginLeft": 20,
+                  "marginTop": 22,
+                  "position": "absolute",
+                },
+                Object {
+                  "marginLeft": -30,
+                  "marginTop": 3,
+                },
+              ]
+            }
+          >
+            <Icon
+              allowFontScaling={false}
+              color="#999999"
+              name="check"
+              size={15}
+            />
+          </View>
+          <View
+            style={
+              Array [
+                Object {
+                  "borderRadius": 100,
+                  "height": 15,
+                  "marginTop": 3,
+                  "width": 15,
+                },
+                Object {
+                  "backgroundColor": "#3cc29e",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              Object {
+                "flex": 1,
+                "marginLeft": 15,
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "color": "#4a4a4a",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                }
+              }
+            >
+              Ethereum Main Network
+            </Text>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              Object {
+                "color": "#999999",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "marginLeft": 30,
+                "marginTop": 5,
+              }
+            }
+          >
+            All Systems Operational
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#CCCCCC",
+          "marginTop": 0,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#4a4a4a",
+            "fontFamily": "Roboto",
+            "fontSize": 13,
+            "fontWeight": "600",
+            "marginHorizontal": 20,
+            "marginVertical": 12,
+            "textAlign": "left",
+          }
+        }
+      >
+        Other Networks
+      </Text>
+    </View>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="network-0"
+      onPress={[Function]}
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#CCCCCC",
+          "flexDirection": "row",
+          "paddingHorizontal": 20,
+          "paddingLeft": 45,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "marginLeft": 20,
+            "marginTop": 22,
+            "position": "absolute",
+          }
+        }
+      />
+      <View
+        style={
+          Array [
+            Object {
+              "borderRadius": 100,
+              "height": 15,
+              "marginTop": 3,
+              "width": 15,
+            },
+            Object {
+              "backgroundColor": "#ff4a8d",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 15,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#4a4a4a",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Ropsten Test Network
+        </Text>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="network-1"
+      onPress={[Function]}
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#CCCCCC",
+          "flexDirection": "row",
+          "paddingHorizontal": 20,
+          "paddingLeft": 45,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "marginLeft": 20,
+            "marginTop": 22,
+            "position": "absolute",
+          }
+        }
+      />
+      <View
+        style={
+          Array [
+            Object {
+              "borderRadius": 100,
+              "height": 15,
+              "marginTop": 3,
+              "width": 15,
+            },
+            Object {
+              "backgroundColor": "#7057ff",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 15,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#4a4a4a",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Kovan Test Network
+        </Text>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="network-2"
+      onPress={[Function]}
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#CCCCCC",
+          "flexDirection": "row",
+          "paddingHorizontal": 20,
+          "paddingLeft": 45,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "marginLeft": 20,
+            "marginTop": 22,
+            "position": "absolute",
+          }
+        }
+      />
+      <View
+        style={
+          Array [
+            Object {
+              "borderRadius": 100,
+              "height": 15,
+              "marginTop": 3,
+              "width": 15,
+            },
+            Object {
+              "backgroundColor": "#f6c343",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 15,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#4a4a4a",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Rinkeby Test Network
+        </Text>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="network-0"
+      onPress={[Function]}
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#CCCCCC",
+          "flexDirection": "row",
+          "paddingHorizontal": 20,
+          "paddingLeft": 45,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "marginLeft": 20,
+            "marginTop": 22,
+            "position": "absolute",
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#AAAAAA"
+          name="minus-circle"
+          onPress={[Function]}
+          size={20}
+        />
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "borderRadius": 100,
+              "height": 15,
+              "marginTop": 3,
+              "width": 15,
+            },
+            Object {
+              "backgroundColor": "transparent",
+              "borderColor": "#CCCCCC",
+              "borderWidth": 2,
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 15,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#4a4a4a",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          http://10.0.2.2:8545
+        </Text>
+      </View>
+    </TouchableOpacity>
+  </ScrollView>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "borderColor": "#CCCCCC",
+        "borderTopWidth": 0.5,
+        "flexDirection": "row",
+        "height": 60,
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.2}
+      style={
+        Object {
+          "alignContent": "center",
+          "alignItems": "center",
+          "flex": 1,
+          "height": 60,
+          "justifyContent": "center",
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#008edf",
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Close
+      </Text>
+    </TouchableOpacity>
+  </View>
+</SafeAreaView>
 `;
