@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
+import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	fallback: {
@@ -56,8 +57,9 @@ export default class WebsiteIcon extends Component {
 	};
 
 	getHost(url) {
-		const tmp = url.split('/');
-		return tmp[2];
+		const urlObj = new URL(url);
+		const { hostname } = urlObj;
+		return hostname;
 	}
 
 	getIconUrl = url => {
