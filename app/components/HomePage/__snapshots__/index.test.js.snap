@@ -165,19 +165,22 @@ exports[`HomePage should render correctly 1`] = `
                 }
               }
             />
-            <Component
-              source={
-                Object {
-                  "uri": "http://icons.duckduckgo.com/ip2/undefined.ico",
-                }
-              }
+            <WebsiteIcon
               style={
                 Object {
-                  "height": 24,
+                  "borderRadius": 13,
+                  "height": 26,
                   "marginRight": 7,
-                  "width": 24,
+                  "width": 26,
                 }
               }
+              textStyle={
+                Object {
+                  "fontSize": 12,
+                }
+              }
+              title="name"
+              url="url"
             />
             <Text
               numberOfLines={1}

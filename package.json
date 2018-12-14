@@ -100,6 +100,7 @@
     "url": "^0.10.3",
     "url-parse": "^1.4.3",
     "valid-url": "^1.0.9",
+    "base-x": "3.0.4",
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
@@ -108,7 +109,6 @@
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^23.6.0",
     "concat-cli": "^4.0.0",
-    "base-x": "3.0.4",
     "detox": "^9.1.2",
     "enzyme": "^3.7.0",
     "enzyme-adapter-react-16": "^1.6.0",
