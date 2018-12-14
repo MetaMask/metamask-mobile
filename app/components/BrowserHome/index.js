@@ -5,6 +5,9 @@ import HomePage from '../HomePage';
 import onUrlSubmit from '../../util/browser';
 import Feedback from '../../core/Feedback';
 import AppConstants from '../../core/AppConstants';
+import DeeplinkManager from '../../core/DeeplinkManager';
+import Branch from 'react-native-branch';
+import Logger from '../../util/Logger';
 
 /**
  * Complete Web browser component with URL entry and history management
@@ -37,7 +40,7 @@ export default class BrowserHome extends Component {
 	};
 
 	async componentDidMount() {
-		this.checkForDeeplinks();
+		Branch.subscribe(this.handleDeeplinks);
 		this.feedback = new Feedback({
 			action: () => {
 				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
@@ -49,29 +52,16 @@ export default class BrowserHome extends Component {
 		this.feedback.stopListening();
 	}
 
-	checkForDeeplinks() {
-		const { navigation } = this.props;
-		if (navigation) {
-			const url = navigation.getParam('url', null);
-			if (url) {
-				this.go(url);
-			}
+	handleDeeplinks = async ({ error, params }) => {
+		if (error) {
+			Logger.error('Error from Branch: ', error);
+			return;
 		}
-	}
-
-	componentDidUpdate(prevProps) {
-		const prevNavigation = prevProps.navigation;
-		const { navigation } = this.props;
-
-		if (prevNavigation && navigation) {
-			const prevUrl = prevNavigation.getParam('url', null);
-			const currentUrl = navigation.getParam('url', null);
-
-			if (currentUrl && prevUrl !== currentUrl) {
-				this.checkForDeeplinks();
-			}
+		if (params['+non_branch_link']) {
+			const dm = new DeeplinkManager(this.props.navigation);
+			dm.parse(params['+non_branch_link']);
 		}
-	}
+	};
 
 	go = async url => {
 		this.setState({ tabs: [...this.state.tabs, url] });

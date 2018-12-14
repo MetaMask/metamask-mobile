@@ -142,6 +142,14 @@ class TransactionEdit extends Component {
 		toFocused: false
 	};
 
+	componentDidMount() {
+		if (this.props.transactionData) {
+			if (this.props.transactionData.amount) {
+				this.props.handleUpdateAmount(this.props.transactionData.amount);
+			}
+		}
+	}
+
 	fillMax = () => {
 		const { gas, gasPrice, from } = this.props.transactionData;
 		const { balance } = this.props.accounts[from];
