@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import { strings } from '../../../locales/i18n';
 import { colors, fontStyles } from '../../styles/common';
 import DeviceSize from '../../util/DeviceSize';
+import WebsiteIcon from '../WebsiteIcon';
 
 const styles = StyleSheet.create({
 	root: {
@@ -138,21 +139,6 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 		height: 54,
 		width: 54
-	},
-	fallback: {
-		alignContent: 'center',
-		backgroundColor: colors.gray,
-		borderRadius: 27,
-		height: 54,
-		justifyContent: 'center',
-		marginBottom: 12,
-		width: 54
-	},
-	fallbackText: {
-		...fontStyles.normal,
-		color: colors.white,
-		fontSize: 24,
-		textAlign: 'center'
 	}
 });
 
@@ -185,7 +171,7 @@ class AccountApproval extends Component {
 
 	render = () => {
 		const {
-			currentPageInformation: { icon, title, url },
+			currentPageInformation: { title, url },
 			onConfirm,
 			onCancel,
 			selectedAddress,
@@ -207,13 +193,7 @@ class AccountApproval extends Component {
 					<View style={styles.wrapper}>
 						<View style={styles.header}>
 							<View style={styles.dapp}>
-								{icon ? (
-									<Image source={{ uri: icon }} style={styles.icon} />
-								) : (
-									<View style={styles.fallback}>
-										<Text style={styles.fallbackText}>{title.substring(0, 1).toUpperCase()}</Text>
-									</View>
-								)}
+								<WebsiteIcon style={styles.icon} title={title} url={url} />
 								<Text style={styles.headerTitle} numberOfLines={1}>
 									{title}
 								</Text>
