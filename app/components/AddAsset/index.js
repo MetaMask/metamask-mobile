@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import AddCustomToken from '../AddCustomToken';
+import Screen from '../Screen';
 import SearchTokenAutocomplete from '../SearchTokenAutocomplete';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import PropTypes from 'prop-types';
@@ -71,24 +72,26 @@ export default class AddAsset extends Component {
 			navigation
 		} = this.props;
 		return (
-			<View style={styles.wrapper} testID={`add-${assetType}-screen`}>
-				{assetType === 'token' ? (
-					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						<SearchTokenAutocomplete
-							navigation={navigation}
-							tabLabel={strings('add_asset.search_token')}
-							testID={'tab-search-token'}
-						/>
-						<AddCustomToken
-							navigation={navigation}
-							tabLabel={strings('add_asset.custom_token')}
-							testID={'tab-add-custom-token'}
-						/>
-					</ScrollableTabView>
-				) : (
-					<AddCustomCollectible navigation={navigation} testID={'add-custom-collectible'} />
-				)}
-			</View>
+			<Screen>
+				<View style={styles.wrapper} testID={`add-${assetType}-screen`}>
+					{assetType === 'token' ? (
+						<ScrollableTabView renderTabBar={this.renderTabBar}>
+							<SearchTokenAutocomplete
+								navigation={navigation}
+								tabLabel={strings('add_asset.search_token')}
+								testID={'tab-search-token'}
+							/>
+							<AddCustomToken
+								navigation={navigation}
+								tabLabel={strings('add_asset.custom_token')}
+								testID={'tab-add-custom-token'}
+							/>
+						</ScrollableTabView>
+					) : (
+						<AddCustomCollectible navigation={navigation} testID={'add-custom-collectible'} />
+					)}
+				</View>
+			</Screen>
 		);
 	};
 }

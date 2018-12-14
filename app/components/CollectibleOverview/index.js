@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
-import LinearGradient from 'react-native-linear-gradient';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import contractMap from 'eth-contract-metadata';
+import { renderShortAddress } from '../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
 	},
 	assetLogo: {
 		marginTop: 15,
+		paddingVertical: 15,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: colors.white,
@@ -43,11 +44,6 @@ const styles = StyleSheet.create({
 	},
 	collectibleAttribute: {
 		fontSize: 18,
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	collectibleAddress: {
-		fontSize: 14,
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
@@ -107,19 +103,22 @@ export default class CollectibleOverview extends Component {
 			asset: { address, tokenId, name }
 		} = this.props;
 		return (
-			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
+			<View style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderImage()}</View>
 				<View style={styles.collectibleInformation}>
 					<Text style={styles.collectibleName}>{name}</Text>
-					{contractMap[address] &&
-						name !== contractMap[address].name && (
-							<Text style={styles.collectibleName}>{contractMap[address].name}</Text>
-						)}
 					<Text style={styles.collectibleAttribute}>
 						{strings('collectible.collectible_token_id')}: {tokenId}
 					</Text>
-					<Text style={styles.collectibleAttribute}>{strings('collectible.collectible_address')}:</Text>
-					<Text style={styles.collectibleAddress}>{address}</Text>
+					{contractMap[address] &&
+						name !== contractMap[address].name && (
+							<Text style={styles.collectibleAttribute}>
+								{strings('collectible.collectible_type')}: {contractMap[address].name}
+							</Text>
+						)}
+					<Text style={styles.collectibleAttribute}>
+						{strings('collectible.collectible_address')}: {renderShortAddress(address)}
+					</Text>
 				</View>
 				<View style={styles.buttons}>
 					<StyledButton
@@ -133,7 +132,7 @@ export default class CollectibleOverview extends Component {
 						<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
 					</StyledButton>
 				</View>
-			</LinearGradient>
+			</View>
 		);
 	};
 }

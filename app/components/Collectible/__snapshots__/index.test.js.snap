@@ -1,7 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Collectible should render correctly 1`] = `
-<View
+<LinearGradient
+  colors={
+    Array [
+      "#dfe4ea",
+      "#FFFFFF",
+    ]
+  }
+  end={
+    Object {
+      "x": 0.5,
+      "y": 1,
+    }
+  }
+  start={
+    Object {
+      "x": 0.5,
+      "y": 0,
+    }
+  }
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -31,7 +49,6 @@ exports[`Collectible should render correctly 1`] = `
   <ScrollView
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
     }
@@ -58,5 +75,5 @@ exports[`Collectible should render correctly 1`] = `
       </View>
     </View>
   </ScrollView>
-</View>
+</LinearGradient>
 `;

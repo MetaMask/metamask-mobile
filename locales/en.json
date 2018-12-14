@@ -100,7 +100,7 @@
 		},
 		"collectibles": {
 			"cancel_add_collectible": "CANCEL",
-			"add_collectible": "ADD COLLECTIBLE"
+			"add_collectible": "ADD"
 		}
 	},
 	"token": {
@@ -115,7 +115,8 @@
 		"select_token": "Select Token"
 	},
 	"collectible": {
-		"collectible_address": "Collectible Address",
+		"collectible_address": "Address",
+		"collectible_type": "Type",
 		"collectible_token_id": "ID",
 		"address_must_be_valid": "Collectible address must be a valid address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",

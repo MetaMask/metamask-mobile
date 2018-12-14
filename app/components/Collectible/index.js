@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../styles/common';
 import CollectibleOverview from '../CollectibleOverview';
 import { strings } from '../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../Navbar';
+import LinearGradient from 'react-native-linear-gradient';
 
 const styles = StyleSheet.create({
 	root: {
@@ -22,7 +23,6 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	wrapper: {
-		backgroundColor: colors.white,
 		flex: 1
 	},
 	assetOverviewWrapper: {
@@ -56,7 +56,7 @@ export default class Collectible extends Component {
 	render = () => {
 		const { asset, navigation, onHide } = this.props;
 		return (
-			<View style={styles.root}>
+			<LinearGradient colors={[colors.slate, colors.white]} style={styles.root}>
 				<View>
 					<Text style={styles.title} onPress={onHide}>
 						{strings('wallet.collectible')}
@@ -69,7 +69,7 @@ export default class Collectible extends Component {
 						</View>
 					</View>
 				</ScrollView>
-			</View>
+			</LinearGradient>
 		);
 	};
 }

@@ -105,9 +105,10 @@ exports[`SignatureRequest should render correctly 1`] = `
       <WebsiteIcon
         style={
           Object {
-            "borderRadius": 100,
-            "height": 70,
-            "width": 70,
+            "borderRadius": 32,
+            "height": 64,
+            "marginTop": 15,
+            "width": 64,
           }
         }
         title="title"
