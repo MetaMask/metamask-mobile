@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -8,6 +8,7 @@ import ActionView from '../ActionView';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { fromWei } from '../../util/number';
 import Identicon from '../Identicon';
+import WebsiteIcon from '../WebsiteIcon';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,11 +83,7 @@ const styles = StyleSheet.create({
 	domainLogo: {
 		width: 70,
 		height: 70,
-		overflow: 'hidden',
 		borderRadius: 100
-	},
-	ethLogo: {
-		borderRadius: 0
 	},
 	assetLogo: {
 		alignItems: 'center',
@@ -143,39 +140,16 @@ class SignatureRequest extends Component {
 		currentPageInformation: PropTypes.object
 	};
 
-	state = {
-		apiLogoUrl: null,
-		apiLogoStyles: null
-	};
-
-	componentDidMount = () => {
-		this.setPageLogo();
-	};
-
-	setPageLogo = async () => {
-		const { currentPageInformation } = this.props;
-		const apiLogoUrl = `http://icons.duckduckgo.com/ip2/${currentPageInformation.url}.ico`;
-		this.setState({ apiLogoUrl: { uri: apiLogoUrl } });
-	};
-
-	onSetPageError = async () => {
-		await this.setState({ apiLogoUrl: ethLogo, apiLogoStyles: styles.ethLogo });
-	};
-
 	renderPageInformation = () => {
-		const { domain, currentPageInformation } = this.props;
-		const { apiLogoUrl, apiLogoStyles } = this.state;
+		const {
+			domain,
+			currentPageInformation: { title, url }
+		} = this.props;
 		return (
 			<View style={styles.domainWrapper}>
-				<View style={styles.assetLogo}>
-					<Image
-						source={apiLogoUrl}
-						style={[styles.domainLogo, apiLogoStyles]}
-						onError={this.onSetPageError}
-					/>
-				</View>
-				<Text style={styles.domainTitle}>{currentPageInformation.title}</Text>
-				<Text style={styles.domainText}>{currentPageInformation.url}</Text>
+				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
+				<Text style={styles.domainTitle}>{title}</Text>
+				<Text style={styles.domainText}>{url}</Text>
 				{domain && <Text style={styles.domainText}>{domain.name}</Text>}
 			</View>
 		);

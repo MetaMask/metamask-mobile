@@ -17,6 +17,7 @@ import {
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { removeBookmark } from '../../actions/bookmarks';
+import WebsiteIcon from '../WebsiteIcon';
 
 const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
@@ -85,9 +86,10 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	bookmarkIco: {
-		width: 24,
-		height: 24,
-		marginRight: 7
+		width: 26,
+		height: 26,
+		marginRight: 7,
+		borderRadius: 13
 	},
 	bookmarkIconDefault: {
 		position: 'absolute',
@@ -112,6 +114,9 @@ const styles = StyleSheet.create({
 	noBookmarks: {
 		color: colors.fontSecondary,
 		...fontStyles.normal
+	},
+	fallbackTextStyle: {
+		fontSize: 12
 	}
 });
 
@@ -178,25 +183,27 @@ class HomePage extends Component {
 	renderBookmarks = () => {
 		let content = null;
 		if (this.props.bookmarks.length) {
-			content = this.props.bookmarks.map((item, i) => {
-				const iconUrl = `http://icons.duckduckgo.com/ip2/${this.getHost(item.url)}.ico`;
-				return (
-					<View key={item.url} style={styles.bookmarkItem}>
-						<TouchableOpacity
-							style={styles.bookmarkTouchable}
-							onPress={() => this.props.onBookmarkTapped(item.url)} // eslint-disable-line react/jsx-no-bind
-							// eslint-disable-next-line react/jsx-no-bind
-							onLongPress={() => this.showRemoveMenu(i)}
-						>
-							<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />
-							<Image style={styles.bookmarkIco} source={{ uri: iconUrl }} />
-							<Text numberOfLines={1} style={styles.bookmarkUrl}>
-								{item.name}
-							</Text>
-						</TouchableOpacity>
-					</View>
-				);
-			});
+			content = this.props.bookmarks.map((item, i) => (
+				<View key={item.url} style={styles.bookmarkItem}>
+					<TouchableOpacity
+						style={styles.bookmarkTouchable}
+						onPress={() => this.props.onBookmarkTapped(item.url)} // eslint-disable-line react/jsx-no-bind
+						// eslint-disable-next-line react/jsx-no-bind
+						onLongPress={() => this.showRemoveMenu(i)}
+					>
+						<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />
+						<WebsiteIcon
+							style={styles.bookmarkIco}
+							url={item.url}
+							title={item.name}
+							textStyle={styles.fallbackTextStyle}
+						/>
+						<Text numberOfLines={1} style={styles.bookmarkUrl}>
+							{item.name}
+						</Text>
+					</TouchableOpacity>
+				</View>
+			));
 		} else {
 			content = <Text style={styles.noBookmarks}>{strings('home_page.no_bookmarks')}</Text>;
 		}

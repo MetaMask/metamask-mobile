@@ -102,35 +102,24 @@ exports[`SignatureRequest should render correctly 1`] = `
         }
       }
     >
-      <View
+      <WebsiteIcon
         style={
+          Object {
+            "borderRadius": 100,
+            "height": 70,
+            "width": 70,
+          }
+        }
+        title="title"
+        url="url"
+        viewStyle={
           Object {
             "alignItems": "center",
             "borderRadius": 10,
             "justifyContent": "center",
           }
         }
-      >
-        <Component
-          onError={[Function]}
-          source={
-            Object {
-              "uri": "http://icons.duckduckgo.com/ip2/url.ico",
-            }
-          }
-          style={
-            Array [
-              Object {
-                "borderRadius": 100,
-                "height": 70,
-                "overflow": "hidden",
-                "width": 70,
-              },
-              null,
-            ]
-          }
-        />
-      </View>
+      />
       <Text
         style={
           Object {
