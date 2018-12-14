@@ -143,10 +143,9 @@ class TransactionEdit extends Component {
 	};
 
 	componentDidMount() {
-		if (this.props.transactionData) {
-			if (this.props.transactionData.amount) {
-				this.props.handleUpdateAmount(this.props.transactionData.amount);
-			}
+		const { transactionData } = this.props;
+		if (transactionData && transactionData.amount) {
+			this.props.handleUpdateAmount(transactionData.amount);
 		}
 	}
 
