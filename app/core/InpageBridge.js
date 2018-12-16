@@ -32,6 +32,7 @@ class InpageBridge {
 	_onStateUpdate(state) {
 		this._selectedAddress = state.selectedAddress;
 		this._network = state.network;
+		this.accounts = [state.selectedAddress];
 	}
 
 	/**
@@ -39,9 +40,10 @@ class InpageBridge {
 	 */
 	constructor() {
 		this._pending = {};
-		this.isMetamask = true;
-		this._network = undefined; // INITIAL_NETWORK
+		this.isMetaMask = true;
+		this._network = 'undefined'; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
+		this.accounts = [];
 		document.addEventListener('message', ({ data }) => {
 			this._onMessage(data);
 		});
@@ -103,11 +105,20 @@ class InpageBridge {
 	 */
 	sendAsync(payload, callback) {
 		const random = Math.floor(Math.random() * 100 + 1);
-		payload = {
-			...payload,
-			__mmID: Date.now() * random,
-			hostname: window.location.hostname
-		};
+		if (!Array.isArray(payload)) {
+			payload = {
+				...payload,
+				__mmID: Date.now() * random,
+				hostname: window.location.hostname
+			};
+		} else {
+			// Batch request support
+			payload = {
+				requests: payload,
+				__mmID: Date.now() * random,
+				hostname: window.location.hostname
+			};
+		}
 		this._pending[`${payload.__mmID}`] = callback;
 		window.postMessage(
 			{
@@ -126,7 +137,8 @@ class InpageBridge {
 	 */
 	enable(params) {
 		return new Promise((resolve, reject) => {
-			this.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+			const self = this || window.ethereum;
+			self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
 				if (error) {
 					reject(error);
 					return;
