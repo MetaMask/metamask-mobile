@@ -31,8 +31,13 @@ class InpageBridge {
 
 	_onStateUpdate(state) {
 		this._selectedAddress = state.selectedAddress && state.selectedAddress.toLowerCase();
+		this.defaultAccount = this._selectedAddress;
 		this._network = state.network;
 		this.accounts = [this._selectedAddress];
+		// THIS SUCKS
+		if (window.web3 && window.web3.eth) {
+			window.web3.eth.defaultAccount = this.defaultAccount;
+		}
 	}
 
 	/**
@@ -43,6 +48,7 @@ class InpageBridge {
 		this.isMetaMask = true;
 		this._network = 'undefined'; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
+		this.defaultAccount = undefined;
 		this.accounts = [];
 		document.addEventListener('message', ({ data }) => {
 			this._onMessage(data);
