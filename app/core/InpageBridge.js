@@ -30,7 +30,7 @@ class InpageBridge {
 	}
 
 	_onStateUpdate(state) {
-		this._selectedAddress = state.selectedAddress.toLowerCase();
+		this._selectedAddress = state.selectedAddress && state.selectedAddress.toLowerCase();
 		this._network = state.network;
 		this.accounts = [this._selectedAddress];
 	}
