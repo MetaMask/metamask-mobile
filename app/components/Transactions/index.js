@@ -194,11 +194,16 @@ export default class Transactions extends Component {
 	};
 
 	viewOnEtherscan = (hash, networkID) => {
-		const network = getNetworkTypeById(networkID);
-		const url = getEtherscanTransactionUrl(network, hash);
-		this.props.navigation.navigate('BrowserView', {
-			url
-		});
+		try {
+			const network = getNetworkTypeById(networkID);
+			const url = getEtherscanTransactionUrl(network, hash);
+			this.props.navigation.navigate('BrowserView', {
+				url
+			});
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			console.error(`can't get a block explorer link for network `, networkID);
+		}
 	};
 
 	toggleDetailsView(hash, index) {

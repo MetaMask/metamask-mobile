@@ -112,7 +112,7 @@ class AccountDetails extends Component {
 		*/
 		identities: PropTypes.object,
 		/**
-		 * Object representing the selected the selected network
+		 * Object representing the selected network
 		 */
 		network: PropTypes.object.isRequired
 	};
@@ -130,8 +130,7 @@ class AccountDetails extends Component {
 	};
 
 	goToEtherscan = () => {
-		const { selectedAddress } = this.props;
-		const { network } = this.props;
+		const { selectedAddress, network } = this.props;
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
