@@ -28,8 +28,6 @@ export class BackgroundBridge {
 				.catch(error => {
 					done(error);
 				});
-		} else if (payload.requests && Array.isArray(payload.requests)) {
-			provider.sendAsync(payload.requests, done);
 		} else {
 			provider.sendAsync(payload, done);
 		}

@@ -46,7 +46,7 @@ class InpageBridge {
 	constructor() {
 		this._pending = {};
 		this.isMetaMask = true;
-		this._network = 'undefined'; // INITIAL_NETWORK
+		this._network = undefined; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		this.defaultAccount = undefined;
 		this.accounts = [];
@@ -119,11 +119,11 @@ class InpageBridge {
 			};
 		} else {
 			// Batch request support
-			payload = {
-				requests: payload,
+			payload = payload.map(request => ({
+				...request,
 				__mmID: Date.now() * random,
 				hostname: window.location.hostname
-			};
+			}));
 		}
 		this._pending[`${payload.__mmID}`] = callback;
 		window.postMessage(
@@ -143,6 +143,8 @@ class InpageBridge {
 	 */
 	enable(params) {
 		return new Promise((resolve, reject) => {
+			// Temporary fix for peepeth calling
+			// ethereum.enable with the wrong context
 			const self = this || window.ethereum;
 			self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
 				if (error) {
