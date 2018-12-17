@@ -22,14 +22,7 @@ platform :ios do
 		# Ensure that your git status is not dirty
   		ensure_git_status_clean
 
-		# Prompt for the changelog
-		changelog = prompt(
-			text: "Changelog: ",
-			multi_line_end_keyword: "END"
-		)
-
 		increment_build_number(
-    		build_number: latest_testflight_build_number + 1,
 			xcodeproj: "MetaMask.xcodeproj"
 		)
 
@@ -44,17 +37,7 @@ platform :ios do
 		upload_to_testflight(
       		distribute_external: false,
       		wait_processing_interval: 120,
-			changelog: changelog
     	)
-
-		commit_version_bump(xcodeproj: "MetaMask.xcodeproj")
-
-		# Add a git tag for this build. This will automatically
-		# use an appropriate git tag name
-		add_git_tag
-
-		# Push the new commit and tag back to your git remote
-		push_to_git_remote
 
 	end
 end

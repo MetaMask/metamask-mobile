@@ -1,4 +1,4 @@
-package com.metamask;
+package io.metamask;
 
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactFragmentActivity;
