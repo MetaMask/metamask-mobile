@@ -29,6 +29,7 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../core/SecureKeychain';
+import { toggleNetworkModal } from '../../actions/modals';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -219,16 +220,23 @@ class DrawerView extends Component {
 		/**
 		 * List of keyrings
 		 */
-		keyrings: PropTypes.array
+		keyrings: PropTypes.array,
+		/**
+		 * Action that toggles the network modal
+		 */
+		toggleNetworkModal: PropTypes.func.isRequired,
+		/**
+		 * Boolean that determines the status of the networks modal
+		 */
+		networkModalVisible: PropTypes.bool.isRequired
 	};
 
 	state = {
-		accountsModalVisible: false,
-		networksModalVisible: false
+		accountsModalVisible: false
 	};
 
 	onNetworkPress = () => {
-		this.setState({ networksModalVisible: true });
+		this.props.toggleNetworkModal();
 	};
 
 	onAccountPress = () => {
@@ -240,7 +248,7 @@ class DrawerView extends Component {
 	};
 
 	hideNetworksModal = () => {
-		this.setState({ networksModalVisible: false });
+		this.props.toggleNetworkModal();
 	};
 
 	showQrCode = async () => {
@@ -504,7 +512,7 @@ class DrawerView extends Component {
 						))}
 					</View>
 				</ScrollView>
-				<Modal isVisible={this.state.networksModalVisible} onBackdropPress={this.hideNetworksModal}>
+				<Modal isVisible={this.props.networkModalVisible} onBackdropPress={this.hideNetworksModal}>
 					<NetworkList onClose={this.hideNetworksModal} />
 				</Modal>
 				<Modal
@@ -529,6 +537,15 @@ const mapStateToProps = state => ({
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	networkModalVisible: state.modals.networkModalVisible
 });
-export default connect(mapStateToProps)(DrawerView);
+
+const mapDispatchToProps = dispatch => ({
+	toggleNetworkModal: () => dispatch(toggleNetworkModal())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(DrawerView);
