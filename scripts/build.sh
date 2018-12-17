@@ -125,7 +125,7 @@ buildIosDevice(){
 }
 
 buildAndroidRelease(){
-	adb uninstall com.metamask || true
+	adb uninstall io.metamask || true
 	prebuild_android
 	cd android &&
 	./gradlew assembleRelease &&
