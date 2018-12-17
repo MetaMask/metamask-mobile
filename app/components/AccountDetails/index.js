@@ -13,6 +13,7 @@ import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { getNavigationOptionsTitle } from '../Navbar';
+import { getEtherscanAddressUrl } from '../../util/etherscan';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -109,7 +110,11 @@ class AccountDetails extends Component {
 		/**
 		/* identities object required to get account name
 		*/
-		identities: PropTypes.object
+		identities: PropTypes.object,
+		/**
+		 * Object representing the selected network
+		 */
+		network: PropTypes.object.isRequired
 	};
 
 	componentDidMount = () => {
@@ -125,8 +130,8 @@ class AccountDetails extends Component {
 	};
 
 	goToEtherscan = () => {
-		const { selectedAddress } = this.props;
-		const url = `https://etherscan.io/address/${selectedAddress}`;
+		const { selectedAddress, network } = this.props;
+		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.navigate('BrowserView', {
@@ -258,6 +263,7 @@ class AccountDetails extends Component {
 }
 
 const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities
 });
