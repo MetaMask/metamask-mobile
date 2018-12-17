@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, Image, View, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, Platform, Image, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
+import { toggleNetworkModal } from '../../actions/modals';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -58,7 +59,15 @@ class NavbarTitle extends Component {
 		/**
 		 * Name of the current view
 		 */
-		title: PropTypes.string.isRequired
+		title: PropTypes.string.isRequired,
+		/**
+		 * Action that toggles the network modal
+		 */
+		toggleNetworkModal: PropTypes.func
+	};
+
+	openNetworkList = () => {
+		this.props.toggleNetworkModal();
 	};
 
 	render = () => {
@@ -66,7 +75,7 @@ class NavbarTitle extends Component {
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
 
 		return (
-			<View style={styles.wrapper}>
+			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
 				{!title ? (
 					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 				) : (
@@ -78,10 +87,16 @@ class NavbarTitle extends Component {
 						{name}
 					</Text>
 				</View>
-			</View>
+			</TouchableOpacity>
 		);
 	};
 }
 
 const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController });
-export default connect(mapStateToProps)(NavbarTitle);
+const mapDispatchToProps = dispatch => ({
+	toggleNetworkModal: () => dispatch(toggleNetworkModal())
+});
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(NavbarTitle);
