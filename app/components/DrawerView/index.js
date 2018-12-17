@@ -224,11 +224,11 @@ class DrawerView extends Component {
 		/**
 		 * Action that toggles the network modal
 		 */
-		toggleNetworkModal: PropTypes.func,
+		toggleNetworkModal: PropTypes.func.isRequired,
 		/**
 		 * Boolean that determines the status of the networks modal
 		 */
-		networkModalVisible: PropTypes.bool
+		networkModalVisible: PropTypes.bool.isRequired
 	};
 
 	state = {
