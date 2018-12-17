@@ -71,6 +71,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.lightWarning,
 		color: colors.warning
 	},
+	statusFailed: {
+		backgroundColor: colors.lightRed,
+		color: colors.error
+	},
 	amount: {
 		fontSize: 15,
 		color: colors.fontPrimary,
@@ -308,8 +312,10 @@ export default class Transactions extends Component {
 	getStatusStyle(status) {
 		if (status === 'confirmed') {
 			return styles.statusConfirmed;
-		} else if (status === 'submitted' || 'approved') {
+		} else if (status === 'submitted' || status === 'approved') {
 			return styles.statusSubmitted;
+		} else if (status === 'failed') {
+			return styles.statusFailed;
 		}
 		return null;
 	}
