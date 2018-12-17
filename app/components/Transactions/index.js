@@ -9,6 +9,8 @@ import { renderFullAddress } from '../../util/address';
 import { toLocaleDateTime } from '../../util/date';
 import { strings } from '../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { getEtherscanTransactionUrl } from '../../util/etherscan';
+import { getNetworkTypeById } from '../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -192,8 +194,8 @@ export default class Transactions extends Component {
 	};
 
 	viewOnEtherscan = (hash, networkID) => {
-		const isRopsten = networkID === '3';
-		const url = `https://${isRopsten ? 'ropsten.' : ''}etherscan.io/tx/${hash}`;
+		const network = getNetworkTypeById(networkID);
+		const url = getEtherscanTransactionUrl(network, hash);
 		this.props.navigation.navigate('BrowserView', {
 			url
 		});

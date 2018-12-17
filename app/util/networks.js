@@ -1,5 +1,4 @@
 import { colors } from '../styles/common';
-
 /**
  * List of the supported networks
  * including name, id, and color
@@ -7,7 +6,7 @@ import { colors } from '../styles/common';
  * This values are used in certain places like
  * navbar and the network switcher.
  */
-export default {
+const NetworkList = {
 	mainnet: {
 		name: 'Ethereum Main Network',
 		networkId: 1,
@@ -33,3 +32,14 @@ export default {
 		color: colors.concrete
 	}
 };
+
+export default NetworkList;
+
+export function getNetworkTypeById(id) {
+	const network = Object.keys(NetworkList).filter(key => NetworkList[key].networkId === parseInt(id, 10));
+	if (network.length > 0) {
+		return network[0];
+	}
+
+	throw new Error(`Unknown network with id ${id}`);
+}
