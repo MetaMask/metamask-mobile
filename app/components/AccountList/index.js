@@ -159,8 +159,9 @@ export default class AccountList extends Component {
 			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
 			InteractionManager.runAfterInteractions(() => {
 				Engine.refreshTransactionHistory();
-				const { AssetsDetectionController } = Engine.context;
+				const { AssetsDetectionController, AccountTrackerController } = Engine.context;
 				AssetsDetectionController.detectAssets();
+				AccountTrackerController.refresh();
 			});
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
