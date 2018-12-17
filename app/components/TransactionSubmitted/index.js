@@ -18,6 +18,7 @@ import { colors, fontStyles } from '../../styles/common';
 import Screen from '../Screen';
 import { getNavigationOptionsTitle } from '../Navbar';
 import StyledButton from '../StyledButton';
+import { getEtherscanTransactionUrl } from '../../util/etherscan';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -107,10 +108,9 @@ class TransactionSubmitted extends Component {
 	}
 
 	goToEtherscan = () => {
-		const { navigation } = this.props;
+		const { navigation, network } = this.props;
 		const hash = navigation.getParam('hash', null);
-		const isRopsten = this.props.network === 'ropsten';
-		const url = `https://${isRopsten ? 'ropsten.' : ''}etherscan.io/tx/${hash}`;
+		const url = getEtherscanTransactionUrl(network, hash);
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.navigate('BrowserView', {

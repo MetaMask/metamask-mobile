@@ -30,6 +30,7 @@ import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../core/SecureKeychain';
 import { toggleNetworkModal } from '../../actions/modals';
+import { getEtherscanAddressUrl } from '../../util/etherscan';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -327,8 +328,7 @@ class DrawerView extends Component {
 
 	viewInEtherscan = () => {
 		const { selectedAddress, network } = this.props;
-		const isRopsten = network.provider.type === 'ropsten';
-		const url = `https://${isRopsten ? 'ropsten.' : ''}etherscan.io/address/${selectedAddress}`;
+		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 		this.goToBrowserUrl(url);
 	};
 
