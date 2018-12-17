@@ -289,7 +289,7 @@ export class Browser extends Component {
 				});
 				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
 					this.approvalRequest.resolve([selectedAddress]);
-					this.sendStateUpdate();
+					this.backgroundBridge.enableAccounts();
 				} else {
 					this.setState({ showApprovalDialog: true });
 				}
