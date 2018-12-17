@@ -122,8 +122,9 @@ class Wallet extends Component {
 		AppState.addEventListener('change', this.handleAppStateChange);
 		InteractionManager.runAfterInteractions(() => {
 			Engine.refreshTransactionHistory();
-			const { AssetsDetectionController } = Engine.context;
+			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
 			AssetsDetectionController.detectAssets();
+			AccountTrackerController.refresh();
 		});
 		this.feedback = new Feedback({
 			action: () => {
