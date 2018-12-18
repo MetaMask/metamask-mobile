@@ -2,8 +2,8 @@ import { REHYDRATE } from 'redux-persist';
 import AppConstants from '../../core/AppConstants';
 
 const initialState = {
-	search_engine: AppConstants.DEFAULT_SEARCH_ENGINE,
-	lock_time: AppConstants.DEFAULT_LOCK_TIMEOUT
+	searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
+	lockTime: AppConstants.DEFAULT_LOCK_TIMEOUT
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -16,12 +16,12 @@ const settingsReducer = (state = initialState, action) => {
 		case 'SET_SEARCH_ENGINE':
 			return {
 				...state,
-				search_engine: action.search_engine
+				searchEngine: action.searchEngine
 			};
 		case 'SET_LOCK_TIME':
 			return {
 				...state,
-				lock_time: action.lock_time
+				lockTime: action.lockTime
 			};
 		default:
 			return state;

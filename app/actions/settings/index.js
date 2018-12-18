@@ -1,13 +1,13 @@
-export function setSearchEngine(search_engine) {
+export function setSearchEngine(searchEngine) {
 	return {
 		type: 'SET_SEARCH_ENGINE',
-		search_engine
+		searchEngine
 	};
 }
 
-export function setLockTime(lock_time) {
+export function setLockTime(lockTime) {
 	return {
 		type: 'SET_LOCK_TIME',
-		lock_time
+		lockTime
 	};
 }

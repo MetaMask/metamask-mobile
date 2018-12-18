@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import getNavbarOptions from '../Navbar';
 import HomePage from '../HomePage';
 import onUrlSubmit from '../../util/browser';
@@ -12,7 +13,7 @@ import Logger from '../../util/Logger';
 /**
  * Complete Web browser component with URL entry and history management
  */
-export default class BrowserHome extends Component {
+class BrowserHome extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('ÐApp Browser', navigation);
 
 	static defaultProps = {
@@ -28,6 +29,10 @@ export default class BrowserHome extends Component {
 		 * Initial URL to load in the WebView
 		 */
 		defaultURL: PropTypes.string,
+		/**
+		 * Active search engine
+		 */
+		searchEngine: PropTypes.string,
 		/**
 		 * react-navigation object used to switch between screens
 		 */
@@ -72,10 +77,16 @@ export default class BrowserHome extends Component {
 		if (url === '') {
 			return false;
 		}
-		const { defaultProtocol } = this.props;
-		const sanitizedInput = onUrlSubmit(url, defaultProtocol);
+		const { defaultProtocol, searchEngine } = this.props;
+		const sanitizedInput = onUrlSubmit(url, searchEngine, defaultProtocol);
 		await this.go(sanitizedInput);
 	};
 
 	render = () => <HomePage onBookmarkTapped={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} />;
 }
+
+const mapStateToProps = state => ({
+	searchEngine: state.settings.searchEngine
+});
+
+export default connect(mapStateToProps)(BrowserHome);

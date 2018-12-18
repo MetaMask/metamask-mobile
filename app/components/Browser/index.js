@@ -478,8 +478,8 @@ export class Browser extends Component {
 
 	onUrlInputSubmit = async () => {
 		const { inputValue } = this.state;
-		const { defaultProtocol } = this.props;
-		const sanitizedInput = onUrlSubmit(inputValue, defaultProtocol);
+		const { defaultProtocol, searchEngine } = this.props;
+		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
 		const url = await this.go(sanitizedInput);
 		this.hideUrlModal(url);
 	};
@@ -964,7 +964,8 @@ const mapStateToProps = state => ({
 	bookmarks: state.bookmarks,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	privacyMode: state.privacy.privacyMode
+	privacyMode: state.privacy.privacyMode,
+	searchEngine: state.settings.searchEngine
 });
 
 const mapDispatchToProps = dispatch => ({
