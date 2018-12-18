@@ -74,7 +74,8 @@ class EthInput extends Component {
 		 * Value of this underlying input expressed as in wei as a BN instance
 		 */
 		value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-		assetSymbol: PropTypes.string
+		asset: PropTypes.object,
+		contractExchangeRates: PropTypes.object
 	};
 
 	onChange = value => {
@@ -84,8 +85,9 @@ class EthInput extends Component {
 	};
 
 	render = () => {
-		const { conversionRate, currentCurrency, readonly, value, assetSymbol } = this.props;
+		const { currentCurrency, readonly, value, asset, contractExchangeRates } = this.props;
 		const { amount } = this.state;
+		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
 		return (
 			<View style={styles.root}>
 				<View style={styles.split}>
@@ -102,24 +104,23 @@ class EthInput extends Component {
 						value={amount}
 					/>
 					<Text style={styles.eth} numberOfLines={1}>
-						{assetSymbol || strings('unit.eth')}
+						{(asset && asset.symbol) || strings('unit.eth')}
 					</Text>
 				</View>
 				<Text style={styles.fiatValue} numberOfLines={1}>
-					{weiToFiat(value, conversionRate, currentCurrency).toUpperCase()}
+					{conversionRate
+						? weiToFiat(value, conversionRate, currentCurrency).toUpperCase()
+						: strings('transaction.conversion_not_available')}
 				</Text>
 			</View>
 		);
 	};
 }
 
-const mapStateToProps = ({
-	engine: {
-		backgroundState: { CurrencyRateController }
-	}
-}) => ({
-	conversionRate: CurrencyRateController.conversionRate,
-	currentCurrency: CurrencyRateController.currentCurrency
+const mapStateToProps = state => ({
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
 });
 
 export default connect(mapStateToProps)(EthInput);

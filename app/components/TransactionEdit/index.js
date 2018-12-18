@@ -269,7 +269,7 @@ class TransactionEdit extends Component {
 									</TouchableOpacity>
 								)}
 							</View>
-							<EthInput onChange={this.updateAmount} value={amount} assetSymbol={asset && asset.symbol} />
+							<EthInput onChange={this.updateAmount} value={amount} asset={asset} />
 						</View>
 						<View style={{ ...styles.formRow, ...styles.amountRow }}>
 							<View style={styles.label}>
