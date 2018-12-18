@@ -135,6 +135,7 @@
 		"title": "App Settings",
 		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
+		"search_engine": "Search Engine",
 		"new_RPC_URL": "New RPC URL",
 		"state_logs": "State Logs",
 		"reveal_seed_words": "Reveal Seed Words",

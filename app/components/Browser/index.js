@@ -810,7 +810,6 @@ export class Browser extends Component {
 						autoCapitalize="none"
 						autoCorrect={false}
 						clearButtonMode="while-editing"
-						keyboardType="url"
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder="Enter website address"
