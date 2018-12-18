@@ -99,6 +99,8 @@ prebuild_ios(){
 }
 
 prebuild_android(){
+	adb kill-server
+	adb start-server
 	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridge.js android/app/src/main/assets/.
