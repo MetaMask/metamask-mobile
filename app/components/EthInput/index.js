@@ -36,8 +36,7 @@ const styles = StyleSheet.create({
 	},
 	fiatValue: {
 		...fontStyles.normal,
-		fontSize: 12,
-		marginTop: 4
+		fontSize: 12
 	},
 	split: {
 		flex: 0,

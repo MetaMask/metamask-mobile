@@ -256,7 +256,8 @@
 		"required": "Required",
 		"to": "To",
 		"total": "Total",
-		"loading": "Loading..."
+		"loading": "Loading...",
+		"conversion_not_available": "Conversion rate not available"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",

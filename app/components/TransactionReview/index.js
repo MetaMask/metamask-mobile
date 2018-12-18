@@ -237,13 +237,14 @@ class TransactionReview extends Component {
 
 	render = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to },
+			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to, asset },
 			conversionRate,
 			currentCurrency
 		} = this.props;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
+		const ethAmount = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
+		const assetAmount = isBN(amount) && asset ? amount : undefined;
 
 		return (
 			<View style={styles.root}>
@@ -275,7 +276,9 @@ class TransactionReview extends Component {
 							<Text style={styles.summaryFiat}>
 								{weiToFiat(amount, conversionRate, currentCurrency).toUpperCase()}
 							</Text>
-							<Text style={styles.summaryEth}>{fromWei(amount).toString()}</Text>
+							<Text style={styles.summaryEth}>
+								{fromWei(amount).toString()} {asset ? asset.symbol : strings('unit.eth')}
+							</Text>
 							<TouchableOpacity style={styles.goBack} onPress={this.edit}>
 								<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
 								<Text style={styles.goBackText}>{strings('transaction.edit')}</Text>
@@ -293,9 +296,12 @@ class TransactionReview extends Component {
 									<Text style={styles.overviewFiat}>
 										{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
 									</Text>
-									<Text style={styles.overviewEth}>{fromWei(totalGas).toString()}</Text>
+									<Text style={styles.overviewEth}>
+										{fromWei(totalGas).toString()} {strings('unit.eth')}
+									</Text>
 								</View>
 							</View>
+
 							<View style={styles.overviewRow}>
 								<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
 								<View style={styles.overviewContent}>
@@ -304,9 +310,13 @@ class TransactionReview extends Component {
 										{strings('transaction.gas_fee').toUpperCase()}
 									</Text>
 									<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-										{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}
+										{weiToFiat(ethAmount, conversionRate, currentCurrency).toUpperCase()}
 									</Text>
-									<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
+
+									<Text style={styles.overviewEth}>
+										{asset && fromWei(assetAmount).toString()} {asset && asset.symbol} {' + '}
+										{fromWei(ethAmount).toString()} {strings('unit.eth')}
+									</Text>
 								</View>
 							</View>
 							{amountError ? (

@@ -47,7 +47,7 @@ class Asset extends Component {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * A string represeting the network name
+		 * A string representing the network name
 		 */
 		networkType: PropTypes.string
 	};
