@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN } from '../../util/number';
+import { isBN, hexToBN, toBN, toWei } from '../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -53,7 +53,9 @@ class TransactionEditor extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.object
+		transaction: PropTypes.object,
+		asset: PropTypes.object,
+		contractBalances: PropTypes.object
 	};
 
 	state = {
@@ -115,16 +117,25 @@ class TransactionEditor extends Component {
 	validateAmount = () => {
 		let error;
 		const { amount, gas, gasPrice, from } = this.state;
+		const { asset, contractBalances } = this.props;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
-		(!amount || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
-		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
+		if (!amount || !gas || !gasPrice || !from) {
+			return strings('transaction.invalid_amount');
+		}
+		if (amount && !isBN(amount)) {
+			return strings('transaction.invalid_amount');
+		}
+		const validateAssetAmount = asset && toWei(contractBalances[asset.address]).lt(amount);
+		const ethTotalAmount = asset ? gas.mul(gasPrice) : amount.add(gas.mul(gasPrice));
 		amount &&
 			fromAccount &&
 			isBN(gas) &&
 			isBN(gasPrice) &&
 			isBN(amount) &&
-			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
+			(asset
+				? validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount)
+				: hexToBN(fromAccount.balance).lt(ethTotalAmount)) &&
 			(error = strings('transaction.insufficient'));
 		return error;
 	};
@@ -178,8 +189,8 @@ class TransactionEditor extends Component {
 
 	render = () => {
 		const { amount, gas, gasPrice, from, to, data } = this.state;
-		const transactionData = { amount, gas, gasPrice, from, to, data };
-		const { mode } = this.props;
+		const { mode, asset } = this.props;
+		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
 
 		return (
 			<View style={styles.root}>
@@ -220,7 +231,8 @@ class TransactionEditor extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
 export default connect(mapStateToProps)(TransactionEditor);

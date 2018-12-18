@@ -175,22 +175,27 @@ class SendScreen extends Component {
 		);
 	}
 
-	render = () => (
-		<SafeAreaView style={styles.wrapper}>
-			{this.state.ready ? (
-				<TransactionEditor
-					navigation={this.props.navigation}
-					mode={this.state.mode}
-					onCancel={this.onCancel}
-					onConfirm={this.onConfirm}
-					onModeChange={this.onModeChange}
-					transaction={this.state.transaction}
-				/>
-			) : (
-				this.renderLoader()
-			)}
-		</SafeAreaView>
-	);
+	render = () => {
+		const { navigation } = this.props;
+		const asset = navigation.state && navigation.state && navigation.state.params;
+		return (
+			<SafeAreaView style={styles.wrapper}>
+				{this.state.ready ? (
+					<TransactionEditor
+						navigation={this.props.navigation}
+						mode={this.state.mode}
+						onCancel={this.onCancel}
+						onConfirm={this.onConfirm}
+						onModeChange={this.onModeChange}
+						transaction={this.state.transaction}
+						asset={asset}
+					/>
+				) : (
+					this.renderLoader()
+				)}
+			</SafeAreaView>
+		);
+	};
 }
 
 export default withNavigation(SendScreen);

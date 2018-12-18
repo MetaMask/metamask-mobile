@@ -106,7 +106,8 @@ export default class AssetOverview extends Component {
 	};
 
 	onSend = async () => {
-		this.props.navigation.navigate('SendScreen');
+		const { asset } = this.props;
+		this.props.navigation.navigate('SendScreen', asset);
 	};
 
 	renderLogo = () => {

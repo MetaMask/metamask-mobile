@@ -108,7 +108,7 @@ class TransactionEdit extends Component {
 		 */
 		onModeChange: PropTypes.func,
 		/**
-		 * Transaction object associated with this transaction
+		 * Transaction object associated with this transaction, if sending token it includes assetSymbol
 		 */
 		transactionData: PropTypes.object,
 		/**
@@ -231,7 +231,7 @@ class TransactionEdit extends Component {
 	render = () => {
 		const {
 			hideData,
-			transactionData: { amount, gas, gasPrice, data, from, to }
+			transactionData: { amount, gas, gasPrice, data, from, to, asset }
 		} = this.props;
 		const { amountError, gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -269,7 +269,7 @@ class TransactionEdit extends Component {
 									</TouchableOpacity>
 								)}
 							</View>
-							<EthInput onChange={this.updateAmount} value={amount} />
+							<EthInput onChange={this.updateAmount} value={amount} assetSymbol={asset && asset.symbol} />
 						</View>
 						<View style={{ ...styles.formRow, ...styles.amountRow }}>
 							<View style={styles.label}>

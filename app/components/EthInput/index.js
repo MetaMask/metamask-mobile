@@ -59,7 +59,7 @@ class EthInput extends Component {
 		 */
 		conversionRate: PropTypes.number,
 		/**
-		 * Currency code for currently-selcted currency from CurrencyRateController
+		 * Currency code for currently-selected currency from CurrencyRateController
 		 */
 		currentCurrency: PropTypes.string,
 		/**
@@ -73,7 +73,8 @@ class EthInput extends Component {
 		/**
 		 * Value of this underlying input expressed as in wei as a BN instance
 		 */
-		value: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
+		value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+		assetSymbol: PropTypes.string
 	};
 
 	onChange = value => {
@@ -83,7 +84,7 @@ class EthInput extends Component {
 	};
 
 	render = () => {
-		const { conversionRate, currentCurrency, readonly, value } = this.props;
+		const { conversionRate, currentCurrency, readonly, value, assetSymbol } = this.props;
 		const { amount } = this.state;
 		return (
 			<View style={styles.root}>
@@ -101,7 +102,7 @@ class EthInput extends Component {
 						value={amount}
 					/>
 					<Text style={styles.eth} numberOfLines={1}>
-						{strings('unit.eth')}
+						{assetSymbol || strings('unit.eth')}
 					</Text>
 				</View>
 				<Text style={styles.fiatValue} numberOfLines={1}>
