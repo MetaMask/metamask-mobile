@@ -225,7 +225,8 @@ class TransactionReview extends Component {
 	};
 
 	componentDidMount = () => {
-		const amountError = this.props.validateAmount();
+		const { validateAmount } = this.props;
+		const amountError = validateAmount && validateAmount();
 		this.setState({ amountError });
 	};
 

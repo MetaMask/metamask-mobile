@@ -196,23 +196,10 @@ exports[`TransactionEdit should render correctly 1`] = `
             Gas Fee
             :
           </Text>
-          <Text
-            style={
-              Object {
-                "color": "#f00",
-                "fontFamily": "Roboto",
-                "fontSize": 12,
-                "fontWeight": "600",
-                "lineHeight": 12,
-                "paddingTop": 6,
-              }
-            }
-          >
-            Invalid gas price
-          </Text>
         </View>
         <Connect(CustomGas)
           gas={"5208"}
+          handleGasFeeSelection={[Function]}
           totalGas={"14a"}
         />
       </View>
