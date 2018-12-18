@@ -211,6 +211,7 @@ class TransactionEditor extends Component {
 						onConfirm={this.onConfirm}
 						onModeChange={this.props.onModeChange}
 						transactionData={transactionData}
+						validateAmount={this.validateAmount}
 					/>
 				)}
 			</View>
