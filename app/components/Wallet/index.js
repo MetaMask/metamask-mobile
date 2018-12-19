@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { InteractionManager, ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
+import { InteractionManager, ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -21,6 +21,7 @@ import Engine from '../../core/Engine';
 import Networks from '../../util/networks';
 import AppConstants from '../../core/AppConstants';
 import Feedback from '../../core/Feedback';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -105,7 +106,11 @@ class Wallet extends Component {
 		/**
 		 * A string represeting the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Time to auto-lock the app after it goes in background mode
+		 */
+		lockTime: PropTypes.number
 	};
 
 	state = {
@@ -115,9 +120,11 @@ class Wallet extends Component {
 	};
 
 	mounted = false;
+	lockTimer = null;
+	locked = false;
 	scrollableTabViewRef = React.createRef();
 
-	async componentDidMount() {
+	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
 		AppState.addEventListener('change', this.handleAppStateChange);
 		InteractionManager.runAfterInteractions(() => {
@@ -180,18 +187,43 @@ class Wallet extends Component {
 	};
 
 	handleAppStateChange = async nextAppState => {
-		if (nextAppState !== 'active') {
-			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
-		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
-			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
-			if (bg_mode_ts && Date.now() - Number.parseInt(bg_mode_ts, 10) > AppConstants.LOCK_TIMEOUT) {
-				// If it's still mounted, lock it
-				this.mounted && this.props.navigation.navigate('LockScreen');
-			}
-			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
+		// Don't auto-lock
+		if (this.props.lockTime === -1) {
+			return;
 		}
+
+		if (nextAppState !== 'active') {
+			// Auto-lock immediately
+			if (this.props.lockTime === 0) {
+				this.lockWallet();
+			} else {
+				// Autolock after some time
+				this.lockTimer = setTimeout(() => {
+					if (this.lockTimer) {
+						this.lockWallet();
+					}
+				}, this.props.lockTime);
+			}
+		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
+			// Prevent locking since it didnt reach the time threshold
+			if (this.lockTimer) {
+				clearTimeout(this.lockTimer);
+				this.lockTimer = null;
+			}
+		}
+
 		this.mounted && this.setState({ appState: nextAppState });
 	};
+
+	lockWallet() {
+		if (!SecureKeychain.getInstance().isAuthenticating) {
+			this.mounted && this.props.navigation.navigate('LockScreen', { backgroundMode: true });
+			this.locked = true;
+		} else if (this.lockTimer) {
+			clearTimeout(this.lockTimer);
+			this.lockTimer = null;
+		}
+	}
 
 	onHideAsset = () => {
 		this.setState({ showAsset: false });
@@ -323,7 +355,8 @@ const mapStateToProps = state => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	lockTime: state.settings.lockTime
 });
 
 export default connect(mapStateToProps)(Wallet);

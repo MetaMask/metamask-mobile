@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {
-	AppState,
 	Text,
 	ActivityIndicator,
 	Platform,
@@ -8,7 +7,6 @@ import {
 	TextInput,
 	View,
 	TouchableWithoutFeedback,
-	AsyncStorage,
 	Alert,
 	Animated,
 	SafeAreaView,
@@ -36,7 +34,6 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import PersonalSign from '../PersonalSign';
 import TypedSign from '../TypedSign';
-import AppConstants from '../../core/AppConstants';
 import AccountApproval from '../AccountApproval';
 import { approveHost } from '../../actions/privacy';
 import { addBookmark } from '../../actions/bookmarks';
@@ -297,7 +294,6 @@ export class Browser extends Component {
 			},
 			web3_clientVersion: () => Promise.resolve('MetaMask/0.1.0/Alpha/Mobile')
 		});
-		AppState.addEventListener('change', this.handleAppStateChange);
 
 		const entryScriptWeb3 =
 			Platform.OS === 'ios'
@@ -358,26 +354,11 @@ export class Browser extends Component {
 
 	componentWillUnmount() {
 		this.mounted = false;
-		AppState.removeEventListener('change', this.handleAppStateChange);
 		// Remove all Engine listeners
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
 	}
-
-	handleAppStateChange = async nextAppState => {
-		if (nextAppState !== 'active') {
-			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
-		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
-			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
-			if (bg_mode_ts && Date.now() - Number.parseInt(bg_mode_ts, 10) > AppConstants.LOCK_TIMEOUT) {
-				// If it's still mounted, lock it
-				this.mounted && this.props.navigation.navigate('LockScreen');
-			}
-			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
-		}
-		this.mounted && this.setState({ appState: nextAppState });
-	};
 
 	isENSUrl(url) {
 		const urlObj = new URL(url);

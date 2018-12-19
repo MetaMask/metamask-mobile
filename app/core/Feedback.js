@@ -22,7 +22,7 @@ export default class Feedback {
 				this.lastCall = Date.now();
 				this.action.call();
 				this.count = 0;
-				clearInterval(this.timer);
+				clearTimeout(this.timer);
 			}
 		} else {
 			this.timer = setTimeout(() => {
