@@ -23,10 +23,13 @@ export default class Feedback {
 				this.action.call();
 				this.count = 0;
 				clearTimeout(this.timer);
+				this.timer = null;
 			}
 		} else {
 			this.timer = setTimeout(() => {
-				this.count = 0;
+				if (this.timer) {
+					this.count = 0;
+				}
 			}, this.maxDelay);
 		}
 	};
