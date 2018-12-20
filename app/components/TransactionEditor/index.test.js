@@ -1,19 +1,31 @@
 import React from 'react';
 import TransactionEditor from './';
 import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 import { shallow } from 'enzyme';
 
 const mockStore = configureMockStore();
-const store = mockStore({});
 
 describe('TransactionEditor', () => {
 	it('should render correctly', () => {
+		const initialState = {
+			engine: {
+				backgroundState: {
+					AccountTrackerController: {
+						accounts: { '0x2': { balance: '0' } }
+					}
+				}
+			}
+		};
+
 		const wrapper = shallow(
-			<Provider store={store}>
-				<TransactionEditor />
-			</Provider>
+			<TransactionEditor
+				navigation={{ state: { params: {} } }}
+				transaction={{ value: 0, data: '0x0', gas: 0, gasPrice: 1, from: '0x0', to: '0x1' }}
+			/>,
+			{
+				context: { store: mockStore(initialState) }
+			}
 		);
-		expect(wrapper).toMatchSnapshot();
+		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

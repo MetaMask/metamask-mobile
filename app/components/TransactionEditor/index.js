@@ -5,7 +5,7 @@ import { colors } from '../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN, toBN } from '../../util/number';
-import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
+import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
 import Engine from '../../core/Engine';
@@ -106,17 +106,18 @@ class TransactionEditor extends Component {
 		this.setState({ to, gas: hexToBN(gas) });
 	};
 
-	validate() {
+	validate = () => {
 		if (this.validateAmount() || this.validateGas() || this.validateToAddress()) {
 			return true;
 		}
-	}
+	};
 
-	validateAmount() {
+	validateAmount = () => {
 		let error;
 		const { amount, gas, gasPrice, from } = this.state;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
+		(!amount || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
 		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
 		amount &&
 			fromAccount &&
@@ -126,23 +127,27 @@ class TransactionEditor extends Component {
 			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
 			(error = strings('transaction.insufficient'));
 		return error;
-	}
+	};
 
-	validateGas() {
+	validateGas = () => {
 		let error;
 		const { gas, gasPrice } = this.state;
+		!gas && (error = strings('transaction.invalid_gas'));
 		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
+		!gasPrice && (error = strings('transaction.invalid_gas_price'));
 		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
+		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('custom_gas.warning_gas_limit'));
 		return error;
-	}
+	};
 
-	validateToAddress() {
+	validateToAddress = () => {
 		let error;
 		const { to } = this.state;
+		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
 		return error;
-	}
+	};
 
 	handleNewTxMeta = async ({
 		target_address,
@@ -192,6 +197,9 @@ class TransactionEditor extends Component {
 						handleUpdateToAddress={this.handleUpdateToAddress}
 						handleGasFeeSelection={this.handleGasFeeSelection}
 						transactionData={transactionData}
+						validateAmount={this.validateAmount}
+						validateGas={this.validateGas}
+						validateToAddress={this.validateToAddress}
 					/>
 				)}
 				{mode === 'review' && (
@@ -203,6 +211,7 @@ class TransactionEditor extends Component {
 						onConfirm={this.onConfirm}
 						onModeChange={this.props.onModeChange}
 						transactionData={transactionData}
+						validateAmount={this.validateAmount}
 					/>
 				)}
 			</View>

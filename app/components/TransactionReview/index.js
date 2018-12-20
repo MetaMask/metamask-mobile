@@ -6,8 +6,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, hexToBN, weiToFiat, fromWei } from '../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toBN, isBN, weiToFiat, fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -187,10 +186,6 @@ const styles = StyleSheet.create({
 class TransactionReview extends Component {
 	static propTypes = {
 		/**
-		 * List of accounts from the AccountTrackerController
-		 */
-		accounts: PropTypes.object,
-		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -217,32 +212,27 @@ class TransactionReview extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transactionData: PropTypes.object
+		transactionData: PropTypes.object,
+		/**
+		 * Callback to validate amount in transaction in parent state
+		 */
+		validateAmount: PropTypes.func
 	};
 
 	state = {
-		toFocused: false
+		toFocused: false,
+		amountError: ''
+	};
+
+	componentDidMount = () => {
+		const { validateAmount } = this.props;
+		const amountError = validateAmount && validateAmount();
+		this.setState({ amountError });
 	};
 
 	edit = () => {
 		const { onModeChange } = this.props;
 		onModeChange && onModeChange('edit');
-	};
-
-	validateAmount = () => {
-		let error;
-		const { amount, gas, gasPrice, from } = this.props.transactionData;
-		const checksummedFrom = from ? toChecksumAddress(from) : '';
-		const fromAccount = this.props.accounts[checksummedFrom];
-		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-		amount &&
-			fromAccount &&
-			isBN(gas) &&
-			isBN(gasPrice) &&
-			isBN(amount) &&
-			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
-			(error = strings('transaction.insufficient'));
-		return error;
 	};
 
 	render = () => {
@@ -251,6 +241,7 @@ class TransactionReview extends Component {
 			conversionRate,
 			currentCurrency
 		} = this.props;
+		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
 
@@ -318,14 +309,14 @@ class TransactionReview extends Component {
 									<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
 								</View>
 							</View>
-							{this.validateAmount() && (
+							{amountError ? (
 								<View style={styles.overviewAlert}>
 									<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
 									<Text style={styles.overviewAlertText}>
-										{strings('transaction.alert')}: {this.validateAmount()}.
+										{strings('transaction.alert')}: {amountError}.
 									</Text>
 								</View>
-							)}
+							) : null}
 						</View>
 					</View>
 				</ActionView>
