@@ -146,7 +146,11 @@ class TransactionEdit extends Component {
 		/**
 		 * Callback to validate to address in transaction in parent state
 		 */
-		validateToAddress: PropTypes.func
+		validateToAddress: PropTypes.func,
+		/**
+		 * Object containing accounts balances
+		 */
+		contractBalances: PropTypes.object
 	};
 
 	state = {
@@ -165,16 +169,17 @@ class TransactionEdit extends Component {
 	}
 
 	fillMax = () => {
-		const { gas, gasPrice, from } = this.props.transactionData;
+		const { gas, gasPrice, from, asset } = this.props.transactionData;
 		const { balance } = this.props.accounts[from];
+		const { contractBalances } = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
-		this.props.handleUpdateAmount(
-			hexToBN(balance)
-				.sub(totalGas)
-				.gt(fromWei(0))
-				? hexToBN(balance).sub(totalGas)
-				: fromWei(0)
-		);
+		const ethMaxAmount = hexToBN(balance)
+			.sub(totalGas)
+			.gt(fromWei(0))
+			? hexToBN(balance).sub(totalGas)
+			: fromWei(0);
+		const tokenMaxAmount = asset && contractBalances[asset.address];
+		this.props.handleUpdateAmount(asset ? tokenMaxAmount : ethMaxAmount);
 	};
 
 	onFocusToAddress = () => {
@@ -300,7 +305,8 @@ class TransactionEdit extends Component {
 }
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
 export default connect(mapStateToProps)(TransactionEdit);

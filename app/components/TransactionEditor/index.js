@@ -54,7 +54,13 @@ class TransactionEditor extends Component {
 		 * Transaction object associated with this transaction
 		 */
 		transaction: PropTypes.object,
+		/**
+		 * Object representing an asset
+		 */
 		asset: PropTypes.object,
+		/**
+		 * Object containing accounts balances
+		 */
 		contractBalances: PropTypes.object
 	};
 
@@ -74,9 +80,8 @@ class TransactionEditor extends Component {
 	};
 
 	onConfirm = () => {
-		const { amount, gas, gasPrice } = this.state;
+		const { amount, gas, gasPrice, data, from, to } = this.state;
 		const { onConfirm, transaction } = this.props;
-		const { data, from, to } = this.state;
 		!this.validate() &&
 			onConfirm &&
 			onConfirm({
@@ -115,6 +120,27 @@ class TransactionEditor extends Component {
 	};
 
 	validateAmount = () => {
+		const { asset } = this.props;
+		return asset ? this.validateTokenAmount() : this.validateEtherAmount();
+	};
+
+	validateEtherAmount = () => {
+		let error;
+		const { amount, gas, gasPrice, from } = this.state;
+		const checksummedFrom = from ? toChecksumAddress(from) : '';
+		const fromAccount = this.props.accounts[checksummedFrom];
+		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
+		amount &&
+			fromAccount &&
+			isBN(gas) &&
+			isBN(gasPrice) &&
+			isBN(amount) &&
+			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
+			(error = strings('transaction.insufficient'));
+		return error;
+	};
+
+	validateTokenAmount = () => {
 		let error;
 		const { amount, gas, gasPrice, from } = this.state;
 		const { asset, contractBalances } = this.props;
@@ -123,19 +149,13 @@ class TransactionEditor extends Component {
 		if (!amount || !gas || !gasPrice || !from) {
 			return strings('transaction.invalid_amount');
 		}
-		if (amount && !isBN(amount)) {
-			return strings('transaction.invalid_amount');
-		}
-		const validateAssetAmount = asset && toWei(contractBalances[asset.address]).lt(amount);
-		const ethTotalAmount = asset ? gas.mul(gasPrice) : amount.add(gas.mul(gasPrice));
+		const validateAssetAmount = toWei(contractBalances[asset.address]).lt(toWei(amount));
+		const ethTotalAmount = gas.mul(gasPrice);
 		amount &&
 			fromAccount &&
 			isBN(gas) &&
 			isBN(gasPrice) &&
-			isBN(amount) &&
-			(asset
-				? validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount)
-				: hexToBN(fromAccount.balance).lt(ethTotalAmount)) &&
+			(validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount)) &&
 			(error = strings('transaction.insufficient'));
 		return error;
 	};

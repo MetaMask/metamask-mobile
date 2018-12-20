@@ -78,8 +78,8 @@ class EthInput extends Component {
 	};
 
 	onChange = value => {
-		const { onChange } = this.props;
-		onChange && onChange(isDecimal(value) ? toWei(value) : value);
+		const { onChange, asset } = this.props;
+		onChange && onChange(isDecimal(value) && !asset ? toWei(value) : value);
 		this.setState({ amount: value });
 	};
 
