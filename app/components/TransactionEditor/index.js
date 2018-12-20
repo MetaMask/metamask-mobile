@@ -4,11 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN, toWei } from '../../util/number';
-import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
+import { isBN, hexToBN, toBN, toWei, fromWei } from '../../util/number';
+import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
+import { rawEncode } from 'ethereumjs-abi';
+
 import Engine from '../../core/Engine';
+
+const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 
 const styles = StyleSheet.create({
 	root: {
@@ -55,10 +59,6 @@ class TransactionEditor extends Component {
 		 */
 		transaction: PropTypes.object,
 		/**
-		 * Object representing an asset
-		 */
-		asset: PropTypes.object,
-		/**
 		 * Object containing accounts balances
 		 */
 		contractBalances: PropTypes.object
@@ -94,8 +94,15 @@ class TransactionEditor extends Component {
 		this.setState({ gas: gasLimit, gasPrice });
 	};
 
-	handleUpdateAmount = amount => {
-		this.setState({ amount });
+	handleUpdateAmount = async amount => {
+		const { TransactionController } = Engine.context;
+		const { to, from } = this.state;
+		const {
+			transaction: { asset }
+		} = this.props;
+		const data = asset ? this.generateTokenTransferData(to, fromWei(amount)) : undefined;
+		const { gas } = await TransactionController.estimateGas({ amount, from, data, to: asset ? asset.address : to });
+		this.setState({ amount, data, gas: hexToBN(gas) });
 	};
 
 	handleUpdateData = data => {
@@ -108,9 +115,13 @@ class TransactionEditor extends Component {
 
 	handleUpdateToAddress = async to => {
 		const { TransactionController } = Engine.context;
-		const { amount, from, data } = this.state;
-		const { gas } = await TransactionController.estimateGas({ amount, from, data, to });
-		this.setState({ to, gas: hexToBN(gas) });
+		const { amount, from } = this.state;
+		const {
+			transaction: { asset }
+		} = this.props;
+		const data = asset ? this.generateTokenTransferData(to, fromWei(amount)) : undefined;
+		const { gas } = await TransactionController.estimateGas({ amount, from, data, to: asset ? asset.address : to });
+		this.setState({ to, gas: hexToBN(gas), data });
 	};
 
 	validate = () => {
@@ -120,7 +131,9 @@ class TransactionEditor extends Component {
 	};
 
 	validateAmount = () => {
-		const { asset } = this.props;
+		const {
+			transaction: { asset }
+		} = this.props;
 		return asset ? this.validateTokenAmount() : this.validateEtherAmount();
 	};
 
@@ -143,7 +156,10 @@ class TransactionEditor extends Component {
 	validateTokenAmount = () => {
 		let error;
 		const { amount, gas, gasPrice, from } = this.state;
-		const { asset, contractBalances } = this.props;
+		const {
+			transaction: { asset },
+			contractBalances
+		} = this.props;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		if (!amount || !gas || !gasPrice || !from) {
@@ -207,9 +223,20 @@ class TransactionEditor extends Component {
 		}
 	};
 
+	generateTokenTransferData = (toAddress, amount) =>
+		TOKEN_TRANSFER_FUNCTION_SIGNATURE +
+		Array.prototype.map
+			.call(rawEncode(['address', 'uint256'], [toAddress, addHexPrefix(amount)]), x =>
+				('00' + x.toString(16)).slice(-2)
+			)
+			.join('');
+
 	render = () => {
 		const { amount, gas, gasPrice, from, to, data } = this.state;
-		const { mode, asset } = this.props;
+		const {
+			mode,
+			transaction: { asset }
+		} = this.props;
 		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
 
 		return (

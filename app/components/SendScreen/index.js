@@ -6,9 +6,8 @@ import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import TransactionEditor from '../TransactionEditor';
 import NavbarTitle from '../NavbarTitle';
-import { toBN, BNToHex, hexToBN, fromWei } from '../../util/number';
-import { toChecksumAddress, addHexPrefix } from 'ethereumjs-util';
-import { rawEncode } from 'ethereumjs-abi';
+import { toBN, BNToHex, hexToBN } from '../../util/number';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -24,7 +23,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	}
 });
-const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -57,7 +55,9 @@ class SendScreen extends Component {
 	mounted = false;
 
 	async reset() {
-		const transaction = {};
+		const { navigation } = this.props;
+		const asset = navigation.state && navigation.state && navigation.state.params;
+		const transaction = { asset };
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
 		transaction.gas = hexToBN(gas);
 		transaction.gasPrice = hexToBN(gasPrice);
@@ -141,6 +141,7 @@ class SendScreen extends Component {
 		transaction.gasPrice = BNToHex(transaction.gasPrice);
 		transaction.value = '0x0';
 		transaction.to = asset.address;
+		return transaction;
 	};
 
 	sanitizeTransaction(transaction) {
@@ -176,8 +177,6 @@ class SendScreen extends Component {
 			}
 		} else {
 			const { TransactionController } = Engine.context;
-			const tokenAmount = fromWei(transaction.value);
-			transaction.data = this.generateTokenTransferData(transaction.to, tokenAmount);
 			transaction = this.prepareTokenTransaction(transaction, asset);
 			try {
 				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
@@ -191,14 +190,6 @@ class SendScreen extends Component {
 		}
 	};
 
-	generateTokenTransferData = (toAddress, amount) =>
-		TOKEN_TRANSFER_FUNCTION_SIGNATURE +
-		Array.prototype.map
-			.call(rawEncode(['address', 'uint256'], [toAddress, addHexPrefix(amount)]), x =>
-				('00' + x.toString(16)).slice(-2)
-			)
-			.join('');
-
 	onModeChange = mode => {
 		this.mounted && this.setState({ mode });
 	};
@@ -211,27 +202,22 @@ class SendScreen extends Component {
 		);
 	}
 
-	render = () => {
-		const { navigation } = this.props;
-		const asset = navigation.state && navigation.state && navigation.state.params;
-		return (
-			<SafeAreaView style={styles.wrapper}>
-				{this.state.ready ? (
-					<TransactionEditor
-						navigation={this.props.navigation}
-						mode={this.state.mode}
-						onCancel={this.onCancel}
-						onConfirm={this.onConfirm}
-						onModeChange={this.onModeChange}
-						transaction={this.state.transaction}
-						asset={asset}
-					/>
-				) : (
-					this.renderLoader()
-				)}
-			</SafeAreaView>
-		);
-	};
+	render = () => (
+		<SafeAreaView style={styles.wrapper}>
+			{this.state.ready ? (
+				<TransactionEditor
+					navigation={this.props.navigation}
+					mode={this.state.mode}
+					onCancel={this.onCancel}
+					onConfirm={this.onConfirm}
+					onModeChange={this.onModeChange}
+					transaction={this.state.transaction}
+				/>
+			) : (
+				this.renderLoader()
+			)}
+		</SafeAreaView>
+	);
 }
 
 export default withNavigation(SendScreen);
