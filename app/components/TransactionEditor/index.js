@@ -149,7 +149,7 @@ class TransactionEditor extends Component {
 		if (!amount || !gas || !gasPrice || !from) {
 			return strings('transaction.invalid_amount');
 		}
-		const validateAssetAmount = toWei(contractBalances[asset.address]).lt(toWei(amount));
+		const validateAssetAmount = toWei(contractBalances[asset.address]).lt(amount);
 		const ethTotalAmount = gas.mul(gasPrice);
 		amount &&
 			fromAccount &&

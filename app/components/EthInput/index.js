@@ -73,13 +73,19 @@ class EthInput extends Component {
 		 * Value of this underlying input expressed as in wei as a BN instance
 		 */
 		value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+		/**
+		 * Object representing an asset
+		 */
 		asset: PropTypes.object,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
 		contractExchangeRates: PropTypes.object
 	};
 
 	onChange = value => {
-		const { onChange, asset } = this.props;
-		onChange && onChange(isDecimal(value) && !asset ? toWei(value) : value);
+		const { onChange } = this.props;
+		onChange && onChange(isDecimal(value) ? toWei(value) : value);
 		this.setState({ amount: value });
 	};
 

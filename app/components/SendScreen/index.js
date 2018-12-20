@@ -6,8 +6,9 @@ import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import TransactionEditor from '../TransactionEditor';
 import NavbarTitle from '../NavbarTitle';
-import { toBN, BNToHex, hexToBN } from '../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toBN, BNToHex, hexToBN, fromWei } from '../../util/number';
+import { toChecksumAddress, addHexPrefix } from 'ethereumjs-util';
+import { rawEncode } from 'ethereumjs-abi';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -23,6 +24,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	}
 });
+const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 
 /**
  * View that wraps the wraps the "Send" screen
@@ -134,6 +136,13 @@ class SendScreen extends Component {
 		return transaction;
 	}
 
+	prepareTokenTransaction = (transaction, asset) => {
+		transaction.gas = BNToHex(transaction.gas);
+		transaction.gasPrice = BNToHex(transaction.gasPrice);
+		transaction.value = '0x0';
+		transaction.to = asset.address;
+	};
+
 	sanitizeTransaction(transaction) {
 		transaction.gas = hexToBN(transaction.gas);
 		transaction.gasPrice = hexToBN(transaction.gasPrice);
@@ -150,18 +159,45 @@ class SendScreen extends Component {
 	};
 
 	onConfirm = async transaction => {
-		const { TransactionController } = Engine.context;
-		transaction = this.prepareTransaction(transaction);
-		try {
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
-			await TransactionController.approveTransaction(transactionMeta.id);
-			const hash = await result;
-			this.props.navigation.push('TransactionSubmitted', { hash });
-			this.reset();
-		} catch (error) {
-			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+		const { navigation } = this.props;
+		const asset = navigation.state && navigation.state && navigation.state.params;
+
+		if (!asset) {
+			const { TransactionController } = Engine.context;
+			transaction = this.prepareTransaction(transaction);
+			try {
+				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+				await TransactionController.approveTransaction(transactionMeta.id);
+				const hash = await result;
+				this.props.navigation.push('TransactionSubmitted', { hash });
+				this.reset();
+			} catch (error) {
+				Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			}
+		} else {
+			const { TransactionController } = Engine.context;
+			const tokenAmount = fromWei(transaction.value);
+			transaction.data = this.generateTokenTransferData(transaction.to, tokenAmount);
+			transaction = this.prepareTokenTransaction(transaction, asset);
+			try {
+				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+				await TransactionController.approveTransaction(transactionMeta.id);
+				const hash = await result;
+				this.props.navigation.push('TransactionSubmitted', { hash });
+				this.reset();
+			} catch (error) {
+				Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			}
 		}
 	};
+
+	generateTokenTransferData = (toAddress, amount) =>
+		TOKEN_TRANSFER_FUNCTION_SIGNATURE +
+		Array.prototype.map
+			.call(rawEncode(['address', 'uint256'], [toAddress, addHexPrefix(amount)]), x =>
+				('00' + x.toString(16)).slice(-2)
+			)
+			.join('');
 
 	onModeChange = mode => {
 		this.mounted && this.setState({ mode });
