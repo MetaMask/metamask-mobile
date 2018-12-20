@@ -17,7 +17,10 @@ import {
 	TRANSFER_FROM_ACTION_KEY,
 	APPROVE_ACTION_KEY,
 	SEND_TOKEN_ACTION_KEY,
-	SEND_ETHER_ACTION_KEY
+	SEND_ETHER_ACTION_KEY,
+	DEPLOY_CONTRACT_ACTION_KEY,
+	CONTRACT_METHOD_DEPLOY,
+	CONTRACT_CREATION_SIGNATURE
 } from '../../util/transactions';
 import Engine from '../../core/Engine';
 
@@ -147,6 +150,8 @@ class TransactionElement extends Component {
 						? strings('transactions.self_sent_ether')
 						: strings('transactions.received_ether')
 					: strings('transactions.sent_ether');
+			case DEPLOY_CONTRACT_ACTION_KEY:
+				return strings('transactions.contract_deploy');
 		}
 	};
 
@@ -166,6 +171,9 @@ class TransactionElement extends Component {
 		if (data.includes(TOKEN_TRANSFER_FUNCTION_SIGNATURE)) {
 			return { name: TOKEN_METHOD_TRANSFER };
 		}
+		if (data.includes(CONTRACT_CREATION_SIGNATURE)) {
+			return { name: CONTRACT_METHOD_DEPLOY };
+		}
 		return {};
 	};
 
@@ -182,13 +190,15 @@ class TransactionElement extends Component {
 		if (data) {
 			const methodData = this.getMethodData(data);
 			const toSmartContract = await this.isSmartContractAddress(to);
-
-			if (!toSmartContract) {
-				return SEND_ETHER_ACTION_KEY;
-			}
-
 			const { name } = methodData;
 			const methodName = name && name.toLowerCase();
+
+			if (!toSmartContract) {
+				if (methodName === CONTRACT_METHOD_DEPLOY) {
+					return DEPLOY_CONTRACT_ACTION_KEY;
+				}
+				return SEND_ETHER_ACTION_KEY;
+			}
 
 			if (!methodName) {
 				return UNKNOWN_FUNCTION_KEY;
