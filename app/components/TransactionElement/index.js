@@ -98,8 +98,7 @@ const styles = StyleSheet.create({
 const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
- * View that renders a list of Collectibles
- * also known as ERC-721 Tokens
+ * View that renders a transaction item part of transactions list
  */
 class TransactionElement extends Component {
 	static propTypes = {
@@ -124,8 +123,17 @@ class TransactionElement extends Component {
 		 * position once the transaction detail is visible
 		 */
 		selectedTx: PropTypes.string,
+		/**
+		 * String of selected address
+		 */
 		selectedAddress: PropTypes.string,
+		/**
+		 * Current element of the list index
+		 */
 		i: PropTypes.number,
+		/**
+		 * Callback to render transaction details view
+		 */
 		toggleDetailsView: PropTypes.func
 	};
 

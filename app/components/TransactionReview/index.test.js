@@ -16,6 +16,9 @@ describe('TransactionReview', () => {
 					PreferencesController: {
 						selectedAddress: '0x2'
 					},
+					TokenRatesController: {
+						contractExchangeRates: {}
+					},
 					CurrencyRateController: {
 						currentCurrency: 'usd',
 						conversionRate: 0.1

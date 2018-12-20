@@ -2,6 +2,7 @@ import React from 'react';
 import TransactionEditor from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
+import { BN } from 'ethereumjs-util';
 
 const mockStore = configureMockStore();
 
@@ -12,6 +13,9 @@ describe('TransactionEditor', () => {
 				backgroundState: {
 					AccountTrackerController: {
 						accounts: { '0x2': { balance: '0' } }
+					},
+					TokenBalancesController: {
+						contractBalances: { '0x2': new BN(0) }
 					}
 				}
 			}
