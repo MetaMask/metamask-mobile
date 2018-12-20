@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { toLocaleDateTime } from '../../util/date';
@@ -88,8 +88,14 @@ const styles = StyleSheet.create({
 	statusFailed: {
 		backgroundColor: colors.lightRed,
 		color: colors.error
+	},
+	ethLogo: {
+		width: 24,
+		height: 24
 	}
 });
+
+const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that renders a list of Collectibles
@@ -244,7 +250,11 @@ class TransactionElement extends Component {
 						{`${toLocaleDateTime(tx.time)}`}
 					</Text>
 					<View style={styles.subRow}>
-						<Identicon address={tx.transaction.to} diameter={24} />
+						{actionKey !== strings('transactions.contract_deploy') ? (
+							<Identicon address={tx.transaction.to} diameter={24} />
+						) : (
+							<Image source={ethLogo} style={styles.ethLogo} />
+						)}
 						<View style={styles.info}>
 							<Text style={styles.address}>{actionKey}</Text>
 							<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
