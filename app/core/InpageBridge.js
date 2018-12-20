@@ -140,7 +140,10 @@ class InpageBridge {
 	 */
 	enable(params) {
 		return new Promise((resolve, reject) => {
-			this.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+			// Temporary fix for peepeth calling
+			// ethereum.enable with the wrong context
+			const self = this || window.ethereum;
+			self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
 				if (error) {
 					reject(error);
 					return;

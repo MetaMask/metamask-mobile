@@ -47,7 +47,7 @@ export default class LockScreen extends Component {
 	handleAppStateChange = async nextAppState => {
 		// Try to unlock when coming from the background
 		if (this.locked && this.appState !== 'active' && nextAppState === 'active') {
-			this.appstate = nextAppState;
+			this.appState = nextAppState;
 			this.unlockKeychain();
 		}
 	};

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { InteractionManager, ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
+import { InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -21,7 +21,8 @@ import Engine from '../../core/Engine';
 import Networks from '../../util/networks';
 import AppConstants from '../../core/AppConstants';
 import Feedback from '../../core/Feedback';
-import SecureKeychain from '../../core/SecureKeychain';
+// eslint-disable-next-line import/no-unresolved
+import LockManager from '../../core/LockManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -115,7 +116,6 @@ class Wallet extends Component {
 
 	state = {
 		locked: false,
-		appState: 'active',
 		showAsset: false
 	};
 
@@ -126,7 +126,6 @@ class Wallet extends Component {
 
 	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
-		AppState.addEventListener('change', this.handleAppStateChange);
 		InteractionManager.runAfterInteractions(() => {
 			Engine.refreshTransactionHistory();
 			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
@@ -138,6 +137,7 @@ class Wallet extends Component {
 				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
 			}
 		});
+		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 		this.mounted = true;
 	}
 
@@ -151,15 +151,19 @@ class Wallet extends Component {
 				this.handleTabChange(currentPage);
 			}
 		}
+		if (this.props.lockTime !== prevProps.lockTime) {
+			this.lockManager.updateLockTime(this.props.lockTime);
+		}
 	}
+
 	handleTabChange = page => {
 		this.scrollableTabViewRef && this.scrollableTabViewRef.current.goToPage(page);
 	};
 
 	componentWillUnmount() {
 		this.mounted = false;
-		AppState.removeEventListener('change', this.handleAppStateChange);
 		this.feedback.stopListening();
+		this.lockManager.stopListening();
 	}
 
 	renderTabBar() {
@@ -185,45 +189,6 @@ class Wallet extends Component {
 			dm.parse(params['+non_branch_link']);
 		}
 	};
-
-	handleAppStateChange = async nextAppState => {
-		// Don't auto-lock
-		if (this.props.lockTime === -1) {
-			return;
-		}
-
-		if (nextAppState !== 'active') {
-			// Auto-lock immediately
-			if (this.props.lockTime === 0) {
-				this.lockWallet();
-			} else {
-				// Autolock after some time
-				this.lockTimer = setTimeout(() => {
-					if (this.lockTimer) {
-						this.lockWallet();
-					}
-				}, this.props.lockTime);
-			}
-		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
-			// Prevent locking since it didnt reach the time threshold
-			if (this.lockTimer) {
-				clearTimeout(this.lockTimer);
-				this.lockTimer = null;
-			}
-		}
-
-		this.mounted && this.setState({ appState: nextAppState });
-	};
-
-	lockWallet() {
-		if (!SecureKeychain.getInstance().isAuthenticating) {
-			this.mounted && this.props.navigation.navigate('LockScreen', { backgroundMode: true });
-			this.locked = true;
-		} else if (this.lockTimer) {
-			clearTimeout(this.lockTimer);
-			this.lockTimer = null;
-		}
-	}
 
 	onHideAsset = () => {
 		this.setState({ showAsset: false });
