@@ -8,7 +8,6 @@ import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'r
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN, fromWei } from '../../util/number';
-import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
 
@@ -135,11 +134,27 @@ class TransactionEdit extends Component {
 		/**
 		 * Callback to update to address in transaction in parent state
 		 */
-		handleUpdateToAddress: PropTypes.func
+		handleUpdateToAddress: PropTypes.func,
+		/**
+		 * Callback to validate amount in transaction in parent state
+		 */
+		validateAmount: PropTypes.func,
+		/**
+		 * Callback to validate gas in transaction in parent state
+		 */
+		validateGas: PropTypes.func,
+		/**
+		 * Callback to validate to address in transaction in parent state
+		 */
+		validateToAddress: PropTypes.func
 	};
 
 	state = {
-		toFocused: false
+		toFocused: false,
+		amountError: '',
+		addressError: '',
+		toAddressError: '',
+		gasError: ''
 	};
 
 	componentDidMount() {
@@ -172,8 +187,24 @@ class TransactionEdit extends Component {
 		!this.validate() && onModeChange && onModeChange('review');
 	};
 
-	updateAmount = amount => {
-		this.props.handleUpdateAmount(amount);
+	validate = () => {
+		const amountError = this.props.validateAmount();
+		const gasError = this.props.validateGas();
+		const toAddressError = this.props.validateToAddress();
+		this.setState({ amountError, gasError, toAddressError });
+		return amountError || gasError || toAddressError;
+	};
+
+	updateAmount = async amount => {
+		await this.props.handleUpdateAmount(amount);
+		const amountError = this.props.validateAmount();
+		this.setState({ amountError });
+	};
+
+	updateGas = async (gas, gasLimit) => {
+		await this.props.handleGasFeeSelection(gas, gasLimit);
+		const gasError = this.props.validateGas();
+		this.setState({ gasError });
 	};
 
 	updateData = data => {
@@ -181,51 +212,13 @@ class TransactionEdit extends Component {
 	};
 
 	updateFromAddress = from => {
-		this.updateAmount();
 		this.props.handleUpdateFromAddress(from);
 	};
 
-	updateToAddress = to => {
-		this.props.handleUpdateToAddress(to);
-	};
-
-	validate() {
-		if (this.validateAmount() || this.validateGas() || this.validateToAddress()) {
-			return true;
-		}
-	}
-
-	validateAmount = () => {
-		let error;
-		const { amount, gas, gasPrice, from } = this.props.transactionData;
-		const checksummedFrom = from ? toChecksumAddress(from) : '';
-		const fromAccount = this.props.accounts[checksummedFrom];
-		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-		amount &&
-			fromAccount &&
-			isBN(gas) &&
-			isBN(gasPrice) &&
-			isBN(amount) &&
-			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
-			(error = strings('transaction.insufficient'));
-		return error;
-	};
-
-	validateGas = () => {
-		let error;
-		const { gas, gasPrice } = this.props.transactionData;
-		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
-		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
-		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('custom_gas.warning_gas_limit'));
-		return error;
-	};
-
-	validateToAddress = () => {
-		let error;
-		const { to } = this.props.transactionData;
-		!to && this.state.toFocused && (error = strings('transaction.required'));
-		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
-		return error;
+	updateToAddress = async to => {
+		await this.props.handleUpdateToAddress(to);
+		const toAddressError = this.props.validateToAddress();
+		this.setState({ toAddressError });
 	};
 
 	onScanSuccess = () => {
@@ -240,6 +233,7 @@ class TransactionEdit extends Component {
 			hideData,
 			transactionData: { amount, gas, gasPrice, data, from, to }
 		} = this.props;
+		const { amountError, gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -254,9 +248,7 @@ class TransactionEdit extends Component {
 						<View style={{ ...styles.formRow, ...styles.toRow }}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
-								{this.validateToAddress() && (
-									<Text style={styles.error}>{this.validateToAddress()}</Text>
-								)}
+								{toAddressError ? <Text style={styles.error}>{toAddressError}</Text> : null}
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
@@ -269,8 +261,8 @@ class TransactionEdit extends Component {
 						<View style={{ ...styles.formRow, ...styles.amountRow, ...styles.notAbsolute }}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
-								{this.validateAmount() ? (
-									<Text style={styles.error}>{this.validateAmount()}</Text>
+								{amountError ? (
+									<Text style={styles.error}>{amountError}</Text>
 								) : (
 									<TouchableOpacity onPress={this.fillMax}>
 										<Text style={styles.max}>{strings('transaction.max')}</Text>
@@ -282,13 +274,9 @@ class TransactionEdit extends Component {
 						<View style={{ ...styles.formRow, ...styles.amountRow }}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
-								{this.validateGas() && <Text style={styles.error}>{this.validateGas()}</Text>}
+								{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
 							</View>
-							<CustomGas
-								handleGasFeeSelection={this.props.handleGasFeeSelection}
-								totalGas={totalGas}
-								gas={gas}
-							/>
+							<CustomGas handleGasFeeSelection={this.updateGas} totalGas={totalGas} gas={gas} />
 						</View>
 						{!hideData && (
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
