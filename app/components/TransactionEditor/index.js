@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN, toWei, fromWei } from '../../util/number';
+import { isBN, hexToBN, toBN, toWei, fromWei, calcTokenValueToSend } from '../../util/number';
 import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -114,7 +114,9 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const data = asset ? this.generateTokenTransferData(to, fromWei(amount)) : undefined;
+		const data = asset
+			? this.generateTokenTransferData(to, calcTokenValueToSend(fromWei(amount), asset.decimals))
+			: undefined;
 		const { gas } = await this.estimateGas({ amount });
 		this.setState({ amount, data, gas: hexToBN(gas) });
 	};
@@ -134,7 +136,9 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const data = asset ? this.generateTokenTransferData(to, fromWei(amount)) : undefined;
+		const data = asset
+			? this.generateTokenTransferData(to, calcTokenValueToSend(fromWei(amount), asset.decimals))
+			: undefined;
 		const { gas } = await TransactionController.estimateGas({ amount, from, data, to: asset ? asset.address : to });
 		this.setState({ to, gas: hexToBN(gas), data });
 	};
