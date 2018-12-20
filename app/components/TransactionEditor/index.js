@@ -90,23 +90,39 @@ class TransactionEditor extends Component {
 			});
 	};
 
+	estimateGas = async opts => {
+		const { TransactionController } = Engine.context;
+		const {
+			transaction: { asset }
+		} = this.props;
+		const { from, to } = this.state;
+		const { amount = this.state.amount, data = this.state.data } = opts;
+		const estimation = await TransactionController.estimateGas({
+			amount,
+			from,
+			data,
+			to: asset ? asset.address : to
+		});
+		return estimation;
+	};
+
 	handleGasFeeSelection = (gasLimit, gasPrice) => {
 		this.setState({ gas: gasLimit, gasPrice });
 	};
 
 	handleUpdateAmount = async amount => {
-		const { TransactionController } = Engine.context;
-		const { to, from } = this.state;
+		const { to } = this.state;
 		const {
 			transaction: { asset }
 		} = this.props;
 		const data = asset ? this.generateTokenTransferData(to, fromWei(amount)) : undefined;
-		const { gas } = await TransactionController.estimateGas({ amount, from, data, to: asset ? asset.address : to });
+		const { gas } = await this.estimateGas({ amount });
 		this.setState({ amount, data, gas: hexToBN(gas) });
 	};
 
-	handleUpdateData = data => {
-		this.setState({ data });
+	handleUpdateData = async data => {
+		const { gas } = await this.estimateGas({ data });
+		this.setState({ data, gas: hexToBN(gas) });
 	};
 
 	handleUpdateFromAddress = from => {
