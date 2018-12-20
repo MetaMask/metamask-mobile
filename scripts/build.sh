@@ -126,6 +126,11 @@ buildIosDevice(){
 	react-native run-ios  --device
 }
 
+buildIosRelease(){
+	prebuild_ios
+	cd ios && fastlane beta
+}
+
 buildAndroidRelease(){
 	adb uninstall io.metamask || true
 	prebuild_android
@@ -143,8 +148,7 @@ if [ "$PLATFORM" == "ios" ]
   	then
 
 	if [ "$MODE" == "release" ] ; then
-		echo "Release mode is not suppported on iOS"
-		exit 1;
+		buildIosRelease
     else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
