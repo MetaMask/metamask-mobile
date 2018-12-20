@@ -114,10 +114,10 @@ class TransactionElement extends Component {
 		 * Callback function that will adjust the scroll
 		 * position once the transaction detail is visible
 		 */
-		adjustScroll: PropTypes.func,
-		selectedTx: PropTypes.object,
+		selectedTx: PropTypes.string,
 		selectedAddress: PropTypes.string,
-		i: PropTypes.number
+		i: PropTypes.number,
+		toggleDetailsView: PropTypes.func
 	};
 
 	state = {
@@ -137,7 +137,7 @@ class TransactionElement extends Component {
 		switch (actionKey) {
 			case SEND_TOKEN_ACTION_KEY:
 				return strings('transactions.sent_tokens');
-			case APPROVE_ACTION_KEY: // approve
+			case APPROVE_ACTION_KEY:
 				return;
 			case TRANSFER_FROM_ACTION_KEY:
 				return;
@@ -161,14 +161,6 @@ class TransactionElement extends Component {
 		return null;
 	}
 
-	toggleDetailsView(hash, index) {
-		const show = this.state.selectedTx !== hash;
-		this.setState({ selectedTx: show ? hash : null });
-		if (show) {
-			this.props.adjustScroll && this.props.adjustScroll(index);
-		}
-	}
-
 	getMethodData = data => {
 		// TODO use eth-method-registry from GABA
 		if (data.includes(TOKEN_TRANSFER_FUNCTION_SIGNATURE)) {
@@ -185,11 +177,6 @@ class TransactionElement extends Component {
 		return !codeIsEmpty;
 	};
 
-	/**
-	 * Returns the action of a transaction as a key to be passed into the translator.
-	 * @param {Object} transaction - txData object
-	 * @returns {string|undefined}
-	 */
 	getTransactionActionKey = async transaction => {
 		const { transaction: { data, to } = {} } = transaction;
 		if (data) {
@@ -222,7 +209,16 @@ class TransactionElement extends Component {
 	};
 
 	render = () => {
-		const { tx, renderTxDetails, selectedTx, selectedAddress, i, conversionRate, currentCurrency } = this.props;
+		const {
+			tx,
+			renderTxDetails,
+			selectedTx,
+			selectedAddress,
+			i,
+			conversionRate,
+			currentCurrency,
+			toggleDetailsView
+		} = this.props;
 		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		const { actionKey } = this.state;
@@ -230,7 +226,7 @@ class TransactionElement extends Component {
 			<TouchableOpacity
 				style={styles.row}
 				key={`tx-${tx.id}`}
-				onPress={() => this.toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
+				onPress={() => toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
 			>
 				<View style={styles.rowContent}>
 					<Text style={styles.date}>

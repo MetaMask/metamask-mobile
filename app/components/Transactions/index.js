@@ -145,7 +145,7 @@ export default class Transactions extends Component {
 		}
 	};
 
-	renderCopyIcon(str) {
+	renderCopyIcon = str => {
 		function copy() {
 			Clipboard.setString(str);
 		}
@@ -154,9 +154,9 @@ export default class Transactions extends Component {
 				<Icon name={'copy'} size={15} color={colors.primary} />
 			</TouchableOpacity>
 		);
-	}
+	};
 
-	renderTxHash(transactionHash) {
+	renderTxHash = transactionHash => {
 		if (!transactionHash) return null;
 		return (
 			<View>
@@ -170,9 +170,17 @@ export default class Transactions extends Component {
 				</View>
 			</View>
 		);
-	}
+	};
 
-	renderTxDetails(tx) {
+	toggleDetailsView = (hash, index) => {
+		const show = this.state.selectedTx !== hash;
+		this.setState({ selectedTx: show ? hash : null });
+		if (show) {
+			this.props.adjustScroll && this.props.adjustScroll(index);
+		}
+	};
+
+	renderTxDetails = tx => {
 		const {
 			transaction: { gas, gasPrice, value, to, from },
 			transactionHash
@@ -234,7 +242,7 @@ export default class Transactions extends Component {
 				)}
 			</View>
 		);
-	}
+	};
 
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
@@ -243,7 +251,7 @@ export default class Transactions extends Component {
 	);
 
 	render = () => {
-		const { transactions, selectedAddress, networkId, adjustScroll } = this.props;
+		const { transactions, selectedAddress, networkId } = this.props;
 		const txs = transactions.filter(
 			tx =>
 				((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
@@ -263,10 +271,10 @@ export default class Transactions extends Component {
 							key={i}
 							i={i}
 							tx={tx}
-							adjustScroll={adjustScroll}
 							selectedAddress={selectedAddress}
 							selectedTx={this.state.selectedTx}
 							renderTxDetails={this.renderTxDetails}
+							toggleDetailsView={this.toggleDetailsView}
 						/>
 					))}
 				</View>
