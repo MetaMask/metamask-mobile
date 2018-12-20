@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { InteractionManager, ActivityIndicator, AppState, StyleSheet, View, AsyncStorage } from 'react-native';
+import { InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -21,6 +21,8 @@ import Engine from '../../core/Engine';
 import Networks from '../../util/networks';
 import AppConstants from '../../core/AppConstants';
 import Feedback from '../../core/Feedback';
+// eslint-disable-next-line import/no-unresolved
+import LockManager from '../../core/LockManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -105,21 +107,25 @@ class Wallet extends Component {
 		/**
 		 * A string represeting the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * Time to auto-lock the app after it goes in background mode
+		 */
+		lockTime: PropTypes.number
 	};
 
 	state = {
 		locked: false,
-		appState: 'active',
 		showAsset: false
 	};
 
 	mounted = false;
+	lockTimer = null;
+	locked = false;
 	scrollableTabViewRef = React.createRef();
 
-	async componentDidMount() {
+	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
-		AppState.addEventListener('change', this.handleAppStateChange);
 		InteractionManager.runAfterInteractions(() => {
 			Engine.refreshTransactionHistory();
 			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
@@ -131,6 +137,7 @@ class Wallet extends Component {
 				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
 			}
 		});
+		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 		this.mounted = true;
 	}
 
@@ -144,15 +151,19 @@ class Wallet extends Component {
 				this.handleTabChange(currentPage);
 			}
 		}
+		if (this.props.lockTime !== prevProps.lockTime) {
+			this.lockManager.updateLockTime(this.props.lockTime);
+		}
 	}
+
 	handleTabChange = page => {
 		this.scrollableTabViewRef && this.scrollableTabViewRef.current.goToPage(page);
 	};
 
 	componentWillUnmount() {
 		this.mounted = false;
-		AppState.removeEventListener('change', this.handleAppStateChange);
 		this.feedback.stopListening();
+		this.lockManager.stopListening();
 	}
 
 	renderTabBar() {
@@ -177,20 +188,6 @@ class Wallet extends Component {
 			const dm = new DeeplinkManager(this.props.navigation);
 			dm.parse(params['+non_branch_link']);
 		}
-	};
-
-	handleAppStateChange = async nextAppState => {
-		if (nextAppState !== 'active') {
-			await AsyncStorage.setItem('@MetaMask:bg_mode_ts', Date.now().toString());
-		} else if (this.state.appState !== 'active' && nextAppState === 'active') {
-			const bg_mode_ts = await AsyncStorage.getItem('@MetaMask:bg_mode_ts');
-			if (bg_mode_ts && Date.now() - Number.parseInt(bg_mode_ts, 10) > AppConstants.LOCK_TIMEOUT) {
-				// If it's still mounted, lock it
-				this.mounted && this.props.navigation.navigate('LockScreen');
-			}
-			AsyncStorage.removeItem('@MetaMask:bg_mode_ts');
-		}
-		this.mounted && this.setState({ appState: nextAppState });
 	};
 
 	onHideAsset = () => {
@@ -323,7 +320,8 @@ const mapStateToProps = state => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	lockTime: state.settings.lockTime
 });
 
 export default connect(mapStateToProps)(Wallet);

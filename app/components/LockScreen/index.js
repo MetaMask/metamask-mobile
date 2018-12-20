@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { AppState } from 'react-native';
 import PropTypes from 'prop-types';
 
 import FoxScreen from '../FoxScreen';
@@ -16,15 +17,25 @@ export default class LockScreen extends Component {
 		navigation: PropTypes.object
 	};
 
+	appState = 'active';
+	locked = true;
+
 	componentDidMount() {
-		this.mounted = true;
-		// Because this is also the first screen
-		// We need to wait for the engine to bootstrap before we can continue
-		if (!Engine.context) {
-			this.waitForEngine();
+		// Check if is the app is launching or it went to background mode
+		const isBackgroundMode = this.props.navigation.getParam('backgroundMode', false);
+		if (!isBackgroundMode) {
+			// Because this is also the first screen
+			// We need to wait for the engine to bootstrap before we can continue
+			if (!Engine.context) {
+				this.waitForEngine();
+			} else {
+				this.unlockKeychain();
+			}
 		} else {
-			this.unlockKeychain();
+			this.appState = 'background';
 		}
+		AppState.addEventListener('change', this.handleAppStateChange);
+		this.mounted = true;
 	}
 
 	waitForEngine() {
@@ -33,8 +44,17 @@ export default class LockScreen extends Component {
 		}, 100);
 	}
 
+	handleAppStateChange = async nextAppState => {
+		// Try to unlock when coming from the background
+		if (this.locked && this.appState !== 'active' && nextAppState === 'active') {
+			this.appState = nextAppState;
+			this.unlockKeychain();
+		}
+	};
+
 	componentWillUnmount() {
 		this.mounted = false;
+		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
 	async unlockKeychain() {
@@ -45,6 +65,7 @@ export default class LockScreen extends Component {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
+				this.locked = false;
 				this.props.navigation.goBack();
 			}
 		} catch (error) {

@@ -14,7 +14,8 @@ describe('SecuritySettings', () => {
 						currentCurrency: 'usd'
 					}
 				}
-			}
+			},
+			settings: { lockTime: 0 }
 		};
 
 		const wrapper = shallow(<SecuritySettings navigation={{ state: { params: {} } }} />, {

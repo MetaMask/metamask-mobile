@@ -22,6 +22,7 @@ import { isWebUri } from 'valid-url';
 import SelectComponent from '../SelectComponent';
 import { getNavigationOptionsTitle } from '../Navbar';
 import { clearHosts, setPrivacyMode } from '../../actions/privacy';
+import { setSearchEngine } from '../../actions/settings';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -143,14 +144,26 @@ class AppSettings extends Component {
 		/**
 		 * Called to toggle privacy mode
 		 */
-		setPrivacyMode: PropTypes.func
+		setPrivacyMode: PropTypes.func,
+		/**
+		 * Called to set the active search engine
+		 */
+		setSearchEngine: PropTypes.func,
+		/**
+		 * Active search engine
+		 */
+		searchEngine: PropTypes.string
 	};
 
 	componentDidMount = () => {
 		const { currentCurrency } = this.props;
 		const languages = getLanguages();
-		this.setState({ languages, currentCurrency });
+		this.setState({ languages, currentCurrency, currentLanguage: I18n.locale });
 		this.languageOptions = Object.keys(languages).map(key => ({ value: key, label: languages[key], key }));
+		this.searchEngineOptions = [
+			{ value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
+			{ value: 'Google', label: 'Google', key: 'Google' }
+		];
 	};
 
 	static propTypes = {};
@@ -160,6 +173,10 @@ class AppSettings extends Component {
 		setLocale(language);
 		this.setState({ currentLanguage: language });
 		navigation.navigate('Entry');
+	};
+
+	selectSearchEngine = searchEngine => {
+		this.props.setSearchEngine(searchEngine);
 	};
 
 	selectCurrency = async currency => {
@@ -292,6 +309,19 @@ class AppSettings extends Component {
 						</View>
 					</View>
 					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.search_engine')}</Text>
+						<View style={styles.picker}>
+							{this.searchEngineOptions && (
+								<SelectComponent
+									selectedValue={this.props.searchEngine}
+									onValueChange={this.selectSearchEngine}
+									label={strings('app_settings.search_engine')}
+									options={this.searchEngineOptions}
+								/>
+							)}
+						</View>
+					</View>
+					<View style={styles.setting}>
 						<Text style={styles.text}>{strings('app_settings.new_RPC_URL')}</Text>
 						<TextInput
 							style={styles.input}
@@ -349,12 +379,14 @@ class AppSettings extends Component {
 const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	privacyMode: state.privacy.privacyMode
+	privacyMode: state.privacy.privacyMode,
+	searchEngine: state.settings.searchEngine
 });
 
 const mapDispatchToProps = dispatch => ({
 	clearHosts: () => dispatch(clearHosts()),
-	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled))
+	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled)),
+	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine))
 });
 
 export default connect(
