@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import getNavbarOptions from '../Navbar';
 import HomePage from '../HomePage';
 import onUrlSubmit from '../../util/browser';
@@ -8,11 +9,13 @@ import AppConstants from '../../core/AppConstants';
 import DeeplinkManager from '../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
+// eslint-disable-next-line import/no-unresolved
+import LockManager from '../../core/LockManager';
 
 /**
  * Complete Web browser component with URL entry and history management
  */
-export default class BrowserHome extends Component {
+class BrowserHome extends Component {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('ÐApp Browser', navigation);
 
 	static defaultProps = {
@@ -29,9 +32,17 @@ export default class BrowserHome extends Component {
 		 */
 		defaultURL: PropTypes.string,
 		/**
+		 * Active search engine
+		 */
+		searchEngine: PropTypes.string,
+		/**
 		 * react-navigation object used to switch between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Time to auto-lock the app after it goes in background mode
+		 */
+		lockTime: PropTypes.number
 	};
 
 	state = {
@@ -39,8 +50,13 @@ export default class BrowserHome extends Component {
 		tabs: []
 	};
 
-	async componentDidMount() {
+	mounted = false;
+	lockTimer = null;
+
+	componentDidMount() {
+		this.mounted = true;
 		Branch.subscribe(this.handleDeeplinks);
+		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 		this.feedback = new Feedback({
 			action: () => {
 				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
@@ -48,8 +64,16 @@ export default class BrowserHome extends Component {
 		});
 	}
 
+	componentDidUpdate(prevProps) {
+		if (this.props.lockTime !== prevProps.lockTime) {
+			this.lockManager.updateLockTime(this.props.lockTime);
+		}
+	}
+
 	componentWillUnmount() {
+		this.mounted = false;
 		this.feedback.stopListening();
+		this.lockManager.stopListening();
 	}
 
 	handleDeeplinks = async ({ error, params }) => {
@@ -72,10 +96,17 @@ export default class BrowserHome extends Component {
 		if (url === '') {
 			return false;
 		}
-		const { defaultProtocol } = this.props;
-		const sanitizedInput = onUrlSubmit(url, defaultProtocol);
+		const { defaultProtocol, searchEngine } = this.props;
+		const sanitizedInput = onUrlSubmit(url, searchEngine, defaultProtocol);
 		await this.go(sanitizedInput);
 	};
 
 	render = () => <HomePage onBookmarkTapped={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} />;
 }
+
+const mapStateToProps = state => ({
+	searchEngine: state.settings.searchEngine,
+	lockTime: state.settings.lockTime
+});
+
+export default connect(mapStateToProps)(BrowserHome);

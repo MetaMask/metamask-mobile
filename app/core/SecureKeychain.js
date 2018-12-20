@@ -20,6 +20,8 @@ const defaultOptions = {
  * the phone's keychain
  */
 class SecureKeychain {
+	isAuthenticating = false;
+
 	constructor(code) {
 		if (!SecureKeychain.instance) {
 			privates.set(this, { code });
@@ -59,13 +61,16 @@ export default {
 	},
 
 	async getGenericPassword() {
+		instance.isAuthenticating = true;
 		const keychainObject = await Keychain.getGenericPassword(defaultOptions);
 		if (keychainObject.password) {
 			const encryptedPassword = keychainObject.password;
 			const decrypted = await instance.decryptPassword(encryptedPassword);
 			keychainObject.password = decrypted.password;
+			instance.isAuthenticating = false;
 			return keychainObject;
 		}
+		instance.isAuthenticating = false;
 		return null;
 	},
 
@@ -73,7 +78,6 @@ export default {
 		const encryptedPassword = await instance.encryptPassword(password);
 		return Keychain.setGenericPassword(key, encryptedPassword, { ...defaultOptions, ...authOptions });
 	},
-
 	ACCESS_CONTROL: Keychain.ACCESS_CONTROL,
 	ACCESSIBLE: Keychain.ACCESSIBLE,
 	AUTHENTICATION_TYPE: Keychain.AUTHENTICATION_TYPE

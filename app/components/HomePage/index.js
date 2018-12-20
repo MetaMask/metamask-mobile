@@ -237,7 +237,6 @@ class HomePage extends Component {
 					autoCapitalize="none"
 					autoCorrect={false}
 					clearButtonMode="while-editing"
-					keyboardType="url"
 					onChangeText={this.onInitialUrlChange}
 					onSubmitEditing={this.onInitialUrlSubmit}
 					placeholder="Search or type URL"

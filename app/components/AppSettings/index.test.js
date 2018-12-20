@@ -11,6 +11,10 @@ describe('AppSettings', () => {
 			privacy: {
 				approvedHosts: {}
 			},
+			settings: {
+				searchEngine: 'DuckDuckGo',
+				lockTime: 30000
+			},
 			engine: {
 				backgroundState: {
 					CurrencyRateController: {

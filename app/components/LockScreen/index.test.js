@@ -4,7 +4,7 @@ import LockScreen from './';
 
 describe('LockScreen', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<LockScreen />);
+		const wrapper = shallow(<LockScreen navigation={{ getParam: () => false }} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
