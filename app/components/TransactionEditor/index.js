@@ -9,10 +9,9 @@ import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
 import { rawEncode } from 'ethereumjs-abi';
+import { TOKEN_TRANSFER_FUNCTION_SIGNATURE } from '../../util/transactions';
 
 import Engine from '../../core/Engine';
-
-const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 
 const styles = StyleSheet.create({
 	root: {

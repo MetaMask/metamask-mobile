@@ -298,6 +298,7 @@
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
+		"sent_tokens": "Sent Tokens",
 		"hash": "Hash",
 		"from": "From",
 		"to": "To",
