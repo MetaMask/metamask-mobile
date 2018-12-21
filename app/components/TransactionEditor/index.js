@@ -5,11 +5,10 @@ import { colors } from '../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
 import { isBN, hexToBN, toBN, toWei, fromWei, calcTokenValueToSend } from '../../util/number';
-import { isValidAddress, toChecksumAddress, BN, addHexPrefix } from 'ethereumjs-util';
+import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
-import { rawEncode } from 'ethereumjs-abi';
-import { TOKEN_TRANSFER_FUNCTION_SIGNATURE } from '../../util/transactions';
+import { generateTransferData } from '../../util/transactions';
 
 import Engine from '../../core/Engine';
 
@@ -114,9 +113,8 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const data = asset
-			? this.generateTokenTransferData(to, calcTokenValueToSend(fromWei(amount), asset.decimals))
-			: undefined;
+		const amountToSend = calcTokenValueToSend(fromWei(amount), asset.decimals);
+		const data = asset ? generateTransferData('ERC20', { toAddress: to, amount: amountToSend }) : undefined;
 		const { gas } = await this.estimateGas({ amount });
 		this.setState({ amount, data, gas: hexToBN(gas) });
 	};
@@ -136,9 +134,8 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const data = asset
-			? this.generateTokenTransferData(to, calcTokenValueToSend(fromWei(amount), asset.decimals))
-			: undefined;
+		const amountToSend = calcTokenValueToSend(fromWei(amount), asset.decimals);
+		const data = asset ? generateTransferData('ERC20', { toAddress: to, amount: amountToSend }) : undefined;
 		const { gas } = await TransactionController.estimateGas({ amount, from, data, to: asset ? asset.address : to });
 		this.setState({ to, gas: hexToBN(gas), data });
 	};
@@ -242,14 +239,6 @@ class TransactionEditor extends Component {
 			// - chain_id ( switch to the specific network )
 		}
 	};
-
-	generateTokenTransferData = (toAddress, amount) =>
-		TOKEN_TRANSFER_FUNCTION_SIGNATURE +
-		Array.prototype.map
-			.call(rawEncode(['address', 'uint256'], [toAddress, addHexPrefix(amount)]), x =>
-				('00' + x.toString(16)).slice(-2)
-			)
-			.join('');
 
 	render = () => {
 		const { amount, gas, gasPrice, from, to, data } = this.state;

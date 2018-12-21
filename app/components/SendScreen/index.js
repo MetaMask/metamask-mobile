@@ -160,11 +160,11 @@ class SendScreen extends Component {
 	};
 
 	onConfirm = async transaction => {
+		const { TransactionController } = Engine.context;
 		const { navigation } = this.props;
 		const asset = navigation.state && navigation.state && navigation.state.params;
 
 		if (!asset) {
-			const { TransactionController } = Engine.context;
 			transaction = this.prepareTransaction(transaction);
 			try {
 				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
@@ -176,7 +176,6 @@ class SendScreen extends Component {
 				Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			}
 		} else {
-			const { TransactionController } = Engine.context;
 			transaction = this.prepareTokenTransaction(transaction, asset);
 			try {
 				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
