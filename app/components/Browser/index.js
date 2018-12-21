@@ -535,13 +535,7 @@ export class Browser extends Component {
 
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
-			// Check if it's a MM request
-			if (!data || (typeof data === 'string' && data.toString().indexOf('__mmID') === -1)) {
-				return;
-			}
 			data = typeof data === 'string' ? JSON.parse(data) : data;
-			// Android workaround
-			data = typeof data === 'string' && data.includes('GET_TITLE_FOR_BOOKMARK') ? JSON.parse(data) : data;
 			if (!data || !data.type) {
 				return;
 			}
@@ -550,11 +544,11 @@ export class Browser extends Component {
 					this.backgroundBridge.onMessage(data);
 					break;
 				case 'GET_TITLE_FOR_BOOKMARK':
-					if (data.title) {
+					if (data.payload.title) {
 						this.setState({
-							currentPageTitle: data.title,
-							currentPageUrl: data.url,
-							currentPageIcon: data.icon
+							currentPageTitle: data.payload.title,
+							currentPageUrl: data.payload.url,
+							currentPageIcon: data.payload.icon
 						});
 					}
 					break;
@@ -617,14 +611,16 @@ export class Browser extends Component {
 				const siteName = document.querySelector('head > meta[property="og:site_name"]');
 				const title = siteName || document.querySelector('head > meta[name="title"]');
 
-				window.postMessage(
-					JSON.stringify({
-						__mmID: 1,
+				window.postMessageToNative(
+					{
 						type: 'GET_TITLE_FOR_BOOKMARK',
-						title: title ? title.content : document.title,
-						url: location.href,
-						icon: icon && icon.href
-					}),
+						payload: {
+							__mmID: 1,
+							title: title ? title.content : document.title,
+							url: location.href,
+							icon: icon && icon.href
+						}
+					},
 					'*'
 				)
 			})();

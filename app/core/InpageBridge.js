@@ -50,7 +50,9 @@ class InpageBridge {
 		this._network = undefined; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		document.addEventListener('message', ({ data }) => {
-			this._onMessage(data);
+			if (data.toString().indexOf('INPAGE_RESPONSE') !== -1 || data.toString().indexOf('STATE_UPDATE') !== -1) {
+				this._onMessage(data);
+			}
 		});
 	}
 
@@ -126,7 +128,7 @@ class InpageBridge {
 		}
 		this._pending[`${payload.__mmID}`] = callback;
 
-		window.postMessage(
+		window.postMessageToNative(
 			{
 				payload,
 				type: 'INPAGE_REQUEST'
@@ -156,11 +158,4 @@ class InpageBridge {
 
 window.ethereum = new InpageBridge();
 
-function safePostMessage(msg) {
-	if (window.originalPostMessage) {
-		window.originalPostMessage(msg, '*');
-	} else {
-		window.postMessage(msg, '*');
-	}
-}
-safePostMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' });
+window.postMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');
