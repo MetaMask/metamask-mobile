@@ -619,12 +619,13 @@ export class Browser extends Component {
 
 				window.postMessage(
 					JSON.stringify({
-						__mmID: 0,
+						__mmID: 1,
 						type: 'GET_TITLE_FOR_BOOKMARK',
 						title: title ? title.content : document.title,
 						url: location.href,
 						icon: icon && icon.href
-					})
+					}),
+					'*'
 				)
 			})();
 		`;
