@@ -267,7 +267,7 @@ class Wallet extends Component {
 					<Tokens
 						navigation={navigation}
 						tabLabel={strings('wallet.tokens')}
-						assets={assets}
+						tokens={assets}
 						currentCurrency={currentCurrency}
 						conversionRate={conversionRate}
 						tokenBalances={tokenBalances}

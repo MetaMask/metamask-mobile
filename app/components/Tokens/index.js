@@ -53,7 +53,7 @@ export default class Tokens extends Component {
 		/**
 		 * Array of assets (in this case ERC20 tokens)
 		 */
-		assets: PropTypes.array,
+		tokens: PropTypes.array,
 		/**
 		 * ETH to current currency conversion rate
 		 */
@@ -82,31 +82,31 @@ export default class Tokens extends Component {
 		</View>
 	);
 
-	onItemPress = asset => {
-		this.props.navigation.navigate('Asset', asset);
+	onItemPress = token => {
+		this.props.navigation.navigate('Asset', token);
 	};
 
 	renderList() {
-		const { assets, conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
+		const { tokens, conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
 
-		return assets.map(asset => {
-			const logo = asset.logo || ((contractMap[asset.address] && contractMap[asset.address].logo) || undefined);
-			const exchangeRate = asset.address in tokenExchangeRates ? tokenExchangeRates[asset.address] : undefined;
+		return tokens.map(token => {
+			const logo = token.logo || ((contractMap[token.address] && contractMap[token.address].logo) || undefined);
+			const exchangeRate = token.address in tokenExchangeRates ? tokenExchangeRates[token.address] : undefined;
 			const balance =
-				asset.balance ||
-				(asset.address in tokenBalances
-					? calcTokenValue(tokenBalances[asset.address], asset.decimals)
+				token.balance ||
+				(token.address in tokenBalances
+					? calcTokenValue(tokenBalances[token.address], token.decimals)
 					: undefined);
 			const balanceFiat =
-				asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-			asset = { ...asset, ...{ logo, balance, balanceFiat } };
+				token.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+			token = { ...token, ...{ logo, balance, balanceFiat } };
 
 			return (
 				<TokenElement
 					onPress={this.onItemPress}
 					onLongPress={this.showRemoveMenu}
-					asset={asset}
-					key={`asset_${asset.symbol}`}
+					token={token}
+					key={`token_${token.symbol}`}
 				/>
 			);
 		});
@@ -116,8 +116,8 @@ export default class Tokens extends Component {
 		this.props.navigation.push('AddAsset', { assetType: 'token' });
 	};
 
-	showRemoveMenu = asset => {
-		this.tokenToRemove = asset;
+	showRemoveMenu = token => {
+		this.tokenToRemove = token;
 		this.actionSheet.show();
 	};
 
@@ -130,24 +130,27 @@ export default class Tokens extends Component {
 		this.actionSheet = ref;
 	};
 
-	render = () => (
-		<ScrollView style={styles.wrapper}>
-			<View testID={'tokens'}>
-				{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-				<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
-					<Icon name="plus" size={16} color={colors.primary} />
-					<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
-				</TouchableOpacity>
-				<ActionSheet
-					ref={this.createActionSheetRef}
-					title={strings('wallet.remove_token_title')}
-					options={[strings('wallet.remove'), strings('wallet.cancel')]}
-					cancelButtonIndex={1}
-					destructiveButtonIndex={0}
-					// eslint-disable-next-line react/jsx-no-bind
-					onPress={index => (index === 0 ? this.removeToken() : null)}
-				/>
-			</View>
-		</ScrollView>
-	);
+	render = () => {
+		const { tokens } = this.props;
+		return (
+			<ScrollView style={styles.wrapper}>
+				<View testID={'tokens'}>
+					{tokens && tokens.length ? this.renderList() : this.renderEmpty()}
+					<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
+						<Icon name="plus" size={16} color={colors.primary} />
+						<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
+					</TouchableOpacity>
+					<ActionSheet
+						ref={this.createActionSheetRef}
+						title={strings('wallet.remove_token_title')}
+						options={[strings('wallet.remove'), strings('wallet.cancel')]}
+						cancelButtonIndex={1}
+						destructiveButtonIndex={0}
+						// eslint-disable-next-line react/jsx-no-bind
+						onPress={index => (index === 0 ? this.removeToken() : null)}
+					/>
+				</View>
+			</ScrollView>
+		);
+	};
 }
