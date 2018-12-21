@@ -68,6 +68,18 @@ exports[`Collectibles should render correctly 1`] = `
         ADD COLLECTIBLES
       </Text>
     </TouchableOpacity>
+    <ActionSheet
+      cancelButtonIndex={1}
+      destructiveButtonIndex={0}
+      onPress={[Function]}
+      options={
+        Array [
+          "Remove",
+          "Cancel",
+        ]
+      }
+      title="Do you want to remove this collectible?"
+    />
   </View>
 </ScrollView>
 `;
