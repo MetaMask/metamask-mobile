@@ -6,7 +6,9 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import TokenElement from '../TokenElement';
+import ActionSheet from 'react-native-actionsheet';
 import { calcTokenValue, balanceToFiat } from '../../util/number';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -70,6 +72,10 @@ export default class Tokens extends Component {
 		tokenExchangeRates: PropTypes.object
 	};
 
+	actionSheet = null;
+
+	tokenToRemove = null;
+
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
 			<Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
@@ -82,6 +88,7 @@ export default class Tokens extends Component {
 
 	renderList() {
 		const { assets, conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
+
 		return assets.map(asset => {
 			const logo = asset.logo || ((contractMap[asset.address] && contractMap[asset.address].logo) || undefined);
 			const exchangeRate = asset.address in tokenExchangeRates ? tokenExchangeRates[asset.address] : undefined;
@@ -95,13 +102,32 @@ export default class Tokens extends Component {
 			asset = { ...asset, ...{ logo, balance, balanceFiat } };
 
 			return (
-				<TokenElement onPress={() => this.onItemPress(asset)} asset={asset} key={`asset_${asset.symbol}`} /> // eslint-disable-line
+				<TokenElement
+					onPress={this.onItemPress}
+					onLongPress={this.showRemoveMenu}
+					asset={asset}
+					key={`asset_${asset.symbol}`}
+				/>
 			);
 		});
 	}
 
 	goToAddToken = () => {
 		this.props.navigation.push('AddAsset', { assetType: 'token' });
+	};
+
+	showRemoveMenu = asset => {
+		this.tokenToRemove = asset;
+		this.actionSheet.show();
+	};
+
+	removeToken = () => {
+		const { AssetsController } = Engine.context;
+		AssetsController.removeToken(this.tokenToRemove.address);
+	};
+
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
 	};
 
 	render = () => (
@@ -112,6 +138,15 @@ export default class Tokens extends Component {
 					<Icon name="plus" size={16} color={colors.primary} />
 					<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
 				</TouchableOpacity>
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('wallet.remove_token_title')}
+					options={[strings('wallet.remove'), strings('wallet.cancel')]}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={index => (index === 0 ? this.removeToken() : null)}
+				/>
 			</View>
 		</ScrollView>
 	);
