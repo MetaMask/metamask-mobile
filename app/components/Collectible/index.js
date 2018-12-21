@@ -41,9 +41,9 @@ export default class Collectible extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * Object that represents the asset to be displayed
+		 * Object that represents the collectible to be displayed
 		 */
-		asset: PropTypes.object,
+		collectible: PropTypes.object,
 		/**
 		 * Callback triggered on modal hide
 		 */
@@ -54,7 +54,7 @@ export default class Collectible extends Component {
 		getNavigationOptionsTitle(`${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`);
 
 	render = () => {
-		const { asset, navigation, onHide } = this.props;
+		const { collectible, navigation, onHide } = this.props;
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.root}>
 				<View>
@@ -65,7 +65,7 @@ export default class Collectible extends Component {
 				<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
 					<View testID={'asset'}>
 						<View style={styles.assetOverviewWrapper}>
-							<CollectibleOverview navigation={navigation} asset={asset} />
+							<CollectibleOverview navigation={navigation} collectible={collectible} />
 						</View>
 					</View>
 				</ScrollView>

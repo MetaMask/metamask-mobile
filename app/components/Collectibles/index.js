@@ -52,11 +52,11 @@ export default class Collectibles extends Component {
 		/**
 		 * Array of assets (in this case Collectibles)
 		 */
-		assets: PropTypes.array,
+		collectibles: PropTypes.array,
 		/**
 		 * Callback triggered when collectible pressed from collectibles list
 		 */
-		onPressAsset: PropTypes.func
+		onPress: PropTypes.func
 	};
 
 	actionSheet = null;
@@ -69,20 +69,20 @@ export default class Collectibles extends Component {
 		</View>
 	);
 
-	onItemPress = asset => {
-		this.props.navigation.push('Collectible', asset);
+	onItemPress = collectible => {
+		this.props.navigation.push('Collectible', collectible);
 	};
 
-	handleOnPressAsset = asset => {
-		this.props.onPressAsset(asset);
+	handleOnPress = collectible => {
+		this.props.onPress(collectible);
 	};
 
 	renderList() {
-		return this.props.assets.map(asset => (
+		return this.props.collectibles.map(collectible => (
 			<CollectibleElement
-				asset={asset}
-				key={asset.tokenId}
-				onPress={this.handleOnPressAsset}
+				collectible={collectible}
+				key={collectible.tokenId}
+				onPress={this.handleOnPress}
 				onLongPress={this.showRemoveMenu}
 			/>
 		));
@@ -106,28 +106,31 @@ export default class Collectibles extends Component {
 		this.actionSheet = ref;
 	};
 
-	render = () => (
-		<ScrollView style={styles.wrapper}>
-			<View testID={'collectibles'}>
-				{this.props.assets && this.props.assets.length ? this.renderList() : this.renderEmpty()}
-				<TouchableOpacity
-					style={styles.add}
-					onPress={this.goToAddCollectible}
-					testID={'add-collectible-button'}
-				>
-					<Icon name="plus" size={16} color={colors.primary} />
-					<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
-				</TouchableOpacity>
-				<ActionSheet
-					ref={this.createActionSheetRef}
-					title={strings('wallet.remove_collectible_title')}
-					options={[strings('wallet.remove'), strings('wallet.cancel')]}
-					cancelButtonIndex={1}
-					destructiveButtonIndex={0}
-					// eslint-disable-next-line react/jsx-no-bind
-					onPress={index => (index === 0 ? this.removeCollectible() : null)}
-				/>
-			</View>
-		</ScrollView>
-	);
+	render = () => {
+		const { collectibles } = this.props;
+		return (
+			<ScrollView style={styles.wrapper}>
+				<View testID={'collectibles'}>
+					{collectibles && collectibles.length ? this.renderList() : this.renderEmpty()}
+					<TouchableOpacity
+						style={styles.add}
+						onPress={this.goToAddCollectible}
+						testID={'add-collectible-button'}
+					>
+						<Icon name="plus" size={16} color={colors.primary} />
+						<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
+					</TouchableOpacity>
+					<ActionSheet
+						ref={this.createActionSheetRef}
+						title={strings('wallet.remove_collectible_title')}
+						options={[strings('wallet.remove'), strings('wallet.cancel')]}
+						cancelButtonIndex={1}
+						destructiveButtonIndex={0}
+						// eslint-disable-next-line react/jsx-no-bind
+						onPress={index => (index === 0 ? this.removeCollectible() : null)}
+					/>
+				</View>
+			</ScrollView>
+		);
+	};
 }
