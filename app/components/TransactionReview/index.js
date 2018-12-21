@@ -282,9 +282,10 @@ class TransactionReview extends Component {
 		const {
 			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to, asset },
 			currentCurrency,
+			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
+		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
@@ -342,6 +343,10 @@ class TransactionReview extends Component {
 										{strings('transaction.gas_fee').toUpperCase()}
 									</Text>
 									<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
+										{conversionRateAsset
+											? weiToFiat(assetAmount, conversionRateAsset, currentCurrency).toUpperCase()
+											: null}
+										{conversionRateAsset && ' '}
 										{weiToFiat(ethTotal, conversionRate, currentCurrency).toUpperCase()}
 									</Text>
 
