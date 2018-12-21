@@ -20,6 +20,7 @@ export class BackgroundBridge {
 					})
 				);
 		};
+
 		if (override) {
 			override(payload)
 				.then(response => {
@@ -72,6 +73,7 @@ export class BackgroundBridge {
 		if (this._accounts) {
 			payload.selectedAddress = selectedAddress;
 		}
+
 		current &&
 			current.postMessage(
 				JSON.stringify({

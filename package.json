@@ -91,7 +91,7 @@
     "react-native-shake": "^3.2.4",
     "react-native-share": "^1.1.1",
     "react-native-vector-icons": "^4.6.0",
-    "react-native-web3-webview": "^1.2.2",
+    "react-native-web3-webview": "^1.2.3",
     "react-navigation": "^2.6.2",
     "react-redux": "^5.0.7",
     "readable-stream": "^1.0.33",
