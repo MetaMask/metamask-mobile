@@ -4,6 +4,8 @@ exports[`CollectibleElement should render correctly 1`] = `
 <TouchableOpacity
   activeOpacity={0.2}
   key="asset-123"
+  onLongPress={[Function]}
+  onPress={[Function]}
   style={
     Object {
       "borderBottomColor": "#CCCCCC",

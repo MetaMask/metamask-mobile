@@ -68,6 +68,18 @@ exports[`Tokens should render correctly 1`] = `
         ADD TOKENS
       </Text>
     </TouchableOpacity>
+    <ActionSheet
+      cancelButtonIndex={1}
+      destructiveButtonIndex={0}
+      onPress={[Function]}
+      options={
+        Array [
+          "Remove",
+          "Cancel",
+        ]
+      }
+      title="Do you want to remove this token?"
+    />
   </View>
 </ScrollView>
 `;

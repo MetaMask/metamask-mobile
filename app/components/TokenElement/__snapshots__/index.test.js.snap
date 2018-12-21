@@ -3,7 +3,9 @@
 exports[`TokenElement should render correctly 1`] = `
 <TouchableOpacity
   activeOpacity={0.2}
-  key="asset-ABC"
+  key="token-ABC"
+  onLongPress={[Function]}
+  onPress={[Function]}
   style={
     Object {
       "borderBottomColor": "#CCCCCC",

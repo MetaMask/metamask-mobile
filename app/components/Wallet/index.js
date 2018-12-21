@@ -116,7 +116,7 @@ class Wallet extends Component {
 
 	state = {
 		locked: false,
-		showAsset: false
+		showCollectible: false
 	};
 
 	mounted = false;
@@ -190,29 +190,29 @@ class Wallet extends Component {
 		}
 	};
 
-	onHideAsset = () => {
-		this.setState({ showAsset: false });
+	onHideCollectible = () => {
+		this.setState({ showCollectible: false });
 	};
 
-	onShowAsset = asset => {
-		this.setState({ showAsset: true, asset });
+	onShowCollectible = collectible => {
+		this.setState({ showCollectible: true, collectible });
 	};
 
 	renderAssetModal = () => {
-		const { showAsset, asset } = this.state;
+		const { showCollectible, collectible } = this.state;
 		return (
 			<Modal
-				isVisible={showAsset}
+				isVisible={showCollectible}
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
 				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
-				onBackdropPress={this.onHideAsset}
-				onBackButtonPress={this.onHideAsset}
+				onBackdropPress={this.onHideCollectible}
+				onBackButtonPress={this.onHideCollectible}
 			>
-				<Collectible asset={asset} onHide={this.onHideAsset} />
+				<Collectible collectible={collectible} onHide={this.onHideCollectible} />
 			</Modal>
 		);
 	};
@@ -267,7 +267,7 @@ class Wallet extends Component {
 					<Tokens
 						navigation={navigation}
 						tabLabel={strings('wallet.tokens')}
-						assets={assets}
+						tokens={assets}
 						currentCurrency={currentCurrency}
 						conversionRate={conversionRate}
 						tokenBalances={tokenBalances}
@@ -276,8 +276,8 @@ class Wallet extends Component {
 					<Collectibles
 						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
-						assets={collectibles}
-						onPressAsset={this.onShowAsset}
+						collectibles={collectibles}
+						onPress={this.onShowCollectible}
 					/>
 					<Transactions
 						navigation={navigation}

@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
 export default class CollectibleOverview extends Component {
 	static propTypes = {
 		/**
-		 * Object that represents the asset to be displayed
+		 * Object that represents the collectible to be displayed
 		 */
-		asset: PropTypes.object
+		collectible: PropTypes.object
 	};
 
 	onDeposit = () => {
@@ -94,13 +94,13 @@ export default class CollectibleOverview extends Component {
 	};
 
 	renderImage = () => {
-		const { asset } = this.props;
-		return <CollectibleImage renderFull collectible={asset} />;
+		const { collectible } = this.props;
+		return <CollectibleImage renderFull collectible={collectible} />;
 	};
 
 	render = () => {
 		const {
-			asset: { address, tokenId, name }
+			collectible: { address, tokenId, name }
 		} = this.props;
 		return (
 			<View style={styles.wrapper}>
