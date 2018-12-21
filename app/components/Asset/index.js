@@ -52,8 +52,7 @@ class Asset extends Component {
 		networkType: PropTypes.string
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(`${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`);
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`${navigation.getParam('symbol', '')}`);
 
 	scrollViewRef = React.createRef();
 
