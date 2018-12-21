@@ -20,10 +20,11 @@ export class BackgroundBridge {
 					})
 				);
 		};
+
 		if (override) {
 			override(payload)
 				.then(response => {
-					done(undefined, { ...payload, result: response });
+					done(undefined, response);
 				})
 				.catch(error => {
 					done(error);

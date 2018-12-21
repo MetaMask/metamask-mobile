@@ -279,20 +279,21 @@ export class Browser extends Component {
 
 	async componentDidMount() {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
-			eth_requestAccounts: ({ hostname, params }) => {
+			eth_requestAccounts: payload => {
+				const { hostname, params } = payload;
 				const { approvedHosts, privacyMode, selectedAddress } = this.props;
 				const promise = new Promise((resolve, reject) => {
 					this.approvalRequest = { resolve, reject };
 				});
 				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-					this.approvalRequest.resolve([selectedAddress]);
+					this.approvalRequest.resolve({ ...payload, result: [selectedAddress] });
 					this.backgroundBridge.enableAccounts();
 				} else {
 					this.setState({ showApprovalDialog: true });
 				}
 				return promise;
 			},
-			web3_clientVersion: () => Promise.resolve('MetaMask/0.1.0/Alpha/Mobile')
+			web3_clientVersion: payload => Promise.resolve({ ...payload, result: 'MetaMask/0.1.0/Alpha/Mobile' })
 		});
 
 		const entryScriptWeb3 =
