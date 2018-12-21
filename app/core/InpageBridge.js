@@ -16,12 +16,12 @@ class InpageBridge {
 					break;
 			}
 		} catch (error) {
-			console.error(error); // eslint-disable-line no-console
+			console.error(error, data); // eslint-disable-line no-console
 		}
 	}
 
 	_onBackgroundResponse({ __mmID, error, response }) {
-		const callback = this._pending[`${__mmID}`];
+		const { callback } = this._pending[`${__mmID}`];
 		if (!error && response.error) {
 			error = response.error;
 		}
@@ -35,7 +35,9 @@ class InpageBridge {
 		// Legacy Provider support
 		if (window.web3 && window.web3.eth) {
 			window.web3.eth.defaultAccount = this._selectedAddress;
-			window.web3.eth.accounts = [this._selectedAddress];
+			if (!window.web3.eth.accounts || window.web3.eth.accounts[0].toLowerCase() !== this._selectedAddress) {
+				window.web3.eth.accounts = [this._selectedAddress];
+			}
 		}
 	}
 
@@ -122,7 +124,11 @@ class InpageBridge {
 				hostname: window.location.hostname
 			}));
 		}
-		this._pending[`${payload.__mmID}`] = callback;
+		this._pending[`${payload.__mmID}`] = {
+			callback,
+			payload
+		};
+
 		window.postMessage(
 			{
 				payload,
@@ -140,12 +146,12 @@ class InpageBridge {
 	 */
 	enable(params) {
 		return new Promise((resolve, reject) => {
-			this.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+			this.sendAsync({ method: 'eth_requestAccounts', params }, (error, response) => {
 				if (error) {
 					reject(error);
 					return;
 				}
-				resolve(result);
+				resolve(response.result);
 			});
 		});
 	}

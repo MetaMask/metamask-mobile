@@ -23,7 +23,7 @@ export class BackgroundBridge {
 		if (override) {
 			override(payload)
 				.then(response => {
-					done(undefined, response);
+					done(undefined, { ...payload, result: response });
 				})
 				.catch(error => {
 					done(error);
@@ -72,6 +72,7 @@ export class BackgroundBridge {
 		if (this._accounts) {
 			payload.selectedAddress = selectedAddress;
 		}
+
 		current &&
 			current.postMessage(
 				JSON.stringify({

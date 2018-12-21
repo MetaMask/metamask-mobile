@@ -532,8 +532,15 @@ export class Browser extends Component {
 			});
 	};
 
-	onMessage = ({ nativeEvent: { data } }) => {
+	onMessage = msg => {
+		let {
+			nativeEvent: { data }
+		} = msg;
 		try {
+			// Check if it's a MM request
+			if (!data || (typeof data === 'string' && data.toString().indexOf('__mmID') === -1)) {
+				return;
+			}
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			// Android workaround
 			data = typeof data === 'string' && data.includes('GET_TITLE_FOR_BOOKMARK') ? JSON.parse(data) : data;
@@ -614,6 +621,7 @@ export class Browser extends Component {
 
 				window.postMessage(
 					JSON.stringify({
+						__mmID: 0,
 						type: 'GET_TITLE_FOR_BOOKMARK',
 						title: title ? title.content : document.title,
 						url: location.href,
