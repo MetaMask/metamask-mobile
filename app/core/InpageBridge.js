@@ -35,7 +35,12 @@ class InpageBridge {
 		// Legacy Provider support
 		if (window.web3 && window.web3.eth) {
 			window.web3.eth.defaultAccount = this._selectedAddress;
-			window.web3.eth.accounts = [this._selectedAddress];
+			try {
+				window.web3.eth.accounts = [this._selectedAddress];
+			} catch (e) {
+				// eslint-disable-next-line no-console
+				console.error('Error while setting window.web3.eth.accounts on', location.href);
+			}
 		}
 	}
 
