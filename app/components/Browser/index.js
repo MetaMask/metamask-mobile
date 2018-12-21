@@ -532,10 +532,7 @@ export class Browser extends Component {
 			});
 	};
 
-	onMessage = msg => {
-		let {
-			nativeEvent: { data }
-		} = msg;
+	onMessage = ({ nativeEvent: { data } }) => {
 		try {
 			// Check if it's a MM request
 			if (!data || (typeof data === 'string' && data.toString().indexOf('__mmID') === -1)) {
