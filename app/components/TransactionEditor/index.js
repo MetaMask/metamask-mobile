@@ -161,6 +161,7 @@ class TransactionEditor extends Component {
 		const { amount, gas, gasPrice, from } = this.state;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
+		(!amount || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
 		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
 		amount &&
 			fromAccount &&

@@ -82,7 +82,6 @@ exports[`HomePage should render correctly 1`] = `
       autoCapitalize="none"
       autoCorrect={false}
       clearButtonMode="while-editing"
-      keyboardType="url"
       onChangeText={[Function]}
       onSubmitEditing={[Function]}
       placeholder="Search or type URL"

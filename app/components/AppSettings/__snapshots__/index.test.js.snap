@@ -503,6 +503,37 @@ exports[`AppSettings should render correctly 1`] = `
           }
         }
       >
+        Search Engine
+      </Text>
+      <View
+        style={
+          Object {
+            "borderColor": "#f1f2f6",
+            "borderRadius": 5,
+            "borderWidth": 2,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "marginBottom": 22,
+          "marginTop": 22,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "marginBottom": 5,
+            "textAlign": "left",
+          }
+        }
+      >
         New RPC URL
       </Text>
       <TextInput

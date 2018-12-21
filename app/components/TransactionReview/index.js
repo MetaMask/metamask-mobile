@@ -241,23 +241,23 @@ class TransactionReview extends Component {
 
 	renderSummary = () => {
 		const {
-			conversionRate,
 			transactionData: { amount, asset },
-			currentCurrency
+			currentCurrency,
+			contractExchangeRates
 		} = this.props;
 		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
-
+		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
 		return (
 			<View style={styles.summary}>
 				<Text style={styles.confirmBadge}>{strings('transaction.confirm').toUpperCase()}</Text>
-				{!conversionRate && (
+
+				{!conversionRate ? (
 					<Text style={styles.summaryFiat}>
 						{asset
 							? assetAmount + ' ' + asset.symbol
 							: fromWei(amount).toString() + ' ' + strings('unit.eth')}
 					</Text>
-				)}
-				{conversionRate && (
+				) : (
 					<View>
 						<Text style={styles.summaryFiat}>
 							{weiToFiat(asset ? assetAmount : amount, conversionRate, currentCurrency).toUpperCase()}

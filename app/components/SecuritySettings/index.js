@@ -8,6 +8,8 @@ import StyledButton from '../StyledButton';
 import ActionModal from '../ActionModal';
 import { strings } from '../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../Navbar';
+import SelectComponent from '../SelectComponent';
+import { setLockTime } from '../../actions/settings';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -77,8 +79,54 @@ class SecuritySettings extends Component {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Called to set the active search engine
+		 */
+		setLockTime: PropTypes.func,
+		/**
+		 * Active search engine
+		 */
+		lockTime: PropTypes.number
 	};
+
+	autolockOptions = [
+		{
+			value: '0',
+			label: strings('app_settings.autolock_immediately'),
+			key: '0'
+		},
+		{
+			value: '5000',
+			label: strings('app_settings.autolock_after', { time: 5 }),
+			key: '5000'
+		},
+		{
+			value: '10000',
+			label: strings('app_settings.autolock_after', { time: 10 }),
+			key: '10000'
+		},
+		{
+			value: '15000',
+			label: strings('app_settings.autolock_after', { time: 15 }),
+			key: '15000'
+		},
+		{
+			value: '30000',
+			label: strings('app_settings.autolock_after', { time: 30 }),
+			key: '30000'
+		},
+		{
+			value: '60000',
+			label: strings('app_settings.autolock_after', { time: 60 }),
+			key: '60000'
+		},
+		{
+			value: '-1',
+			label: strings('app_settings.autolock_never'),
+			key: '-1'
+		}
+	];
 
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -90,6 +138,10 @@ class SecuritySettings extends Component {
 			}
 			this.setState({ biometryType, biometryChoice: bioEnabled });
 		}
+	};
+
+	selectLockTime = lockTime => {
+		this.props.setLockTime(parseInt(lockTime, 10));
 	};
 
 	onBiometryChange = async enabled => {
@@ -137,6 +189,24 @@ class SecuritySettings extends Component {
 		}
 	}
 
+	renderAutoLock() {
+		return (
+			<View style={styles.setting}>
+				<Text style={styles.text}>{strings('app_settings.auto_lock')}</Text>
+				<View style={styles.picker}>
+					{this.autolockOptions && (
+						<SelectComponent
+							selectedValue={this.props.lockTime.toString()}
+							onValueChange={this.selectLockTime}
+							label={strings('app_settings.auto_lock')}
+							options={this.autolockOptions}
+						/>
+					)}
+				</View>
+			</View>
+		);
+	}
+
 	render = () => (
 		<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
 			<ScrollView contentContainerStyle={styles.wrapperContent}>
@@ -153,6 +223,7 @@ class SecuritySettings extends Component {
 						<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
 					</View>
 				</ActionModal>
+				{this.renderAutoLock()}
 				{this.renderBiometrics()}
 				<View style={styles.setting}>
 					<Text style={styles.text}>{strings('app_settings.reveal_seed_words')}</Text>
@@ -166,7 +237,15 @@ class SecuritySettings extends Component {
 }
 
 const mapStateToProps = state => ({
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	lockTime: state.settings.lockTime
 });
 
-export default connect(mapStateToProps)(SecuritySettings);
+const mapDispatchToProps = dispatch => ({
+	setLockTime: lockTime => dispatch(setLockTime(lockTime))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(SecuritySettings);

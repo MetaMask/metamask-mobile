@@ -83,6 +83,74 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
+        Auto-lock
+      </Text>
+      <View>
+        <SelectComponent
+          label="Auto-lock"
+          onValueChange={[Function]}
+          options={
+            Array [
+              Object {
+                "key": "0",
+                "label": "Immediately",
+                "value": "0",
+              },
+              Object {
+                "key": "5000",
+                "label": "After 5 seconds",
+                "value": "5000",
+              },
+              Object {
+                "key": "10000",
+                "label": "After 10 seconds",
+                "value": "10000",
+              },
+              Object {
+                "key": "15000",
+                "label": "After 15 seconds",
+                "value": "15000",
+              },
+              Object {
+                "key": "30000",
+                "label": "After 30 seconds",
+                "value": "30000",
+              },
+              Object {
+                "key": "60000",
+                "label": "After 60 seconds",
+                "value": "60000",
+              },
+              Object {
+                "key": "-1",
+                "label": "Never",
+                "value": "-1",
+              },
+            ]
+          }
+          selectedValue="0"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginBottom": 22,
+          "marginTop": 22,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "marginBottom": 5,
+            "textAlign": "left",
+          }
+        }
+      >
         Reveal Seed Words
       </Text>
       <StyledButton
