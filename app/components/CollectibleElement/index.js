@@ -48,17 +48,35 @@ export default class CollectibleElement extends Component {
 		/**
 		 * Asset object (in this case ERC721 token)
 		 */
-		asset: PropTypes.object
+		asset: PropTypes.object,
+		/**
+		 * Callback triggered on long press
+		 */
+		onLongPress: PropTypes.func
+	};
+
+	handleOnPress = () => {
+		const { asset, onPress } = this.props;
+		onPress(asset);
+	};
+
+	handleOnLongPress = () => {
+		const { asset, onLongPress } = this.props;
+		onLongPress(asset);
 	};
 
 	render = () => {
 		const {
 			asset,
-			asset: { address, tokenId, name },
-			onPress
+			asset: { address, tokenId, name }
 		} = this.props;
 		return (
-			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${tokenId}`}>
+			<TouchableOpacity
+				onPress={this.handleOnPress}
+				onLongPress={this.handleOnLongPress}
+				style={styles.itemWrapper}
+				key={`asset-${tokenId}`}
+			>
 				<CollectibleImage collectible={asset} />
 				<View style={styles.balances}>
 					<Text style={styles.name}>{name}</Text>

@@ -5,6 +5,8 @@ import Icon from 'react-native-vector-icons/Feather';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleElement from '../CollectibleElement';
+import ActionSheet from 'react-native-actionsheet';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -57,6 +59,10 @@ export default class Collectibles extends Component {
 		onPressAsset: PropTypes.func
 	};
 
+	actionSheet = null;
+
+	collectibleToRemove = null;
+
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
 			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
@@ -76,13 +82,28 @@ export default class Collectibles extends Component {
 			<CollectibleElement
 				asset={asset}
 				key={asset.tokenId}
-				onPress={() => this.handleOnPressAsset(asset)} // eslint-disable-line
+				onPress={this.handleOnPressAsset}
+				onLongPress={this.showRemoveMenu}
 			/>
 		));
 	}
 
 	goToAddCollectible = () => {
 		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
+	};
+
+	showRemoveMenu = collectible => {
+		this.collectibleToRemove = collectible;
+		this.actionSheet.show();
+	};
+
+	removeCollectible = () => {
+		const { AssetsController } = Engine.context;
+		AssetsController.removeCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
+	};
+
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
 	};
 
 	render = () => (
@@ -97,6 +118,15 @@ export default class Collectibles extends Component {
 					<Icon name="plus" size={16} color={colors.primary} />
 					<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
 				</TouchableOpacity>
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('wallet.remove_collectible_title')}
+					options={[strings('wallet.remove'), strings('wallet.cancel')]}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={index => (index === 0 ? this.removeCollectible() : null)}
+				/>
 			</View>
 		</ScrollView>
 	);
