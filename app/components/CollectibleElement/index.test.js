@@ -6,7 +6,7 @@ describe('CollectibleElement', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<CollectibleElement
-				asset={{
+				collectible={{
 					name: 'NAME',
 					image: 'IMAGE',
 					tokenId: 123,

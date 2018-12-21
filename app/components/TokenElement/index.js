@@ -57,22 +57,40 @@ export default class TokenElement extends Component {
 		/**
 		 * Asset object (in this case ERC20 token)
 		 */
-		asset: PropTypes.object
+		token: PropTypes.object,
+		/**
+		 * Callback triggered on long press
+		 */
+		onLongPress: PropTypes.func
+	};
+
+	handleOnPress = () => {
+		const { token, onPress } = this.props;
+		onPress(token);
+	};
+
+	handleOnLongPress = () => {
+		const { token, onLongPress } = this.props;
+		onLongPress(token);
 	};
 
 	render = () => {
 		const {
-			onPress,
-			asset,
-			asset: { symbol, balance, balanceFiat }
+			token,
+			token: { symbol, balance, balanceFiat }
 		} = this.props;
 
 		return (
-			<TouchableOpacity onPress={onPress} style={styles.itemWrapper} key={`asset-${asset.symbol}`}>
-				{asset.symbol === 'ETH' ? (
+			<TouchableOpacity
+				onPress={this.handleOnPress}
+				onLongPress={this.handleOnLongPress}
+				style={styles.itemWrapper}
+				key={`token-${token.symbol}`}
+			>
+				{token.symbol === 'ETH' ? (
 					<Image source={ethLogo} style={styles.ethLogo} />
 				) : (
-					<TokenImage asset={asset} />
+					<TokenImage asset={token} />
 				)}
 				<View style={styles.balances}>
 					<Text style={styles.balance}>

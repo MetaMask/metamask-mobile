@@ -63,15 +63,7 @@ exports[`Collectible should render correctly 1`] = `
           }
         }
       >
-        <CollectibleOverview
-          asset={
-            Object {
-              "address": "0x123",
-              "name": "Leopard",
-              "tokenId": 6904,
-            }
-          }
-        />
+        <CollectibleOverview />
       </View>
     </View>
   </ScrollView>
