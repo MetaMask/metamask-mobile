@@ -307,7 +307,29 @@ export class Browser extends Component {
 			`'${Networks[this.props.networkType].networkId.toString()}'`
 		);
 
-		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 });
+		const SPA_urlChangeListener = `(function () {
+			var __mmHistory = window.history;
+			var __mmPushState = __mmHistory.pushState;
+			__mmHistory.pushState = function(state) {
+				setTimeout(function () {
+					const siteName = document.querySelector('head > meta[property="og:site_name"]');
+					const title = siteName || document.querySelector('head > meta[name="title"]');
+					window.postMessageToNative(
+						{
+							type: 'NAV_CHANGE',
+							payload: {
+								url: location.href,
+								title: title
+							}
+						}
+					);
+				}, 100);
+				return __mmPushState.apply(history, arguments);
+			};
+		  })();
+  		`;
+
+		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
@@ -333,7 +355,8 @@ export class Browser extends Component {
 		const { navigation } = this.props;
 		if (navigation) {
 			const url = navigation.getParam('url', null);
-			if (url) {
+			const silent = navigation.getParam('silent', false);
+			if (url && !silent) {
 				await this.go(url);
 				this.setState({ loading: false });
 			}
@@ -546,6 +569,10 @@ export class Browser extends Component {
 				return;
 			}
 			switch (data.type) {
+				case 'NAV_CHANGE':
+					this.setState({ inputValue: data.payload.url, currentPageTitle: data.payload.title });
+					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
+					break;
 				case 'INPAGE_REQUEST':
 					this.backgroundBridge.onMessage(data);
 					break;
@@ -582,7 +609,13 @@ export class Browser extends Component {
 			data.inputValue = url;
 			data.hostname = this.formatHostname(urlObj.hostname);
 		}
-		this.setState(data);
+
+		const { fullHostname, inputValue, hostname } = data;
+		if (fullHostname !== this.state.fullHostname) {
+			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
+		}
+
+		this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
 	};
 
 	formatHostname(hostname) {
@@ -626,8 +659,7 @@ export class Browser extends Component {
 							url: location.href,
 							icon: icon && icon.href
 						}
-					},
-					'*'
+					}
 				)
 			})();
 		`;
