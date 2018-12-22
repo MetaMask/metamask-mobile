@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, Clipboard, Alert, InteractionManager, TextInput, ScrollView } from 'react-native';
+import {
+	Dimensions,
+	StyleSheet,
+	Text,
+	View,
+	Clipboard,
+	Alert,
+	InteractionManager,
+	TextInput,
+	ScrollView
+} from 'react-native';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
@@ -211,7 +221,7 @@ class AccountDetails extends Component {
 					<View style={styles.qrCode}>
 						<QRCode
 							value={selectedAddress}
-							size={120}
+							size={Dimensions.get('window').width - 120}
 							bgColor={colors.fontPrimary}
 							fgColor={colors.white}
 						/>
