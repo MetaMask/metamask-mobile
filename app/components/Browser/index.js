@@ -10,7 +10,8 @@ import {
 	Alert,
 	Animated,
 	SafeAreaView,
-	TouchableOpacity
+	TouchableOpacity,
+	Linking
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
 	optionsWrapper: {
 		position: 'absolute',
 		zIndex: 99999999,
-		width: 140,
+		width: 160,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		backgroundColor: colors.concrete
@@ -517,6 +518,13 @@ export class Browser extends Component {
 		});
 	};
 
+	openInBrowser = () => {
+		this.toggleOptionsIfNeeded();
+		Linking.openURL(this.state.url).catch(error =>
+			Logger.log('Error while trying to open external link: ${url}', error)
+		);
+	};
+
 	toggleOptionsIfNeeded() {
 		if (this.props.navigation && this.props.navigation.state.params.showOptions) {
 			this.toggleOptions();
@@ -668,6 +676,10 @@ export class Browser extends Component {
 							<Button onPress={this.share} style={styles.option}>
 								<Icon name="share" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>{strings('browser.share')}</Text>
+							</Button>
+							<Button onPress={this.openInBrowser} style={styles.option}>
+								<Icon name="expand" size={15} style={styles.optionIcon} />
+								<Text style={styles.optionText}>{strings('browser.open_in_browser')}</Text>
 							</Button>
 							{Platform.OS === 'android' ? (
 								<Button onPress={this.close} style={styles.option}>

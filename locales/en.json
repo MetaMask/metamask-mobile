@@ -291,7 +291,8 @@
 		"cancel": "Cancel",
 		"go_back": "Go Back",
 		"go_forward": "Go Forward",
-		"close": "Close"
+		"close": "Close",
+		"open_in_browser": "Open in Browser"
 	},
 	"add_bookmark": {
 		"title": "Add Bookmark",
