@@ -471,8 +471,6 @@ export class Browser extends Component {
 		if (this.state.canGoBack) {
 			const { current } = this.webview;
 			current && current.goBack();
-		} else {
-			this.props.navigation.pop();
 		}
 	};
 
@@ -720,7 +718,7 @@ export class Browser extends Component {
 		}, 150);
 	};
 
-	renderBottomBar = canGoForward => {
+	renderBottomBar = (canGoBack, canGoForward) => {
 		const bottom = Platform.OS === 'ios' ? 0 : 10;
 		const distance = Platform.OS === 'ios' ? 100 : 200;
 		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, SCROLL_THRESHOLD).interpolate({
@@ -730,7 +728,13 @@ export class Browser extends Component {
 		return (
 			<Animated.View style={[styles.bottomBar, { marginBottom: bottomBarPosition }]}>
 				<View style={styles.iconsLeft}>
-					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
+					<Icon
+						name="angle-left"
+						disabled={!canGoBack}
+						onPress={this.goBack}
+						size={30}
+						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
+					/>
 					<Icon
 						disabled={!canGoForward}
 						name="angle-right"
@@ -901,7 +905,7 @@ export class Browser extends Component {
 	};
 
 	render = () => {
-		const { canGoForward, entryScriptWeb3, url } = this.state;
+		const { canGoBack, canGoForward, entryScriptWeb3, url } = this.state;
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -936,7 +940,7 @@ export class Browser extends Component {
 				{this.renderSigningModal()}
 				{this.renderApprovalModal()}
 				{this.renderOptions()}
-				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
+				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
 			</SafeAreaView>
 		);
 	};
