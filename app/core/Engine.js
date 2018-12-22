@@ -41,7 +41,7 @@ class Engine {
 	 * Object containing the info for the latest incoming tx block
 	 * for each address and network
 	 */
-	lastIncomingTxBlockInfo;
+	lastIncomingTxBlockInfo = {};
 
 	/**
 	 * Creates a CoreController instance

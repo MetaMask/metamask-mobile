@@ -113,7 +113,7 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const amountToSend = calcTokenValueToSend(fromWei(amount), asset.decimals);
+		const amountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
 		const data = asset ? generateTransferData('ERC20', { toAddress: to, amount: amountToSend }) : undefined;
 		const { gas } = await this.estimateGas({ amount });
 		this.setState({ amount, data, gas: hexToBN(gas) });
@@ -134,7 +134,7 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const amountToSend = calcTokenValueToSend(fromWei(amount), asset.decimals);
+		const amountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
 		const data = asset ? generateTransferData('ERC20', { toAddress: to, amount: amountToSend }) : undefined;
 		const { gas } = await TransactionController.estimateGas({ amount, from, data, to: asset ? asset.address : to });
 		this.setState({ to, gas: hexToBN(gas), data });

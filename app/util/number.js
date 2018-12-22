@@ -123,10 +123,22 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
 	if (!wei || !isBN(wei)) {
 		return `0.00 ${currencyCode}`;
 	}
+	const value = weiToFiatNumber(wei, conversionRate);
+	return `${value} ${currencyCode}`;
+}
+
+/**
+ * Converts wei expressed as a BN instance into a human-readable fiat string
+ *
+ * @param {number} wei - BN corresponding to an amount of wei
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @returns {Number} - The converted balance
+ */
+export function weiToFiatNumber(wei, conversionRate) {
 	const eth = fromWei(wei).toString();
 	let value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
-	value = isNaN(value) ? '0.00' : value;
-	return `${value} ${currencyCode}`;
+	value = isNaN(value) ? 0.0 : value;
+	return value;
 }
 
 /**
@@ -142,7 +154,20 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === null) {
 		return undefined;
 	}
-	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * 100) / 100).toFixed(2);
-	fiatFixed = isNaN(fiatFixed) ? '0.00' : fiatFixed;
+	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
+}
+
+/**
+ * Calculates fiat balance of an asset and returns a number
+ *
+ * @param {number} balance - Number corresponding to a balance of an asset
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @returns {Number} - The converted balance
+ */
+export function balanceToFiatNumber(balance, conversionRate, exchangeRate) {
+	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * 100) / 100).toFixed(2);
+	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+	return fiatFixed;
 }
