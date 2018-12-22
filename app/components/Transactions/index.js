@@ -3,14 +3,13 @@ import PropTypes from 'prop-types';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Clipboard } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
-import Identicon from '../Identicon';
 import { fromWei, toGwei, weiToFiat, hexToBN, isBN, toBN } from '../../util/number';
 import { renderFullAddress } from '../../util/address';
-import { toLocaleDateTime } from '../../util/date';
 import { strings } from '../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { getEtherscanTransactionUrl } from '../../util/etherscan';
 import { getNetworkTypeById } from '../../util/networks';
+import TransactionElement from '../TransactionElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -27,70 +26,6 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: colors.fontTertiary,
 		...fontStyles.normal
-	},
-	row: {
-		backgroundColor: colors.white,
-		flex: 1,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
-	},
-	rowContent: {
-		padding: 15
-	},
-	date: {
-		color: colors.fontSecondary,
-		fontSize: 12,
-		marginBottom: 10,
-		...fontStyles.normal
-	},
-	info: {
-		marginLeft: 15
-	},
-	address: {
-		fontSize: 15,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
-	status: {
-		marginTop: 5,
-		paddingVertical: 3,
-		paddingHorizontal: 5,
-		textAlign: 'center',
-		backgroundColor: colors.concrete,
-		color: colors.gray,
-		fontSize: 9,
-		letterSpacing: 0.5,
-		width: 75,
-		...fontStyles.bold
-	},
-	statusConfirmed: {
-		backgroundColor: colors.lightSuccess,
-		color: colors.success
-	},
-	statusSubmitted: {
-		backgroundColor: colors.lightWarning,
-		color: colors.warning
-	},
-	statusFailed: {
-		backgroundColor: colors.lightRed,
-		color: colors.error
-	},
-	amount: {
-		fontSize: 15,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
-	amountFiat: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	amounts: {
-		flex: 1,
-		alignItems: 'flex-end'
-	},
-	subRow: {
-		flexDirection: 'row'
 	},
 	detailRowWrapper: {
 		flex: 1,
@@ -210,15 +145,7 @@ export default class Transactions extends Component {
 		}
 	};
 
-	toggleDetailsView(hash, index) {
-		const show = this.state.selectedTx !== hash;
-		this.setState({ selectedTx: show ? hash : null });
-		if (show) {
-			this.props.adjustScroll && this.props.adjustScroll(index);
-		}
-	}
-
-	renderCopyIcon(str) {
+	renderCopyIcon = str => {
 		function copy() {
 			Clipboard.setString(str);
 		}
@@ -227,9 +154,9 @@ export default class Transactions extends Component {
 				<Icon name={'copy'} size={15} color={colors.primary} />
 			</TouchableOpacity>
 		);
-	}
+	};
 
-	renderTxHash(transactionHash) {
+	renderTxHash = transactionHash => {
 		if (!transactionHash) return null;
 		return (
 			<View>
@@ -243,9 +170,17 @@ export default class Transactions extends Component {
 				</View>
 			</View>
 		);
-	}
+	};
 
-	renderTxDetails(tx) {
+	toggleDetailsView = (hash, index) => {
+		const show = this.state.selectedTx !== hash;
+		this.setState({ selectedTx: show ? hash : null });
+		if (show) {
+			this.props.adjustScroll && this.props.adjustScroll(index);
+		}
+	};
+
+	renderTxDetails = tx => {
 		const {
 			transaction: { gas, gasPrice, value, to, from },
 			transactionHash
@@ -307,18 +242,7 @@ export default class Transactions extends Component {
 				)}
 			</View>
 		);
-	}
-
-	getStatusStyle(status) {
-		if (status === 'confirmed') {
-			return styles.statusConfirmed;
-		} else if (status === 'submitted' || status === 'approved') {
-			return styles.statusSubmitted;
-		} else if (status === 'failed') {
-			return styles.statusFailed;
-		}
-		return null;
-	}
+	};
 
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
@@ -327,7 +251,7 @@ export default class Transactions extends Component {
 	);
 
 	render = () => {
-		const { transactions, currentCurrency, conversionRate, selectedAddress, networkId } = this.props;
+		const { transactions, selectedAddress, networkId } = this.props;
 		const txs = transactions.filter(
 			tx =>
 				((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
@@ -342,53 +266,17 @@ export default class Transactions extends Component {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>
-					{txs.map((tx, i) => {
-						const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
-						const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
-						return (
-							<TouchableOpacity
-								style={styles.row}
-								key={`tx-${tx.id}`}
-								onPress={() => this.toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
-							>
-								<View style={styles.rowContent}>
-									<Text style={styles.date}>
-										{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
-										{`${toLocaleDateTime(tx.time)}`}
-									</Text>
-									<View style={styles.subRow}>
-										<Identicon address={tx.transaction.to} diameter={24} />
-										<View style={styles.info}>
-											<Text style={styles.address}>
-												{incoming
-													? selfSent
-														? strings('transactions.self_sent_ether')
-														: strings('transactions.received_ether')
-													: strings('transactions.sent_ether')}
-											</Text>
-											<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
-												{tx.status.toUpperCase()}
-											</Text>
-										</View>
-										<View style={styles.amounts}>
-											<Text style={styles.amount}>
-												- {fromWei(tx.transaction.value, 'ether')} {strings('unit.eth')}
-											</Text>
-											<Text style={styles.amountFiat}>
-												-{' '}
-												{weiToFiat(
-													hexToBN(tx.transaction.value),
-													conversionRate,
-													currentCurrency
-												).toUpperCase()}
-											</Text>
-										</View>
-									</View>
-								</View>
-								{tx.transactionHash === this.state.selectedTx ? this.renderTxDetails(tx) : null}
-							</TouchableOpacity>
-						);
-					})}
+					{txs.map((tx, i) => (
+						<TransactionElement
+							key={i}
+							i={i}
+							tx={tx}
+							selectedAddress={selectedAddress}
+							selectedTx={this.state.selectedTx}
+							renderTxDetails={this.renderTxDetails}
+							toggleDetailsView={this.toggleDetailsView}
+						/>
+					))}
 				</View>
 			</ScrollView>
 		);

@@ -265,7 +265,8 @@
 		"required": "Required",
 		"to": "To",
 		"total": "Total",
-		"loading": "Loading..."
+		"loading": "Loading...",
+		"conversion_not_available": "Conversion rate not available"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -306,6 +307,8 @@
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
+		"sent_tokens": "Sent Tokens",
+		"contract_deploy": "Contract Deployment",
 		"hash": "Hash",
 		"from": "From",
 		"to": "To",

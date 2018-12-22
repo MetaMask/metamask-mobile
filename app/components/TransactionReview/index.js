@@ -216,7 +216,11 @@ class TransactionReview extends Component {
 		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
-		validateAmount: PropTypes.func
+		validateAmount: PropTypes.func,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object
 	};
 
 	state = {
@@ -235,15 +239,57 @@ class TransactionReview extends Component {
 		onModeChange && onModeChange('edit');
 	};
 
+	renderSummary = () => {
+		const {
+			transactionData: { amount, asset },
+			currentCurrency,
+			contractExchangeRates
+		} = this.props;
+		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
+		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
+		return (
+			<View style={styles.summary}>
+				<Text style={styles.confirmBadge}>{strings('transaction.confirm').toUpperCase()}</Text>
+
+				{!conversionRate ? (
+					<Text style={styles.summaryFiat}>
+						{asset
+							? assetAmount + ' ' + asset.symbol
+							: fromWei(amount).toString() + ' ' + strings('unit.eth')}
+					</Text>
+				) : (
+					<View>
+						<Text style={styles.summaryFiat}>
+							{weiToFiat(asset ? assetAmount : amount, conversionRate, currentCurrency).toUpperCase()}
+						</Text>
+						<Text style={styles.summaryEth}>
+							{asset
+								? assetAmount + ' ' + asset.symbol
+								: fromWei(amount).toString() + ' ' + strings('unit.eth')}
+						</Text>
+					</View>
+				)}
+
+				<TouchableOpacity style={styles.goBack} onPress={this.edit}>
+					<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
+					<Text style={styles.goBackText}>{strings('transaction.edit')}</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	};
+
 	render = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to },
+			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to, asset },
+			currentCurrency,
 			conversionRate,
-			currentCurrency
+			contractExchangeRates
 		} = this.props;
+		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
+		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
+		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
 
 		return (
 			<View style={styles.root}>
@@ -270,17 +316,7 @@ class TransactionReview extends Component {
 								</Text>
 							</View>
 						</View>
-						<View style={styles.summary}>
-							<Text style={styles.confirmBadge}>{strings('transaction.confirm').toUpperCase()}</Text>
-							<Text style={styles.summaryFiat}>
-								{weiToFiat(amount, conversionRate, currentCurrency).toUpperCase()}
-							</Text>
-							<Text style={styles.summaryEth}>{fromWei(amount).toString()}</Text>
-							<TouchableOpacity style={styles.goBack} onPress={this.edit}>
-								<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
-								<Text style={styles.goBackText}>{strings('transaction.edit')}</Text>
-							</TouchableOpacity>
-						</View>
+						{this.renderSummary()}
 						<View style={styles.overview}>
 							<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
 								<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
@@ -293,9 +329,12 @@ class TransactionReview extends Component {
 									<Text style={styles.overviewFiat}>
 										{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
 									</Text>
-									<Text style={styles.overviewEth}>{fromWei(totalGas).toString()}</Text>
+									<Text style={styles.overviewEth}>
+										{fromWei(totalGas).toString()} {strings('unit.eth')}
+									</Text>
 								</View>
 							</View>
+
 							<View style={styles.overviewRow}>
 								<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
 								<View style={styles.overviewContent}>
@@ -304,9 +343,17 @@ class TransactionReview extends Component {
 										{strings('transaction.gas_fee').toUpperCase()}
 									</Text>
 									<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-										{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}
+										{conversionRateAsset
+											? weiToFiat(assetAmount, conversionRateAsset, currentCurrency).toUpperCase()
+											: null}
+										{conversionRateAsset && ' '}
+										{weiToFiat(ethTotal, conversionRate, currentCurrency).toUpperCase()}
 									</Text>
-									<Text style={styles.overviewEth}>{fromWei(total).toString()}</Text>
+
+									<Text style={styles.overviewEth}>
+										{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
+										{fromWei(ethTotal).toString()} {strings('unit.eth')}
+									</Text>
 								</View>
 							</View>
 							{amountError ? (
@@ -329,7 +376,8 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
 });
 
 export default connect(mapStateToProps)(TransactionReview);

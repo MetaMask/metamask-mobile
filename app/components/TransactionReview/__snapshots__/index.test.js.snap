@@ -162,31 +162,33 @@ exports[`TransactionReview should render correctly 1`] = `
         >
           CONFIRM
         </Text>
-        <Text
-          style={
-            Object {
-              "color": "#4d4d4d",
-              "fontFamily": "Roboto",
-              "fontSize": 44,
-              "fontWeight": "400",
-              "paddingVertical": 4,
+        <View>
+          <Text
+            style={
+              Object {
+                "color": "#4d4d4d",
+                "fontFamily": "Roboto",
+                "fontSize": 44,
+                "fontWeight": "400",
+                "paddingVertical": 4,
+              }
             }
-          }
-        >
-          0.00 USD
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#8c8e94",
-              "fontFamily": "Roboto",
-              "fontSize": 24,
-              "fontWeight": "400",
+          >
+            0.00 USD
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#8c8e94",
+                "fontFamily": "Roboto",
+                "fontSize": 24,
+                "fontWeight": "400",
+              }
             }
-          }
-        >
-          0
-        </Text>
+          >
+            0 ETH
+          </Text>
+        </View>
         <TouchableOpacity
           activeOpacity={0.2}
           onPress={[Function]}
@@ -303,6 +305,8 @@ exports[`TransactionReview should render correctly 1`] = `
               }
             >
               0.00000000000000033
+               
+              ETH
             </Text>
           </View>
         </View>
@@ -370,7 +374,11 @@ exports[`TransactionReview should render correctly 1`] = `
                 }
               }
             >
+               
+               
               0.00000000000000033
+               
+              ETH
             </Text>
           </View>
         </View>
