@@ -47,13 +47,12 @@ class Asset extends Component {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * A string represeting the network name
+		 * A string representing the network name
 		 */
 		networkType: PropTypes.string
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(`${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`);
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('symbol', ''));
 
 	scrollViewRef = React.createRef();
 

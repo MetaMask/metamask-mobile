@@ -54,6 +54,7 @@
     "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#master",
     "eth-ens-namehash": "^2.0.8",
     "eth-url-parser": "^1.0.2",
+    "ethereumjs-abi": "^0.6.5",
     "ethereumjs-util": "^5.2.0",
     "ethjs-contract": "^0.2.3",
     "ethjs-query": "^0.3.8",

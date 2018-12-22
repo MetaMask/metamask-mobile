@@ -55,7 +55,9 @@ class SendScreen extends Component {
 	mounted = false;
 
 	async reset() {
-		const transaction = {};
+		const { navigation } = this.props;
+		const asset = navigation.state && navigation.state && navigation.state.params;
+		const transaction = { asset };
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
 		transaction.gas = hexToBN(gas);
 		transaction.gasPrice = hexToBN(gasPrice);
@@ -134,6 +136,14 @@ class SendScreen extends Component {
 		return transaction;
 	}
 
+	prepareTokenTransaction = (transaction, asset) => {
+		transaction.gas = BNToHex(transaction.gas);
+		transaction.gasPrice = BNToHex(transaction.gasPrice);
+		transaction.value = '0x0';
+		transaction.to = asset.address;
+		return transaction;
+	};
+
 	sanitizeTransaction(transaction) {
 		transaction.gas = hexToBN(transaction.gas);
 		transaction.gasPrice = hexToBN(transaction.gasPrice);
@@ -151,15 +161,31 @@ class SendScreen extends Component {
 
 	onConfirm = async transaction => {
 		const { TransactionController } = Engine.context;
-		transaction = this.prepareTransaction(transaction);
-		try {
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
-			await TransactionController.approveTransaction(transactionMeta.id);
-			const hash = await result;
-			this.props.navigation.push('TransactionSubmitted', { hash });
-			this.reset();
-		} catch (error) {
-			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+		const { navigation } = this.props;
+		const asset = navigation.state && navigation.state && navigation.state.params;
+
+		if (!asset) {
+			transaction = this.prepareTransaction(transaction);
+			try {
+				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+				await TransactionController.approveTransaction(transactionMeta.id);
+				const hash = await result;
+				this.props.navigation.push('TransactionSubmitted', { hash });
+				this.reset();
+			} catch (error) {
+				Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			}
+		} else {
+			transaction = this.prepareTokenTransaction(transaction, asset);
+			try {
+				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+				await TransactionController.approveTransaction(transactionMeta.id);
+				const hash = await result;
+				this.props.navigation.push('TransactionSubmitted', { hash });
+				this.reset();
+			} catch (error) {
+				Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			}
 		}
 	};
 

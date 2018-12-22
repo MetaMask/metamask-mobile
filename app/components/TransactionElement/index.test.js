@@ -1,12 +1,11 @@
 import React from 'react';
-import CustomGas from './';
+import TransactionElement from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
-import { BN } from 'ethereumjs-util';
 
 const mockStore = configureMockStore();
 
-describe('CustomGas', () => {
+describe('TransactionElement', () => {
 	it('should render correctly', () => {
 		const initialState = {
 			engine: {
@@ -19,9 +18,19 @@ describe('CustomGas', () => {
 			}
 		};
 
-		const wrapper = shallow(<CustomGas navigation={{ state: { params: {} } }} gas={new BN(0)} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<TransactionElement
+				tx={{ transaction: { to: '0x0', from: '0x1', nonce: 1 }, status: 'CONFIRMED' }}
+				conversionRate={1}
+				currentCurrency={'USD'}
+				selectedTx={'0x0'}
+				selectedAddress={'0x1'}
+				i={1}
+			/>,
+			{
+				context: { store: mockStore(initialState) }
+			}
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });
