@@ -20,7 +20,7 @@ export function BNToHex(value) {
  *
  * @param {number|string|Object} value - Wei to convert
  * @param {string} unit - Unit to convert to, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {string} - String containing the new number
  */
 export function fromWei(value = 0, unit = 'ether') {
 	return convert.fromWei(value, unit);
@@ -36,6 +36,17 @@ export function fromWei(value = 0, unit = 'ether') {
 export function calcTokenValue(value, decimals) {
 	const multiplier = Math.pow(10, decimals);
 	return value.div(multiplier).toNumber();
+}
+
+/**
+ * Converts token BN value to hex string number to be sent
+ *
+ * @param {Object} value - BN instance to convert
+ * @param {number} decimals - Decimals to be considered on the conversion
+ * @returns {string} - String of the hex token value
+ */
+export function calcTokenValueToSend(value, decimals) {
+	return value ? (value * Math.pow(10, decimals)).toString(16) : 0;
 }
 
 /**

@@ -122,7 +122,7 @@ class CustomGas extends Component {
 		ready: false,
 		advancedCustomGas: false,
 		customGasPrice: '20',
-		customGasLimit: '21000',
+		customGasLimit: this.props.gas.toNumber().toString(),
 		warningGasLimit: '',
 		warningGasPrice: ''
 	};
@@ -154,15 +154,7 @@ class CustomGas extends Component {
 	};
 
 	onAdvancedOptions = () => {
-		const {
-			advancedCustomGas,
-			selected,
-			fastGwei,
-			averageGwei,
-			safeLowGwei,
-			customGasLimit,
-			customGasPrice
-		} = this.state;
+		const { advancedCustomGas, selected, fastGwei, averageGwei, safeLowGwei, customGasPrice } = this.state;
 		const { gas } = this.props;
 		if (advancedCustomGas) {
 			switch (selected) {
@@ -177,7 +169,8 @@ class CustomGas extends Component {
 					break;
 			}
 		} else {
-			this.props.handleGasFeeSelection(new BN(customGasLimit), apiEstimateModifiedToWEI(customGasPrice));
+			this.setState({ customGasLimit: gas.toNumber().toString() });
+			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
 		}
 		this.setState({ advancedCustomGas: !advancedCustomGas });
 	};
