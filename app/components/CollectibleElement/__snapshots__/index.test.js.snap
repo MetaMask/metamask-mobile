@@ -52,13 +52,11 @@ exports[`CollectibleElement should render correctly 1`] = `
           "color": "#4a4a4a",
           "fontFamily": "Roboto",
           "fontSize": 12,
-          "fontWeight": "400",
+          "fontWeight": "600",
         }
       }
     >
-      ID
-      : 
-      123
+      Cryptokitties
     </Text>
     <Text
       style={
@@ -66,11 +64,13 @@ exports[`CollectibleElement should render correctly 1`] = `
           "color": "#4a4a4a",
           "fontFamily": "Roboto",
           "fontSize": 12,
-          "fontWeight": "600",
+          "fontWeight": "400",
         }
       }
     >
-      Cryptokitties
+      ID
+      : 
+      123
     </Text>
   </View>
 </TouchableOpacity>

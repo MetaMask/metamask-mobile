@@ -80,10 +80,10 @@ export default class CollectibleElement extends Component {
 				<CollectibleImage collectible={collectible} />
 				<View style={styles.balances}>
 					<Text style={styles.name}>{name}</Text>
+					{contractMap[address] && <Text style={styles.collectibleName}>{contractMap[address].name}</Text>}
 					<Text style={styles.tokenId}>
 						{strings('collectible.collectible_token_id')}: {tokenId}
 					</Text>
-					{contractMap[address] && <Text style={styles.collectibleName}>{contractMap[address].name}</Text>}
 				</View>
 			</TouchableOpacity>
 		);

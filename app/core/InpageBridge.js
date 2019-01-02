@@ -16,7 +16,7 @@ class InpageBridge {
 					break;
 			}
 		} catch (error) {
-			console.error(error, data); // eslint-disable-line no-console
+			console.error(error); // eslint-disable-line no-console
 		}
 	}
 
@@ -35,8 +35,11 @@ class InpageBridge {
 		// Legacy Provider support
 		if (window.web3 && window.web3.eth) {
 			window.web3.eth.defaultAccount = this._selectedAddress;
-			if (!window.web3.eth.accounts || window.web3.eth.accounts[0].toLowerCase() !== this._selectedAddress) {
+			try {
 				window.web3.eth.accounts = [this._selectedAddress];
+			} catch (e) {
+				// eslint-disable-next-line no-console
+				console.error('Error while setting window.web3.eth.accounts on', location.href);
 			}
 		}
 	}
@@ -50,7 +53,9 @@ class InpageBridge {
 		this._network = undefined; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		document.addEventListener('message', ({ data }) => {
-			this._onMessage(data);
+			if (data.toString().indexOf('INPAGE_RESPONSE') !== -1 || data.toString().indexOf('STATE_UPDATE') !== -1) {
+				this._onMessage(data);
+			}
 		});
 	}
 
@@ -125,14 +130,10 @@ class InpageBridge {
 			}));
 		}
 		this._pending[`${payload.__mmID}`] = callback;
-
-		window.postMessage(
-			{
-				payload,
-				type: 'INPAGE_REQUEST'
-			},
-			'*'
-		);
+		window.postMessageToNative({
+			payload,
+			type: 'INPAGE_REQUEST'
+		});
 	}
 
 	/**
@@ -143,24 +144,19 @@ class InpageBridge {
 	 */
 	enable(params) {
 		return new Promise((resolve, reject) => {
-			this.sendAsync({ id: 1, jsonrpc: '2.0', method: 'eth_requestAccounts', params }, (error, response) => {
+			// Temporary fix for peepeth calling
+			// ethereum.enable with the wrong context
+			const self = this || window.ethereum;
+			self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
 				if (error) {
 					reject(error);
 					return;
 				}
-				resolve(response.result);
+				resolve(result);
 			});
 		});
 	}
 }
 
 window.ethereum = new InpageBridge();
-
-function safePostMessage(msg) {
-	if (window.originalPostMessage) {
-		window.originalPostMessage(msg, '*');
-	} else {
-		window.postMessage(msg, '*');
-	}
-}
-safePostMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' });
+window.postMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');

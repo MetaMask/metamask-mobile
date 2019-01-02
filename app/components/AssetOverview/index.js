@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
 	},
 	button: {
 		flex: 1,
+		height: 50,
 		flexDirection: 'row'
 	},
 	leftButton: {

@@ -4,8 +4,8 @@ let LISTENER;
 describe('InpageBridge', () => {
 	beforeAll(() => {
 		global.window = {
-			postMessage: jest.fn(),
-			originalPostMessage: jest.fn()
+			postMessageToNative: jest.fn(),
+			postMessage: jest.fn()
 		};
 
 		global.document = {
@@ -84,7 +84,7 @@ describe('InpageBridge', () => {
 
 	it('should forward asynchronous RPC request', () => {
 		global.window.location = { hostname: 'hostname' };
-		const stub = spyOn(global.window, 'postMessage');
+		const stub = spyOn(global.window, 'postMessageToNative');
 		INSTANCE.sendAsync({ method: 'foo' }, () => {
 			/* eslint-disable-line no-empty */
 		});

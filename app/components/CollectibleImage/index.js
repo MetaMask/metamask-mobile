@@ -8,8 +8,6 @@ const styles = StyleSheet.create({
 	listWrapper: {
 		width: 50,
 		height: 50,
-		overflow: 'hidden',
-		borderRadius: 25,
 		marginRight: 20
 	},
 	fullWrapper: {

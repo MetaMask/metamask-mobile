@@ -111,6 +111,7 @@ exports[`AssetOverview should render correctly 1`] = `
           Object {
             "flex": 1,
             "flexDirection": "row",
+            "height": 50,
           },
           Object {
             "marginRight": 10,
@@ -177,6 +178,7 @@ exports[`AssetOverview should render correctly 1`] = `
           Object {
             "flex": 1,
             "flexDirection": "row",
+            "height": 50,
           },
           Object {
             "marginLeft": 10,
