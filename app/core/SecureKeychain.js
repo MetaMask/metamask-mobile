@@ -5,7 +5,7 @@ import { strings } from '../../locales/i18n';
 const privates = new WeakMap();
 const encryptor = new Encryptor();
 const defaultOptions = {
-	service: 'com.metamask',
+	service: 'io.metamask',
 	authenticationPromptTitle: strings('authentication.auth_prompt_title'),
 	authenticationPromptDesc: strings('authentication.auth_prompt_desc'),
 	fingerprintPromptTitle: strings('authentication.fingerprint_prompt_title'),
