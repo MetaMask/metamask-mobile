@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { weiToFiat, isDecimal, toWei, fromWei, isBN } from '../../util/number';
+import { weiToFiat, isDecimal, toWei, fromWei, isBN, balanceToFiat } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -92,7 +92,22 @@ class EthInput extends Component {
 	render = () => {
 		const { currentCurrency, readonly, value, asset, contractExchangeRates } = this.props;
 		const { amount } = this.state;
-		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
+		let convertedAmount;
+		if (asset) {
+			const exchangeRate = contractExchangeRates[asset.address];
+			if (exchangeRate) {
+				convertedAmount = balanceToFiat(
+					amount || 0,
+					this.props.conversionRate,
+					exchangeRate,
+					currentCurrency
+				).toUpperCase();
+			} else {
+				convertedAmount = strings('transaction.conversion_not_available');
+			}
+		} else {
+			convertedAmount = weiToFiat(value, this.props.conversionRate, currentCurrency).toUpperCase();
+		}
 		return (
 			<View style={styles.root}>
 				<View style={styles.split}>
@@ -113,9 +128,7 @@ class EthInput extends Component {
 					</Text>
 				</View>
 				<Text style={styles.fiatValue} numberOfLines={1}>
-					{conversionRate
-						? weiToFiat(value, conversionRate, currentCurrency).toUpperCase()
-						: strings('transaction.conversion_not_available')}
+					{convertedAmount}
 				</Text>
 			</View>
 		);

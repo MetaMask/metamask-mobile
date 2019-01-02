@@ -101,7 +101,7 @@ exports[`Account Details should render correctly 1`] = `
         fgColor="#FFFFFF"
         onLoad={[Function]}
         onLoadEnd={[Function]}
-        size={120}
+        size={630}
         value="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
       />
     </View>

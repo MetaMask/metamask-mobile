@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import ActionSheet from 'react-native-actionsheet';
 import { connect } from 'react-redux';
@@ -90,15 +89,6 @@ const styles = StyleSheet.create({
 		height: 26,
 		marginRight: 7,
 		borderRadius: 13
-	},
-	bookmarkIconDefault: {
-		position: 'absolute',
-		marginTop: 0,
-		marginLeft: 5,
-		width: 24,
-		height: 24,
-		marginRight: 10,
-		color: colors.fontSecondary
 	},
 	searchInput: {
 		marginVertical: 20,
@@ -191,7 +181,6 @@ class HomePage extends Component {
 						// eslint-disable-next-line react/jsx-no-bind
 						onLongPress={() => this.showRemoveMenu(i)}
 					>
-						<Icon name="bookmark" size={20} style={styles.bookmarkIconDefault} />
 						<WebsiteIcon
 							style={styles.bookmarkIco}
 							url={item.url}

@@ -154,10 +154,6 @@ class TransactionElement extends Component {
 		switch (actionKey) {
 			case SEND_TOKEN_ACTION_KEY:
 				return strings('transactions.sent_tokens');
-			case APPROVE_ACTION_KEY:
-				return;
-			case TRANSFER_FROM_ACTION_KEY:
-				return;
 			case SEND_ETHER_ACTION_KEY:
 				return incoming
 					? selfSent
@@ -166,6 +162,8 @@ class TransactionElement extends Component {
 					: strings('transactions.sent_ether');
 			case DEPLOY_CONTRACT_ACTION_KEY:
 				return strings('transactions.contract_deploy');
+			default:
+				return strings('transactions.smart_contract_interaction');
 		}
 	};
 
@@ -226,7 +224,7 @@ class TransactionElement extends Component {
 				case TOKEN_METHOD_TRANSFER_FROM:
 					return TRANSFER_FROM_ACTION_KEY;
 				default:
-					return undefined;
+					return UNKNOWN_FUNCTION_KEY;
 			}
 		}
 		return SEND_ETHER_ACTION_KEY;

@@ -10,7 +10,8 @@ import {
 	Alert,
 	Animated,
 	SafeAreaView,
-	TouchableOpacity
+	TouchableOpacity,
+	Linking
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
 	optionsWrapper: {
 		position: 'absolute',
 		zIndex: 99999999,
-		width: 140,
+		width: 160,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		backgroundColor: colors.concrete
@@ -279,21 +280,21 @@ export class Browser extends Component {
 
 	async componentDidMount() {
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
-			eth_requestAccounts: payload => {
-				const { hostname, params } = payload;
+			eth_requestAccounts: ({ hostname, params }) => {
 				const { approvedHosts, privacyMode, selectedAddress } = this.props;
 				const promise = new Promise((resolve, reject) => {
 					this.approvalRequest = { resolve, reject };
 				});
 				if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-					this.approvalRequest.resolve({ ...payload, result: [selectedAddress] });
+					this.approvalRequest.resolve([selectedAddress]);
 					this.backgroundBridge.enableAccounts();
 				} else {
 					this.setState({ showApprovalDialog: true });
 				}
 				return promise;
 			},
-			web3_clientVersion: payload => Promise.resolve({ ...payload, result: 'MetaMask/0.1.0/Alpha/Mobile' })
+			web3_clientVersion: payload =>
+				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id })
 		});
 
 		const entryScriptWeb3 =
@@ -306,7 +307,29 @@ export class Browser extends Component {
 			`'${Networks[this.props.networkType].networkId.toString()}'`
 		);
 
-		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 });
+		const SPA_urlChangeListener = `(function () {
+			var __mmHistory = window.history;
+			var __mmPushState = __mmHistory.pushState;
+			__mmHistory.pushState = function(state) {
+				setTimeout(function () {
+					const siteName = document.querySelector('head > meta[property="og:site_name"]');
+					const title = siteName || document.querySelector('head > meta[name="title"]');
+					window.postMessageToNative(
+						{
+							type: 'NAV_CHANGE',
+							payload: {
+								url: location.href,
+								title: title
+							}
+						}
+					);
+				}, 100);
+				return __mmPushState.apply(history, arguments);
+			};
+		  })();
+  		`;
+
+		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
 			this.props.navigation.push('Approval', { transactionMeta });
@@ -332,7 +355,8 @@ export class Browser extends Component {
 		const { navigation } = this.props;
 		if (navigation) {
 			const url = navigation.getParam('url', null);
-			if (url) {
+			const silent = navigation.getParam('silent', false);
+			if (url && !silent) {
 				await this.go(url);
 				this.setState({ loading: false });
 			}
@@ -471,8 +495,6 @@ export class Browser extends Component {
 		if (this.state.canGoBack) {
 			const { current } = this.webview;
 			current && current.goBack();
-		} else {
-			this.props.navigation.pop();
 		}
 	};
 
@@ -519,6 +541,13 @@ export class Browser extends Component {
 		});
 	};
 
+	openInBrowser = () => {
+		this.toggleOptionsIfNeeded();
+		Linking.openURL(this.state.url).catch(error =>
+			Logger.log('Error while trying to open external link: ${url}', error)
+		);
+	};
+
 	toggleOptionsIfNeeded() {
 		if (this.props.navigation && this.props.navigation.state.params.showOptions) {
 			this.toggleOptions();
@@ -535,26 +564,24 @@ export class Browser extends Component {
 
 	onMessage = ({ nativeEvent: { data } }) => {
 		try {
-			// Check if it's a MM request
-			if (!data || (typeof data === 'string' && data.toString().indexOf('__mmID') === -1)) {
-				return;
-			}
 			data = typeof data === 'string' ? JSON.parse(data) : data;
-			// Android workaround
-			data = typeof data === 'string' && data.includes('GET_TITLE_FOR_BOOKMARK') ? JSON.parse(data) : data;
 			if (!data || !data.type) {
 				return;
 			}
 			switch (data.type) {
+				case 'NAV_CHANGE':
+					this.setState({ inputValue: data.payload.url, currentPageTitle: data.payload.title });
+					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
+					break;
 				case 'INPAGE_REQUEST':
 					this.backgroundBridge.onMessage(data);
 					break;
 				case 'GET_TITLE_FOR_BOOKMARK':
-					if (data.title) {
+					if (data.payload.title) {
 						this.setState({
-							currentPageTitle: data.title,
-							currentPageUrl: data.url,
-							currentPageIcon: data.icon
+							currentPageTitle: data.payload.title,
+							currentPageUrl: data.payload.url,
+							currentPageIcon: data.payload.icon
 						});
 					}
 					break;
@@ -582,7 +609,13 @@ export class Browser extends Component {
 			data.inputValue = url;
 			data.hostname = this.formatHostname(urlObj.hostname);
 		}
-		this.setState(data);
+
+		const { fullHostname, inputValue, hostname } = data;
+		if (fullHostname !== this.state.fullHostname) {
+			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
+		}
+
+		this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
 	};
 
 	formatHostname(hostname) {
@@ -617,15 +650,16 @@ export class Browser extends Component {
 				const siteName = document.querySelector('head > meta[property="og:site_name"]');
 				const title = siteName || document.querySelector('head > meta[name="title"]');
 
-				window.postMessage(
-					JSON.stringify({
-						__mmID: 1,
+				window.postMessageToNative(
+					{
 						type: 'GET_TITLE_FOR_BOOKMARK',
-						title: title ? title.content : document.title,
-						url: location.href,
-						icon: icon && icon.href
-					}),
-					'*'
+						payload: {
+							__mmID: 1,
+							title: title ? title.content : document.title,
+							url: location.href,
+							icon: icon && icon.href
+						}
+					}
 				)
 			})();
 		`;
@@ -674,6 +708,10 @@ export class Browser extends Component {
 							<Button onPress={this.share} style={styles.option}>
 								<Icon name="share" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>{strings('browser.share')}</Text>
+							</Button>
+							<Button onPress={this.openInBrowser} style={styles.option}>
+								<Icon name="expand" size={15} style={styles.optionIcon} />
+								<Text style={styles.optionText}>{strings('browser.open_in_browser')}</Text>
 							</Button>
 							{Platform.OS === 'android' ? (
 								<Button onPress={this.close} style={styles.option}>
@@ -724,7 +762,7 @@ export class Browser extends Component {
 		}, 150);
 	};
 
-	renderBottomBar = canGoForward => {
+	renderBottomBar = (canGoBack, canGoForward) => {
 		const bottom = Platform.OS === 'ios' ? 0 : 10;
 		const distance = Platform.OS === 'ios' ? 100 : 200;
 		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, SCROLL_THRESHOLD).interpolate({
@@ -734,7 +772,13 @@ export class Browser extends Component {
 		return (
 			<Animated.View style={[styles.bottomBar, { marginBottom: bottomBarPosition }]}>
 				<View style={styles.iconsLeft}>
-					<Icon name="angle-left" onPress={this.goBack} size={30} style={styles.icon} />
+					<Icon
+						name="angle-left"
+						disabled={!canGoBack}
+						onPress={this.goBack}
+						size={30}
+						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
+					/>
 					<Icon
 						disabled={!canGoForward}
 						name="angle-right"
@@ -905,7 +949,7 @@ export class Browser extends Component {
 	};
 
 	render = () => {
-		const { canGoForward, entryScriptWeb3, url } = this.state;
+		const { canGoBack, canGoForward, entryScriptWeb3, url } = this.state;
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -940,7 +984,7 @@ export class Browser extends Component {
 				{this.renderSigningModal()}
 				{this.renderApprovalModal()}
 				{this.renderOptions()}
-				{Platform.OS === 'ios' ? this.renderBottomBar(canGoForward) : null}
+				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
 			</SafeAreaView>
 		);
 	};

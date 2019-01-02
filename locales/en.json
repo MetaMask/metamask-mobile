@@ -291,7 +291,8 @@
 		"cancel": "Cancel",
 		"go_back": "Go Back",
 		"go_forward": "Go Forward",
-		"close": "Close"
+		"close": "Close",
+		"open_in_browser": "Open in Browser"
 	},
 	"add_bookmark": {
 		"title": "Add Bookmark",
@@ -309,6 +310,7 @@
 		"received_ether": "Received Ether",
 		"sent_tokens": "Sent Tokens",
 		"contract_deploy": "Contract Deployment",
+		"smart_contract_interaction": "Smart Contract Interaction",
 		"hash": "Hash",
 		"from": "From",
 		"to": "To",

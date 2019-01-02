@@ -51,7 +51,7 @@ exports[`AccountOverview should render correctly 1`] = `
       }
     >
       $
-      0.00 UNDEFINED
+      0 UNDEFINED
     </Text>
   </TouchableOpacity>
   <View

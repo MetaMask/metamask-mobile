@@ -3,7 +3,16 @@ import Engine from '../../core/Engine';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import {
+	ActivityIndicator,
+	InteractionManager,
+	ScrollView,
+	TouchableOpacity,
+	StyleSheet,
+	Text,
+	View,
+	SafeAreaView
+} from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
@@ -101,7 +110,8 @@ export default class AccountList extends Component {
 	};
 
 	state = {
-		selectedAccountIndex: 0
+		selectedAccountIndex: 0,
+		loading: false
 	};
 
 	scrollViewRef = React.createRef();
@@ -171,6 +181,7 @@ export default class AccountList extends Component {
 	};
 
 	addAccount = async () => {
+		this.setState({ loading: true });
 		const { KeyringController } = Engine.context;
 		try {
 			await KeyringController.addNewAccount();
@@ -180,10 +191,12 @@ export default class AccountList extends Component {
 			this.setState({ selectedAccountIndex: newIndex });
 			setTimeout(() => {
 				this.scrollViewRef && this.scrollViewRef.current && this.scrollViewRef.current.scrollToEnd();
+				this.setState({ loading: false });
 			}, 500);
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			console.error('error while trying to add a new account', e); // eslint-disable-line
+			this.setState({ loading: false });
 		}
 	};
 
@@ -242,7 +255,11 @@ export default class AccountList extends Component {
 			</ScrollView>
 			<View style={styles.footer}>
 				<TouchableOpacity onPress={this.addAccount}>
-					<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
+					{this.state.loading ? (
+						<ActivityIndicator size="small" color={colors.primary} />
+					) : (
+						<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
+					)}
 				</TouchableOpacity>
 			</View>
 		</SafeAreaView>

@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, weiToFiat, fromWei } from '../../util/number';
+import { toBN, isBN, weiToFiat, fromWei, balanceToFiat, weiToFiatNumber, balanceToFiatNumber } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -239,6 +239,25 @@ class TransactionReview extends Component {
 		onModeChange && onModeChange('edit');
 	};
 
+	getAssetConversion(asset, amount, conversionRate, exchangeRate, currentCurrency) {
+		let convertedAmount;
+		if (asset) {
+			if (exchangeRate) {
+				convertedAmount = balanceToFiat(
+					parseFloat(amount) || 0,
+					conversionRate,
+					exchangeRate,
+					currentCurrency
+				).toUpperCase();
+			} else {
+				convertedAmount = strings('transaction.conversion_not_available');
+			}
+		} else {
+			convertedAmount = weiToFiat(amount, conversionRate, currentCurrency).toUpperCase();
+		}
+		return convertedAmount;
+	}
+
 	renderSummary = () => {
 		const {
 			transactionData: { amount, asset },
@@ -260,7 +279,13 @@ class TransactionReview extends Component {
 				) : (
 					<View>
 						<Text style={styles.summaryFiat}>
-							{weiToFiat(asset ? assetAmount : amount, conversionRate, currentCurrency).toUpperCase()}
+							{this.getAssetConversion(
+								asset,
+								asset ? assetAmount : amount,
+								this.props.conversionRate,
+								(asset && contractExchangeRates[asset.address]) || null,
+								currentCurrency
+							)}
 						</Text>
 						<Text style={styles.summaryEth}>
 							{asset
@@ -278,6 +303,19 @@ class TransactionReview extends Component {
 		);
 	};
 
+	getTotalAmount = (totalGas, amount, conversionRate, exchangeRate, currentCurrency) => {
+		let total = 0;
+		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
+		let balanceFiat;
+		if (exchangeRate) {
+			balanceFiat = balanceToFiatNumber(parseFloat(amount), conversionRate, exchangeRate);
+		} else {
+			balanceFiat = weiToFiatNumber(amount, conversionRate, exchangeRate);
+		}
+		total = parseFloat(gasFeeFiat) + parseFloat(balanceFiat);
+		return `${total} ${currentCurrency.toUpperCase()}`;
+	};
+
 	render = () => {
 		const {
 			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to, asset },
@@ -285,6 +323,7 @@ class TransactionReview extends Component {
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
+
 		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -343,11 +382,13 @@ class TransactionReview extends Component {
 										{strings('transaction.gas_fee').toUpperCase()}
 									</Text>
 									<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-										{conversionRateAsset
-											? weiToFiat(assetAmount, conversionRateAsset, currentCurrency).toUpperCase()
-											: null}
-										{conversionRateAsset && ' '}
-										{weiToFiat(ethTotal, conversionRate, currentCurrency).toUpperCase()}
+										{this.getTotalAmount(
+											totalGas,
+											asset ? assetAmount : ethTotal,
+											conversionRate,
+											conversionRateAsset,
+											currentCurrency
+										)}
 									</Text>
 
 									<Text style={styles.overviewEth}>

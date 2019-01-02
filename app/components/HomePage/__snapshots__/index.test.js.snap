@@ -148,22 +148,6 @@ exports[`HomePage should render correctly 1`] = `
               }
             }
           >
-            <Icon
-              allowFontScaling={false}
-              name="bookmark"
-              size={20}
-              style={
-                Object {
-                  "color": "#999999",
-                  "height": 24,
-                  "marginLeft": 5,
-                  "marginRight": 10,
-                  "marginTop": 0,
-                  "position": "absolute",
-                  "width": 24,
-                }
-              }
-            />
             <WebsiteIcon
               style={
                 Object {

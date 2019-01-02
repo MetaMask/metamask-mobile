@@ -245,13 +245,14 @@ exports[`Browser should render correctly 1`] = `
     >
       <Icon
         allowFontScaling={false}
+        disabled={true}
         name="angle-left"
         onPress={[Function]}
         size={30}
         style={
           Object {
             "alignSelf": "center",
-            "color": "#2f3542",
+            "color": "#ced6e0",
             "height": 28,
             "lineHeight": 28,
             "textAlign": "center",
