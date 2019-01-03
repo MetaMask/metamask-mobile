@@ -3,7 +3,7 @@ import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, TextInput } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, weiToFiat, fromWei, balanceToFiat, weiToFiatNumber, balanceToFiatNumber } from '../../util/number';
@@ -334,13 +334,13 @@ class TransactionReview extends Component {
 
 	renderTransactionDetails = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, asset },
+			transactionData: { amount, gas, gasPrice, asset, data },
 			currentCurrency,
 			conversionRate,
-			contractExchangeRates,
-			showHexData
+			contractExchangeRates
 		} = this.props;
-
+		let { showHexData } = this.props;
+		showHexData = (showHexData && asset) || data;
 		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -365,31 +365,29 @@ class TransactionReview extends Component {
 					</View>
 				</View>
 
-				{showHexData && (
-					<View style={styles.overviewRow}>
-						<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
-						<View style={styles.overviewContent}>
-							<Text style={styles.overviewInfo}>
-								{strings('transaction.amount').toUpperCase()} +{' '}
-								{strings('transaction.gas_fee').toUpperCase()}
-							</Text>
-							<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-								{this.getTotalAmount(
-									totalGas,
-									asset ? assetAmount : ethTotal,
-									conversionRate,
-									conversionRateAsset,
-									currentCurrency
-								)}
-							</Text>
+				<View style={styles.overviewRow}>
+					<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
+					<View style={styles.overviewContent}>
+						<Text style={styles.overviewInfo}>
+							{strings('transaction.amount').toUpperCase()} +{' '}
+							{strings('transaction.gas_fee').toUpperCase()}
+						</Text>
+						<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
+							{this.getTotalAmount(
+								totalGas,
+								asset ? assetAmount : ethTotal,
+								conversionRate,
+								conversionRateAsset,
+								currentCurrency
+							)}
+						</Text>
 
-							<Text style={styles.overviewEth}>
-								{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
-								{fromWei(ethTotal).toString()} {strings('unit.eth')}
-							</Text>
-						</View>
+						<Text style={styles.overviewEth}>
+							{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
+							{fromWei(ethTotal).toString()} {strings('unit.eth')}
+						</Text>
 					</View>
-				)}
+				</View>
 				{amountError ? (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
@@ -398,6 +396,20 @@ class TransactionReview extends Component {
 						</Text>
 					</View>
 				) : null}
+				{showHexData && (
+					<View style={{ ...styles.formRow, ...styles.amountRow }}>
+						<View style={styles.label}>
+							<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+						</View>
+						<TextInput
+							multiline
+							placeholder="Optional"
+							style={styles.hexData}
+							value={data}
+							editable={false}
+						/>
+					</View>
+				)}
 			</View>
 		);
 	};
