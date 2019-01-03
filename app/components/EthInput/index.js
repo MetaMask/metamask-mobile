@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { weiToFiat, isDecimal, toWei, fromWei, isBN, balanceToFiat } from '../../util/number';
+import { weiToFiat, isDecimal, toWei, fromWei, balanceToFiat } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -48,10 +48,6 @@ const styles = StyleSheet.create({
  * Form component that allows users to type an amount of ETH and its fiat value is rendered dynamically
  */
 class EthInput extends Component {
-	state = {
-		amount: isBN(this.props.value) ? fromWei(this.props.value) : this.props.value
-	};
-
 	static propTypes = {
 		/**
 		 * ETH-to-current currency conversion rate from CurrencyRateController
@@ -85,19 +81,17 @@ class EthInput extends Component {
 
 	onChange = value => {
 		const { onChange } = this.props;
-		onChange && onChange(isDecimal(value) ? toWei(value) : value);
-		this.setState({ amount: value });
+		onChange && onChange(isDecimal(value) ? toWei(value) : undefined);
 	};
 
 	render = () => {
 		const { currentCurrency, readonly, value, asset, contractExchangeRates } = this.props;
-		const { amount } = this.state;
 		let convertedAmount;
 		if (asset) {
 			const exchangeRate = contractExchangeRates[asset.address];
 			if (exchangeRate) {
 				convertedAmount = balanceToFiat(
-					amount || 0,
+					fromWei(value) || 0,
 					this.props.conversionRate,
 					exchangeRate,
 					currentCurrency
@@ -121,8 +115,9 @@ class EthInput extends Component {
 						placeholder={'0.00'}
 						spellCheck={false}
 						style={styles.input}
-						value={amount}
-					/>
+					>
+						{value ? fromWei(value) : value}
+					</TextInput>
 					<Text style={styles.eth} numberOfLines={1}>
 						{(asset && asset.symbol) || strings('unit.eth')}
 					</Text>
