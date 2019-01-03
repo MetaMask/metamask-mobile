@@ -256,7 +256,8 @@ export default class Transactions extends Component {
 			tx =>
 				((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
 					(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
-				networkId.toString() === tx.networkID
+				networkId.toString() === tx.networkID &&
+				tx.status !== 'unapproved'
 		);
 		if (!txs.length) {
 			return this.renderEmpty();
