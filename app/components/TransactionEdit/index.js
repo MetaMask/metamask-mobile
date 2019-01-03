@@ -281,7 +281,12 @@ class TransactionEdit extends Component {
 								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
 								{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
 							</View>
-							<CustomGas handleGasFeeSelection={this.updateGas} totalGas={totalGas} gas={gas} />
+							<CustomGas
+								handleGasFeeSelection={this.updateGas}
+								totalGas={totalGas}
+								gas={gas}
+								gasPrice={gasPrice}
+							/>
 						</View>
 						{!hideData && (
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>

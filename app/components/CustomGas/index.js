@@ -130,7 +130,13 @@ class CustomGas extends Component {
 	onPressGasFast = () => {
 		const { fastGwei } = this.state;
 		const { gas } = this.props;
-		this.setState({ gasFastSelected: true, gasAverageSelected: false, gasSlowSelected: false, selected: 'fast' });
+		this.setState({
+			gasFastSelected: true,
+			gasAverageSelected: false,
+			gasSlowSelected: false,
+			selected: 'fast',
+			customGasPrice: fastGwei.toString()
+		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
 	};
 
@@ -141,7 +147,8 @@ class CustomGas extends Component {
 			gasFastSelected: false,
 			gasAverageSelected: true,
 			gasSlowSelected: false,
-			selected: 'average'
+			selected: 'average',
+			customGasPrice: averageGwei.toString()
 		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
 	};
@@ -149,7 +156,13 @@ class CustomGas extends Component {
 	onPressGasSlow = () => {
 		const { safeLowGwei } = this.state;
 		const { gas } = this.props;
-		this.setState({ gasFastSelected: false, gasAverageSelected: false, gasSlowSelected: true, selected: 'slow' });
+		this.setState({
+			gasFastSelected: false,
+			gasAverageSelected: false,
+			gasSlowSelected: true,
+			selected: 'slow',
+			customGasPrice: safeLowGwei.toString()
+		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
 	};
 
