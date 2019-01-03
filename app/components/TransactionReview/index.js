@@ -210,6 +210,10 @@ class TransactionReview extends Component {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		 * Indicates whether hex data should be shown in transaction editor
+		 */
+		showHexData: PropTypes.bool,
+		/**
 		 * Transaction object associated with this transaction
 		 */
 		transactionData: PropTypes.object,
@@ -303,6 +307,101 @@ class TransactionReview extends Component {
 		);
 	};
 
+	renderTransactionDirection = () => {
+		const {
+			transactionData: { from = this.props.selectedAddress, to }
+		} = this.props;
+		return (
+			<View style={styles.graphic}>
+				<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
+					<Identicon address={from} diameter={18} />
+					<Text style={styles.addressText} numberOfLines={1}>
+						{from}
+					</Text>
+				</View>
+				<View style={styles.arrow}>
+					<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
+				</View>
+				<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
+					<Identicon address={to} diameter={18} />
+					<Text style={styles.addressText} numberOfLines={1}>
+						{to}
+					</Text>
+				</View>
+			</View>
+		);
+	};
+
+	renderTransactionDetails = () => {
+		const {
+			transactionData: { amount, gas, gasPrice, asset },
+			currentCurrency,
+			conversionRate,
+			contractExchangeRates,
+			showHexData
+		} = this.props;
+
+		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
+		const { amountError } = this.state;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
+		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
+		return (
+			<View style={styles.overview}>
+				<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
+					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
+					<View style={styles.overviewContent}>
+						<TouchableOpacity onPress={this.edit}>
+							<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
+								{strings('transaction.edit').toUpperCase()}
+							</Text>
+						</TouchableOpacity>
+						<Text style={styles.overviewFiat}>
+							{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
+						</Text>
+						<Text style={styles.overviewEth}>
+							{fromWei(totalGas).toString()} {strings('unit.eth')}
+						</Text>
+					</View>
+				</View>
+
+				{showHexData && (
+					<View style={styles.overviewRow}>
+						<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
+						<View style={styles.overviewContent}>
+							<Text style={styles.overviewInfo}>
+								{strings('transaction.amount').toUpperCase()} +{' '}
+								{strings('transaction.gas_fee').toUpperCase()}
+							</Text>
+							<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
+								{this.getTotalAmount(
+									totalGas,
+									asset ? assetAmount : ethTotal,
+									conversionRate,
+									conversionRateAsset,
+									currentCurrency
+								)}
+							</Text>
+
+							<Text style={styles.overviewEth}>
+								{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
+								{fromWei(ethTotal).toString()} {strings('unit.eth')}
+							</Text>
+						</View>
+					</View>
+				)}
+				{amountError ? (
+					<View style={styles.overviewAlert}>
+						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
+						<Text style={styles.overviewAlertText}>
+							{strings('transaction.alert')}: {amountError}.
+						</Text>
+					</View>
+				) : null}
+			</View>
+		);
+	};
+
 	getTotalAmount = (totalGas, amount, conversionRate, exchangeRate, currentCurrency) => {
 		let total = 0;
 		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
@@ -316,101 +415,21 @@ class TransactionReview extends Component {
 		return `${total} ${currentCurrency.toUpperCase()}`;
 	};
 
-	render = () => {
-		const {
-			transactionData: { amount, gas, gasPrice, from = this.props.selectedAddress, to, asset },
-			currentCurrency,
-			conversionRate,
-			contractExchangeRates
-		} = this.props;
-
-		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
-		const { amountError } = this.state;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
-
-		return (
-			<View style={styles.root}>
-				<ActionView
-					confirmButtonMode="confirm"
-					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.props.onConfirm}
-				>
-					<View style={styles.reviewForm}>
-						<View style={styles.graphic}>
-							<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
-								<Identicon address={from} diameter={18} />
-								<Text style={styles.addressText} numberOfLines={1}>
-									{from}
-								</Text>
-							</View>
-							<View style={styles.arrow}>
-								<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
-							</View>
-							<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
-								<Identicon address={to} diameter={18} />
-								<Text style={styles.addressText} numberOfLines={1}>
-									{to}
-								</Text>
-							</View>
-						</View>
-						{this.renderSummary()}
-						<View style={styles.overview}>
-							<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
-								<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
-								<View style={styles.overviewContent}>
-									<TouchableOpacity onPress={this.edit}>
-										<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
-											{strings('transaction.edit').toUpperCase()}
-										</Text>
-									</TouchableOpacity>
-									<Text style={styles.overviewFiat}>
-										{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
-									</Text>
-									<Text style={styles.overviewEth}>
-										{fromWei(totalGas).toString()} {strings('unit.eth')}
-									</Text>
-								</View>
-							</View>
-
-							<View style={styles.overviewRow}>
-								<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
-								<View style={styles.overviewContent}>
-									<Text style={styles.overviewInfo}>
-										{strings('transaction.amount').toUpperCase()} +{' '}
-										{strings('transaction.gas_fee').toUpperCase()}
-									</Text>
-									<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-										{this.getTotalAmount(
-											totalGas,
-											asset ? assetAmount : ethTotal,
-											conversionRate,
-											conversionRateAsset,
-											currentCurrency
-										)}
-									</Text>
-
-									<Text style={styles.overviewEth}>
-										{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
-										{fromWei(ethTotal).toString()} {strings('unit.eth')}
-									</Text>
-								</View>
-							</View>
-							{amountError ? (
-								<View style={styles.overviewAlert}>
-									<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
-									<Text style={styles.overviewAlertText}>
-										{strings('transaction.alert')}: {amountError}.
-									</Text>
-								</View>
-							) : null}
-						</View>
-					</View>
-				</ActionView>
-			</View>
-		);
-	};
+	render = () => (
+		<View style={styles.root}>
+			<ActionView
+				confirmButtonMode="confirm"
+				onCancelPress={this.props.onCancel}
+				onConfirmPress={this.props.onConfirm}
+			>
+				<View style={styles.reviewForm}>
+					{this.renderTransactionDirection()}
+					{this.renderSummary()}
+					{this.renderTransactionDetails()}
+				</View>
+			</ActionView>
+		</View>
+	);
 }
 
 const mapStateToProps = state => ({
@@ -418,7 +437,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	showHexData: state.settings.showHexData
 });
 
 export default connect(mapStateToProps)(TransactionReview);

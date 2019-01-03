@@ -33,10 +33,6 @@ class TransactionEditor extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Hids the "data" field
-		 */
-		hideData: PropTypes.bool,
-		/**
 		 * Current mode this transaction editor is in
 		 */
 		mode: PropTypes.oneOf(['edit', 'review']),
@@ -261,7 +257,6 @@ class TransactionEditor extends Component {
 					<TransactionEdit
 						accounts={this.props.accounts}
 						navigation={this.props.navigation}
-						hideData={this.props.hideData}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
 						onScanSuccess={this.handleNewTxMeta}
@@ -280,7 +275,6 @@ class TransactionEditor extends Component {
 					<TransactionReview
 						accounts={this.props.accounts}
 						navigation={this.props.navigation}
-						hideData={this.props.hideData}
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
 						onModeChange={this.props.onModeChange}

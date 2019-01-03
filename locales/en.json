@@ -166,7 +166,9 @@
 		"clear_desc": "Clear approved dapps",
 		"clear": "CLEAR",
 		"privacy_mode": "Privacy Mode",
-		"privacy_mode_desc": "Disabling privacy mode will allow every website to read your public accounts by default."
+		"privacy_mode_desc": "Disabling privacy mode will allow every website to read your public accounts by default.",
+		"show_hex_data": "Show Hex Data",
+		"show_hex_data_desc": "Select this to show the hex data field on the send screen."
 	},
 	"app_information": {
 		"title": "Information",

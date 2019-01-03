@@ -22,7 +22,7 @@ import { isWebUri } from 'valid-url';
 import SelectComponent from '../SelectComponent';
 import { getNavigationOptionsTitle } from '../Navbar';
 import { clearHosts, setPrivacyMode } from '../../actions/privacy';
-import { setSearchEngine } from '../../actions/settings';
+import { setSearchEngine, setShowHexData } from '../../actions/settings';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
@@ -152,7 +152,15 @@ class AppSettings extends Component {
 		/**
 		 * Active search engine
 		 */
-		searchEngine: PropTypes.string
+		searchEngine: PropTypes.string,
+		/**
+		 * Indicates whether hex data should be shown in transaction editor
+		 */
+		showHexData: PropTypes.bool,
+		/**
+		 * Called to toggle show hex data
+		 */
+		setShowHexData: PropTypes.func
 	};
 
 	componentDidMount = () => {
@@ -249,9 +257,13 @@ class AppSettings extends Component {
 		this.props.setPrivacyMode(value);
 	};
 
+	toggleShowHexData = showHexData => {
+		this.props.setShowHexData(showHexData);
+	};
+
 	render = () => {
 		const { modalVisible, approvalModalVisible } = this.state;
-		const { approvedHosts, currentCurrency, privacyMode } = this.props;
+		const { approvedHosts, currentCurrency, privacyMode, showHexData } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
 				<ScrollView contentContainerStyle={styles.wrapperContent}>
@@ -349,6 +361,20 @@ class AppSettings extends Component {
 						</View>
 					</View>
 					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.show_hex_data')}</Text>
+						<View>
+							<Text style={styles.subtext}>{strings('app_settings.show_hex_data_desc')}</Text>
+							<Switch
+								value={showHexData}
+								onValueChange={this.toggleShowHexData}
+								trackColor={
+									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+								}
+								ios_backgroundColor={colors.slate}
+							/>
+						</View>
+					</View>
+					<View style={styles.setting}>
 						<Text style={styles.text}>{strings('app_settings.clear_desc')}</Text>
 						<StyledButton
 							type="confirm"
@@ -380,13 +406,15 @@ const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	privacyMode: state.privacy.privacyMode,
-	searchEngine: state.settings.searchEngine
+	searchEngine: state.settings.searchEngine,
+	showHexData: state.settings.showHexData
 });
 
 const mapDispatchToProps = dispatch => ({
 	clearHosts: () => dispatch(clearHosts()),
 	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled)),
-	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine))
+	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine)),
+	setShowHexData: showHexData => dispatch(setShowHexData(showHexData))
 });
 
 export default connect(
