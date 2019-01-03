@@ -199,6 +199,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         </View>
         <Connect(CustomGas)
           gas={"5208"}
+          gasPrice={1}
           handleGasFeeSelection={[Function]}
           totalGas={"14a"}
         />
