@@ -95,12 +95,17 @@ class TransactionEditor extends Component {
 		} = this.props;
 		const { from, to } = this.state;
 		const { amount = this.state.amount, data = this.state.data } = opts;
-		const estimation = await TransactionController.estimateGas({
-			amount,
-			from,
-			data,
-			to: asset ? asset.address : to
-		});
+		let estimation;
+		try {
+			estimation = await TransactionController.estimateGas({
+				amount,
+				from,
+				data,
+				to: asset ? asset.address : to
+			});
+		} catch (e) {
+			estimation = { gas: '0x5208' };
+		}
 		return estimation;
 	};
 
@@ -113,9 +118,11 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const amountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
-		const data = asset ? generateTransferData('ERC20', { toAddress: to, amount: amountToSend }) : undefined;
-		const { gas } = await this.estimateGas({ amount });
+		const tokenAmountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
+		const data =
+			to && asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : undefined;
+		const amountToSend = asset ? '0x0' : amount;
+		const { gas } = await this.estimateGas({ amountToSend, data });
 		this.setState({ amount, data, gas: hexToBN(gas) });
 	};
 
