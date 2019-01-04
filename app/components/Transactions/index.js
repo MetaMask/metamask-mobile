@@ -297,6 +297,7 @@ export default class Transactions extends Component {
 		}
 		txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
+		console.log('RENDER Transactions component');
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>

@@ -254,7 +254,6 @@ class Wallet extends Component {
 			assets = tokens;
 		}
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-
 		return (
 			<View style={styles.wrapper}>
 				<AccountOverview
