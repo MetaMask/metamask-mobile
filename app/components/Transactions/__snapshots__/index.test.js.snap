@@ -1,27 +1,35 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Transactions should render correctly 1`] = `
-<View
+<ScrollView
   style={
     Object {
-      "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "flex": 1,
-      "paddingTop": 80,
     }
   }
 >
-  <Text
-    style={
-      Object {
-        "color": "#AAAAAA",
-        "fontFamily": "Roboto",
-        "fontSize": 20,
-        "fontWeight": "400",
-      }
-    }
+  <View
+    testID="transactions"
   >
-    You have no transactions!
-  </Text>
-</View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+          "justifyContent": "center",
+          "minHeight": 250,
+        }
+      }
+    >
+      <Component
+        animating={true}
+        color="#999999"
+        hidesWhenStopped={true}
+        size="small"
+      />
+    </View>
+  </View>
+</ScrollView>
 `;
