@@ -111,8 +111,8 @@ export async function getTransactionActionKey(transaction) {
  */
 export async function getActionKey(tx, selectedAddress) {
 	const actionKey = await getTransactionActionKey(tx);
-	const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
-	const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+	const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
+	const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
 	switch (actionKey) {
 		case SEND_TOKEN_ACTION_KEY:
 			return strings('transactions.sent_tokens');

@@ -128,7 +128,8 @@ class TransactionElement extends Component {
 	};
 
 	componentDidMount = async () => {
-		const actionKey = await getActionKey(this.props.tx);
+		const { tx, selectedAddress } = this.props;
+		const actionKey = await getActionKey(tx, selectedAddress);
 		this.setState({ actionKey });
 	};
 
