@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { colors } from '../../styles/common';
@@ -52,10 +52,6 @@ class Asset extends Component {
 		networkType: PropTypes.string
 	};
 
-	state = {
-		ready: false
-	};
-
 	componentDidMount() {
 		this.tokenAddress = this.props.navigation.getParam('address', null);
 	}
@@ -85,12 +81,6 @@ class Asset extends Component {
 		}
 		return transactions;
 	}
-
-	renderLoader = () => (
-		<View style={styles.loader}>
-			<ActivityIndicator size="small" />
-		</View>
-	);
 
 	render = () => {
 		const {
