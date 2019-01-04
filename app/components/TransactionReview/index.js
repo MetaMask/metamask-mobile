@@ -3,12 +3,16 @@ import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TouchableOpacity, View, TextInput } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, weiToFiat, fromWei, balanceToFiat, weiToFiatNumber, balanceToFiatNumber } from '../../util/number';
+import { isBN, weiToFiat, fromWei, balanceToFiat } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import { getTransactionReviewActionKey } from '../../util/transactions';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import TransactionReviewInformation from './TransactionReviewInformation';
+import TransactionReviewData from './TransactionReviewData';
 
 const styles = StyleSheet.create({
 	root: {
@@ -82,8 +86,6 @@ const styles = StyleSheet.create({
 	},
 	summary: {
 		backgroundColor: colors.beige,
-		borderBottomWidth: 1,
-		borderColor: colors.lightGray,
 		padding: 16
 	},
 	summaryFiat: {
@@ -98,69 +100,7 @@ const styles = StyleSheet.create({
 		fontSize: 24
 	},
 	overview: {
-		paddingHorizontal: 16
-	},
-	overviewRow: {
-		alignItems: 'center',
-		flexDirection: 'row',
-		paddingVertical: 15
-	},
-	overviewAlert: {
-		alignItems: 'center',
-		backgroundColor: colors.lightRed,
-		borderColor: colors.borderRed,
-		borderRadius: 4,
-		borderWidth: 1,
-		flexDirection: 'row',
-		height: 32,
-		paddingHorizontal: 16
-	},
-	overviewAlertText: {
-		...fontStyles.normal,
-		color: colors.borderRed,
-		flex: 1,
-		fontSize: 12,
-		marginLeft: 8
-	},
-	overviewAlertIcon: {
-		color: colors.borderRed,
-		flex: 0
-	},
-	topOverviewRow: {
-		borderBottomWidth: 1,
-		borderColor: colors.lightGray
-	},
-	overviewLabel: {
-		...fontStyles.bold,
-		color: colors.gray,
-		flex: 1,
-		fontSize: 12,
-		width: 60
-	},
-	overviewFiat: {
-		...fontStyles.bold,
-		color: colors.copy,
-		fontSize: 24,
-		textAlign: 'right'
-	},
-	overviewAccent: {
-		color: colors.primary
-	},
-	overviewEth: {
-		...fontStyles.normal,
-		color: colors.subtleGray,
-		fontSize: 16,
-		textAlign: 'right'
-	},
-	overviewInfo: {
-		...fontStyles.normal,
-		fontSize: 12,
-		marginBottom: 6,
-		textAlign: 'right'
-	},
-	overviewAction: {
-		...fontStyles.nold,
-		color: colors.primary
+		flex: 1
 	},
 	goBack: {
 		alignItems: 'center',
@@ -178,6 +118,19 @@ const styles = StyleSheet.create({
 	goBackIcon: {
 		color: colors.primary,
 		flex: 0
+	},
+	tabUnderlineStyle: {
+		height: 2,
+		backgroundColor: colors.primary
+	},
+	tabStyle: {
+		paddingBottom: 0,
+		backgroundColor: colors.beige
+	},
+	textStyle: {
+		fontSize: 12,
+		letterSpacing: 0.5,
+		...fontStyles.bold
 	}
 });
 
@@ -343,107 +296,41 @@ class TransactionReview extends Component {
 		);
 	};
 
+	renderTabBar() {
+		return (
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.textStyle}
+			/>
+		);
+	}
+
 	renderTransactionDetails = () => {
-		const { showHexData } = this.state;
+		const { showHexData, actionKey } = this.state;
+		const { transactionData } = this.props;
 		return (
 			<View style={styles.overview}>
-				{this.renderTransactionBasicInformation()}
-				{showHexData && this.renderTransactionData()}
+				{showHexData && (
+					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
+						<TransactionReviewInformation
+							edit={this.edit}
+							transactionData={transactionData}
+							tabLabel={strings('transaction.review_details')}
+						/>
+						<TransactionReviewData
+							transactionData={transactionData}
+							actionKey={actionKey}
+							tabLabel={strings('transaction.review_data')}
+						/>
+					</ScrollableTabView>
+				)}
+				{!showHexData && <TransactionReviewInformation edit={this.edit} transactionData={transactionData} />}
 			</View>
 		);
-	};
-
-	renderTransactionBasicInformation = () => {
-		const {
-			transactionData: { amount, gas, gasPrice, asset },
-			currentCurrency,
-			conversionRate,
-			contractExchangeRates
-		} = this.props;
-		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
-		const { amountError } = this.state;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
-		return (
-			<View>
-				<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
-					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
-					<View style={styles.overviewContent}>
-						<TouchableOpacity onPress={this.edit}>
-							<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
-								{strings('transaction.edit').toUpperCase()}
-							</Text>
-						</TouchableOpacity>
-						<Text style={styles.overviewFiat}>
-							{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
-						</Text>
-						<Text style={styles.overviewEth}>
-							{fromWei(totalGas).toString()} {strings('unit.eth')}
-						</Text>
-					</View>
-				</View>
-
-				<View style={styles.overviewRow}>
-					<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
-					<View style={styles.overviewContent}>
-						<Text style={styles.overviewInfo}>
-							{strings('transaction.amount').toUpperCase()} +{' '}
-							{strings('transaction.gas_fee').toUpperCase()}
-						</Text>
-						<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-							{this.getTotalAmount(
-								totalGas,
-								asset ? assetAmount : ethTotal,
-								conversionRate,
-								conversionRateAsset,
-								currentCurrency
-							)}
-						</Text>
-
-						<Text style={styles.overviewEth}>
-							{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
-							{fromWei(ethTotal).toString()} {strings('unit.eth')}
-						</Text>
-					</View>
-				</View>
-				{amountError ? (
-					<View style={styles.overviewAlert}>
-						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
-						<Text style={styles.overviewAlertText}>
-							{strings('transaction.alert')}: {amountError}.
-						</Text>
-					</View>
-				) : null}
-			</View>
-		);
-	};
-
-	renderTransactionData = () => {
-		const {
-			transactionData: { data }
-		} = this.props;
-		return (
-			<View style={{ ...styles.formRow, ...styles.amountRow }}>
-				<View style={styles.label}>
-					<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
-				</View>
-				<TextInput multiline placeholder="Optional" style={styles.hexData} value={data} editable={false} />
-			</View>
-		);
-	};
-
-	getTotalAmount = (totalGas, amount, conversionRate, exchangeRate, currentCurrency) => {
-		let total = 0;
-		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
-		let balanceFiat;
-		if (exchangeRate) {
-			balanceFiat = balanceToFiatNumber(parseFloat(amount), conversionRate, exchangeRate);
-		} else {
-			balanceFiat = weiToFiatNumber(amount, conversionRate, exchangeRate);
-		}
-		total = parseFloat(gasFeeFiat) + parseFloat(balanceFiat);
-		return `${total} ${currentCurrency.toUpperCase()}`;
 	};
 
 	render = () => (
@@ -454,6 +341,7 @@ class TransactionReview extends Component {
 				confirmButtonMode="confirm"
 				onCancelPress={this.props.onCancel}
 				onConfirmPress={this.props.onConfirm}
+				isScrollable={false}
 			>
 				<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
 			</ActionView>

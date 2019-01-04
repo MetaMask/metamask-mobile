@@ -38,13 +38,17 @@ export default function ActionView({
 	onCancelPress,
 	onConfirmPress,
 	showCancelButton,
-	showConfirmButton
+	showConfirmButton,
+	isScrollable
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			<KeyboardAwareScrollView style={baseStyles.flexGrow} resetScrollToCoords={{ x: 0, y: 0 }}>
-				{children}
-			</KeyboardAwareScrollView>
+			{isScrollable && (
+				<KeyboardAwareScrollView style={baseStyles.flexGrow} resetScrollToCoords={{ x: 0, y: 0 }}>
+					{children}
+				</KeyboardAwareScrollView>
+			)}
+			{!isScrollable && <View style={baseStyles.flexGrow}>{children}</View>}
 			<View style={styles.actionContainer}>
 				{showCancelButton && (
 					<StyledButton
@@ -78,7 +82,8 @@ ActionView.defaultProps = {
 	confirmTestID: '',
 	cancelTestID: '',
 	showCancelButton: true,
-	showConfirmButton: true
+	showConfirmButton: true,
+	isScrollable: true
 };
 
 ActionView.propTypes = {
@@ -106,6 +111,10 @@ ActionView.propTypes = {
 	 * Text to show in the confirm button
 	 */
 	confirmText: PropTypes.string,
+	/**
+	 * Wether the children component should be rendered in a scrollable view
+	 */
+	isScrollable: PropTypes.bool,
 	/**
 	 * Called when the cancel button is clicked
 	 */
