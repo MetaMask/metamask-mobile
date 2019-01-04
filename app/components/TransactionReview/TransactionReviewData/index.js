@@ -50,6 +50,9 @@ export default class TransactionReviewData extends Component {
 		 * Transaction object associated with this transaction
 		 */
 		transactionData: PropTypes.object,
+		/**
+		 * Transaction corresponding action key
+		 */
 		actionKey: PropTypes.string
 	};
 

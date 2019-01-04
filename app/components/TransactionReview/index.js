@@ -3,16 +3,16 @@ import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { isBN, weiToFiat, fromWei, balanceToFiat } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import { getTransactionReviewActionKey } from '../../util/transactions';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewData from './TransactionReviewData';
+import TransactionReviewSummary from './TransactionReviewSummary';
 
 const styles = StyleSheet.create({
 	root: {
@@ -72,52 +72,8 @@ const styles = StyleSheet.create({
 	reviewForm: {
 		flex: 1
 	},
-	confirmBadge: {
-		...fontStyles.normal,
-		alignItems: 'center',
-		borderColor: colors.subtleGray,
-		borderRadius: 4,
-		borderWidth: 1,
-		color: colors.subtleGray,
-		fontSize: 12,
-		lineHeight: 22,
-		textAlign: 'center',
-		width: 74
-	},
-	summary: {
-		backgroundColor: colors.beige,
-		padding: 16
-	},
-	summaryFiat: {
-		...fontStyles.normal,
-		color: colors.copy,
-		fontSize: 44,
-		paddingVertical: 4
-	},
-	summaryEth: {
-		...fontStyles.normal,
-		color: colors.subtleGray,
-		fontSize: 24
-	},
 	overview: {
 		flex: 1
-	},
-	goBack: {
-		alignItems: 'center',
-		flexDirection: 'row',
-		left: -8,
-		marginTop: 8,
-		position: 'relative',
-		width: 150
-	},
-	goBackText: {
-		...fontStyles.bold,
-		color: colors.primary,
-		fontSize: 22
-	},
-	goBackIcon: {
-		color: colors.primary,
-		flex: 0
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -139,14 +95,6 @@ const styles = StyleSheet.create({
  */
 class TransactionReview extends Component {
 	static propTypes = {
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		currentCurrency: PropTypes.string,
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -174,11 +122,7 @@ class TransactionReview extends Component {
 		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
-		validateAmount: PropTypes.func,
-		/**
-		 * Object containing token exchange rates in the format address => exchangeRate
-		 */
-		contractExchangeRates: PropTypes.object
+		validateAmount: PropTypes.func
 	};
 
 	state = {
@@ -204,71 +148,6 @@ class TransactionReview extends Component {
 	edit = () => {
 		const { onModeChange } = this.props;
 		onModeChange && onModeChange('edit');
-	};
-
-	getAssetConversion(asset, amount, conversionRate, exchangeRate, currentCurrency) {
-		let convertedAmount;
-		if (asset) {
-			if (exchangeRate) {
-				convertedAmount = balanceToFiat(
-					parseFloat(amount) || 0,
-					conversionRate,
-					exchangeRate,
-					currentCurrency
-				).toUpperCase();
-			} else {
-				convertedAmount = strings('transaction.conversion_not_available');
-			}
-		} else {
-			convertedAmount = weiToFiat(amount, conversionRate, currentCurrency).toUpperCase();
-		}
-		return convertedAmount;
-	}
-
-	renderSummary = () => {
-		const {
-			transactionData: { amount, asset },
-			currentCurrency,
-			contractExchangeRates
-		} = this.props;
-		const { actionKey } = this.state;
-		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
-		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
-		return (
-			<View style={styles.summary}>
-				<Text style={styles.confirmBadge}>{actionKey}</Text>
-
-				{!conversionRate ? (
-					<Text style={styles.summaryFiat}>
-						{asset
-							? assetAmount + ' ' + asset.symbol
-							: fromWei(amount).toString() + ' ' + strings('unit.eth')}
-					</Text>
-				) : (
-					<View>
-						<Text style={styles.summaryFiat}>
-							{this.getAssetConversion(
-								asset,
-								asset ? assetAmount : amount,
-								this.props.conversionRate,
-								(asset && contractExchangeRates[asset.address]) || null,
-								currentCurrency
-							)}
-						</Text>
-						<Text style={styles.summaryEth}>
-							{asset
-								? assetAmount + ' ' + asset.symbol
-								: fromWei(amount).toString() + ' ' + strings('unit.eth')}
-						</Text>
-					</View>
-				)}
-
-				<TouchableOpacity style={styles.goBack} onPress={this.edit}>
-					<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
-					<Text style={styles.goBackText}>{strings('transaction.edit')}</Text>
-				</TouchableOpacity>
-			</View>
-		);
 	};
 
 	renderTransactionDirection = () => {
@@ -333,28 +212,28 @@ class TransactionReview extends Component {
 		);
 	};
 
-	render = () => (
-		<View style={styles.root}>
-			{this.renderTransactionDirection()}
-			{this.renderSummary()}
-			<ActionView
-				confirmButtonMode="confirm"
-				onCancelPress={this.props.onCancel}
-				onConfirmPress={this.props.onConfirm}
-				isScrollable={false}
-			>
-				<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
-			</ActionView>
-		</View>
-	);
+	render = () => {
+		const { transactionData } = this.props;
+		const { actionKey } = this.state;
+		return (
+			<View style={styles.root}>
+				{this.renderTransactionDirection()}
+				<TransactionReviewSummary transactionData={transactionData} actionKey={actionKey} />
+				<ActionView
+					confirmButtonMode="confirm"
+					onCancelPress={this.props.onCancel}
+					onConfirmPress={this.props.onConfirm}
+					isScrollable={false}
+				>
+					<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
+				</ActionView>
+			</View>
+		);
+	};
 }
 
 const mapStateToProps = state => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	showHexData: state.settings.showHexData
 });
 

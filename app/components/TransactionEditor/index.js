@@ -274,7 +274,6 @@ class TransactionEditor extends Component {
 				{mode === 'review' && (
 					<TransactionReview
 						accounts={this.props.accounts}
-						navigation={this.props.navigation}
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
 						onModeChange={this.props.onModeChange}
