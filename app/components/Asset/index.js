@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { ActivityIndicator, ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { colors } from '../../styles/common';
@@ -52,6 +52,14 @@ class Asset extends Component {
 		networkType: PropTypes.string
 	};
 
+	state = {
+		ready: false
+	};
+
+	componentDidMount() {
+		this.tokenAddress = this.props.navigation.getParam('address', null);
+	}
+
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('symbol', ''));
 
 	scrollViewRef = React.createRef();
@@ -66,6 +74,24 @@ class Asset extends Component {
 		});
 	};
 
+	getFilteredTxs(transactions) {
+		const symbol = this.props.navigation.getParam('symbol', '');
+		if (symbol.toUpperCase() !== 'ETH' && this.tokenAddress) {
+			return transactions.filter(
+				tx =>
+					tx.transaction.from.toLowerCase() === this.tokenAddress.toLowerCase() ||
+					tx.transaction.to.toLowerCase() === this.tokenAddress.toLowerCase()
+			);
+		}
+		return transactions;
+	}
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
+
 	render = () => {
 		const {
 			navigation: {
@@ -78,6 +104,9 @@ class Asset extends Component {
 			selectedAddress,
 			networkType
 		} = this.props;
+
+		const filteredTxs = params.symbol.toUpperCase() !== 'ETH' ? this.getFilteredTxs(transactions) : transactions;
+
 		return (
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
 				<View testID={'asset'}>
@@ -87,7 +116,7 @@ class Asset extends Component {
 					<View style={styles.wrapper}>
 						<Transactions
 							navigation={navigation}
-							transactions={transactions}
+							transactions={filteredTxs}
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}

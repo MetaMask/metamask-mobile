@@ -1,6 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Clipboard } from 'react-native';
+import {
+	ActivityIndicator,
+	InteractionManager,
+	ScrollView,
+	StyleSheet,
+	Text,
+	View,
+	TouchableOpacity,
+	Clipboard
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import { fromWei, toGwei, weiToFiat, hexToBN, isBN, toBN } from '../../util/number';
@@ -89,6 +98,13 @@ const styles = StyleSheet.create({
 	},
 	copyIcon: {
 		paddingRight: 5
+	},
+	loader: {
+		minHeight: 250,
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -129,8 +145,20 @@ export default class Transactions extends Component {
 	};
 
 	state = {
-		selectedTx: null
+		selectedTx: null,
+		ready: false
 	};
+
+	componentDidMount() {
+		this.mounted = true;
+		InteractionManager.runAfterInteractions(() => {
+			this.mounted && this.setState({ ready: true });
+		});
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
 
 	viewOnEtherscan = (hash, networkID) => {
 		try {
@@ -179,6 +207,12 @@ export default class Transactions extends Component {
 			this.props.adjustScroll && this.props.adjustScroll(index);
 		}
 	};
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
 
 	renderTxDetails = tx => {
 		const {
@@ -266,17 +300,19 @@ export default class Transactions extends Component {
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View testID={'transactions'}>
-					{txs.map((tx, i) => (
-						<TransactionElement
-							key={i}
-							i={i}
-							tx={tx}
-							selectedAddress={selectedAddress}
-							selectedTx={this.state.selectedTx}
-							renderTxDetails={this.renderTxDetails}
-							toggleDetailsView={this.toggleDetailsView}
-						/>
-					))}
+					{!this.state.ready
+						? this.renderLoader()
+						: txs.map((tx, i) => (
+								<TransactionElement
+									key={i}
+									i={i}
+									tx={tx}
+									selectedAddress={selectedAddress}
+									selectedTx={this.state.selectedTx}
+									renderTxDetails={this.renderTxDetails}
+									toggleDetailsView={this.toggleDetailsView}
+								/>
+						))}
 				</View>
 			</ScrollView>
 		);
