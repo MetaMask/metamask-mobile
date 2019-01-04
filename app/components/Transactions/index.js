@@ -284,8 +284,12 @@ export default class Transactions extends Component {
 		</View>
 	);
 
-	render = () => {
-		const { transactions, selectedAddress, networkId } = this.props;
+	renderContent() {
+		if (!this.state.ready) {
+			return this.renderLoader();
+		}
+		const { selectedAddress, transactions, networkId } = this.props;
+
 		const txs = transactions.filter(
 			tx =>
 				((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
@@ -297,25 +301,22 @@ export default class Transactions extends Component {
 		}
 		txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
 
-		console.log('RENDER Transactions component');
-		return (
-			<ScrollView style={styles.wrapper}>
-				<View testID={'transactions'}>
-					{!this.state.ready
-						? this.renderLoader()
-						: txs.map((tx, i) => (
-								<TransactionElement
-									key={i}
-									i={i}
-									tx={tx}
-									selectedAddress={selectedAddress}
-									selectedTx={this.state.selectedTx}
-									renderTxDetails={this.renderTxDetails}
-									toggleDetailsView={this.toggleDetailsView}
-								/>
-						))}
-				</View>
-			</ScrollView>
-		);
-	};
+		return txs.map((tx, i) => (
+			<TransactionElement
+				key={i}
+				i={i}
+				tx={tx}
+				selectedAddress={selectedAddress}
+				selectedTx={this.state.selectedTx}
+				renderTxDetails={this.renderTxDetails}
+				toggleDetailsView={this.toggleDetailsView}
+			/>
+		));
+	}
+
+	render = () => (
+		<ScrollView style={styles.wrapper}>
+			<View testID={'transactions'}>{this.renderContent()}</View>
+		</ScrollView>
+	);
 }

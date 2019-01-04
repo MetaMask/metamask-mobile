@@ -107,7 +107,6 @@ class Asset extends Component {
 
 		const filteredTxs = params.symbol.toUpperCase() !== 'ETH' ? this.getFilteredTxs(transactions) : transactions;
 
-		console.log('RENDER Assets component');
 		return (
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
 				<View testID={'asset'}>
