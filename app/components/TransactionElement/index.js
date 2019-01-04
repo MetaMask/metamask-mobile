@@ -8,21 +8,7 @@ import { fromWei, weiToFiat, hexToBN } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { connect } from 'react-redux';
-import {
-	UNKNOWN_FUNCTION_KEY,
-	TOKEN_TRANSFER_FUNCTION_SIGNATURE,
-	TOKEN_METHOD_TRANSFER,
-	TOKEN_METHOD_APPROVE,
-	TOKEN_METHOD_TRANSFER_FROM,
-	TRANSFER_FROM_ACTION_KEY,
-	APPROVE_ACTION_KEY,
-	SEND_TOKEN_ACTION_KEY,
-	SEND_ETHER_ACTION_KEY,
-	DEPLOY_CONTRACT_ACTION_KEY,
-	CONTRACT_METHOD_DEPLOY,
-	CONTRACT_CREATION_SIGNATURE
-} from '../../util/transactions';
-import Engine from '../../core/Engine';
+import { getActionKey } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	row: {
@@ -142,29 +128,8 @@ class TransactionElement extends Component {
 	};
 
 	componentDidMount = async () => {
-		const actionKey = await this.getActionKey(this.props.tx);
+		const actionKey = await getActionKey(this.props.tx);
 		this.setState({ actionKey });
-	};
-
-	getActionKey = async tx => {
-		const { selectedAddress } = this.props;
-		const actionKey = await this.getTransactionActionKey(this.props.tx);
-		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
-		switch (actionKey) {
-			case SEND_TOKEN_ACTION_KEY:
-				return strings('transactions.sent_tokens');
-			case SEND_ETHER_ACTION_KEY:
-				return incoming
-					? selfSent
-						? strings('transactions.self_sent_ether')
-						: strings('transactions.received_ether')
-					: strings('transactions.sent_ether');
-			case DEPLOY_CONTRACT_ACTION_KEY:
-				return strings('transactions.contract_deploy');
-			default:
-				return strings('transactions.smart_contract_interaction');
-		}
 	};
 
 	getStatusStyle(status) {
@@ -177,58 +142,6 @@ class TransactionElement extends Component {
 		}
 		return null;
 	}
-
-	getMethodData = data => {
-		// TODO use eth-method-registry from GABA
-		if (data.includes(TOKEN_TRANSFER_FUNCTION_SIGNATURE)) {
-			return { name: TOKEN_METHOD_TRANSFER };
-		}
-		if (data.includes(CONTRACT_CREATION_SIGNATURE)) {
-			return { name: CONTRACT_METHOD_DEPLOY };
-		}
-		return {};
-	};
-
-	isSmartContractAddress = async address => {
-		const { TransactionController } = Engine.context;
-		const code = address ? await TransactionController.query('getCode', [address]) : undefined;
-		// Geth will return '0x', and ganache-core v2.2.1 will return '0x0'
-		const codeIsEmpty = !code || code === '0x' || code === '0x0';
-		return !codeIsEmpty;
-	};
-
-	getTransactionActionKey = async transaction => {
-		const { transaction: { data, to } = {} } = transaction;
-		if (data) {
-			const methodData = this.getMethodData(data);
-			const toSmartContract = await this.isSmartContractAddress(to);
-			const { name } = methodData;
-			const methodName = name && name.toLowerCase();
-
-			if (!toSmartContract) {
-				if (methodName === CONTRACT_METHOD_DEPLOY) {
-					return DEPLOY_CONTRACT_ACTION_KEY;
-				}
-				return SEND_ETHER_ACTION_KEY;
-			}
-
-			if (!methodName) {
-				return UNKNOWN_FUNCTION_KEY;
-			}
-
-			switch (methodName) {
-				case TOKEN_METHOD_TRANSFER:
-					return SEND_TOKEN_ACTION_KEY;
-				case TOKEN_METHOD_APPROVE:
-					return APPROVE_ACTION_KEY;
-				case TOKEN_METHOD_TRANSFER_FROM:
-					return TRANSFER_FROM_ACTION_KEY;
-				default:
-					return UNKNOWN_FUNCTION_KEY;
-			}
-		}
-		return SEND_ETHER_ACTION_KEY;
-	};
 
 	render = () => {
 		const {
