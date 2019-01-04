@@ -231,14 +231,21 @@ class TransactionReview extends Component {
 	state = {
 		toFocused: false,
 		amountError: '',
-		actionKey: strings('transactions.tx_review_confirm')
+		actionKey: strings('transactions.tx_review_confirm'),
+		showHexData: false
 	};
 
 	componentDidMount = async () => {
-		const { validateAmount, transactionData } = this.props;
+		const {
+			validateAmount,
+			transactionData,
+			transactionData: { data }
+		} = this.props;
+		let { showHexData } = this.props;
+		showHexData = showHexData || data;
 		const amountError = validateAmount && validateAmount();
 		const actionKey = await getTransactionReviewActionKey(transactionData);
-		this.setState({ amountError, actionKey });
+		this.setState({ amountError, actionKey, showHexData });
 	};
 
 	edit = () => {
@@ -337,21 +344,29 @@ class TransactionReview extends Component {
 	};
 
 	renderTransactionDetails = () => {
+		const { showHexData } = this.state;
+		return (
+			<View style={styles.overview}>
+				{this.renderTransactionBasicInformation()}
+				{showHexData && this.renderTransactionData()}
+			</View>
+		);
+	};
+
+	renderTransactionBasicInformation = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, asset, data },
+			transactionData: { amount, gas, gasPrice, asset },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		let { showHexData } = this.props;
-		showHexData = (showHexData && asset) || data;
 		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
 		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
 		return (
-			<View style={styles.overview}>
+			<View>
 				<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
 					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
 					<View style={styles.overviewContent}>
@@ -400,20 +415,20 @@ class TransactionReview extends Component {
 						</Text>
 					</View>
 				) : null}
-				{showHexData && (
-					<View style={{ ...styles.formRow, ...styles.amountRow }}>
-						<View style={styles.label}>
-							<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
-						</View>
-						<TextInput
-							multiline
-							placeholder="Optional"
-							style={styles.hexData}
-							value={data}
-							editable={false}
-						/>
-					</View>
-				)}
+			</View>
+		);
+	};
+
+	renderTransactionData = () => {
+		const {
+			transactionData: { data }
+		} = this.props;
+		return (
+			<View style={{ ...styles.formRow, ...styles.amountRow }}>
+				<View style={styles.label}>
+					<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+				</View>
+				<TextInput multiline placeholder="Optional" style={styles.hexData} value={data} editable={false} />
 			</View>
 		);
 	};
