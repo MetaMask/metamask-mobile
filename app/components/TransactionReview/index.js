@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 		fontSize: 24
 	},
 	overview: {
-		padding: 16
+		paddingHorizontal: 16
 	},
 	overviewRow: {
 		alignItems: 'center',
@@ -448,16 +448,14 @@ class TransactionReview extends Component {
 
 	render = () => (
 		<View style={styles.root}>
+			{this.renderTransactionDirection()}
+			{this.renderSummary()}
 			<ActionView
 				confirmButtonMode="confirm"
 				onCancelPress={this.props.onCancel}
 				onConfirmPress={this.props.onConfirm}
 			>
-				<View style={styles.reviewForm}>
-					{this.renderTransactionDirection()}
-					{this.renderSummary()}
-					{this.renderTransactionDetails()}
-				</View>
+				<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
 			</ActionView>
 		</View>
 	);
