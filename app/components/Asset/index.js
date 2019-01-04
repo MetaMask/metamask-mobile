@@ -31,10 +31,6 @@ class Asset extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		/* Array of transactions
-		*/
-		transactions: PropTypes.array,
-		/**
 		/* conversion rate of ETH - FIAT
 		*/
 		conversionRate: PropTypes.any,
@@ -88,14 +84,14 @@ class Asset extends Component {
 				state: { params }
 			},
 			navigation,
-			transactions,
 			conversionRate,
 			currentCurrency,
 			selectedAddress,
 			networkType
 		} = this.props;
 
-		const filteredTxs = params.symbol.toUpperCase() !== 'ETH' ? this.getFilteredTxs(transactions) : transactions;
+		const filteredTxs =
+			params.symbol.toUpperCase() !== 'ETH' ? this.getFilteredTxs(params.transactions) : params.transactions;
 
 		return (
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
@@ -124,7 +120,6 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 

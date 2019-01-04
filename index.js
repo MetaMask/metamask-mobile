@@ -8,6 +8,7 @@ import { name } from './app.json';
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Task orphaned for request',
 	'Module RNOS requires',
 	'use RCT_EXPORT_MODULE',
 	'Setting a timer for a long period of time',

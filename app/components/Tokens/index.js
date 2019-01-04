@@ -69,7 +69,11 @@ export default class Tokens extends Component {
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
-		tokenExchangeRates: PropTypes.object
+		tokenExchangeRates: PropTypes.object,
+		/**
+		 * Array of transactions
+		 */
+		transactions: PropTypes.array
 	};
 
 	actionSheet = null;
@@ -83,7 +87,7 @@ export default class Tokens extends Component {
 	);
 
 	onItemPress = token => {
-		this.props.navigation.navigate('Asset', token);
+		this.props.navigation.navigate('Asset', { ...token, transactions: this.props.transactions });
 	};
 
 	renderList() {
