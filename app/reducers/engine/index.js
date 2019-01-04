@@ -31,6 +31,10 @@ function initalizeEngine(state = {}) {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsContractController' });
 	});
 
+	Engine.context.AssetsController.subscribe(() => {
+		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsController' });
+	});
+
 	Engine.context.AssetsDetectionController.subscribe(() => {
 		store.dispatch({ type: 'UPDATE_BG_STATE', key: 'AssetsDetectionController' });
 	});
