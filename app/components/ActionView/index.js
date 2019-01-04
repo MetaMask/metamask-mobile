@@ -113,6 +113,7 @@ ActionView.propTypes = {
 	confirmText: PropTypes.string,
 	/**
 	 * Wether the children component should be rendered in a scrollable view
+	 * in order to include a scrollable tab view, setting it to false
 	 */
 	isScrollable: PropTypes.bool,
 	/**

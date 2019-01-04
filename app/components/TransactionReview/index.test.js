@@ -24,6 +24,9 @@ describe('TransactionReview', () => {
 						conversionRate: 0.1
 					}
 				}
+			},
+			settings: {
+				showHexData: true
 			}
 		};
 

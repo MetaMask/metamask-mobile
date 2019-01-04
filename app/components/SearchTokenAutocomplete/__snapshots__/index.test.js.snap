@@ -16,6 +16,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     confirmButtonMode="normal"
     confirmTestID=""
     confirmText="ADD TOKEN"
+    isScrollable={true}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}
