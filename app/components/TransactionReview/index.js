@@ -8,6 +8,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, weiToFiat, fromWei, balanceToFiat, weiToFiatNumber, balanceToFiatNumber } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import { getTransactionReviewActionKey } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -229,13 +230,15 @@ class TransactionReview extends Component {
 
 	state = {
 		toFocused: false,
-		amountError: ''
+		amountError: '',
+		actionKey: strings('transactions.tx_review_confirm')
 	};
 
-	componentDidMount = () => {
-		const { validateAmount } = this.props;
+	componentDidMount = async () => {
+		const { validateAmount, transactionData } = this.props;
 		const amountError = validateAmount && validateAmount();
-		this.setState({ amountError });
+		const actionKey = await getTransactionReviewActionKey(transactionData);
+		this.setState({ amountError, actionKey });
 	};
 
 	edit = () => {
@@ -268,11 +271,12 @@ class TransactionReview extends Component {
 			currentCurrency,
 			contractExchangeRates
 		} = this.props;
+		const { actionKey } = this.state;
 		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
 		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
 		return (
 			<View style={styles.summary}>
-				<Text style={styles.confirmBadge}>{strings('transaction.confirm').toUpperCase()}</Text>
+				<Text style={styles.confirmBadge}>{actionKey}</Text>
 
 				{!conversionRate ? (
 					<Text style={styles.summaryFiat}>

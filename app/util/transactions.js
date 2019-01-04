@@ -83,18 +83,6 @@ export async function getTransactionActionKey(transaction) {
 		const toSmartContract = await isSmartContractAddress(to);
 		const { name } = methodData;
 		const methodName = name && name.toLowerCase();
-
-		if (!toSmartContract) {
-			if (methodName === CONTRACT_METHOD_DEPLOY) {
-				return DEPLOY_CONTRACT_ACTION_KEY;
-			}
-			return SEND_ETHER_ACTION_KEY;
-		}
-
-		if (!methodName) {
-			return UNKNOWN_FUNCTION_KEY;
-		}
-
 		switch (methodName) {
 			case TOKEN_METHOD_TRANSFER:
 				return SEND_TOKEN_ACTION_KEY;
@@ -102,9 +90,14 @@ export async function getTransactionActionKey(transaction) {
 				return APPROVE_ACTION_KEY;
 			case TOKEN_METHOD_TRANSFER_FROM:
 				return TRANSFER_FROM_ACTION_KEY;
-			default:
-				return UNKNOWN_FUNCTION_KEY;
 		}
+		if (!toSmartContract) {
+			if (methodName === CONTRACT_METHOD_DEPLOY) {
+				return DEPLOY_CONTRACT_ACTION_KEY;
+			}
+			return SEND_ETHER_ACTION_KEY;
+		}
+		return UNKNOWN_FUNCTION_KEY;
 	}
 	return SEND_ETHER_ACTION_KEY;
 }
@@ -133,5 +126,19 @@ export async function getActionKey(tx, selectedAddress) {
 			return strings('transactions.contract_deploy');
 		default:
 			return strings('transactions.smart_contract_interaction');
+	}
+}
+
+export async function getTransactionReviewActionKey(transaction) {
+	const actionKey = await getTransactionActionKey({ transaction });
+	switch (actionKey) {
+		case SEND_TOKEN_ACTION_KEY:
+			return strings('transactions.tx_review_transfer');
+		case SEND_ETHER_ACTION_KEY:
+			return strings('transactions.tx_review_confirm');
+		case DEPLOY_CONTRACT_ACTION_KEY:
+			return strings('transactions.tx_review_contract_deployment');
+		default:
+			return strings('transactions.tx_review_unknown');
 	}
 }

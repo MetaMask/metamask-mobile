@@ -307,6 +307,10 @@
 		"title": "Confirm Transaction"
 	},
 	"transactions": {
+		"tx_review_confirm": "CONFIRM",
+		"tx_review_transfer": "TRANSFER",
+		"tx_review_contract_deployment": "CONTRACT DEPLOYMENT",
+		"tx_review_unknown": "UNKNOWN METHOD",
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
