@@ -48,10 +48,6 @@ class Asset extends Component {
 		networkType: PropTypes.string
 	};
 
-	componentDidMount() {
-		this.tokenAddress = this.props.navigation.getParam('address', null);
-	}
-
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('symbol', ''));
 
 	scrollViewRef = React.createRef();
@@ -68,12 +64,14 @@ class Asset extends Component {
 
 	getFilteredTxs(transactions) {
 		const symbol = this.props.navigation.getParam('symbol', '');
-		if (symbol.toUpperCase() !== 'ETH' && this.tokenAddress) {
-			return transactions.filter(
+		const tokenAddress = this.props.navigation.getParam('address', '');
+		if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
+			const filteredTxs = transactions.filter(
 				tx =>
-					tx.transaction.from.toLowerCase() === this.tokenAddress.toLowerCase() ||
-					tx.transaction.to.toLowerCase() === this.tokenAddress.toLowerCase()
+					tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
+					tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
 			);
+			return filteredTxs;
 		}
 		return transactions;
 	}
@@ -90,8 +88,7 @@ class Asset extends Component {
 			networkType
 		} = this.props;
 
-		const filteredTxs =
-			params.symbol.toUpperCase() !== 'ETH' ? this.getFilteredTxs(params.transactions) : params.transactions;
+		const filteredTxs = this.getFilteredTxs((params && params.transactions) || []);
 
 		return (
 			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
