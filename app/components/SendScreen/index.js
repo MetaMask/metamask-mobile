@@ -153,7 +153,7 @@ class SendScreen extends Component {
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
 		if (this.state.mode !== 'edit') {
-			this.mounted && this.setState({ mode: 'edit' });
+			this.props.navigation.pop(2);
 		} else {
 			this.props.navigation.goBack();
 		}
