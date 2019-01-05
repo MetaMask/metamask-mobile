@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ActivityIndicator, InteractionManager, ScrollView, StyleSheet, Text, View, FlatList } from 'react-native';
+import { ActivityIndicator, InteractionManager, RefreshControl, StyleSheet, Text, View, FlatList } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -56,7 +57,8 @@ export default class Transactions extends Component {
 
 	state = {
 		selectedTx: null,
-		ready: false
+		ready: false,
+		refreshing: false
 	};
 
 	componentDidMount() {
@@ -77,6 +79,12 @@ export default class Transactions extends Component {
 		if (show) {
 			this.props.adjustScroll && this.props.adjustScroll(index);
 		}
+	};
+
+	onRefresh = async () => {
+		this.setState({ refreshing: true });
+		await Engine.refreshTransactionHistory();
+		this.setState({ refreshing: false });
 	};
 
 	renderLoader = () => (
@@ -108,6 +116,7 @@ export default class Transactions extends Component {
 				data={transactions}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
+				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 				// eslint-disable-next-line react/jsx-no-bind
 				renderItem={({ item, index }) => (
 					<TransactionElement
@@ -124,8 +133,8 @@ export default class Transactions extends Component {
 	}
 
 	render = () => (
-		<ScrollView style={styles.wrapper}>
+		<View style={styles.wrapper}>
 			<View testID={'transactions'}>{this.renderContent()}</View>
-		</ScrollView>
+		</View>
 	);
 }
