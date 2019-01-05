@@ -248,6 +248,7 @@
 		"alert": "ALERT",
 		"amount": "Amount",
 		"confirm": "Confirm",
+		"reject": "Reject",
 		"edit": "Edit",
 		"from": "From",
 		"gas_fee": "Gas Fee",

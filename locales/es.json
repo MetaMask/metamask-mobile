@@ -171,6 +171,7 @@
 		"alert": "ALERTA",
 		"amount": "Cantidad",
 		"confirm": "Confirmar",
+		"reject": "Rechazar",
 		"edit": "Editar",
 		"from": "De",
 		"gas_fee": "Tarifa de gas",
