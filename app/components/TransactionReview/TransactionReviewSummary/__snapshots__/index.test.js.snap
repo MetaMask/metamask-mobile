@@ -55,6 +55,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
   </View>
   <TouchableOpacity
     activeOpacity={0.2}
+    onPress={[Function]}
     style={
       Object {
         "alignItems": "center",

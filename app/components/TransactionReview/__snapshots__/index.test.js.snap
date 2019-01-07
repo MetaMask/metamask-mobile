@@ -128,6 +128,7 @@ exports[`TransactionReview should render correctly 1`] = `
   >
     <Connect(TransactionReviewSummary)
       actionKey="CONFIRM"
+      edit={[Function]}
       transactionData={
         Object {
           "amount": 0,

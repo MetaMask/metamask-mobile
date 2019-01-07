@@ -78,7 +78,11 @@ class TransactionReviewSummary extends Component {
 		/**
 		 * Transaction corresponding action key
 		 */
-		actionKey: PropTypes.string
+		actionKey: PropTypes.string,
+		/**
+		 * Callback for transaction edition
+		 */
+		edit: PropTypes.func
 	};
 
 	getAssetConversion(asset, amount, conversionRate, exchangeRate, currentCurrency) {
@@ -99,6 +103,11 @@ class TransactionReviewSummary extends Component {
 		}
 		return convertedAmount;
 	}
+
+	edit = () => {
+		const { edit } = this.props;
+		edit && edit();
+	};
 
 	render = () => {
 		const {

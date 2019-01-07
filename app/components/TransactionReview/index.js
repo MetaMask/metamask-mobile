@@ -224,7 +224,11 @@ class TransactionReview extends Component {
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}
 				>
-					<TransactionReviewSummary transactionData={transactionData} actionKey={actionKey} />
+					<TransactionReviewSummary
+						edit={this.edit}
+						transactionData={transactionData}
+						actionKey={actionKey}
+					/>
 					<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
 				</ActionView>
 			</View>
