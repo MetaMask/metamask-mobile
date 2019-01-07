@@ -17,7 +17,6 @@ exports[`AddBookmark should render correctly 1`] = `
       confirmButtonMode="normal"
       confirmTestID="add-bookmark-confirm-button"
       confirmText="Add"
-      isScrollable={true}
       onCancelPress={[Function]}
       onConfirmPress={[Function]}
       showCancelButton={true}

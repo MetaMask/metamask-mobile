@@ -36,7 +36,6 @@ exports[`AccountApproval should render correctly 1`] = `
     confirmButtonMode="normal"
     confirmTestID=""
     confirmText="CONNECT"
-    isScrollable={true}
     showCancelButton={true}
     showConfirmButton={true}
   >

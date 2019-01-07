@@ -6,6 +6,7 @@ exports[`TransactionEdit should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
+      "paddingTop": 30,
     }
   }
 >
@@ -15,7 +16,6 @@ exports[`TransactionEdit should render correctly 1`] = `
     confirmButtonMode="normal"
     confirmTestID=""
     confirmText="Next"
-    isScrollable={true}
     onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}

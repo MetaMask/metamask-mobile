@@ -117,27 +117,26 @@ exports[`TransactionReview should render correctly 1`] = `
       />
     </View>
   </View>
-  <Connect(TransactionReviewSummary)
-    actionKey="CONFIRM"
-    transactionData={
-      Object {
-        "amount": 0,
-        "from": "0x0",
-        "gas": 0,
-        "gasPrice": 1,
-      }
-    }
-  />
   <ActionView
     cancelTestID=""
     cancelText="Reject"
     confirmButtonMode="confirm"
     confirmTestID=""
     confirmText="Confirm"
-    isScrollable={false}
     showCancelButton={true}
     showConfirmButton={true}
   >
+    <Connect(TransactionReviewSummary)
+      actionKey="CONFIRM"
+      transactionData={
+        Object {
+          "amount": 0,
+          "from": "0x0",
+          "gas": 0,
+          "gasPrice": 1,
+        }
+      }
+    />
     <View
       style={
         Object {
