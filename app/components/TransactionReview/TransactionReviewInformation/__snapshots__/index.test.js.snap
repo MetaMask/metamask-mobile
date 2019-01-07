@@ -29,7 +29,6 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 12,
           "fontWeight": "600",
-          "width": 60,
         }
       }
     >
@@ -102,7 +101,6 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 12,
           "fontWeight": "600",
-          "width": 60,
         }
       }
     >

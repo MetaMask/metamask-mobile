@@ -10,11 +10,15 @@ exports[`TransactionReviewData should render correctly 1`] = `
 >
   <View
     style={
-      Object {
-        "borderBottomWidth": 1,
-        "borderColor": "#d2d8dd",
-        "paddingVertical": 15,
-      }
+      Array [
+        Object {
+          "paddingVertical": 15,
+        },
+        Object {
+          "borderBottomWidth": 1,
+          "borderColor": "#d2d8dd",
+        },
+      ]
     }
   >
     <View
