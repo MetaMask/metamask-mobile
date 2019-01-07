@@ -14,7 +14,8 @@ import CustomGas from '../CustomGas';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
+		paddingTop: 30
 	},
 	formRow: {
 		flexDirection: 'row'
