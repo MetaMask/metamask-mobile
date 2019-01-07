@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	goBack: {
 		alignItems: 'center',
 		flexDirection: 'row',
-		left: -8,
+		marginLeft: -8,
 		marginTop: 8,
 		position: 'relative',
 		width: 150

@@ -63,7 +63,7 @@ export default class TransactionReviewData extends Component {
 		} = this.props;
 		return (
 			<View style={styles.overview}>
-				<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
+				<View style={[styles.overviewRow, styles.topOverviewRow]}>
 					<View style={styles.label}>
 						<Text style={styles.labelText}>{strings('transaction.review_function_type')}</Text>
 						<Text style={styles.functionType}>{actionKey}</Text>
@@ -73,7 +73,13 @@ export default class TransactionReviewData extends Component {
 					<View style={styles.label}>
 						<Text style={styles.labelText}>{strings('transaction.review_hex_data')}:</Text>
 					</View>
-					<TextInput multiline placeholder="Optional" style={styles.hexData} value={data} editable={false} />
+					<TextInput
+						multiline
+						placeholder={strings('transaction.optional')}
+						style={styles.hexData}
+						value={data}
+						editable={false}
+					/>
 				</View>
 			</View>
 		);

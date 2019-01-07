@@ -47,8 +47,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		color: colors.gray,
 		flex: 1,
-		fontSize: 12,
-		width: 60
+		fontSize: 12
 	},
 	overviewFiat: {
 		...fontStyles.bold,
