@@ -24,8 +24,11 @@ export default class Approval extends Component {
 		mode: 'review'
 	};
 
-	onCancel = id => {
-		Engine.context.TransactionController.cancelTransaction(id);
+	onCancel = () => {
+		const {
+			params: { transactionMeta }
+		} = this.props.navigation.state;
+		Engine.context.TransactionController.cancelTransaction(transactionMeta.id);
 		this.props.navigation.goBack();
 	};
 
@@ -71,6 +74,7 @@ export default class Approval extends Component {
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
 					transaction={transaction}
+					navigation={this.props.navigation}
 				/>
 			</Screen>
 		);

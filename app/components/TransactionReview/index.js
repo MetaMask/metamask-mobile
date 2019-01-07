@@ -221,6 +221,7 @@ class TransactionReview extends Component {
 				<TransactionReviewSummary transactionData={transactionData} actionKey={actionKey} />
 				<ActionView
 					confirmButtonMode="confirm"
+					cancelText={strings('transaction.reject')}
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}
 					isScrollable={false}
