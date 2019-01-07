@@ -87,7 +87,7 @@
     "react-native-qrcode": "^0.2.7",
     "react-native-randombytes": "^3.5.0",
     "react-native-remote-svg": "^1.2.0",
-    "react-native-scrollable-tab-view": "^0.8.0",
+    "react-native-scrollable-tab-view": "github:estebanmino/react-native-scrollable-tab-view#master",
     "react-native-settings-list": "^1.8.0",
     "react-native-shake": "^3.2.4",
     "react-native-share": "^1.1.1",

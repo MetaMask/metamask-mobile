@@ -218,14 +218,13 @@ class TransactionReview extends Component {
 		return (
 			<View style={styles.root}>
 				{this.renderTransactionDirection()}
-				<TransactionReviewSummary transactionData={transactionData} actionKey={actionKey} />
 				<ActionView
 					confirmButtonMode="confirm"
 					cancelText={strings('transaction.reject')}
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}
-					isScrollable={false}
 				>
+					<TransactionReviewSummary transactionData={transactionData} actionKey={actionKey} />
 					<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
 				</ActionView>
 			</View>
