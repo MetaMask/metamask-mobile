@@ -102,11 +102,6 @@ class SecuritySettings extends Component {
 			key: '5000'
 		},
 		{
-			value: '10000',
-			label: strings('app_settings.autolock_after', { time: 10 }),
-			key: '10000'
-		},
-		{
 			value: '15000',
 			label: strings('app_settings.autolock_after', { time: 15 }),
 			key: '15000'
@@ -120,6 +115,16 @@ class SecuritySettings extends Component {
 			value: '60000',
 			label: strings('app_settings.autolock_after', { time: 60 }),
 			key: '60000'
+		},
+		{
+			value: '300000',
+			label: strings('app_settings.autolock_after', { time: 300 }),
+			key: '300000'
+		},
+		{
+			value: '600000',
+			label: strings('app_settings.autolock_after', { time: 600 }),
+			key: '600000'
 		},
 		{
 			value: '-1',
