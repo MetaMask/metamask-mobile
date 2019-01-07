@@ -14,8 +14,7 @@ import CustomGas from '../CustomGas';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		flex: 1,
-		paddingTop: 30
+		flex: 1
 	},
 	formRow: {
 		flexDirection: 'row'
@@ -26,20 +25,20 @@ const styles = StyleSheet.create({
 		zIndex: 5,
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 0 : 30
+		marginTop: 30
 	},
 	toRow: {
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 100 : 120,
+		marginTop: Platform.OS === 'android' ? 125 : 120,
 		position: 'absolute',
 		zIndex: 4
 	},
 	notAbsolute: {
-		marginTop: 170
+		marginTop: Platform.OS === 'android' ? 190 : 175
 	},
 	amountRow: {
-		marginTop: 16,
+		marginTop: 18,
 		zIndex: 3
 	},
 	label: {
