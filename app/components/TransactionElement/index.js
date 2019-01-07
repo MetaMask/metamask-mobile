@@ -1,13 +1,14 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { Clipboard, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { toLocaleDateTime } from '../../util/date';
-import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+import { fromWei, weiToFiat, hexToBN, isBN, toBN, toGwei } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { connect } from 'react-redux';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import {
 	UNKNOWN_FUNCTION_KEY,
 	TOKEN_TRANSFER_FUNCTION_SIGNATURE,
@@ -23,6 +24,9 @@ import {
 	CONTRACT_CREATION_SIGNATURE
 } from '../../util/transactions';
 import Engine from '../../core/Engine';
+import { renderFullAddress } from '../../util/address';
+import { getNetworkTypeById } from '../../util/networks';
+import { getEtherscanTransactionUrl } from '../../util/etherscan';
 
 const styles = StyleSheet.create({
 	row: {
@@ -92,6 +96,70 @@ const styles = StyleSheet.create({
 	ethLogo: {
 		width: 24,
 		height: 24
+	},
+
+	detailRowWrapper: {
+		flex: 1,
+		backgroundColor: colors.concrete,
+		paddingVertical: 10,
+		paddingHorizontal: 15
+	},
+	detailRowTitle: {
+		flex: 1,
+		paddingVertical: 10,
+		fontSize: 15,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	detailRowInfo: {
+		borderRadius: 5,
+		shadowColor: colors.accentGray,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
+		backgroundColor: colors.white,
+		padding: 10,
+		marginBottom: 5
+	},
+	detailRowInfoItem: {
+		flex: 1,
+		flexDirection: 'row',
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor,
+		marginBottom: 10,
+		paddingBottom: 5
+	},
+	noBorderBottom: {
+		borderBottomWidth: 0
+	},
+	detailRowText: {
+		flex: 1,
+		fontSize: 12,
+		color: colors.fontSecondary,
+		...fontStyles.normal
+	},
+	alignLeft: {
+		textAlign: 'left'
+	},
+	alignRight: {
+		textAlign: 'right'
+	},
+	viewOnEtherscan: {
+		fontSize: 14,
+		color: colors.primary,
+		...fontStyles.normal,
+		textAlign: 'center',
+		marginTop: 15,
+		marginBottom: 10
+	},
+	hash: {
+		fontSize: 12
+	},
+	singleRow: {
+		flexDirection: 'row'
+	},
+	copyIcon: {
+		paddingRight: 5
 	}
 });
 
@@ -100,12 +168,12 @@ const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 /**
  * View that renders a transaction item part of transactions list
  */
-class TransactionElement extends Component {
+class TransactionElement extends PureComponent {
 	static propTypes = {
 		/**
-		 * Callback triggered on press
+		 * The navigation Object
 		 */
-		renderTxDetails: PropTypes.func,
+		navigation: PropTypes.object,
 		/**
 		 * Asset object (in this case ERC721 token)
 		 */
@@ -122,7 +190,7 @@ class TransactionElement extends Component {
 		 * Callback function that will adjust the scroll
 		 * position once the transaction detail is visible
 		 */
-		selectedTx: PropTypes.string,
+		selected: PropTypes.bool,
 		/**
 		 * String of selected address
 		 */
@@ -141,10 +209,17 @@ class TransactionElement extends Component {
 		actionKey: undefined
 	};
 
+	mounted = false;
+
 	componentDidMount = async () => {
+		this.mounted = true;
 		const actionKey = await this.getActionKey(this.props.tx);
-		this.setState({ actionKey });
+		this.mounted && this.setState({ actionKey });
 	};
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
 
 	getActionKey = async tx => {
 		const { selectedAddress } = this.props;
@@ -230,25 +305,127 @@ class TransactionElement extends Component {
 		return SEND_ETHER_ACTION_KEY;
 	};
 
-	render = () => {
+	toggleDetailsView = () => {
+		const { tx, i, toggleDetailsView } = this.props;
+		toggleDetailsView(tx.transactionHash, i);
+	};
+
+	renderTxHash = transactionHash => {
+		if (!transactionHash) return null;
+		return (
+			<View>
+				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
+						0,
+						20
+					)} ... ${transactionHash.substr(-20)}`}</Text>
+					{this.renderCopyIcon(transactionHash)}
+				</View>
+			</View>
+		);
+	};
+
+	renderCopyIcon = str => {
+		function copy() {
+			Clipboard.setString(str);
+		}
+		return (
+			<TouchableOpacity style={styles.copyIcon} onPress={copy}>
+				<Icon name={'copy'} size={15} color={colors.primary} />
+			</TouchableOpacity>
+		);
+	};
+
+	viewOnEtherscan = () => {
+		const { transactionHash, networkID } = this.props.tx;
+		try {
+			const network = getNetworkTypeById(networkID);
+			const url = getEtherscanTransactionUrl(network, transactionHash);
+			this.props.navigation.navigate('BrowserView', {
+				url
+			});
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			console.error(`can't get a block explorer link for network `, networkID, e);
+		}
+	};
+
+	renderTxDetails = tx => {
 		const {
-			tx,
-			renderTxDetails,
-			selectedTx,
-			selectedAddress,
-			i,
-			conversionRate,
-			currentCurrency,
-			toggleDetailsView
-		} = this.props;
+			transaction: { gas, gasPrice, value, to, from },
+			transactionHash
+		} = tx;
+		const gasBN = hexToBN(gas);
+		const gasPriceBN = hexToBN(gasPrice);
+		const amount = hexToBN(value);
+		const { conversionRate, currentCurrency } = this.props;
+		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
+
+		return (
+			<View style={styles.detailRowWrapper}>
+				{this.renderTxHash(transactionHash)}
+				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={styles.detailRowText}>{renderFullAddress(from)}</Text>
+				</View>
+				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
+				<View style={[styles.detailRowInfo, styles.singleRow]}>
+					<Text style={styles.detailRowText}>{renderFullAddress(to)}</Text>
+				</View>
+				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
+				<View style={styles.detailRowInfo}>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.amount')}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{fromWei(value, 'ether')} {strings('unit.eth')}
+						</Text>
+					</View>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]} />
+						<Text style={[styles.detailRowText, styles.alignRight]}>{hexToBN(gas).toNumber()}</Text>
+					</View>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>
+							{strings('transactions.gas_price')}
+						</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{toGwei(gasPrice)}</Text>
+					</View>
+					<View style={styles.detailRowInfoItem}>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{fromWei(total, 'ether')} {strings('unit.eth')}
+						</Text>
+					</View>
+					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}
+						</Text>
+					</View>
+				</View>
+				{tx.transactionHash && (
+					<TouchableOpacity
+						onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
+					>
+						<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
+					</TouchableOpacity>
+				)}
+			</View>
+		);
+	};
+
+	render = () => {
+		const { tx, selected, selectedAddress, conversionRate, currentCurrency } = this.props;
 		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		const { actionKey } = this.state;
+
 		return (
 			<TouchableOpacity
 				style={styles.row}
 				key={`tx-${tx.id}`}
-				onPress={() => toggleDetailsView(tx.transactionHash, i)} // eslint-disable-line react/jsx-no-bind
+				onPress={this.toggleDetailsView} // eslint-disable-line react/jsx-no-bind
 			>
 				<View style={styles.rowContent}>
 					<Text style={styles.date}>
@@ -282,7 +459,7 @@ class TransactionElement extends Component {
 						</View>
 					</View>
 				</View>
-				{tx.transactionHash === selectedTx ? renderTxDetails(tx) : null}
+				{selected ? this.renderTxDetails(tx) : null}
 			</TouchableOpacity>
 		);
 	};

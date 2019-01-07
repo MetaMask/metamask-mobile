@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { RefreshControl, ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { colors } from '../../styles/common';
@@ -7,6 +7,7 @@ import AssetOverview from '../AssetOverview';
 import Transactions from '../Transactions';
 import Networks from '../../util/networks';
 import { getNavigationOptionsTitle } from '../Navbar';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -31,10 +32,6 @@ class Asset extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		/* Array of transactions
-		*/
-		transactions: PropTypes.array,
-		/**
 		/* conversion rate of ETH - FIAT
 		*/
 		conversionRate: PropTypes.any,
@@ -52,6 +49,10 @@ class Asset extends Component {
 		networkType: PropTypes.string
 	};
 
+	state = {
+		refreshing: false
+	};
+
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('symbol', ''));
 
 	scrollViewRef = React.createRef();
@@ -66,20 +67,46 @@ class Asset extends Component {
 		});
 	};
 
+	getFilteredTxs(transactions) {
+		const symbol = this.props.navigation.getParam('symbol', '');
+		const tokenAddress = this.props.navigation.getParam('address', '');
+		if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
+			const filteredTxs = transactions.filter(
+				tx =>
+					tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
+					tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
+			);
+			return filteredTxs;
+		}
+		return transactions;
+	}
+
+	onRefresh = async () => {
+		this.setState({ refreshing: true });
+		await Engine.refreshTransactionHistory();
+		this.setState({ refreshing: false });
+	};
+
 	render = () => {
 		const {
 			navigation: {
 				state: { params }
 			},
 			navigation,
-			transactions,
 			conversionRate,
 			currentCurrency,
 			selectedAddress,
 			networkType
 		} = this.props;
+
+		const filteredTxs = this.getFilteredTxs((params && params.transactions) || []);
+
 		return (
-			<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
+			<ScrollView
+				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+				style={styles.wrapper}
+				ref={this.scrollViewRef}
+			>
 				<View testID={'asset'}>
 					<View style={styles.assetOverviewWrapper}>
 						<AssetOverview navigation={navigation} asset={navigation && params} />
@@ -87,7 +114,7 @@ class Asset extends Component {
 					<View style={styles.wrapper}>
 						<Transactions
 							navigation={navigation}
-							transactions={transactions}
+							transactions={filteredTxs}
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
@@ -105,7 +132,6 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 

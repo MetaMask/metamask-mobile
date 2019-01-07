@@ -1,85 +1,50 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Tokens should render correctly 1`] = `
-<ScrollView
+<View
   style={
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
+  testID="tokens"
 >
   <View
-    testID="tokens"
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+        "justifyContent": "center",
+        "marginTop": 80,
+      }
+    }
   >
-    <View
+    <Text
       style={
         Object {
-          "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
-          "flex": 1,
-          "justifyContent": "center",
-          "marginTop": 80,
+          "color": "#AAAAAA",
+          "fontFamily": "Roboto",
+          "fontSize": 20,
+          "fontWeight": "400",
         }
       }
     >
-      <Text
-        style={
-          Object {
-            "color": "#AAAAAA",
-            "fontFamily": "Roboto",
-            "fontSize": 20,
-            "fontWeight": "400",
-          }
-        }
-      >
-        You don't have any tokens!
-      </Text>
-    </View>
-    <TouchableOpacity
-      activeOpacity={0.2}
-      onPress={[Function]}
-      style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "center",
-          "margin": 20,
-        }
-      }
-      testID="add-token-button"
-    >
-      <Icon
-        allowFontScaling={false}
-        color="#008edf"
-        name="plus"
-        size={16}
-      />
-      <Text
-        style={
-          Object {
-            "color": "#008edf",
-            "fontFamily": "Roboto",
-            "fontSize": 15,
-            "fontWeight": "400",
-          }
-        }
-      >
-        ADD TOKENS
-      </Text>
-    </TouchableOpacity>
-    <ActionSheet
-      cancelButtonIndex={1}
-      destructiveButtonIndex={0}
-      onPress={[Function]}
-      options={
-        Array [
-          "Remove",
-          "Cancel",
-        ]
-      }
-      title="Do you want to remove this token?"
-    />
+      You don't have any tokens!
+    </Text>
   </View>
-</ScrollView>
+  <ActionSheet
+    cancelButtonIndex={1}
+    destructiveButtonIndex={0}
+    onPress={[Function]}
+    options={
+      Array [
+        "Remove",
+        "Cancel",
+      ]
+    }
+    title="Do you want to remove this token?"
+  />
+</View>
 `;
