@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -37,6 +37,10 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		color: colors.primary,
 		...fontStyles.normal
+	},
+	footer: {
+		flex: 1,
+		paddingBottom: 30
 	}
 });
 
@@ -69,7 +73,15 @@ export default class Tokens extends Component {
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
-		tokenExchangeRates: PropTypes.object
+		tokenExchangeRates: PropTypes.object,
+		/**
+		 * Array of transactions
+		 */
+		transactions: PropTypes.array
+	};
+
+	state = {
+		refreshing: false
 	};
 
 	actionSheet = null;
@@ -83,33 +95,57 @@ export default class Tokens extends Component {
 	);
 
 	onItemPress = token => {
-		this.props.navigation.navigate('Asset', token);
+		this.props.navigation.navigate('Asset', { ...token, transactions: this.props.transactions });
+	};
+
+	renderFooter = () => (
+		<View style={styles.footer}>
+			<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
+				<Icon name="plus" size={16} color={colors.primary} />
+				<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
+			</TouchableOpacity>
+		</View>
+	);
+
+	keyExtractor = item => item.symbol;
+
+	onRefresh = async () => {
+		this.setState({ refreshing: true });
+		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
+		await AssetsDetectionController.detectTokens();
+		await AccountTrackerController.refresh();
+		this.setState({ refreshing: false });
 	};
 
 	renderList() {
 		const { tokens, conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
 
-		return tokens.map(token => {
-			const logo = token.logo || ((contractMap[token.address] && contractMap[token.address].logo) || undefined);
-			const exchangeRate = token.address in tokenExchangeRates ? tokenExchangeRates[token.address] : undefined;
-			const balance =
-				token.balance ||
-				(token.address in tokenBalances
-					? calcTokenValue(tokenBalances[token.address], token.decimals)
-					: undefined);
-			const balanceFiat =
-				token.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-			token = { ...token, ...{ logo, balance, balanceFiat } };
+		return (
+			<FlatList
+				data={tokens}
+				extraData={this.state}
+				keyExtractor={this.keyExtractor}
+				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+				// eslint-disable-next-line react/jsx-no-bind
+				renderItem={({ item }) => {
+					const logo =
+						item.logo || ((contractMap[item.address] && contractMap[item.address].logo) || undefined);
+					const exchangeRate =
+						item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
+					const balance =
+						item.balance ||
+						(item.address in tokenBalances
+							? calcTokenValue(tokenBalances[item.address], item.decimals)
+							: undefined);
+					const balanceFiat =
+						item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+					item = { ...item, ...{ logo, balance, balanceFiat } };
 
-			return (
-				<TokenElement
-					onPress={this.onItemPress}
-					onLongPress={this.showRemoveMenu}
-					token={token}
-					key={`token_${token.symbol}`}
-				/>
-			);
-		});
+					return <TokenElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} token={item} />;
+				}}
+				ListFooterComponent={this.renderFooter}
+			/>
+		);
 	}
 
 	goToAddToken = () => {
@@ -133,24 +169,18 @@ export default class Tokens extends Component {
 	render = () => {
 		const { tokens } = this.props;
 		return (
-			<ScrollView style={styles.wrapper}>
-				<View testID={'tokens'}>
-					{tokens && tokens.length ? this.renderList() : this.renderEmpty()}
-					<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
-						<Icon name="plus" size={16} color={colors.primary} />
-						<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
-					</TouchableOpacity>
-					<ActionSheet
-						ref={this.createActionSheetRef}
-						title={strings('wallet.remove_token_title')}
-						options={[strings('wallet.remove'), strings('wallet.cancel')]}
-						cancelButtonIndex={1}
-						destructiveButtonIndex={0}
-						// eslint-disable-next-line react/jsx-no-bind
-						onPress={index => (index === 0 ? this.removeToken() : null)}
-					/>
-				</View>
-			</ScrollView>
+			<View style={styles.wrapper} testID={'tokens'}>
+				{tokens && tokens.length ? this.renderList() : this.renderEmpty()}
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('wallet.remove_token_title')}
+					options={[strings('wallet.remove'), strings('wallet.cancel')]}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={index => (index === 0 ? this.removeToken() : null)}
+				/>
+			</View>
 		);
 	};
 }

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -35,6 +35,10 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		color: colors.primary,
 		...fontStyles.normal
+	},
+	footer: {
+		flex: 1,
+		paddingBottom: 30
 	}
 });
 
@@ -59,6 +63,10 @@ export default class Collectibles extends Component {
 		onPress: PropTypes.func
 	};
 
+	state = {
+		refreshing: false
+	};
+
 	actionSheet = null;
 
 	collectibleToRemove = null;
@@ -76,17 +84,6 @@ export default class Collectibles extends Component {
 	handleOnPress = collectible => {
 		this.props.onPress(collectible);
 	};
-
-	renderList() {
-		return this.props.collectibles.map(collectible => (
-			<CollectibleElement
-				collectible={collectible}
-				key={collectible.tokenId}
-				onPress={this.handleOnPress}
-				onLongPress={this.showRemoveMenu}
-			/>
-		));
-	}
 
 	goToAddCollectible = () => {
 		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
@@ -106,31 +103,61 @@ export default class Collectibles extends Component {
 		this.actionSheet = ref;
 	};
 
+	renderFooter = () => (
+		<View style={styles.footer}>
+			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
+				<Icon name="plus" size={16} color={colors.primary} />
+				<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
+			</TouchableOpacity>
+		</View>
+	);
+
+	keyExtractor = item => `${item.address}_${item.tokenId}`;
+
+	onRefresh = async () => {
+		this.setState({ refreshing: true });
+		const { AssetsDetectionController } = Engine.context;
+		await AssetsDetectionController.detectCollectibles();
+		this.setState({ refreshing: false });
+	};
+
+	renderList() {
+		const { collectibles } = this.props;
+
+		return (
+			<FlatList
+				data={collectibles}
+				extraData={this.state}
+				keyExtractor={this.keyExtractor}
+				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+				// eslint-disable-next-line react/jsx-no-bind
+				renderItem={({ item }) => (
+					<CollectibleElement
+						collectible={item}
+						onPress={this.handleOnPress}
+						onLongPress={this.showRemoveMenu}
+					/>
+				)}
+				ListFooterComponent={this.renderFooter}
+			/>
+		);
+	}
+
 	render = () => {
 		const { collectibles } = this.props;
 		return (
-			<ScrollView style={styles.wrapper}>
-				<View testID={'collectibles'}>
-					{collectibles && collectibles.length ? this.renderList() : this.renderEmpty()}
-					<TouchableOpacity
-						style={styles.add}
-						onPress={this.goToAddCollectible}
-						testID={'add-collectible-button'}
-					>
-						<Icon name="plus" size={16} color={colors.primary} />
-						<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
-					</TouchableOpacity>
-					<ActionSheet
-						ref={this.createActionSheetRef}
-						title={strings('wallet.remove_collectible_title')}
-						options={[strings('wallet.remove'), strings('wallet.cancel')]}
-						cancelButtonIndex={1}
-						destructiveButtonIndex={0}
-						// eslint-disable-next-line react/jsx-no-bind
-						onPress={index => (index === 0 ? this.removeCollectible() : null)}
-					/>
-				</View>
-			</ScrollView>
+			<View style={styles.wrapper} testID={'collectibles'}>
+				{collectibles && collectibles.length ? this.renderList() : this.renderEmpty()}
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('wallet.remove_collectible_title')}
+					options={[strings('wallet.remove'), strings('wallet.cancel')]}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={index => (index === 0 ? this.removeCollectible() : null)}
+				/>
+			</View>
 		);
 	};
 }
