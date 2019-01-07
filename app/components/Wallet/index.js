@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { colors, fontStyles } from '../../styles/common';
 import AccountOverview from '../AccountOverview';
 import Tokens from '../Tokens';
@@ -119,6 +120,7 @@ class Wallet extends Component {
 		showCollectible: false
 	};
 
+	txs = [];
 	mounted = false;
 	lockTimer = null;
 	locked = false;
@@ -139,6 +141,7 @@ class Wallet extends Component {
 		});
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 		this.mounted = true;
+		this.normalizeTransactions();
 	}
 
 	componentDidUpdate(prevProps) {
@@ -154,6 +157,7 @@ class Wallet extends Component {
 		if (this.props.lockTime !== prevProps.lockTime) {
 			this.lockManager.updateLockTime(this.props.lockTime);
 		}
+		this.normalizeTransactions();
 	}
 
 	handleTabChange = page => {
@@ -217,6 +221,23 @@ class Wallet extends Component {
 		);
 	};
 
+	normalizeTransactions() {
+		const { selectedAddress, networkType, transactions } = this.props;
+		const networkId = Networks[networkType].networkId;
+		if (transactions.length) {
+			const txs = transactions.filter(
+				tx =>
+					((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
+						(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
+					networkId.toString() === tx.networkID &&
+					tx.status !== 'unapproved'
+			);
+
+			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+			this.txs = txs;
+		}
+	}
+
 	renderContent() {
 		const {
 			accounts,
@@ -229,7 +250,6 @@ class Wallet extends Component {
 			tokenExchangeRates,
 			collectibles,
 			navigation,
-			transactions,
 			networkType
 		} = this.props;
 		let balance = 0;
@@ -254,7 +274,6 @@ class Wallet extends Component {
 			assets = tokens;
 		}
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-
 		return (
 			<View style={styles.wrapper}>
 				<AccountOverview
@@ -272,6 +291,7 @@ class Wallet extends Component {
 						conversionRate={conversionRate}
 						tokenBalances={tokenBalances}
 						tokenExchangeRates={tokenExchangeRates}
+						transactions={this.txs}
 					/>
 					<Collectibles
 						navigation={navigation}
@@ -282,7 +302,7 @@ class Wallet extends Component {
 					<Transactions
 						navigation={navigation}
 						tabLabel={strings('wallet.transactions')}
-						transactions={transactions}
+						transactions={this.txs}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						selectedAddress={selectedAddress}
