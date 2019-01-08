@@ -63,12 +63,14 @@ export default class TransactionReviewData extends Component {
 		} = this.props;
 		return (
 			<View style={styles.overview}>
-				<View style={[styles.overviewRow, styles.topOverviewRow]}>
-					<View style={styles.label}>
-						<Text style={styles.labelText}>{strings('transaction.review_function_type')}</Text>
-						<Text style={styles.functionType}>{actionKey}</Text>
+				{actionKey !== strings('transactions.tx_review_confirm') && (
+					<View style={[styles.overviewRow, styles.topOverviewRow]}>
+						<View style={styles.label}>
+							<Text style={styles.labelText}>{strings('transaction.review_function_type')}</Text>
+							<Text style={styles.functionType}>{actionKey}</Text>
+						</View>
 					</View>
-				</View>
+				)}
 				<View style={styles.overviewRow}>
 					<View style={styles.label}>
 						<Text style={styles.labelText}>{strings('transaction.review_hex_data')}:</Text>
