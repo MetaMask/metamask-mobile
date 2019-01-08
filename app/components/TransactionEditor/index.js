@@ -118,8 +118,8 @@ class TransactionEditor extends Component {
 		const newData =
 			to && asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : data;
 		const amountToSend = asset ? '0x0' : amount;
-		const { gas } = await this.estimateGas({ amountToSend, newData });
-		this.setState({ amount, data: newData, gas: hexToBN(gas) });
+		const { gas } = await this.estimateGas({ amount: amountToSend, newData });
+		this.setState({ amount: amountToSend, data: newData, gas: hexToBN(gas) });
 	};
 
 	handleUpdateData = async data => {
@@ -136,8 +136,8 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const amountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
-		const newData = asset ? generateTransferData('ERC20', { toAddress: to, amount: amountToSend }) : data;
+		const tokenAmountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
+		const newData = asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : data;
 		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
