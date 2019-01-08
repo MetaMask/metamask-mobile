@@ -653,6 +653,55 @@ exports[`AppSettings should render correctly 1`] = `
           }
         }
       >
+        Show Hex Data
+      </Text>
+      <View>
+        <Text
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "marginBottom": 8,
+              "marginTop": 5,
+              "textAlign": "left",
+            }
+          }
+        >
+          Select this to show the hex data field on the send screen.
+        </Text>
+        <Switch
+          ios_backgroundColor="#dfe4ea"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f1f2f6",
+              "true": "#008edf",
+            }
+          }
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginBottom": 22,
+          "marginTop": 22,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "marginBottom": 5,
+            "textAlign": "left",
+          }
+        }
+      >
         Clear approved dapps
       </Text>
       <StyledButton

@@ -114,7 +114,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Object {
             "flexDirection": "row",
-            "marginTop": 170,
+            "marginTop": 175,
             "zIndex": 3,
           }
         }
@@ -169,7 +169,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Object {
             "flexDirection": "row",
-            "marginTop": 16,
+            "marginTop": 18,
             "zIndex": 3,
           }
         }
@@ -208,7 +208,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Object {
             "flexDirection": "row",
-            "marginTop": 16,
+            "marginTop": 18,
             "zIndex": 3,
           }
         }

@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionReviewData should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "paddingVertical": 15,
+        },
+        Object {
+          "borderBottomWidth": 1,
+          "borderColor": "#d2d8dd",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "flex": 0,
+          "paddingRight": 18,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#7c7e84",
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "600",
+          }
+        }
+      >
+        FUNCTION TYPE
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "padding": 16,
+          }
+        }
+      />
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "paddingVertical": 15,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flex": 0,
+          "paddingRight": 18,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#7c7e84",
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "600",
+          }
+        }
+      >
+        HEX DATA
+        :
+      </Text>
+    </View>
+    <TextInput
+      allowFontScaling={true}
+      editable={false}
+      multiline={true}
+      placeholder="Optional"
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "color": "#000000",
+          "flex": 1,
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "minHeight": 64,
+          "padding": 16,
+        }
+      }
+      underlineColorAndroid="transparent"
+    />
+  </View>
+</View>
+`;

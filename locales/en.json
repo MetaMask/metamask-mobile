@@ -166,7 +166,9 @@
 		"clear_desc": "Clear approved dapps",
 		"clear": "CLEAR",
 		"privacy_mode": "Privacy Mode",
-		"privacy_mode_desc": "Disabling privacy mode will allow every website to read your public accounts by default."
+		"privacy_mode_desc": "Disabling privacy mode will allow every website to read your public accounts by default.",
+		"show_hex_data": "Show Hex Data",
+		"show_hex_data_desc": "Select this to show the hex data field on the send screen."
 	},
 	"app_information": {
 		"title": "Information",
@@ -256,6 +258,10 @@
 		"gas_fee_average": "Average",
 		"gas_fee_slow": "Slow",
 		"hex_data": "Hex Data",
+		"review_details": "DETAILS",
+		"review_data": "DATA",
+		"review_function_type": "FUNCTION TYPE",
+		"review_hex_data": "HEX DATA",
 		"insufficient": "Insufficient funds",
 		"invalid_address": "Invalid address",
 		"invalid_amount": "Invalid amount",
@@ -267,7 +273,8 @@
 		"to": "To",
 		"total": "Total",
 		"loading": "Loading...",
-		"conversion_not_available": "Conversion rate not available"
+		"conversion_not_available": "Conversion rate not available",
+		"optional": "Optional"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -306,6 +313,10 @@
 		"title": "Confirm Transaction"
 	},
 	"transactions": {
+		"tx_review_confirm": "CONFIRM",
+		"tx_review_transfer": "TRANSFER",
+		"tx_review_contract_deployment": "CONTRACT DEPLOYMENT",
+		"tx_review_unknown": "UNKNOWN METHOD",
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",

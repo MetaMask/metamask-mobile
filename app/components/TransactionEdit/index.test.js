@@ -21,6 +21,9 @@ describe('TransactionEdit', () => {
 						contractBalances: { '0x2': new BN(0) }
 					}
 				}
+			},
+			settings: {
+				showHexData: true
 			}
 		};
 

@@ -23,6 +23,11 @@ const settingsReducer = (state = initialState, action) => {
 				...state,
 				lockTime: action.lockTime
 			};
+		case 'SET_SHOW_HEX_DATA':
+			return {
+				...state,
+				showHexData: action.showHexData
+			};
 		default:
 			return state;
 	}
