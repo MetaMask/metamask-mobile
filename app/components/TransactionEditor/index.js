@@ -119,7 +119,7 @@ class TransactionEditor extends Component {
 			to && asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : data;
 		const amountToSend = asset ? '0x0' : amount;
 		const { gas } = await this.estimateGas({ amount: amountToSend, newData });
-		this.setState({ amount: amountToSend, data: newData, gas: hexToBN(gas) });
+		this.setState({ amount, data: newData, gas: hexToBN(gas) });
 	};
 
 	handleUpdateData = async data => {
