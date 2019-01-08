@@ -13,8 +13,7 @@ import { strings } from '../../../locales/i18n';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1,
-		paddingTop: 30
+		flex: 1
 	},
 	loader: {
 		backgroundColor: colors.white,

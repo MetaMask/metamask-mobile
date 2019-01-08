@@ -25,20 +25,20 @@ const styles = StyleSheet.create({
 		zIndex: 5,
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 0 : 30
+		marginTop: 30
 	},
 	toRow: {
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 100 : 120,
+		marginTop: Platform.OS === 'android' ? 125 : 120,
 		position: 'absolute',
 		zIndex: 4
 	},
 	notAbsolute: {
-		marginTop: 170
+		marginTop: Platform.OS === 'android' ? 190 : 175
 	},
 	amountRow: {
-		marginTop: 16,
+		marginTop: 18,
 		zIndex: 3
 	},
 	label: {
@@ -96,10 +96,6 @@ class TransactionEdit extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Hids the "data" field
-		 */
-		hideData: PropTypes.bool,
-		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
 		onCancel: PropTypes.func,
@@ -150,7 +146,11 @@ class TransactionEdit extends Component {
 		/**
 		 * Object containing accounts balances
 		 */
-		contractBalances: PropTypes.object
+		contractBalances: PropTypes.object,
+		/**
+		 * Indicates whether hex data should be shown in transaction editor
+		 */
+		showHexData: PropTypes.bool
 	};
 
 	state = {
@@ -235,8 +235,8 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			hideData,
-			transactionData: { amount, gas, gasPrice, data, from, to, asset }
+			transactionData: { amount, gas, gasPrice, data, from, to, asset },
+			showHexData
 		} = this.props;
 		const { amountError, gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -288,7 +288,7 @@ class TransactionEdit extends Component {
 								gasPrice={gasPrice}
 							/>
 						</View>
-						{!hideData && (
+						{showHexData && (
 							<View style={{ ...styles.formRow, ...styles.amountRow }}>
 								<View style={styles.label}>
 									<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
@@ -311,7 +311,8 @@ class TransactionEdit extends Component {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	showHexData: state.settings.showHexData
 });
 
 export default connect(mapStateToProps)(TransactionEdit);

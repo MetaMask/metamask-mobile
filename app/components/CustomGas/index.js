@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	advancedOptions: {
 		textAlign: 'right',
 		alignItems: 'flex-end',
-		marginTop: 5
+		marginTop: 10
 	},
 	average: {
 		borderColor: colors.inputBorderColor,

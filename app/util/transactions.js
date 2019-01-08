@@ -1,5 +1,7 @@
-import { addHexPrefix } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { rawEncode } from 'ethereumjs-abi';
+import Engine from '../core/Engine';
+import { strings } from '../../locales/i18n';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -34,5 +36,109 @@ export function generateTransferData(assetType, opts) {
 					)
 					.join('')
 			);
+	}
+}
+
+/**
+ * Returns method data object for a transaction dat
+ *
+ * @param {string} data - Transaction data
+ * @returns {object} - Method data object containing the name if is valid
+ */
+export function getMethodData(data) {
+	// TODO use eth-method-registry from GABA
+	if (data.includes(TOKEN_TRANSFER_FUNCTION_SIGNATURE)) {
+		return { name: TOKEN_METHOD_TRANSFER };
+	}
+	if (data.includes(CONTRACT_CREATION_SIGNATURE)) {
+		return { name: CONTRACT_METHOD_DEPLOY };
+	}
+	return {};
+}
+
+/**
+ * Returns wether the given address is a contract
+ *
+ * @param {string} address - Ethereum address
+ * @returns {boolean} - Wether the given address is a contract
+ */
+export async function isSmartContractAddress(address) {
+	const { TransactionController } = Engine.context;
+	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
+	// Geth will return '0x', and ganache-core v2.2.1 will return '0x0'
+	const codeIsEmpty = !code || code === '0x' || code === '0x0';
+	return !codeIsEmpty;
+}
+
+/**
+ * Returns corresponding transaction action key
+ *
+ * @param {object} transaction - Transaction object
+ * @returns {string} - Corresponding transaction action key
+ */
+export async function getTransactionActionKey(transaction) {
+	const { transaction: { data, to } = {} } = transaction;
+	if (data) {
+		const methodData = getMethodData(data);
+		const toSmartContract = await isSmartContractAddress(to);
+		const { name } = methodData;
+		const methodName = name && name.toLowerCase();
+		switch (methodName) {
+			case TOKEN_METHOD_TRANSFER:
+				return SEND_TOKEN_ACTION_KEY;
+			case TOKEN_METHOD_APPROVE:
+				return APPROVE_ACTION_KEY;
+			case TOKEN_METHOD_TRANSFER_FROM:
+				return TRANSFER_FROM_ACTION_KEY;
+		}
+		if (!toSmartContract) {
+			if (methodName === CONTRACT_METHOD_DEPLOY) {
+				return DEPLOY_CONTRACT_ACTION_KEY;
+			}
+			return SEND_ETHER_ACTION_KEY;
+		}
+		return UNKNOWN_FUNCTION_KEY;
+	}
+	return SEND_ETHER_ACTION_KEY;
+}
+
+/**
+ * Returns corresponding transaction type message to show in UI
+ *
+ * @param {object} tx - Transaction object
+ * @param {selectedAddress} selectedAddress - Current account public address
+ * @returns {string} - Transaction type message
+ */
+export async function getActionKey(tx, selectedAddress) {
+	const actionKey = await getTransactionActionKey(tx);
+	const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
+	const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
+	switch (actionKey) {
+		case SEND_TOKEN_ACTION_KEY:
+			return strings('transactions.sent_tokens');
+		case SEND_ETHER_ACTION_KEY:
+			return incoming
+				? selfSent
+					? strings('transactions.self_sent_ether')
+					: strings('transactions.received_ether')
+				: strings('transactions.sent_ether');
+		case DEPLOY_CONTRACT_ACTION_KEY:
+			return strings('transactions.contract_deploy');
+		default:
+			return strings('transactions.smart_contract_interaction');
+	}
+}
+
+export async function getTransactionReviewActionKey(transaction) {
+	const actionKey = await getTransactionActionKey({ transaction });
+	switch (actionKey) {
+		case SEND_TOKEN_ACTION_KEY:
+			return strings('transactions.tx_review_transfer');
+		case SEND_ETHER_ACTION_KEY:
+			return strings('transactions.tx_review_confirm');
+		case DEPLOY_CONTRACT_ACTION_KEY:
+			return strings('transactions.tx_review_contract_deployment');
+		default:
+			return strings('transactions.tx_review_unknown');
 	}
 }

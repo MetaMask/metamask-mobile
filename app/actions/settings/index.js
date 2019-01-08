@@ -5,6 +5,13 @@ export function setSearchEngine(searchEngine) {
 	};
 }
 
+export function setShowHexData(showHexData) {
+	return {
+		type: 'SET_SHOW_HEX_DATA',
+		showHexData
+	};
+}
+
 export function setLockTime(lockTime) {
 	return {
 		type: 'SET_LOCK_TIME',
