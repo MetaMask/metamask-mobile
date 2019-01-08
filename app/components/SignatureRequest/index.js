@@ -109,6 +109,10 @@ class SignatureRequest extends Component {
 		 */
 		accounts: PropTypes.object,
 		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object,
+		/**
 		 * Callback triggered when this message signature is rejected
 		 */
 		onCancel: PropTypes.func,
@@ -154,9 +158,9 @@ class SignatureRequest extends Component {
 	};
 
 	render() {
-		const { children, message, accounts, selectedAddress } = this.props;
+		const { children, message, accounts, selectedAddress, identities } = this.props;
 		const balance = fromWei(accounts[selectedAddress].balance, 'ether');
-		const accountLabel = renderAccountName(selectedAddress);
+		const accountLabel = renderAccountName(selectedAddress, identities);
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
@@ -208,7 +212,8 @@ class SignatureRequest extends Component {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(SignatureRequest);

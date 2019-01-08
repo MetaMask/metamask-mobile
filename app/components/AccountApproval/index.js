@@ -161,6 +161,10 @@ class AccountApproval extends Component {
 		 */
 		onCancel: PropTypes.func,
 		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
+		/**
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string
@@ -171,7 +175,8 @@ class AccountApproval extends Component {
 			currentPageInformation: { title, url },
 			onConfirm,
 			onCancel,
-			selectedAddress
+			selectedAddress,
+			identities
 		} = this.props;
 		return (
 			<View style={styles.root}>
@@ -207,7 +212,9 @@ class AccountApproval extends Component {
 							</View>
 							<View style={styles.dapp}>
 								<Identicon address={selectedAddress} diameter={54} />
-								<Text style={styles.selectedAddress}>{renderAccountName(selectedAddress)}</Text>
+								<Text style={styles.selectedAddress}>
+									{renderAccountName(selectedAddress, identities)}
+								</Text>
 							</View>
 						</View>
 						<Text style={styles.intro}>
@@ -230,7 +237,8 @@ class AccountApproval extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(AccountApproval);

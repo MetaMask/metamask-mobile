@@ -1,5 +1,4 @@
 import { toChecksumAddress } from 'ethereumjs-util';
-import Engine from '../core/Engine';
 
 /**
  * Returns full checksummed address
@@ -28,14 +27,10 @@ export function renderShortAddress(address, chars = 4) {
  * Returns address name if it's in known identities
  *
  * @param {String} address - String corresponding to an address
+ * @param {Object} identities - Identities object
  * @returns {String} - String corresponding to account name. If there is no name, returns the original address
  */
-export function renderAccountName(address) {
-	const {
-		PreferencesController: {
-			state: { identities }
-		}
-	} = Engine.context;
+export function renderAccountName(address, identities) {
 	if (identities && address && address in identities) {
 		return identities[address].name;
 	}

@@ -119,14 +119,18 @@ class AccountDetails extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
+		/**
 		 * Object representing the selected network
 		 */
 		network: PropTypes.object.isRequired
 	};
 
 	componentDidMount = () => {
-		const { selectedAddress } = this.props;
-		const accountLabel = renderAccountName(selectedAddress);
+		const { identities, selectedAddress } = this.props;
+		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
 	};
 
@@ -177,8 +181,8 @@ class AccountDetails extends Component {
 	};
 
 	cancelAccountLabelEdition = () => {
-		const { selectedAddress } = this.props;
-		const accountLabel = renderAccountName(selectedAddress);
+		const { identities, selectedAddress } = this.props;
+		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabelEditable: false, accountLabel });
 	};
 
@@ -271,7 +275,8 @@ class AccountDetails extends Component {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(AccountDetails);
