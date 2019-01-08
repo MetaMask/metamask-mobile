@@ -89,8 +89,8 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const { from, to } = this.state;
-		const { amount = this.state.amount, data = this.state.data } = opts;
+		const { from } = this.state;
+		const { amount = this.state.amount, data = this.state.data, to = this.state.to } = opts;
 		let estimation;
 		try {
 			estimation = await TransactionController.estimateGas({
@@ -132,19 +132,13 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateToAddress = async to => {
-		const { TransactionController } = Engine.context;
-		const { amount, from, data } = this.state;
+		const { amount, data } = this.state;
 		const {
 			transaction: { asset }
 		} = this.props;
 		const amountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
 		const newData = asset ? generateTransferData('ERC20', { toAddress: to, amount: amountToSend }) : data;
-		const { gas } = await TransactionController.estimateGas({
-			amount,
-			from,
-			newData,
-			to: asset ? asset.address : to
-		});
+		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
 

@@ -193,7 +193,7 @@ class TransactionReview extends Component {
 		const { transactionData } = this.props;
 		return (
 			<View style={styles.overview}>
-				{showHexData && (
+				{showHexData && transactionData.data ? (
 					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 						<TransactionReviewInformation
 							edit={this.edit}
@@ -206,8 +206,9 @@ class TransactionReview extends Component {
 							tabLabel={strings('transaction.review_data')}
 						/>
 					</ScrollableTabView>
+				) : (
+					<TransactionReviewInformation edit={this.edit} transactionData={transactionData} />
 				)}
-				{!showHexData && <TransactionReviewInformation edit={this.edit} transactionData={transactionData} />}
 			</View>
 		);
 	};
