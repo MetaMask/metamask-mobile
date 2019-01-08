@@ -9,6 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { fromWei } from '../../util/number';
 import Identicon from '../Identicon';
 import WebsiteIcon from '../WebsiteIcon';
+import { renderAccountName } from '../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -108,10 +109,6 @@ class SignatureRequest extends Component {
 		 */
 		accounts: PropTypes.object,
 		/**
-		 * List of accounts from the PreferencesController
-		 */
-		identities: PropTypes.object,
-		/**
 		 * Callback triggered when this message signature is rejected
 		 */
 		onCancel: PropTypes.func,
@@ -157,9 +154,9 @@ class SignatureRequest extends Component {
 	};
 
 	render() {
-		const { children, message, accounts, selectedAddress, identities } = this.props;
+		const { children, message, accounts, selectedAddress } = this.props;
 		const balance = fromWei(accounts[selectedAddress].balance, 'ether');
-		const accountLabel = identities[selectedAddress].name;
+		const accountLabel = renderAccountName(selectedAddress);
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
@@ -211,8 +208,7 @@ class SignatureRequest extends Component {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(SignatureRequest);

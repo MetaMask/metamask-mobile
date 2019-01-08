@@ -13,6 +13,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
+import { renderAccountName } from '../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
@@ -159,7 +160,7 @@ class TransactionReview extends Component {
 				<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
 					<Identicon address={from} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
-						{from}
+						{renderAccountName(from)}
 					</Text>
 				</View>
 				<View style={styles.arrow}>
@@ -168,7 +169,7 @@ class TransactionReview extends Component {
 				<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
 					<Identicon address={to} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
-						{to}
+						{renderAccountName(to)}
 					</Text>
 				</View>
 			</View>

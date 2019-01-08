@@ -24,6 +24,7 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { getNavigationOptionsTitle } from '../Navbar';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
+import { renderAccountName } from '../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -118,18 +119,14 @@ class AccountDetails extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		/* identities object required to get account name
-		*/
-		identities: PropTypes.object,
-		/**
 		 * Object representing the selected network
 		 */
 		network: PropTypes.object.isRequired
 	};
 
 	componentDidMount = () => {
-		const { identities, selectedAddress } = this.props;
-		const accountLabel = identities[selectedAddress].name;
+		const { selectedAddress } = this.props;
+		const accountLabel = renderAccountName(selectedAddress);
 		this.setState({ accountLabel });
 	};
 
@@ -180,8 +177,8 @@ class AccountDetails extends Component {
 	};
 
 	cancelAccountLabelEdition = () => {
-		const { identities, selectedAddress } = this.props;
-		const accountLabel = identities[selectedAddress].name;
+		const { selectedAddress } = this.props;
+		const accountLabel = renderAccountName(selectedAddress);
 		this.setState({ accountLabelEditable: false, accountLabel });
 	};
 
@@ -274,8 +271,7 @@ class AccountDetails extends Component {
 
 const mapStateToProps = state => ({
 	network: state.engine.backgroundState.NetworkController,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(AccountDetails);

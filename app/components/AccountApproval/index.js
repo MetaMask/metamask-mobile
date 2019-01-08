@@ -9,6 +9,7 @@ import { strings } from '../../../locales/i18n';
 import { colors, fontStyles } from '../../styles/common';
 import DeviceSize from '../../util/DeviceSize';
 import WebsiteIcon from '../WebsiteIcon';
+import { renderAccountName } from '../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
@@ -152,10 +153,6 @@ class AccountApproval extends Component {
 		 */
 		currentPageInformation: PropTypes.object,
 		/**
-		 * List of accounts from the PreferencesController
-		 */
-		identities: PropTypes.object,
-		/**
 		 * Callback triggered on account access approval
 		 */
 		onConfirm: PropTypes.func,
@@ -174,8 +171,7 @@ class AccountApproval extends Component {
 			currentPageInformation: { title, url },
 			onConfirm,
 			onCancel,
-			selectedAddress,
-			identities
+			selectedAddress
 		} = this.props;
 		return (
 			<View style={styles.root}>
@@ -211,7 +207,7 @@ class AccountApproval extends Component {
 							</View>
 							<View style={styles.dapp}>
 								<Identicon address={selectedAddress} diameter={54} />
-								<Text style={styles.selectedAddress}>{identities[selectedAddress].name}</Text>
+								<Text style={styles.selectedAddress}>{renderAccountName(selectedAddress)}</Text>
 							</View>
 						</View>
 						<Text style={styles.intro}>
@@ -234,8 +230,7 @@ class AccountApproval extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 export default connect(mapStateToProps)(AccountApproval);
