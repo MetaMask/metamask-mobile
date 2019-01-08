@@ -110,16 +110,16 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateAmount = async amount => {
-		const { to } = this.state;
+		const { to, data } = this.state;
 		const {
 			transaction: { asset }
 		} = this.props;
 		const tokenAmountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
-		const data =
-			to && asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : undefined;
+		const newData =
+			to && asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : data;
 		const amountToSend = asset ? '0x0' : amount;
 		const { gas } = await this.estimateGas({ amountToSend, data });
-		this.setState({ amount, data, gas: hexToBN(gas) });
+		this.setState({ amount, data: newData, gas: hexToBN(gas) });
 	};
 
 	handleUpdateData = async data => {
