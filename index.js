@@ -5,6 +5,9 @@ require('react-native-browser-polyfill'); // eslint-disable-line import/no-commo
 import { AppRegistry, YellowBox } from 'react-native';
 import Root from './app/components/Root';
 import { name } from './app.json';
+// eslint-disable-next-line import/no-unresolved
+import { useScreens } from 'react-native-screens';
+useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([

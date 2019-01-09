@@ -20,6 +20,7 @@ import com.rnfs.RNFSPackage;
 import com.smixx.fabric.FabricPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.tectiv3.aes.RCTAesPackage;
+import com.swmansion.rnscreens.RNScreensPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -44,7 +45,8 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            	new RNGestureHandlerPackage(),
+				new RNGestureHandlerPackage(),
+				new RNScreensPackage(),
             	new RNShakeEventPackage(),
 				new RNBranchPackage(),
 				new FabricPackage(),
