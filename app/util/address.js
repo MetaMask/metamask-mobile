@@ -19,6 +19,7 @@ export function renderFullAddress(address) {
  * @returns {String} - String corresponding to short address format
  */
 export function renderShortAddress(address, chars = 4) {
+	if (!address) return address;
 	const checksummedAddress = toChecksumAddress(address);
 	return `${checksummedAddress.substr(0, chars + 2)}...${checksummedAddress.substr(-chars)}`;
 }

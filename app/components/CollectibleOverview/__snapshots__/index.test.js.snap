@@ -98,7 +98,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
     >
       Address
       : 
-      0x06...0x06
+      0x0601...266d
     </Text>
   </View>
   <View
