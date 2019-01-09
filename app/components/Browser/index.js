@@ -241,13 +241,16 @@ export class Browser extends Component {
 		/**
 		 * Function to store bookmarks
 		 */
-		addBookmark: PropTypes.func
+		addBookmark: PropTypes.func,
+		/**
+		 * Array of bookmarks
+		 */
+		bookmarks: PropTypes.array
 	};
 
 	state = {
 		appState: 'active',
 		approvedOrigin: false,
-		bookmarks: [],
 		canGoBack: false,
 		canGoForward: false,
 		currentEnsName: null,
@@ -341,15 +344,7 @@ export class Browser extends Component {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
 		});
 		this.loadUrl();
-		this.loadBookmarks();
 	}
-
-	loadBookmarks = async () => {
-		const bookmarks = this.props.navigation.getParam('bookmarks', null);
-		if (bookmarks) {
-			this.setState({ bookmarks });
-		}
-	};
 
 	async loadUrl() {
 		const { navigation } = this.props;
@@ -518,7 +513,7 @@ export class Browser extends Component {
 	bookmark = () => {
 		this.toggleOptionsIfNeeded();
 		// Check it doesn't exist already
-		if (this.state.bookmarks.filter(i => i.url === this.state.inputValue).length) {
+		if (this.props.bookmarks.filter(i => i.url === this.state.inputValue).length) {
 			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
 			return false;
 		}

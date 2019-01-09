@@ -8,6 +8,7 @@ import {
 	Text,
 	View,
 	TextInput,
+	SafeAreaView,
 	StyleSheet,
 	Platform
 } from 'react-native';
@@ -16,14 +17,16 @@ import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 
 import { colors, fontStyles } from '../../styles/common';
-import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../Navbar';
 import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
-	wrapper: {
+	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	wrapper: {
 		flex: 1,
 		padding: 20
 	},
@@ -169,7 +172,7 @@ export default class CreateWallet extends Component {
 	};
 
 	render = () => (
-		<Screen>
+		<SafeAreaView style={styles.mainWrapper}>
 			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 				<View testID={'create-password-screen'}>
 					<Text style={styles.title}>{strings('create_wallet.title')}</Text>
@@ -231,6 +234,6 @@ export default class CreateWallet extends Component {
 					</View>
 				</View>
 			</KeyboardAwareScrollView>
-		</Screen>
+		</SafeAreaView>
 	);
 }

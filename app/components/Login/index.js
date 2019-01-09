@@ -8,6 +8,7 @@ import {
 	Text,
 	View,
 	TextInput,
+	SafeAreaView,
 	StyleSheet,
 	Platform,
 	Image
@@ -18,13 +19,15 @@ import Engine from '../../core/Engine';
 import StyledButton from '../StyledButton';
 
 import { colors, fontStyles } from '../../styles/common';
-import Screen from '../Screen';
 import { strings } from '../../../locales/i18n';
 import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
-	wrapper: {
+	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	wrapper: {
 		flex: 1,
 		padding: 20
 	},
@@ -176,7 +179,7 @@ export default class Login extends Component {
 	setPassword = val => this.setState({ password: val });
 
 	render = () => (
-		<Screen>
+		<SafeAreaView style={styles.mainWrapper}>
 			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 				<View testID={'login'}>
 					<View style={styles.logoWrapper}>
@@ -230,6 +233,6 @@ export default class Login extends Component {
 					</View>
 				</View>
 			</KeyboardAwareScrollView>
-		</Screen>
+		</SafeAreaView>
 	);
 }

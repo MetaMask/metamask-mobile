@@ -256,7 +256,7 @@ class TransactionElement extends PureComponent {
 		try {
 			const network = getNetworkTypeById(networkID);
 			const url = getEtherscanTransactionUrl(network, transactionHash);
-			this.props.navigation.navigate('BrowserView', {
+			this.props.navigation.push('BrowserView', {
 				url
 			});
 		} catch (e) {

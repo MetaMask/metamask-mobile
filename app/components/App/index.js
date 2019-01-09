@@ -1,4 +1,9 @@
-import { createSwitchNavigator, createDrawerNavigator, createStackNavigator } from 'react-navigation';
+import {
+	createSwitchNavigator,
+	createDrawerNavigator,
+	createStackNavigator,
+	createAppContainer
+} from 'react-navigation';
 import Login from '../Login';
 import QRScanner from '../QRScanner';
 import Onboarding from '../Onboarding';
@@ -102,7 +107,7 @@ const HomeNav = createStackNavigator(
  * Top level switch navigator which decides
  * which top level view to show
  */
-export default createSwitchNavigator(
+const App = createSwitchNavigator(
 	{
 		Entry,
 		HomeNav,
@@ -114,3 +119,5 @@ export default createSwitchNavigator(
 		initialRouteName: 'Entry'
 	}
 );
+
+export default createAppContainer(App);

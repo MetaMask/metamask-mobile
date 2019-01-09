@@ -1,22 +1,24 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, AsyncStorage, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Alert, AsyncStorage, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import SecureKeychain from '../../core/SecureKeychain';
 import PubNub from 'pubnub';
 import { colors, fontStyles } from '../../styles/common';
 import Logger from '../../util/Logger';
 import { strings } from '../../../locales/i18n';
-import Screen from '../Screen';
 import StyledButton from '../StyledButton';
 import { getOnboardingNavbarOptions } from '../Navbar';
 import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
-	wrapper: {
+	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	wrapper: {
 		flex: 1,
-		padding: 30
+		padding: 20
 	},
 	title: {
 		fontSize: 32,
@@ -309,12 +311,12 @@ class SyncWithExtension extends Component {
 	}
 
 	render = () => (
-		<Screen>
+		<SafeAreaView style={styles.mainWrapper}>
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
 				<Text style={styles.title}>{strings('sync_with_extension.title')}</Text>
 				{this.renderContent()}
 			</View>
-		</Screen>
+		</SafeAreaView>
 	);
 }
 

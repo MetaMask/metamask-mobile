@@ -77,6 +77,7 @@
     "react-native-crypto": "^2.1.2",
     "react-native-fabric": "^0.5.2",
     "react-native-fs": "^2.10.14",
+    "react-native-gesture-handler": "^1.0.12",
     "react-native-i18n": "^2.0.15",
     "react-native-keyboard-aware-scroll-view": "^0.7.2",
     "react-native-keychain": "github:brunobar79/react-native-keychain#5210c22c94a4d66c2e0231604601b3636bfc41bc",
@@ -87,13 +88,14 @@
     "react-native-qrcode": "^0.2.7",
     "react-native-randombytes": "^3.5.0",
     "react-native-remote-svg": "^1.2.0",
+    "react-native-screens": "^1.0.0-alpha.21",
     "react-native-scrollable-tab-view": "github:estebanmino/react-native-scrollable-tab-view#master",
     "react-native-settings-list": "^1.8.0",
     "react-native-shake": "^3.2.4",
     "react-native-share": "^1.1.1",
     "react-native-vector-icons": "^4.6.0",
     "react-native-web3-webview": "^1.2.8",
-    "react-navigation": "^2.6.2",
+    "react-navigation": "^3.0.9",
     "react-redux": "^5.0.7",
     "readable-stream": "^1.0.33",
     "redux": "^4.0.0",
@@ -203,7 +205,7 @@
       "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?react-native|react-navigation|react-navigation-redux-helpers)"
+      "node_modules/(?!(jest-)?react-native|@react-navigation|react-navigation|react-navigation-redux-helpers)"
     ],
     "snapshotSerializers": [
       "enzyme-to-json/serializer"

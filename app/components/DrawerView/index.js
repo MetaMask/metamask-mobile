@@ -254,7 +254,7 @@ class DrawerView extends Component {
 
 	showQrCode = async () => {
 		await this.hideDrawer();
-		this.props.navigation.navigate('Wallet', { page: 0 });
+		this.props.navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
 			this.props.navigation.navigate('AccountDetails');
 		}, 300);
@@ -266,7 +266,7 @@ class DrawerView extends Component {
 
 	onSend = async () => {
 		await this.hideDrawer();
-		this.props.navigation.navigate('Wallet', { page: 0 });
+		this.props.navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
 			this.props.navigation.navigate('SendScreen');
 		}, 300);
@@ -274,9 +274,9 @@ class DrawerView extends Component {
 
 	async goToWalletTab(tabIndex) {
 		await this.hideDrawer();
-		this.props.navigation.navigate('Wallet', { page: 0 });
+		this.props.navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
-			this.props.navigation.navigate('Wallet', { page: tabIndex });
+			this.props.navigation.navigate('WalletView', { page: tabIndex });
 		}, 300);
 	}
 
@@ -288,7 +288,7 @@ class DrawerView extends Component {
 	};
 
 	showAssets = () => {
-		this.goToWalletTab(0);
+		this.goToWalletTab(2);
 	};
 
 	copyAddressToClipboard = async () => {
@@ -338,7 +338,7 @@ class DrawerView extends Component {
 
 	async goToBrowserUrl(url) {
 		await this.hideDrawer();
-		this.props.navigation.navigate('BrowserView', {
+		this.props.navigation.push('BrowserView', {
 			url
 		});
 	}
