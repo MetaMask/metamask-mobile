@@ -3,6 +3,7 @@ import BrowserHome from '../BrowserHome';
 import AddBookmark from '../AddBookmark';
 import Approval from '../Approval';
 import PersonalSign from '../PersonalSign';
+import AppConfigurations from '../AppConfigurations';
 import { createStackNavigator } from 'react-navigation';
 
 /**
@@ -25,6 +26,9 @@ export default createStackNavigator(
 		},
 		PersonalSign: {
 			screen: PersonalSign
+		},
+		AppConfigurations: {
+			screen: AppConfigurations
 		}
 	},
 	{

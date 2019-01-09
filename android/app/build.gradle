@@ -222,6 +222,8 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-gesture-handler')
+    implementation project(':react-native-screens')
     implementation 'com.android.support:multidex:1.0.1'
     implementation "com.android.support:support-annotations:27.1.1"
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"

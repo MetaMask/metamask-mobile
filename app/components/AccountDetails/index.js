@@ -145,7 +145,7 @@ class AccountDetails extends Component {
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('BrowserView', {
+			this.props.navigation.push('BrowserView', {
 				url
 			});
 		});

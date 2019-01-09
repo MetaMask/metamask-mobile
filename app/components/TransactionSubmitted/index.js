@@ -7,22 +7,27 @@ import {
 	Text,
 	ActivityIndicator,
 	View,
+	SafeAreaView,
 	StyleSheet
 } from 'react-native';
+import { withNavigation } from 'react-navigation';
+
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import { colors, fontStyles } from '../../styles/common';
-import Screen from '../Screen';
 import { getNavigationOptionsTitle } from '../Navbar';
 import StyledButton from '../StyledButton';
 import { getEtherscanTransactionUrl } from '../../util/etherscan';
 
 const styles = StyleSheet.create({
-	wrapper: {
+	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	wrapper: {
 		flex: 1,
 		padding: 20
 	},
@@ -93,9 +98,10 @@ class TransactionSubmitted extends Component {
 	}
 
 	goBack = () => {
-		this.props.navigation.navigate('Wallet', { page: 0 });
+		this.props.navigation.goBack(null);
+		this.props.navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
-			this.props.navigation.navigate('Wallet', { page: 2 });
+			this.props.navigation.navigate('WalletView', { page: 2 });
 		}, 300);
 	};
 
@@ -113,7 +119,7 @@ class TransactionSubmitted extends Component {
 		const url = getEtherscanTransactionUrl(network, hash);
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('BrowserView', {
+			this.props.navigation.push('BrowserView', {
 				url
 			});
 		});
@@ -146,7 +152,7 @@ class TransactionSubmitted extends Component {
 		const hash = navigation.getParam('hash', null);
 
 		return (
-			<Screen>
+			<SafeAreaView style={styles.mainWrapper}>
 				<View>
 					<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
 						<IonIcon name={'ios-close'} size={50} color={colors.primary} />
@@ -155,10 +161,10 @@ class TransactionSubmitted extends Component {
 				<View style={styles.wrapper} testID={'transaction-submitted-screen'}>
 					{hash ? this.renderView(hash) : this.renderLoader()}
 				</View>
-			</Screen>
+			</SafeAreaView>
 		);
 	};
 }
 
 const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController.provider.type });
-export default connect(mapStateToProps)(TransactionSubmitted);
+export default connect(mapStateToProps)(withNavigation(TransactionSubmitted));

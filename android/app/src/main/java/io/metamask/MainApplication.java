@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import com.clipsub.RNShake.RNShakeEventPackage;
 import io.branch.rnbranch.RNBranchPackage;
 import io.branch.referral.Branch;
@@ -19,6 +20,7 @@ import com.rnfs.RNFSPackage;
 import com.smixx.fabric.FabricPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.tectiv3.aes.RCTAesPackage;
+import com.swmansion.rnscreens.RNScreensPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -43,6 +45,8 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
+				new RNGestureHandlerPackage(),
+				new RNScreensPackage(),
             	new RNShakeEventPackage(),
 				new RNBranchPackage(),
 				new FabricPackage(),

@@ -1,9 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Main should render correctly 1`] = `
-<Navigator
-  navigation={
+<ContextProvider
+  value={
     Object {
+      "_childrenNavigation": Object {},
       "actions": Object {},
       "addListener": [Function],
       "dangerouslyGetParent": [Function],
@@ -18,6 +19,7 @@ exports[`Main should render correctly 1`] = `
           "Browser": Object {
             "childRouters": Object {
               "AddBookmark": null,
+              "AppConfigurations": null,
               "Approval": null,
               "BrowserHome": null,
               "BrowserView": null,
@@ -33,17 +35,39 @@ exports[`Main should render correctly 1`] = `
           },
           "Wallet": Object {
             "childRouters": Object {
-              "AccountDetails": null,
-              "AddAsset": null,
-              "AppConfigurations": null,
-              "Asset": null,
-              "Collectible": null,
-              "NetworkSettings": null,
-              "RevealPrivateCredential": null,
-              "SeedWords": null,
-              "SendScreen": null,
-              "SyncWithExtension": null,
-              "Wallet": null,
+              "BrowserView": Object {
+                "childRouters": Object {
+                  "BrowserModalView": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
+              "Wallet": Object {
+                "childRouters": Object {
+                  "AccountDetails": null,
+                  "AddAsset": null,
+                  "AppConfigurations": null,
+                  "Asset": null,
+                  "Collectible": null,
+                  "RevealPrivateCredential": null,
+                  "SeedWords": null,
+                  "SendScreen": null,
+                  "SyncWithExtension": null,
+                  "WalletView": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
             },
             "getActionCreators": [Function],
             "getActionForPathAndParams": [Function],
@@ -88,8 +112,16 @@ exports[`Main should render correctly 1`] = `
             "routeName": "Wallet",
             "routes": Array [
               Object {
-                "key": "id-123-1",
+                "index": 0,
+                "isTransitioning": false,
+                "key": "id-123-2",
                 "routeName": "Wallet",
+                "routes": Array [
+                  Object {
+                    "key": "id-123-1",
+                    "routeName": "WalletView",
+                  },
+                ],
               },
             ],
           },
@@ -97,5 +129,135 @@ exports[`Main should render correctly 1`] = `
       },
     }
   }
-/>
+>
+  <Navigator
+    navigation={
+      Object {
+        "_childrenNavigation": Object {},
+        "actions": Object {},
+        "addListener": [Function],
+        "dangerouslyGetParent": [Function],
+        "dispatch": [Function],
+        "getChildNavigation": [Function],
+        "getScreenProps": [Function],
+        "goBack": [Function],
+        "isFocused": [Function],
+        "navigate": [Function],
+        "router": Object {
+          "childRouters": Object {
+            "Browser": Object {
+              "childRouters": Object {
+                "AddBookmark": null,
+                "AppConfigurations": null,
+                "Approval": null,
+                "BrowserHome": null,
+                "BrowserView": null,
+                "PersonalSign": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
+            "Wallet": Object {
+              "childRouters": Object {
+                "BrowserView": Object {
+                  "childRouters": Object {
+                    "BrowserModalView": null,
+                  },
+                  "getActionCreators": [Function],
+                  "getActionForPathAndParams": [Function],
+                  "getComponentForRouteName": [Function],
+                  "getComponentForState": [Function],
+                  "getPathAndParamsForState": [Function],
+                  "getScreenOptions": [Function],
+                  "getStateForAction": [Function],
+                },
+                "Wallet": Object {
+                  "childRouters": Object {
+                    "AccountDetails": null,
+                    "AddAsset": null,
+                    "AppConfigurations": null,
+                    "Asset": null,
+                    "Collectible": null,
+                    "RevealPrivateCredential": null,
+                    "SeedWords": null,
+                    "SendScreen": null,
+                    "SyncWithExtension": null,
+                    "WalletView": null,
+                  },
+                  "getActionCreators": [Function],
+                  "getActionForPathAndParams": [Function],
+                  "getComponentForRouteName": [Function],
+                  "getComponentForState": [Function],
+                  "getPathAndParamsForState": [Function],
+                  "getScreenOptions": [Function],
+                  "getStateForAction": [Function],
+                },
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
+          },
+          "getActionCreators": [Function],
+          "getActionForPathAndParams": [Function],
+          "getComponentForRouteName": [Function],
+          "getComponentForState": [Function],
+          "getPathAndParamsForState": [Function],
+          "getScreenOptions": [Function],
+          "getStateForAction": [Function],
+        },
+        "setParams": [Function],
+        "state": Object {
+          "index": 0,
+          "isTransitioning": false,
+          "routes": Array [
+            Object {
+              "index": 0,
+              "isTransitioning": false,
+              "key": "Browser",
+              "params": undefined,
+              "routeName": "Browser",
+              "routes": Array [
+                Object {
+                  "key": "id-123-0",
+                  "routeName": "BrowserHome",
+                },
+              ],
+            },
+            Object {
+              "index": 0,
+              "isTransitioning": false,
+              "key": "Wallet",
+              "params": undefined,
+              "routeName": "Wallet",
+              "routes": Array [
+                Object {
+                  "index": 0,
+                  "isTransitioning": false,
+                  "key": "id-123-2",
+                  "routeName": "Wallet",
+                  "routes": Array [
+                    Object {
+                      "key": "id-123-1",
+                      "routeName": "WalletView",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      }
+    }
+  />
+</ContextProvider>
 `;

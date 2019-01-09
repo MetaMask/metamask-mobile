@@ -1,121 +1,119 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddBookmark should render correctly 1`] = `
-<Screen>
-  <View
-    style={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "flex": 1,
-      }
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
     }
-    testID="add-bookmark-screen"
+  }
+  testID="add-bookmark-screen"
+>
+  <ActionView
+    cancelTestID="add-bookmark-cancel-button"
+    cancelText="Cancel"
+    confirmButtonMode="normal"
+    confirmTestID="add-bookmark-confirm-button"
+    confirmText="Add"
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
   >
-    <ActionView
-      cancelTestID="add-bookmark-cancel-button"
-      cancelText="Cancel"
-      confirmButtonMode="normal"
-      confirmTestID="add-bookmark-confirm-button"
-      confirmText="Add"
-      onCancelPress={[Function]}
-      onConfirmPress={[Function]}
-      showCancelButton={true}
-      showConfirmButton={true}
+    <View
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
     >
-      <View
+      <Text
         style={
           Object {
-            "padding": 20,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
           }
         }
       >
-        <Text
-          style={
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            }
-          }
-        >
-          Name
-        </Text>
-        <TextInput
-          allowFontScaling={true}
-          onChangeText={[Function]}
-          onSubmitEditing={[Function]}
-          placeholder=""
-          returnKeyType="next"
-          style={
-            Object {
-              "borderColor": "#CCCCCC",
-              "borderRadius": 4,
-              "borderWidth": 1,
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-              "padding": 16,
-            }
-          }
-          testID="add-bookmark-title"
-          underlineColorAndroid="transparent"
-          value={null}
-        />
-        <Text
-          style={
-            Object {
-              "color": "#FF0000",
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            }
-          }
-        />
-      </View>
-      <View
+        Name
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder=""
+        returnKeyType="next"
         style={
           Object {
-            "padding": 20,
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
+          }
+        }
+        testID="add-bookmark-title"
+        underlineColorAndroid="transparent"
+        value={null}
+      />
+      <Text
+        style={
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "padding": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
           }
         }
       >
-        <Text
-          style={
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            }
+        Url
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        onChangeText={[Function]}
+        placeholder=""
+        returnKeyType="done"
+        style={
+          Object {
+            "borderColor": "#CCCCCC",
+            "borderRadius": 4,
+            "borderWidth": 1,
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+            "padding": 16,
           }
-        >
-          Url
-        </Text>
-        <TextInput
-          allowFontScaling={true}
-          onChangeText={[Function]}
-          placeholder=""
-          returnKeyType="done"
-          style={
-            Object {
-              "borderColor": "#CCCCCC",
-              "borderRadius": 4,
-              "borderWidth": 1,
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-              "padding": 16,
-            }
+        }
+        testID="add-bookmark-url"
+        underlineColorAndroid="transparent"
+        value={null}
+      />
+      <Text
+        style={
+          Object {
+            "color": "#FF0000",
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
           }
-          testID="add-bookmark-url"
-          underlineColorAndroid="transparent"
-          value={null}
-        />
-        <Text
-          style={
-            Object {
-              "color": "#FF0000",
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-            }
-          }
-        />
-      </View>
-    </ActionView>
-  </View>
-</Screen>
+        }
+      />
+    </View>
+  </ActionView>
+</SafeAreaView>
 `;

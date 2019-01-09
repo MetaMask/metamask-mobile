@@ -1,5 +1,5 @@
 import Wallet from '../Wallet';
-import NetworkSettings from '../NetworkSettings';
+import Browser from '../Browser';
 import SeedWords from '../SeedWords';
 import SyncWithExtension from '../SyncWithExtension';
 import Asset from '../Asset';
@@ -11,19 +11,12 @@ import SendScreen from '../SendScreen';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import { createStackNavigator } from 'react-navigation';
 
-/**
- * Stack navigator component that wraps the content of the Wallet tab
- * including the viewsm that can be pushed on top of it
- */
-export default createStackNavigator({
-	Wallet: {
+const walletStackNavigator = createStackNavigator({
+	WalletView: {
 		screen: Wallet
 	},
 	AccountDetails: {
 		screen: AccountDetails
-	},
-	NetworkSettings: {
-		screen: NetworkSettings
 	},
 	RevealPrivateCredential: {
 		screen: RevealPrivateCredential
@@ -50,3 +43,27 @@ export default createStackNavigator({
 		screen: SendScreen
 	}
 });
+
+/**
+ * Stack navigator component that wraps the content of the Wallet tab
+ * including the viewsm that can be pushed on top of it
+ */
+
+export default createStackNavigator(
+	{
+		Wallet: {
+			screen: walletStackNavigator
+		},
+		BrowserView: {
+			screen: createStackNavigator({
+				BrowserModalView: {
+					screen: Browser
+				}
+			})
+		}
+	},
+	{
+		mode: 'modal',
+		headerMode: 'none'
+	}
+);

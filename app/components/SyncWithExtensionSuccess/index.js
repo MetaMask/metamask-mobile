@@ -1,16 +1,18 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
-import Screen from '../Screen';
 import StyledButton from '../StyledButton';
 import { getOnboardingNavbarOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
-	wrapper: {
+	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	wrapper: {
 		flex: 1,
 		padding: 30,
 		alignItems: 'center'
@@ -76,7 +78,7 @@ export default class SyncWithExtensionSuccess extends Component {
 	};
 
 	render = () => (
-		<Screen>
+		<SafeAreaView style={styles.mainWrapper}>
 			<View style={styles.wrapper} testID={'sync-with-extension-screen'}>
 				<Text style={styles.title}>{strings('sync_with_extension_success.title')}</Text>
 				<Animated.View
@@ -96,6 +98,6 @@ export default class SyncWithExtensionSuccess extends Component {
 					</StyledButton>
 				</View>
 			</View>
-		</Screen>
+		</SafeAreaView>
 	);
 }
