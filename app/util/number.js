@@ -4,7 +4,7 @@
 import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
 import gabaUtils from 'gaba/util';
-
+import numberToBN from 'number-to-bn';
 /**
  * Converts a BN object to a hex string with a '0x' prefix
  *
@@ -26,56 +26,58 @@ export function fromWei(value = 0, unit = 'ether') {
 	return convert.fromWei(value, unit);
 }
 
-export function fromAssetMinimal(minimalInput, decimals) {
-	var minimal = minimalInput; // eslint-disable-line
-	var negative = minimal.lt(new BN(0)); // eslint-disable-line
+/**
+ * Converts token minimal unit to readable string value
+ *
+ * @param {number|string|Object} minimalInput - Token minimal unit to convert
+ * @param {string} decimals - Token decimals to convert
+ * @returns {string} - String containing the new number
+ */
+export function fromTokenMinimalUnit(minimalInput, decimals) {
+	let minimal = numberToBN(minimalInput);
+	const negative = minimal.lt(new BN(0));
 	const base = toBN(Math.pow(10, decimals).toString());
 
 	if (negative) {
 		minimal = minimal.mul(negative);
 	}
-
-	var fraction = minimal.mod(base).toString(10); // eslint-disable-line
-
+	let fraction = minimal.mod(base).toString(10);
 	while (fraction.length < decimals) {
 		fraction = '0' + fraction;
 	}
 	fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
-
-	var whole = minimal.div(base).toString(10); // eslint-disable-line
-
-	var value = '' + whole + (fraction == '0' ? '' : '.' + fraction); // eslint-disable-line
-
+	const whole = minimal.div(base).toString(10);
+	let value = '' + whole + (fraction === '0' ? '' : '.' + fraction);
 	if (negative) {
 		value = '-' + value;
 	}
-
 	return value;
 }
 
-export function toAssetMinimal(assetInput, decimals) {
+/**
+ * Converts some unit to token minimal unit
+ *
+ * @param {number|string|BN} tokenValue - Value to convert
+ * @param {string} unit - Unit to convert from, ether by default
+ * @returns {Object} - BN instance containing the new number
+ */
+export function toTokenMinimalUnit(tokenValue, decimals) {
 	const base = toBN(Math.pow(10, decimals).toString());
-	var asset = convert.numberToString(assetInput); // eslint-disable-line
-
-	// Is it negative?
-	var negative = asset.substring(0, 1) === '-'; // eslint-disable-line
+	let value = convert.numberToString(tokenValue);
+	const negative = value.substring(0, 1) === '-';
 	if (negative) {
-		asset = asset.substring(1);
+		value = value.substring(1);
 	}
-
-	if (asset === '.') {
-		throw new Error('[ethjs-unit] while converting number ' + assetInput + ' to wei, invalid value');
+	if (value === '.') {
+		throw new Error('[ethjs-unit] while converting number ' + tokenValue + ' to wei, invalid value');
 	}
-
 	// Split it into a whole and fractional part
-	var comps = asset.split('.'); // eslint-disable-line
+	const comps = value.split('.');
 	if (comps.length > 2) {
-		throw new Error('[ethjs-unit] while converting number ' + assetInput + ' to wei,  too many decimal points');
+		throw new Error('[ethjs-unit] while converting number ' + tokenValue + ' to wei,  too many decimal points');
 	}
-
 	let whole = comps[0],
-		fraction = comps[1]; // eslint-disable-line
-
+		fraction = comps[1];
 	if (!whole) {
 		whole = '0';
 	}
@@ -83,22 +85,18 @@ export function toAssetMinimal(assetInput, decimals) {
 		fraction = '0';
 	}
 	if (fraction.length > decimals) {
-		throw new Error('[ethjs-unit] while converting number ' + assetInput + ' to wei, too many decimal places');
+		throw new Error('[ethjs-unit] while converting number ' + tokenValue + ' to wei, too many decimal places');
 	}
-
 	while (fraction.length < decimals) {
 		fraction += '0';
 	}
-
 	whole = new BN(whole);
 	fraction = new BN(fraction);
-	var wei = whole.mul(base).add(fraction); // eslint-disable-line
-
+	let tokenMinimal = whole.mul(base).add(fraction);
 	if (negative) {
-		wei = wei.mul(negative);
+		tokenMinimal = tokenMinimal.mul(negative);
 	}
-
-	return new BN(wei.toString(10), 10);
+	return new BN(tokenMinimal.toString(10), 10);
 }
 
 /**
