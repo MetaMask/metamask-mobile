@@ -24,6 +24,7 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { getNavigationOptionsTitle } from '../Navbar';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
+import { renderAccountName } from '../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -118,7 +119,7 @@ class AccountDetails extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		/* identities object required to get account name
+		/* Identities object required to get account name
 		*/
 		identities: PropTypes.object,
 		/**
@@ -129,7 +130,7 @@ class AccountDetails extends Component {
 
 	componentDidMount = () => {
 		const { identities, selectedAddress } = this.props;
-		const accountLabel = identities[selectedAddress].name;
+		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
 	};
 
@@ -181,7 +182,7 @@ class AccountDetails extends Component {
 
 	cancelAccountLabelEdition = () => {
 		const { identities, selectedAddress } = this.props;
-		const accountLabel = identities[selectedAddress].name;
+		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabelEditable: false, accountLabel });
 	};
 

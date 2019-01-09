@@ -9,6 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { fromWei } from '../../util/number';
 import Identicon from '../Identicon';
 import WebsiteIcon from '../WebsiteIcon';
+import { renderAccountName } from '../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -159,7 +160,7 @@ class SignatureRequest extends Component {
 	render() {
 		const { children, message, accounts, selectedAddress, identities } = this.props;
 		const balance = fromWei(accounts[selectedAddress].balance, 'ether');
-		const accountLabel = identities[selectedAddress].name;
+		const accountLabel = renderAccountName(selectedAddress, identities);
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.header}>
