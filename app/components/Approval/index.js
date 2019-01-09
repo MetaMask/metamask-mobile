@@ -1,11 +1,19 @@
 import React, { Component } from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../TransactionEditor';
 import { BNToHex, hexToBN } from '../../util/number';
 import { strings } from '../../../locales/i18n';
-import Screen from '../Screen';
 import { getNavigationOptionsTitle } from '../Navbar';
+import { colors } from '../../styles/common';
+
+const styles = StyleSheet.create({
+	wrapper: {
+		backgroundColor: colors.white,
+		flex: 1
+	}
+});
 
 /**
  * Component that manages transaction approval from the dapp browser
@@ -67,7 +75,7 @@ export default class Approval extends Component {
 		} = this.props.navigation.state;
 		const { transaction } = this.sanitizeTransactionMeta(transactionMeta);
 		return (
-			<Screen>
+			<SafeAreaView style={styles.wrapper}>
 				<TransactionEditor
 					mode={this.state.mode}
 					onCancel={this.onCancel}
@@ -76,7 +84,7 @@ export default class Approval extends Component {
 					transaction={transaction}
 					navigation={this.props.navigation}
 				/>
-			</Screen>
+			</SafeAreaView>
 		);
 	};
 }

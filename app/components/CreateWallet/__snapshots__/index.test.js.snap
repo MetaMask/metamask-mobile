@@ -1,7 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CreateWallet should render correctly 1`] = `
-<Screen>
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
   <KeyboardAwareScrollView
     enableAutomaticScroll={true}
     enableOnAndroid={false}
@@ -17,7 +24,6 @@ exports[`CreateWallet should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 20,
       }
@@ -152,5 +158,5 @@ exports[`CreateWallet should render correctly 1`] = `
       </View>
     </View>
   </KeyboardAwareScrollView>
-</Screen>
+</SafeAreaView>
 `;

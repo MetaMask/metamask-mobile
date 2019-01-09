@@ -1,12 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
-<Screen>
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
   <View
     style={
       Object {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 30,
       }
@@ -93,5 +99,5 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
       </StyledButton>
     </View>
   </View>
-</Screen>
+</SafeAreaView>
 `;
