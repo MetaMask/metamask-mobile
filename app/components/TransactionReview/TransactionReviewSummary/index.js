@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { isBN, fromWei, weiToFiat, balanceToFiat } from '../../../util/number';
+import { fromWei, weiToFiat, balanceToFiat, fromAssetMinimal } from '../../../util/number';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -116,7 +116,7 @@ class TransactionReviewSummary extends Component {
 			contractExchangeRates,
 			actionKey
 		} = this.props;
-		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
+		const assetAmount = asset ? fromAssetMinimal(amount, asset.decimals) : undefined;
 		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
 		return (
 			<View style={styles.summary}>

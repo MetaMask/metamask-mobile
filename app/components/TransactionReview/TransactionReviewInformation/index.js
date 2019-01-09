@@ -4,7 +4,15 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, weiToFiat, fromWei, weiToFiatNumber, balanceToFiatNumber } from '../../../util/number';
+import {
+	toBN,
+	isBN,
+	weiToFiat,
+	fromWei,
+	weiToFiatNumber,
+	balanceToFiatNumber,
+	fromAssetMinimal
+} from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -138,7 +146,8 @@ class TransactionReviewInformation extends Component {
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
+		const assetAmount = isBN(amount) && asset ? fromAssetMinimal(amount, asset.decimals) : undefined;
+
 		return (
 			<View style={styles.overview}>
 				<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
@@ -174,7 +183,6 @@ class TransactionReviewInformation extends Component {
 								currentCurrency
 							)}
 						</Text>
-
 						<Text style={styles.overviewEth}>
 							{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
 							{fromWei(ethTotal).toString()} {strings('unit.eth')}

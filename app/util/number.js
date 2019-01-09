@@ -26,16 +26,79 @@ export function fromWei(value = 0, unit = 'ether') {
 	return convert.fromWei(value, unit);
 }
 
-/**
- * Converts token BN value to number
- *
- * @param {Object} value - BN instance to convert
- * @param {number} decimals - Decimals to be considered on the conversion
- * @returns {number} - Number
- */
-export function calcTokenValue(value, decimals) {
-	const multiplier = Math.pow(10, decimals);
-	return value.div(multiplier).toNumber();
+export function fromAssetMinimal(minimalInput, decimals) {
+	var minimal = minimalInput; // eslint-disable-line
+	var negative = minimal.lt(new BN(0)); // eslint-disable-line
+	const base = toBN(Math.pow(10, decimals).toString());
+
+	if (negative) {
+		minimal = minimal.mul(negative);
+	}
+
+	var fraction = minimal.mod(base).toString(10); // eslint-disable-line
+
+	while (fraction.length < decimals) {
+		fraction = '0' + fraction;
+	}
+	fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+
+	var whole = minimal.div(base).toString(10); // eslint-disable-line
+
+	var value = '' + whole + (fraction == '0' ? '' : '.' + fraction); // eslint-disable-line
+
+	if (negative) {
+		value = '-' + value;
+	}
+
+	return value;
+}
+
+export function toAssetMinimal(assetInput, decimals) {
+	const base = toBN(Math.pow(10, decimals).toString());
+	var asset = convert.numberToString(assetInput); // eslint-disable-line
+
+	// Is it negative?
+	var negative = asset.substring(0, 1) === '-'; // eslint-disable-line
+	if (negative) {
+		asset = asset.substring(1);
+	}
+
+	if (asset === '.') {
+		throw new Error('[ethjs-unit] while converting number ' + assetInput + ' to wei, invalid value');
+	}
+
+	// Split it into a whole and fractional part
+	var comps = asset.split('.'); // eslint-disable-line
+	if (comps.length > 2) {
+		throw new Error('[ethjs-unit] while converting number ' + assetInput + ' to wei,  too many decimal points');
+	}
+
+	let whole = comps[0],
+		fraction = comps[1]; // eslint-disable-line
+
+	if (!whole) {
+		whole = '0';
+	}
+	if (!fraction) {
+		fraction = '0';
+	}
+	if (fraction.length > decimals) {
+		throw new Error('[ethjs-unit] while converting number ' + assetInput + ' to wei, too many decimal places');
+	}
+
+	while (fraction.length < decimals) {
+		fraction += '0';
+	}
+
+	whole = new BN(whole);
+	fraction = new BN(fraction);
+	var wei = whole.mul(base).add(fraction); // eslint-disable-line
+
+	if (negative) {
+		wei = wei.mul(negative);
+	}
+
+	return new BN(wei.toString(10), 10);
 }
 
 /**
