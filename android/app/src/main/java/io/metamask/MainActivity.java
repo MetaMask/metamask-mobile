@@ -2,6 +2,9 @@ package io.metamask;
 
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactFragmentActivity;
+import com.facebook.react.ReactRootView;
+import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
+
 import io.branch.rnbranch.*;
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,7 +48,13 @@ public class MainActivity extends ReactFragmentActivity {
                 bundle.putString("foxCode", BuildConfig.foxCode);
                 return bundle;
             }
+            @Override
+			protected ReactRootView createRootView() {
+            	return new RNGestureHandlerEnabledRootView(MainActivity.this);
+            }
         };
 	}
+
+
 
 }
