@@ -13,6 +13,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
+import { renderAccountName } from '../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
@@ -96,6 +97,10 @@ const styles = StyleSheet.create({
 class TransactionReview extends Component {
 	static propTypes = {
 		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
+		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
 		onCancel: PropTypes.func,
@@ -152,14 +157,15 @@ class TransactionReview extends Component {
 
 	renderTransactionDirection = () => {
 		const {
-			transactionData: { from = this.props.selectedAddress, to }
+			transactionData: { from = this.props.selectedAddress, to },
+			identities
 		} = this.props;
 		return (
 			<View style={styles.graphic}>
 				<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
 					<Identicon address={from} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
-						{from}
+						{renderAccountName(from, identities)}
 					</Text>
 				</View>
 				<View style={styles.arrow}>
@@ -168,7 +174,7 @@ class TransactionReview extends Component {
 				<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
 					<Identicon address={to} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
-						{to}
+						{renderAccountName(to, identities)}
 					</Text>
 				</View>
 			</View>
@@ -239,6 +245,7 @@ class TransactionReview extends Component {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities,
 	showHexData: state.settings.showHexData
 });
 
