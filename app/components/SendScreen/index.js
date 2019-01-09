@@ -162,29 +162,19 @@ class SendScreen extends Component {
 		const { TransactionController } = Engine.context;
 		const { navigation } = this.props;
 		const asset = navigation.state && navigation.state && navigation.state.params;
-
-		if (!asset) {
-			transaction = this.prepareTransaction(transaction);
-			try {
-				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
-				await TransactionController.approveTransaction(transactionMeta.id);
-				const hash = await result;
-				this.props.navigation.push('TransactionSubmitted', { hash });
-				this.reset();
-			} catch (error) {
-				Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+		try {
+			if (!asset) {
+				transaction = this.prepareTransaction(transaction);
+			} else {
+				transaction = this.prepareTokenTransaction(transaction, asset);
 			}
-		} else {
-			transaction = this.prepareTokenTransaction(transaction, asset);
-			try {
-				const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
-				await TransactionController.approveTransaction(transactionMeta.id);
-				const hash = await result;
-				this.props.navigation.push('TransactionSubmitted', { hash });
-				this.reset();
-			} catch (error) {
-				Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
-			}
+			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+			await TransactionController.approveTransaction(transactionMeta.id);
+			const hash = await result;
+			this.props.navigation.push('TransactionSubmitted', { hash });
+			this.reset();
+		} catch (error) {
+			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 		}
 	};
 

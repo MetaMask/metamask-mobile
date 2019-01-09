@@ -113,7 +113,7 @@ class TransactionSubmitted extends Component {
 		const url = getEtherscanTransactionUrl(network, hash);
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('BrowserView', {
+			this.props.navigation.push('BrowserView', {
 				url
 			});
 		});

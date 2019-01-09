@@ -338,7 +338,7 @@ class DrawerView extends Component {
 
 	async goToBrowserUrl(url) {
 		await this.hideDrawer();
-		this.props.navigation.navigate('BrowserView', {
+		this.props.navigation.push('BrowserView', {
 			url
 		});
 	}
