@@ -69,12 +69,14 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 		value = value.substring(1);
 	}
 	if (value === '.') {
-		throw new Error('[ethjs-unit] while converting number ' + tokenValue + ' to wei, invalid value');
+		throw new Error('[number] while converting number ' + tokenValue + ' to token minimal util, invalid value');
 	}
 	// Split it into a whole and fractional part
 	const comps = value.split('.');
 	if (comps.length > 2) {
-		throw new Error('[ethjs-unit] while converting number ' + tokenValue + ' to wei,  too many decimal points');
+		throw new Error(
+			'[number] while converting number ' + tokenValue + ' to token minimal util,  too many decimal points'
+		);
 	}
 	let whole = comps[0],
 		fraction = comps[1];
@@ -85,7 +87,9 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 		fraction = '0';
 	}
 	if (fraction.length > decimals) {
-		throw new Error('[ethjs-unit] while converting number ' + tokenValue + ' to wei, too many decimal places');
+		throw new Error(
+			'[number] while converting number ' + tokenValue + ' to token minimal util, too many decimal places'
+		);
 	}
 	while (fraction.length < decimals) {
 		fraction += '0';
