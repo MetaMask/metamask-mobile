@@ -117,17 +117,14 @@ class TransactionReviewInformation extends Component {
 		actionKey: strings('transactions.tx_review_confirm')
 	};
 
-	getTotalAmount = (totalGas, amount, conversionRate, exchangeRate, currentCurrency) => {
-		const {
-			transactionData: { asset }
-		} = this.props;
+	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountEth, amountToken) => {
 		let total = 0;
 		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
 		let balanceFiat;
-		if (asset) {
-			balanceFiat = balanceToFiatNumber(parseFloat(amount), conversionRate, exchangeRate);
+		if (asset && exchangeRate) {
+			balanceFiat = balanceToFiatNumber(parseFloat(amountToken), conversionRate, exchangeRate);
 		} else {
-			balanceFiat = weiToFiatNumber(amount, conversionRate);
+			balanceFiat = weiToFiatNumber(amountEth, conversionRate);
 		}
 		total = parseFloat(gasFeeFiat) + parseFloat(balanceFiat);
 		return `${total} ${currentCurrency.toUpperCase()}`;
@@ -148,8 +145,9 @@ class TransactionReviewInformation extends Component {
 		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const assetAmount = isBN(amount) && asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
+		const totalEth = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
+		const amountEth = isBN(amount) && !asset ? amount : undefined;
+		const amountToken = asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
 
 		return (
 			<View style={styles.overview}>
@@ -178,17 +176,19 @@ class TransactionReviewInformation extends Component {
 							{strings('transaction.gas_fee').toUpperCase()}
 						</Text>
 						<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-							{this.getTotalAmount(
+							{this.getTotalFiat(
+								asset,
 								totalGas,
-								asset ? assetAmount : ethTotal,
 								conversionRate,
 								conversionRateAsset,
-								currentCurrency
+								currentCurrency,
+								amountEth,
+								amountToken
 							)}
 						</Text>
 						<Text style={styles.overviewEth}>
-							{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
-							{fromWei(ethTotal).toString()} {strings('unit.eth')}
+							{asset && amountToken} {asset && asset.symbol} {asset && ' + '}
+							{fromWei(totalEth).toString()} {strings('unit.eth')}
 						</Text>
 					</View>
 				</View>

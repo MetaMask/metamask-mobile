@@ -85,7 +85,7 @@ class TransactionReviewSummary extends Component {
 		edit: PropTypes.func
 	};
 
-	getAssetConversion(asset, amount, conversionRate, exchangeRate, currentCurrency) {
+	getAssetFiat = (asset, amount, conversionRate, exchangeRate, currentCurrency) => {
 		let convertedAmount;
 		if (asset) {
 			if (exchangeRate) {
@@ -102,7 +102,7 @@ class TransactionReviewSummary extends Component {
 			convertedAmount = weiToFiat(amount, conversionRate, currentCurrency).toUpperCase();
 		}
 		return convertedAmount;
-	}
+	};
 
 	edit = () => {
 		const { edit } = this.props;
@@ -131,7 +131,7 @@ class TransactionReviewSummary extends Component {
 				) : (
 					<View>
 						<Text style={styles.summaryFiat}>
-							{this.getAssetConversion(
+							{this.getAssetFiat(
 								asset,
 								asset ? assetAmount : amount,
 								this.props.conversionRate,
