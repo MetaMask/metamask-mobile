@@ -9,8 +9,8 @@ import {
 	toWei,
 	fromWei,
 	balanceToFiat,
-	toAssetMinimal,
-	fromAssetMinimal
+	toTokenMinimalUnit,
+	fromTokenMinimalUnit
 } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
@@ -90,7 +90,7 @@ class EthInput extends Component {
 	onChange = value => {
 		const { onChange, asset } = this.props;
 		!asset && onChange && onChange(isDecimal(value) ? toWei(value) : undefined);
-		asset && onChange && onChange(isDecimal(value) ? toAssetMinimal(value, asset.decimals) : undefined);
+		asset && onChange && onChange(isDecimal(value) ? toTokenMinimalUnit(value, asset.decimals) : undefined);
 	};
 
 	render = () => {
@@ -108,7 +108,7 @@ class EthInput extends Component {
 			} else {
 				convertedAmount = strings('transaction.conversion_not_available');
 			}
-			readableValue = value && fromAssetMinimal(value, asset.decimals);
+			readableValue = value && fromTokenMinimalUnit(value, asset.decimals);
 		} else {
 			convertedAmount = weiToFiat(value, this.props.conversionRate, currentCurrency).toUpperCase();
 			readableValue = value && fromWei(value);

@@ -11,7 +11,7 @@ import {
 	fromWei,
 	weiToFiatNumber,
 	balanceToFiatNumber,
-	fromAssetMinimal
+	fromTokenMinimalUnit
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 
@@ -118,13 +118,16 @@ class TransactionReviewInformation extends Component {
 	};
 
 	getTotalAmount = (totalGas, amount, conversionRate, exchangeRate, currentCurrency) => {
+		const {
+			transactionData: { asset }
+		} = this.props;
 		let total = 0;
 		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
 		let balanceFiat;
-		if (exchangeRate) {
+		if (asset) {
 			balanceFiat = balanceToFiatNumber(parseFloat(amount), conversionRate, exchangeRate);
 		} else {
-			balanceFiat = weiToFiatNumber(amount, conversionRate, exchangeRate);
+			balanceFiat = weiToFiatNumber(amount, conversionRate);
 		}
 		total = parseFloat(gasFeeFiat) + parseFloat(balanceFiat);
 		return `${total} ${currentCurrency.toUpperCase()}`;
@@ -146,7 +149,7 @@ class TransactionReviewInformation extends Component {
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const assetAmount = isBN(amount) && asset ? fromAssetMinimal(amount, asset.decimals) : undefined;
+		const assetAmount = isBN(amount) && asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
 
 		return (
 			<View style={styles.overview}>
