@@ -1,7 +1,7 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
-import { View } from 'react-native';
+import { NativeModules, View } from 'react-native';
 import I18nJs from 'i18n-js'; // eslint-disable-line import/no-extraneous-dependencies
 
 Enzyme.configure({ adapter: new Adapter() });
@@ -85,3 +85,23 @@ jest.mock('react-native-i18n', () => ({
 	getLanguages: () => Promise.resolve(['en']),
 	currentLocale: () => 'en'
 }));
+
+NativeModules.RNGestureHandlerModule = {
+	attachGestureHandler: jest.fn(),
+	createGestureHandler: jest.fn(),
+	dropGestureHandler: jest.fn(),
+	updateGestureHandler: jest.fn(),
+	forceTouchAvailable: jest.fn(),
+	State: {},
+	Directions: {}
+};
+
+NativeModules.PlatformConstants = {
+	forceTouchAvailable: false
+};
+
+NativeModules.UIManager = {
+	RCTView: () => ({
+		directEventTypes: {}
+	})
+};

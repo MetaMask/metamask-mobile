@@ -1,5 +1,5 @@
 import Wallet from '../Wallet';
-import BrowserModal from '../BrowserModal';
+import Browser from '../Browser';
 import SeedWords from '../SeedWords';
 import SyncWithExtension from '../SyncWithExtension';
 import Asset from '../Asset';
@@ -55,7 +55,11 @@ export default createStackNavigator(
 			screen: walletStackNavigator
 		},
 		BrowserView: {
-			screen: BrowserModal
+			screen: createStackNavigator({
+				BrowserModalView: {
+					screen: Browser
+				}
+			})
 		}
 	},
 	{

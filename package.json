@@ -205,7 +205,7 @@
       "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(jest-)?react-native|react-navigation|react-navigation-redux-helpers)"
+      "node_modules/(?!(jest-)?react-native|@react-navigation|react-navigation|react-navigation-redux-helpers)"
     ],
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
