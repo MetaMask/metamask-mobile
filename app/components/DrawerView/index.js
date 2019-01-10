@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { colors, fontStyles } from '../../styles/common';
-import Networks from '../../util/networks';
+import Networks, { hasBlockExplorer } from '../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -289,7 +289,7 @@ class DrawerView extends Component {
 	};
 
 	showAssets = () => {
-		this.goToWalletTab(2);
+		this.goToWalletTab(0);
 	};
 
 	copyAddressToClipboard = async () => {
@@ -496,16 +496,23 @@ class DrawerView extends Component {
 					<View style={styles.menu}>
 						{this.sections.map((section, i) => (
 							<View key={`section_${i}`} style={styles.menuSection}>
-								{section.map((item, j) => (
-									<TouchableOpacity
-										key={`item_${i}_${j}`}
-										style={styles.menuItem}
-										onPress={() => item.action()} // eslint-disable-line
-									>
-										{item.icon}
-										<Text style={styles.menuItemName}>{item.name}</Text>
-									</TouchableOpacity>
-								))}
+								{section
+									.filter(item => {
+										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
+											return hasBlockExplorer(network.provider.type);
+										}
+										return true;
+									})
+									.map((item, j) => (
+										<TouchableOpacity
+											key={`item_${i}_${j}`}
+											style={styles.menuItem}
+											onPress={() => item.action()} // eslint-disable-line
+										>
+											{item.icon}
+											<Text style={styles.menuItemName}>{item.name}</Text>
+										</TouchableOpacity>
+									))}
 							</View>
 						))}
 					</View>

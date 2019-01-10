@@ -5,29 +5,24 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../core/Engine';
+import { hasBlockExplorer } from '../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	emptyView: {
-		paddingTop: 80,
-		alignItems: 'center',
-		backgroundColor: colors.white,
-		flex: 1
-	},
-	text: {
-		fontSize: 20,
-		color: colors.fontTertiary,
-		...fontStyles.normal
-	},
-	loader: {
+	emptyContainer: {
 		minHeight: 250,
 		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	text: {
+		fontSize: 20,
+		color: colors.fontTertiary,
+		...fontStyles.normal
 	}
 });
 
@@ -52,7 +47,11 @@ export default class Transactions extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * String representing the selected the selected network
+		 */
+		networkType: PropTypes.string.isRequired
 	};
 
 	state = {
@@ -88,13 +87,13 @@ export default class Transactions extends Component {
 	};
 
 	renderLoader = () => (
-		<View style={styles.loader}>
+		<View style={styles.emptyContainer}>
 			<ActivityIndicator size="small" />
 		</View>
 	);
 
 	renderEmpty = () => (
-		<View style={styles.emptyView}>
+		<View style={styles.emptyContainer}>
 			<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
 		</View>
 	);
@@ -111,6 +110,9 @@ export default class Transactions extends Component {
 		if (!transactions.length) {
 			return this.renderEmpty();
 		}
+
+		const blockExplorer = hasBlockExplorer(this.props.networkType);
+
 		return (
 			<FlatList
 				data={transactions}
@@ -126,6 +128,7 @@ export default class Transactions extends Component {
 						selected={this.state.selectedTx === item.transactionHash}
 						toggleDetailsView={this.toggleDetailsView}
 						navigation={navigation}
+						blockExplorer={blockExplorer}
 					/>
 				)}
 			/>

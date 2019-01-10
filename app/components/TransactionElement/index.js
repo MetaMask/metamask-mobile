@@ -188,7 +188,11 @@ class TransactionElement extends PureComponent {
 		/**
 		 * Callback to render transaction details view
 		 */
-		toggleDetailsView: PropTypes.func
+		toggleDetailsView: PropTypes.func,
+		/**
+		 * Boolean to determine if this network supports a block explorer
+		 */
+		blockExplorer: PropTypes.bool
 	};
 
 	state = {
@@ -265,7 +269,7 @@ class TransactionElement extends PureComponent {
 		}
 	};
 
-	renderTxDetails = tx => {
+	renderTxDetails = (tx, blockExplorer) => {
 		const {
 			transaction: { gas, gasPrice, value, to, from },
 			transactionHash
@@ -318,19 +322,20 @@ class TransactionElement extends PureComponent {
 						</Text>
 					</View>
 				</View>
-				{tx.transactionHash && (
-					<TouchableOpacity
-						onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
-					>
-						<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
-					</TouchableOpacity>
-				)}
+				{tx.transactionHash &&
+					blockExplorer && (
+						<TouchableOpacity
+							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
+						>
+							<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
+						</TouchableOpacity>
+					)}
 			</View>
 		);
 	};
 
 	render = () => {
-		const { tx, selected, selectedAddress, conversionRate, currentCurrency } = this.props;
+		const { tx, selected, selectedAddress, conversionRate, currentCurrency, blockExplorer } = this.props;
 		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		const { actionKey } = this.state;
@@ -373,7 +378,7 @@ class TransactionElement extends PureComponent {
 						</View>
 					</View>
 				</View>
-				{selected ? this.renderTxDetails(tx) : null}
+				{selected ? this.renderTxDetails(tx, blockExplorer) : null}
 			</TouchableOpacity>
 		);
 	};
