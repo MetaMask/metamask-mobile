@@ -16,7 +16,7 @@ import { strings } from '../../../locales/i18n';
 import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
 import DeeplinkManager from '../../core/DeeplinkManager';
-import { fromWei, weiToFiat, hexToBN } from '../../util/number';
+import { renderFromWei, weiToFiat, hexToBN } from '../../util/number';
 import Collectible from '../Collectible';
 import Engine from '../../core/Engine';
 import Networks, { isKnownNetwork } from '../../util/networks';
@@ -256,7 +256,7 @@ class Wallet extends Component {
 		let balance = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {
-			balance = fromWei(accounts[selectedAddress].balance, 'ether');
+			balance = renderFromWei(accounts[selectedAddress].balance);
 			assets = [
 				{
 					name: 'Ether',

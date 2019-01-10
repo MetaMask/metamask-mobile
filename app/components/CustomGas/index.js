@@ -292,7 +292,7 @@ class CustomGas extends Component {
 		return (
 			<View>
 				<Text style={styles.textTotalGas}>
-					{fromWei(totalGas.toString())} {strings('unit.eth')}
+					{fromWei(totalGas)} {strings('unit.eth')}
 				</Text>
 				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
 				<TextInput

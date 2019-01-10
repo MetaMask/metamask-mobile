@@ -14,7 +14,7 @@ import {
 	SafeAreaView
 } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
-import { fromWei } from '../../util/number';
+import { renderFromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 
@@ -234,7 +234,7 @@ export default class AccountList extends Component {
 					<View style={styles.accountInfo}>
 						<Text style={styles.accountLabel}>{name}</Text>
 						<Text style={styles.accountBalance}>
-							{fromWei(balance, 'ether')} {strings('unit.eth')}
+							{renderFromWei(balance)} {strings('unit.eth')}
 						</Text>
 					</View>
 					<View style={styles.selected}>{selected}</View>

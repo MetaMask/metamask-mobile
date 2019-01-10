@@ -113,9 +113,8 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
 	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
-	const renderMinimalUnit = parseFloat(minimalUnit)
-		.toFixed(decimalsToShow)
-		.toString();
+	const base = Math.pow(10, decimalsToShow);
+	const renderMinimalUnit = Math.round(parseFloat(minimalUnit) * base) / base;
 	return renderMinimalUnit;
 }
 
@@ -127,9 +126,8 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
  */
 export function renderFromWei(value, decimalsToShow = 5) {
 	const wei = fromWei(value);
-	const renderWei = parseFloat(wei)
-		.toFixed(decimalsToShow)
-		.toString();
+	const base = Math.pow(10, decimalsToShow);
+	const renderWei = Math.round(parseFloat(wei) * base) / base;
 	return renderWei;
 }
 
