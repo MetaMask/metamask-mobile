@@ -177,8 +177,9 @@ class SendScreen extends Component {
 			this.reset();
 			this.setState({ transactionConfirmed: false });
 		} catch (error) {
-			this.setState({ transactionConfirmed: false });
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			this.setState({ transactionConfirmed: false });
+			this.reset();
 		}
 	};
 
