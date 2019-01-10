@@ -163,7 +163,6 @@ class SendScreen extends Component {
 		const { navigation } = this.props;
 		const asset = navigation.state && navigation.state && navigation.state.params;
 		try {
-			this.setState({ ready: false });
 			if (!asset) {
 				transaction = this.prepareTransaction(transaction);
 			} else {
@@ -173,10 +172,8 @@ class SendScreen extends Component {
 			await TransactionController.approveTransaction(transactionMeta.id);
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
-			this.setState({ ready: true });
 			this.reset();
 		} catch (error) {
-			this.setState({ ready: true });
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 		}
 	};
