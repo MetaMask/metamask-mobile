@@ -81,13 +81,16 @@ export default class WebsiteIcon extends Component {
 						<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
 					</View>
 				)}
-				{renderIconUrlError && (
-					<View style={viewStyle}>
-						<View style={[styles.fallback, style]}>
-							<Text style={[styles.fallbackText, textStyle]}>{title.substring(0, 1).toUpperCase()}</Text>
+				{renderIconUrlError &&
+					title && (
+						<View style={viewStyle}>
+							<View style={[styles.fallback, style]}>
+								<Text style={[styles.fallbackText, textStyle]}>
+									{title.substring(0, 1).toUpperCase()}
+								</Text>
+							</View>
 						</View>
-					</View>
-				)}
+					)}
 			</View>
 		);
 	};
