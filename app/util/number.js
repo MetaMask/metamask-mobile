@@ -108,7 +108,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  *
  * @param {Number|String|BN} tokenValue - Token value to convert
  * @param {Number} decimals - Token decimals to convert
- * @param {Number} decimalsToShow - Decimals to
+ * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - String of token minimal unit, in render format
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
@@ -122,6 +122,7 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
  * Converts wei to render format string, showing 5 decimals
  *
  * @param {Number|String|BN} value - Wei to convert
+ * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - String of token minimal unit, in render format
  */
 export function renderFromWei(value, decimalsToShow = 5) {
@@ -225,11 +226,13 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
  *
  * @param {number} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
  */
-export function weiToFiatNumber(wei, conversionRate) {
+export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
+	const base = Math.pow(10, decimalsToShow);
 	const eth = fromWei(wei).toString();
-	let value = parseFloat(Math.round(eth * conversionRate * 100) / 100).toFixed(2);
+	let value = parseFloat(Math.round(eth * conversionRate * base) / base);
 	value = isNaN(value) ? 0.0 : value;
 	return value;
 }
@@ -257,10 +260,12 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
  * @param {number} balance - Number corresponding to a balance of an asset
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
  */
-export function balanceToFiatNumber(balance, conversionRate, exchangeRate) {
-	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * 100) / 100).toFixed(2);
+export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decimalsToShow = 5) {
+	const base = Math.pow(10, decimalsToShow);
+	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
 	return fiatFixed;
 }
