@@ -48,7 +48,8 @@ class SendScreen extends Component {
 		mode: 'edit',
 		transaction: undefined,
 		transactionKey: undefined,
-		ready: false
+		ready: false,
+		transactionConfirmed: false
 	};
 
 	mounted = false;
@@ -162,6 +163,7 @@ class SendScreen extends Component {
 		const { TransactionController } = Engine.context;
 		const { navigation } = this.props;
 		const asset = navigation.state && navigation.state && navigation.state.params;
+		this.setState({ transactionConfirmed: true });
 		try {
 			if (!asset) {
 				transaction = this.prepareTransaction(transaction);
@@ -173,7 +175,9 @@ class SendScreen extends Component {
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.reset();
+			this.setState({ transactionConfirmed: false });
 		} catch (error) {
+			this.setState({ transactionConfirmed: false });
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 		}
 	};
@@ -200,6 +204,7 @@ class SendScreen extends Component {
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
 					transaction={this.state.transaction}
+					transactionConfirmed={this.state.transactionConfirmed}
 				/>
 			) : (
 				this.renderLoader()

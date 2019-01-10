@@ -121,6 +121,10 @@ class TransactionReview extends Component {
 		 */
 		showHexData: PropTypes.bool,
 		/**
+		 * Whether the transaction was confirmed or not
+		 */
+		transactionConfirmed: PropTypes.bool,
+		/**
 		 * Transaction object associated with this transaction
 		 */
 		transactionData: PropTypes.object,
@@ -134,8 +138,7 @@ class TransactionReview extends Component {
 		toFocused: false,
 		amountError: '',
 		actionKey: strings('transactions.tx_review_confirm'),
-		showHexData: false,
-		transactionConfirmed: false
+		showHexData: false
 	};
 
 	componentDidMount = async () => {
@@ -149,12 +152,6 @@ class TransactionReview extends Component {
 		const amountError = validateAmount && validateAmount();
 		const actionKey = await getTransactionReviewActionKey(transactionData);
 		this.setState({ amountError, actionKey, showHexData });
-	};
-
-	onConfirm = () => {
-		const { onConfirm } = this.props;
-		this.setState({ transactionConfirmed: true });
-		onConfirm && onConfirm();
 	};
 
 	edit = () => {
@@ -227,8 +224,8 @@ class TransactionReview extends Component {
 	};
 
 	render = () => {
-		const { transactionData } = this.props;
-		const { actionKey, transactionConfirmed } = this.state;
+		const { transactionData, transactionConfirmed } = this.props;
+		const { actionKey } = this.state;
 		return (
 			<View style={styles.root}>
 				{this.renderTransactionDirection()}
@@ -236,7 +233,7 @@ class TransactionReview extends Component {
 					confirmButtonMode="confirm"
 					cancelText={strings('transaction.reject')}
 					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.onConfirm}
+					onConfirmPress={this.props.onConfirm}
 					confirmed={transactionConfirmed}
 				>
 					<TransactionReviewSummary
