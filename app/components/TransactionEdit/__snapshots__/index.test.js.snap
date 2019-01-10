@@ -15,6 +15,7 @@ exports[`TransactionEdit should render correctly 1`] = `
     confirmButtonMode="normal"
     confirmTestID=""
     confirmText="Next"
+    confirmed={false}
     onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}

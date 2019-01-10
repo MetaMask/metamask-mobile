@@ -192,6 +192,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     confirmButtonMode="normal"
     confirmTestID="request-signature-confirm-button"
     confirmText="SIGN"
+    confirmed={false}
     showCancelButton={true}
     showConfirmButton={true}
   >
