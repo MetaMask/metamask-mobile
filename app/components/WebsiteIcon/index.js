@@ -82,7 +82,7 @@ export default class WebsiteIcon extends Component {
 					</View>
 				)}
 				{renderIconUrlError &&
-					title(
+					title && (
 						<View style={viewStyle}>
 							<View style={[styles.fallback, style]}>
 								<Text style={[styles.fallbackText, textStyle]}>
