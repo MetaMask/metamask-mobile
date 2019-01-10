@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, hexToBN, fromWei, toWei } from '../../util/number';
+import { toBN, isBN, hexToBN, fromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
 
@@ -178,8 +178,7 @@ class TransactionEdit extends Component {
 			.gt(fromWei(0))
 			? hexToBN(balance).sub(totalGas)
 			: fromWei(0);
-		const tokenMaxAmount = asset && contractBalances[asset.address];
-		this.props.handleUpdateAmount(asset ? toWei(tokenMaxAmount) : ethMaxAmount);
+		this.props.handleUpdateAmount(asset ? contractBalances[asset.address] : ethMaxAmount);
 	};
 
 	onFocusToAddress = () => {

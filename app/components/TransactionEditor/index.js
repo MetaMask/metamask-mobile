@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN, toWei, fromWei, calcTokenValueToSend } from '../../util/number';
+import { isBN, hexToBN, toBN } from '../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -114,12 +114,14 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const tokenAmountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
+		const tokenAmountToSend = asset && amount && amount.toString(16);
 		const newData =
-			to && asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : data;
+			to && asset && tokenAmountToSend
+				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+				: data;
 		const amountToSend = asset ? '0x0' : amount;
 		const { gas } = await this.estimateGas({ amount: amountToSend, newData });
-		this.setState({ amount: amountToSend, data: newData, gas: hexToBN(gas) });
+		this.setState({ amount, data: newData, gas: hexToBN(gas) });
 	};
 
 	handleUpdateData = async data => {
@@ -136,8 +138,11 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { asset }
 		} = this.props;
-		const tokenAmountToSend = asset && calcTokenValueToSend(fromWei(amount), asset.decimals);
-		const newData = asset ? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend }) : data;
+		const tokenAmountToSend = asset && amount && amount.toString(16);
+		const newData =
+			asset && tokenAmountToSend
+				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+				: data;
 		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
@@ -184,7 +189,8 @@ class TransactionEditor extends Component {
 		if (!amount || !gas || !gasPrice || !from) {
 			return strings('transaction.invalid_amount');
 		}
-		const validateAssetAmount = toWei(contractBalances[asset.address]).lt(amount);
+		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
+		const validateAssetAmount = contractBalances[asset.address].lt(amount);
 		const ethTotalAmount = gas.mul(gasPrice);
 		amount &&
 			fromAccount &&

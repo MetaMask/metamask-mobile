@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { isBN, fromWei, weiToFiat, balanceToFiat } from '../../../util/number';
+import { fromWei, weiToFiat, balanceToFiat, fromTokenMinimalUnit } from '../../../util/number';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -85,7 +85,7 @@ class TransactionReviewSummary extends Component {
 		edit: PropTypes.func
 	};
 
-	getAssetConversion(asset, amount, conversionRate, exchangeRate, currentCurrency) {
+	getAssetFiat = (asset, amount, conversionRate, exchangeRate, currentCurrency) => {
 		let convertedAmount;
 		if (asset) {
 			if (exchangeRate) {
@@ -102,7 +102,7 @@ class TransactionReviewSummary extends Component {
 			convertedAmount = weiToFiat(amount, conversionRate, currentCurrency).toUpperCase();
 		}
 		return convertedAmount;
-	}
+	};
 
 	edit = () => {
 		const { edit } = this.props;
@@ -116,7 +116,7 @@ class TransactionReviewSummary extends Component {
 			contractExchangeRates,
 			actionKey
 		} = this.props;
-		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
+		const assetAmount = asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
 		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
 		return (
 			<View style={styles.summary}>
@@ -131,7 +131,7 @@ class TransactionReviewSummary extends Component {
 				) : (
 					<View>
 						<Text style={styles.summaryFiat}>
-							{this.getAssetConversion(
+							{this.getAssetFiat(
 								asset,
 								asset ? assetAmount : amount,
 								this.props.conversionRate,
