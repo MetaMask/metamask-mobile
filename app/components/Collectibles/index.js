@@ -14,11 +14,11 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	emptyView: {
-		marginTop: 80,
-		alignItems: 'center',
+		marginTop: 110,
+		minHeight: 250,
 		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center'
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	text: {
 		fontSize: 20,
@@ -74,6 +74,7 @@ export default class Collectibles extends Component {
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
 			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
+			{this.renderFooter()}
 		</View>
 	);
 

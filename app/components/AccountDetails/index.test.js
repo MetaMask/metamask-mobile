@@ -14,7 +14,11 @@ describe('Account Details', () => {
 						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
 						identities: { '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' } }
 					},
-					NetworkController: {}
+					NetworkController: {
+						provider: {
+							type: 'mainnet'
+						}
+					}
 				}
 			}
 		};

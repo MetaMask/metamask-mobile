@@ -22,6 +22,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
+import { hasBlockExplorer } from '../../util/networks';
 import { getNavigationOptionsTitle } from '../Navbar';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderAccountName } from '../../util/address';
@@ -187,7 +188,7 @@ class AccountDetails extends Component {
 	};
 
 	render = () => {
-		const { selectedAddress } = this.props;
+		const { selectedAddress, network } = this.props;
 		const { accountLabelEditable, accountLabel } = this.state;
 		return (
 			<ScrollView style={styles.wrapper} testID={'account-details-screen'}>
@@ -251,14 +252,16 @@ class AccountDetails extends Component {
 					>
 						{strings('account_details.share_account')}
 					</StyledButton>
-					<StyledButton
-						containerStyle={styles.button}
-						type={'normal'}
-						onPress={this.goToEtherscan}
-						testID={'view-account-button'}
-					>
-						{strings('account_details.view_account')}
-					</StyledButton>
+					{hasBlockExplorer(network.provider.type) && (
+						<StyledButton
+							containerStyle={styles.button}
+							type={'normal'}
+							onPress={this.goToEtherscan}
+							testID={'view-account-button'}
+						>
+							{strings('account_details.view_account')}
+						</StyledButton>
+					)}
 					<StyledButton
 						containerStyle={styles.button}
 						type={'warning'}

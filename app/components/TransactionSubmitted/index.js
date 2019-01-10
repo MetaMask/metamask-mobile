@@ -21,6 +21,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { getNavigationOptionsTitle } from '../Navbar';
 import StyledButton from '../StyledButton';
 import { getEtherscanTransactionUrl } from '../../util/etherscan';
+import { hasBlockExplorer } from '../../util/networks';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -140,9 +141,11 @@ class TransactionSubmitted extends Component {
 				>
 					<Icon name="check-circle" size={150} style={styles.icon} />
 				</Animated.View>
-				<StyledButton type={'normal'} onPress={this.goToEtherscan} containerStyle={styles.button}>
-					{strings('transaction_submitted.view_on_etherscan')}
-				</StyledButton>
+				{hasBlockExplorer(this.props.network) && (
+					<StyledButton type={'normal'} onPress={this.goToEtherscan} containerStyle={styles.button}>
+						{strings('transaction_submitted.view_on_etherscan')}
+					</StyledButton>
+				)}
 			</View>
 		);
 	}
