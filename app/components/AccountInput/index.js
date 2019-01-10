@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
+import { renderShortAddress } from '../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
@@ -131,7 +132,7 @@ class AccountInput extends Component {
 					</View>
 					<View>
 						<Text style={styles.address} numberOfLines={1}>
-							{account.address}
+							{renderShortAddress(account.address)}
 						</Text>
 					</View>
 				</View>

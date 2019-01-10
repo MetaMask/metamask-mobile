@@ -3,7 +3,7 @@ import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, PixelRatio } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../locales/i18n';
@@ -15,6 +15,7 @@ import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import { renderAccountName } from '../../util/address';
 
+const FONT_SIZE = PixelRatio.get() < 2 ? 12 : 16;
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
 	addressText: {
 		...fontStyles.bold,
 		flex: 1,
-		fontSize: 16,
+		fontSize: FONT_SIZE,
 		marginLeft: 9
 	},
 	arrow: {

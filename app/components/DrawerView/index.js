@@ -31,6 +31,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../core/SecureKeychain';
 import { toggleNetworkModal } from '../../actions/modals';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
+import { renderShortAddress } from '../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -455,10 +456,7 @@ class DrawerView extends Component {
 									<Text style={styles.accountBalance}>
 										{account.balance} {strings('unit.eth')}
 									</Text>
-									<Text style={styles.accountAddress}>{`${account.address.substr(
-										0,
-										6
-									)}...${account.address.substr(-4)}`}</Text>
+									<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
 								</TouchableOpacity>
 							</View>
 							<TouchableOpacity
