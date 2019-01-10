@@ -4,7 +4,15 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, weiToFiat, fromWei, weiToFiatNumber, balanceToFiatNumber } from '../../../util/number';
+import {
+	toBN,
+	isBN,
+	weiToFiat,
+	fromWei,
+	weiToFiatNumber,
+	balanceToFiatNumber,
+	fromTokenMinimalUnit
+} from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -109,14 +117,14 @@ class TransactionReviewInformation extends Component {
 		actionKey: strings('transactions.tx_review_confirm')
 	};
 
-	getTotalAmount = (totalGas, amount, conversionRate, exchangeRate, currentCurrency) => {
+	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountEth, amountToken) => {
 		let total = 0;
 		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
 		let balanceFiat;
-		if (exchangeRate) {
-			balanceFiat = balanceToFiatNumber(parseFloat(amount), conversionRate, exchangeRate);
+		if (asset && exchangeRate) {
+			balanceFiat = balanceToFiatNumber(parseFloat(amountToken), conversionRate, exchangeRate);
 		} else {
-			balanceFiat = weiToFiatNumber(amount, conversionRate, exchangeRate);
+			balanceFiat = weiToFiatNumber(amountEth, conversionRate);
 		}
 		total = parseFloat(gasFeeFiat) + parseFloat(balanceFiat);
 		return `${total} ${currentCurrency.toUpperCase()}`;
@@ -137,8 +145,10 @@ class TransactionReviewInformation extends Component {
 		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const ethTotal = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const assetAmount = isBN(amount) && asset ? fromWei(amount) : undefined;
+		const totalEth = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
+		const amountEth = isBN(amount) && !asset ? amount : undefined;
+		const amountToken = asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
+
 		return (
 			<View style={styles.overview}>
 				<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
@@ -166,18 +176,19 @@ class TransactionReviewInformation extends Component {
 							{strings('transaction.gas_fee').toUpperCase()}
 						</Text>
 						<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-							{this.getTotalAmount(
+							{this.getTotalFiat(
+								asset,
 								totalGas,
-								asset ? assetAmount : ethTotal,
 								conversionRate,
 								conversionRateAsset,
-								currentCurrency
+								currentCurrency,
+								amountEth,
+								amountToken
 							)}
 						</Text>
-
 						<Text style={styles.overviewEth}>
-							{asset && assetAmount} {asset && asset.symbol} {asset && ' + '}
-							{fromWei(ethTotal).toString()} {strings('unit.eth')}
+							{asset && amountToken} {asset && asset.symbol} {asset && ' + '}
+							{fromWei(totalEth).toString()} {strings('unit.eth')}
 						</Text>
 					</View>
 				</View>

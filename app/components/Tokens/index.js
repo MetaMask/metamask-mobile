@@ -7,7 +7,7 @@ import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import TokenElement from '../TokenElement';
 import ActionSheet from 'react-native-actionsheet';
-import { calcTokenValue, balanceToFiat } from '../../util/number';
+import { fromTokenMinimalUnit, balanceToFiat } from '../../util/number';
 import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
@@ -135,7 +135,7 @@ export default class Tokens extends Component {
 					const balance =
 						item.balance ||
 						(item.address in tokenBalances
-							? calcTokenValue(tokenBalances[item.address], item.decimals)
+							? fromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
 							: undefined);
 					const balanceFiat =
 						item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);

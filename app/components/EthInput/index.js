@@ -3,7 +3,15 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { weiToFiat, isDecimal, toWei, fromWei, balanceToFiat } from '../../util/number';
+import {
+	weiToFiat,
+	isDecimal,
+	toWei,
+	fromWei,
+	balanceToFiat,
+	toTokenMinimalUnit,
+	fromTokenMinimalUnit
+} from '../../util/number';
 import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -80,13 +88,14 @@ class EthInput extends Component {
 	};
 
 	onChange = value => {
-		const { onChange } = this.props;
-		onChange && onChange(isDecimal(value) ? toWei(value) : undefined);
+		const { onChange, asset } = this.props;
+		!asset && onChange && onChange(isDecimal(value) ? toWei(value) : undefined);
+		asset && onChange && onChange(isDecimal(value) ? toTokenMinimalUnit(value, asset.decimals) : undefined);
 	};
 
 	render = () => {
 		const { currentCurrency, readonly, value, asset, contractExchangeRates } = this.props;
-		let convertedAmount;
+		let convertedAmount, readableValue;
 		if (asset) {
 			const exchangeRate = contractExchangeRates[asset.address];
 			if (exchangeRate) {
@@ -99,8 +108,10 @@ class EthInput extends Component {
 			} else {
 				convertedAmount = strings('transaction.conversion_not_available');
 			}
+			readableValue = value && fromTokenMinimalUnit(value, asset.decimals);
 		} else {
 			convertedAmount = weiToFiat(value, this.props.conversionRate, currentCurrency).toUpperCase();
+			readableValue = value && fromWei(value);
 		}
 		return (
 			<View style={styles.root}>
@@ -116,7 +127,7 @@ class EthInput extends Component {
 						spellCheck={false}
 						style={styles.input}
 					>
-						{value ? fromWei(value) : value}
+						{readableValue}
 					</TextInput>
 					<Text style={styles.eth} numberOfLines={1}>
 						{(asset && asset.symbol) || strings('unit.eth')}

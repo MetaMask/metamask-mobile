@@ -4,7 +4,7 @@
 import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
 import gabaUtils from 'gaba/util';
-
+import numberToBN from 'number-to-bn';
 /**
  * Converts a BN object to a hex string with a '0x' prefix
  *
@@ -27,15 +27,80 @@ export function fromWei(value = 0, unit = 'ether') {
 }
 
 /**
- * Converts token BN value to number
+ * Converts token minimal unit to readable string value
  *
- * @param {Object} value - BN instance to convert
- * @param {number} decimals - Decimals to be considered on the conversion
- * @returns {number} - Number
+ * @param {number|string|Object} minimalInput - Token minimal unit to convert
+ * @param {string} decimals - Token decimals to convert
+ * @returns {string} - String containing the new number
  */
-export function calcTokenValue(value, decimals) {
-	const multiplier = Math.pow(10, decimals);
-	return value.div(multiplier).toNumber();
+export function fromTokenMinimalUnit(minimalInput, decimals) {
+	let minimal = numberToBN(minimalInput);
+	const negative = minimal.lt(new BN(0));
+	const base = toBN(Math.pow(10, decimals).toString());
+
+	if (negative) {
+		minimal = minimal.mul(negative);
+	}
+	let fraction = minimal.mod(base).toString(10);
+	while (fraction.length < decimals) {
+		fraction = '0' + fraction;
+	}
+	fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+	const whole = minimal.div(base).toString(10);
+	let value = '' + whole + (fraction === '0' ? '' : '.' + fraction);
+	if (negative) {
+		value = '-' + value;
+	}
+	return value;
+}
+
+/**
+ * Converts some unit to token minimal unit
+ *
+ * @param {number|string|BN} tokenValue - Value to convert
+ * @param {string} unit - Unit to convert from, ether by default
+ * @returns {Object} - BN instance containing the new number
+ */
+export function toTokenMinimalUnit(tokenValue, decimals) {
+	const base = toBN(Math.pow(10, decimals).toString());
+	let value = convert.numberToString(tokenValue);
+	const negative = value.substring(0, 1) === '-';
+	if (negative) {
+		value = value.substring(1);
+	}
+	if (value === '.') {
+		throw new Error('[number] while converting number ' + tokenValue + ' to token minimal util, invalid value');
+	}
+	// Split it into a whole and fractional part
+	const comps = value.split('.');
+	if (comps.length > 2) {
+		throw new Error(
+			'[number] while converting number ' + tokenValue + ' to token minimal util,  too many decimal points'
+		);
+	}
+	let whole = comps[0],
+		fraction = comps[1];
+	if (!whole) {
+		whole = '0';
+	}
+	if (!fraction) {
+		fraction = '0';
+	}
+	if (fraction.length > decimals) {
+		throw new Error(
+			'[number] while converting number ' + tokenValue + ' to token minimal util, too many decimal places'
+		);
+	}
+	while (fraction.length < decimals) {
+		fraction += '0';
+	}
+	whole = new BN(whole);
+	fraction = new BN(fraction);
+	let tokenMinimal = whole.mul(base).add(fraction);
+	if (negative) {
+		tokenMinimal = tokenMinimal.mul(negative);
+	}
+	return new BN(tokenMinimal.toString(10), 10);
 }
 
 /**
