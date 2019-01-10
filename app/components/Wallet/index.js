@@ -19,7 +19,7 @@ import DeeplinkManager from '../../core/DeeplinkManager';
 import { fromWei, weiToFiat, hexToBN } from '../../util/number';
 import Collectible from '../Collectible';
 import Engine from '../../core/Engine';
-import Networks from '../../util/networks';
+import Networks, { isKnownNetwork } from '../../util/networks';
 import AppConstants from '../../core/AppConstants';
 import Feedback from '../../core/Feedback';
 // eslint-disable-next-line import/no-unresolved
@@ -229,7 +229,8 @@ class Wallet extends Component {
 				tx =>
 					((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
 						(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
-					networkId.toString() === tx.networkID &&
+					((networkId && networkId.toString() === tx.networkID) ||
+						(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
 					tx.status !== 'unapproved'
 			);
 
@@ -306,7 +307,7 @@ class Wallet extends Component {
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						selectedAddress={selectedAddress}
-						networkId={Networks[networkType].networkId}
+						networkType={networkType}
 					/>
 				</ScrollableTabView>
 				{this.renderAssetModal()}

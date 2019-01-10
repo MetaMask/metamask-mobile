@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { colors } from '../../styles/common';
 import AssetOverview from '../AssetOverview';
 import Transactions from '../Transactions';
-import Networks from '../../util/networks';
 import { getNavigationOptionsTitle } from '../Navbar';
 import Engine from '../../core/Engine';
 
@@ -119,7 +118,7 @@ class Asset extends Component {
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							adjustScroll={this.adjustScroll}
-							networkId={Networks[networkType].networkId}
+							networkType={networkType}
 						/>
 					</View>
 				</View>

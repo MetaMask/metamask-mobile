@@ -43,3 +43,14 @@ export function getNetworkTypeById(id) {
 
 	throw new Error(`Unknown network with id ${id}`);
 }
+
+export function hasBlockExplorer(key) {
+	return key.toLowerCase() !== 'rpc';
+}
+
+export function isKnownNetwork(id) {
+	const knownNetworks = Object.keys(NetworkList)
+		.map(key => NetworkList[key].networkId)
+		.filter(id => id !== undefined);
+	return knownNetworks.includes(parseInt(id, 10));
+}
