@@ -32,6 +32,20 @@ allprojects {
     }
 }
 
+subprojects {project ->
+    if (project.name.contains('react-native-fabric')) {
+        buildscript {
+            repositories {
+				google()
+				jcenter()
+                maven {
+					   url = 'https://dl.bintray.com/android/android-tools/'
+				}
+            }
+        }
+    }
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '4.4'
     distributionUrl = distributionUrl.replace("bin", "all")
