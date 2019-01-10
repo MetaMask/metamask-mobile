@@ -96,25 +96,3 @@ sed -i'' -e 's/ 23/ 27/' $TARGET;
 sed -i'' -e 's/ 22/ 27/' $TARGET;
 sed -i'' -e 's/ 16/ 19/' $TARGET;
 sed -i'' -e 's/compile /api /' $TARGET;
-
-# This one has been fixed on master
-# we can remove once they release a new version
-echo "10. Fix eth-name-hash to be compatible with android"
-TARGET="node_modules/idna-uts46-hx/node_modules/punycode/punycode.js"
-sed -i'' -e 's/fromCodePoint/fromCharCode/' $TARGET;
-echo "Done"
-
-# Fix old gradle
-echo "11. Fix modules with old gradle versions"
-TARGET="node_modules/react-native-vector-icons/android/build.gradle"
-sed -i'' -e 's/com.android.tools.build:gradle:2.3./com.android.tools.build:gradle:3.2.1/' $TARGET;
-sed -i'' -e  '/jcenter()/a \
-google() \
-' $TARGET;
-
-# Fix old gradle
-echo "12. Fix modules with old gradle versions"
-TARGET="node_modules/react-native-fabric/android/build.gradle"
-sed -i'' -e  '/jcenter()/a \
-google() \
-' $TARGET;
