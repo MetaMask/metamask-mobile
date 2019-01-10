@@ -53,7 +53,7 @@ exports[`TransactionReview should render correctly 1`] = `
           }
         }
       >
-        0x0
+        0x0...0x0
       </Text>
     </View>
     <View

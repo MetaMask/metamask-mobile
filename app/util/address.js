@@ -19,8 +19,9 @@ export function renderFullAddress(address) {
  * @returns {String} - String corresponding to short address format
  */
 export function renderShortAddress(address, chars = 4) {
+	if (!address) return address;
 	const checksummedAddress = toChecksumAddress(address);
-	return `${checksummedAddress.substr(0, chars)}...${checksummedAddress.substr(0, chars)}`;
+	return `${checksummedAddress.substr(0, chars + 2)}...${checksummedAddress.substr(-chars)}`;
 }
 
 /**
@@ -28,11 +29,11 @@ export function renderShortAddress(address, chars = 4) {
  *
  * @param {String} address - String corresponding to an address
  * @param {Object} identities - Identities object
- * @returns {String} - String corresponding to account name. If there is no name, returns the original address
+ * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
 	if (identities && address && address in identities) {
 		return identities[address].name;
 	}
-	return address;
+	return renderShortAddress(address);
 }
