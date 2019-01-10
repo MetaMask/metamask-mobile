@@ -58,7 +58,7 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
  * Converts some unit to token minimal unit
  *
  * @param {number|string|BN} tokenValue - Value to convert
- * @param {string} unit - Unit to convert from, ether by default
+ * @param {string} decimals - Unit to convert from, ether by default
  * @returns {Object} - BN instance containing the new number
  */
 export function toTokenMinimalUnit(tokenValue, decimals) {
@@ -101,6 +101,36 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 		tokenMinimal = tokenMinimal.mul(negative);
 	}
 	return new BN(tokenMinimal.toString(10), 10);
+}
+
+/**
+ * Converts some token minimal unit to render format string, showing 5 decimals
+ *
+ * @param {Number|String|BN} tokenValue - Token value to convert
+ * @param {Number} decimals - Token decimals to convert
+ * @param {Number} decimalsToShow - Decimals to
+ * @returns {String} - String of token minimal unit, in render format
+ */
+export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
+	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
+	const renderMinimalUnit = parseFloat(minimalUnit)
+		.toFixed(decimalsToShow)
+		.toString();
+	return renderMinimalUnit;
+}
+
+/**
+ * Converts wei to render format string, showing 5 decimals
+ *
+ * @param {Number|String|BN} value - Wei to convert
+ * @returns {String} - String of token minimal unit, in render format
+ */
+export function renderFromWei(value, decimalsToShow = 5) {
+	const wei = fromWei(value);
+	const renderWei = parseFloat(wei)
+		.toFixed(decimalsToShow)
+		.toString();
+	return renderWei;
 }
 
 /**
