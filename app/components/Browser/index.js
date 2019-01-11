@@ -530,7 +530,7 @@ export class Browser extends Component {
 	share = () => {
 		this.toggleOptionsIfNeeded();
 		Share.open({
-			url: this.state.url
+			url: this.state.inputValue
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
@@ -538,7 +538,7 @@ export class Browser extends Component {
 
 	openInBrowser = () => {
 		this.toggleOptionsIfNeeded();
-		Linking.openURL(this.state.url).catch(error =>
+		Linking.openURL(this.state.inputValue).catch(error =>
 			Logger.log('Error while trying to open external link: ${url}', error)
 		);
 	};
@@ -610,7 +610,7 @@ export class Browser extends Component {
 			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 		}
 
-		this.setState({ url, canGoBack, canGoForward, fullHostname, inputValue, hostname });
+		this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
 	};
 
 	formatHostname(hostname) {
