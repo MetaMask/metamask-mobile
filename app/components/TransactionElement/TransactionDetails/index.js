@@ -181,7 +181,9 @@ class TransactionDetails extends PureComponent {
 						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]} />
+						<Text style={[styles.detailRowText, styles.alignLeft]}>
+							{strings('transactions.gas_limit')}
+						</Text>
 						<Text style={[styles.detailRowText, styles.alignRight]}>{hexToBN(gas).toNumber()}</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>

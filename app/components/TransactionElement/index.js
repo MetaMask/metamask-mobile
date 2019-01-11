@@ -10,7 +10,9 @@ import {
 	hexToBN,
 	renderFromTokenMinimalUnit,
 	fromTokenMinimalUnit,
-	balanceToFiat
+	balanceToFiat,
+	toBN,
+	isBN
 } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
@@ -117,6 +119,7 @@ const styles = StyleSheet.create({
 		fontSize: 12
 	},
 	singleRow: {
+		flex: 1,
 		flexDirection: 'row'
 	},
 	copyIcon: {
@@ -264,20 +267,44 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTransferElement = () => {
-		const { tx, conversionRate, currentCurrency, tokens, contractExchangeRates } = this.props;
+	renderTotalAmount = (renderTotalEth, renderValue) => (
+		<View style={styles.renderValue}>
+			<Text style={styles.amount}>
+				{renderValue && '- ' + renderValue + ' / '} {'- ' + renderTotalEth}
+			</Text>
+		</View>
+	);
+
+	renderTotalFiat = (renderTotalEthFiat, renderValueFiat) => (
+		<View style={styles.renderValue}>
+			<Text style={styles.amountFiat}>
+				{renderValueFiat && '- ' + renderValueFiat + ' / '} {'- ' + renderTotalEthFiat}
+			</Text>
+		</View>
+	);
+
+	renderTransferElement = totalGas => {
+		const {
+			tx,
+			conversionRate,
+			currentCurrency,
+			tokens,
+			contractExchangeRates,
+			selected,
+			blockExplorer
+		} = this.props;
 		const { actionKey } = this.state;
 		const [addressTo, amount] = decodeTransferData('ERC20', tx.transaction.data);
 		const userHasToken = toChecksumAddress(tx.transaction.to) in tokens;
 		const token = userHasToken ? tokens[toChecksumAddress(tx.transaction.to)] : null;
 		const renderActionKey = token ? 'Sent ' + token.symbol : actionKey;
 		const renderAmount = token
-			? '- ' + renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
+			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
 			: undefined;
 		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
-		let renderFiatAmount;
+		let renderTokenFiatAmount;
 		if (exchangeRate) {
-			renderFiatAmount =
+			renderTokenFiatAmount =
 				'- ' +
 				balanceToFiat(
 					fromTokenMinimalUnit(amount) || 0,
@@ -286,8 +313,10 @@ class TransactionElement extends PureComponent {
 					currentCurrency
 				).toUpperCase();
 		} else {
-			renderFiatAmount = strings('transaction.conversion_not_available');
+			renderTokenFiatAmount = strings('transaction.rate_not_available');
 		}
+		const renderTotalGas = renderFromWei(totalGas) + ' ' + strings('unit.eth');
+		const renderTotalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
 		return (
 			<View style={styles.rowContent}>
 				{this.renderTxTime()}
@@ -298,17 +327,30 @@ class TransactionElement extends PureComponent {
 						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
-						<Text style={styles.amount}>{renderAmount}</Text>
-						<Text style={styles.amountFiat}>{renderFiatAmount}</Text>
+						{this.renderTotalAmount(renderTotalGas, renderAmount)}
+						{this.renderTotalFiat(renderTotalGasFiat, renderTokenFiatAmount)}
 					</View>
 				</View>
+				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
 			</View>
 		);
 	};
 
-	renderConfirmElement = () => {
-		const { tx, conversionRate, currentCurrency } = this.props;
+	renderConfirmElement = totalGas => {
+		const {
+			tx,
+			tx: {
+				transaction: { value }
+			},
+			conversionRate,
+			currentCurrency,
+			selected,
+			blockExplorer
+		} = this.props;
 		const { actionKey } = this.state;
+		const totalETh = hexToBN(value).add(totalGas);
+		const renderTotalETh = renderFromWei(totalETh) + ' ' + strings('unit.eth');
+		const renderTotalEthFiat = weiToFiat(totalETh, conversionRate, currentCurrency).toUpperCase();
 		return (
 			<View style={styles.rowContent}>
 				{this.renderTxTime()}
@@ -319,21 +361,20 @@ class TransactionElement extends PureComponent {
 						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
-						<Text style={styles.amount}>
-							- {renderFromWei(tx.transaction.value)} {strings('unit.eth')}
-						</Text>
-						<Text style={styles.amountFiat}>
-							- {weiToFiat(hexToBN(tx.transaction.value), conversionRate, currentCurrency).toUpperCase()}
-						</Text>
+						{this.renderTotalAmount(renderTotalETh)}
+						{this.renderTotalFiat(renderTotalEthFiat)}
 					</View>
 				</View>
+				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
 			</View>
 		);
 	};
 
-	renderDeploymentElement = () => {
-		const { tx, conversionRate, currentCurrency } = this.props;
+	renderDeploymentElement = totalGas => {
+		const { tx, selected, blockExplorer, conversionRate, currentCurrency } = this.props;
 		const { actionKey } = this.state;
+		const renderTotalEth = renderFromWei(totalGas) + ' ' + strings('unit.eth');
+		const renderTotalEThFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
 		return (
 			<View style={styles.rowContent}>
 				{this.renderTxTime()}
@@ -344,32 +385,37 @@ class TransactionElement extends PureComponent {
 						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
-						<Text style={styles.amount}>
-							- {renderFromWei(tx.transaction.value)} {strings('unit.eth')}
-						</Text>
-						<Text style={styles.amountFiat}>
-							- {weiToFiat(hexToBN(tx.transaction.value), conversionRate, currentCurrency).toUpperCase()}
-						</Text>
+						{this.renderTotalAmount(renderTotalEth)}
+						{this.renderTotalFiat(renderTotalEThFiat)}
 					</View>
 				</View>
+				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
 			</View>
 		);
 	};
 
 	render = () => {
-		const { tx, selected, blockExplorer } = this.props;
+		const {
+			tx,
+			tx: {
+				transaction: { gas, gasPrice }
+			}
+		} = this.props;
 		const { actionKey } = this.state;
 		let transactionElement;
+		const gasBN = hexToBN(gas);
+		const gasPriceBN = hexToBN(gasPrice);
+		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
 		switch (actionKey) {
 			case strings('transactions.sent_tokens'):
-				transactionElement = this.renderTransferElement();
+				transactionElement = this.renderTransferElement(totalGas);
 				break;
 			case strings('transactions.contract_deploy'):
-				transactionElement = this.renderDeploymentElement();
+				transactionElement = this.renderDeploymentElement(totalGas);
 				break;
 			default:
-				transactionElement = this.renderConfirmElement();
+				transactionElement = this.renderConfirmElement(totalGas);
 		}
 
 		return (
@@ -379,7 +425,6 @@ class TransactionElement extends PureComponent {
 				onPress={this.toggleDetailsView} // eslint-disable-line react/jsx-no-bind
 			>
 				{transactionElement}
-				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
 			</TouchableOpacity>
 		);
 	};

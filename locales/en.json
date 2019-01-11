@@ -274,6 +274,7 @@
 		"total": "Total",
 		"loading": "Loading...",
 		"conversion_not_available": "Conversion rate not available",
+		"rate_not_available": "Conversion not available",
 		"optional": "Optional"
 	},
 	"custom_gas": {
