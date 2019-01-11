@@ -6,7 +6,7 @@ import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { fromWei } from '../../util/number';
+import { renderFromWei } from '../../util/number';
 import Identicon from '../Identicon';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../util/address';
@@ -159,7 +159,7 @@ class SignatureRequest extends Component {
 
 	render() {
 		const { children, message, accounts, selectedAddress, identities } = this.props;
-		const balance = fromWei(accounts[selectedAddress].balance, 'ether');
+		const balance = renderFromWei(accounts[selectedAddress].balance);
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		return (
 			<View style={styles.wrapper}>
