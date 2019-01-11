@@ -610,7 +610,7 @@ export class Browser extends Component {
 			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 		}
 
-		this.setState({ url, canGoBack, canGoForward, fullHostname, inputValue, hostname });
+		this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
 	};
 
 	formatHostname(hostname) {
