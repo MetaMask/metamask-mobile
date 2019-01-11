@@ -124,7 +124,6 @@ exports[`TransactionReview should render correctly 1`] = `
     confirmTestID=""
     confirmText="Confirm"
     confirmed={false}
-    onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}
   >
