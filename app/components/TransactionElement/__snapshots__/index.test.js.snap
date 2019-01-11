@@ -121,7 +121,7 @@ exports[`TransactionElement should render correctly 1`] = `
         >
           -
            
-          0.00 USD
+          0 USD
         </Text>
       </View>
     </View>

@@ -23,7 +23,7 @@ import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
-import { fromWei } from '../../util/number';
+import { renderFromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
@@ -408,7 +408,7 @@ class DrawerView extends Component {
 	render = () => {
 		const { network, accounts, identities, selectedAddress, keyrings } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-		account.balance = (accounts[selectedAddress] && fromWei(accounts[selectedAddress].balance, 'ether')) || 0;
+		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
 
 		return (

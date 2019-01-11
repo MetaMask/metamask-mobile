@@ -4,7 +4,7 @@ import { Clipboard, TouchableOpacity, StyleSheet, Text, View, Image } from 'reac
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { toLocaleDateTime } from '../../util/date';
-import { fromWei, weiToFiat, hexToBN, isBN, toBN, toGwei } from '../../util/number';
+import { renderFromWei, weiToFiat, hexToBN, isBN, toBN, toGwei } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { connect } from 'react-redux';
@@ -297,7 +297,7 @@ class TransactionElement extends PureComponent {
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.amount')}</Text>
 						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{fromWei(value, 'ether')} {strings('unit.eth')}
+							{renderFromWei(value)} {strings('unit.eth')}
 						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
@@ -313,7 +313,7 @@ class TransactionElement extends PureComponent {
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
 						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{fromWei(total, 'ether')} {strings('unit.eth')}
+							{renderFromWei(total)} {strings('unit.eth')}
 						</Text>
 					</View>
 					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
@@ -365,7 +365,7 @@ class TransactionElement extends PureComponent {
 						</View>
 						<View style={styles.amounts}>
 							<Text style={styles.amount}>
-								- {fromWei(tx.transaction.value, 'ether')} {strings('unit.eth')}
+								- {renderFromWei(tx.transaction.value)} {strings('unit.eth')}
 							</Text>
 							<Text style={styles.amountFiat}>
 								-{' '}

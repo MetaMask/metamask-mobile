@@ -1,5 +1,5 @@
 import { BN } from 'ethereumjs-util';
-import { fromWei, weiToFiat } from './number';
+import { renderFromWei, weiToFiat } from './number';
 
 /**
  * Calculates wei value of estimate gas price in gwei
@@ -34,7 +34,7 @@ export function getWeiGasFee(estimate, gasLimit = 21000) {
  */
 export function getRenderableEthGasFee(estimate, gasLimit = 21000) {
 	const gasFee = getWeiGasFee(estimate, gasLimit);
-	return fromWei(gasFee);
+	return renderFromWei(gasFee);
 }
 
 /**

@@ -65,7 +65,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           }
         }
       >
-        0.00 USD
+        0 USD
       </Text>
       <Text
         style={
