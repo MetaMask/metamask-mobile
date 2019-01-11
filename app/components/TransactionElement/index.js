@@ -4,12 +4,19 @@ import { Clipboard, TouchableOpacity, StyleSheet, Text, View, Image } from 'reac
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { toLocaleDateTime } from '../../util/date';
-import { renderFromWei, weiToFiat, hexToBN } from '../../util/number';
+import {
+	renderFromWei,
+	weiToFiat,
+	hexToBN,
+	renderFromTokenMinimalUnit,
+	fromTokenMinimalUnit,
+	balanceToFiat
+} from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { getActionKey } from '../../util/transactions';
+import { getActionKey, decodeTransferData } from '../../util/transactions';
 import { getNetworkTypeById } from '../../util/networks';
 import { getEtherscanTransactionUrl } from '../../util/etherscan';
 import TransactionDetails from './TransactionDetails';
@@ -133,6 +140,10 @@ class TransactionElement extends PureComponent {
 		 */
 		tx: PropTypes.object,
 		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object,
+		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -157,6 +168,10 @@ class TransactionElement extends PureComponent {
 		 * Callback to render transaction details view
 		 */
 		toggleDetailsView: PropTypes.func,
+		/**
+		 * An array that represents the user tokens
+		 */
+		tokens: PropTypes.object,
 		/**
 		 * Boolean to determine if this network supports a block explorer
 		 */
@@ -237,28 +252,54 @@ class TransactionElement extends PureComponent {
 		}
 	};
 
-	renderTransferElement = () => {
-		const { tx, selectedAddress, conversionRate, currentCurrency } = this.props;
+	renderTxTime = () => {
+		const { tx, selectedAddress } = this.props;
 		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		return (
+			<Text style={styles.date}>
+				{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+				{`${toLocaleDateTime(tx.time)}`}
+			</Text>
+		);
+	};
+
+	renderTransferElement = () => {
+		const { tx, conversionRate, currentCurrency, tokens, contractExchangeRates } = this.props;
 		const { actionKey } = this.state;
+		const [addressTo, amount] = decodeTransferData('ERC20', tx.transaction.data);
+		const userHasToken = toChecksumAddress(tx.transaction.to) in tokens;
+		const token = userHasToken ? tokens[toChecksumAddress(tx.transaction.to)] : null;
+		const renderActionKey = token ? 'Sent ' + token.symbol : actionKey;
+		const renderAmount = token
+			? '- ' + renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
+			: undefined;
+		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
+		let renderFiatAmount;
+		if (exchangeRate) {
+			renderFiatAmount =
+				'- ' +
+				balanceToFiat(
+					fromTokenMinimalUnit(amount) || 0,
+					conversionRate,
+					exchangeRate,
+					currentCurrency
+				).toUpperCase();
+		} else {
+			renderFiatAmount = strings('transaction.conversion_not_available');
+		}
 		return (
 			<View style={styles.rowContent}>
-				<Text style={styles.date}>
-					{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
-					{`${toLocaleDateTime(tx.time)}`}
-				</Text>
+				{this.renderTxTime()}
 				<View style={styles.subRow}>
-					<Identicon address={tx.transaction.to} diameter={24} />
+					<Identicon address={addressTo} diameter={24} />
 					<View style={styles.info}>
-						<Text style={styles.address}>{actionKey}</Text>
+						<Text style={styles.address}>{renderActionKey}</Text>
 						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
-						<Text style={styles.amount}>- {renderFromWei(tx.transaction.value)}</Text>
-						<Text style={styles.amountFiat}>
-							- {weiToFiat(hexToBN(tx.transaction.value), conversionRate, currentCurrency).toUpperCase()}
-						</Text>
+						<Text style={styles.amount}>{renderAmount}</Text>
+						<Text style={styles.amountFiat}>{renderFiatAmount}</Text>
 					</View>
 				</View>
 			</View>
@@ -266,16 +307,11 @@ class TransactionElement extends PureComponent {
 	};
 
 	renderConfirmElement = () => {
-		const { tx, selectedAddress, conversionRate, currentCurrency } = this.props;
-		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		const { tx, conversionRate, currentCurrency } = this.props;
 		const { actionKey } = this.state;
 		return (
 			<View style={styles.rowContent}>
-				<Text style={styles.date}>
-					{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
-					{`${toLocaleDateTime(tx.time)}`}
-				</Text>
+				{this.renderTxTime()}
 				<View style={styles.subRow}>
 					<Identicon address={tx.transaction.to} diameter={24} />
 					<View style={styles.info}>
@@ -296,16 +332,11 @@ class TransactionElement extends PureComponent {
 	};
 
 	renderDeploymentElement = () => {
-		const { tx, selectedAddress, conversionRate, currentCurrency } = this.props;
-		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		const { tx, conversionRate, currentCurrency } = this.props;
 		const { actionKey } = this.state;
 		return (
 			<View style={styles.rowContent}>
-				<Text style={styles.date}>
-					{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
-					{`${toLocaleDateTime(tx.time)}`}
-				</Text>
+				{this.renderTxTime()}
 				<View style={styles.subRow}>
 					<Image source={ethLogo} style={styles.ethLogo} />
 					<View style={styles.info}>
@@ -327,10 +358,10 @@ class TransactionElement extends PureComponent {
 
 	render = () => {
 		const { tx, selected, blockExplorer } = this.props;
-		const { functionType } = this.state;
+		const { actionKey } = this.state;
 		let transactionElement;
 
-		switch (functionType) {
+		switch (actionKey) {
 			case strings('transactions.sent_tokens'):
 				transactionElement = this.renderTransferElement();
 				break;
