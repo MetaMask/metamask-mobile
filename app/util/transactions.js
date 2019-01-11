@@ -129,6 +129,12 @@ export async function getActionKey(tx, selectedAddress) {
 	}
 }
 
+/**
+ * Returns corresponding transaction function type
+ *
+ * @param {object} tx - Transaction object
+ * @returns {string} - Transaction function type
+ */
 export async function getTransactionReviewActionKey(transaction) {
 	const actionKey = await getTransactionActionKey({ transaction });
 	switch (actionKey) {

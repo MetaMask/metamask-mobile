@@ -237,11 +237,109 @@ class TransactionElement extends PureComponent {
 		}
 	};
 
-	render = () => {
-		const { tx, selected, selectedAddress, conversionRate, currentCurrency, blockExplorer } = this.props;
+	renderTransferElement = () => {
+		const { tx, selectedAddress, conversionRate, currentCurrency } = this.props;
 		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		const { actionKey } = this.state;
+		return (
+			<View style={styles.rowContent}>
+				<Text style={styles.date}>
+					{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+					{`${toLocaleDateTime(tx.time)}`}
+				</Text>
+				<View style={styles.subRow}>
+					<Identicon address={tx.transaction.to} diameter={24} />
+					<View style={styles.info}>
+						<Text style={styles.address}>{actionKey}</Text>
+						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
+					</View>
+					<View style={styles.amounts}>
+						<Text style={styles.amount}>- {renderFromWei(tx.transaction.value)}</Text>
+						<Text style={styles.amountFiat}>
+							- {weiToFiat(hexToBN(tx.transaction.value), conversionRate, currentCurrency).toUpperCase()}
+						</Text>
+					</View>
+				</View>
+			</View>
+		);
+	};
+
+	renderConfirmElement = () => {
+		const { tx, selectedAddress, conversionRate, currentCurrency } = this.props;
+		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
+		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		const { actionKey } = this.state;
+		return (
+			<View style={styles.rowContent}>
+				<Text style={styles.date}>
+					{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+					{`${toLocaleDateTime(tx.time)}`}
+				</Text>
+				<View style={styles.subRow}>
+					<Identicon address={tx.transaction.to} diameter={24} />
+					<View style={styles.info}>
+						<Text style={styles.address}>{actionKey}</Text>
+						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
+					</View>
+					<View style={styles.amounts}>
+						<Text style={styles.amount}>
+							- {renderFromWei(tx.transaction.value)} {strings('unit.eth')}
+						</Text>
+						<Text style={styles.amountFiat}>
+							- {weiToFiat(hexToBN(tx.transaction.value), conversionRate, currentCurrency).toUpperCase()}
+						</Text>
+					</View>
+				</View>
+			</View>
+		);
+	};
+
+	renderDeploymentElement = () => {
+		const { tx, selectedAddress, conversionRate, currentCurrency } = this.props;
+		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
+		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		const { actionKey } = this.state;
+		return (
+			<View style={styles.rowContent}>
+				<Text style={styles.date}>
+					{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+					{`${toLocaleDateTime(tx.time)}`}
+				</Text>
+				<View style={styles.subRow}>
+					<Image source={ethLogo} style={styles.ethLogo} />
+					<View style={styles.info}>
+						<Text style={styles.address}>{actionKey}</Text>
+						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
+					</View>
+					<View style={styles.amounts}>
+						<Text style={styles.amount}>
+							- {renderFromWei(tx.transaction.value)} {strings('unit.eth')}
+						</Text>
+						<Text style={styles.amountFiat}>
+							- {weiToFiat(hexToBN(tx.transaction.value), conversionRate, currentCurrency).toUpperCase()}
+						</Text>
+					</View>
+				</View>
+			</View>
+		);
+	};
+
+	render = () => {
+		const { tx, selected, blockExplorer } = this.props;
+		const { functionType } = this.state;
+		let transactionElement;
+
+		switch (functionType) {
+			case strings('transactions.sent_tokens'):
+				transactionElement = this.renderTransferElement();
+				break;
+			case strings('transactions.contract_deploy'):
+				transactionElement = this.renderDeploymentElement();
+				break;
+			default:
+				transactionElement = this.renderConfirmElement();
+		}
 
 		return (
 			<TouchableOpacity
@@ -249,38 +347,7 @@ class TransactionElement extends PureComponent {
 				key={`tx-${tx.id}`}
 				onPress={this.toggleDetailsView} // eslint-disable-line react/jsx-no-bind
 			>
-				<View style={styles.rowContent}>
-					<Text style={styles.date}>
-						{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
-						{`${toLocaleDateTime(tx.time)}`}
-					</Text>
-					<View style={styles.subRow}>
-						{actionKey !== strings('transactions.contract_deploy') ? (
-							<Identicon address={tx.transaction.to} diameter={24} />
-						) : (
-							<Image source={ethLogo} style={styles.ethLogo} />
-						)}
-						<View style={styles.info}>
-							<Text style={styles.address}>{actionKey}</Text>
-							<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
-								{tx.status.toUpperCase()}
-							</Text>
-						</View>
-						<View style={styles.amounts}>
-							<Text style={styles.amount}>
-								- {renderFromWei(tx.transaction.value)} {strings('unit.eth')}
-							</Text>
-							<Text style={styles.amountFiat}>
-								-{' '}
-								{weiToFiat(
-									hexToBN(tx.transaction.value),
-									conversionRate,
-									currentCurrency
-								).toUpperCase()}
-							</Text>
-						</View>
-					</View>
-				</View>
+				{transactionElement}
 				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
 			</TouchableOpacity>
 		);
