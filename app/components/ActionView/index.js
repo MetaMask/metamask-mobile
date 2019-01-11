@@ -1,7 +1,7 @@
 import React from 'react';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { baseStyles, colors } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -38,7 +38,8 @@ export default function ActionView({
 	onCancelPress,
 	onConfirmPress,
 	showCancelButton,
-	showConfirmButton
+	showConfirmButton,
+	confirmed
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
@@ -52,6 +53,7 @@ export default function ActionView({
 						type={'cancel'}
 						onPress={onCancelPress}
 						containerStyle={[styles.button, styles.cancel]}
+						disabled={confirmed}
 					>
 						{cancelText.toUpperCase()}
 					</StyledButton>
@@ -62,8 +64,9 @@ export default function ActionView({
 						type={confirmButtonMode}
 						onPress={onConfirmPress}
 						containerStyle={[styles.button, styles.confirm]}
+						disabled={confirmed}
 					>
-						{confirmText.toUpperCase()}
+						{confirmed ? <ActivityIndicator size="small" color="white" /> : confirmText.toUpperCase()}
 					</StyledButton>
 				)}
 			</View>
@@ -76,6 +79,7 @@ ActionView.defaultProps = {
 	confirmButtonMode: 'normal',
 	confirmText: strings('action_view.confirm'),
 	confirmTestID: '',
+	confirmed: false,
 	cancelTestID: '',
 	showCancelButton: true,
 	showConfirmButton: true
@@ -106,6 +110,10 @@ ActionView.propTypes = {
 	 * Text to show in the confirm button
 	 */
 	confirmText: PropTypes.string,
+	/**
+	 * Whether action view was confirmed in order to block any other interaction
+	 */
+	confirmed: PropTypes.bool,
 	/**
 	 * Called when the cancel button is clicked
 	 */

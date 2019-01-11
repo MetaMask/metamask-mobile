@@ -16,6 +16,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
     confirmButtonMode="normal"
     confirmTestID="add-custom-asset-confirm-button"
     confirmText="ADD"
+    confirmed={false}
     onCancelPress={[Function]}
     onConfirmPress={[Function]}
     showCancelButton={true}

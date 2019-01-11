@@ -53,6 +53,10 @@ class TransactionEditor extends Component {
 		 */
 		transaction: PropTypes.object,
 		/**
+		 * Whether the transaction was confirmed or not
+		 */
+		transactionConfirmed: PropTypes.bool,
+		/**
 		 * Object containing accounts balances
 		 */
 		contractBalances: PropTypes.object
@@ -252,7 +256,8 @@ class TransactionEditor extends Component {
 		const { amount, gas, gasPrice, from, to, data } = this.state;
 		const {
 			mode,
-			transaction: { asset }
+			transaction: { asset },
+			transactionConfirmed
 		} = this.props;
 		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
 
@@ -284,6 +289,7 @@ class TransactionEditor extends Component {
 						onModeChange={this.props.onModeChange}
 						transactionData={transactionData}
 						validateAmount={this.validateAmount}
+						transactionConfirmed={transactionConfirmed}
 					/>
 				)}
 			</View>
