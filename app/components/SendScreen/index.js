@@ -49,7 +49,8 @@ class SendScreen extends Component {
 		transaction: undefined,
 		transactionKey: undefined,
 		ready: false,
-		transactionConfirmed: false
+		transactionConfirmed: false,
+		transactionSubmitted: false
 	};
 
 	mounted = false;
@@ -82,7 +83,11 @@ class SendScreen extends Component {
 		this.checkForDeeplinks();
 	}
 
-	componentWillUnmount() {
+	async componentWillUnmount() {
+		const { transaction, transactionSubmitted } = this.state;
+		if (!transactionSubmitted) {
+			transaction && (await this.onCancel(transaction.id));
+		}
 		this.mounted = false;
 	}
 
@@ -175,7 +180,7 @@ class SendScreen extends Component {
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.reset();
-			this.setState({ transactionConfirmed: false });
+			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
