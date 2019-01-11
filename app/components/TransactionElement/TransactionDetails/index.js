@@ -15,7 +15,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.concrete,
 		paddingVertical: 10,
-		paddingHorizontal: 15
+		paddingHorizontal: 15,
+		marginTop: 10
 	},
 	detailRowTitle: {
 		flex: 1,
@@ -52,10 +53,12 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	alignLeft: {
-		textAlign: 'left'
+		textAlign: 'left',
+		width: '40%'
 	},
 	alignRight: {
-		textAlign: 'right'
+		textAlign: 'right',
+		width: '60%'
 	},
 	viewOnEtherscan: {
 		fontSize: 14,
@@ -150,7 +153,8 @@ class TransactionDetails extends PureComponent {
 		const {
 			transactionObject: {
 				transaction: { gas, gasPrice, value, to, from },
-				transactionHash
+				transactionHash,
+				transfer
 			},
 			blockExplorer
 		} = this.props;
@@ -159,8 +163,17 @@ class TransactionDetails extends PureComponent {
 		const amount = hexToBN(value);
 		const { conversionRate, currentCurrency } = this.props;
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
-
+		const totalEth = isBN(amount) ? amount.add(totalGas) : totalGas;
+		const renderAmount = transfer ? transfer.amount : renderFromWei(value) + ' ' + strings('unit.eth');
+		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.eth');
+		const renderTotal = transfer
+			? transfer.amount + ' ' + strings('unit.divisor') + ' ' + renderTotalEth
+			: renderTotalEth;
+		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+		const renderTotalFiat = transfer
+			? transfer.amountFiat + ' ' + strings('unit.divisor') + ' ' + renderTotalEthFiat
+			: renderTotalEthFiat;
+		const renderTo = transfer ? transfer.to : !to ? strings('transactions.to_contract') : renderFullAddress(to);
 		return (
 			<View style={styles.detailRowWrapper}>
 				{this.renderTxHash(transactionHash)}
@@ -170,15 +183,13 @@ class TransactionDetails extends PureComponent {
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText}>{renderFullAddress(to)}</Text>
+					<Text style={styles.detailRowText}>{renderTo}</Text>
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
 				<View style={styles.detailRowInfo}>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.amount')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{renderFromWei(value)} {strings('unit.eth')}
-						</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{renderAmount}</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>
@@ -194,14 +205,10 @@ class TransactionDetails extends PureComponent {
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{renderFromWei(total)} {strings('unit.eth')}
-						</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{renderTotal}</Text>
 					</View>
 					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}
-						</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>{renderTotalFiat}</Text>
 					</View>
 				</View>
 				{transactionHash &&
