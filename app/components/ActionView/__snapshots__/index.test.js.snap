@@ -50,6 +50,7 @@ exports[`ActionView should render correctly 1`] = `
           },
         ]
       }
+      disabled={false}
       disabledContainerStyle={
         Object {
           "opacity": 0.6,
@@ -76,6 +77,7 @@ exports[`ActionView should render correctly 1`] = `
           },
         ]
       }
+      disabled={false}
       disabledContainerStyle={
         Object {
           "opacity": 0.6,

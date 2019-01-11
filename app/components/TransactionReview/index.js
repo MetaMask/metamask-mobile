@@ -122,6 +122,10 @@ class TransactionReview extends Component {
 		 */
 		showHexData: PropTypes.bool,
 		/**
+		 * Whether the transaction was confirmed or not
+		 */
+		transactionConfirmed: PropTypes.bool,
+		/**
 		 * Transaction object associated with this transaction
 		 */
 		transactionData: PropTypes.object,
@@ -221,7 +225,7 @@ class TransactionReview extends Component {
 	};
 
 	render = () => {
-		const { transactionData } = this.props;
+		const { transactionData, transactionConfirmed } = this.props;
 		const { actionKey } = this.state;
 		return (
 			<View style={styles.root}>
@@ -231,6 +235,7 @@ class TransactionReview extends Component {
 					cancelText={strings('transaction.reject')}
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}
+					confirmed={transactionConfirmed}
 				>
 					<TransactionReviewSummary
 						edit={this.edit}
