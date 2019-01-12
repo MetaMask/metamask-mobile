@@ -20,7 +20,7 @@ describe('Transactions', () => {
 			}
 		};
 
-		const wrapper = shallow(<Transactions />, {
+		const wrapper = shallow(<Transactions transactions={[]} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
