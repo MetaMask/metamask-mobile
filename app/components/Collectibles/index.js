@@ -14,11 +14,10 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	emptyView: {
-		marginTop: 110,
-		minHeight: 250,
 		backgroundColor: colors.white,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		marginTop: 50
 	},
 	text: {
 		fontSize: 20,
