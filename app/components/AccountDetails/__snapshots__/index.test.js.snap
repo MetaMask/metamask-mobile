@@ -128,6 +128,7 @@ exports[`Account Details should render correctly 1`] = `
             "fontFamily": "Roboto",
             "fontSize": 12,
             "fontWeight": "400",
+            "marginLeft": 30,
           }
         }
         testID="public-address-text"
@@ -144,6 +145,7 @@ exports[`Account Details should render correctly 1`] = `
           Object {
             "color": "#7c7e84",
             "marginLeft": 10,
+            "marginRight": 30,
           }
         }
         testID="copy-public-address-icon"
