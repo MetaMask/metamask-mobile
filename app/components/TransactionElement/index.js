@@ -267,29 +267,7 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTotalAmount = (renderTotalEth, renderValue) => (
-		<View style={styles.renderValue}>
-			<Text style={styles.amount}>
-				{renderValue && renderValue !== strings('transaction.value_not_available') && strings('unit.negative')}{' '}
-				{renderValue && renderValue + ' ' + strings('unit.divisor')} {strings('unit.negative')} {renderTotalEth}
-			</Text>
-		</View>
-	);
-
-	renderTotalFiat = (renderTotalEthFiat, renderValueFiat, renderValue) => (
-		<View style={styles.renderValue}>
-			<Text style={styles.amountFiat}>
-				{renderValue &&
-					renderValueFiat &&
-					renderValueFiat !== strings('transaction.rate_not_available') &&
-					strings('unit.negative')}{' '}
-				{renderValueFiat && renderValue && renderValueFiat + ' ' + strings('unit.divisor')}{' '}
-				{strings('unit.negative')} {renderTotalEthFiat}
-			</Text>
-		</View>
-	);
-
-	renderTransferElement = totalGas => {
+	renderTransferElement = () => {
 		const {
 			tx,
 			conversionRate,
@@ -318,14 +296,10 @@ class TransactionElement extends PureComponent {
 					exchangeRate,
 					currentCurrency
 				).toUpperCase();
-		} else {
-			renderTokenFiatAmount = strings('transaction.rate_not_available');
 		}
-		const renderTotalGas = renderFromWei(totalGas) + ' ' + strings('unit.eth');
-		const renderTotalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
 		const transfer = {
 			to: addressTo,
-			amount: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
+			amount: renderTokenAmount,
 			amountFiat: renderTokenFiatAmount
 		};
 		return (
@@ -338,8 +312,10 @@ class TransactionElement extends PureComponent {
 						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
-						{this.renderTotalAmount(renderTotalGas, renderTokenAmount)}
-						{this.renderTotalFiat(renderTotalGasFiat, renderTokenFiatAmount, renderTokenAmount)}
+						<Text style={styles.amount}>
+							{!renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount}
+						</Text>
+						<Text style={styles.amountFiat}>{renderTokenFiatAmount}</Text>
 					</View>
 				</View>
 				{selected ? (
@@ -349,7 +325,7 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderConfirmElement = totalGas => {
+	renderConfirmElement = () => {
 		const {
 			tx,
 			tx: {
@@ -361,8 +337,8 @@ class TransactionElement extends PureComponent {
 			blockExplorer
 		} = this.props;
 		const { actionKey } = this.state;
-		const totalETh = hexToBN(value).add(totalGas);
-		const renderTotalETh = renderFromWei(totalETh) + ' ' + strings('unit.eth');
+		const totalETh = hexToBN(value);
+		const renderTotalEth = renderFromWei(totalETh) + ' ' + strings('unit.eth');
 		const renderTotalEthFiat = weiToFiat(totalETh, conversionRate, currentCurrency).toUpperCase();
 		return (
 			<View style={styles.rowContent}>
@@ -374,8 +350,8 @@ class TransactionElement extends PureComponent {
 						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
-						{this.renderTotalAmount(renderTotalETh)}
-						{this.renderTotalFiat(renderTotalEthFiat)}
+						<Text style={styles.amount}>{renderTotalEth}</Text>
+						<Text style={styles.amountFiat}>{renderTotalEthFiat}</Text>
 					</View>
 				</View>
 				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
@@ -387,7 +363,7 @@ class TransactionElement extends PureComponent {
 		const { tx, selected, blockExplorer, conversionRate, currentCurrency } = this.props;
 		const { actionKey } = this.state;
 		const renderTotalEth = renderFromWei(totalGas) + ' ' + strings('unit.eth');
-		const renderTotalEThFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
 		return (
 			<View style={styles.rowContent}>
 				{this.renderTxTime()}
@@ -398,8 +374,8 @@ class TransactionElement extends PureComponent {
 						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
-						{this.renderTotalAmount(renderTotalEth)}
-						{this.renderTotalFiat(renderTotalEThFiat)}
+						<Text style={styles.amount}>{renderTotalEth}</Text>
+						<Text style={styles.amountFiat}>{renderTotalEthFiat}</Text>
 					</View>
 				</View>
 				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}

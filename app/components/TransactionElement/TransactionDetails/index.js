@@ -164,16 +164,27 @@ class TransactionDetails extends PureComponent {
 		const { conversionRate, currentCurrency } = this.props;
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 		const totalEth = isBN(amount) ? amount.add(totalGas) : totalGas;
-		const renderAmount = transfer ? transfer.amount : renderFromWei(value) + ' ' + strings('unit.eth');
+		const renderAmount = transfer
+			? !transfer.amount
+				? strings('transaction.value_not_available')
+				: transfer.amount
+			: renderFromWei(value) + ' ' + strings('unit.eth');
 		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.eth');
 		const renderTotal = transfer
-			? transfer.amount + ' ' + strings('unit.divisor') + ' ' + renderTotalEth
+			? transfer.amount
+				? transfer.amount + ' ' + strings('unit.divisor') + ' ' + renderTotalEth
+				: strings('transaction.value_not_available')
 			: renderTotalEth;
+
 		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+
 		const renderTotalFiat = transfer
-			? transfer.amountFiat + ' ' + strings('unit.divisor') + ' ' + renderTotalEthFiat
+			? transfer.amountFiat
+				? transfer.amountFiat + ' ' + strings('unit.divisor') + ' ' + renderTotalEthFiat
+				: undefined
 			: renderTotalEthFiat;
 		const renderTo = transfer ? transfer.to : !to ? strings('transactions.to_contract') : renderFullAddress(to);
+
 		return (
 			<View style={styles.detailRowWrapper}>
 				{this.renderTxHash(transactionHash)}
@@ -207,9 +218,11 @@ class TransactionDetails extends PureComponent {
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
 						<Text style={[styles.detailRowText, styles.alignRight]}>{renderTotal}</Text>
 					</View>
-					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{renderTotalFiat}</Text>
-					</View>
+					{renderTotalFiat && (
+						<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
+							<Text style={[styles.detailRowText, styles.alignRight]}>{renderTotalFiat}</Text>
+						</View>
+					)}
 				</View>
 				{transactionHash &&
 					blockExplorer && (
