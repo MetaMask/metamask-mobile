@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		paddingHorizontal: 20
 	},
 	logoWrapper: {
 		marginTop: 100,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 		marginTop: 20
 	},
 	footer: {
-		marginTop: 40
+		marginVertical: 40
 	},
 	errorMsg: {
 		color: colors.error,
