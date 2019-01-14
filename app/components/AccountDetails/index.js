@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
+	ActivityIndicator,
 	Dimensions,
 	StyleSheet,
 	Text,
@@ -14,7 +15,7 @@ import {
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import QRCode from 'react-native-qrcode';
+import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../locales/i18n';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -33,21 +34,22 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	accountWrapper: {
-		flex: 1,
-		flexDirection: 'column',
+		justifyContent: 'center',
 		alignItems: 'center',
 		marginTop: 20,
 		borderBottomWidth: 2,
 		borderBottomColor: colors.concrete
 	},
+	identiconWrapper: {
+		flex: 1
+	},
 	accountLabelWrapper: {
 		marginTop: 10,
 		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center'
+		flexDirection: 'row'
 	},
 	labelText: {
+		height: 50,
 		fontSize: 28,
 		textAlign: 'center',
 		color: colors.black,
@@ -57,12 +59,15 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	detailsWrapper: {
-		padding: 10
+		padding: 10,
+		alignItems: 'center'
 	},
 	qrCode: {
 		marginVertical: 15,
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		width: Dimensions.get('window').width - 120,
+		height: Dimensions.get('window').width - 120
 	},
 	addressWrapper: {
 		flex: 1,
@@ -95,6 +100,13 @@ const styles = StyleSheet.create({
 	},
 	button: {
 		marginBottom: 10
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		minHeight: 300,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -105,6 +117,7 @@ class AccountDetails extends Component {
 	static navigationOptions = () => getNavigationOptionsTitle(strings('account_details.title'));
 
 	state = {
+		ready: false,
 		accountLabelEditable: false,
 		accountLabel: '',
 		originalAccountLabel: ''
@@ -133,6 +146,9 @@ class AccountDetails extends Component {
 		const { identities, selectedAddress } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
+		InteractionManager.runAfterInteractions(() => {
+			this.setState({ ready: true });
+		});
 	};
 
 	copyAccountToClipboard = async () => {
@@ -187,13 +203,16 @@ class AccountDetails extends Component {
 		this.setState({ accountLabelEditable: false, accountLabel });
 	};
 
-	render = () => {
+	renderContent = () => {
 		const { selectedAddress, network } = this.props;
 		const { accountLabelEditable, accountLabel } = this.state;
+
 		return (
 			<ScrollView style={styles.wrapper} testID={'account-details-screen'}>
 				<View style={styles.accountWrapper}>
-					<Identicon address={selectedAddress} />
+					<View styles={styles.identiconWrapper}>
+						<Identicon address={selectedAddress} />
+					</View>
 					<View style={styles.accountLabelWrapper}>
 						<TextInput
 							style={styles.labelText}
@@ -202,9 +221,8 @@ class AccountDetails extends Component {
 							onSubmitEditing={this.setAccountLabel}
 							onBlur={this.cancelAccountLabelEdition}
 							testID={'account-label-text-input'}
-						>
-							{accountLabel}
-						</TextInput>
+							value={accountLabel}
+						/>
 						<View style={styles.labelActionIcons}>
 							{accountLabelEditable ? null : (
 								<MaterialIcon
@@ -224,8 +242,8 @@ class AccountDetails extends Component {
 						<QRCode
 							value={selectedAddress}
 							size={Dimensions.get('window').width - 120}
-							bgColor={colors.fontPrimary}
-							fgColor={colors.white}
+							backgroundColor={colors.fontPrimary}
+							color={colors.white}
 						/>
 					</View>
 					<View style={styles.addressWrapper}>
@@ -273,6 +291,17 @@ class AccountDetails extends Component {
 				</View>
 			</ScrollView>
 		);
+	};
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
+
+	render = () => {
+		const { ready } = this.state;
+		return ready ? this.renderContent() : this.renderLoader();
 	};
 }
 
