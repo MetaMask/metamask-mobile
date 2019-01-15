@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 	label: {
 		flex: 0,
 		paddingRight: 18,
-		width: 96
+		width: 106
 	},
 	labelText: {
 		...fontStyles.bold,

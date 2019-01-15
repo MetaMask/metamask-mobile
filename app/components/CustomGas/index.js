@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
 		fontSize: 12
 	},
 	textTitle: {
-		...fontStyles.normal
+		...fontStyles.bold
 	},
 	textTotalGas: {
 		...fontStyles.bold
