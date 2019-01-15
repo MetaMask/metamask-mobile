@@ -9,6 +9,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { renderFullAddress } from '../../../util/address';
 import { getNetworkTypeById } from '../../../util/networks';
 import { getEtherscanTransactionUrl } from '../../../util/etherscan';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -145,7 +146,7 @@ class TransactionDetails extends PureComponent {
 			});
 		} catch (e) {
 			// eslint-disable-next-line no-console
-			console.error(`can't get a block explorer link for network `, networkID, e);
+			Logger.error(`can't get a block explorer link for network `, networkID, e);
 		}
 	};
 
