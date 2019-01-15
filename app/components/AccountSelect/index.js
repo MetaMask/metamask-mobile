@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		color: colors.inputBorderColor,
 		position: 'absolute',
 		right: 10,
-		top: 10
+		top: 25
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -120,7 +120,7 @@ class AccountSelect extends Component {
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>
-				<MaterialIcon name={'keyboard-arrow-down'} size={18} style={styles.arrow} />
+				<MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				{this.renderOption(account, () => {
 					this.setState({ isOpen: !this.state.isOpen });
 				})}

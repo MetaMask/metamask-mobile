@@ -6,10 +6,17 @@ import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'r
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../util/address';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 const styles = StyleSheet.create({
 	root: {
 		flex: 1
+	},
+	arrow: {
+		color: colors.inputBorderColor,
+		position: 'absolute',
+		right: 10,
+		top: 20
 	},
 	componentContainer: {
 		position: 'relative',
@@ -24,7 +31,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		fontSize: 16,
 		paddingBottom: 16,
-		paddingRight: 10,
+		paddingRight: 40,
 		paddingLeft: 52,
 		paddingTop: 16,
 		position: 'relative'
@@ -193,6 +200,7 @@ class AccountInput extends Component {
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
 					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
 				</TouchableOpacity>
+				<MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				{isOpen && this.renderOptionList()}
 			</View>
 		);
