@@ -24,8 +24,8 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		fontSize: 16,
 		paddingBottom: 16,
-		paddingLeft: 10,
-		paddingRight: 52,
+		paddingRight: 10,
+		paddingLeft: 52,
 		paddingTop: 16,
 		position: 'relative'
 	},
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 	},
 	qrCodeButton: {
 		position: 'absolute',
-		right: 5,
+		left: 5,
 		top: Platform.OS === 'android' ? 8 : 6,
 		paddingVertical: 8,
 		paddingHorizontal: 10

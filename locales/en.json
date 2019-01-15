@@ -253,7 +253,7 @@
 		"reject": "Reject",
 		"edit": "Edit",
 		"from": "From",
-		"gas_fee": "Gas Fee",
+		"gas_fee": "Transaction Fee",
 		"gas_fee_fast": "Fast",
 		"gas_fee_average": "Average",
 		"gas_fee_slow": "Slow",
