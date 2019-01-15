@@ -94,42 +94,30 @@ exports[`TransactionElement should render correctly 1`] = `
           }
         }
       >
-        <View>
-          <Text
-            style={
-              Object {
-                "color": "#4a4a4a",
-                "fontFamily": "Roboto",
-                "fontSize": 15,
-                "fontWeight": "400",
-              }
+        <Text
+          style={
+            Object {
+              "color": "#4a4a4a",
+              "fontFamily": "Roboto",
+              "fontSize": 15,
+              "fontWeight": "400",
             }
-          >
-             
-             
-            -
-             
-            0 ETH
-          </Text>
-        </View>
-        <View>
-          <Text
-            style={
-              Object {
-                "color": "#999999",
-                "fontFamily": "Roboto",
-                "fontSize": 12,
-                "fontWeight": "400",
-              }
+          }
+        >
+          0 ETH
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
             }
-          >
-             
-             
-            -
-             
-            0 USD
-          </Text>
-        </View>
+          }
+        >
+          0 USD
+        </Text>
       </View>
     </View>
   </View>
