@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -13,6 +13,7 @@ import {
 	fromTokenMinimalUnit
 } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import TokenImage from '../TokenImage';
 
 const styles = StyleSheet.create({
 	root: {
@@ -26,7 +27,8 @@ const styles = StyleSheet.create({
 		paddingRight: 40,
 		paddingVertical: 6,
 		position: 'relative',
-		zIndex: 1
+		zIndex: 1,
+		flexDirection: 'row'
 	},
 	input: {
 		...fontStyles.bold,
@@ -44,13 +46,29 @@ const styles = StyleSheet.create({
 	},
 	fiatValue: {
 		...fontStyles.normal,
-		fontSize: 12
+		fontSize: 12,
+		paddingLeft: 4
 	},
 	split: {
 		flex: 0,
 		flexDirection: 'row'
+	},
+	ethContainer: {
+		paddingLeft: 6
+	},
+	icon: {
+		paddingTop: 5,
+		paddingLeft: 4,
+		paddingRight: 8
+	},
+	logo: {
+		width: 20,
+		height: 20,
+		marginRight: 0
 	}
 });
+
+const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * Form component that allows users to type an amount of ETH and its fiat value is rendered dynamically
@@ -94,14 +112,14 @@ class EthInput extends Component {
 	};
 
 	render = () => {
-		const { currentCurrency, readonly, value, asset, contractExchangeRates } = this.props;
+		const { currentCurrency, readonly, value, asset, contractExchangeRates, conversionRate } = this.props;
 		let convertedAmount, readableValue;
 		if (asset) {
 			const exchangeRate = contractExchangeRates[asset.address];
 			if (exchangeRate) {
 				convertedAmount = balanceToFiat(
-					fromWei(value) || 0,
-					this.props.conversionRate,
+					(value && fromTokenMinimalUnit(value, asset.decimals)) || 0,
+					conversionRate,
 					exchangeRate,
 					currentCurrency
 				).toUpperCase();
@@ -115,27 +133,36 @@ class EthInput extends Component {
 		}
 		return (
 			<View style={styles.root}>
-				<View style={styles.split}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						editable={!readonly}
-						keyboardType="numeric"
-						numberOfLines={1}
-						onChangeText={this.onChange}
-						placeholder={'0.00'}
-						spellCheck={false}
-						style={styles.input}
-					>
-						{readableValue}
-					</TextInput>
-					<Text style={styles.eth} numberOfLines={1}>
-						{(asset && asset.symbol) || strings('unit.eth')}
+				<View style={styles.icon}>
+					{asset ? (
+						<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+					) : (
+						<Image source={ethLogo} style={styles.logo} />
+					)}
+				</View>
+				<View style={styles.ethContainer}>
+					<View style={styles.split}>
+						<TextInput
+							autoCapitalize="none"
+							autoCorrect={false}
+							editable={!readonly}
+							keyboardType="numeric"
+							numberOfLines={1}
+							onChangeText={this.onChange}
+							placeholder={'0.00'}
+							spellCheck={false}
+							style={styles.input}
+						>
+							{readableValue}
+						</TextInput>
+						<Text style={styles.eth} numberOfLines={1}>
+							{(asset && asset.symbol) || strings('unit.eth')}
+						</Text>
+					</View>
+					<Text style={styles.fiatValue} numberOfLines={1}>
+						{convertedAmount}
 					</Text>
 				</View>
-				<Text style={styles.fiatValue} numberOfLines={1}>
-					{convertedAmount}
-				</Text>
 			</View>
 		);
 	};

@@ -22,14 +22,20 @@ export default class TokenElement extends Component {
 		/**
 		 * Asset object (in this case ERC20 token)
 		 */
-		asset: PropTypes.object
+		asset: PropTypes.object,
+		containerStyle: PropTypes.object,
+		iconStyle: PropTypes.object
 	};
 
 	render = () => {
-		const { asset } = this.props;
+		const { asset, containerStyle, iconStyle } = this.props;
 		return (
-			<View style={styles.itemLogoWrapper}>
-				{asset.logo ? <AssetIcon logo={asset.logo} /> : <Identicon address={asset.address} />}
+			<View style={[styles.itemLogoWrapper, containerStyle]}>
+				{asset.logo ? (
+					<AssetIcon logo={asset.logo} customStyle={iconStyle} />
+				) : (
+					<Identicon address={asset.address} customStyle={iconStyle} />
+				)}
 			</View>
 		);
 	};

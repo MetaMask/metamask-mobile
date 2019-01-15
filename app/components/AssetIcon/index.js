@@ -23,13 +23,14 @@ export default class AssetIcon extends Component {
 		/**
 		 * String of the asset icon
 		 */
-		logo: PropTypes.string
+		logo: PropTypes.string,
+		customStyle: PropTypes.object
 	};
 
 	render = () => {
-		const { logo } = this.props;
+		const { logo, customStyle } = this.props;
 		if (!logo) return;
 		const uri = getAssetLogoPath(logo);
-		return logo ? <Image source={{ uri }} style={styles.logo} /> : null;
+		return logo ? <Image source={{ uri }} style={[styles.logo, customStyle]} /> : null;
 	};
 }

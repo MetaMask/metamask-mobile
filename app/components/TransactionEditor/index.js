@@ -69,6 +69,7 @@ class TransactionEditor extends Component {
 		gas: this.props.transaction.gas,
 		gasPrice: this.props.transaction.gasPrice,
 		to: this.props.transaction.to,
+		asset: this.props.transaction.asset,
 		toFocused: false
 	};
 
@@ -253,14 +254,9 @@ class TransactionEditor extends Component {
 	};
 
 	render = () => {
-		const { amount, gas, gasPrice, from, to, data } = this.state;
-		const {
-			mode,
-			transaction: { asset },
-			transactionConfirmed
-		} = this.props;
+		const { amount, gas, gasPrice, from, to, data, asset } = this.state;
+		const { mode, transactionConfirmed } = this.props;
 		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
-
 		return (
 			<View style={styles.root}>
 				{mode === 'edit' && (
