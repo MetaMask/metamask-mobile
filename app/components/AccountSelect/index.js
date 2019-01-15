@@ -42,8 +42,12 @@ const styles = StyleSheet.create({
 		marginBottom: 4
 	},
 	icon: {
-		paddingRight: 9,
+		paddingRight: 8,
+		paddingLeft: 2,
 		paddingTop: 1.5
+	},
+	content: {
+		paddingLeft: 8
 	},
 	arrow: {
 		color: colors.inputBorderColor,
@@ -130,7 +134,7 @@ class AccountSelect extends Component {
 		return (
 			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
-					<Identicon address={account.address} diameter={18} />
+					<Identicon address={account.address} diameter={22} />
 				</View>
 				<View style={styles.content}>
 					<View>

@@ -46,7 +46,8 @@ const styles = StyleSheet.create({
 		marginBottom: 4
 	},
 	icon: {
-		paddingRight: 9,
+		paddingRight: 8,
+		paddingLeft: 6,
 		paddingTop: 1.5
 	},
 	optionList: {
@@ -65,7 +66,8 @@ const styles = StyleSheet.create({
 		elevation: 10
 	},
 	content: {
-		flex: 1
+		flex: 1,
+		paddingLeft: 8
 	},
 	qrCodeButton: {
 		position: 'absolute',
@@ -124,7 +126,7 @@ class AccountInput extends Component {
 		return (
 			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
-					<Identicon address={account.address} diameter={18} />
+					<Identicon address={account.address} diameter={22} />
 				</View>
 				<View style={styles.content}>
 					<View>
@@ -189,7 +191,7 @@ class AccountInput extends Component {
 					value={value}
 				/>
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
-					<Icon name="qrcode" size={Platform.OS === 'android' ? 32 : 28} />
+					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
 				</TouchableOpacity>
 				{isOpen && this.renderOptionList()}
 			</View>
