@@ -16,8 +16,7 @@ exports[`Collectibles should render correctly 1`] = `
         "alignItems": "center",
         "backgroundColor": "#FFFFFF",
         "justifyContent": "center",
-        "marginTop": 110,
-        "minHeight": 250,
+        "marginTop": 50,
       }
     }
   >

@@ -84,10 +84,12 @@ const styles = StyleSheet.create({
 	},
 	address: {
 		fontSize: 12,
+		marginLeft: 30,
 		...fontStyles.normal
 	},
 	icon: {
 		marginLeft: 10,
+		marginRight: 30,
 		color: colors.gray
 	},
 	iconEdit: {

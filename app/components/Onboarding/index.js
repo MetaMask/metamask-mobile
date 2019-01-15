@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapper: {
-		paddingVertical: 10,
+		paddingTop: 10,
 		paddingHorizontal: 40,
 		paddingBottom: 30
 	},

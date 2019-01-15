@@ -27,9 +27,12 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapper: {
-		paddingVertical: 10,
-		paddingHorizontal: 30,
-		paddingBottom: 30,
+		flex: 1,
+		paddingTop: 10,
+		paddingHorizontal: 40,
+		paddingBottom: 30
+	},
+	logoWrapper: {
 		alignItems: 'center'
 	},
 	fox: {
@@ -73,8 +76,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	ctaWrapper: {
-		marginTop: 10,
-		width: 295
+		marginTop: 10
 	},
 	importFromSeedBtn: {
 		borderWidth: 0,
@@ -393,12 +395,18 @@ class ImportWallet extends Component {
 
 	render = () => (
 		<OnboardingScreenWithBg>
-			<ScrollView style={styles.flex} contentContainerStyle={styles.wrapper} testID={'import-wallet-screen'}>
-				<View style={styles.logoWrapper}>
-					<Image source={require('../../images/sync-icon.png')} style={styles.fox} resizeMethod={'auto'} />
+			<ScrollView style={styles.flex} testID={'import-wallet-screen'}>
+				<View style={styles.wrapper}>
+					<View style={styles.logoWrapper}>
+						<Image
+							source={require('../../images/sync-icon.png')}
+							style={styles.fox}
+							resizeMethod={'auto'}
+						/>
+					</View>
+					<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+					{this.renderContent()}
 				</View>
-				<Text style={styles.title}>{strings('import_wallet.title')}</Text>
-				{this.renderContent()}
 			</ScrollView>
 		</OnboardingScreenWithBg>
 	);
