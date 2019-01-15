@@ -274,6 +274,8 @@
 		"total": "Total",
 		"loading": "Loading...",
 		"conversion_not_available": "Conversion rate not available",
+		"value_not_available": "Not Available",
+		"rate_not_available": "Conversion not available",
 		"optional": "Optional"
 	},
 	"custom_gas": {
@@ -321,7 +323,9 @@
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
 		"sent_tokens": "Sent Tokens",
+		"sent": "Sent",
 		"contract_deploy": "Contract Deployment",
+		"to_contract": "New Contract",
 		"smart_contract_interaction": "Smart Contract Interaction",
 		"hash": "Hash",
 		"from": "From",
@@ -380,7 +384,9 @@
 		"message": "Message:"
 	},
 	"unit": {
-		"eth": "ETH"
+		"eth": "ETH",
+		"negative": "-",
+		"divisor": "/"
 	},
 	"biometrics": {
 		"enable_touchid": "Enable TouchID authentication",

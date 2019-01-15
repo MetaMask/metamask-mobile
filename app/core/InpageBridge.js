@@ -1,3 +1,5 @@
+import Logger from '../util/Logger';
+
 /**
  * Module that listens for and responds to messages from an BackgroundBridge using postMessage
  * and exposes an Ethereum provider API to the dapp context
@@ -16,7 +18,7 @@ class InpageBridge {
 					break;
 			}
 		} catch (error) {
-			console.error(error); // eslint-disable-line no-console
+			Logger.error(error); // eslint-disable-line no-console
 		}
 	}
 
@@ -39,7 +41,7 @@ class InpageBridge {
 				window.web3.eth.accounts = [this._selectedAddress];
 			} catch (e) {
 				// eslint-disable-next-line no-console
-				console.error('Error while setting window.web3.eth.accounts on', location.href);
+				Logger.error('Error while setting window.web3.eth.accounts on', location.href);
 			}
 		}
 	}

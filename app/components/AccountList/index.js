@@ -17,6 +17,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { renderFromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
+import Logger from '../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -176,7 +177,7 @@ export default class AccountList extends Component {
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
 			this.setState({ selectedAccountIndex: previousIndex });
-			console.error('error while trying change the selected account', e); // eslint-disable-line
+			Logger.error('error while trying change the selected account', e); // eslint-disable-line
 		}
 	};
 
@@ -195,7 +196,7 @@ export default class AccountList extends Component {
 			}, 500);
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
-			console.error('error while trying to add a new account', e); // eslint-disable-line
+			Logger.error('error while trying to add a new account', e); // eslint-disable-line
 			this.setState({ loading: false });
 		}
 	};

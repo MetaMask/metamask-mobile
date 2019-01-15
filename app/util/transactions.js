@@ -1,7 +1,8 @@
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
-import { rawEncode } from 'ethereumjs-abi';
+import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
+import { hexToBN } from './number';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -19,11 +20,11 @@ export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 /**
- * Generates transfer data for specified asset
+ * Generates transfer data for specified asset type
  *
- * @param {string} assetType - Asset type (ERC20)
- * @param {object} opts - Optional asset parameters
- * @returns {string} - String containing the generated transfer data
+ * @param {String} assetType - Asset type (ERC20)
+ * @param {Object} opts - Optional asset parameters
+ * @returns {String} - String containing the generated transfer data
  */
 export function generateTransferData(assetType, opts) {
 	switch (assetType) {
@@ -40,6 +41,24 @@ export function generateTransferData(assetType, opts) {
 }
 
 /**
+ * Decode transfer data for specified asset type
+ *
+ * @param {String} assetType - Asset type (ERC20)
+ * @param {String} data - Data to decode
+ * @returns {Object} - Object containing the decoded transfer data
+ */
+export function decodeTransferData(assetType, data) {
+	let encodedAddress, encodedAmount, bufferEncodedAddress;
+	switch (assetType) {
+		case 'ERC20':
+			encodedAddress = data.substr(10, 64);
+			encodedAmount = data.substr(74, 138);
+			bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
+			return [addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]), hexToBN(encodedAmount)];
+	}
+}
+
+/**
  * Returns method data object for a transaction dat
  *
  * @param {string} data - Transaction data
@@ -47,10 +66,10 @@ export function generateTransferData(assetType, opts) {
  */
 export function getMethodData(data) {
 	// TODO use eth-method-registry from GABA
-	if (data.includes(TOKEN_TRANSFER_FUNCTION_SIGNATURE)) {
+	if (data.substr(0, 10) === TOKEN_TRANSFER_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER };
 	}
-	if (data.includes(CONTRACT_CREATION_SIGNATURE)) {
+	if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
 	}
 	return {};
@@ -129,6 +148,12 @@ export async function getActionKey(tx, selectedAddress) {
 	}
 }
 
+/**
+ * Returns corresponding transaction function type
+ *
+ * @param {object} tx - Transaction object
+ * @returns {string} - Transaction function type
+ */
 export async function getTransactionReviewActionKey(transaction) {
 	const actionKey = await getTransactionActionKey({ transaction });
 	switch (actionKey) {

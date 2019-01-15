@@ -4,15 +4,25 @@ import { Clipboard, TouchableOpacity, StyleSheet, Text, View, Image } from 'reac
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { toLocaleDateTime } from '../../util/date';
-import { renderFromWei, weiToFiat, hexToBN, isBN, toBN, toGwei } from '../../util/number';
+import {
+	renderFromWei,
+	weiToFiat,
+	hexToBN,
+	renderFromTokenMinimalUnit,
+	fromTokenMinimalUnit,
+	balanceToFiat,
+	toBN,
+	isBN
+} from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { getActionKey } from '../../util/transactions';
-import { renderFullAddress } from '../../util/address';
+import { getActionKey, decodeTransferData } from '../../util/transactions';
 import { getNetworkTypeById } from '../../util/networks';
 import { getEtherscanTransactionUrl } from '../../util/etherscan';
+import TransactionDetails from './TransactionDetails';
+import Logger from '../../util/Logger';
 
 const styles = StyleSheet.create({
 	row: {
@@ -83,13 +93,6 @@ const styles = StyleSheet.create({
 		width: 24,
 		height: 24
 	},
-
-	detailRowWrapper: {
-		flex: 1,
-		backgroundColor: colors.concrete,
-		paddingVertical: 10,
-		paddingHorizontal: 15
-	},
 	detailRowTitle: {
 		flex: 1,
 		paddingVertical: 10,
@@ -107,41 +110,17 @@ const styles = StyleSheet.create({
 		padding: 10,
 		marginBottom: 5
 	},
-	detailRowInfoItem: {
-		flex: 1,
-		flexDirection: 'row',
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
-		marginBottom: 10,
-		paddingBottom: 5
-	},
-	noBorderBottom: {
-		borderBottomWidth: 0
-	},
 	detailRowText: {
 		flex: 1,
 		fontSize: 12,
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
-	alignLeft: {
-		textAlign: 'left'
-	},
-	alignRight: {
-		textAlign: 'right'
-	},
-	viewOnEtherscan: {
-		fontSize: 14,
-		color: colors.primary,
-		...fontStyles.normal,
-		textAlign: 'center',
-		marginTop: 15,
-		marginBottom: 10
-	},
 	hash: {
 		fontSize: 12
 	},
 	singleRow: {
+		flex: 1,
 		flexDirection: 'row'
 	},
 	copyIcon: {
@@ -164,6 +143,10 @@ class TransactionElement extends PureComponent {
 		 * Asset object (in this case ERC721 token)
 		 */
 		tx: PropTypes.object,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object,
 		/**
 		 * ETH to current currency conversion rate
 		 */
@@ -189,6 +172,10 @@ class TransactionElement extends PureComponent {
 		 * Callback to render transaction details view
 		 */
 		toggleDetailsView: PropTypes.func,
+		/**
+		 * An array that represents the user tokens
+		 */
+		tokens: PropTypes.object,
 		/**
 		 * Boolean to determine if this network supports a block explorer
 		 */
@@ -265,80 +252,161 @@ class TransactionElement extends PureComponent {
 			});
 		} catch (e) {
 			// eslint-disable-next-line no-console
-			console.error(`can't get a block explorer link for network `, networkID, e);
+			Logger.error(`can't get a block explorer link for network `, networkID, e);
 		}
 	};
 
-	renderTxDetails = (tx, blockExplorer) => {
-		const {
-			transaction: { gas, gasPrice, value, to, from },
-			transactionHash
-		} = tx;
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const amount = hexToBN(value);
-		const { conversionRate, currentCurrency } = this.props;
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const total = isBN(amount) ? amount.add(totalGas) : totalGas;
-
+	renderTxTime = () => {
+		const { tx, selectedAddress } = this.props;
+		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
+		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		return (
-			<View style={styles.detailRowWrapper}>
-				{this.renderTxHash(transactionHash)}
-				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText}>{renderFullAddress(from)}</Text>
+			<Text style={styles.date}>
+				{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+				{`${toLocaleDateTime(tx.time)}`}
+			</Text>
+		);
+	};
+
+	renderTransferElement = () => {
+		const {
+			tx,
+			conversionRate,
+			currentCurrency,
+			tokens,
+			contractExchangeRates,
+			selected,
+			blockExplorer
+		} = this.props;
+		const { actionKey } = this.state;
+		const [addressTo, amount] = decodeTransferData('ERC20', tx.transaction.data);
+		const userHasToken = toChecksumAddress(tx.transaction.to) in tokens;
+		const token = userHasToken ? tokens[toChecksumAddress(tx.transaction.to)] : null;
+		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;
+		const renderTokenAmount = token
+			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
+			: undefined;
+		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
+		let renderTokenFiatAmount;
+		if (exchangeRate) {
+			renderTokenFiatAmount =
+				'- ' +
+				balanceToFiat(
+					fromTokenMinimalUnit(amount) || 0,
+					conversionRate,
+					exchangeRate,
+					currentCurrency
+				).toUpperCase();
+		}
+		const transfer = {
+			to: addressTo,
+			amount: renderTokenAmount,
+			amountFiat: renderTokenFiatAmount
+		};
+		return (
+			<View style={styles.rowContent}>
+				{this.renderTxTime()}
+				<View style={styles.subRow}>
+					<Identicon address={addressTo} diameter={24} />
+					<View style={styles.info}>
+						<Text style={styles.address}>{renderActionKey}</Text>
+						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
+					</View>
+					<View style={styles.amounts}>
+						<Text style={styles.amount}>
+							{!renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount}
+						</Text>
+						<Text style={styles.amountFiat}>{renderTokenFiatAmount}</Text>
+					</View>
 				</View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
-				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText}>{renderFullAddress(to)}</Text>
+				{selected ? (
+					<TransactionDetails transactionObject={{ ...tx, ...{ transfer } }} blockExplorer={blockExplorer} />
+				) : null}
+			</View>
+		);
+	};
+
+	renderConfirmElement = () => {
+		const {
+			tx,
+			tx: {
+				transaction: { value }
+			},
+			conversionRate,
+			currentCurrency,
+			selected,
+			blockExplorer
+		} = this.props;
+		const { actionKey } = this.state;
+		const totalETh = hexToBN(value);
+		const renderTotalEth = renderFromWei(totalETh) + ' ' + strings('unit.eth');
+		const renderTotalEthFiat = weiToFiat(totalETh, conversionRate, currentCurrency).toUpperCase();
+		return (
+			<View style={styles.rowContent}>
+				{this.renderTxTime()}
+				<View style={styles.subRow}>
+					<Identicon address={tx.transaction.to} diameter={24} />
+					<View style={styles.info}>
+						<Text style={styles.address}>{actionKey}</Text>
+						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
+					</View>
+					<View style={styles.amounts}>
+						<Text style={styles.amount}>{renderTotalEth}</Text>
+						<Text style={styles.amountFiat}>{renderTotalEthFiat}</Text>
+					</View>
 				</View>
-				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
-				<View style={styles.detailRowInfo}>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.amount')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{renderFromWei(value)} {strings('unit.eth')}
-						</Text>
+				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
+			</View>
+		);
+	};
+
+	renderDeploymentElement = totalGas => {
+		const { tx, selected, blockExplorer, conversionRate, currentCurrency } = this.props;
+		const { actionKey } = this.state;
+		const renderTotalEth = renderFromWei(totalGas) + ' ' + strings('unit.eth');
+		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		return (
+			<View style={styles.rowContent}>
+				{this.renderTxTime()}
+				<View style={styles.subRow}>
+					<Image source={ethLogo} style={styles.ethLogo} />
+					<View style={styles.info}>
+						<Text style={styles.address}>{actionKey}</Text>
+						<Text style={[styles.status, this.getStatusStyle(tx.status)]}>{tx.status.toUpperCase()}</Text>
 					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]} />
-						<Text style={[styles.detailRowText, styles.alignRight]}>{hexToBN(gas).toNumber()}</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{strings('transactions.gas_price')}
-						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{toGwei(gasPrice)}</Text>
-					</View>
-					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{renderFromWei(total)} {strings('unit.eth')}
-						</Text>
-					</View>
-					<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
-						<Text style={[styles.detailRowText, styles.alignRight]}>
-							{weiToFiat(total, conversionRate, currentCurrency).toUpperCase()}
-						</Text>
+					<View style={styles.amounts}>
+						<Text style={styles.amount}>{renderTotalEth}</Text>
+						<Text style={styles.amountFiat}>{renderTotalEthFiat}</Text>
 					</View>
 				</View>
-				{tx.transactionHash &&
-					blockExplorer && (
-						<TouchableOpacity
-							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
-						>
-							<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
-						</TouchableOpacity>
-					)}
+				{selected ? <TransactionDetails transactionObject={tx} blockExplorer={blockExplorer} /> : null}
 			</View>
 		);
 	};
 
 	render = () => {
-		const { tx, selected, selectedAddress, conversionRate, currentCurrency, blockExplorer } = this.props;
-		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
-		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
+		const {
+			tx,
+			tx: {
+				transaction: { gas, gasPrice }
+			}
+		} = this.props;
 		const { actionKey } = this.state;
+		let transactionElement;
+		const gasBN = hexToBN(gas);
+		const gasPriceBN = hexToBN(gasPrice);
+		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+
+		switch (actionKey) {
+			case strings('transactions.sent_tokens'):
+				transactionElement = this.renderTransferElement(totalGas);
+				break;
+			case strings('transactions.contract_deploy'):
+				transactionElement = this.renderDeploymentElement(totalGas);
+				break;
+			default:
+				transactionElement = this.renderConfirmElement(totalGas);
+		}
 
 		return (
 			<TouchableOpacity
@@ -346,39 +414,7 @@ class TransactionElement extends PureComponent {
 				key={`tx-${tx.id}`}
 				onPress={this.toggleDetailsView} // eslint-disable-line react/jsx-no-bind
 			>
-				<View style={styles.rowContent}>
-					<Text style={styles.date}>
-						{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
-						{`${toLocaleDateTime(tx.time)}`}
-					</Text>
-					<View style={styles.subRow}>
-						{actionKey !== strings('transactions.contract_deploy') ? (
-							<Identicon address={tx.transaction.to} diameter={24} />
-						) : (
-							<Image source={ethLogo} style={styles.ethLogo} />
-						)}
-						<View style={styles.info}>
-							<Text style={styles.address}>{actionKey}</Text>
-							<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
-								{tx.status.toUpperCase()}
-							</Text>
-						</View>
-						<View style={styles.amounts}>
-							<Text style={styles.amount}>
-								- {renderFromWei(tx.transaction.value)} {strings('unit.eth')}
-							</Text>
-							<Text style={styles.amountFiat}>
-								-{' '}
-								{weiToFiat(
-									hexToBN(tx.transaction.value),
-									conversionRate,
-									currentCurrency
-								).toUpperCase()}
-							</Text>
-						</View>
-					</View>
-				</View>
-				{selected ? this.renderTxDetails(tx, blockExplorer) : null}
+				{transactionElement}
 			</TouchableOpacity>
 		);
 	};
