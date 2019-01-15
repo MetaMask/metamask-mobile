@@ -15,9 +15,8 @@ exports[`Tokens should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "backgroundColor": "#FFFFFF",
-        "flex": 1,
         "justifyContent": "center",
-        "marginTop": 80,
+        "marginTop": 50,
       }
     }
   >

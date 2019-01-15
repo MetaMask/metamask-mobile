@@ -15,7 +15,7 @@ exports[`Onboarding should render correctly 1`] = `
         Object {
           "paddingBottom": 30,
           "paddingHorizontal": 40,
-          "paddingVertical": 10,
+          "paddingTop": 10,
         }
       }
     >
