@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { ActivityIndicator, InteractionManager, RefreshControl, StyleSheet, Text, View, FlatList } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -29,12 +30,20 @@ const styles = StyleSheet.create({
 /**
  * View that renders a list of transactions for a specific asset
  */
-export default class Transactions extends Component {
+class Transactions extends Component {
 	static propTypes = {
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object,
 		/**
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * An array that represents the user tokens
+		 */
+		tokens: PropTypes.array,
 		/**
 		 * An array of transactions objects
 		 */
@@ -105,7 +114,11 @@ export default class Transactions extends Component {
 			return this.renderLoader();
 		}
 
-		const { selectedAddress, transactions, navigation } = this.props;
+		const { selectedAddress, transactions, navigation, contractExchangeRates } = this.props;
+		const tokens = this.props.tokens.reduce((tokens, token) => {
+			tokens[token.address] = token;
+			return tokens;
+		}, {});
 
 		if (!transactions.length) {
 			return this.renderEmpty();
@@ -129,6 +142,8 @@ export default class Transactions extends Component {
 						toggleDetailsView={this.toggleDetailsView}
 						navigation={navigation}
 						blockExplorer={blockExplorer}
+						tokens={tokens}
+						contractExchangeRates={contractExchangeRates}
 					/>
 				)}
 			/>
@@ -141,3 +156,10 @@ export default class Transactions extends Component {
 		</View>
 	);
 }
+
+const mapStateToProps = state => ({
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+});
+
+export default connect(mapStateToProps)(Transactions);

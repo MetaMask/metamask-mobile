@@ -1,10 +1,28 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Transactions from './';
+import configureMockStore from 'redux-mock-store';
+import { shallow } from 'enzyme';
+
+const mockStore = configureMockStore();
 
 describe('Transactions', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<Transactions transactions={[]} />);
-		expect(wrapper).toMatchSnapshot();
+		const initialState = {
+			engine: {
+				backgroundState: {
+					AssetsController: {
+						tokens: []
+					},
+					TokenRatesController: {
+						contractExchangeRates: {}
+					}
+				}
+			}
+		};
+
+		const wrapper = shallow(<Transactions transactions={[]} />, {
+			context: { store: mockStore(initialState) }
+		});
+		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });
