@@ -12,7 +12,8 @@ import {
 	fromTokenMinimalUnit,
 	balanceToFiat,
 	toBN,
-	isBN
+	isBN,
+	balanceToFiatNumber
 } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
@@ -287,21 +288,26 @@ class TransactionElement extends PureComponent {
 			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
 			: undefined;
 		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
-		let renderTokenFiatAmount;
+		let renderTokenFiatAmount, renderTokenFiatNumber;
 		if (exchangeRate) {
 			renderTokenFiatAmount =
 				'- ' +
 				balanceToFiat(
-					fromTokenMinimalUnit(amount) || 0,
+					fromTokenMinimalUnit(amount, token.decimals) || 0,
 					conversionRate,
 					exchangeRate,
 					currentCurrency
 				).toUpperCase();
+			renderTokenFiatNumber = balanceToFiatNumber(
+				fromTokenMinimalUnit(amount, token.decimals) || 0,
+				conversionRate,
+				exchangeRate
+			);
 		}
 		const transfer = {
 			to: addressTo,
 			amount: renderTokenAmount,
-			amountFiat: renderTokenFiatAmount
+			amountFiat: renderTokenFiatNumber
 		};
 		return (
 			<View style={styles.rowContent}>
