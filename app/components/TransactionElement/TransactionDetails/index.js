@@ -178,10 +178,10 @@ class TransactionDetails extends PureComponent {
 			: renderTotalEth;
 
 		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
-		const totalEthAFiatAmount = weiToFiatNumber(totalEth, conversionRate);
+		const totalEthFiatAmount = weiToFiatNumber(totalEth, conversionRate);
 		const renderTotalFiat = transfer
 			? transfer.amountFiat
-				? totalEthAFiatAmount + transfer.amountFiat + ' ' + currentCurrency.toUpperCase()
+				? totalEthFiatAmount + transfer.amountFiat + ' ' + currentCurrency.toUpperCase()
 				: undefined
 			: renderTotalEthFiat;
 		const renderTo = transfer ? transfer.to : !to ? strings('transactions.to_contract') : renderFullAddress(to);
