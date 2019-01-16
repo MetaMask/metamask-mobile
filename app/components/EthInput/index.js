@@ -11,7 +11,8 @@ import {
 	balanceToFiat,
 	toTokenMinimalUnit,
 	fromTokenMinimalUnit,
-	renderFromTokenMinimalUnit
+	renderFromTokenMinimalUnit,
+	renderFromWei
 } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
 		zIndex: 2,
 		width: '100%',
 		marginTop: 55,
-		height: 200,
+		maxHeight: 200,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1,
@@ -131,6 +132,10 @@ const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 class EthInput extends Component {
 	static propTypes = {
 		/**
+		 * Map of accounts to information objects including balances
+		 */
+		accounts: PropTypes.object,
+		/**
 		 * ETH-to-current currency conversion rate from CurrencyRateController
 		 */
 		conversionRate: PropTypes.number,
@@ -167,6 +172,10 @@ class EthInput extends Component {
 		 */
 		contractExchangeRates: PropTypes.object,
 		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
 		 * Array of assets (in this case ERC20 tokens)
 		 */
 		tokens: PropTypes.array
@@ -182,19 +191,23 @@ class EthInput extends Component {
 	selectAsset = asset => {
 		this.setState({ isOpen: false });
 		const { handleUpdateAsset } = this.props;
+		asset = asset.symbol === 'ETH' ? undefined : asset;
 		handleUpdateAsset && handleUpdateAsset(asset);
 	};
 
 	renderAsset = (asset, onPress) => {
-		const { tokenBalances } = this.props;
+		const { tokenBalances, accounts, selectedAddress } = this.props;
 		const balance =
-			asset.address in tokenBalances
-				? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals)
-				: undefined;
+			asset.symbol !== 'ETH'
+				? asset.address in tokenBalances
+					? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals)
+					: undefined
+				: renderFromWei(accounts[selectedAddress].balance);
+
 		return (
 			<TouchableOpacity key={asset.address} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
-					{asset ? (
+					{asset.symbol !== 'ETH' ? (
 						<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
 					) : (
 						<Image source={ethLogo} style={styles.logo} />
@@ -211,7 +224,13 @@ class EthInput extends Component {
 	};
 
 	renderAssetsList = () => {
-		const { tokens } = this.props;
+		const tokens = [
+			{
+				name: 'Ether',
+				symbol: 'ETH'
+			},
+			...this.props.tokens
+		];
 		return (
 			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
@@ -294,9 +313,11 @@ class EthInput extends Component {
 }
 
 const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });

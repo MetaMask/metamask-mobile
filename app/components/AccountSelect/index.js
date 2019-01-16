@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 		zIndex: 100,
 		width: '100%',
 		marginTop: 75,
-		height: 200,
+		maxHeight: 200,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1,

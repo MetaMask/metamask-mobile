@@ -122,7 +122,7 @@ class TransactionEditor extends Component {
 				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
 				: data;
 		const amountToSend = asset ? '0x0' : amount;
-		const { gas } = await this.estimateGas({ amount: amountToSend, newData });
+		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
 		this.setState({ amount, data: newData, gas: hexToBN(gas) });
 	};
 
@@ -148,6 +148,7 @@ class TransactionEditor extends Component {
 
 	handleUpdateAsset = asset => {
 		this.setState({ amount: undefined, data: undefined, to: undefined, asset });
+		this.estimateGas({ amount: undefined, to: undefined });
 	};
 
 	validate = () => {

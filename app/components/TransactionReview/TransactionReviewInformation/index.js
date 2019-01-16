@@ -126,7 +126,8 @@ class TransactionReviewInformation extends Component {
 		} else {
 			balanceFiat = weiToFiatNumber(amountEth, conversionRate);
 		}
-		total = parseFloat(gasFeeFiat) + parseFloat(balanceFiat);
+		const base = Math.pow(10, 5);
+		total = ((parseFloat(gasFeeFiat) + parseFloat(balanceFiat)) * base) / base;
 		return `${total} ${currentCurrency.toUpperCase()}`;
 	};
 
