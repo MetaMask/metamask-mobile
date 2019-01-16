@@ -10,7 +10,8 @@ import {
 	fromWei,
 	balanceToFiat,
 	toTokenMinimalUnit,
-	fromTokenMinimalUnit
+	fromTokenMinimalUnit,
+	renderFromTokenMinimalUnit
 } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -81,7 +82,8 @@ const styles = StyleSheet.create({
 		top: 20
 	},
 	componentContainer: {
-		position: 'relative'
+		position: 'relative',
+		zIndex: 100
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -91,11 +93,10 @@ const styles = StyleSheet.create({
 		paddingBottom: 12,
 		paddingTop: 10,
 		width: '100%',
-		//position: 'absolute',
+		position: 'absolute',
 		top: 0,
 		left: 0,
 		right: 0,
-		zIndex: 100,
 		elevation: 10
 	},
 	option: {
@@ -104,6 +105,15 @@ const styles = StyleSheet.create({
 		paddingLeft: 8,
 		paddingRight: 10,
 		paddingTop: 8
+	},
+	symbol: {
+		...fontStyles.bold
+	},
+	balance: {
+		...fontStyles.normal
+	},
+	optionContent: {
+		paddingLeft: 8
 	}
 });
 
@@ -131,6 +141,10 @@ class EthInput extends Component {
 		 */
 		readonly: PropTypes.bool,
 		/**
+		 * Object containing token balances in the format address => balance
+		 */
+		tokenBalances: PropTypes.object,
+		/**
 		 * Value of this underlying input expressed as in wei as a BN instance
 		 */
 		value: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
@@ -154,22 +168,30 @@ class EthInput extends Component {
 		this.setState({ isOpen: true });
 	};
 
-	renderAsset = (asset, onPress) => (
-		<TouchableOpacity key={asset.address} onPress={onPress} style={styles.option}>
-			<View style={styles.icon}>
-				{asset ? (
-					<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
-				) : (
-					<Image source={ethLogo} style={styles.logo} />
-				)}
-			</View>
-			<View style={styles.content}>
-				<View>
-					<Text style={styles.name}>{asset.symbol}</Text>
+	renderAsset = (asset, onPress) => {
+		const { tokenBalances } = this.props;
+		const balance =
+			asset.address in tokenBalances
+				? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals)
+				: undefined;
+		return (
+			<TouchableOpacity key={asset.address} onPress={onPress} style={styles.option}>
+				<View style={styles.icon}>
+					{asset ? (
+						<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+					) : (
+						<Image source={ethLogo} style={styles.logo} />
+					)}
 				</View>
-			</View>
-		</TouchableOpacity>
-	);
+				<View style={styles.optionContent}>
+					<Text style={styles.symbol}>{asset.symbol}</Text>
+					<Text style={styles.balance}>
+						{balance} {asset.symbol}
+					</Text>
+				</View>
+			</TouchableOpacity>
+		);
+	};
 
 	renderAssetsList = () => {
 		const { tokens } = this.props;
@@ -258,7 +280,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	tokens: state.engine.backgroundState.AssetsController.tokens
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
 export default connect(mapStateToProps)(EthInput);

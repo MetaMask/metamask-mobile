@@ -38,8 +38,7 @@ const styles = StyleSheet.create({
 		marginTop: Platform.OS === 'android' ? 190 : 175
 	},
 	amountRow: {
-		marginTop: 18,
-		zIndex: 3
+		marginTop: 18
 	},
 	label: {
 		flex: 0,
