@@ -9,12 +9,23 @@ import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	root: {
 		flex: 1
 	},
-	componentContainer: {},
+	componentContainer: {
+		position: 'absolute',
+		zIndex: 100,
+		width: '100%',
+		marginTop: 75,
+		height: 200,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1,
+		elevation: 11
+	},
 	activeOption: {
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
@@ -152,7 +163,7 @@ class AccountSelect extends Component {
 	renderOptionList() {
 		const { accounts, identities, onChange } = this.props;
 		return (
-			<View style={styles.componentContainer} pointerEvents="box-none">
+			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{Object.keys(identities).map(address =>
 						this.renderOption({ ...identities[address], ...accounts[address] }, () => {
@@ -161,7 +172,7 @@ class AccountSelect extends Component {
 						})
 					)}
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 

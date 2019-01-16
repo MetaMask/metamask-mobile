@@ -16,6 +16,7 @@ import {
 import { strings } from '../../../locales/i18n';
 import TokenImage from '../TokenImage';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	root: {
@@ -81,7 +82,15 @@ const styles = StyleSheet.create({
 		top: 20
 	},
 	componentContainer: {
-		position: 'relative'
+		position: 'absolute',
+		zIndex: 2,
+		width: '100%',
+		marginTop: 55,
+		height: 200,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1,
+		elevation: 9
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -166,7 +175,8 @@ class EthInput extends Component {
 	state = { isOpen: false };
 
 	onFocus = () => {
-		this.setState({ isOpen: true });
+		const { isOpen } = this.state;
+		this.setState({ isOpen: !isOpen });
 	};
 
 	selectAsset = asset => {
@@ -203,7 +213,7 @@ class EthInput extends Component {
 	renderAssetsList = () => {
 		const { tokens } = this.props;
 		return (
-			<View style={styles.componentContainer}>
+			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{tokens.map(token =>
 						this.renderAsset(token, () => {
@@ -211,7 +221,7 @@ class EthInput extends Component {
 						})
 					)}
 				</View>
-			</View>
+			</ScrollView>
 		);
 	};
 

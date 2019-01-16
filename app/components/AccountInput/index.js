@@ -7,6 +7,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	root: {
@@ -19,7 +20,15 @@ const styles = StyleSheet.create({
 		top: 20
 	},
 	componentContainer: {
-		position: 'relative'
+		position: 'absolute',
+		zIndex: 6,
+		width: '100%',
+		marginTop: 60,
+		height: 200,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1,
+		elevation: 10
 	},
 	input: {
 		...fontStyles.bold,
@@ -117,7 +126,8 @@ class AccountInput extends Component {
 
 	onFocus = () => {
 		const { onFocus } = this.props;
-		this.setState({ isOpen: true });
+		const { isOpen } = this.state;
+		this.setState({ isOpen: !isOpen });
 		onFocus && onFocus();
 	};
 
@@ -148,7 +158,7 @@ class AccountInput extends Component {
 	renderOptionList() {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
-			<View style={styles.componentContainer}>
+			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{Object.keys(visibleOptions).map(address =>
 						this.renderOption(visibleOptions[address], () => {
@@ -156,7 +166,7 @@ class AccountInput extends Component {
 						})
 					)}
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 

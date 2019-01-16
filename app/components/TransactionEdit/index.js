@@ -17,21 +17,16 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	formRow: {
-		flex: 1,
+		flex: 0,
 		flexDirection: 'row',
 		marginTop: 18
 	},
-	fromRow: {
-		zIndex: 60
-	},
-	toRow: {
-		zIndex: 4
-	},
-	amountRow: {
-		zIndex: 3
-	},
-	gasRow: {
-		zIndex: 2
+	fromRow: {},
+	toRow: {},
+	amountRow: {},
+	gasRow: {},
+	hexDataRow: {
+		minHeight: 64
 	},
 	label: {
 		flex: 0,
@@ -289,11 +284,13 @@ class TransactionEdit extends Component {
 								gasPrice={gasPrice}
 							/>
 						</View>
-						{showHexData && (
-							<View style={{ ...styles.formRow, ...styles.amountRow }}>
+						<View style={[styles.formRow, styles.hexDataRow]}>
+							{showHexData && (
 								<View style={styles.label}>
 									<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
 								</View>
+							)}
+							{showHexData && (
 								<TextInput
 									multiline
 									onChangeText={this.updateData}
@@ -301,8 +298,8 @@ class TransactionEdit extends Component {
 									style={styles.hexData}
 									value={data}
 								/>
-							</View>
-						)}
+							)}
+						</View>
 					</View>
 				</ActionView>
 			</View>
