@@ -91,10 +91,7 @@ class TransactionEditor extends Component {
 
 	estimateGas = async opts => {
 		const { TransactionController } = Engine.context;
-		const {
-			transaction: { asset }
-		} = this.props;
-		const { from } = this.state;
+		const { from, asset } = this.state;
 		const { amount = this.state.amount, data = this.state.data, to = this.state.to } = opts;
 		let estimation;
 		try {
@@ -115,10 +112,7 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateAmount = async amount => {
-		const { to, data } = this.state;
-		const {
-			transaction: { asset }
-		} = this.props;
+		const { to, data, asset } = this.state;
 		const tokenAmountToSend = asset && amount && amount.toString(16);
 		const newData =
 			to && asset && tokenAmountToSend
@@ -139,10 +133,7 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateToAddress = async to => {
-		const { amount, data } = this.state;
-		const {
-			transaction: { asset }
-		} = this.props;
+		const { amount, data, asset } = this.state;
 		const tokenAmountToSend = asset && amount && amount.toString(16);
 		const newData =
 			asset && tokenAmountToSend
@@ -163,9 +154,7 @@ class TransactionEditor extends Component {
 	};
 
 	validateAmount = () => {
-		const {
-			transaction: { asset }
-		} = this.props;
+		const { asset } = this.state;
 		return asset ? this.validateTokenAmount() : this.validateEtherAmount();
 	};
 
@@ -188,11 +177,8 @@ class TransactionEditor extends Component {
 
 	validateTokenAmount = () => {
 		let error;
-		const { amount, gas, gasPrice, from } = this.state;
-		const {
-			transaction: { asset },
-			contractBalances
-		} = this.props;
+		const { amount, gas, gasPrice, from, asset } = this.state;
+		const { contractBalances } = this.props;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		if (!amount || !gas || !gasPrice || !from) {
