@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	itemLogoWrapper: {
@@ -29,6 +30,9 @@ export default class TokenElement extends Component {
 
 	render = () => {
 		const { asset, containerStyle, iconStyle } = this.props;
+		if (asset.address in contractMap) {
+			asset.logo = contractMap[asset.address].logo;
+		}
 		return (
 			<View style={[styles.itemLogoWrapper, containerStyle]}>
 				{asset.logo ? (

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, View, Image, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -18,20 +18,21 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 const styles = StyleSheet.create({
 	root: {
-		...fontStyles.bold,
-		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
-		borderRadius: 4,
-		borderWidth: 1,
+		flex: 1
+	},
+	container: {
 		flex: 1,
+		flexDirection: 'row',
 		paddingLeft: 10,
 		paddingRight: 40,
 		paddingVertical: 6,
 		position: 'relative',
 		zIndex: 1,
-		flexDirection: 'row'
+		backgroundColor: colors.white,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1
 	},
-
 	input: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
@@ -78,6 +79,31 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		right: 10,
 		top: 20
+	},
+	componentContainer: {
+		position: 'relative'
+	},
+	optionList: {
+		backgroundColor: colors.white,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1,
+		paddingBottom: 12,
+		paddingTop: 10,
+		width: '100%',
+		//position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 100,
+		elevation: 10
+	},
+	option: {
+		flexDirection: 'row',
+		paddingBottom: 4,
+		paddingLeft: 8,
+		paddingRight: 10,
+		paddingTop: 8
 	}
 });
 
@@ -115,7 +141,49 @@ class EthInput extends Component {
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
-		contractExchangeRates: PropTypes.object
+		contractExchangeRates: PropTypes.object,
+		/**
+		 * Array of assets (in this case ERC20 tokens)
+		 */
+		tokens: PropTypes.array
+	};
+
+	state = { isOpen: false };
+
+	onFocus = () => {
+		this.setState({ isOpen: true });
+	};
+
+	renderAsset = (asset, onPress) => (
+		<TouchableOpacity key={asset.address} onPress={onPress} style={styles.option}>
+			<View style={styles.icon}>
+				{asset ? (
+					<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+				) : (
+					<Image source={ethLogo} style={styles.logo} />
+				)}
+			</View>
+			<View style={styles.content}>
+				<View>
+					<Text style={styles.name}>{asset.symbol}</Text>
+				</View>
+			</View>
+		</TouchableOpacity>
+	);
+
+	renderAssetsList = () => {
+		const { tokens } = this.props;
+		return (
+			<View style={styles.componentContainer}>
+				<View style={styles.optionList}>
+					{tokens.map(token =>
+						this.renderAsset(token, () => {
+							this.selectAsset(token);
+						})
+					)}
+				</View>
+			</View>
+		);
 	};
 
 	onChange = value => {
@@ -126,6 +194,7 @@ class EthInput extends Component {
 
 	render = () => {
 		const { currentCurrency, readonly, value, asset, contractExchangeRates, conversionRate } = this.props;
+		const { isOpen } = this.state;
 		let convertedAmount, readableValue;
 		if (asset) {
 			const exchangeRate = contractExchangeRates[asset.address];
@@ -146,36 +215,40 @@ class EthInput extends Component {
 		}
 		return (
 			<View style={styles.root}>
-				<View style={styles.icon}>
-					{asset ? (
-						<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
-					) : (
-						<Image source={ethLogo} style={styles.logo} />
-					)}
-				</View>
-				<View style={styles.ethContainer}>
-					<View style={styles.split}>
-						<TextInput
-							autoCapitalize="none"
-							autoCorrect={false}
-							editable={!readonly}
-							keyboardType="numeric"
-							numberOfLines={1}
-							onChangeText={this.onChange}
-							placeholder={'0.00'}
-							spellCheck={false}
-							style={styles.input}
-							value={readableValue}
-						/>
-						<Text style={styles.eth} numberOfLines={1}>
-							{(asset && asset.symbol) || strings('unit.eth')}
+				<View style={styles.container}>
+					<View style={styles.icon}>
+						{asset ? (
+							<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+						) : (
+							<Image source={ethLogo} style={styles.logo} />
+						)}
+					</View>
+					<View style={styles.ethContainer}>
+						<View style={styles.split}>
+							<TextInput
+								autoCapitalize="none"
+								autoCorrect={false}
+								editable={!readonly}
+								onFocus={this.onFocus}
+								keyboardType="numeric"
+								numberOfLines={1}
+								onChangeText={this.onChange}
+								placeholder={'0.00'}
+								spellCheck={false}
+								style={styles.input}
+								value={readableValue}
+							/>
+							<Text style={styles.eth} numberOfLines={1}>
+								{(asset && asset.symbol) || strings('unit.eth')}
+							</Text>
+						</View>
+						<Text style={styles.fiatValue} numberOfLines={1}>
+							{convertedAmount}
 						</Text>
 					</View>
-					<Text style={styles.fiatValue} numberOfLines={1}>
-						{convertedAmount}
-					</Text>
 				</View>
 				<MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />
+				{isOpen && this.renderAssetsList()}
 			</View>
 		);
 	};
@@ -184,7 +257,8 @@ class EthInput extends Component {
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	tokens: state.engine.backgroundState.AssetsController.tokens
 });
 
 export default connect(mapStateToProps)(EthInput);
