@@ -30,6 +30,7 @@ import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../core/SecureKeychain';
 import { toggleNetworkModal } from '../../actions/modals';
+import { showAlert } from '../../actions/alert';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderShortAddress } from '../../util/address';
 
@@ -228,6 +229,10 @@ class DrawerView extends Component {
 		 */
 		toggleNetworkModal: PropTypes.func.isRequired,
 		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired,
+		/**
 		 * Boolean that determines the status of the networks modal
 		 */
 		networkModalVisible: PropTypes.bool.isRequired
@@ -295,7 +300,11 @@ class DrawerView extends Component {
 	copyAddressToClipboard = async () => {
 		const { selectedAddress } = this.props;
 		await Clipboard.setString(selectedAddress);
-		Alert.alert(strings('account_details.account_copied_to_clipboard'));
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 2000,
+			content: 'clipboard-alert'
+		});
 	};
 
 	showSettings = async () => {
@@ -547,7 +556,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	toggleNetworkModal: () => dispatch(toggleNetworkModal())
+	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(

@@ -76,6 +76,7 @@
     "react-native-button": "^2.3.0",
     "react-native-camera": "^1.2.0",
     "react-native-crypto": "^2.1.2",
+    "react-native-elevated-view": "0.0.6",
     "react-native-fabric": "^0.5.2",
     "react-native-fs": "^2.10.14",
     "react-native-gesture-handler": "^1.0.12",

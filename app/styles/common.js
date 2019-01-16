@@ -39,7 +39,8 @@ export const colors = {
 	lightWarning: '#FFF2DB',
 	dimmed: '#00000080',
 	transparent: 'transparent',
-	overlay: 'rgba(0,0,0,.5)'
+	overlay: 'rgba(0,0,0,.5)',
+	darkAlert: 'rgba(0,0,0,.75)'
 };
 
 /**
