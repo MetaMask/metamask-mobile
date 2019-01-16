@@ -14,11 +14,7 @@ const styles = StyleSheet.create({
 	root: {
 		flex: 1
 	},
-	componentContainer: {
-		position: 'relative',
-		height: 50,
-		paddingBottom: 200
-	},
+	componentContainer: {},
 	activeOption: {
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
@@ -62,11 +58,9 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		paddingBottom: 12,
 		paddingTop: 10,
-		position: 'absolute',
 		top: 0,
 		left: 0,
 		right: 0,
-		zIndex: 100,
 		elevation: 10,
 		width: '100%'
 	}
@@ -94,7 +88,7 @@ class AccountSelect extends Component {
 		 */
 		conversionRate: PropTypes.number,
 		/**
-		 * Currency code for currently-selcted currency from CurrencyRateController
+		 * Currency code for currently-selected currency from CurrencyRateController
 		 */
 		currentCurrency: PropTypes.string,
 		/**

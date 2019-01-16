@@ -28,7 +28,6 @@ const styles = StyleSheet.create({
 		paddingRight: 40,
 		paddingVertical: 6,
 		position: 'relative',
-		zIndex: 1,
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
@@ -82,8 +81,7 @@ const styles = StyleSheet.create({
 		top: 20
 	},
 	componentContainer: {
-		position: 'relative',
-		zIndex: 100
+		position: 'relative'
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -93,7 +91,6 @@ const styles = StyleSheet.create({
 		paddingBottom: 12,
 		paddingTop: 10,
 		width: '100%',
-		position: 'absolute',
 		top: 0,
 		left: 0,
 		right: 0,
@@ -133,6 +130,10 @@ class EthInput extends Component {
 		 */
 		currentCurrency: PropTypes.string,
 		/**
+		 * Callback to update selected asset in transaction in parent state
+		 */
+		handleUpdateAsset: PropTypes.func,
+		/**
 		 * Callback triggered when this input value
 		 */
 		onChange: PropTypes.func,
@@ -166,6 +167,12 @@ class EthInput extends Component {
 
 	onFocus = () => {
 		this.setState({ isOpen: true });
+	};
+
+	selectAsset = asset => {
+		this.setState({ isOpen: false });
+		const { handleUpdateAsset } = this.props;
+		handleUpdateAsset && handleUpdateAsset(asset);
 	};
 
 	renderAsset = (asset, onPress) => {
@@ -251,7 +258,6 @@ class EthInput extends Component {
 								autoCapitalize="none"
 								autoCorrect={false}
 								editable={!readonly}
-								onFocus={this.onFocus}
 								keyboardType="numeric"
 								numberOfLines={1}
 								onChangeText={this.onChange}
@@ -269,7 +275,8 @@ class EthInput extends Component {
 						</Text>
 					</View>
 				</View>
-				<MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />
+
+				<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				{isOpen && this.renderAssetsList()}
 			</View>
 		);

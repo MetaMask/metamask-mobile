@@ -152,6 +152,10 @@ class TransactionEditor extends Component {
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
 
+	handleUpdateAsset = asset => {
+		this.setState({ amount: undefined, data: undefined, to: undefined, asset });
+	};
+
 	validate = () => {
 		if (this.validateAmount() || this.validateGas() || this.validateToAddress()) {
 			return true;
@@ -275,6 +279,7 @@ class TransactionEditor extends Component {
 						validateAmount={this.validateAmount}
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
+						handleUpdateAsset={this.handleUpdateAsset}
 					/>
 				)}
 				{mode === 'review' && (

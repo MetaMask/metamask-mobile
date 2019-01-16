@@ -4,7 +4,7 @@ import AccountSelect from '../AccountSelect';
 import ActionView from '../ActionView';
 import EthInput from '../EthInput';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { toBN, isBN, hexToBN, fromWei } from '../../util/number';
@@ -17,28 +17,21 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	formRow: {
-		flexDirection: 'row'
+		flex: 1,
+		flexDirection: 'row',
+		marginTop: 18
 	},
 	fromRow: {
-		marginRight: 0,
-		position: 'absolute',
-		zIndex: 5,
-		right: 15,
-		left: 15,
-		marginTop: 30
+		zIndex: 60
 	},
 	toRow: {
-		right: 15,
-		left: 15,
-		marginTop: Platform.OS === 'android' ? 125 : 120,
-		position: 'absolute',
 		zIndex: 4
 	},
-	notAbsolute: {
-		marginTop: Platform.OS === 'android' ? 190 : 175
-	},
 	amountRow: {
-		marginTop: 18
+		zIndex: 3
+	},
+	gasRow: {
+		zIndex: 2
 	},
 	label: {
 		flex: 0,
@@ -65,7 +58,8 @@ const styles = StyleSheet.create({
 	},
 	form: {
 		flex: 1,
-		padding: 16
+		padding: 16,
+		flexDirection: 'column'
 	},
 	hexData: {
 		...fontStyles.bold,
@@ -130,6 +124,10 @@ class TransactionEdit extends Component {
 		 * Callback to update to address in transaction in parent state
 		 */
 		handleUpdateToAddress: PropTypes.func,
+		/**
+		 * Callback to update selected asset in transaction in parent state
+		 */
+		handleUpdateAsset: PropTypes.func,
 		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
@@ -248,7 +246,7 @@ class TransactionEdit extends Component {
 							</View>
 							<AccountSelect value={from} onChange={this.updateFromAddress} />
 						</View>
-						<View style={{ ...styles.formRow, ...styles.toRow }}>
+						<View style={[styles.formRow, styles.toRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
 								{toAddressError ? <Text style={styles.error}>{toAddressError}</Text> : null}
@@ -272,9 +270,14 @@ class TransactionEdit extends Component {
 									</TouchableOpacity>
 								)}
 							</View>
-							<EthInput onChange={this.updateAmount} value={amount} asset={asset} />
+							<EthInput
+								onChange={this.updateAmount}
+								value={amount}
+								asset={asset}
+								handleUpdateAsset={this.props.handleUpdateAsset}
+							/>
 						</View>
-						<View style={{ ...styles.formRow, ...styles.amountRow }}>
+						<View style={{ ...styles.formRow, ...styles.gasRow }}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
 								{gasError ? <Text style={styles.error}>{gasError}</Text> : null}

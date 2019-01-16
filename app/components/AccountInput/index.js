@@ -19,9 +19,7 @@ const styles = StyleSheet.create({
 		top: 20
 	},
 	componentContainer: {
-		position: 'relative',
-		height: 50,
-		paddingBottom: 200
+		position: 'relative'
 	},
 	input: {
 		...fontStyles.bold,
@@ -64,12 +62,10 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		paddingBottom: 12,
 		paddingTop: 10,
-		position: 'absolute',
 		width: '100%',
 		top: 0,
 		left: 0,
 		right: 0,
-		zIndex: 100,
 		elevation: 10
 	},
 	content: {
@@ -170,8 +166,7 @@ class AccountInput extends Component {
 		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
 		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
 		this.setState({
-			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match,
-			visibleOptions
+			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
 		});
 		onChange && onChange(value);
 	};
@@ -191,7 +186,6 @@ class AccountInput extends Component {
 					autoCapitalize="none"
 					autoCorrect={false}
 					onChangeText={this.onChange}
-					onFocus={this.onFocus}
 					placeholder={placeholder}
 					spellCheck={false}
 					style={styles.input}
@@ -200,7 +194,7 @@ class AccountInput extends Component {
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
 					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
 				</TouchableOpacity>
-				<MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />
+				<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				{isOpen && this.renderOptionList()}
 			</View>
 		);
