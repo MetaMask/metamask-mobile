@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN, isBN, toBN, toGwei } from '../../../util/number';
+import { renderFromWei, weiToFiat, hexToBN, isBN, toBN, toGwei, weiToFiatNumber } from '../../../util/number';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { renderFullAddress } from '../../../util/address';
@@ -178,10 +178,10 @@ class TransactionDetails extends PureComponent {
 			: renderTotalEth;
 
 		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
-
+		const totalEthFiatAmount = weiToFiatNumber(totalEth, conversionRate);
 		const renderTotalFiat = transfer
 			? transfer.amountFiat
-				? transfer.amountFiat + ' ' + strings('unit.divisor') + ' ' + renderTotalEthFiat
+				? totalEthFiatAmount + transfer.amountFiat + ' ' + currentCurrency.toUpperCase()
 				: undefined
 			: renderTotalEthFiat;
 		const renderTo = transfer ? transfer.to : !to ? strings('transactions.to_contract') : renderFullAddress(to);
