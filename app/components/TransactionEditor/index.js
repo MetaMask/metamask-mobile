@@ -79,14 +79,17 @@ class TransactionEditor extends Component {
 	};
 
 	onConfirm = () => {
-		const { amount, gas, gasPrice, data, from, to } = this.state;
+		const { amount, gas, gasPrice, data, from, to, asset } = this.state;
 		const { onConfirm, transaction } = this.props;
 		!this.validate() &&
 			onConfirm &&
-			onConfirm({
-				...transaction,
-				...{ value: amount, data, from, gas, gasPrice, to }
-			});
+			onConfirm(
+				{
+					...transaction,
+					...{ value: amount, data, from, gas, gasPrice, to }
+				},
+				asset
+			);
 	};
 
 	estimateGas = async opts => {
