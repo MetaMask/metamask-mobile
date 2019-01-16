@@ -14,6 +14,7 @@ import {
 } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import TokenImage from '../TokenImage';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 const styles = StyleSheet.create({
 	root: {
@@ -30,31 +31,37 @@ const styles = StyleSheet.create({
 		zIndex: 1,
 		flexDirection: 'row'
 	},
+
 	input: {
 		...fontStyles.bold,
-		flex: 0,
+		backgroundColor: colors.white,
+		borderWidth: 0,
 		fontSize: 16,
-		minWidth: 44,
-		paddingRight: 8,
-		paddingTop: 0
+		paddingBottom: 0,
+		paddingRight: 0,
+		paddingLeft: 0,
+		paddingTop: 0,
+		position: 'relative'
 	},
 	eth: {
 		...fontStyles.bold,
 		flex: 0,
 		fontSize: 16,
-		paddingTop: Platform.OS === 'android' ? 3 : 0
+		paddingTop: Platform.OS === 'android' ? 3 : 0,
+		paddingLeft: 10
 	},
 	fiatValue: {
 		...fontStyles.normal,
-		fontSize: 12,
-		paddingLeft: 4
+		fontSize: 12
 	},
 	split: {
 		flex: 0,
-		flexDirection: 'row'
+		flexDirection: 'row',
+		marginRight: 100
 	},
 	ethContainer: {
-		paddingLeft: 6
+		paddingLeft: 6,
+		paddingRight: 30
 	},
 	icon: {
 		paddingTop: 5,
@@ -65,6 +72,12 @@ const styles = StyleSheet.create({
 		width: 20,
 		height: 20,
 		marginRight: 0
+	},
+	arrow: {
+		color: colors.inputBorderColor,
+		position: 'absolute',
+		right: 10,
+		top: 20
 	}
 });
 
@@ -152,9 +165,8 @@ class EthInput extends Component {
 							placeholder={'0.00'}
 							spellCheck={false}
 							style={styles.input}
-						>
-							{readableValue}
-						</TextInput>
+							value={readableValue}
+						/>
 						<Text style={styles.eth} numberOfLines={1}>
 							{(asset && asset.symbol) || strings('unit.eth')}
 						</Text>
@@ -163,6 +175,7 @@ class EthInput extends Component {
 						{convertedAmount}
 					</Text>
 				</View>
+				<MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />
 			</View>
 		);
 	};
