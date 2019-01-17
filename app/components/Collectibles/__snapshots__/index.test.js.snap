@@ -6,74 +6,84 @@ exports[`Collectibles should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
+      "minHeight": 500,
     }
   }
   testID="collectibles"
 >
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "justifyContent": "center",
-        "marginTop": 50,
-      }
+  <ScrollView
+    refreshControl={
+      <RefreshControlMock
+        onRefresh={[Function]}
+        refreshing={false}
+      />
     }
   >
-    <Text
-      style={
-        Object {
-          "color": "#AAAAAA",
-          "fontFamily": "Roboto",
-          "fontSize": 20,
-          "fontWeight": "400",
-        }
-      }
-    >
-      You don't have any collectibles!
-    </Text>
     <View
       style={
         Object {
-          "flex": 1,
-          "paddingBottom": 30,
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "justifyContent": "center",
+          "marginTop": 50,
         }
       }
     >
-      <TouchableOpacity
-        activeOpacity={0.2}
-        onPress={[Function]}
+      <Text
         style={
           Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "center",
-            "margin": 20,
+            "color": "#AAAAAA",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
           }
         }
-        testID="add-collectible-button"
       >
-        <Icon
-          allowFontScaling={false}
-          color="#008edf"
-          name="plus"
-          size={16}
-        />
-        <Text
+        You don't have any collectibles!
+      </Text>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "paddingBottom": 30,
+          }
+        }
+      >
+        <TouchableOpacity
+          activeOpacity={0.2}
+          onPress={[Function]}
           style={
             Object {
-              "color": "#008edf",
-              "fontFamily": "Roboto",
-              "fontSize": 15,
-              "fontWeight": "400",
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "margin": 20,
             }
           }
+          testID="add-collectible-button"
         >
-          ADD COLLECTIBLES
-        </Text>
-      </TouchableOpacity>
+          <Icon
+            allowFontScaling={false}
+            color="#008edf"
+            name="plus"
+            size={16}
+          />
+          <Text
+            style={
+              Object {
+                "color": "#008edf",
+                "fontFamily": "Roboto",
+                "fontSize": 15,
+                "fontWeight": "400",
+              }
+            }
+          >
+            ADD COLLECTIBLES
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
-  </View>
+  </ScrollView>
   <ActionSheet
     cancelButtonIndex={1}
     destructiveButtonIndex={0}

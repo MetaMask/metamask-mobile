@@ -6,6 +6,7 @@ exports[`Tokens should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
+      "minHeight": 500,
     }
   }
   testID="tokens"
