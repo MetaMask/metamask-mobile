@@ -1,125 +1,143 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionElement should render correctly 1`] = `
-<TouchableOpacity
-  activeOpacity={0.2}
-  key="tx-undefined"
-  onPress={[Function]}
+<AnimatedComponent
+  accessible={true}
+  isTVSelectable={true}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "borderBottomWidth": 0.5,
-      "borderColor": "#CCCCCC",
-      "flex": 1,
-    }
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderBottomWidth": 0.5,
+        "borderColor": "#CCCCCC",
+        "flex": 1,
+      },
+      Object {
+        "opacity": 1,
+      },
+    ]
   }
 >
   <View
     style={
       Object {
-        "padding": 15,
+        "padding": 0,
       }
     }
   >
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "400",
-          "marginBottom": 10,
-        }
-      }
-    >
-      #1  - 
-      Invalid Date Invalid Date
-    </Text>
     <View
       style={
         Object {
-          "flexDirection": "row",
+          "padding": 15,
         }
       }
     >
-      <IdenticonComponent
-        address="0x0"
-        diameter={24}
-      />
-      <View
+      <Text
         style={
           Object {
-            "marginLeft": 15,
+            "color": "#999999",
+            "fontFamily": "Roboto",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "marginBottom": 10,
           }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#4a4a4a",
-              "fontFamily": "Roboto",
-              "fontSize": 15,
-              "fontWeight": "400",
-            }
+        #1  - 
+        Invalid Date Invalid Date
+      </Text>
+      <View
+        style={
+          Object {
+            "flexDirection": "row",
           }
+        }
+      >
+        <IdenticonComponent
+          address="0x0"
+          diameter={24}
         />
-        <Text
+        <View
           style={
-            Array [
+            Object {
+              "marginLeft": 15,
+            }
+          }
+        >
+          <Text
+            style={
               Object {
-                "backgroundColor": "#f1f2f6",
-                "color": "#7c7e84",
+                "color": "#4a4a4a",
                 "fontFamily": "Roboto",
-                "fontSize": 9,
-                "fontWeight": "600",
-                "letterSpacing": 0.5,
-                "marginTop": 5,
-                "paddingHorizontal": 5,
-                "paddingVertical": 3,
-                "textAlign": "center",
-                "width": 75,
-              },
-              null,
-            ]
-          }
-        >
-          CONFIRMED
-        </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "flex-end",
-            "flex": 1,
-          }
-        }
-      >
-        <Text
+                "fontSize": 15,
+                "fontWeight": "400",
+              }
+            }
+          />
+          <Text
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#f1f2f6",
+                  "color": "#7c7e84",
+                  "fontFamily": "Roboto",
+                  "fontSize": 9,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.5,
+                  "marginTop": 5,
+                  "paddingHorizontal": 5,
+                  "paddingVertical": 3,
+                  "textAlign": "center",
+                  "width": 75,
+                },
+                null,
+              ]
+            }
+          >
+            CONFIRMED
+          </Text>
+        </View>
+        <View
           style={
             Object {
-              "color": "#4a4a4a",
-              "fontFamily": "Roboto",
-              "fontSize": 15,
-              "fontWeight": "400",
+              "alignItems": "flex-end",
+              "flex": 1,
             }
           }
         >
-          0 ETH
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#999999",
-              "fontFamily": "Roboto",
-              "fontSize": 12,
-              "fontWeight": "400",
+          <Text
+            style={
+              Object {
+                "color": "#4a4a4a",
+                "fontFamily": "Roboto",
+                "fontSize": 15,
+                "fontWeight": "400",
+              }
             }
-          }
-        >
-          0 USD
-        </Text>
+          >
+            0 ETH
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#999999",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+              }
+            }
+          >
+            0 USD
+          </Text>
+        </View>
       </View>
     </View>
   </View>
-</TouchableOpacity>
+</AnimatedComponent>
 `;

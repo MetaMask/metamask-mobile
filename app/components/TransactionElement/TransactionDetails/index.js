@@ -4,7 +4,6 @@ import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-nativ
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN, isBN, toBN, toGwei, weiToFiatNumber } from '../../../util/number';
-import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { renderFullAddress } from '../../../util/address';
 import { getNetworkTypeById } from '../../../util/networks';
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders a transaction details as part of transactions list
  */
-class TransactionDetails extends PureComponent {
+export default class TransactionDetails extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigation Object
@@ -104,7 +103,11 @@ class TransactionDetails extends PureComponent {
 		/**
 		 * Boolean to determine if this network supports a block explorer
 		 */
-		blockExplorer: PropTypes.bool
+		blockExplorer: PropTypes.bool,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired
 	};
 
 	renderTxHash = transactionHash => {
@@ -123,20 +126,28 @@ class TransactionDetails extends PureComponent {
 		);
 	};
 
-	renderCopyIcon = str => {
-		function copy() {
-			Clipboard.setString(str);
-		}
-		return (
-			<TouchableOpacity style={styles.copyIcon} onPress={copy}>
-				<Icon name={'copy'} size={15} color={colors.primary} />
-			</TouchableOpacity>
-		);
+	copy = async () => {
+		const {
+			transactionObject: { transactionHash }
+		} = this.props;
+		await Clipboard.setString(transactionHash);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 2000,
+			content: 'clipboard-alert',
+			data: { msg: strings('transactions.hash_copied_to_clipboard') }
+		});
 	};
+
+	renderCopyIcon = () => (
+		<TouchableOpacity style={styles.copyIcon} onPress={this.copy}>
+			<Icon name={'copy'} size={15} color={colors.primary} />
+		</TouchableOpacity>
+	);
 
 	viewOnEtherscan = () => {
 		const {
-			transactionObject: { transaction: transactionHash, networkID }
+			transactionObject: { transactionHash, networkID }
 		} = this.props;
 		try {
 			const network = getNetworkTypeById(networkID);
@@ -237,10 +248,3 @@ class TransactionDetails extends PureComponent {
 		);
 	};
 }
-
-const mapStateToProps = state => ({
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
-});
-
-export default connect(mapStateToProps)(TransactionDetails);

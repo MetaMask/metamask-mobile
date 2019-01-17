@@ -22,6 +22,7 @@ import Engine from '../../core/Engine';
 import Networks, { isKnownNetwork } from '../../util/networks';
 import AppConstants from '../../core/AppConstants';
 import Feedback from '../../core/Feedback';
+import { showAlert } from '../../actions/alert';
 // eslint-disable-next-line import/no-unresolved
 import LockManager from '../../core/LockManager';
 
@@ -112,7 +113,11 @@ class Wallet extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		lockTime: PropTypes.number
+		lockTime: PropTypes.number,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired
 	};
 
 	state = {
@@ -251,7 +256,8 @@ class Wallet extends Component {
 			tokenExchangeRates,
 			collectibles,
 			navigation,
-			networkType
+			networkType,
+			showAlert
 		} = this.props;
 		let balance = 0;
 		let assets = tokens;
@@ -282,6 +288,7 @@ class Wallet extends Component {
 					conversionRate={conversionRate}
 					currentCurrency={currentCurrency}
 					navigation={navigation}
+					showAlert={showAlert}
 				/>
 				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 					<Tokens
@@ -345,4 +352,11 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime
 });
 
-export default connect(mapStateToProps)(Wallet);
+const mapDispatchToProps = dispatch => ({
+	showAlert: config => dispatch(showAlert(config))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Wallet);

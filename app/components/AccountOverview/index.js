@@ -107,7 +107,11 @@ export default class AccountOverview extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired
 	};
 	onDeposit = () => {
 		Alert.alert(strings('drawer.coming_soon'));
@@ -120,7 +124,12 @@ export default class AccountOverview extends Component {
 			account: { address }
 		} = this.props;
 		await Clipboard.setString(address);
-		Alert.alert(strings('account_details.account_copied_to_clipboard'));
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 2000,
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
 	};
 
 	goToAccountDetails = () => {

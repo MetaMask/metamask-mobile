@@ -61,7 +61,7 @@
 		"assets": "Your Assets",
 		"copy_address": "Copy address to clipboard",
 		"view_in_etherscan": "View on etherscan",
-		"dapp_browser": "ÐApp Browser",
+		"dapp_browser": "Explore ÐApps",
 		"settings": "Settings",
 		"help": "Get Help",
 		"logout": "Log out",
@@ -232,7 +232,7 @@
 		"share_account": "Share",
 		"view_account": "View account on Etherscan",
 		"show_private_key": "Show private key",
-		"account_copied_to_clipboard": "Your address has been copied to the clipboard",
+		"account_copied_to_clipboard": "Public address copied to clipboard",
 		"share_public_key": "Sharing my public key: "
 	},
 	"qr_scanner": {
@@ -335,7 +335,8 @@
 		"gas_limit": "Gas Limit (Units)",
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
-		"view_on_etherscan": "VIEW ON ETHERSCAN"
+		"view_on_etherscan": "VIEW ON ETHERSCAN",
+		"hash_copied_to_clipboard": "Transaction hash copied to clipboard"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
