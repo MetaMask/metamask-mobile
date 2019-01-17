@@ -103,6 +103,10 @@ class AccountSelect extends Component {
 		 */
 		currentCurrency: PropTypes.string,
 		/**
+		 * Whether selectable dropdown is enabled or not
+		 */
+		enabled: PropTypes.bool,
+		/**
 		 * Callback triggered when a new address is selected
 		 */
 		onChange: PropTypes.func,
@@ -110,6 +114,10 @@ class AccountSelect extends Component {
 		 * Address of the currently-selected account
 		 */
 		value: PropTypes.string
+	};
+
+	static defaultProps = {
+		enabled: true
 	};
 
 	state = { isOpen: false };
@@ -125,7 +133,7 @@ class AccountSelect extends Component {
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>
-				<MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />
+				{this.props.enabled && <MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />}
 				{this.renderOption(account, () => {
 					this.setState({ isOpen: !this.state.isOpen });
 				})}
@@ -137,7 +145,12 @@ class AccountSelect extends Component {
 		const { conversionRate, currentCurrency } = this.props;
 		const balance = hexToBN(account.balance);
 		return (
-			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
+			<TouchableOpacity
+				key={account.address}
+				onPress={onPress}
+				disabled={!this.props.enabled}
+				style={styles.option}
+			>
 				<View style={styles.icon}>
 					<Identicon address={account.address} diameter={22} />
 				</View>
@@ -179,7 +192,7 @@ class AccountSelect extends Component {
 	render = () => (
 		<View style={styles.root}>
 			{this.renderActiveOption()}
-			{this.state.isOpen && this.renderOptionList()}
+			{this.state.isOpen && this.props.enabled && this.renderOptionList()}
 		</View>
 	);
 }

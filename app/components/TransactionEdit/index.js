@@ -274,7 +274,7 @@ class TransactionEdit extends Component {
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
 							</View>
-							<AccountSelect value={from} onChange={this.updateFromAddress} />
+							<AccountSelect value={from} onChange={this.updateFromAddress} enabled={false} />
 						</View>
 						<View style={[styles.formRow, styles.toRow]}>
 							<View style={styles.label}>
