@@ -146,7 +146,14 @@ export class NetworkList extends Component {
 	onNetworkChange = async type => {
 		const { NetworkController } = Engine.context;
 		NetworkController.setProviderType(type);
-		InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
+		setTimeout(() => {
+			this.props.onClose(false);
+			InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
+		}, 300);
+	};
+
+	closeModal = () => {
+		this.props.onClose(true);
 	};
 
 	onSetRpcTarget = async rpcTarget => {
@@ -250,7 +257,7 @@ export class NetworkList extends Component {
 				{this.renderRpcNetworks()}
 			</ScrollView>
 			<View style={styles.footer}>
-				<TouchableOpacity style={styles.footerButton} onPress={this.props.onClose}>
+				<TouchableOpacity style={styles.footerButton} onPress={this.closeModal}>
 					<Text style={styles.closeButton}>{strings('networks.close')}</Text>
 				</TouchableOpacity>
 			</View>

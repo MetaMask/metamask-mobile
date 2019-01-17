@@ -298,6 +298,12 @@ class DrawerView extends Component {
 		this.setState({ accountsModalVisible: false });
 	};
 
+	onNetworksModalClose = async manualClose => {
+		this.hideNetworksModal();
+		if (!manualClose) {
+			await this.hideDrawer();
+		}
+	};
 	hideNetworksModal = () => {
 		this.props.toggleNetworkModal();
 	};
@@ -405,11 +411,9 @@ class DrawerView extends Component {
 	}
 
 	onAccountChange = () => {
-		setTimeout(() => {
+		setTimeout(async () => {
 			this.hideAccountsModal();
-			setTimeout(() => {
-				this.hideDrawer();
-			}, 300);
+			await this.hideDrawer();
 		}, 300);
 	};
 
@@ -602,7 +606,7 @@ class DrawerView extends Component {
 					</View>
 				</ScrollView>
 				<Modal isVisible={this.props.networkModalVisible} onBackdropPress={this.hideNetworksModal}>
-					<NetworkList onClose={this.hideNetworksModal} />
+					<NetworkList onClose={this.onNetworksModalClose} />
 				</Modal>
 				<Modal
 					isVisible={this.state.accountsModalVisible}
