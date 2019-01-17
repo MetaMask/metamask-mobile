@@ -41,18 +41,22 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		flexDirection: 'column',
-		paddingBottom: 5
+		paddingBottom: 10
 	},
 	network: {
-		paddingVertical: 8,
+		paddingVertical: 7,
+		paddingHorizontal: 12,
 		flexDirection: 'row',
 		alignSelf: 'flex-end',
-		marginRight: 17,
-		marginTop: Platform.OS === 'android' ? -23 : -21
+		marginRight: 10,
+		marginTop: Platform.OS === 'android' ? -25 : -25,
+		borderRadius: 15,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.fontSecondary
 	},
 	networkName: {
 		textAlign: 'right',
-		fontSize: 11,
+		fontSize: 9,
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
@@ -61,15 +65,31 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 100,
 		marginRight: 5,
-		marginTop: 5
+		marginTop: 3
+	},
+	caretDownNetwork: {
+		marginLeft: 7,
+		marginTop: 0,
+		fontSize: 12,
+		color: colors.fontSecondary
+	},
+	metamaskLogo: {
+		flexDirection: 'row',
+		flex: 1,
+		marginTop: Platform.OS === 'android' ? 15 : 20,
+		marginLeft: 17,
+		paddingTop: Platform.OS === 'android' ? 10 : 0,
+
+	},
+	metamaskFox: {
+		height: 22,
+		width: 22,
+		marginRight: 3,
 	},
 	metamaskName: {
-		width: 94,
-		height: 12,
-		marginTop: 17,
-		paddingVertical: 8,
-		marginLeft: 17,
-		marginRight: 50
+		marginTop: 5,
+		width: 78,
+		height: 10
 	},
 	account: {
 		backgroundColor: colors.white
@@ -89,7 +109,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	accountName: {
-		flex: 1,
 		fontSize: 20,
 		lineHeight: 24,
 		color: colors.white,
@@ -97,8 +116,9 @@ const styles = StyleSheet.create({
 	},
 	caretDown: {
 		textAlign: 'right',
-		marginRight: 7,
-		fontSize: 24,
+		marginLeft: 7,
+		marginTop: 3,
+		fontSize: 18,
 		color: colors.white
 	},
 	accountBalance: {
@@ -164,15 +184,20 @@ const styles = StyleSheet.create({
 		paddingVertical: 12
 	},
 	menuItem: {
+		flex: 1,
 		flexDirection: 'row',
 		paddingVertical: 12
 	},
 	menuItemName: {
+		flex: 1,
 		paddingLeft: 10,
 		paddingTop: 2,
 		fontSize: 16,
 		color: colors.gray,
 		...fontStyles.normal
+	},
+	noIcon: {
+		paddingLeft: 0
 	},
 	menuItemIconImage: {
 		width: 22,
@@ -186,10 +211,25 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.transparent,
 		borderColor: colors.borderColor,
 		borderWidth: 1
+	},
+	itemLabel: {
+		marginRight: 15,
+		alignContent: 'flex-end',
+		justifyContent: 'flex-end',
+		alignSelf: 'flex-end',
+		paddingHorizontal: 12,
+		paddingVertical: 3,
+		borderRadius: 15
+	},
+	itemLabelText: {
+		color: colors.white,
+		textAlign: 'center',
+		...fontStyles.bold
 	}
 });
 
 const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
 	assets: require('../../images/tokens-icon.png')
 };
@@ -212,6 +252,10 @@ class DrawerView extends Component {
 		 * Selected address as string
 		 */
 		selectedAddress: PropTypes.string,
+		/**
+		 * Number of assets from the AssetsController
+		 */
+		tokensCount: PropTypes.number,
 		/**
 		 * List of accounts from the AccountTrackerController
 		 */
@@ -370,12 +414,16 @@ class DrawerView extends Component {
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
-	sections = [
+	getSections = () => [
 		[
 			{
 				name: strings('drawer.assets'),
 				icon: this.getImageIcon('assets'),
-				action: this.showAssets
+				action: this.showAssets,
+				label: this.props.tokensCount > 0 ? {
+					text: this.props.tokensCount + 1,
+					color: colors.fontSecondary
+				} : null
 			},
 			{
 				name: strings('drawer.dapp_browser'),
@@ -398,17 +446,14 @@ class DrawerView extends Component {
 		[
 			{
 				name: strings('drawer.settings'),
-				icon: this.getIcon('cogs'),
 				action: this.showSettings
 			},
 			{
 				name: strings('drawer.help'),
-				icon: this.getIcon('question-circle'),
 				action: this.showHelp
 			},
 			{
 				name: strings('drawer.logout'),
-				icon: this.getIcon('sign-out'),
 				action: this.logout
 			}
 		]
@@ -424,7 +469,10 @@ class DrawerView extends Component {
 			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
 					<View style={styles.header}>
-						<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+						<View style={styles.metamaskLogo}>
+							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
+							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+						</View>
 						<TouchableOpacity style={styles.network} onPress={this.onNetworkPress}>
 							<View
 								style={[
@@ -435,6 +483,7 @@ class DrawerView extends Component {
 							<Text style={styles.networkName} testID={'navbar-title-network'}>
 								{name}
 							</Text>
+							<Icon name="caret-down" size={10} style={styles.caretDownNetwork} />
 						</TouchableOpacity>
 					</View>
 					<View style={styles.account}>
@@ -503,7 +552,7 @@ class DrawerView extends Component {
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>
-						{this.sections.map((section, i) => (
+						{this.getSections().map((section, i) => (
 							<View key={`section_${i}`} style={styles.menuSection}>
 								{section
 									.filter(item => {
@@ -518,8 +567,13 @@ class DrawerView extends Component {
 											style={styles.menuItem}
 											onPress={() => item.action()} // eslint-disable-line
 										>
-											{item.icon}
-											<Text style={styles.menuItemName}>{item.name}</Text>
+											{item.icon ? item.icon : null}
+											<Text style={[styles.menuItemName, !item.icon? styles.noIcon : null ]}>{item.name}</Text>
+											{item.label ? (
+												<View style={[styles.itemLabel, { backgroundColor: item.label.color }]}>
+													<Text style={styles.itemLabelText}>{item.label.text}</Text>
+												</View>
+											) : null}
 										</TouchableOpacity>
 									))}
 							</View>
@@ -552,7 +606,8 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
-	networkModalVisible: state.modals.networkModalVisible
+	networkModalVisible: state.modals.networkModalVisible,
+	tokensCount: state.engine.backgroundState.AssetsController.tokens.length
 });
 
 const mapDispatchToProps = dispatch => ({
