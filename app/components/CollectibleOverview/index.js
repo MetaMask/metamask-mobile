@@ -71,6 +71,22 @@ const styles = StyleSheet.create({
 	},
 	flexRow: {
 		flexDirection: 'row'
+	},
+	warning: {
+		fontSize: 12,
+		color: colors.white,
+		...fontStyles.bold,
+		backgroundColor: colors.gray,
+		alignContent: 'flex-end',
+		justifyContent: 'flex-end',
+		alignSelf: 'flex-end',
+		paddingHorizontal: 6,
+		paddingVertical: 3,
+		borderRadius: 15
+	},
+	warningView: {
+		alignSelf: 'center',
+		alignContent: 'center'
 	}
 });
 
@@ -90,7 +106,14 @@ export default class CollectibleOverview extends Component {
 	};
 
 	onSend = async () => {
-		Alert.alert(strings('drawer.coming_soon'));
+		const {
+			collectible: { owner }
+		} = this.props;
+		if (owner) {
+			Alert.alert(strings('drawer.coming_soon'));
+		} else {
+			Alert.alert(`You are not the owner, you can't send this collectible`);
+		}
 	};
 
 	renderImage = () => {
@@ -100,7 +123,7 @@ export default class CollectibleOverview extends Component {
 
 	render = () => {
 		const {
-			collectible: { address, tokenId, name }
+			collectible: { address, tokenId, name, owner }
 		} = this.props;
 		return (
 			<View style={styles.wrapper}>
@@ -120,6 +143,11 @@ export default class CollectibleOverview extends Component {
 						{strings('collectible.collectible_address')}: {renderShortAddress(address)}
 					</Text>
 				</View>
+				{!owner && (
+					<View style={styles.warningView}>
+						<Text style={styles.warning}>You are not the owner</Text>
+					</View>
+				)}
 				<View style={styles.buttons}>
 					<StyledButton
 						type={'confirm'}

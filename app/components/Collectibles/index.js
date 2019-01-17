@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -7,6 +8,7 @@ import { strings } from '../../../locales/i18n';
 import CollectibleElement from '../CollectibleElement';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../core/Engine';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -41,7 +43,7 @@ const styles = StyleSheet.create({
  * View that renders a list of Collectibles
  * also known as ERC-721 Tokens
  */
-export default class Collectibles extends Component {
+class Collectibles extends Component {
 	static propTypes = {
 		/**
 		 * Navigation object required to push
@@ -55,7 +57,11 @@ export default class Collectibles extends Component {
 		/**
 		 * Callback triggered when collectible pressed from collectibles list
 		 */
-		onPress: PropTypes.func
+		onPress: PropTypes.func,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -65,6 +71,22 @@ export default class Collectibles extends Component {
 	actionSheet = null;
 
 	collectibleToRemove = null;
+
+	componentDidMount = async () => {
+		const { AssetsContractController } = Engine.context;
+		const { collectibles, selectedAddress } = this.props;
+		collectibles.map(async collectible => {
+			let isOwner;
+			try {
+				const owner = await AssetsContractController.getOwnerOf(collectible.address, collectible.tokenId);
+				isOwner = toChecksumAddress(owner) === toChecksumAddress(selectedAddress);
+			} catch (e) {
+				isOwner = false;
+			}
+			collectible.owner = isOwner;
+			return collectible;
+		});
+	};
 
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
@@ -119,7 +141,6 @@ export default class Collectibles extends Component {
 
 	renderList() {
 		const { collectibles } = this.props;
-
 		return (
 			<FlatList
 				data={collectibles}
@@ -157,3 +178,9 @@ export default class Collectibles extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+});
+
+export default connect(mapStateToProps)(Collectibles);

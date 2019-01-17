@@ -124,6 +124,7 @@ export default class AddCustomCollectible extends Component {
 						onBlur={this.validateCustomCollectibleAddress}
 						testID={'input-collectible-address'}
 						onSubmitEditing={this.jumpToAssetTokenId}
+						multiline={false}
 					/>
 					<Text style={styles.warningText}>{this.state.warningAddress}</Text>
 				</View>

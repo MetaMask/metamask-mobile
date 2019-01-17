@@ -32,6 +32,22 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.fontPrimary,
 		...fontStyles.bold
+	},
+	warning: {
+		fontSize: 12,
+		color: colors.white,
+		...fontStyles.bold,
+		backgroundColor: colors.gray,
+		marginRight: 15,
+		alignContent: 'flex-end',
+		justifyContent: 'flex-end',
+		alignSelf: 'flex-end',
+		paddingHorizontal: 6,
+		paddingVertical: 3,
+		borderRadius: 15
+	},
+	warningView: {
+		paddingTop: 15
 	}
 });
 
@@ -68,7 +84,7 @@ export default class CollectibleElement extends Component {
 	render = () => {
 		const {
 			collectible,
-			collectible: { address, tokenId, name }
+			collectible: { address, tokenId, name, owner }
 		} = this.props;
 		return (
 			<TouchableOpacity
@@ -85,6 +101,11 @@ export default class CollectibleElement extends Component {
 						{strings('collectible.collectible_token_id')}: {tokenId}
 					</Text>
 				</View>
+				{!owner && (
+					<View style={styles.warningView}>
+						<Text style={styles.warning}>You are not the owner</Text>
+					</View>
+				)}
 			</TouchableOpacity>
 		);
 	};
