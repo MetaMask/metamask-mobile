@@ -34,10 +34,6 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		color: colors.primary,
 		...fontStyles.normal
-	},
-	footer: {
-		flex: 1,
-		paddingBottom: 30
 	}
 });
 
@@ -104,7 +100,7 @@ export default class Collectibles extends Component {
 	};
 
 	renderFooter = () => (
-		<View style={styles.footer}>
+		<View>
 			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
 				<Icon name="plus" size={16} color={colors.primary} />
 				<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
