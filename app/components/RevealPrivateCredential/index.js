@@ -7,8 +7,7 @@ import {
 	Text,
 	TextInput,
 	TouchableOpacity,
-	Clipboard,
-	Alert
+	Clipboard
 } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import PropTypes from 'prop-types';
@@ -19,6 +18,7 @@ import Engine from '../../core/Engine';
 import { connect } from 'react-redux';
 import { getNavigationOptionsTitle } from '../Navbar';
 import SecureKeychain from '../../core/SecureKeychain';
+import { showAlert } from '../../actions/alert';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -118,7 +118,11 @@ class RevealPrivateCredential extends Component {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired
 	};
 
 	async componentDidMount() {
@@ -193,7 +197,12 @@ class RevealPrivateCredential extends Component {
 			}
 		} = this.props;
 		await Clipboard.setString(privateCredential);
-		Alert.alert(strings(`reveal_credential.${privateCredentialName}_copied`));
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 2000,
+			content: 'clipboard-alert',
+			data: { msg: strings(`reveal_credential.${privateCredentialName}_copied`) }
+		});
 	};
 
 	render = () => {
@@ -277,4 +286,11 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
-export default connect(mapStateToProps)(RevealPrivateCredential);
+const mapDispatchToProps = dispatch => ({
+	showAlert: config => dispatch(showAlert(config))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(RevealPrivateCredential);

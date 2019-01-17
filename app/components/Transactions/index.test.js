@@ -15,6 +15,10 @@ describe('Transactions', () => {
 					},
 					TokenRatesController: {
 						contractExchangeRates: {}
+					},
+					CurrencyRateController: {
+						currentCurrency: 'USD',
+						conversionRate: 1
 					}
 				}
 			}

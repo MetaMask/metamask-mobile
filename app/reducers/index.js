@@ -3,6 +3,7 @@ import engineReducer from './engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
+import alertReducer from './alert';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -10,7 +11,8 @@ const rootReducer = combineReducers({
 	privacy: privacyReducer,
 	bookmarks: bookmarksReducer,
 	modals: modalsReducer,
-	settings: settingsReducer
+	settings: settingsReducer,
+	alert: alertReducer
 });
 
 export default rootReducer;

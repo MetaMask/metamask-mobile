@@ -130,7 +130,7 @@ exports[`Main should render correctly 1`] = `
     }
   }
 >
-  <Navigator
+  <Main
     navigation={
       Object {
         "_childrenNavigation": Object {},
