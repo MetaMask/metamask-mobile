@@ -8,10 +8,13 @@ exports[`AssetIcon should render correctly 1`] = `
     }
   }
   style={
-    Object {
-      "height": 50,
-      "width": 50,
-    }
+    Array [
+      Object {
+        "height": 50,
+        "width": 50,
+      },
+      undefined,
+    ]
   }
 />
 `;

@@ -6,15 +6,29 @@ import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'r
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../util/address';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	root: {
 		flex: 1
 	},
+	arrow: {
+		color: colors.inputBorderColor,
+		position: 'absolute',
+		right: 10,
+		top: 20
+	},
 	componentContainer: {
-		position: 'relative',
-		height: 50,
-		paddingBottom: 200
+		position: 'absolute',
+		zIndex: 6,
+		width: '100%',
+		marginTop: 60,
+		maxHeight: 200,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1,
+		elevation: 10
 	},
 	input: {
 		...fontStyles.bold,
@@ -24,8 +38,8 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		fontSize: 16,
 		paddingBottom: 16,
-		paddingLeft: 10,
-		paddingRight: 52,
+		paddingRight: 40,
+		paddingLeft: 52,
 		paddingTop: 16,
 		position: 'relative'
 	},
@@ -46,7 +60,8 @@ const styles = StyleSheet.create({
 		marginBottom: 4
 	},
 	icon: {
-		paddingRight: 9,
+		paddingRight: 8,
+		paddingLeft: 6,
 		paddingTop: 1.5
 	},
 	optionList: {
@@ -56,20 +71,19 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		paddingBottom: 12,
 		paddingTop: 10,
-		position: 'absolute',
 		width: '100%',
 		top: 0,
 		left: 0,
 		right: 0,
-		zIndex: 100,
 		elevation: 10
 	},
 	content: {
-		flex: 1
+		flex: 1,
+		paddingLeft: 8
 	},
 	qrCodeButton: {
 		position: 'absolute',
-		right: 5,
+		left: 5,
 		top: Platform.OS === 'android' ? 8 : 6,
 		paddingVertical: 8,
 		paddingHorizontal: 10
@@ -112,7 +126,8 @@ class AccountInput extends Component {
 
 	onFocus = () => {
 		const { onFocus } = this.props;
-		this.setState({ isOpen: true });
+		const { isOpen } = this.state;
+		this.setState({ isOpen: !isOpen });
 		onFocus && onFocus();
 	};
 
@@ -124,7 +139,7 @@ class AccountInput extends Component {
 		return (
 			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
-					<Identicon address={account.address} diameter={18} />
+					<Identicon address={account.address} diameter={22} />
 				</View>
 				<View style={styles.content}>
 					<View>
@@ -143,7 +158,7 @@ class AccountInput extends Component {
 	renderOptionList() {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
-			<View style={styles.componentContainer}>
+			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{Object.keys(visibleOptions).map(address =>
 						this.renderOption(visibleOptions[address], () => {
@@ -151,7 +166,7 @@ class AccountInput extends Component {
 						})
 					)}
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 
@@ -161,8 +176,7 @@ class AccountInput extends Component {
 		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
 		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
 		this.setState({
-			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match,
-			visibleOptions
+			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
 		});
 		onChange && onChange(value);
 	};
@@ -182,15 +196,15 @@ class AccountInput extends Component {
 					autoCapitalize="none"
 					autoCorrect={false}
 					onChangeText={this.onChange}
-					onFocus={this.onFocus}
 					placeholder={placeholder}
 					spellCheck={false}
 					style={styles.input}
 					value={value}
 				/>
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
-					<Icon name="qrcode" size={Platform.OS === 'android' ? 32 : 28} />
+					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
 				</TouchableOpacity>
+				<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				{isOpen && this.renderOptionList()}
 			</View>
 		);
