@@ -191,12 +191,18 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 			fontSize: 20,
 			...fontStyles.normal
 		},
-		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-				<Text style={styles.closeButtonText}>{backButtonText}</Text>
-			</TouchableOpacity>
-		)
+		headerLeft:
+			Platform.OS === 'ios' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			)
 	};
 }
 

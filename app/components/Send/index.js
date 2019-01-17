@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
@@ -8,7 +8,7 @@ import TransactionEditor from '../TransactionEditor';
 import { toBN, BNToHex, hexToBN } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
-import { getNavigationOptionsTitle, getClosableNavigationOptions } from '../Navbar';
+import { getClosableNavigationOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -28,9 +28,7 @@ const styles = StyleSheet.create({
  */
 class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
-		Platform.OS === 'android'
-			? getNavigationOptionsTitle(strings('send.title'), navigation)
-			: getClosableNavigationOptions(strings('send.title'), strings('navigation.cancel'), navigation);
+		getClosableNavigationOptions(strings('send.title'), strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**
