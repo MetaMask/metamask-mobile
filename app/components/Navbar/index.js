@@ -27,6 +27,20 @@ const styles = StyleSheet.create({
 		marginRight: 20,
 		marginTop: 5
 	},
+	backIcon: {
+		color: colors.fontSecondary
+	},
+	backButton: {
+		marginLeft: 15,
+		marginTop: 5
+	},
+	infoButton: {
+		marginRight: 15,
+		marginTop: 5
+	},
+	infoIcon: {
+		color: colors.fontSecondary
+	},
 	moreIcon: {
 		marginRight: 15,
 		marginTop: 5
@@ -179,6 +193,35 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
 				<Text style={styles.closeButtonText}>{backButtonText}</Text>
+			</TouchableOpacity>
+		)
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * for our wallet screen,
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getWalletNavbarOptions(title, navigation) {
+	return {
+		headerTitle: <NavbarTitle title={title} />,
+		headerLeft: (
+			<TouchableOpacity onPress={navigation.openDrawer} style={styles.backButton}>
+				<IonicIcon name="ios-arrow-back" size={32} style={styles.backIcon} />
+			</TouchableOpacity>
+		),
+		headerTruncatedBackTitle: strings('navigation.back'),
+		headerRight: (
+			<TouchableOpacity
+				style={styles.infoButton}
+				// eslint-disable-next-line
+				onPress={() => {
+					navigation.navigate('AccountDetails');
+				}}
+			>
+				<IonicIcon name="ios-information-circle-outline" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
 		)
 	};

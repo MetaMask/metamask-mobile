@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { colors, fontStyles } from '../../styles/common';
 import Networks, { hasBlockExplorer } from '../../util/networks';
@@ -538,7 +539,12 @@ class DrawerView extends Component {
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<MaterialIcon name="info" onPress={this.showQrCode} size={24} style={styles.infoIcon} />
+								<IonicIcon
+									name="ios-information-circle-outline"
+									onPress={this.showQrCode}
+									size={24}
+									style={styles.infoIcon}
+								/>
 							</TouchableOpacity>
 						</ImageBackground>
 					</View>

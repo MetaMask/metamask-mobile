@@ -2,7 +2,8 @@
 	"navigation": {
 		"back": "Back",
 		"close": "Close",
-		"cancel": "Cancel"
+		"cancel": "Cancel",
+		"info": "Info"
 	},
 	"onboarding": {
 		"title": "Welcome",

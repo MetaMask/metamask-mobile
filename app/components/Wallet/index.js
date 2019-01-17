@@ -11,7 +11,7 @@ import Tokens from '../Tokens';
 import Transactions from '../Transactions';
 import Collectibles from '../Collectibles';
 import Modal from 'react-native-modal';
-import getNavbarOptions from '../Navbar';
+import { getWalletNavbarOptions } from '../Navbar';
 import { strings } from '../../../locales/i18n';
 import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
  * Main view for the wallet
  */
 class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions(null, navigation);
+	static navigationOptions = ({ navigation }) => getWalletNavbarOptions(null, navigation);
 
 	static propTypes = {
 		/**
