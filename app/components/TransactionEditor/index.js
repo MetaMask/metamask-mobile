@@ -111,17 +111,31 @@ class TransactionEditor extends Component {
 		return estimation;
 	};
 
+	handleGenerateTransferData = (amount, to = this.state.to) => {
+		const { asset, from } = this.state;
+		if (!to || !asset) return;
+		const ERC721 = asset.tokenId;
+		const ERC20 = !asset.tokenId && amount;
+		let data;
+		if (ERC20) {
+			data = generateTransferData('ERC20', { toAddress: to, amount: amount.toString(16) });
+		} else if (ERC721) {
+			data = generateTransferData('ERC721', {
+				fromAddress: from,
+				toAddress: to,
+				tokenId: asset.tokenId.toString(16)
+			});
+		}
+		return data;
+	};
+
 	handleGasFeeSelection = (gasLimit, gasPrice) => {
 		this.setState({ gas: gasLimit, gasPrice });
 	};
 
 	handleUpdateAmount = async amount => {
-		const { to, data, asset } = this.state;
-		const tokenAmountToSend = asset && amount && amount.toString(16);
-		const newData =
-			to && asset && tokenAmountToSend
-				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
-				: data;
+		const { asset, data } = this.state;
+		const newData = asset ? this.handleGenerateTransferData(amount) : data;
 		const amountToSend = asset ? '0x0' : amount;
 		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
 		this.setState({ amount, data: newData, gas: hexToBN(gas) });
@@ -142,11 +156,7 @@ class TransactionEditor extends Component {
 
 	handleUpdateToAddress = async to => {
 		const { amount, data, asset } = this.state;
-		const tokenAmountToSend = asset && amount && amount.toString(16);
-		const newData =
-			asset && tokenAmountToSend
-				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
-				: data;
+		const newData = asset ? this.handleGenerateTransferData(amount, to) : data;
 		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
