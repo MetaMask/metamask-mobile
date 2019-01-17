@@ -11,43 +11,52 @@ import SendScreen from '../SendScreen';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import { createStackNavigator } from 'react-navigation';
 
-const walletStackNavigator = createStackNavigator({
-	WalletView: {
-		screen: Wallet
+export default createStackNavigator(
+	{
+		WalletView: {
+			screen: Wallet
+		},
+		Asset: {
+			screen: Asset
+		},
+		AccountDetails: {
+			screen: AccountDetails
+		},
+
+		AddAsset: {
+			screen: AddAsset
+		},
+		Collectible: {
+			screen: Collectible
+		},
+		SendScreen: {
+			screen: SendScreen
+		},
+		BrowserView: {
+			screen: Browser
+		},
+		AppConfigurations: {
+			screen: AppConfigurations
+		},
+		RevealPrivateCredential: {
+			screen: RevealPrivateCredential
+		},
+		SeedWords: {
+			screen: SeedWords
+		},
+		SyncWithExtension: {
+			screen: SyncWithExtension
+		}
 	},
-	AccountDetails: {
-		screen: AccountDetails
-	},
-	RevealPrivateCredential: {
-		screen: RevealPrivateCredential
-	},
-	SeedWords: {
-		screen: SeedWords
-	},
-	SyncWithExtension: {
-		screen: SyncWithExtension
-	},
-	Asset: {
-		screen: Asset
-	},
-	AddAsset: {
-		screen: AddAsset
-	},
-	AppConfigurations: {
-		screen: AppConfigurations
-	},
-	Collectible: {
-		screen: Collectible
-	},
-	SendScreen: {
-		screen: SendScreen
+	{
+		mode: 'modal'
 	}
-});
+);
 
 /**
  * Stack navigator component that wraps the content of the Wallet tab
  * including the viewsm that can be pushed on top of it
- */
+
 
 export default createStackNavigator(
 	{
@@ -56,8 +65,22 @@ export default createStackNavigator(
 		},
 		BrowserView: {
 			screen: createStackNavigator({
-				BrowserModalView: {
-					screen: Browser
+
+			})
+		},
+		SettingsView: {
+			screen: createStackNavigator({
+				AppConfigurations: {
+					screen: AppConfigurations
+				},
+				RevealPrivateCredential: {
+					screen: RevealPrivateCredential
+				},
+				SeedWords: {
+					screen: SeedWords
+				},
+				SyncWithExtension: {
+					screen: SyncWithExtension
 				}
 			})
 		}
@@ -67,3 +90,5 @@ export default createStackNavigator(
 		headerMode: 'none'
 	}
 );
+
+*/

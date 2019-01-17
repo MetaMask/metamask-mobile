@@ -3,8 +3,8 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
-import { Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
-import { fontStyles } from '../../styles/common';
+import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
+import { fontStyles, colors } from '../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../locales/i18n';
@@ -33,6 +33,14 @@ const styles = StyleSheet.create({
 	},
 	flex: {
 		flex: 1
+	},
+	closeButton: {
+		paddingHorizontal: 22
+	},
+	closeButtonText: {
+		color: colors.primary,
+		fontSize: 14,
+		...fontStyles.normal
 	}
 });
 
@@ -100,10 +108,9 @@ export function getBrowserViewNavbarOptions(navigation) {
 		),
 		headerRight:
 			Platform.OS === 'android' ? (
-				// eslint-disable-next-line
 				<TouchableOpacity
+					// eslint-disable-next-line
 					onPress={() => {
-						// eslint-disable-next-line no-mixed-spaces-and-tabs
 						navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
 					}}
 				>
@@ -133,7 +140,7 @@ export function getModalNavbarOptions(title) {
 
 /**
  * Function that returns the navigation options
- * for our the onboarding screens,
+ * for our onboarding screens,
  * which is just the metamask log and the Back button
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
@@ -152,5 +159,27 @@ export function getOnboardingNavbarOptions() {
 			</View>
 		),
 		headerBackTitle: strings('navigation.back')
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * for our closable screens,
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getClosableNavigationOptions(title, backButtonText, navigation) {
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		},
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{backButtonText}</Text>
+			</TouchableOpacity>
+		)
 	};
 }

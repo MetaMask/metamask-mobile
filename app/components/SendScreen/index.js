@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { Platform, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { withNavigation } from 'react-navigation';
-import { colors, fontStyles } from '../../styles/common';
+import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
 import TransactionEditor from '../TransactionEditor';
-import NavbarTitle from '../NavbarTitle';
 import { toBN, BNToHex, hexToBN } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
+import { getNavigationOptionsTitle, getClosableNavigationOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -27,15 +27,10 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class SendScreen extends Component {
-	static navigationOptions = {
-		headerTitle: <NavbarTitle title={strings('send.title')} />,
-		headerTruncatedBackTitle: strings('navigation.back'),
-		headerBackTitle: strings('navigation.back'),
-		headerTitleStyle: {
-			fontSize: 20,
-			...fontStyles.normal
-		}
-	};
+	static navigationOptions = ({ navigation }) =>
+		Platform.OS === 'android'
+			? getNavigationOptionsTitle(strings('send.title'), navigation)
+			: getClosableNavigationOptions(strings('send.title'), strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**

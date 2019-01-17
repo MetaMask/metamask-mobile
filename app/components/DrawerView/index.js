@@ -406,6 +406,15 @@ class DrawerView extends Component {
 		});
 	}
 
+	onAccountChange = () => {
+		setTimeout(() => {
+			this.hideAccountsModal();
+			setTimeout(() => {
+				this.hideDrawer();
+			}, 300);
+		}, 300);
+	};
+
 	getIcon(name, size) {
 		return <Icon name={name} size={size || 24} color={colors.gray} />;
 	}
@@ -529,7 +538,7 @@ class DrawerView extends Component {
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<MaterialIcon name="info" onPress={this.showQrCode} size={32} style={styles.infoIcon} />
+								<MaterialIcon name="info" onPress={this.showQrCode} size={24} style={styles.infoIcon} />
 							</TouchableOpacity>
 						</ImageBackground>
 					</View>
@@ -602,6 +611,7 @@ class DrawerView extends Component {
 						identities={identities}
 						selectedAddress={selectedAddress}
 						keyrings={keyrings}
+						onAccountChange={this.onAccountChange}
 					/>
 				</Modal>
 			</SafeAreaView>

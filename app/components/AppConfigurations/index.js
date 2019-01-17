@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -8,7 +8,7 @@ import { strings } from '../../../locales/i18n';
 import AppSettings from '../AppSettings';
 import SecuritySettings from '../SecuritySettings';
 import AppInformation from '../AppInformation';
-import { getNavigationOptionsTitle } from '../Navbar';
+import { getClosableNavigationOptions, getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -33,7 +33,10 @@ const styles = StyleSheet.create({
  * Main view for app configurations
  */
 export default class AppConfigurations extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
+	static navigationOptions = ({ navigation }) =>
+		Platform.OS === 'android'
+			? getNavigationOptionsTitle(strings('app_settings.title'), navigation)
+			: getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**

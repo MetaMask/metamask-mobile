@@ -13,7 +13,8 @@ import Engine from '../../core/Engine';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
+		minHeight: 500
 	},
 	emptyView: {
 		backgroundColor: colors.white,
@@ -111,8 +112,8 @@ export default class Tokens extends Component {
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
 		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-		await AssetsDetectionController.detectTokens();
-		await AccountTrackerController.refresh();
+		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
+		await Promise.all(actions);
 		this.setState({ refreshing: false });
 	};
 

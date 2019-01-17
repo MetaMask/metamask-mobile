@@ -29,7 +29,7 @@ import LockManager from '../../core/LockManager';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.slate
+		backgroundColor: colors.white
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
  * Main view for the wallet
  */
 class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('wallet.title'), navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions(null, navigation);
 
 	static propTypes = {
 		/**

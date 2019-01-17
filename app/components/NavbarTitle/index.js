@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, Platform, Image, View, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, Platform, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import { toggleNetworkModal } from '../../actions/modals';
@@ -27,11 +27,6 @@ const styles = StyleSheet.create({
 		marginRight: 5,
 		marginTop: 5
 	},
-	metamaskName: {
-		width: 94,
-		height: 12,
-		marginBottom: 5
-	},
 	title: {
 		fontSize: 18,
 		marginLeft: Platform.OS === 'android' ? -52 : 0,
@@ -43,8 +38,6 @@ const styles = StyleSheet.create({
 		borderWidth: 1
 	}
 });
-
-const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
 
 /**
  * UI Component that renders inside the navbar
@@ -59,7 +52,7 @@ class NavbarTitle extends Component {
 		/**
 		 * Name of the current view
 		 */
-		title: PropTypes.string.isRequired,
+		title: PropTypes.string,
 		/**
 		 * Action that toggles the network modal
 		 */
@@ -76,11 +69,7 @@ class NavbarTitle extends Component {
 
 		return (
 			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
-				{!title ? (
-					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
-				) : (
-					<Text style={styles.title}>{title}</Text>
-				)}
+				{title ? <Text style={styles.title}>{title}</Text> : null}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
