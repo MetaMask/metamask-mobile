@@ -62,6 +62,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           </Text>
         </View>
         <Connect(AccountSelect)
+          enabled={false}
           onChange={[Function]}
           value="0x0"
         />
