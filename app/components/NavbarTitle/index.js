@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, Platform, View, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import { toggleNetworkModal } from '../../actions/modals';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		alignItems: 'center',
-		flex: 1
+		alignItems: Platform.OS === 'android' ? 'flex-start' : 'center',
+		flex: 1,
+		paddingLeft: Platform.OS === 'android' ? 15 : 0
 	},
 	network: {
-		flexDirection: 'row',
-		marginLeft: Platform.OS === 'android' ? -52 : 0
+		flexDirection: 'row'
 	},
 	networkName: {
 		fontSize: 11,
@@ -29,7 +29,6 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 18,
-		marginLeft: Platform.OS === 'android' ? -52 : 0,
 		...fontStyles.normal
 	},
 	otherNetworkIcon: {

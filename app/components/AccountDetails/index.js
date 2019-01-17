@@ -179,7 +179,7 @@ class AccountDetails extends Component {
 	};
 
 	goToRevealPrivateKey = () => {
-		this.props.navigation.navigate('RevealPrivateCredential', { privateCredentialName: 'private_key' });
+		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'private_key' });
 	};
 
 	onShare = () => {

@@ -81,7 +81,7 @@ export default class Collectibles extends Component {
 	);
 
 	onItemPress = collectible => {
-		this.props.navigation.push('Collectible', collectible);
+		this.props.navigation.push('CollectibleView', collectible);
 	};
 
 	handleOnPress = collectible => {

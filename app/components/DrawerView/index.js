@@ -316,10 +316,7 @@ class DrawerView extends Component {
 
 	onSend = async () => {
 		await this.hideDrawer();
-		this.props.navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this.props.navigation.navigate('SendScreen');
-		}, 300);
+		this.props.navigation.navigate('SendView');
 	};
 
 	async goToWalletTab(tabIndex) {
@@ -355,7 +352,7 @@ class DrawerView extends Component {
 	showSettings = async () => {
 		await this.hideDrawer();
 		setTimeout(() => {
-			this.props.navigation.navigate('AppConfigurations');
+			this.props.navigation.navigate('AppConfigurationsView');
 		}, 300);
 	};
 
@@ -393,7 +390,7 @@ class DrawerView extends Component {
 
 	async goToBrowserUrl(url) {
 		await this.hideDrawer();
-		this.props.navigation.push('BrowserView', {
+		this.props.navigation.navigate('BrowserView', {
 			url
 		});
 	}

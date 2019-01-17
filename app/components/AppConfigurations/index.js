@@ -36,7 +36,7 @@ export default class AppConfigurations extends Component {
 	static navigationOptions = ({ navigation }) =>
 		Platform.OS === 'android'
 			? getNavigationOptionsTitle(strings('app_settings.title'), navigation)
-			: getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.cancel'), navigation);
+			: getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.back'), navigation);
 
 	static propTypes = {
 		/**

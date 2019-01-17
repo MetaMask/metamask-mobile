@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 /**
  * View that wraps the wraps the "Send" screen
  */
-class SendScreen extends Component {
+class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
 		Platform.OS === 'android'
 			? getNavigationOptionsTitle(strings('send.title'), navigation)
@@ -214,4 +214,4 @@ class SendScreen extends Component {
 	);
 }
 
-export default withNavigation(SendScreen);
+export default withNavigation(Send);

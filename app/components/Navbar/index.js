@@ -28,18 +28,20 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	backIcon: {
-		color: colors.fontSecondary
+		color: colors.fontPrimary
 	},
 	backButton: {
-		marginLeft: 15,
+		paddingLeft: Platform.OS === 'android' ? 22 : 18,
+		paddingRight: Platform.OS === 'android' ? 22 : 18,
 		marginTop: 5
 	},
 	infoButton: {
-		marginRight: 15,
+		paddingLeft: Platform.OS === 'android' ? 22 : 18,
+		paddingRight: Platform.OS === 'android' ? 22 : 18,
 		marginTop: 5
 	},
 	infoIcon: {
-		color: colors.fontSecondary
+		color: colors.fontPrimary
 	},
 	moreIcon: {
 		marginRight: 15,
@@ -209,7 +211,11 @@ export function getWalletNavbarOptions(title, navigation) {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
 			<TouchableOpacity onPress={navigation.openDrawer} style={styles.backButton}>
-				<IonicIcon name="ios-arrow-back" size={32} style={styles.backIcon} />
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
 			</TouchableOpacity>
 		),
 		headerTruncatedBackTitle: strings('navigation.back'),

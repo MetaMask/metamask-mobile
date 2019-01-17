@@ -139,7 +139,7 @@
 		"create_new_account": "Create new account"
 	},
 	"app_settings": {
-		"title": "App Settings",
+		"title": "Settings",
 		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
 		"search_engine": "Search Engine",

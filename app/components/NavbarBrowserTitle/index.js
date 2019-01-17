@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, StyleSheet, Text } from 'react-native';
+import { Platform, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		alignItems: 'center',
-		flex: 1
+		alignItems: Platform.OS === 'android' ? 'flex-start' : 'center',
+		flex: 1,
+		paddingLeft: Platform.OS === 'android' ? 15 : 0
 	},
 	network: {
 		flexDirection: 'row',
@@ -32,8 +33,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		flex: 1,
-		marginHorizontal: 10
+		flex: 1
 	},
 	lockIcon: {
 		marginTop: 2,
