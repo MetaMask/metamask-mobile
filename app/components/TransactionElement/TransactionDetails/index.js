@@ -147,7 +147,7 @@ export default class TransactionDetails extends PureComponent {
 
 	viewOnEtherscan = () => {
 		const {
-			transactionObject: { transaction: transactionHash, networkID }
+			transactionObject: { transactionHash, networkID }
 		} = this.props;
 		try {
 			const network = getNetworkTypeById(networkID);
