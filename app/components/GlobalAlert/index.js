@@ -4,7 +4,6 @@ import Modal from 'react-native-modal';
 import { StyleSheet, View, Text } from 'react-native';
 import { dismissAlert } from '../../actions/alert';
 import { connect } from 'react-redux';
-import { strings } from '../../../locales/i18n';
 import { colors, fontStyles } from '../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ElevatedView from 'react-native-elevated-view';
@@ -54,6 +53,10 @@ class GlobalAlert extends Component {
 		 */
 		content: PropTypes.any,
 		/**
+		 * Object with data required to render the content
+		 */
+		data: PropTypes.object,
+		/**
 		 * function that dismisses de modal
 		 */
 		dismissAlert: PropTypes.func
@@ -85,7 +88,7 @@ class GlobalAlert extends Component {
 			<View style={styles.copyAlertIcon}>
 				<Icon name={'check-circle'} size={64} color={colors.white} />
 			</View>
-			<Text style={styles.copyAlertText}>{strings('account_details.account_copied_to_clipboard')}</Text>
+			<Text style={styles.copyAlertText}>{this.props.data && this.props.data.msg}</Text>
 		</ElevatedView>
 	);
 
@@ -103,7 +106,8 @@ class GlobalAlert extends Component {
 const mapStateToProps = state => ({
 	isVisible: state.alert.isVisible,
 	autodismiss: state.alert.autodismiss,
-	content: state.alert.content
+	content: state.alert.content,
+	data: state.alert.data
 });
 
 const mapDispatchToProps = dispatch => ({

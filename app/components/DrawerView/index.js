@@ -78,13 +78,12 @@ const styles = StyleSheet.create({
 		flex: 1,
 		marginTop: Platform.OS === 'android' ? 15 : 20,
 		marginLeft: 17,
-		paddingTop: Platform.OS === 'android' ? 10 : 0,
-
+		paddingTop: Platform.OS === 'android' ? 10 : 0
 	},
 	metamaskFox: {
 		height: 22,
 		width: 22,
-		marginRight: 3,
+		marginRight: 3
 	},
 	metamaskName: {
 		marginTop: 5,
@@ -347,7 +346,8 @@ class DrawerView extends Component {
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 2000,
-			content: 'clipboard-alert'
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
 		});
 	};
 
@@ -414,16 +414,23 @@ class DrawerView extends Component {
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
+	getLabelForAssets = () => {
+		if (this.props.tokensCount > 0) {
+			return {
+				text: this.props.tokensCount + 1,
+				color: colors.fontSecondary
+			};
+		}
+		return null;
+	};
+
 	getSections = () => [
 		[
 			{
 				name: strings('drawer.assets'),
 				icon: this.getImageIcon('assets'),
 				action: this.showAssets,
-				label: this.props.tokensCount > 0 ? {
-					text: this.props.tokensCount + 1,
-					color: colors.fontSecondary
-				} : null
+				label: this.getLabelForAssets()
 			},
 			{
 				name: strings('drawer.dapp_browser'),
@@ -568,7 +575,9 @@ class DrawerView extends Component {
 											onPress={() => item.action()} // eslint-disable-line
 										>
 											{item.icon ? item.icon : null}
-											<Text style={[styles.menuItemName, !item.icon? styles.noIcon : null ]}>{item.name}</Text>
+											<Text style={[styles.menuItemName, !item.icon ? styles.noIcon : null]}>
+												{item.name}
+											</Text>
 											{item.label ? (
 												<View style={[styles.itemLabel, { backgroundColor: item.label.color }]}>
 													<Text style={styles.itemLabelText}>{item.label.text}</Text>

@@ -127,7 +127,8 @@ export default class AccountOverview extends Component {
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 2000,
-			content: 'clipboard-alert'
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
 		});
 	};
 

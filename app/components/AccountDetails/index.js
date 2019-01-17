@@ -7,7 +7,6 @@ import {
 	Text,
 	View,
 	Clipboard,
-	Alert,
 	InteractionManager,
 	TextInput,
 	ScrollView
@@ -27,6 +26,7 @@ import { hasBlockExplorer } from '../../util/networks';
 import { getNavigationOptionsTitle } from '../Navbar';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderAccountName } from '../../util/address';
+import { showAlert } from '../../actions/alert';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -141,7 +141,11 @@ class AccountDetails extends Component {
 		/**
 		 * Object representing the selected network
 		 */
-		network: PropTypes.object.isRequired
+		network: PropTypes.object.isRequired,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired
 	};
 
 	componentDidMount = () => {
@@ -156,7 +160,12 @@ class AccountDetails extends Component {
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
 		await Clipboard.setString(selectedAddress);
-		Alert.alert(strings('account_details.account_copied_to_clipboard'));
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 2000,
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
 	};
 
 	goToEtherscan = () => {
@@ -313,4 +322,11 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
-export default connect(mapStateToProps)(AccountDetails);
+const mapDispatchToProps = dispatch => ({
+	showAlert: config => dispatch(showAlert(config))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(AccountDetails);

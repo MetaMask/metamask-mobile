@@ -7,6 +7,7 @@ import { strings } from '../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../core/Engine';
 import { hasBlockExplorer } from '../../util/networks';
+import { showAlert } from '../../actions/alert';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -60,7 +61,19 @@ class Transactions extends Component {
 		/**
 		 * String representing the selected the selected network
 		 */
-		networkType: PropTypes.string.isRequired
+		networkType: PropTypes.string.isRequired,
+		/**
+		 * ETH to current currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		 * Action that shows the global alert
+		 */
+		showAlert: PropTypes.func.isRequired
 	};
 
 	state = {
@@ -114,7 +127,15 @@ class Transactions extends Component {
 			return this.renderLoader();
 		}
 
-		const { selectedAddress, transactions, navigation, contractExchangeRates } = this.props;
+		const {
+			selectedAddress,
+			transactions,
+			navigation,
+			contractExchangeRates,
+			conversionRate,
+			currentCurrency,
+			showAlert
+		} = this.props;
 		const tokens = this.props.tokens.reduce((tokens, token) => {
 			tokens[token.address] = token;
 			return tokens;
@@ -144,6 +165,9 @@ class Transactions extends Component {
 						blockExplorer={blockExplorer}
 						tokens={tokens}
 						contractExchangeRates={contractExchangeRates}
+						conversionRate={conversionRate}
+						currentCurrency={currentCurrency}
+						showAlert={showAlert}
 					/>
 				)}
 			/>
@@ -159,7 +183,16 @@ class Transactions extends Component {
 
 const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
 });
 
-export default connect(mapStateToProps)(Transactions);
+const mapDispatchToProps = dispatch => ({
+	showAlert: config => dispatch(showAlert(config))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Transactions);
