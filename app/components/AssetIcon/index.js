@@ -24,6 +24,9 @@ export default class AssetIcon extends Component {
 		 * String of the asset icon
 		 */
 		logo: PropTypes.string,
+		/**
+		 * Custom style to apply to image
+		 */
 		customStyle: PropTypes.object
 	};
 

@@ -18,6 +18,9 @@ export default class IdenticonComponent extends Component {
 		 * Address used to render a specific identicon
 		 */
 		address: PropTypes.string,
+		/**
+		 * Custom style to apply to image
+		 */
 		customStyle: PropTypes.object
 	};
 
