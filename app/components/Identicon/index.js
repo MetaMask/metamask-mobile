@@ -17,7 +17,11 @@ export default class IdenticonComponent extends Component {
 		/**
 		 * Address used to render a specific identicon
 		 */
-		address: PropTypes.string
+		address: PropTypes.string,
+		/**
+		 * Custom style to apply to image
+		 */
+		customStyle: PropTypes.object
 	};
 
 	static defaultProps = {
@@ -25,16 +29,19 @@ export default class IdenticonComponent extends Component {
 	};
 
 	render = () => {
-		const { diameter, address } = this.props;
+		const { diameter, address, customStyle } = this.props;
 
 		return address ? (
 			<Image
 				source={{ uri: toDataUrl(address) }}
-				style={{
-					height: diameter,
-					width: diameter,
-					borderRadius: diameter / 2
-				}}
+				style={[
+					{
+						height: diameter,
+						width: diameter,
+						borderRadius: diameter / 2
+					},
+					customStyle
+				]}
 			/>
 		) : null;
 	};

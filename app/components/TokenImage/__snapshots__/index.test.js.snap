@@ -3,13 +3,16 @@
 exports[`TokenImage should render correctly 1`] = `
 <View
   style={
-    Object {
-      "borderRadius": 25,
-      "height": 50,
-      "marginRight": 20,
-      "overflow": "hidden",
-      "width": 50,
-    }
+    Array [
+      Object {
+        "borderRadius": 25,
+        "height": 50,
+        "marginRight": 20,
+        "overflow": "hidden",
+        "width": 50,
+      },
+      undefined,
+    ]
   }
 >
   <IdenticonComponent

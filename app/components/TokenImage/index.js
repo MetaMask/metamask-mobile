@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	itemLogoWrapper: {
@@ -22,14 +23,23 @@ export default class TokenElement extends Component {
 		/**
 		 * Asset object (in this case ERC20 token)
 		 */
-		asset: PropTypes.object
+		asset: PropTypes.object,
+		containerStyle: PropTypes.object,
+		iconStyle: PropTypes.object
 	};
 
 	render = () => {
-		const { asset } = this.props;
+		const { asset, containerStyle, iconStyle } = this.props;
+		if (asset.address in contractMap) {
+			asset.logo = contractMap[asset.address].logo;
+		}
 		return (
-			<View style={styles.itemLogoWrapper}>
-				{asset.logo ? <AssetIcon logo={asset.logo} /> : <Identicon address={asset.address} />}
+			<View style={[styles.itemLogoWrapper, containerStyle]}>
+				{asset.logo ? (
+					<AssetIcon logo={asset.logo} customStyle={iconStyle} />
+				) : (
+					<Identicon address={asset.address} customStyle={iconStyle} />
+				)}
 			</View>
 		);
 	};

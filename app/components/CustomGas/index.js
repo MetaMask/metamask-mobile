@@ -21,7 +21,6 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		flex: 1,
 		position: 'relative',
-		zIndex: 1,
 		flexDirection: 'row',
 		justifyContent: 'space-evenly'
 	},
@@ -55,7 +54,7 @@ const styles = StyleSheet.create({
 		fontSize: 12
 	},
 	textTitle: {
-		...fontStyles.normal
+		...fontStyles.bold
 	},
 	textTotalGas: {
 		...fontStyles.bold
