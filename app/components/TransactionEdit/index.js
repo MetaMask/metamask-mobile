@@ -7,7 +7,16 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, hexToBN, fromWei } from '../../util/number';
+import {
+	toBN,
+	isBN,
+	hexToBN,
+	fromWei,
+	isDecimal,
+	toWei,
+	toTokenMinimalUnit,
+	fromTokenMinimalUnit
+} from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
 
@@ -116,6 +125,10 @@ class TransactionEdit extends Component {
 		 */
 		handleUpdateFromAddress: PropTypes.func,
 		/**
+		 * Callback to update readable value in transaction in parent state
+		 */
+		handleUpdateReadableValue: PropTypes.func,
+		/**
 		 * Callback to update to address in transaction in parent state
 		 */
 		handleUpdateToAddress: PropTypes.func,
@@ -123,6 +136,10 @@ class TransactionEdit extends Component {
 		 * Callback to update selected asset in transaction in parent state
 		 */
 		handleUpdateAsset: PropTypes.func,
+		/**
+		 * A string that represents the value un a readable format (decimal)
+		 */
+		readableValue: PropTypes.string,
 		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
@@ -150,7 +167,8 @@ class TransactionEdit extends Component {
 		amountError: '',
 		addressError: '',
 		toAddressError: '',
-		gasError: ''
+		gasError: '',
+		fillMax: false
 	};
 
 	componentDidMount() {
@@ -171,6 +189,15 @@ class TransactionEdit extends Component {
 			? hexToBN(balance).sub(totalGas)
 			: fromWei(0);
 		this.props.handleUpdateAmount(asset ? contractBalances[asset.address] : ethMaxAmount);
+		const readableValue = asset
+			? fromTokenMinimalUnit(contractBalances[asset.address], asset.decimals)
+			: fromWei(ethMaxAmount);
+		this.props.handleUpdateReadableValue(readableValue);
+		this.setState({ fillMax: true });
+	};
+
+	updateFillMax = fillMax => {
+		this.setState({ fillMax });
 	};
 
 	onFocusToAddress = () => {
@@ -192,7 +219,15 @@ class TransactionEdit extends Component {
 	};
 
 	updateAmount = async amount => {
-		await this.props.handleUpdateAmount(amount);
+		const { asset } = this.props.transactionData;
+		let processedAmount;
+		if (asset) {
+			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, asset.decimals) : undefined;
+		} else {
+			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
+		}
+		await this.props.handleUpdateAmount(processedAmount);
+		this.props.handleUpdateReadableValue(amount);
 		const amountError = this.props.validateAmount();
 		this.setState({ amountError });
 	};
@@ -270,6 +305,9 @@ class TransactionEdit extends Component {
 								value={amount}
 								asset={asset}
 								handleUpdateAsset={this.props.handleUpdateAsset}
+								readableValue={this.props.readableValue}
+								fillMax={this.state.fillMax}
+								updateFillMax={this.updateFillMax}
 							/>
 						</View>
 						<View style={{ ...styles.formRow, ...styles.gasRow }}>

@@ -70,7 +70,8 @@ class TransactionEditor extends Component {
 		gasPrice: this.props.transaction.gasPrice,
 		to: this.props.transaction.to,
 		asset: this.props.transaction.asset,
-		toFocused: false
+		toFocused: false,
+		readableValue: undefined
 	};
 
 	onCancel = () => {
@@ -126,6 +127,10 @@ class TransactionEditor extends Component {
 		this.setState({ amount, data: newData, gas: hexToBN(gas) });
 	};
 
+	handleUpdateReadableValue = readableValue => {
+		this.setState({ readableValue });
+	};
+
 	handleUpdateData = async data => {
 		const { gas } = await this.estimateGas({ data });
 		this.setState({ data, gas: hexToBN(gas) });
@@ -146,9 +151,8 @@ class TransactionEditor extends Component {
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
 
-	handleUpdateAsset = asset => {
-		this.setState({ amount: undefined, data: undefined, to: undefined, asset });
-		this.estimateGas({ amount: undefined, to: undefined });
+	handleUpdateAsset = async asset => {
+		await this.setState({ amount: undefined, data: undefined, to: undefined, asset, readableValue: undefined });
 	};
 
 	validate = () => {
@@ -248,7 +252,7 @@ class TransactionEditor extends Component {
 	};
 
 	render = () => {
-		const { amount, gas, gasPrice, from, to, data, asset } = this.state;
+		const { amount, gas, gasPrice, from, to, data, asset, readableValue } = this.state;
 		const { mode, transactionConfirmed } = this.props;
 		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
 		return (
@@ -270,6 +274,8 @@ class TransactionEditor extends Component {
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
 						handleUpdateAsset={this.handleUpdateAsset}
+						readableValue={readableValue}
+						handleUpdateReadableValue={this.handleUpdateReadableValue}
 					/>
 				)}
 				{mode === 'review' && (

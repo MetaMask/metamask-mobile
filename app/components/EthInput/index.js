@@ -5,11 +5,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import {
 	weiToFiat,
-	isDecimal,
-	toWei,
-	fromWei,
 	balanceToFiat,
-	toTokenMinimalUnit,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
 	renderFromWei
@@ -176,23 +172,50 @@ class EthInput extends Component {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		 * A string that represents the value un a readable format (decimal)
+		 */
+		readableValue: PropTypes.string,
+		/**
+		 * Whether fill max button was pressed or not
+		 */
+		fillMax: PropTypes.bool,
+		/**
+		 * Callback to update fill max state in parent
+		 */
+		updateFillMax: PropTypes.func,
+		/**
 		 * Array of assets (in this case ERC20 tokens)
 		 */
 		tokens: PropTypes.array
 	};
 
-	state = { isOpen: false };
+	state = { isOpen: false, readableValue: undefined };
+
+	componentDidUpdate = () => {
+		const { fillMax, readableValue } = this.props;
+		if (fillMax) {
+			this.setState({ readableValue });
+		}
+		this.props.updateFillMax(false);
+	};
+
+	componentDidMount = () => {
+		const { readableValue } = this.props;
+		this.setState({ readableValue });
+	};
 
 	onFocus = () => {
 		const { isOpen } = this.state;
 		this.setState({ isOpen: !isOpen });
 	};
 
-	selectAsset = asset => {
+	selectAsset = async asset => {
 		this.setState({ isOpen: false });
-		const { handleUpdateAsset } = this.props;
+		const { handleUpdateAsset, onChange } = this.props;
 		asset = asset.symbol === 'ETH' ? undefined : asset;
-		handleUpdateAsset && handleUpdateAsset(asset);
+		handleUpdateAsset && (await handleUpdateAsset(asset));
+		onChange && onChange(undefined);
+		this.setState({ readableValue: undefined });
 	};
 
 	renderAsset = (asset, onPress) => {
@@ -205,7 +228,7 @@ class EthInput extends Component {
 				: renderFromWei(accounts[selectedAddress].balance);
 
 		return (
-			<TouchableOpacity key={asset.address} onPress={onPress} style={styles.option}>
+			<TouchableOpacity key={asset.address || asset.symbol} onPress={onPress} style={styles.option}>
 				<View style={styles.icon}>
 					{asset.symbol !== 'ETH' ? (
 						<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
@@ -235,8 +258,8 @@ class EthInput extends Component {
 			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{tokens.map(token =>
-						this.renderAsset(token, () => {
-							this.selectAsset(token);
+						this.renderAsset(token, async () => {
+							await this.selectAsset(token);
 						})
 					)}
 				</View>
@@ -245,15 +268,15 @@ class EthInput extends Component {
 	};
 
 	onChange = value => {
-		const { onChange, asset } = this.props;
-		!asset && onChange && onChange(isDecimal(value) ? toWei(value) : undefined);
-		asset && onChange && onChange(isDecimal(value) ? toTokenMinimalUnit(value, asset.decimals) : undefined);
+		const { onChange } = this.props;
+		onChange && onChange(value);
+		this.setState({ readableValue: value });
 	};
 
 	render = () => {
 		const { currentCurrency, readonly, value, asset, contractExchangeRates, conversionRate } = this.props;
-		const { isOpen } = this.state;
-		let convertedAmount, readableValue;
+		const { isOpen, readableValue } = this.state;
+		let convertedAmount;
 		if (asset) {
 			const exchangeRate = contractExchangeRates[asset.address];
 			if (exchangeRate) {
@@ -266,10 +289,8 @@ class EthInput extends Component {
 			} else {
 				convertedAmount = strings('transaction.conversion_not_available');
 			}
-			readableValue = value && fromTokenMinimalUnit(value, asset.decimals);
 		} else {
 			convertedAmount = weiToFiat(value, this.props.conversionRate, currentCurrency).toUpperCase();
-			readableValue = value && fromWei(value);
 		}
 		return (
 			<View style={styles.root}>
