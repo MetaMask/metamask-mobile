@@ -32,9 +32,9 @@ const styles = StyleSheet.create({
 /**
  * Main view for app configurations
  */
-export default class AppConfigurations extends Component {
+export default class Settings extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.back'), navigation);
+		getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation);
 
 	static propTypes = {
 		/**

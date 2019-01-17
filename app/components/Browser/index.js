@@ -122,8 +122,9 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
+		height: 44,
+		alignItems: 'center',
 		flexDirection: 'row',
-		paddingTop: 10,
 		paddingHorizontal: 10
 	},
 	iconMore: {

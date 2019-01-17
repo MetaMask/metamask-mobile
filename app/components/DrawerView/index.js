@@ -308,12 +308,10 @@ class DrawerView extends Component {
 		this.props.toggleNetworkModal();
 	};
 
-	showQrCode = async () => {
-		await this.hideDrawer();
+	showAccountDetails = () => {
 		this.props.navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this.props.navigation.navigate('AccountDetails');
-		}, 300);
+		this.props.navigation.navigate('AccountDetails');
+		this.hideDrawer();
 	};
 
 	onDeposit = () => {
@@ -321,23 +319,23 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
-		await this.hideDrawer();
 		this.props.navigation.navigate('SendView');
+		this.hideDrawer();
 	};
 
 	async goToWalletTab(tabIndex) {
-		await this.hideDrawer();
 		this.props.navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this.props.navigation.navigate('WalletView', { page: tabIndex });
-		}, 300);
+		this.hideDrawer();
+		if (tabIndex !== 0) {
+			setTimeout(() => {
+				this.props.navigation.navigate('WalletView', { page: tabIndex });
+			}, 300);
+		}
 	}
 
-	goToBrowser = async () => {
-		await this.hideDrawer();
-		setTimeout(() => {
-			this.props.navigation.navigate('BrowserHome');
-		}, 300);
+	goToBrowser = () => {
+		this.props.navigation.navigate('BrowserHome');
+		this.hideDrawer();
 	};
 
 	showAssets = () => {
@@ -356,10 +354,8 @@ class DrawerView extends Component {
 	};
 
 	showSettings = async () => {
-		await this.hideDrawer();
-		setTimeout(() => {
-			this.props.navigation.navigate('AppConfigurationsView');
-		}, 300);
+		this.props.navigation.navigate('SettingsView');
+		this.hideDrawer();
 	};
 
 	logout = () => {
@@ -394,11 +390,11 @@ class DrawerView extends Component {
 		this.goToBrowserUrl('https://support.metamask.io');
 	};
 
-	async goToBrowserUrl(url) {
-		await this.hideDrawer();
+	goToBrowserUrl(url) {
 		this.props.navigation.navigate('BrowserView', {
 			url
 		});
+		this.hideDrawer();
 	}
 
 	hideDrawer() {
@@ -411,9 +407,9 @@ class DrawerView extends Component {
 	}
 
 	onAccountChange = () => {
-		setTimeout(async () => {
+		setTimeout(() => {
 			this.hideAccountsModal();
-			await this.hideDrawer();
+			this.hideDrawer();
 		}, 300);
 	};
 
@@ -542,7 +538,7 @@ class DrawerView extends Component {
 							>
 								<IonicIcon
 									name="ios-information-circle-outline"
-									onPress={this.showQrCode}
+									onPress={this.showAccountDetails}
 									size={24}
 									style={styles.infoIcon}
 								/>

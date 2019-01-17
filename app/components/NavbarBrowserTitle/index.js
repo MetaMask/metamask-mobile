@@ -1,16 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		alignItems: Platform.OS === 'android' ? 'flex-start' : 'center',
-		flex: 1,
-		paddingLeft: Platform.OS === 'android' ? 15 : 0
+		alignItems: 'center',
+		flex: 1
 	},
 	network: {
 		flexDirection: 'row',
@@ -45,8 +44,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	}
 });
-
-const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
 
 /**
  * UI Component that renders inside the navbar

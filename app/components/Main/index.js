@@ -8,7 +8,7 @@ import Browser from '../Browser';
 import BrowserHome from '../BrowserHome';
 import AddBookmark from '../AddBookmark';
 import Approval from '../Approval';
-import AppConfigurations from '../AppConfigurations';
+import Settings from '../Settings';
 import Wallet from '../Wallet';
 import SyncWithExtension from '../SyncWithExtension';
 import Asset from '../Asset';
@@ -78,10 +78,10 @@ const MainNavigator = createStackNavigator(
 				}
 			})
 		},
-		AppConfigurationsView: {
+		SettingsView: {
 			screen: createStackNavigator({
-				AppConfigurations: {
-					screen: AppConfigurations
+				Settings: {
+					screen: Settings
 				},
 				SyncWithExtensionView: {
 					screen: SyncWithExtension

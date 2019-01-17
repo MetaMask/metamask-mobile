@@ -1,16 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Networks from '../../util/networks';
 import { toggleNetworkModal } from '../../actions/modals';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		alignItems: Platform.OS === 'android' ? 'flex-start' : 'center',
-		flex: 1,
-		paddingLeft: Platform.OS === 'android' ? 15 : 0
+		alignItems: 'center',
+		flex: 1
 	},
 	network: {
 		flexDirection: 'row'
