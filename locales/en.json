@@ -1,6 +1,9 @@
 {
 	"navigation": {
-		"back": "Back"
+		"back": "Back",
+		"close": "Close",
+		"cancel": "Cancel",
+		"info": "Info"
 	},
 	"onboarding": {
 		"title": "Welcome",
@@ -59,12 +62,12 @@
 		"deposit_button": "Deposit",
 		"coming_soon": "Coming soon...",
 		"assets": "Your Assets",
-		"copy_address": "Copy address to clipboard",
-		"view_in_etherscan": "View on etherscan",
+		"copy_address": "Copy my Public Address",
+		"view_in_etherscan": "View on Etherscan",
 		"dapp_browser": "Explore ÐApps",
 		"settings": "Settings",
 		"help": "Get Help",
-		"logout": "Log out",
+		"logout": "Log Out",
 		"logout_title": "Do you really want to log out?",
 		"logout_ok": "YES",
 		"logout_cancel": "NO"
@@ -76,7 +79,7 @@
 		"title": "Receive"
 	},
 	"wallet": {
-		"title": "Wallet",
+		"title": "Your Assets",
 		"tokens": "TOKENS",
 		"collectible": "Collectible",
 		"collectibles": "COLLECTIBLES",
@@ -136,7 +139,7 @@
 		"create_new_account": "Create new account"
 	},
 	"app_settings": {
-		"title": "App Settings",
+		"title": "Settings",
 		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
 		"search_engine": "Search Engine",

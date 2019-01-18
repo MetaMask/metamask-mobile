@@ -109,9 +109,9 @@ export default class AssetOverview extends Component {
 	onSend = async () => {
 		const { asset } = this.props;
 		if (asset.symbol === 'ETH') {
-			this.props.navigation.navigate('SendScreen');
+			this.props.navigation.navigate('SendView');
 		} else {
-			this.props.navigation.navigate('SendScreen', asset);
+			this.props.navigation.navigate('SendView', asset);
 		}
 	};
 

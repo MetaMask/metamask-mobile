@@ -444,6 +444,7 @@ exports[`NetworkList should render correctly 1`] = `
   >
     <TouchableOpacity
       activeOpacity={0.2}
+      onPress={[Function]}
       style={
         Object {
           "alignContent": "center",

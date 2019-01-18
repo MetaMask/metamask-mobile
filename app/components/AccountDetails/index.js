@@ -74,7 +74,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		padding: 10,
+		paddingHorizontal: 15,
+		paddingVertical: 10,
 		marginTop: 10,
 		marginBottom: 20,
 		marginRight: 10,
@@ -84,12 +85,10 @@ const styles = StyleSheet.create({
 	},
 	address: {
 		fontSize: 12,
-		marginLeft: 30,
 		...fontStyles.normal
 	},
 	icon: {
 		marginLeft: 10,
-		marginRight: 30,
 		color: colors.gray
 	},
 	iconEdit: {
@@ -180,7 +179,7 @@ class AccountDetails extends Component {
 	};
 
 	goToRevealPrivateKey = () => {
-		this.props.navigation.navigate('RevealPrivateCredential', { privateCredentialName: 'private_key' });
+		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'private_key' });
 	};
 
 	onShare = () => {

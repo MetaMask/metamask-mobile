@@ -11,7 +11,7 @@ import Tokens from '../Tokens';
 import Transactions from '../Transactions';
 import Collectibles from '../Collectibles';
 import Modal from 'react-native-modal';
-import getNavbarOptions from '../Navbar';
+import { getWalletNavbarOptions } from '../Navbar';
 import { strings } from '../../../locales/i18n';
 import Branch from 'react-native-branch';
 import Logger from '../../util/Logger';
@@ -29,7 +29,7 @@ import LockManager from '../../core/LockManager';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.slate
+		backgroundColor: colors.white
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
  * Main view for the wallet
  */
 class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('wallet.title'), navigation);
+	static navigationOptions = ({ navigation }) => getWalletNavbarOptions(strings('wallet.title'), navigation);
 
 	static propTypes = {
 		/**

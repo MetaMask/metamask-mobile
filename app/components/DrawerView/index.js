@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { colors, fontStyles } from '../../styles/common';
 import Networks, { hasBlockExplorer } from '../../util/networks';
@@ -40,23 +41,24 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
+		height: 40,
 		flexDirection: 'column',
 		paddingBottom: 10
 	},
 	network: {
-		paddingVertical: 7,
+		paddingVertical: Platform.OS === 'android' ? 5 : 7,
 		paddingHorizontal: 12,
 		flexDirection: 'row',
 		alignSelf: 'flex-end',
 		marginRight: 10,
-		marginTop: Platform.OS === 'android' ? -25 : -25,
+		marginTop: Platform.OS === 'android' ? -3 : -5,
 		borderRadius: 15,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.fontSecondary
 	},
 	networkName: {
 		textAlign: 'right',
-		fontSize: 9,
+		fontSize: 10,
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 100,
 		marginRight: 5,
-		marginTop: 3
+		marginTop: Platform.OS === 'android' ? 5 : 3
 	},
 	caretDownNetwork: {
 		marginLeft: 7,
@@ -76,7 +78,7 @@ const styles = StyleSheet.create({
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
-		marginTop: Platform.OS === 'android' ? 15 : 20,
+		marginTop: Platform.OS === 'android' ? 0 : 10,
 		marginLeft: 17,
 		paddingTop: Platform.OS === 'android' ? 10 : 0
 	},
@@ -297,16 +299,20 @@ class DrawerView extends Component {
 		this.setState({ accountsModalVisible: false });
 	};
 
+	onNetworksModalClose = async manualClose => {
+		this.hideNetworksModal();
+		if (!manualClose) {
+			await this.hideDrawer();
+		}
+	};
 	hideNetworksModal = () => {
 		this.props.toggleNetworkModal();
 	};
 
-	showQrCode = async () => {
-		await this.hideDrawer();
+	showAccountDetails = () => {
 		this.props.navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this.props.navigation.navigate('AccountDetails');
-		}, 300);
+		this.props.navigation.navigate('AccountDetails');
+		this.hideDrawer();
 	};
 
 	onDeposit = () => {
@@ -314,26 +320,23 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
-		await this.hideDrawer();
-		this.props.navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this.props.navigation.navigate('SendScreen');
-		}, 300);
+		this.props.navigation.navigate('SendView');
+		this.hideDrawer();
 	};
 
 	async goToWalletTab(tabIndex) {
-		await this.hideDrawer();
 		this.props.navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this.props.navigation.navigate('WalletView', { page: tabIndex });
-		}, 300);
+		this.hideDrawer();
+		if (tabIndex !== 0) {
+			setTimeout(() => {
+				this.props.navigation.navigate('WalletView', { page: tabIndex });
+			}, 300);
+		}
 	}
 
-	goToBrowser = async () => {
-		await this.hideDrawer();
-		setTimeout(() => {
-			this.props.navigation.navigate('BrowserHome');
-		}, 300);
+	goToBrowser = () => {
+		this.props.navigation.navigate('BrowserHome');
+		this.hideDrawer();
 	};
 
 	showAssets = () => {
@@ -352,10 +355,8 @@ class DrawerView extends Component {
 	};
 
 	showSettings = async () => {
-		await this.hideDrawer();
-		setTimeout(() => {
-			this.props.navigation.navigate('AppConfigurations');
-		}, 300);
+		this.props.navigation.navigate('SettingsView');
+		this.hideDrawer();
 	};
 
 	logout = () => {
@@ -390,11 +391,11 @@ class DrawerView extends Component {
 		this.goToBrowserUrl('https://support.metamask.io');
 	};
 
-	async goToBrowserUrl(url) {
-		await this.hideDrawer();
-		this.props.navigation.push('BrowserView', {
+	goToBrowserUrl(url) {
+		this.props.navigation.navigate('BrowserView', {
 			url
 		});
+		this.hideDrawer();
 	}
 
 	hideDrawer() {
@@ -405,6 +406,13 @@ class DrawerView extends Component {
 			}, 300);
 		});
 	}
+
+	onAccountChange = () => {
+		setTimeout(() => {
+			this.hideAccountsModal();
+			this.hideDrawer();
+		}, 300);
+	};
 
 	getIcon(name, size) {
 		return <Icon name={name} size={size || 24} color={colors.gray} />;
@@ -529,7 +537,12 @@ class DrawerView extends Component {
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<MaterialIcon name="info" onPress={this.showQrCode} size={32} style={styles.infoIcon} />
+								<IonicIcon
+									name="ios-information-circle-outline"
+									onPress={this.showAccountDetails}
+									size={24}
+									style={styles.infoIcon}
+								/>
 							</TouchableOpacity>
 						</ImageBackground>
 					</View>
@@ -590,7 +603,7 @@ class DrawerView extends Component {
 					</View>
 				</ScrollView>
 				<Modal isVisible={this.props.networkModalVisible} onBackdropPress={this.hideNetworksModal}>
-					<NetworkList onClose={this.hideNetworksModal} />
+					<NetworkList onClose={this.onNetworksModalClose} />
 				</Modal>
 				<Modal
 					isVisible={this.state.accountsModalVisible}
@@ -602,6 +615,7 @@ class DrawerView extends Component {
 						identities={identities}
 						selectedAddress={selectedAddress}
 						keyrings={keyrings}
+						onAccountChange={this.onAccountChange}
 					/>
 				</Modal>
 			</SafeAreaView>

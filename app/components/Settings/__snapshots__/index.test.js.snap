@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AppConfigurations should render correctly 1`] = `
+exports[`Settings should render correctly 1`] = `
 <ContextConsumer>
   <Component />
 </ContextConsumer>

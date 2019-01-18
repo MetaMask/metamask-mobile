@@ -1,7 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { ActivityIndicator, InteractionManager, RefreshControl, StyleSheet, Text, View, FlatList } from 'react-native';
+import {
+	ScrollView,
+	ActivityIndicator,
+	InteractionManager,
+	RefreshControl,
+	StyleSheet,
+	Text,
+	View,
+	FlatList
+} from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -115,9 +124,11 @@ class Transactions extends Component {
 	);
 
 	renderEmpty = () => (
-		<View style={styles.emptyContainer}>
-			<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
-		</View>
+		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+			<View style={styles.emptyContainer}>
+				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+			</View>
+		</ScrollView>
 	);
 
 	keyExtractor = item => item.id;

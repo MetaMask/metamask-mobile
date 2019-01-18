@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
@@ -13,7 +13,8 @@ import Engine from '../../core/Engine';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
+		minHeight: 500
 	},
 	emptyView: {
 		backgroundColor: colors.white,
@@ -111,8 +112,8 @@ export default class Tokens extends Component {
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
 		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-		await AssetsDetectionController.detectTokens();
-		await AccountTrackerController.refresh();
+		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
+		await Promise.all(actions);
 		this.setState({ refreshing: false });
 	};
 

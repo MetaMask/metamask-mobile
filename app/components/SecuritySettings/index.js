@@ -170,7 +170,7 @@ class SecuritySettings extends Component {
 	};
 
 	goToRevealPrivateCredential = () => {
-		this.props.navigation.navigate('RevealPrivateCredential', { privateCredentialName: 'seed_phrase' });
+		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
 	};
 
 	renderBiometrics() {

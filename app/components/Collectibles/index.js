@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -11,7 +11,8 @@ import Engine from '../../core/Engine';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1
+		flex: 1,
+		minHeight: 500
 	},
 	emptyView: {
 		backgroundColor: colors.white,
@@ -71,14 +72,16 @@ export default class Collectibles extends Component {
 	collectibleToRemove = null;
 
 	renderEmpty = () => (
-		<View style={styles.emptyView}>
-			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
-			{this.renderFooter()}
-		</View>
+		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+			<View style={styles.emptyView}>
+				<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
+				{this.renderFooter()}
+			</View>
+		</ScrollView>
 	);
 
 	onItemPress = collectible => {
-		this.props.navigation.push('Collectible', collectible);
+		this.props.navigation.push('CollectibleView', collectible);
 	};
 
 	handleOnPress = collectible => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import SendScreen from './';
+import Send from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
@@ -11,7 +11,7 @@ describe('Accounts', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
 			<Provider store={store}>
-				<SendScreen />
+				<Send />
 			</Provider>
 		);
 		expect(wrapper).toMatchSnapshot();
