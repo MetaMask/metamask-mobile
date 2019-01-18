@@ -357,13 +357,14 @@ class TransactionEdit extends Component {
 									</View>
 									<View style={styles.collectibleInformation}>
 										<Text style={[styles.name, fontStyles.bold]}>
-											{!name ? renderShortAddress(asset.address) : name}
+											{!asset.name ? renderShortAddress(asset.address) : asset.name}
 										</Text>
-										{contractMap[asset.address] && (
-											<Text style={styles.collectibleName}>
-												{contractMap[asset.address].name}
-											</Text>
-										)}
+										{contractMap[asset.address] &&
+											contractMap[asset.address].name && (
+												<Text style={styles.collectibleName}>
+													{contractMap[asset.address].name}
+												</Text>
+											)}
 										<Text style={styles.tokenId}>
 											{strings('collectible.collectible_token_id')}: {asset.tokenId}
 										</Text>

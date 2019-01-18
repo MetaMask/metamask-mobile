@@ -21,7 +21,7 @@ export default class IdenticonComponent extends Component {
 		/**
 		 * Custom style to apply to image
 		 */
-		customStyle: PropTypes.object
+		customStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 	};
 
 	static defaultProps = {
