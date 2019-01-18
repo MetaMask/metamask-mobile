@@ -6,6 +6,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
+import { renderShortAddress } from '../../../util/address';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	confirmBadge: {
@@ -14,11 +16,12 @@ const styles = StyleSheet.create({
 		borderColor: colors.subtleGray,
 		borderRadius: 4,
 		borderWidth: 1,
+		paddingHorizontal: 10,
 		color: colors.subtleGray,
 		fontSize: 12,
 		lineHeight: 22,
 		textAlign: 'center',
-		width: 74
+		alignSelf: 'flex-start'
 	},
 	summary: {
 		backgroundColor: colors.beige,
@@ -118,34 +121,52 @@ class TransactionReviewSummary extends Component {
 		} = this.props;
 		const assetAmount = asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
 		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
+		const isCollectibleTx = asset && asset.tokenId;
 		return (
 			<View style={styles.summary}>
 				<Text style={styles.confirmBadge}>{actionKey}</Text>
 
-				{!conversionRate ? (
-					<Text style={styles.summaryFiat}>
-						{asset
-							? assetAmount + ' ' + asset.symbol
-							: fromWei(amount).toString() + ' ' + strings('unit.eth')}
-					</Text>
-				) : (
+				{isCollectibleTx && (
 					<View>
-						<Text style={styles.summaryFiat}>
-							{this.getAssetFiat(
-								asset,
-								asset ? assetAmount : amount,
-								this.props.conversionRate,
-								(asset && contractExchangeRates[asset.address]) || null,
-								currentCurrency
-							)}
-						</Text>
+						<Text style={styles.summaryFiat}>ID: {asset.tokenId}</Text>
+						{asset.name ? (
+							<Text style={styles.summaryEth}>
+								{asset.name ? 'Address:' + renderShortAddress(asset.address) : asset.name}
+							</Text>
+						) : null}
 						<Text style={styles.summaryEth}>
+							{contractMap[asset.address] && contractMap[asset.address].name
+								? contractMap[asset.address].name
+								: 'Address:' + renderShortAddress(asset.address)}
+						</Text>
+					</View>
+				)}
+
+				{!isCollectibleTx &&
+					(!conversionRate ? (
+						<Text style={styles.summaryFiat}>
 							{asset
 								? assetAmount + ' ' + asset.symbol
 								: fromWei(amount).toString() + ' ' + strings('unit.eth')}
 						</Text>
-					</View>
-				)}
+					) : (
+						<View>
+							<Text style={styles.summaryFiat}>
+								{this.getAssetFiat(
+									asset,
+									asset ? assetAmount : amount,
+									this.props.conversionRate,
+									(asset && contractExchangeRates[asset.address]) || null,
+									currentCurrency
+								)}
+							</Text>
+							<Text style={styles.summaryEth}>
+								{asset
+									? assetAmount + ' ' + asset.symbol
+									: fromWei(amount).toString() + ' ' + strings('unit.eth')}
+							</Text>
+						</View>
+					))}
 
 				<TouchableOpacity style={styles.goBack} onPress={this.edit}>
 					<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />

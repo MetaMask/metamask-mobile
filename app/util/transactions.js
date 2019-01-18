@@ -13,7 +13,8 @@ export const SEND_ETHER_ACTION_KEY = 'sentEther';
 export const DEPLOY_CONTRACT_ACTION_KEY = 'contractDeployment';
 export const APPROVE_ACTION_KEY = 'approve';
 export const SEND_TOKEN_ACTION_KEY = 'sentTokens';
-export const TRANSFER_FROM_ACTION_KEY = 'transferFrom';
+export const SEND_COLLECTIBLE_ACTION_KEY = 'sentCollectible';
+export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 
 export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
@@ -82,6 +83,9 @@ export function getMethodData(data) {
 	// TODO use eth-method-registry from GABA
 	if (data.substr(0, 10) === TOKEN_TRANSFER_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER };
+	}
+	if (data.substr(0, 10) === COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE) {
+		return { name: TOKEN_METHOD_TRANSFER_FROM };
 	}
 	if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
@@ -157,6 +161,8 @@ export async function getActionKey(tx, selectedAddress) {
 				: strings('transactions.sent_ether');
 		case DEPLOY_CONTRACT_ACTION_KEY:
 			return strings('transactions.contract_deploy');
+		case TRANSFER_FROM_ACTION_KEY:
+			return strings('transactions.sent_collectible');
 		default:
 			return strings('transactions.smart_contract_interaction');
 	}
@@ -177,6 +183,8 @@ export async function getTransactionReviewActionKey(transaction) {
 			return strings('transactions.tx_review_confirm');
 		case DEPLOY_CONTRACT_ACTION_KEY:
 			return strings('transactions.tx_review_contract_deployment');
+		case TRANSFER_FROM_ACTION_KEY:
+			return strings('transactions.tx_review_transfer_from');
 		default:
 			return strings('transactions.tx_review_unknown');
 	}

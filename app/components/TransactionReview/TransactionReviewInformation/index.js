@@ -148,7 +148,7 @@ class TransactionReviewInformation extends Component {
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalEth = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
 		const amountEth = isBN(amount) && !asset ? amount : undefined;
-		const amountToken = asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
+		const amountToken = asset && !asset.tokenId ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
 
 		return (
 			<View style={styles.overview}>
@@ -188,7 +188,8 @@ class TransactionReviewInformation extends Component {
 							)}
 						</Text>
 						<Text style={styles.overviewEth}>
-							{asset && amountToken} {asset && asset.symbol} {asset && ' + '}
+							{asset && amountToken} {asset && amountToken && asset.symbol}{' '}
+							{asset && amountToken && ' + '}
 							{fromWei(totalEth).toString()} {strings('unit.eth')}
 						</Text>
 					</View>
