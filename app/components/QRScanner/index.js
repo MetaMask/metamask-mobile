@@ -1,6 +1,6 @@
 'use strict';
 import React, { Component } from 'react';
-import { InteractionManager, SafeAreaView, Alert, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { InteractionManager, SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -65,6 +65,9 @@ export default class QrScanner extends Component {
 
 	goBack = () => {
 		this.props.navigation.goBack();
+		if (this.props.navigation.state.params.onScanError) {
+			this.props.navigation.state.params.onScanError('USER_CANCELLED');
+		}
 	};
 
 	onBarCodeRead = response => {
@@ -83,8 +86,8 @@ export default class QrScanner extends Component {
 			this.shouldReadBarCode = false;
 			data = { content };
 		} else {
-			Alert.alert(strings('qr_scanner.invalid_qr_code_title'), strings('qr_scanner.invalid_qr_code_message'));
-			return false;
+			// EIP-945 allows scanning arbitrary data
+			data = content;
 		}
 		this.mounted = false;
 		this.props.navigation.goBack();
@@ -93,9 +96,19 @@ export default class QrScanner extends Component {
 		});
 	};
 
+	onError = error => {
+		this.props.navigation.goBack();
+		InteractionManager.runAfterInteractions(() => {
+			if (this.props.navigation.state.params.onScanError && error) {
+				this.props.navigation.state.params.onScanError(error.message);
+			}
+		});
+	};
+
 	render = () => (
 		<View style={styles.container}>
 			<RNCamera
+				onMountError={this.onError}
 				style={styles.preview}
 				type={'back'}
 				onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}

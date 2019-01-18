@@ -156,6 +156,22 @@ class InpageBridge {
 			});
 		});
 	}
+
+	/**
+	 * Called by dapps to use the QR scanner
+	 *
+	 */
+	scanQRCode() {
+		return new Promise((resolve, reject) => {
+			this.sendAsync({ method: 'wallet_scanQRCode' }, (error, result) => {
+				if (error) {
+					reject(error);
+					return;
+				}
+				resolve(result);
+			});
+		});
+	}
 }
 
 window.ethereum = new InpageBridge();

@@ -297,7 +297,17 @@ export class Browser extends Component {
 				return promise;
 			},
 			web3_clientVersion: payload =>
-				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id })
+				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id }),
+			wallet_scanQRCode: () => {
+				this.props.navigation.navigate('QRScanner', {
+					onScanSuccess: data => {
+						Promise.resolve(data);
+					},
+					onScanError: e => {
+						Promise.reject(e.toString());
+					}
+				});
+			}
 		});
 
 		const entryScriptWeb3 =
