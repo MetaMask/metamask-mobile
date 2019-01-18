@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../styles/common';
 import TokenImage from '../TokenImage';
 
@@ -99,7 +99,7 @@ export default class TokenElement extends Component {
 					{balanceFiat ? <Text style={styles.balanceFiat}>{balanceFiat}</Text> : null}
 				</View>
 				<View styles={styles.arrow}>
-					<Icon name="chevron-right" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
+					<Icon name="ios-arrow-forward" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
 				</View>
 			</TouchableOpacity>
 		);

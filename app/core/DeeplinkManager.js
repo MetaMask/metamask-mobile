@@ -25,7 +25,7 @@ export default class DeeplinkManager {
 					action = 'smart-contract-interaction';
 				}
 
-				this.navigation.navigate('SendScreen', { txMeta: { ...ethUrl, action, source: url } });
+				this.navigation.navigate('SendView', { txMeta: { ...ethUrl, action, source: url } });
 
 				break;
 

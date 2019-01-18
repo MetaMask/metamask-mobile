@@ -16,7 +16,6 @@ import Entry from '../Entry';
 import LockScreen from '../LockScreen';
 import Main from '../Main';
 import DrawerView from '../DrawerView';
-import TransactionSubmitted from '../TransactionSubmitted';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -71,35 +70,15 @@ const OnboardingRootNav = createStackNavigator(
  * Main app navigator which handles all the screens
  * after the user is already onboarded
  */
-const HomeNav = createStackNavigator(
+const HomeNav = createDrawerNavigator(
 	{
-		Home: {
-			screen: createDrawerNavigator(
-				{
-					Main: {
-						screen: Main
-					}
-				},
-				{
-					contentComponent: DrawerView,
-					drawerWidth: 315
-				}
-			)
-		},
-		/** ALL FULL SCREEN MODALS SHOULD GO HERE */
-		QRScanner: {
-			screen: QRScanner
-		},
-		LockScreen: {
-			screen: LockScreen
-		},
-		TransactionSubmitted: {
-			screen: TransactionSubmitted
+		Main: {
+			screen: Main
 		}
 	},
 	{
-		headerMode: 'none',
-		mode: 'modal'
+		contentComponent: DrawerView,
+		drawerWidth: 315
 	}
 );
 

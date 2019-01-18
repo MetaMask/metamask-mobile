@@ -1,17 +1,25 @@
 import React, { Component } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { createSwitchNavigator } from 'react-navigation';
-import { createIconSetFromFontello } from 'react-native-vector-icons';
+import { createStackNavigator } from 'react-navigation';
 import GlobalAlert from '../GlobalAlert';
 
-import BrowserScreen from '../BrowserScreen';
-import WalletScreen from '../WalletScreen';
-
-import fontelloConfig from '../../fonts/config.json';
-const CustomIcon = createIconSetFromFontello(fontelloConfig);
-import { colors } from '../../styles/common';
-import { strings } from '../../../locales/i18n';
+import Browser from '../Browser';
+import BrowserHome from '../BrowserHome';
+import AddBookmark from '../AddBookmark';
+import Approval from '../Approval';
+import Settings from '../Settings';
+import Wallet from '../Wallet';
+import SyncWithExtension from '../SyncWithExtension';
+import Asset from '../Asset';
+import AccountDetails from '../AccountDetails';
+import AddAsset from '../AddAsset';
+import Collectible from '../Collectible';
+import Send from '../Send';
+import RevealPrivateCredential from '../RevealPrivateCredential';
+import QrScanner from '../QRScanner';
+import LockScreen from '../LockScreen';
+import TransactionSubmitted from '../TransactionSubmitted';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -23,42 +31,100 @@ const styles = StyleSheet.create({
  * Navigator component that wraps
  * the 2 main sections: Browser, Wallet
  */
-const SwitchNavigator = createSwitchNavigator(
+const MainNavigator = createStackNavigator(
 	{
-		Browser: {
-			screen: BrowserScreen,
-			defaultNavigationOptions: () => ({
-				tabBarTestID: 'browser-tab-button',
-				title: strings('bottom_tab_bar.dapps'),
-				tabBarIcon: ico => <CustomIcon name="dapp" size={18} color={ico.tintColor} />, // eslint-disable-line react/display-name
-				tintColor: colors.primary
+		Home: {
+			screen: createStackNavigator({
+				BrowserHome: {
+					screen: BrowserHome
+				},
+				WalletView: {
+					screen: Wallet
+				},
+				Asset: {
+					screen: Asset
+				},
+				AddAsset: {
+					screen: AddAsset
+				},
+				AccountDetails: {
+					screen: AccountDetails
+				},
+
+				RevealPrivateCredentialView: {
+					screen: RevealPrivateCredential
+				}
 			})
 		},
-		Wallet: {
-			screen: WalletScreen,
-			defaultNavigationOptions: () => ({
-				tabBarTestID: 'wallet-tab-button',
-				title: strings('bottom_tab_bar.wallet'),
-				tabBarIcon: ico => <CustomIcon name="wallet" size={20} color={ico.tintColor} />, // eslint-disable-line react/display-name
-				tintColor: colors.primary
+		BrowserView: {
+			screen: createStackNavigator(
+				{
+					Browser: {
+						screen: Browser
+					},
+					ApprovalView: {
+						screen: Approval
+					}
+				},
+				{
+					mode: 'modal'
+				}
+			)
+		},
+		AddBookmarkView: {
+			screen: createStackNavigator({
+				AddBookmark: {
+					screen: AddBookmark
+				}
 			})
+		},
+		SettingsView: {
+			screen: createStackNavigator({
+				Settings: {
+					screen: Settings
+				},
+				SyncWithExtensionView: {
+					screen: SyncWithExtension
+				},
+				RevealPrivateCredentialView: {
+					screen: RevealPrivateCredential
+				}
+			})
+		},
+		CollectibleView: {
+			screen: createStackNavigator({
+				Collectible: {
+					screen: Collectible
+				}
+			})
+		},
+		SendView: {
+			screen: createStackNavigator({
+				Send: {
+					screen: Send
+				}
+			})
+		},
+		/** ALL FULL SCREEN MODALS SHOULD GO HERE */
+		QRScanner: {
+			screen: QrScanner
+		},
+		LockScreen: {
+			screen: LockScreen
+		},
+		TransactionSubmitted: {
+			screen: TransactionSubmitted
 		}
 	},
 	{
-		initialRouteName: 'Browser',
-		tabBarOptions: {
-			activeTintColor: colors.primary,
-			inactiveTintColor: colors.inactive,
-			style: {
-				borderTopWidth: 0
-			}
-		}
+		mode: 'modal',
+		headerMode: 'none'
 	}
 );
 
 export default class Main extends Component {
 	static router = {
-		...SwitchNavigator.router
+		...MainNavigator.router
 	};
 	static propTypes = {
 		/**
@@ -69,7 +135,7 @@ export default class Main extends Component {
 
 	render = () => (
 		<View style={styles.flex}>
-			<SwitchNavigator navigation={this.props.navigation} />
+			<MainNavigator navigation={this.props.navigation} />
 			<GlobalAlert />
 		</View>
 	);

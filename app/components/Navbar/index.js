@@ -3,8 +3,8 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
-import { Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
-import { fontStyles } from '../../styles/common';
+import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
+import { fontStyles, colors } from '../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../locales/i18n';
@@ -27,12 +27,36 @@ const styles = StyleSheet.create({
 		marginRight: 20,
 		marginTop: 5
 	},
+	backIcon: {
+		color: colors.primary
+	},
+	backButton: {
+		paddingLeft: Platform.OS === 'android' ? 22 : 18,
+		paddingRight: Platform.OS === 'android' ? 22 : 18,
+		marginTop: 5
+	},
+	infoButton: {
+		paddingLeft: Platform.OS === 'android' ? 22 : 18,
+		paddingRight: Platform.OS === 'android' ? 22 : 18,
+		marginTop: 5
+	},
+	infoIcon: {
+		color: colors.primary
+	},
 	moreIcon: {
 		marginRight: 15,
 		marginTop: 5
 	},
 	flex: {
 		flex: 1
+	},
+	closeButton: {
+		paddingHorizontal: 22
+	},
+	closeButtonText: {
+		color: colors.primary,
+		fontSize: 14,
+		...fontStyles.normal
 	}
 });
 
@@ -51,7 +75,7 @@ export default function getNavbarOptions(title, navigation) {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerTruncatedBackTitle: strings('navigation.back'),
-		headerRight: null
+		headerRight: <View />
 	};
 }
 
@@ -67,8 +91,10 @@ export function getNavigationOptionsTitle(title) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
+			color: colors.fontPrimary,
 			...fontStyles.normal
-		}
+		},
+		headerTintColor: colors.primary
 	};
 }
 /**
@@ -92,7 +118,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 				style={styles.flex}
 				// eslint-disable-next-line
 				onPress={() => {
-					navigation.navigate('BrowserView', { ...navigation.state.params, showUrlModal: true });
+					navigation.navigate('Browser', { ...navigation.state.params, showUrlModal: true });
 				}}
 			>
 				<NavbarBrowserTitle hostname={hostname} https={isHttps} />
@@ -100,11 +126,10 @@ export function getBrowserViewNavbarOptions(navigation) {
 		),
 		headerRight:
 			Platform.OS === 'android' ? (
-				// eslint-disable-next-line
 				<TouchableOpacity
+					// eslint-disable-next-line
 					onPress={() => {
-						// eslint-disable-next-line no-mixed-spaces-and-tabs
-						navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+						navigation.navigate('Browser', { ...navigation.state.params, showOptions: true });
 					}}
 				>
 					<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
@@ -133,7 +158,7 @@ export function getModalNavbarOptions(title) {
 
 /**
  * Function that returns the navigation options
- * for our the onboarding screens,
+ * for our onboarding screens,
  * which is just the metamask log and the Back button
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
@@ -152,5 +177,66 @@ export function getOnboardingNavbarOptions() {
 			</View>
 		),
 		headerBackTitle: strings('navigation.back')
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * for our closable screens,
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getClosableNavigationOptions(title, backButtonText, navigation) {
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			...fontStyles.normal
+		},
+		headerLeft:
+			Platform.OS === 'ios' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			)
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * for our wallet screen,
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getWalletNavbarOptions(title, navigation) {
+	return {
+		headerTitle: <NavbarTitle title={title} />,
+		headerLeft: (
+			<TouchableOpacity onPress={navigation.openDrawer} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerTruncatedBackTitle: strings('navigation.back'),
+		headerRight: (
+			<TouchableOpacity
+				style={styles.infoButton}
+				// eslint-disable-next-line
+				onPress={() => {
+					navigation.navigate('AccountDetails');
+				}}
+			>
+				<IonicIcon name="ios-information-circle-outline" size={28} style={styles.infoIcon} />
+			</TouchableOpacity>
+		)
 	};
 }

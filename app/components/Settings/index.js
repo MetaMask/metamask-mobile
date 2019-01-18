@@ -8,7 +8,7 @@ import { strings } from '../../../locales/i18n';
 import AppSettings from '../AppSettings';
 import SecuritySettings from '../SecuritySettings';
 import AppInformation from '../AppInformation';
-import { getNavigationOptionsTitle } from '../Navbar';
+import { getClosableNavigationOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -32,8 +32,9 @@ const styles = StyleSheet.create({
 /**
  * Main view for app configurations
  */
-export default class AppConfigurations extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
+export default class Settings extends Component {
+	static navigationOptions = ({ navigation }) =>
+		getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation);
 
 	static propTypes = {
 		/**

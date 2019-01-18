@@ -117,7 +117,7 @@ export default class AccountOverview extends Component {
 		Alert.alert(strings('drawer.coming_soon'));
 	};
 	onSend = () => {
-		this.props.navigation.navigate('SendScreen');
+		this.props.navigation.navigate('SendView');
 	};
 	onCopy = async () => {
 		const {

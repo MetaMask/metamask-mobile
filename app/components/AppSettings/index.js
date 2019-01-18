@@ -193,7 +193,7 @@ class AppSettings extends Component {
 	};
 
 	goToSyncWithExtension = () => {
-		this.props.navigation.push('SyncWithExtension', { existingUser: true });
+		this.props.navigation.push('SyncWithExtensionView', { existingUser: true });
 	};
 
 	displayResetAccountModal = () => {

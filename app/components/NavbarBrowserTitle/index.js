@@ -32,8 +32,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
-		flex: 1,
-		marginHorizontal: 10
+		flex: 1
 	},
 	lockIcon: {
 		marginTop: 2,
@@ -45,8 +44,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	}
 });
-
-const metamask_name = require('../../images/metamask-name.png'); // eslint-disable-line
 
 /**
  * UI Component that renders inside the navbar

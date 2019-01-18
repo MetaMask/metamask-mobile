@@ -122,8 +122,9 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
+		height: 44,
+		alignItems: 'center',
 		flexDirection: 'row',
-		paddingTop: 10,
 		paddingHorizontal: 10
 	},
 	iconMore: {
@@ -335,7 +336,7 @@ export class Browser extends Component {
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
-			this.props.navigation.push('Approval', { transactionMeta });
+			this.props.navigation.push('ApprovalView', { transactionMeta });
 		});
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
@@ -518,7 +519,7 @@ export class Browser extends Component {
 			return false;
 		}
 
-		this.props.navigation.push('AddBookmark', {
+		this.props.navigation.push('AddBookmarkView', {
 			title: this.state.currentPageTitle || '',
 			url: this.state.inputValue,
 			onAddBookmark: async ({ name, url }) => {

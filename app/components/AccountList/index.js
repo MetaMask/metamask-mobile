@@ -101,13 +101,13 @@ export default class AccountList extends Component {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * The navigator object
-		 */
-		navigation: PropTypes.object,
-		/**
 		 * An object containing all the keyrings
 		 */
-		keyrings: PropTypes.array
+		keyrings: PropTypes.array,
+		/**
+		 * function to be called when switching accounts
+		 */
+		onAccountChange: PropTypes.func
 	};
 
 	state = {
@@ -168,6 +168,9 @@ export default class AccountList extends Component {
 			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
 			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
+
+			this.props.onAccountChange();
+
 			InteractionManager.runAfterInteractions(() => {
 				Engine.refreshTransactionHistory();
 				const { AssetsDetectionController, AccountTrackerController } = Engine.context;
@@ -199,14 +202,6 @@ export default class AccountList extends Component {
 			Logger.error('error while trying to add a new account', e); // eslint-disable-line
 			this.setState({ loading: false });
 		}
-	};
-
-	openAccountSettings = () => {
-		this.props.navigation.navigate('AppConfigurations');
-	};
-
-	closeSideBar = () => {
-		this.props.navigation.closeDrawer();
 	};
 
 	renderAccounts() {
@@ -247,7 +242,7 @@ export default class AccountList extends Component {
 	render = () => (
 		<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 			<View style={styles.titleWrapper}>
-				<Text testID={'account-list-title'} style={styles.title} onPress={this.closeSideBar}>
+				<Text testID={'account-list-title'} style={styles.title}>
 					{strings('accounts.title')}
 				</Text>
 			</View>
