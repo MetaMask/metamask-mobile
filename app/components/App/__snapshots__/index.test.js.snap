@@ -33,20 +33,6 @@ exports[`App should render correctly 1`] = `
                     "getScreenOptions": [Function],
                     "getStateForAction": [Function],
                   },
-                  "AppConfigurationsView": Object {
-                    "childRouters": Object {
-                      "AppConfigurations": null,
-                      "RevealPrivateCredentialView": null,
-                      "SyncWithExtensionView": null,
-                    },
-                    "getActionCreators": [Function],
-                    "getActionForPathAndParams": [Function],
-                    "getComponentForRouteName": [Function],
-                    "getComponentForState": [Function],
-                    "getPathAndParamsForState": [Function],
-                    "getScreenOptions": [Function],
-                    "getStateForAction": [Function],
-                  },
                   "BrowserView": Object {
                     "childRouters": Object {
                       "ApprovalView": null,
@@ -94,6 +80,20 @@ exports[`App should render correctly 1`] = `
                   "SendView": Object {
                     "childRouters": Object {
                       "Send": null,
+                    },
+                    "getActionCreators": [Function],
+                    "getActionForPathAndParams": [Function],
+                    "getComponentForRouteName": [Function],
+                    "getComponentForState": [Function],
+                    "getPathAndParamsForState": [Function],
+                    "getScreenOptions": [Function],
+                    "getStateForAction": [Function],
+                  },
+                  "SettingsView": Object {
+                    "childRouters": Object {
+                      "RevealPrivateCredentialView": null,
+                      "Settings": null,
+                      "SyncWithExtensionView": null,
                     },
                     "getActionCreators": [Function],
                     "getActionForPathAndParams": [Function],
@@ -277,20 +277,6 @@ exports[`App should render correctly 1`] = `
                       "getScreenOptions": [Function],
                       "getStateForAction": [Function],
                     },
-                    "AppConfigurationsView": Object {
-                      "childRouters": Object {
-                        "AppConfigurations": null,
-                        "RevealPrivateCredentialView": null,
-                        "SyncWithExtensionView": null,
-                      },
-                      "getActionCreators": [Function],
-                      "getActionForPathAndParams": [Function],
-                      "getComponentForRouteName": [Function],
-                      "getComponentForState": [Function],
-                      "getPathAndParamsForState": [Function],
-                      "getScreenOptions": [Function],
-                      "getStateForAction": [Function],
-                    },
                     "BrowserView": Object {
                       "childRouters": Object {
                         "ApprovalView": null,
@@ -338,6 +324,20 @@ exports[`App should render correctly 1`] = `
                     "SendView": Object {
                       "childRouters": Object {
                         "Send": null,
+                      },
+                      "getActionCreators": [Function],
+                      "getActionForPathAndParams": [Function],
+                      "getComponentForRouteName": [Function],
+                      "getComponentForState": [Function],
+                      "getPathAndParamsForState": [Function],
+                      "getScreenOptions": [Function],
+                      "getStateForAction": [Function],
+                    },
+                    "SettingsView": Object {
+                      "childRouters": Object {
+                        "RevealPrivateCredentialView": null,
+                        "Settings": null,
+                        "SyncWithExtensionView": null,
                       },
                       "getActionCreators": [Function],
                       "getActionForPathAndParams": [Function],

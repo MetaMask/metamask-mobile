@@ -41,23 +41,24 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
+		height: 40,
 		flexDirection: 'column',
 		paddingBottom: 10
 	},
 	network: {
-		paddingVertical: 7,
+		paddingVertical: Platform.OS === 'android' ? 5 : 7,
 		paddingHorizontal: 12,
 		flexDirection: 'row',
 		alignSelf: 'flex-end',
 		marginRight: 10,
-		marginTop: Platform.OS === 'android' ? -25 : -25,
+		marginTop: Platform.OS === 'android' ? -3 : -5,
 		borderRadius: 15,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.fontSecondary
 	},
 	networkName: {
 		textAlign: 'right',
-		fontSize: 9,
+		fontSize: 10,
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 100,
 		marginRight: 5,
-		marginTop: 3
+		marginTop: Platform.OS === 'android' ? 5 : 3
 	},
 	caretDownNetwork: {
 		marginLeft: 7,
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
-		marginTop: Platform.OS === 'android' ? 15 : 20,
+		marginTop: Platform.OS === 'android' ? 0 : 10,
 		marginLeft: 17,
 		paddingTop: Platform.OS === 'android' ? 10 : 0
 	},

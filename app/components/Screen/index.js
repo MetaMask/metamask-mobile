@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Dimensions, SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
+import { Platform, Dimensions, SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
 import { colors, baseStyles } from '../../styles/common';
 
 const styles = StyleSheet.create({
@@ -29,7 +29,11 @@ export default class Screen extends Component {
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View style={{ ...styles.underlay, ...{ width, height } }}>
-					<StatusBar animated backgroundColor={colors.white} barStyle="dark-content" />
+					<StatusBar
+						animated
+						backgroundColor={Platform.OS === 'android' ? colors.androidStatusbar : colors.white}
+						barStyle="dark-content"
+					/>
 				</View>
 				<SafeAreaView style={baseStyles.flexGrow}>{this.props.children}</SafeAreaView>
 			</View>

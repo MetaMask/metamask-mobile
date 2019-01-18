@@ -224,9 +224,10 @@ exports[`Browser should render correctly 1`] = `
     style={
       Array [
         Object {
+          "alignItems": "center",
           "flexDirection": "row",
+          "height": 44,
           "paddingHorizontal": 10,
-          "paddingTop": 10,
         },
         Object {
           "marginBottom": 0,
