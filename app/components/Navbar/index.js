@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	backIcon: {
-		color: colors.fontPrimary
+		color: colors.primary
 	},
 	backButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	infoIcon: {
-		color: colors.fontPrimary
+		color: colors.primary
 	},
 	moreIcon: {
 		marginRight: 15,
@@ -75,7 +75,7 @@ export default function getNavbarOptions(title, navigation) {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerTruncatedBackTitle: strings('navigation.back'),
-		headerRight: null
+		headerRight: <View />
 	};
 }
 
@@ -91,8 +91,10 @@ export function getNavigationOptionsTitle(title) {
 		title,
 		headerTitleStyle: {
 			fontSize: 20,
+			color: colors.fontPrimary,
 			...fontStyles.normal
-		}
+		},
+		headerTintColor: colors.primary
 	};
 }
 /**
