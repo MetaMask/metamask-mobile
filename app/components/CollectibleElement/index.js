@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import contractMap from 'eth-contract-metadata';
+import { renderShortAddress } from '../../util/address';
 
 const styles = StyleSheet.create({
 	itemWrapper: {
@@ -95,7 +96,7 @@ export default class CollectibleElement extends Component {
 			>
 				<CollectibleImage collectible={collectible} />
 				<View style={styles.balances}>
-					<Text style={styles.name}>{name}</Text>
+					<Text style={styles.name}>{!name ? renderShortAddress(address) : name}</Text>
 					{contractMap[address] && <Text style={styles.collectibleName}>{contractMap[address].name}</Text>}
 					<Text style={styles.tokenId}>
 						{strings('collectible.collectible_token_id')}: {tokenId}

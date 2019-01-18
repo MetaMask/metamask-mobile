@@ -156,9 +156,10 @@ class TransactionEditor extends Component {
 
 	handleUpdateToAddress = async to => {
 		const { amount, data, asset } = this.state;
+		const amountToSend = asset ? '0x0' : amount;
 		const newData = asset ? this.handleGenerateTransferData(amount, to) : data;
 		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
-		this.setState({ to, gas: hexToBN(gas), data: newData });
+		this.setState({ to, gas: hexToBN(gas), data: newData, amount: amountToSend });
 	};
 
 	handleUpdateAsset = async asset => {
@@ -173,6 +174,8 @@ class TransactionEditor extends Component {
 
 	validateAmount = () => {
 		const { asset } = this.state;
+		const ERC721 = asset && asset.tokenId;
+		if (ERC721) return;
 		return asset ? this.validateTokenAmount() : this.validateEtherAmount();
 	};
 

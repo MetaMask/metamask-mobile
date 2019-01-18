@@ -17,8 +17,7 @@ export const TRANSFER_FROM_ACTION_KEY = 'transferFrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 
 export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
-export const COLLECTIBLE_TRANSFER_FUNCTION_SIGNATURE =
-	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+export const COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 /**
@@ -41,7 +40,7 @@ export function generateTransferData(assetType, opts) {
 			);
 		case 'ERC721':
 			return (
-				COLLECTIBLE_TRANSFER_FUNCTION_SIGNATURE +
+				COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE +
 				Array.prototype.map
 					.call(
 						rawEncode(

@@ -88,6 +88,22 @@ class Collectibles extends Component {
 		});
 	};
 
+	componentDidUpdate = async () => {
+		const { AssetsContractController } = Engine.context;
+		const { collectibles, selectedAddress } = this.props;
+		collectibles.map(async collectible => {
+			let isOwner;
+			try {
+				const owner = await AssetsContractController.getOwnerOf(collectible.address, collectible.tokenId);
+				isOwner = toChecksumAddress(owner) === toChecksumAddress(selectedAddress);
+			} catch (e) {
+				isOwner = false;
+			}
+			collectible.owner = isOwner;
+			return collectible;
+		});
+	};
+
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
 			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>

@@ -289,19 +289,18 @@ class TransactionEdit extends Component {
 								value={to}
 							/>
 						</View>
-						<View style={{ ...styles.formRow, ...styles.amountRow, ...styles.notAbsolute }}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
-								{amountError ? (
-									<Text style={styles.error}>{amountError}</Text>
-								) : (
-									<TouchableOpacity onPress={this.fillMax}>
-										<Text style={styles.max}>{strings('transaction.max')}</Text>
-									</TouchableOpacity>
-								)}
-							</View>
-
-							{(!asset || (asset && !asset.tokenId)) && (
+						{(!asset || (asset && !asset.tokenId)) && (
+							<View style={{ ...styles.formRow, ...styles.amountRow, ...styles.notAbsolute }}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
+									{amountError ? (
+										<Text style={styles.error}>{amountError}</Text>
+									) : (
+										<TouchableOpacity onPress={this.fillMax}>
+											<Text style={styles.max}>{strings('transaction.max')}</Text>
+										</TouchableOpacity>
+									)}
+								</View>
 								<EthInput
 									onChange={this.updateAmount}
 									value={amount}
@@ -311,8 +310,9 @@ class TransactionEdit extends Component {
 									fillMax={this.state.fillMax}
 									updateFillMax={this.updateFillMax}
 								/>
-							)}
-						</View>
+							</View>
+						)}
+
 						<View style={{ ...styles.formRow, ...styles.gasRow }}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
