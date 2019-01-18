@@ -9,15 +9,22 @@ import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../util/number';
 import { strings } from '../../../locales/i18n';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	root: {
 		flex: 1
 	},
 	componentContainer: {
-		position: 'relative',
-		height: 50,
-		paddingBottom: 200
+		position: 'absolute',
+		zIndex: 100,
+		width: '100%',
+		marginTop: 75,
+		maxHeight: 200,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1,
+		elevation: 11
 	},
 	activeOption: {
 		backgroundColor: colors.white,
@@ -42,14 +49,18 @@ const styles = StyleSheet.create({
 		marginBottom: 4
 	},
 	icon: {
-		paddingRight: 9,
+		paddingRight: 8,
+		paddingLeft: 2,
 		paddingTop: 1.5
+	},
+	content: {
+		paddingLeft: 8
 	},
 	arrow: {
 		color: colors.inputBorderColor,
 		position: 'absolute',
 		right: 10,
-		top: 10
+		top: 25
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -58,11 +69,9 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		paddingBottom: 12,
 		paddingTop: 10,
-		position: 'absolute',
 		top: 0,
 		left: 0,
 		right: 0,
-		zIndex: 100,
 		elevation: 10,
 		width: '100%'
 	}
@@ -90,9 +99,13 @@ class AccountSelect extends Component {
 		 */
 		conversionRate: PropTypes.number,
 		/**
-		 * Currency code for currently-selcted currency from CurrencyRateController
+		 * Currency code for currently-selected currency from CurrencyRateController
 		 */
 		currentCurrency: PropTypes.string,
+		/**
+		 * Whether selectable dropdown is enabled or not
+		 */
+		enabled: PropTypes.bool,
 		/**
 		 * Callback triggered when a new address is selected
 		 */
@@ -101,6 +114,10 @@ class AccountSelect extends Component {
 		 * Address of the currently-selected account
 		 */
 		value: PropTypes.string
+	};
+
+	static defaultProps = {
+		enabled: true
 	};
 
 	state = { isOpen: false };
@@ -116,7 +133,7 @@ class AccountSelect extends Component {
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>
-				<MaterialIcon name={'keyboard-arrow-down'} size={18} style={styles.arrow} />
+				{this.props.enabled && <MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />}
 				{this.renderOption(account, () => {
 					this.setState({ isOpen: !this.state.isOpen });
 				})}
@@ -128,9 +145,14 @@ class AccountSelect extends Component {
 		const { conversionRate, currentCurrency } = this.props;
 		const balance = hexToBN(account.balance);
 		return (
-			<TouchableOpacity key={account.address} onPress={onPress} style={styles.option}>
+			<TouchableOpacity
+				key={account.address}
+				onPress={onPress}
+				disabled={!this.props.enabled}
+				style={styles.option}
+			>
 				<View style={styles.icon}>
-					<Identicon address={account.address} diameter={18} />
+					<Identicon address={account.address} diameter={22} />
 				</View>
 				<View style={styles.content}>
 					<View>
@@ -154,7 +176,7 @@ class AccountSelect extends Component {
 	renderOptionList() {
 		const { accounts, identities, onChange } = this.props;
 		return (
-			<View style={styles.componentContainer} pointerEvents="box-none">
+			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{Object.keys(identities).map(address =>
 						this.renderOption({ ...identities[address], ...accounts[address] }, () => {
@@ -163,14 +185,14 @@ class AccountSelect extends Component {
 						})
 					)}
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 
 	render = () => (
 		<View style={styles.root}>
 			{this.renderActiveOption()}
-			{this.state.isOpen && this.renderOptionList()}
+			{this.state.isOpen && this.props.enabled && this.renderOptionList()}
 		</View>
 	);
 }

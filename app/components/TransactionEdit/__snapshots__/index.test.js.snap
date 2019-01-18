@@ -24,6 +24,7 @@ exports[`TransactionEdit should render correctly 1`] = `
       style={
         Object {
           "flex": 1,
+          "flexDirection": "column",
           "padding": 16,
         }
       }
@@ -31,13 +32,9 @@ exports[`TransactionEdit should render correctly 1`] = `
       <View
         style={
           Object {
+            "flex": 0,
             "flexDirection": "row",
-            "left": 15,
-            "marginRight": 0,
-            "marginTop": 30,
-            "position": "absolute",
-            "right": 15,
-            "zIndex": 5,
+            "marginTop": 18,
           }
         }
       >
@@ -46,7 +43,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             Object {
               "flex": 0,
               "paddingRight": 18,
-              "width": 96,
+              "width": 106,
             }
           }
         >
@@ -65,20 +62,21 @@ exports[`TransactionEdit should render correctly 1`] = `
           </Text>
         </View>
         <Connect(AccountSelect)
+          enabled={false}
           onChange={[Function]}
           value="0x0"
         />
       </View>
       <View
         style={
-          Object {
-            "flexDirection": "row",
-            "left": 15,
-            "marginTop": 120,
-            "position": "absolute",
-            "right": 15,
-            "zIndex": 4,
-          }
+          Array [
+            Object {
+              "flex": 0,
+              "flexDirection": "row",
+              "marginTop": 18,
+            },
+            Object {},
+          ]
         }
       >
         <View
@@ -86,7 +84,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             Object {
               "flex": 0,
               "paddingRight": 18,
-              "width": 96,
+              "width": 106,
             }
           }
         >
@@ -114,9 +112,9 @@ exports[`TransactionEdit should render correctly 1`] = `
       <View
         style={
           Object {
+            "flex": 0,
             "flexDirection": "row",
-            "marginTop": 175,
-            "zIndex": 3,
+            "marginTop": 18,
           }
         }
       >
@@ -125,7 +123,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             Object {
               "flex": 0,
               "paddingRight": 18,
-              "width": 96,
+              "width": 106,
             }
           }
         >
@@ -162,16 +160,18 @@ exports[`TransactionEdit should render correctly 1`] = `
           </TouchableOpacity>
         </View>
         <Connect(EthInput)
+          fillMax={false}
           onChange={[Function]}
+          updateFillMax={[Function]}
           value={0}
         />
       </View>
       <View
         style={
           Object {
+            "flex": 0,
             "flexDirection": "row",
             "marginTop": 18,
-            "zIndex": 3,
           }
         }
       >
@@ -180,7 +180,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             Object {
               "flex": 0,
               "paddingRight": 18,
-              "width": 96,
+              "width": 106,
             }
           }
         >
@@ -194,7 +194,7 @@ exports[`TransactionEdit should render correctly 1`] = `
               }
             }
           >
-            Gas Fee
+            Transaction Fee
             :
           </Text>
         </View>
@@ -207,11 +207,16 @@ exports[`TransactionEdit should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
-            "flexDirection": "row",
-            "marginTop": 18,
-            "zIndex": 3,
-          }
+          Array [
+            Object {
+              "flex": 0,
+              "flexDirection": "row",
+              "marginTop": 18,
+            },
+            Object {
+              "minHeight": 64,
+            },
+          ]
         }
       >
         <View
@@ -219,7 +224,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             Object {
               "flex": 0,
               "paddingRight": 18,
-              "width": 96,
+              "width": 106,
             }
           }
         >

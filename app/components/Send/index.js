@@ -157,10 +157,8 @@ class Send extends Component {
 		}
 	};
 
-	onConfirm = async transaction => {
+	onConfirm = async (transaction, asset) => {
 		const { TransactionController } = Engine.context;
-		const { navigation } = this.props;
-		const asset = navigation.state && navigation.state && navigation.state.params;
 		this.setState({ transactionConfirmed: true });
 		try {
 			if (!asset) {

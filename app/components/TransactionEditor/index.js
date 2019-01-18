@@ -69,7 +69,9 @@ class TransactionEditor extends Component {
 		gas: this.props.transaction.gas,
 		gasPrice: this.props.transaction.gasPrice,
 		to: this.props.transaction.to,
-		toFocused: false
+		asset: this.props.transaction.asset,
+		toFocused: false,
+		readableValue: undefined
 	};
 
 	onCancel = () => {
@@ -78,22 +80,22 @@ class TransactionEditor extends Component {
 	};
 
 	onConfirm = () => {
-		const { amount, gas, gasPrice, data, from, to } = this.state;
+		const { amount, gas, gasPrice, data, from, to, asset } = this.state;
 		const { onConfirm, transaction } = this.props;
 		!this.validate() &&
 			onConfirm &&
-			onConfirm({
-				...transaction,
-				...{ value: amount, data, from, gas, gasPrice, to }
-			});
+			onConfirm(
+				{
+					...transaction,
+					...{ value: amount, data, from, gas, gasPrice, to }
+				},
+				asset
+			);
 	};
 
 	estimateGas = async opts => {
 		const { TransactionController } = Engine.context;
-		const {
-			transaction: { asset }
-		} = this.props;
-		const { from } = this.state;
+		const { from, asset } = this.state;
 		const { amount = this.state.amount, data = this.state.data, to = this.state.to } = opts;
 		let estimation;
 		try {
@@ -114,18 +116,19 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateAmount = async amount => {
-		const { to, data } = this.state;
-		const {
-			transaction: { asset }
-		} = this.props;
+		const { to, data, asset } = this.state;
 		const tokenAmountToSend = asset && amount && amount.toString(16);
 		const newData =
 			to && asset && tokenAmountToSend
 				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
 				: data;
 		const amountToSend = asset ? '0x0' : amount;
-		const { gas } = await this.estimateGas({ amount: amountToSend, newData });
+		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
 		this.setState({ amount, data: newData, gas: hexToBN(gas) });
+	};
+
+	handleUpdateReadableValue = readableValue => {
+		this.setState({ readableValue });
 	};
 
 	handleUpdateData = async data => {
@@ -138,10 +141,7 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateToAddress = async to => {
-		const { amount, data } = this.state;
-		const {
-			transaction: { asset }
-		} = this.props;
+		const { amount, data, asset } = this.state;
 		const tokenAmountToSend = asset && amount && amount.toString(16);
 		const newData =
 			asset && tokenAmountToSend
@@ -151,6 +151,10 @@ class TransactionEditor extends Component {
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
 
+	handleUpdateAsset = async asset => {
+		await this.setState({ amount: undefined, data: undefined, to: undefined, asset, readableValue: undefined });
+	};
+
 	validate = () => {
 		if (this.validateAmount() || this.validateGas() || this.validateToAddress()) {
 			return true;
@@ -158,9 +162,7 @@ class TransactionEditor extends Component {
 	};
 
 	validateAmount = () => {
-		const {
-			transaction: { asset }
-		} = this.props;
+		const { asset } = this.state;
 		return asset ? this.validateTokenAmount() : this.validateEtherAmount();
 	};
 
@@ -183,11 +185,8 @@ class TransactionEditor extends Component {
 
 	validateTokenAmount = () => {
 		let error;
-		const { amount, gas, gasPrice, from } = this.state;
-		const {
-			transaction: { asset },
-			contractBalances
-		} = this.props;
+		const { amount, gas, gasPrice, from, asset } = this.state;
+		const { contractBalances } = this.props;
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		if (!amount || !gas || !gasPrice || !from) {
@@ -253,14 +252,9 @@ class TransactionEditor extends Component {
 	};
 
 	render = () => {
-		const { amount, gas, gasPrice, from, to, data } = this.state;
-		const {
-			mode,
-			transaction: { asset },
-			transactionConfirmed
-		} = this.props;
+		const { amount, gas, gasPrice, from, to, data, asset, readableValue } = this.state;
+		const { mode, transactionConfirmed } = this.props;
 		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
-
 		return (
 			<View style={styles.root}>
 				{mode === 'edit' && (
@@ -279,6 +273,9 @@ class TransactionEditor extends Component {
 						validateAmount={this.validateAmount}
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
+						handleUpdateAsset={this.handleUpdateAsset}
+						readableValue={readableValue}
+						handleUpdateReadableValue={this.handleUpdateReadableValue}
 					/>
 				)}
 				{mode === 'review' && (

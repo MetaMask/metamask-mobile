@@ -4,10 +4,19 @@ import AccountSelect from '../AccountSelect';
 import ActionView from '../ActionView';
 import EthInput from '../EthInput';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, hexToBN, fromWei } from '../../util/number';
+import {
+	toBN,
+	isBN,
+	hexToBN,
+	fromWei,
+	isDecimal,
+	toWei,
+	toTokenMinimalUnit,
+	fromTokenMinimalUnit
+} from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
 
@@ -17,34 +26,21 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	formRow: {
-		flexDirection: 'row'
+		flex: 0,
+		flexDirection: 'row',
+		marginTop: 18
 	},
-	fromRow: {
-		marginRight: 0,
-		position: 'absolute',
-		zIndex: 5,
-		right: 15,
-		left: 15,
-		marginTop: 30
-	},
-	toRow: {
-		right: 15,
-		left: 15,
-		marginTop: Platform.OS === 'android' ? 125 : 120,
-		position: 'absolute',
-		zIndex: 4
-	},
-	notAbsolute: {
-		marginTop: Platform.OS === 'android' ? 190 : 175
-	},
-	amountRow: {
-		marginTop: 18,
-		zIndex: 3
+	fromRow: {},
+	toRow: {},
+	amountRow: {},
+	gasRow: {},
+	hexDataRow: {
+		minHeight: 64
 	},
 	label: {
 		flex: 0,
 		paddingRight: 18,
-		width: 96
+		width: 106
 	},
 	labelText: {
 		...fontStyles.bold,
@@ -66,7 +62,8 @@ const styles = StyleSheet.create({
 	},
 	form: {
 		flex: 1,
-		padding: 16
+		padding: 16,
+		flexDirection: 'column'
 	},
 	hexData: {
 		...fontStyles.bold,
@@ -128,9 +125,21 @@ class TransactionEdit extends Component {
 		 */
 		handleUpdateFromAddress: PropTypes.func,
 		/**
+		 * Callback to update readable value in transaction in parent state
+		 */
+		handleUpdateReadableValue: PropTypes.func,
+		/**
 		 * Callback to update to address in transaction in parent state
 		 */
 		handleUpdateToAddress: PropTypes.func,
+		/**
+		 * Callback to update selected asset in transaction in parent state
+		 */
+		handleUpdateAsset: PropTypes.func,
+		/**
+		 * A string that represents the value un a readable format (decimal)
+		 */
+		readableValue: PropTypes.string,
 		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
@@ -158,7 +167,8 @@ class TransactionEdit extends Component {
 		amountError: '',
 		addressError: '',
 		toAddressError: '',
-		gasError: ''
+		gasError: '',
+		fillMax: false
 	};
 
 	componentDidMount() {
@@ -179,6 +189,15 @@ class TransactionEdit extends Component {
 			? hexToBN(balance).sub(totalGas)
 			: fromWei(0);
 		this.props.handleUpdateAmount(asset ? contractBalances[asset.address] : ethMaxAmount);
+		const readableValue = asset
+			? fromTokenMinimalUnit(contractBalances[asset.address], asset.decimals)
+			: fromWei(ethMaxAmount);
+		this.props.handleUpdateReadableValue(readableValue);
+		this.setState({ fillMax: true });
+	};
+
+	updateFillMax = fillMax => {
+		this.setState({ fillMax });
 	};
 
 	onFocusToAddress = () => {
@@ -200,7 +219,15 @@ class TransactionEdit extends Component {
 	};
 
 	updateAmount = async amount => {
-		await this.props.handleUpdateAmount(amount);
+		const { asset } = this.props.transactionData;
+		let processedAmount;
+		if (asset) {
+			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, asset.decimals) : undefined;
+		} else {
+			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
+		}
+		await this.props.handleUpdateAmount(processedAmount);
+		this.props.handleUpdateReadableValue(amount);
 		const amountError = this.props.validateAmount();
 		this.setState({ amountError });
 	};
@@ -247,9 +274,9 @@ class TransactionEdit extends Component {
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
 							</View>
-							<AccountSelect value={from} onChange={this.updateFromAddress} />
+							<AccountSelect value={from} onChange={this.updateFromAddress} enabled={false} />
 						</View>
-						<View style={{ ...styles.formRow, ...styles.toRow }}>
+						<View style={[styles.formRow, styles.toRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
 								{toAddressError ? <Text style={styles.error}>{toAddressError}</Text> : null}
@@ -273,9 +300,17 @@ class TransactionEdit extends Component {
 									</TouchableOpacity>
 								)}
 							</View>
-							<EthInput onChange={this.updateAmount} value={amount} asset={asset} />
+							<EthInput
+								onChange={this.updateAmount}
+								value={amount}
+								asset={asset}
+								handleUpdateAsset={this.props.handleUpdateAsset}
+								readableValue={this.props.readableValue}
+								fillMax={this.state.fillMax}
+								updateFillMax={this.updateFillMax}
+							/>
 						</View>
-						<View style={{ ...styles.formRow, ...styles.amountRow }}>
+						<View style={{ ...styles.formRow, ...styles.gasRow }}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
 								{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
@@ -287,11 +322,13 @@ class TransactionEdit extends Component {
 								gasPrice={gasPrice}
 							/>
 						</View>
-						{showHexData && (
-							<View style={{ ...styles.formRow, ...styles.amountRow }}>
+						<View style={[styles.formRow, styles.hexDataRow]}>
+							{showHexData && (
 								<View style={styles.label}>
 									<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
 								</View>
+							)}
+							{showHexData && (
 								<TextInput
 									multiline
 									onChangeText={this.updateData}
@@ -299,8 +336,8 @@ class TransactionEdit extends Component {
 									style={styles.hexData}
 									value={data}
 								/>
-							</View>
-						)}
+							)}
+						</View>
 					</View>
 				</ActionView>
 			</View>
