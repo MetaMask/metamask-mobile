@@ -40,20 +40,26 @@ export default class CollectibleImage extends Component {
 		/**
 		 * Whether collectible image has to render in full size
 		 */
-		renderFull: PropTypes.bool
+		renderFull: PropTypes.bool,
+		/**
+		 * Custom icon style to be applied
+		 */
+		iconStyle: PropTypes.object
 	};
 
 	render = () => {
 		const {
 			collectible: { image, address, tokenId },
-			renderFull
+			renderFull,
+			iconStyle
 		} = this.props;
+		const style = !iconStyle ? (renderFull ? styles.fullImage : styles.listImage) : iconStyle;
 		return (
 			<View style={renderFull ? styles.fullWrapper : styles.listWrapper}>
 				{image && image.length !== 0 ? (
-					<Image source={{ uri: image }} style={renderFull ? styles.fullImage : styles.listImage} />
+					<Image source={{ uri: image }} style={style} />
 				) : (
-					<Identicon address={address + tokenId} />
+					<Identicon address={address + tokenId} customStyle={style} />
 				)}
 			</View>
 		);

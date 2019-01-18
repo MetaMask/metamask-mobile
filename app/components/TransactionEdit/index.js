@@ -19,6 +19,9 @@ import {
 } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
+import { renderShortAddress } from '../../util/address';
+import CollectibleImage from '../CollectibleImage';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	root: {
@@ -76,6 +79,26 @@ const styles = StyleSheet.create({
 		minHeight: 64,
 		paddingLeft: 10,
 		paddingVertical: 6
+	},
+	logo: {
+		width: 20,
+		height: 20,
+		marginRight: 0
+	},
+	collectibleView: {
+		flex: 1,
+		flexDirection: 'row',
+		borderWidth: 1,
+		borderColor: colors.lightGray,
+		borderRadius: 4
+	},
+	collectibleImage: {
+		paddingLeft: 16,
+		paddingTop: 9
+	},
+	collectibleInformation: {
+		marginLeft: -35,
+		paddingTop: 9
 	}
 });
 
@@ -265,6 +288,7 @@ class TransactionEdit extends Component {
 			showHexData
 		} = this.props;
 		const { amountError, gasError, toAddressError } = this.state;
+		const isCollectibleTx = !(!asset || (asset && !asset.tokenId));
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -289,7 +313,7 @@ class TransactionEdit extends Component {
 								value={to}
 							/>
 						</View>
-						{(!asset || (asset && !asset.tokenId)) && (
+						{!isCollectibleTx && (
 							<View style={{ ...styles.formRow, ...styles.amountRow, ...styles.notAbsolute }}>
 								<View style={styles.label}>
 									<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
@@ -310,6 +334,32 @@ class TransactionEdit extends Component {
 									fillMax={this.state.fillMax}
 									updateFillMax={this.updateFillMax}
 								/>
+							</View>
+						)}
+
+						{isCollectibleTx && (
+							<View style={[styles.formRow, styles.amountRow, styles.notAbsolute]}>
+								<View style={styles.label}>
+									<Text style={styles.labelText}>Collectible:</Text>
+								</View>
+								<View style={styles.collectibleView}>
+									<View style={styles.collectibleImage}>
+										<CollectibleImage collectible={asset} iconStyle={styles.logo} />
+									</View>
+									<View style={styles.collectibleInformation}>
+										<Text style={[styles.name, fontStyles.bold]}>
+											{!name ? renderShortAddress(asset.address) : name}
+										</Text>
+										{contractMap[asset.address] && (
+											<Text style={styles.collectibleName}>
+												{contractMap[asset.address].name}
+											</Text>
+										)}
+										<Text style={styles.tokenId}>
+											{strings('collectible.collectible_token_id')}: {asset.tokenId}
+										</Text>
+									</View>
+								</View>
 							</View>
 						)}
 

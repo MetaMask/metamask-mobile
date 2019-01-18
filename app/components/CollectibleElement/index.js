@@ -74,12 +74,12 @@ export default class CollectibleElement extends Component {
 
 	handleOnPress = () => {
 		const { collectible, onPress } = this.props;
-		onPress(collectible);
+		onPress && onPress(collectible);
 	};
 
 	handleOnLongPress = () => {
 		const { collectible, onLongPress } = this.props;
-		onLongPress(collectible);
+		onLongPress && onLongPress(collectible);
 	};
 
 	render = () => {
