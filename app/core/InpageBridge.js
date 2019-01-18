@@ -161,14 +161,19 @@ class InpageBridge {
 	 * Called by dapps to use the QR scanner
 	 *
 	 */
-	scanQRCode() {
+	scanQRCode(regex = null) {
 		return new Promise((resolve, reject) => {
-			this.sendAsync({ method: 'wallet_scanQRCode' }, (error, result) => {
+			this.sendAsync({ method: 'wallet_scanQRCode' }, (error, response) => {
 				if (error) {
 					reject(error);
 					return;
 				}
-				resolve(result);
+				if (regex && !regex.exec(response.result)) {
+					reject({ message: 'NO_REGEX_MATCH', data: response.result });
+				} else if (!regex && !/^(0x){1}[0-9a-fA-F]{40}$/i.exec(response.result)) {
+					reject({ message: 'INVALID_ETHEREUM_ADDRESS', data: response.result });
+				}
+				resolve(response.result);
 			});
 		});
 	}

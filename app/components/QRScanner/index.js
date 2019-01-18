@@ -91,9 +91,7 @@ export default class QrScanner extends Component {
 		}
 		this.mounted = false;
 		this.props.navigation.goBack();
-		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.state.params.onScanSuccess(data);
-		});
+		this.props.navigation.state.params.onScanSuccess(data);
 	};
 
 	onError = error => {
