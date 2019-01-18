@@ -125,7 +125,7 @@ export default class CollectibleOverview extends Component {
 			onHide && onHide();
 			navigation && navigation.navigate('SendScreen', collectible);
 		} else {
-			Alert.alert(`You are not the owner, you can't send this collectible`);
+			Alert.alert(strings('wallet.collectible_not_owner_send'));
 		}
 	};
 
@@ -158,7 +158,7 @@ export default class CollectibleOverview extends Component {
 				</View>
 				{!owner && (
 					<View style={styles.warningView}>
-						<Text style={styles.warning}>You are not the owner</Text>
+						<Text style={styles.warning}>{strings('wallet.collectible_not_owner')}</Text>
 					</View>
 				)}
 				<View style={styles.buttons}>

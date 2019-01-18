@@ -104,7 +104,7 @@ export default class CollectibleElement extends Component {
 				</View>
 				{!owner && (
 					<View style={styles.warningView}>
-						<Text style={styles.warning}>You are not the owner</Text>
+						<Text style={styles.warning}>{strings('wallet.collectible_not_owner')}</Text>
 					</View>
 				)}
 			</TouchableOpacity>

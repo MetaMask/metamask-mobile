@@ -80,7 +80,12 @@ const styles = StyleSheet.create({
 		paddingLeft: 10,
 		paddingVertical: 6
 	},
-	logo: {
+	collectibleLogo: {
+		width: 20,
+		height: 20,
+		marginRight: 0
+	},
+	collectibleLogoContainer: {
 		width: 20,
 		height: 20,
 		marginRight: 0
@@ -97,8 +102,8 @@ const styles = StyleSheet.create({
 		paddingTop: 9
 	},
 	collectibleInformation: {
-		marginLeft: -35,
-		paddingTop: 9
+		marginLeft: 16,
+		paddingVertical: 9
 	}
 });
 
@@ -288,7 +293,7 @@ class TransactionEdit extends Component {
 			showHexData
 		} = this.props;
 		const { amountError, gasError, toAddressError } = this.state;
-		const isCollectibleTx = !(!asset || (asset && !asset.tokenId));
+		const isCollectibleTx = asset && asset.tokenId;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -344,7 +349,11 @@ class TransactionEdit extends Component {
 								</View>
 								<View style={styles.collectibleView}>
 									<View style={styles.collectibleImage}>
-										<CollectibleImage collectible={asset} iconStyle={styles.logo} />
+										<CollectibleImage
+											collectible={asset}
+											iconStyle={styles.collectibleLogo}
+											containerStyle={styles.collectibleLogoContainer}
+										/>
 									</View>
 									<View style={styles.collectibleInformation}>
 										<Text style={[styles.name, fontStyles.bold]}>

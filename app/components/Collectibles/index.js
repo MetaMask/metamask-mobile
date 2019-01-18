@@ -73,22 +73,14 @@ class Collectibles extends Component {
 	collectibleToRemove = null;
 
 	componentDidMount = async () => {
-		const { AssetsContractController } = Engine.context;
-		const { collectibles, selectedAddress } = this.props;
-		collectibles.map(async collectible => {
-			let isOwner;
-			try {
-				const owner = await AssetsContractController.getOwnerOf(collectible.address, collectible.tokenId);
-				isOwner = toChecksumAddress(owner) === toChecksumAddress(selectedAddress);
-			} catch (e) {
-				isOwner = false;
-			}
-			collectible.owner = isOwner;
-			return collectible;
-		});
+		this.detectOwnership();
 	};
 
 	componentDidUpdate = async () => {
+		this.detectOwnership();
+	};
+
+	detectOwnership = () => {
 		const { AssetsContractController } = Engine.context;
 		const { collectibles, selectedAddress } = this.props;
 		collectibles.map(async collectible => {
