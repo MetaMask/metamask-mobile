@@ -41,6 +41,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
       </Text>
       <TextInput
         allowFontScaling={true}
+        multiline={false}
         onBlur={[Function]}
         onChangeText={[Function]}
         onSubmitEditing={[Function]}

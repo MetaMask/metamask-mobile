@@ -3,11 +3,14 @@
 exports[`CollectibleImage should render correctly 1`] = `
 <View
   style={
-    Object {
-      "height": 50,
-      "marginRight": 20,
-      "width": 50,
-    }
+    Array [
+      Object {
+        "height": 50,
+        "marginRight": 20,
+        "width": 50,
+      },
+      undefined,
+    ]
   }
 >
   <MyImage
@@ -17,10 +20,13 @@ exports[`CollectibleImage should render correctly 1`] = `
       }
     }
     style={
-      Object {
-        "height": 50,
-        "width": 50,
-      }
+      Array [
+        Object {
+          "height": 50,
+          "width": 50,
+        },
+        undefined,
+      ]
     }
   />
 </View>

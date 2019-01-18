@@ -104,6 +104,34 @@ exports[`CollectibleOverview should render correctly 1`] = `
   <View
     style={
       Object {
+        "alignContent": "center",
+        "alignSelf": "center",
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "alignContent": "flex-end",
+          "alignSelf": "flex-end",
+          "backgroundColor": "#7c7e84",
+          "borderRadius": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "600",
+          "justifyContent": "flex-end",
+          "paddingHorizontal": 6,
+          "paddingVertical": 3,
+        }
+      }
+    >
+      You are not the owner
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
         "flex": 1,
         "flexDirection": "row",
         "marginTop": 30,

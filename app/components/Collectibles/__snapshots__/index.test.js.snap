@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Collectibles should render correctly 1`] = `
+exports[`Account Details should render correctly 1`] = `
 <View
   style={
     Object {
@@ -32,14 +32,7 @@ exports[`Collectibles should render correctly 1`] = `
     >
       You don't have any collectibles!
     </Text>
-    <View
-      style={
-        Object {
-          "flex": 1,
-          "paddingBottom": 30,
-        }
-      }
-    >
+    <View>
       <TouchableOpacity
         activeOpacity={0.2}
         onPress={[Function]}

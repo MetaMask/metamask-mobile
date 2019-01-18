@@ -73,5 +73,33 @@ exports[`CollectibleElement should render correctly 1`] = `
       123
     </Text>
   </View>
+  <View
+    style={
+      Object {
+        "paddingTop": 15,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "alignContent": "flex-end",
+          "alignSelf": "flex-end",
+          "backgroundColor": "#7c7e84",
+          "borderRadius": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "600",
+          "justifyContent": "flex-end",
+          "marginRight": 15,
+          "paddingHorizontal": 6,
+          "paddingVertical": 3,
+        }
+      }
+    >
+      You are not the owner
+    </Text>
+  </View>
 </TouchableOpacity>
 `;

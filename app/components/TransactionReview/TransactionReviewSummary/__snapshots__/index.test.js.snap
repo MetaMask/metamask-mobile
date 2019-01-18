@@ -13,6 +13,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
+        "alignSelf": "flex-start",
         "borderColor": "#8c8e94",
         "borderRadius": 4,
         "borderWidth": 1,
@@ -21,8 +22,8 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
         "fontSize": 12,
         "fontWeight": "400",
         "lineHeight": 22,
+        "paddingHorizontal": 10,
         "textAlign": "center",
-        "width": 74,
       }
     }
   />
