@@ -59,7 +59,7 @@ exports[`TokenElement should render correctly 1`] = `
     <Icon
       allowFontScaling={false}
       color="#AAAAAA"
-      name="chevron-right"
+      name="ios-arrow-forward"
       size={24}
       style={
         Object {
