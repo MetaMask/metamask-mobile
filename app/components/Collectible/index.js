@@ -65,7 +65,7 @@ export default class Collectible extends Component {
 				<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
 					<View testID={'asset'}>
 						<View style={styles.assetOverviewWrapper}>
-							<CollectibleOverview navigation={navigation} collectible={collectible} />
+							<CollectibleOverview onHide={onHide} navigation={navigation} collectible={collectible} />
 						</View>
 					</View>
 				</ScrollView>

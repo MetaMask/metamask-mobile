@@ -209,6 +209,7 @@ class Wallet extends Component {
 
 	renderAssetModal = () => {
 		const { showCollectible, collectible } = this.state;
+		const { navigation } = this.props;
 		return (
 			<Modal
 				isVisible={showCollectible}
@@ -221,7 +222,7 @@ class Wallet extends Component {
 				onBackdropPress={this.onHideCollectible}
 				onBackButtonPress={this.onHideCollectible}
 			>
-				<Collectible collectible={collectible} onHide={this.onHideCollectible} />
+				<Collectible navigation={navigation} collectible={collectible} onHide={this.onHideCollectible} />
 			</Modal>
 		);
 	};

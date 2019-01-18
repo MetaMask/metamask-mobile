@@ -300,15 +300,18 @@ class TransactionEdit extends Component {
 									</TouchableOpacity>
 								)}
 							</View>
-							<EthInput
-								onChange={this.updateAmount}
-								value={amount}
-								asset={asset}
-								handleUpdateAsset={this.props.handleUpdateAsset}
-								readableValue={this.props.readableValue}
-								fillMax={this.state.fillMax}
-								updateFillMax={this.updateFillMax}
-							/>
+
+							{(!asset || (asset && !asset.tokenId)) && (
+								<EthInput
+									onChange={this.updateAmount}
+									value={amount}
+									asset={asset}
+									handleUpdateAsset={this.props.handleUpdateAsset}
+									readableValue={this.props.readableValue}
+									fillMax={this.state.fillMax}
+									updateFillMax={this.updateFillMax}
+								/>
+							)}
 						</View>
 						<View style={{ ...styles.formRow, ...styles.gasRow }}>
 							<View style={styles.label}>

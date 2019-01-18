@@ -96,9 +96,18 @@ const styles = StyleSheet.create({
 export default class CollectibleOverview extends Component {
 	static propTypes = {
 		/**
+		/* navigation object required to access the props
+		/* passed by the parent component
+		*/
+		navigation: PropTypes.object,
+		/**
 		 * Object that represents the collectible to be displayed
 		 */
-		collectible: PropTypes.object
+		collectible: PropTypes.object,
+		/**
+		 * Callback triggered on modal hide
+		 */
+		onHide: PropTypes.func
 	};
 
 	onDeposit = () => {
@@ -107,10 +116,14 @@ export default class CollectibleOverview extends Component {
 
 	onSend = async () => {
 		const {
-			collectible: { owner }
+			collectible: { owner },
+			collectible,
+			onHide,
+			navigation
 		} = this.props;
 		if (owner) {
-			Alert.alert(strings('drawer.coming_soon'));
+			onHide && onHide();
+			navigation && navigation.navigate('SendScreen', collectible);
 		} else {
 			Alert.alert(`You are not the owner, you can't send this collectible`);
 		}

@@ -123,7 +123,7 @@ class TransactionEditor extends Component {
 			data = generateTransferData('ERC721', {
 				fromAddress: from,
 				toAddress: to,
-				tokenId: asset.tokenId.toString(16)
+				tokenId: parseInt(asset.tokenId).toString(16)
 			});
 		}
 		return data;
