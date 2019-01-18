@@ -118,7 +118,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 				style={styles.flex}
 				// eslint-disable-next-line
 				onPress={() => {
-					navigation.navigate('BrowserView', { ...navigation.state.params, showUrlModal: true });
+					navigation.navigate('Browser', { ...navigation.state.params, showUrlModal: true });
 				}}
 			>
 				<NavbarBrowserTitle hostname={hostname} https={isHttps} />
@@ -129,7 +129,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 				<TouchableOpacity
 					// eslint-disable-next-line
 					onPress={() => {
-						navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+						navigation.navigate('Browser', { ...navigation.state.params, showOptions: true });
 					}}
 				>
 					<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
