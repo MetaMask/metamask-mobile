@@ -46,6 +46,7 @@ export default class Send extends Component {
 	};
 
 	mounted = false;
+	unmountHandled = false;
 
 	async reset() {
 		const { navigation } = this.props;
@@ -77,7 +78,7 @@ export default class Send extends Component {
 
 	async componentWillUnmount() {
 		const { transaction, transactionSubmitted } = this.state;
-		if (!transactionSubmitted) {
+		if (!transactionSubmitted && !this.unmountHandled) {
 			transaction && (await this.onCancel(transaction.id));
 		}
 		this.mounted = false;
@@ -154,6 +155,7 @@ export default class Send extends Component {
 		} else {
 			this.props.navigation.pop();
 		}
+		this.unmountHandled = true;
 	};
 
 	onConfirm = async (transaction, asset) => {

@@ -208,9 +208,9 @@ class TransactionEdit extends Component {
 			.gt(fromWei(0))
 			? hexToBN(balance).sub(totalGas)
 			: fromWei(0);
-		this.props.handleUpdateAmount(asset ? contractBalances[asset.address] : ethMaxAmount);
+		this.props.handleUpdateAmount(asset ? hexToBN(contractBalances[asset.address].toString(16)) : ethMaxAmount);
 		const readableValue = asset
-			? fromTokenMinimalUnit(contractBalances[asset.address], asset.decimals)
+			? fromTokenMinimalUnit(hexToBN(contractBalances[asset.address].toString(16)), asset.decimals)
 			: fromWei(ethMaxAmount);
 		this.props.handleUpdateReadableValue(readableValue);
 		this.setState({ fillMax: true });
@@ -231,7 +231,7 @@ class TransactionEdit extends Component {
 	};
 
 	validate = () => {
-		const amountError = this.props.validateAmount();
+		const amountError = this.props.validateAmount(false);
 		const gasError = this.props.validateGas();
 		const toAddressError = this.props.validateToAddress();
 		this.setState({ amountError, gasError, toAddressError });
@@ -248,7 +248,7 @@ class TransactionEdit extends Component {
 		}
 		await this.props.handleUpdateAmount(processedAmount);
 		this.props.handleUpdateReadableValue(amount);
-		const amountError = this.props.validateAmount();
+		const amountError = this.props.validateAmount(true);
 		this.setState({ amountError });
 	};
 
