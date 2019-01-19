@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
-import { withNavigation } from 'react-navigation';
 import { colors } from '../../styles/common';
 import Engine from '../../core/Engine';
 import TransactionEditor from '../TransactionEditor';
@@ -26,7 +25,7 @@ const styles = StyleSheet.create({
 /**
  * View that wraps the wraps the "Send" screen
  */
-class Send extends Component {
+export default class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
 		getClosableNavigationOptions(strings('send.title'), strings('navigation.cancel'), navigation);
 
@@ -153,7 +152,7 @@ class Send extends Component {
 		if (this.state.mode !== 'edit') {
 			this.props.navigation.pop(2);
 		} else {
-			this.props.navigation.goBack();
+			this.props.navigation.pop();
 		}
 	};
 
@@ -209,5 +208,3 @@ class Send extends Component {
 		</SafeAreaView>
 	);
 }
-
-export default withNavigation(Send);

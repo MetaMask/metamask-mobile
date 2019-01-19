@@ -152,7 +152,8 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateAsset = async asset => {
-		await this.setState({ amount: undefined, data: undefined, to: undefined, asset, readableValue: undefined });
+		await this.setState({ amount: undefined, data: undefined, asset, readableValue: undefined });
+		await this.handleUpdateToAddress(this.state.to);
 	};
 
 	validate = () => {

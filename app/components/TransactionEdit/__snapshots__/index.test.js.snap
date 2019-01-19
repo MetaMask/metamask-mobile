@@ -31,11 +31,19 @@ exports[`TransactionEdit should render correctly 1`] = `
     >
       <View
         style={
-          Object {
-            "flex": 0,
-            "flexDirection": "row",
-            "marginTop": 18,
-          }
+          Array [
+            Object {
+              "flexDirection": "row",
+            },
+            Object {
+              "left": 15,
+              "marginRight": 0,
+              "marginTop": 30,
+              "position": "absolute",
+              "right": 15,
+              "zIndex": 5,
+            },
+          ]
         }
       >
         <View
@@ -71,51 +79,20 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Array [
             Object {
-              "flex": 0,
               "flexDirection": "row",
-              "marginTop": 18,
             },
-            Object {},
-          ]
-        }
-      >
-        <View
-          style={
             Object {
-              "flex": 0,
-              "paddingRight": 18,
-              "width": 106,
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#7c7e84",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "600",
-              }
-            }
-          >
-            To
-            :
-          </Text>
-        </View>
-        <Connect(AccountInput)
-          onChange={[Function]}
-          onFocus={[Function]}
-          placeholder="Recipient Address"
-          showQRScanner={[Function]}
-        />
-      </View>
-      <View
-        style={
-          Object {
-            "flex": 0,
-            "flexDirection": "row",
-            "marginTop": 18,
-          }
+              "marginTop": 18,
+              "zIndex": 3,
+            },
+            Object {
+              "left": 15,
+              "marginTop": 190,
+              "position": "absolute",
+              "right": 15,
+              "zIndex": 4,
+            },
+          ]
         }
       >
         <View
@@ -168,11 +145,64 @@ exports[`TransactionEdit should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
-            "flex": 0,
-            "flexDirection": "row",
-            "marginTop": 18,
+          Array [
+            Object {
+              "flexDirection": "row",
+            },
+            Object {
+              "left": 15,
+              "marginTop": 120,
+              "position": "absolute",
+              "right": 15,
+              "zIndex": 4,
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            Object {
+              "flex": 0,
+              "paddingRight": 18,
+              "width": 106,
+            }
           }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#7c7e84",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "600",
+              }
+            }
+          >
+            To
+            :
+          </Text>
+        </View>
+        <Connect(AccountInput)
+          onChange={[Function]}
+          onFocus={[Function]}
+          placeholder="Recipient Address"
+          showQRScanner={[Function]}
+        />
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "flexDirection": "row",
+            },
+            Object {
+              "marginTop": 18,
+              "zIndex": 3,
+            },
+            Object {
+              "marginTop": 240,
+            },
+          ]
         }
       >
         <View
@@ -209,12 +239,11 @@ exports[`TransactionEdit should render correctly 1`] = `
         style={
           Array [
             Object {
-              "flex": 0,
               "flexDirection": "row",
-              "marginTop": 18,
             },
             Object {
-              "minHeight": 64,
+              "marginTop": 18,
+              "zIndex": 3,
             },
           ]
         }

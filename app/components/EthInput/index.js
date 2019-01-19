@@ -14,6 +14,7 @@ import { strings } from '../../../locales/i18n';
 import TokenImage from '../TokenImage';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
+import ElevatedView from 'react-native-elevated-view';
 
 const styles = StyleSheet.create({
 	root: {
@@ -76,18 +77,14 @@ const styles = StyleSheet.create({
 		color: colors.inputBorderColor,
 		position: 'absolute',
 		right: 10,
-		top: 20
+		top: Platform.OS === 'android' ? 20 : 13
 	},
 	componentContainer: {
-		position: 'absolute',
-		zIndex: 2,
-		width: '100%',
-		marginTop: 55,
+		position: 'relative',
 		maxHeight: 200,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
-		borderWidth: 1,
-		elevation: 9
+		borderWidth: 1
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -99,8 +96,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		top: 0,
 		left: 0,
-		right: 0,
-		elevation: 10
+		right: 0
 	},
 	option: {
 		flexDirection: 'row',
@@ -255,15 +251,17 @@ class EthInput extends Component {
 			...this.props.tokens
 		];
 		return (
-			<ScrollView style={styles.componentContainer}>
-				<View style={styles.optionList}>
-					{tokens.map(token =>
-						this.renderAsset(token, async () => {
-							await this.selectAsset(token);
-						})
-					)}
-				</View>
-			</ScrollView>
+			<ElevatedView elevation={10} style={styles.root}>
+				<ScrollView style={styles.componentContainer}>
+					<View style={styles.optionList}>
+						{tokens.map(token =>
+							this.renderAsset(token, async () => {
+								await this.selectAsset(token);
+							})
+						)}
+					</View>
+				</ScrollView>
+			</ElevatedView>
 		);
 	};
 
