@@ -12,6 +12,7 @@ exports[`QrScanner should render correctly 1`] = `
   <View
     flashMode="auto"
     onBarCodeRead={[Function]}
+    onMountError={[Function]}
     permissionDialogMessage="We need your permission to scan QR codes"
     permissionDialogTitle="Allow camera access"
     style={
