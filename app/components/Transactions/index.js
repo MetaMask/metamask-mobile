@@ -37,6 +37,8 @@ const styles = StyleSheet.create({
 	}
 });
 
+const ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
+
 /**
  * View that renders a list of transactions for a specific asset
  */
@@ -77,7 +79,11 @@ class Transactions extends Component {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired
+		showAlert: PropTypes.func.isRequired,
+		/**
+		 * Callback to adjust the scroll position
+		 */
+		adjustScroll: PropTypes.func
 	};
 
 	state = {
@@ -102,7 +108,11 @@ class Transactions extends Component {
 	scrollToIndex = index => {
 		if (!this.scrolling && index) {
 			this.scrolling = true;
-			this.flatList.current.scrollToIndex({ index, animated: true });
+			if (!this.props.adjustScroll) {
+				this.flatList.current.scrollToIndex({ index, animated: true });
+			} else {
+				this.props.adjustScroll(index);
+			}
 			setTimeout(() => {
 				this.scrolling = false;
 			}, 300);
@@ -142,6 +152,8 @@ class Transactions extends Component {
 		</ScrollView>
 	);
 
+	getItemLayout = (data, index) => ({ length: ROW_HEIGHT, offset: ROW_HEIGHT * index, index });
+
 	keyExtractor = item => item.id;
 
 	renderContent() {
@@ -172,7 +184,7 @@ class Transactions extends Component {
 		return (
 			<FlatList
 				ref={this.flatList}
-				getItemLayout={(data, index) => ({ length: 100, offset: 100 * index, index })}
+				getItemLayout={this.getItemLayout}
 				data={transactions}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}

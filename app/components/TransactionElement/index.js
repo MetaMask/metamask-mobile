@@ -31,7 +31,8 @@ const styles = StyleSheet.create({
 		padding: 0
 	},
 	rowOnly: {
-		padding: 15
+		padding: 15,
+		height: 90
 	},
 	date: {
 		color: colors.fontSecondary,

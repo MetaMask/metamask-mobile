@@ -18,6 +18,9 @@ const styles = StyleSheet.create({
 	}
 });
 
+const TRANSACTION_ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
+const ASSET_OVERVIEW_HEIGHT = 280;
+
 /**
  * View that displays a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
@@ -55,6 +58,13 @@ class Asset extends Component {
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('symbol', ''));
 
 	scrollViewRef = React.createRef();
+
+	adjustScroll = index => {
+		const { current } = this.scrollViewRef;
+		const rowHeight = TRANSACTION_ROW_HEIGHT;
+		const rows = index * rowHeight;
+		current.scrollTo({ y: rows + ASSET_OVERVIEW_HEIGHT });
+	};
 
 	getFilteredTxs(transactions) {
 		const symbol = this.props.navigation.getParam('symbol', '');
@@ -108,6 +118,7 @@ class Asset extends Component {
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							networkType={networkType}
+							adjustScroll={this.adjustScroll}
 						/>
 					</View>
 				</View>
