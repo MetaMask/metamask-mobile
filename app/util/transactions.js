@@ -20,14 +20,26 @@ export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
+/**
+ * Utility class with the single responsibility
+ * of caching MethodData names
+ */
 class MethodData {
 	static cache = [];
 }
 
+/**
+ * Utility class with the single responsibility
+ * of caching ActionKeys
+ */
 class ActionKeys {
 	static cache = [];
 }
 
+/**
+ * Utility class with the single responsibility
+ * of caching SmartContractAddresses
+ */
 class SmartContractAddresses {
 	static cache = [];
 }
