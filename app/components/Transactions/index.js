@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
@@ -15,8 +15,10 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../core/Engine';
-import { hasBlockExplorer } from '../../util/networks';
+import { hasBlockExplorer, getNetworkTypeById } from '../../util/networks';
 import { showAlert } from '../../actions/alert';
+import { getEtherscanTransactionUrl } from '../../util/etherscan';
+import Logger from '../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -42,7 +44,7 @@ const ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
 /**
  * View that renders a list of transactions for a specific asset
  */
-class Transactions extends Component {
+class Transactions extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
@@ -55,7 +57,7 @@ class Transactions extends Component {
 		/**
 		 * An array that represents the user tokens
 		 */
-		tokens: PropTypes.array,
+		tokens: PropTypes.object,
 		/**
 		 * An array of transactions objects
 		 */
@@ -83,7 +85,11 @@ class Transactions extends Component {
 		/**
 		 * Callback to adjust the scroll position
 		 */
-		adjustScroll: PropTypes.func
+		adjustScroll: PropTypes.func,
+		/**
+		 * Loading flag from an external call
+		 */
+		loading: PropTypes.bool
 	};
 
 	state = {
@@ -119,12 +125,12 @@ class Transactions extends Component {
 		}
 	};
 
-	toggleDetailsView = (hash, index) => {
+	toggleDetailsView = (id, index) => {
 		this.setState(state => {
 			// copy the map rather than modifying state.
 			const selectedTx = new Map(state.selectedTx);
-			const show = !selectedTx.get(hash);
-			selectedTx.set(hash, show);
+			const show = !selectedTx.get(id);
+			selectedTx.set(id, show);
 			if (show && index) {
 				this.scrollToIndex(index);
 			}
@@ -156,30 +162,48 @@ class Transactions extends Component {
 
 	keyExtractor = item => item.id;
 
+	viewOnEtherscan = (networkID, transactionHash) => {
+		try {
+			const network = getNetworkTypeById(networkID);
+			const url = getEtherscanTransactionUrl(network, transactionHash);
+			this.props.navigation.push('BrowserView', {
+				url
+			});
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			Logger.error(`can't get a block explorer link for network `, networkID, e);
+		}
+	};
+
+	blockExplorer = () => hasBlockExplorer(this.props.networkType);
+
+	renderItem = ({ item, index }) => (
+		<TransactionElement
+			tx={item}
+			i={index}
+			selectedAddress={this.props.selectedAddress}
+			selected={!!this.state.selectedTx.get(item.id)}
+			onPressItem={this.toggleDetailsView}
+			blockExplorer
+			tokens={this.props.tokens}
+			contractExchangeRates={this.props.contractExchangeRates}
+			conversionRate={this.props.conversionRate}
+			currentCurrency={this.props.currentCurrency}
+			showAlert={this.props.showAlert}
+			viewOnEtherscan={this.viewOnEtherscan}
+		/>
+	);
+
 	renderContent() {
-		if (!this.state.ready) {
+		if (!this.state.ready || this.props.loading) {
 			return this.renderLoader();
 		}
 
-		const {
-			selectedAddress,
-			transactions,
-			navigation,
-			contractExchangeRates,
-			conversionRate,
-			currentCurrency,
-			showAlert
-		} = this.props;
-		const tokens = this.props.tokens.reduce((tokens, token) => {
-			tokens[token.address] = token;
-			return tokens;
-		}, {});
+		const { transactions } = this.props;
 
 		if (!transactions.length) {
 			return this.renderEmpty();
 		}
-
-		const blockExplorer = hasBlockExplorer(this.props.networkType);
 
 		return (
 			<FlatList
@@ -189,23 +213,7 @@ class Transactions extends Component {
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				// eslint-disable-next-line react/jsx-no-bind
-				renderItem={({ item, index }) => (
-					<TransactionElement
-						tx={item}
-						i={index}
-						selectedAddress={selectedAddress}
-						selected={!!this.state.selectedTx.get(item.transactionHash)}
-						toggleDetailsView={this.toggleDetailsView}
-						navigation={navigation}
-						blockExplorer={blockExplorer}
-						tokens={tokens}
-						contractExchangeRates={contractExchangeRates}
-						conversionRate={conversionRate}
-						currentCurrency={currentCurrency}
-						showAlert={showAlert}
-					/>
-				)}
+				renderItem={this.renderItem}
 			/>
 		);
 	}
@@ -218,7 +226,10 @@ class Transactions extends Component {
 }
 
 const mapStateToProps = state => ({
-	tokens: state.engine.backgroundState.AssetsController.tokens,
+	tokens: state.engine.backgroundState.AssetsController.tokens.reduce((tokens, token) => {
+		tokens[token.address] = token;
+		return tokens;
+	}, {}),
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency

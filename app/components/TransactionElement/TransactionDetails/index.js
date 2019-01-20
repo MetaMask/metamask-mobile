@@ -6,9 +6,6 @@ import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN, isBN, toBN, toGwei, weiToFiatNumber } from '../../../util/number';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { renderFullAddress } from '../../../util/address';
-import { getNetworkTypeById } from '../../../util/networks';
-import { getEtherscanTransactionUrl } from '../../../util/etherscan';
-import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -85,10 +82,6 @@ const styles = StyleSheet.create({
 export default class TransactionDetails extends PureComponent {
 	static propTypes = {
 		/**
-		 * The navigation Object
-		 */
-		navigation: PropTypes.object,
-		/**
 		 * ETH to current currency conversion rate
 		 */
 		conversionRate: PropTypes.number,
@@ -107,7 +100,11 @@ export default class TransactionDetails extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired
+		showAlert: PropTypes.func.isRequired,
+		/**
+		 * Action that shows the global alert
+		 */
+		viewOnEtherscan: PropTypes.func.isRequired
 	};
 
 	renderTxHash = transactionHash => {
@@ -149,16 +146,7 @@ export default class TransactionDetails extends PureComponent {
 		const {
 			transactionObject: { transactionHash, networkID }
 		} = this.props;
-		try {
-			const network = getNetworkTypeById(networkID);
-			const url = getEtherscanTransactionUrl(network, transactionHash);
-			this.props.navigation.push('BrowserView', {
-				url
-			});
-		} catch (e) {
-			// eslint-disable-next-line no-console
-			Logger.error(`can't get a block explorer link for network `, networkID, e);
-		}
+		this.props.viewOnEtherscan(networkID, transactionHash);
 	};
 
 	render = () => {

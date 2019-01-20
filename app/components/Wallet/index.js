@@ -20,12 +20,8 @@ import { renderFromWei, weiToFiat, hexToBN } from '../../util/number';
 import Collectible from '../Collectible';
 import Engine from '../../core/Engine';
 import Networks, { isKnownNetwork } from '../../util/networks';
-import AppConstants from '../../core/AppConstants';
-import Feedback from '../../core/Feedback';
 import { showAlert } from '../../actions/alert';
 // eslint-disable-next-line import/no-unresolved
-import LockManager from '../../core/LockManager';
-
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -111,40 +107,33 @@ class Wallet extends Component {
 		 */
 		networkType: PropTypes.string,
 		/**
-		 * Time to auto-lock the app after it goes in background mode
-		 */
-		lockTime: PropTypes.number,
-		/**
 		 * Action that shows the global alert
 		 */
 		showAlert: PropTypes.func.isRequired
 	};
 
 	state = {
-		locked: false,
-		showCollectible: false
+		showCollectible: false,
+		transactionsUpdated: false
 	};
 
 	txs = [];
 	mounted = false;
-	lockTimer = null;
-	locked = false;
 	scrollableTabViewRef = React.createRef();
 
 	componentDidMount() {
 		Branch.subscribe(this.handleDeeplinks);
-		InteractionManager.runAfterInteractions(() => {
-			Engine.refreshTransactionHistory();
+		InteractionManager.runAfterInteractions(async () => {
 			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
 			AssetsDetectionController.detectAssets();
 			AccountTrackerController.refresh();
-		});
-		this.feedback = new Feedback({
-			action: () => {
-				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
+			try {
+				await Engine.refreshTransactionHistory();
+				this.setState({ transactionsUpdated: true });
+			} catch (e) {
+				this.setState({ transactionsUpdated: true });
 			}
 		});
-		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 		this.mounted = true;
 		this.normalizeTransactions();
 	}
@@ -159,9 +148,6 @@ class Wallet extends Component {
 				this.handleTabChange(currentPage);
 			}
 		}
-		if (this.props.lockTime !== prevProps.lockTime) {
-			this.lockManager.updateLockTime(this.props.lockTime);
-		}
 		this.normalizeTransactions();
 	}
 
@@ -171,8 +157,6 @@ class Wallet extends Component {
 
 	componentWillUnmount() {
 		this.mounted = false;
-		this.feedback.stopListening();
-		this.lockManager.stopListening();
 	}
 
 	renderTabBar() {
@@ -315,6 +299,7 @@ class Wallet extends Component {
 						currentCurrency={currentCurrency}
 						selectedAddress={selectedAddress}
 						networkType={networkType}
+						loading={!this.state.transactionsUpdated}
 					/>
 				</ScrollableTabView>
 				{this.renderAssetModal()}
@@ -348,8 +333,7 @@ const mapStateToProps = state => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	lockTime: state.settings.lockTime
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
