@@ -28,6 +28,10 @@ export default class IdenticonComponent extends Component {
 		diameter: 46
 	};
 
+	shouldComponentUpdate(nextProps) {
+		return nextProps.address !== this.props.address;
+	}
+
 	render = () => {
 		const { diameter, address, customStyle } = this.props;
 
