@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { RefreshControl, ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { colors } from '../../styles/common';
@@ -56,16 +56,6 @@ class Asset extends Component {
 
 	scrollViewRef = React.createRef();
 
-	adjustScroll = index => {
-		InteractionManager.runAfterInteractions(() => {
-			const { current } = this.scrollViewRef;
-			const rowHeight = 100;
-			const rows = index * rowHeight;
-			const topPadding = Dimensions.get('window').height / 2 - 120;
-			current.scrollTo({ y: rows + topPadding });
-		});
-	};
-
 	getFilteredTxs(transactions) {
 		const symbol = this.props.navigation.getParam('symbol', '');
 		const tokenAddress = this.props.navigation.getParam('address', '');
@@ -117,7 +107,6 @@ class Asset extends Component {
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
-							adjustScroll={this.adjustScroll}
 							networkType={networkType}
 						/>
 					</View>

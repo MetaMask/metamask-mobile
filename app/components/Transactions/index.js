@@ -59,11 +59,6 @@ class Transactions extends Component {
 		 */
 		transactions: PropTypes.array,
 		/**
-		 * Callback function that will adjust the scroll
-		 * position once the transaction detail is visible
-		 */
-		adjustScroll: PropTypes.func,
-		/**
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
@@ -86,10 +81,12 @@ class Transactions extends Component {
 	};
 
 	state = {
-		selectedTx: null,
+		selectedTx: (new Map(): Map<string, boolean>),
 		ready: false,
 		refreshing: false
 	};
+
+	flatList = React.createRef();
 
 	componentDidMount() {
 		this.mounted = true;
@@ -102,13 +99,27 @@ class Transactions extends Component {
 		this.mounted = false;
 	}
 
-	toggleDetailsView = (hash, index) => {
-		const show = this.state.selectedTx !== hash;
-
-		this.setState({ selectedTx: show ? hash : null });
-		if (show) {
-			this.props.adjustScroll && this.props.adjustScroll(index);
+	scrollToIndex = index => {
+		if (!this.scrolling && index) {
+			this.scrolling = true;
+			this.flatList.current.scrollToIndex({ index, animated: true });
+			setTimeout(() => {
+				this.scrolling = false;
+			}, 300);
 		}
+	};
+
+	toggleDetailsView = (hash, index) => {
+		this.setState(state => {
+			// copy the map rather than modifying state.
+			const selectedTx = new Map(state.selectedTx);
+			const show = !selectedTx.get(hash);
+			selectedTx.set(hash, show);
+			if (show && index) {
+				this.scrollToIndex(index);
+			}
+			return { selectedTx };
+		});
 	};
 
 	onRefresh = async () => {
@@ -160,6 +171,8 @@ class Transactions extends Component {
 
 		return (
 			<FlatList
+				ref={this.flatList}
+				getItemLayout={(data, index) => ({ length: 100, offset: 100 * index, index })}
 				data={transactions}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
@@ -170,7 +183,7 @@ class Transactions extends Component {
 						tx={item}
 						i={index}
 						selectedAddress={selectedAddress}
-						selected={this.state.selectedTx === item.transactionHash}
+						selected={!!this.state.selectedTx.get(item.transactionHash)}
 						toggleDetailsView={this.toggleDetailsView}
 						navigation={navigation}
 						blockExplorer={blockExplorer}
