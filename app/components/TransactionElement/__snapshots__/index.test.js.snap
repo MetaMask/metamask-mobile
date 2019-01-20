@@ -34,6 +34,7 @@ exports[`TransactionElement should render correctly 1`] = `
     <View
       style={
         Object {
+          "height": 90,
           "padding": 15,
         }
       }
