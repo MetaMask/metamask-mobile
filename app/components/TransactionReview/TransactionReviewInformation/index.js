@@ -55,7 +55,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		color: colors.gray,
 		flex: 1,
-		fontSize: 12
+		fontSize: 12,
+		minWidth: 50
 	},
 	overviewFiat: {
 		...fontStyles.bold,

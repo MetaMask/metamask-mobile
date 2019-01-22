@@ -152,55 +152,61 @@ class TransactionEditor extends Component {
 	};
 
 	handleUpdateAsset = async asset => {
-		await this.setState({ amount: undefined, data: undefined, to: undefined, asset, readableValue: undefined });
+		await this.setState({ amount: undefined, data: undefined, asset, readableValue: undefined });
+		await this.handleUpdateToAddress(this.state.to);
 	};
 
 	validate = () => {
-		if (this.validateAmount() || this.validateGas() || this.validateToAddress()) {
+		if (this.validateAmount(false) || this.validateGas() || this.validateToAddress()) {
 			return true;
 		}
 	};
 
-	validateAmount = () => {
+	validateAmount = (allowEmpty = true) => {
 		const { asset } = this.state;
-		return asset ? this.validateTokenAmount() : this.validateEtherAmount();
+		return asset ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
 	};
 
-	validateEtherAmount = () => {
+	validateEtherAmount = (allowEmpty = true) => {
 		let error;
-		const { amount, gas, gasPrice, from } = this.state;
-		const checksummedFrom = from ? toChecksumAddress(from) : '';
-		const fromAccount = this.props.accounts[checksummedFrom];
-		(!amount || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
-		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-		amount &&
-			fromAccount &&
-			isBN(gas) &&
-			isBN(gasPrice) &&
-			isBN(amount) &&
-			hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
-			(error = strings('transaction.insufficient'));
+		if (!allowEmpty) {
+			const { amount, gas, gasPrice, from } = this.state;
+			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const fromAccount = this.props.accounts[checksummedFrom];
+			(!amount || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
+			amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
+			amount &&
+				fromAccount &&
+				isBN(gas) &&
+				isBN(gasPrice) &&
+				isBN(amount) &&
+				hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
+				(error = strings('transaction.insufficient'));
+		}
 		return error;
 	};
 
-	validateTokenAmount = () => {
+	validateTokenAmount = (allowEmpty = true) => {
 		let error;
-		const { amount, gas, gasPrice, from, asset } = this.state;
-		const { contractBalances } = this.props;
-		const checksummedFrom = from ? toChecksumAddress(from) : '';
-		const fromAccount = this.props.accounts[checksummedFrom];
-		if (!amount || !gas || !gasPrice || !from) {
-			return strings('transaction.invalid_amount');
+		if (!allowEmpty) {
+			const { amount, gas, gasPrice, from, asset } = this.state;
+			const { contractBalances } = this.props;
+			const checksummedFrom = from ? toChecksumAddress(from) : '';
+			const fromAccount = this.props.accounts[checksummedFrom];
+			if (!amount || !gas || !gasPrice || !from) {
+				return strings('transaction.invalid_amount');
+			}
+			const contractBalanceForAddress = hexToBN(contractBalances[asset.address].toString(16));
+			amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
+			const validateAssetAmount = contractBalanceForAddress.lt(amount);
+			const ethTotalAmount = gas.mul(gasPrice);
+			amount &&
+				fromAccount &&
+				isBN(gas) &&
+				isBN(gasPrice) &&
+				(validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount)) &&
+				(error = strings('transaction.insufficient'));
 		}
-		amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-		const validateAssetAmount = contractBalances[asset.address].lt(amount);
-		const ethTotalAmount = gas.mul(gasPrice);
-		amount &&
-			fromAccount &&
-			isBN(gas) &&
-			isBN(gasPrice) &&
-			(validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount)) &&
-			(error = strings('transaction.insufficient'));
 		return error;
 	};
 

@@ -4,7 +4,7 @@ import AccountSelect from '../AccountSelect';
 import ActionView from '../ActionView';
 import EthInput from '../EthInput';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -26,16 +26,36 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	formRow: {
-		flex: 0,
-		flexDirection: 'row',
-		marginTop: 18
+		flexDirection: 'row'
 	},
-	fromRow: {},
-	toRow: {},
-	amountRow: {},
-	gasRow: {},
-	hexDataRow: {
-		minHeight: 64
+	fromRow: {
+		marginRight: 0,
+		position: 'absolute',
+		zIndex: 5,
+		right: 15,
+		left: 15,
+		marginTop: 30
+	},
+	toRow: {
+		right: 15,
+		left: 15,
+		marginTop: Platform.OS === 'android' ? 125 : 120,
+		position: 'absolute',
+		zIndex: 4
+	},
+	row: {
+		marginTop: 18,
+		zIndex: 3
+	},
+	amountRow: {
+		right: 15,
+		left: 15,
+		marginTop: Platform.OS === 'android' ? 205 : 190,
+		position: 'absolute',
+		zIndex: 4
+	},
+	notAbsolute: {
+		marginTop: Platform.OS === 'android' ? 270 : 240
 	},
 	label: {
 		flex: 0,
@@ -188,9 +208,9 @@ class TransactionEdit extends Component {
 			.gt(fromWei(0))
 			? hexToBN(balance).sub(totalGas)
 			: fromWei(0);
-		this.props.handleUpdateAmount(asset ? contractBalances[asset.address] : ethMaxAmount);
+		this.props.handleUpdateAmount(asset ? hexToBN(contractBalances[asset.address].toString(16)) : ethMaxAmount);
 		const readableValue = asset
-			? fromTokenMinimalUnit(contractBalances[asset.address], asset.decimals)
+			? fromTokenMinimalUnit(hexToBN(contractBalances[asset.address].toString(16)), asset.decimals)
 			: fromWei(ethMaxAmount);
 		this.props.handleUpdateReadableValue(readableValue);
 		this.setState({ fillMax: true });
@@ -211,7 +231,7 @@ class TransactionEdit extends Component {
 	};
 
 	validate = () => {
-		const amountError = this.props.validateAmount();
+		const amountError = this.props.validateAmount(false);
 		const gasError = this.props.validateGas();
 		const toAddressError = this.props.validateToAddress();
 		this.setState({ amountError, gasError, toAddressError });
@@ -228,7 +248,7 @@ class TransactionEdit extends Component {
 		}
 		await this.props.handleUpdateAmount(processedAmount);
 		this.props.handleUpdateReadableValue(amount);
-		const amountError = this.props.validateAmount();
+		const amountError = this.props.validateAmount(true);
 		this.setState({ amountError });
 	};
 
@@ -270,26 +290,13 @@ class TransactionEdit extends Component {
 			<View style={styles.root}>
 				<ActionView confirmText="Next" onCancelPress={this.props.onCancel} onConfirmPress={this.review}>
 					<View style={styles.form}>
-						<View style={{ ...styles.formRow, ...styles.fromRow }}>
+						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
 							</View>
 							<AccountSelect value={from} onChange={this.updateFromAddress} enabled={false} />
 						</View>
-						<View style={[styles.formRow, styles.toRow]}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
-								{toAddressError ? <Text style={styles.error}>{toAddressError}</Text> : null}
-							</View>
-							<AccountInput
-								onChange={this.updateToAddress}
-								onFocus={this.onFocusToAddress}
-								placeholder={strings('transaction.recipient_address')}
-								showQRScanner={this.onScanSuccess}
-								value={to}
-							/>
-						</View>
-						<View style={{ ...styles.formRow, ...styles.amountRow, ...styles.notAbsolute }}>
+						<View style={[styles.formRow, styles.row, styles.amountRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
 								{amountError ? (
@@ -310,7 +317,20 @@ class TransactionEdit extends Component {
 								updateFillMax={this.updateFillMax}
 							/>
 						</View>
-						<View style={{ ...styles.formRow, ...styles.gasRow }}>
+						<View style={[styles.formRow, styles.toRow]}>
+							<View style={styles.label}>
+								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
+								{toAddressError ? <Text style={styles.error}>{toAddressError}</Text> : null}
+							</View>
+							<AccountInput
+								onChange={this.updateToAddress}
+								onFocus={this.onFocusToAddress}
+								placeholder={strings('transaction.recipient_address')}
+								showQRScanner={this.onScanSuccess}
+								value={to}
+							/>
+						</View>
+						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
 								{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
@@ -322,7 +342,7 @@ class TransactionEdit extends Component {
 								gasPrice={gasPrice}
 							/>
 						</View>
-						<View style={[styles.formRow, styles.hexDataRow]}>
+						<View style={[styles.formRow, styles.row]}>
 							{showHexData && (
 								<View style={styles.label}>
 									<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
