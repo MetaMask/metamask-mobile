@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { RefreshControl, ScrollView, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { colors } from '../../styles/common';
@@ -17,6 +17,9 @@ const styles = StyleSheet.create({
 		height: 280
 	}
 });
+
+const TRANSACTION_ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
+const ASSET_OVERVIEW_HEIGHT = 280;
 
 /**
  * View that displays a specific asset (Token or ETH)
@@ -57,13 +60,10 @@ class Asset extends Component {
 	scrollViewRef = React.createRef();
 
 	adjustScroll = index => {
-		InteractionManager.runAfterInteractions(() => {
-			const { current } = this.scrollViewRef;
-			const rowHeight = 100;
-			const rows = index * rowHeight;
-			const topPadding = Dimensions.get('window').height / 2 - 120;
-			current.scrollTo({ y: rows + topPadding });
-		});
+		const { current } = this.scrollViewRef;
+		const rowHeight = TRANSACTION_ROW_HEIGHT;
+		const rows = index * rowHeight;
+		current.scrollTo({ y: rows + ASSET_OVERVIEW_HEIGHT });
 	};
 
 	getFilteredTxs(transactions) {
@@ -117,8 +117,8 @@ class Asset extends Component {
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
-							adjustScroll={this.adjustScroll}
 							networkType={networkType}
+							adjustScroll={this.adjustScroll}
 						/>
 					</View>
 				</View>

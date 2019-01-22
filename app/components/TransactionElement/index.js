@@ -31,7 +31,8 @@ const styles = StyleSheet.create({
 		padding: 0
 	},
 	rowOnly: {
-		padding: 15
+		padding: 15,
+		height: 90
 	},
 	date: {
 		color: colors.fontSecondary,
@@ -102,10 +103,6 @@ const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 export default class TransactionElement extends PureComponent {
 	static propTypes = {
 		/**
-		 * The navigation Object
-		 */
-		navigation: PropTypes.object,
-		/**
 		 * Asset object (in this case ERC721 token)
 		 */
 		tx: PropTypes.object,
@@ -137,7 +134,7 @@ export default class TransactionElement extends PureComponent {
 		/**
 		 * Callback to render transaction details view
 		 */
-		toggleDetailsView: PropTypes.func,
+		onPressItem: PropTypes.func,
 		/**
 		 * An array that represents the user tokens
 		 */
@@ -149,7 +146,11 @@ export default class TransactionElement extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired
+		showAlert: PropTypes.func.isRequired,
+		/**
+		 * Action that shows the global alert
+		 */
+		viewOnEtherscan: PropTypes.func.isRequired
 	};
 
 	state = {
@@ -180,9 +181,9 @@ export default class TransactionElement extends PureComponent {
 		return null;
 	}
 
-	toggleDetailsView = () => {
-		const { tx, i, toggleDetailsView } = this.props;
-		toggleDetailsView(tx.transactionHash, i);
+	onPressItem = () => {
+		const { tx, i, onPressItem } = this.props;
+		onPressItem(tx.id, i);
 	};
 
 	renderTxTime = () => {
@@ -205,7 +206,7 @@ export default class TransactionElement extends PureComponent {
 				showAlert={showAlert}
 				currentCurrency={currentCurrency}
 				conversionRate={conversionRate}
-				navigation={this.props.navigation}
+				viewOnEtherscan={this.props.viewOnEtherscan}
 			/>
 		) : null;
 
@@ -351,7 +352,6 @@ export default class TransactionElement extends PureComponent {
 
 	render = () => {
 		const {
-			tx,
 			tx: {
 				transaction: { gas, gasPrice }
 			}
@@ -376,8 +376,7 @@ export default class TransactionElement extends PureComponent {
 		return (
 			<TouchableOpacity
 				style={styles.row}
-				key={`tx-${tx.id}`}
-				onPress={this.toggleDetailsView} // eslint-disable-line react/jsx-no-bind
+				onPress={this.onPressItem} // eslint-disable-line react/jsx-no-bind
 			>
 				{transactionElement}
 			</TouchableOpacity>

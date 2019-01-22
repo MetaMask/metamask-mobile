@@ -30,6 +30,10 @@ export default class AssetIcon extends Component {
 		customStyle: PropTypes.object
 	};
 
+	shouldComponentUpdate(nextProps) {
+		return nextProps.logo !== this.props.logo;
+	}
+
 	render = () => {
 		const { logo, customStyle } = this.props;
 		if (!logo) return;
