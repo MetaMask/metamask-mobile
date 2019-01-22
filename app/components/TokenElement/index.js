@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -48,7 +48,7 @@ const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 /**
  * View that renders an ERC-20 Token list element
  */
-export default class TokenElement extends Component {
+export default class TokenElement extends PureComponent {
 	static propTypes = {
 		/**
 		 * Callback triggered on press
@@ -85,7 +85,6 @@ export default class TokenElement extends Component {
 				onPress={this.handleOnPress}
 				onLongPress={this.handleOnLongPress}
 				style={styles.itemWrapper}
-				key={`token-${token.symbol}`}
 			>
 				{token.symbol === 'ETH' ? (
 					<Image source={ethLogo} style={styles.ethLogo} />

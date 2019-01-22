@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders a list of ERC-20 Tokens
  */
-export default class Tokens extends Component {
+export default class Tokens extends PureComponent {
 	static propTypes = {
 		/**
 		 * Navigation object required to push
@@ -117,32 +117,30 @@ export default class Tokens extends Component {
 		this.setState({ refreshing: false });
 	};
 
+	renderItem = ({ item }) => {
+		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
+		const logo = item.logo || ((contractMap[item.address] && contractMap[item.address].logo) || undefined);
+		const exchangeRate = item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
+		const balance =
+			item.balance ||
+			(item.address in tokenBalances
+				? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
+				: undefined);
+		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		item = { ...item, ...{ logo, balance, balanceFiat } };
+
+		return <TokenElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} token={item} />;
+	};
+
 	renderList() {
-		const { tokens, conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
+		const { tokens } = this.props;
 
 		return (
 			<FlatList
 				data={tokens}
-				extraData={this.state}
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				// eslint-disable-next-line react/jsx-no-bind
-				renderItem={({ item }) => {
-					const logo =
-						item.logo || ((contractMap[item.address] && contractMap[item.address].logo) || undefined);
-					const exchangeRate =
-						item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
-					const balance =
-						item.balance ||
-						(item.address in tokenBalances
-							? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
-							: undefined);
-					const balanceFiat =
-						item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-					item = { ...item, ...{ logo, balance, balanceFiat } };
-
-					return <TokenElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} token={item} />;
-				}}
+				renderItem={this.renderItem}
 				ListFooterComponent={this.renderFooter}
 			/>
 		);
@@ -166,6 +164,8 @@ export default class Tokens extends Component {
 		this.actionSheet = ref;
 	};
 
+	onActionSheetPress = index => (index === 0 ? this.removeToken() : null);
+
 	render = () => {
 		const { tokens } = this.props;
 		return (
@@ -177,8 +177,7 @@ export default class Tokens extends Component {
 					options={[strings('wallet.remove'), strings('wallet.cancel')]}
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
-					// eslint-disable-next-line react/jsx-no-bind
-					onPress={index => (index === 0 ? this.removeToken() : null)}
+					onPress={this.onActionSheetPress}
 				/>
 			</View>
 		);

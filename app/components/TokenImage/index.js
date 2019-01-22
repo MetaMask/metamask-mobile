@@ -28,11 +28,16 @@ export default class TokenElement extends Component {
 		iconStyle: PropTypes.object
 	};
 
+	shouldComponentUpdate(nextProps) {
+		return nextProps.asset.address !== this.props.asset.address;
+	}
+
 	render = () => {
 		const { asset, containerStyle, iconStyle } = this.props;
 		if (asset.address in contractMap) {
 			asset.logo = contractMap[asset.address].logo;
 		}
+
 		return (
 			<View style={[styles.itemLogoWrapper, containerStyle]}>
 				{asset.logo ? (

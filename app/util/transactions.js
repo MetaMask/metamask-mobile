@@ -3,6 +3,7 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import { hexToBN } from './number';
+import contractMap from 'eth-contract-metadata';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -18,6 +19,30 @@ export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 
 export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
+
+/**
+ * Utility class with the single responsibility
+ * of caching MethodData names
+ */
+class MethodData {
+	static cache = {};
+}
+
+/**
+ * Utility class with the single responsibility
+ * of caching ActionKeys
+ */
+class ActionKeys {
+	static cache = {};
+}
+
+/**
+ * Utility class with the single responsibility
+ * of caching SmartContractAddresses
+ */
+class SmartContractAddresses {
+	static cache = {};
+}
 
 /**
  * Generates transfer data for specified asset type
@@ -65,14 +90,23 @@ export function decodeTransferData(assetType, data) {
  * @returns {object} - Method data object containing the name if is valid
  */
 export function getMethodData(data) {
+	const baseMethodData = data.slice(0, 10);
+	const cache = MethodData.cache[baseMethodData];
+	if (cache) {
+		return cache;
+	}
+
+	let ret;
 	// TODO use eth-method-registry from GABA
 	if (data.substr(0, 10) === TOKEN_TRANSFER_FUNCTION_SIGNATURE) {
-		return { name: TOKEN_METHOD_TRANSFER };
+		ret = { name: TOKEN_METHOD_TRANSFER };
+	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
+		ret = { name: CONTRACT_METHOD_DEPLOY };
+	} else {
+		ret = {};
 	}
-	if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
-		return { name: CONTRACT_METHOD_DEPLOY };
-	}
-	return {};
+	MethodData.cache[baseMethodData] = ret;
+	return ret;
 }
 
 /**
@@ -82,10 +116,21 @@ export function getMethodData(data) {
  * @returns {boolean} - Wether the given address is a contract
  */
 export async function isSmartContractAddress(address) {
+	const cache = SmartContractAddresses.cache[address];
+	if (cache) {
+		return Promise.resolve(cache);
+	}
+
+	if (contractMap[address]) {
+		SmartContractAddresses.cache[address] = true;
+		return Promise.resolve(true);
+	}
+
 	const { TransactionController } = Engine.context;
 	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
 	// Geth will return '0x', and ganache-core v2.2.1 will return '0x0'
 	const codeIsEmpty = !code || code === '0x' || code === '0x0';
+	SmartContractAddresses.cache[address] = !codeIsEmpty;
 	return !codeIsEmpty;
 }
 
@@ -96,27 +141,41 @@ export async function isSmartContractAddress(address) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction) {
-	const { transaction: { data, to } = {} } = transaction;
+	const { transactionHash, transaction: { data, to } = {} } = transaction;
 	if (data) {
+		const cache = ActionKeys.cache[transactionHash];
+		if (cache) {
+			return Promise.resolve(cache);
+		}
+
+		let ret;
+
 		const methodData = getMethodData(data);
 		const toSmartContract = await isSmartContractAddress(to);
 		const { name } = methodData;
 		const methodName = name && name.toLowerCase();
 		switch (methodName) {
 			case TOKEN_METHOD_TRANSFER:
-				return SEND_TOKEN_ACTION_KEY;
+				ret = SEND_TOKEN_ACTION_KEY;
+				break;
 			case TOKEN_METHOD_APPROVE:
-				return APPROVE_ACTION_KEY;
+				ret = APPROVE_ACTION_KEY;
+				break;
 			case TOKEN_METHOD_TRANSFER_FROM:
-				return TRANSFER_FROM_ACTION_KEY;
+				ret = TRANSFER_FROM_ACTION_KEY;
+				break;
 		}
 		if (!toSmartContract) {
 			if (methodName === CONTRACT_METHOD_DEPLOY) {
-				return DEPLOY_CONTRACT_ACTION_KEY;
+				ret = DEPLOY_CONTRACT_ACTION_KEY;
+			} else {
+				ret = SEND_ETHER_ACTION_KEY;
 			}
-			return SEND_ETHER_ACTION_KEY;
+		} else {
+			ret = UNKNOWN_FUNCTION_KEY;
 		}
-		return UNKNOWN_FUNCTION_KEY;
+		ActionKeys.cache[transactionHash] = ret;
+		return ret;
 	}
 	return SEND_ETHER_ACTION_KEY;
 }
