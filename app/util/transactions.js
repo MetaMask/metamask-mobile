@@ -25,7 +25,7 @@ export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
  * of caching MethodData names
  */
 class MethodData {
-	static cache = [];
+	static cache = {};
 }
 
 /**
@@ -33,7 +33,7 @@ class MethodData {
  * of caching ActionKeys
  */
 class ActionKeys {
-	static cache = [];
+	static cache = {};
 }
 
 /**
@@ -41,7 +41,7 @@ class ActionKeys {
  * of caching SmartContractAddresses
  */
 class SmartContractAddresses {
-	static cache = [];
+	static cache = {};
 }
 
 /**
@@ -90,7 +90,8 @@ export function decodeTransferData(assetType, data) {
  * @returns {object} - Method data object containing the name if is valid
  */
 export function getMethodData(data) {
-	const cache = MethodData.cache[data];
+	const baseMethodData = data.slice(0, 10);
+	const cache = MethodData.cache[baseMethodData];
 	if (cache) {
 		return cache;
 	}
@@ -104,7 +105,7 @@ export function getMethodData(data) {
 	} else {
 		ret = {};
 	}
-	MethodData.cache[data] = ret;
+	MethodData.cache[baseMethodData] = ret;
 	return ret;
 }
 
