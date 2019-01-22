@@ -538,7 +538,7 @@ export class Browser extends Component {
 			return false;
 		}
 
-		this.props.navigation.push('AddBookmarkView', {
+		this.props.navigation.push('AddBookmark', {
 			title: this.state.currentPageTitle || '',
 			url: this.state.inputValue,
 			onAddBookmark: async ({ name, url }) => {

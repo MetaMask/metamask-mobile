@@ -64,19 +64,15 @@ const MainNavigator = createStackNavigator(
 					},
 					ApprovalView: {
 						screen: Approval
+					},
+					AddBookmark: {
+						screen: AddBookmark
 					}
 				},
 				{
 					mode: 'modal'
 				}
 			)
-		},
-		AddBookmarkView: {
-			screen: createStackNavigator({
-				AddBookmark: {
-					screen: AddBookmark
-				}
-			})
 		},
 		SettingsView: {
 			screen: createStackNavigator({
