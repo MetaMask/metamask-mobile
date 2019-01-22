@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { renderShortAddress } from '../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
+import ElevatedView from 'react-native-elevated-view';
 
 const styles = StyleSheet.create({
 	root: {
@@ -17,18 +18,14 @@ const styles = StyleSheet.create({
 		color: colors.inputBorderColor,
 		position: 'absolute',
 		right: 10,
-		top: 20
+		top: Platform.OS === 'android' ? 20 : 13
 	},
 	componentContainer: {
-		position: 'absolute',
-		zIndex: 6,
-		width: '100%',
-		marginTop: 60,
+		position: 'relative',
 		maxHeight: 200,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
-		borderWidth: 1,
-		elevation: 10
+		borderWidth: 1
 	},
 	input: {
 		...fontStyles.bold,
@@ -74,8 +71,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		top: 0,
 		left: 0,
-		right: 0,
-		elevation: 10
+		right: 0
 	},
 	content: {
 		flex: 1,
@@ -158,15 +154,17 @@ class AccountInput extends Component {
 	renderOptionList() {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
-			<ScrollView style={styles.componentContainer}>
-				<View style={styles.optionList}>
-					{Object.keys(visibleOptions).map(address =>
-						this.renderOption(visibleOptions[address], () => {
-							this.selectAccount(visibleOptions[address]);
-						})
-					)}
-				</View>
-			</ScrollView>
+			<ElevatedView elevation={10} style={styles.root}>
+				<ScrollView style={styles.componentContainer}>
+					<View style={styles.optionList}>
+						{Object.keys(visibleOptions).map(address =>
+							this.renderOption(visibleOptions[address], () => {
+								this.selectAccount(visibleOptions[address]);
+							})
+						)}
+					</View>
+				</ScrollView>
+			</ElevatedView>
 		);
 	}
 
