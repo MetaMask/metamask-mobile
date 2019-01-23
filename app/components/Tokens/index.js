@@ -125,7 +125,7 @@ export default class Tokens extends PureComponent {
 			item.balance ||
 			(item.address in tokenBalances
 				? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
-				: undefined);
+				: 0);
 		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		item = { ...item, ...{ logo, balance, balanceFiat } };
 
