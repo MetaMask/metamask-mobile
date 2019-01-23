@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleElement from '../CollectibleElement';
