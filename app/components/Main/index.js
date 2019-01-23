@@ -50,7 +50,9 @@ const MainNavigator = createStackNavigator(
 				AccountDetails: {
 					screen: AccountDetails
 				},
-
+				CollectibleView: {
+					screen: Collectible
+				},
 				RevealPrivateCredentialView: {
 					screen: RevealPrivateCredential
 				}
@@ -84,13 +86,6 @@ const MainNavigator = createStackNavigator(
 				},
 				RevealPrivateCredentialView: {
 					screen: RevealPrivateCredential
-				}
-			})
-		},
-		CollectibleView: {
-			screen: createStackNavigator({
-				Collectible: {
-					screen: Collectible
 				}
 			})
 		},

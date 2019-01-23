@@ -81,7 +81,7 @@ export default class Collectibles extends Component {
 	);
 
 	onItemPress = collectible => {
-		this.props.navigation.push('CollectibleView', collectible);
+		this.props.navigation.push('CollectibleView', { ...collectible });
 	};
 
 	handleOnPress = collectible => {
@@ -137,7 +137,7 @@ export default class Collectibles extends Component {
 				renderItem={({ item }) => (
 					<CollectibleElement
 						collectible={item}
-						onPress={this.handleOnPress}
+						onPress={this.onItemPress}
 						onLongPress={this.showRemoveMenu}
 					/>
 				)}
