@@ -22,5 +22,5 @@ async function fetchOpenSeaContent(url) {
 		method: 'GET'
 	})
 		.then(r => r._bodyText)
-		.then(object => object);
+		.then(object => JSON.parse(object));
 }

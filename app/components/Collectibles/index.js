@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
-import CollectibleElement from '../CollectibleElement';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../core/Engine';
 import getContractInformation from '../../util/opensea';
+import CollectibleContractElement from '../CollectibleContractElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -47,8 +48,12 @@ const styles = StyleSheet.create({
  * View that renders a list of Collectibles
  * also known as ERC-721 Tokens
  */
-export default class Collectibles extends Component {
+class Collectibles extends Component {
 	static propTypes = {
+		/**
+		 * Array of collectibleContract objects
+		 */
+		allCollectibleContracts: PropTypes.array,
 		/**
 		 * Navigation object required to push
 		 * the Asset detail view
@@ -73,19 +78,24 @@ export default class Collectibles extends Component {
 	collectibleToRemove = null;
 
 	componentDidMount = async () => {
-		const { collectibles } = this.props;
-
+		const { collectibles, allCollectibleContracts } = this.props;
+		const { AssetsController } = Engine.context;
 		const collectibleGroups = collectibles.reduce((groups, collectible) => {
-			if (!groups.includes(collectible.address)) {
+			const exists = allCollectibleContracts.find(
+				collectibleContract => collectibleContract.address === collectible.address
+			);
+			if (!exists && !groups.includes(collectible.address)) {
 				groups.push(collectible.address);
 			}
 			return groups;
 		}, []);
-
 		const collectibleGroupInformationPromises = collectibleGroups.map(async address =>
 			getContractInformation(address)
 		);
-		await Promise.all(collectibleGroupInformationPromises);
+		const collectibleGroupInformation = await Promise.all(collectibleGroupInformationPromises);
+		collectibleGroupInformation.map(({ address, name, symbol, image_url }) =>
+			AssetsController.addCollectibleContract(address, name, symbol, image_url)
+		);
 	};
 
 	renderEmpty = () => (
@@ -142,11 +152,11 @@ export default class Collectibles extends Component {
 	};
 
 	renderCollectiblesGroupList() {
-		const { collectibles } = this.props;
+		const { allCollectibleContracts } = this.props;
 
 		return (
 			<FlatList
-				data={collectibles}
+				data={allCollectibleContracts}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -156,11 +166,14 @@ export default class Collectibles extends Component {
 						item.name = strings('wallet.collectible_no_name');
 					}
 					return (
+						/*
 						<CollectibleElement
 							collectible={item}
 							onPress={this.onItemPress}
 							onLongPress={this.showRemoveMenu}
 						/>
+						*/
+						<CollectibleContractElement collectibleContract={item} />
 					);
 				}}
 				ListFooterComponent={this.renderFooter}
@@ -186,3 +199,9 @@ export default class Collectibles extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	allCollectibleContracts: state.engine.backgroundState.AssetsController.allCollectibleContracts
+});
+
+export default connect(mapStateToProps)(Collectibles);
