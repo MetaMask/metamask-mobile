@@ -1,6 +1,11 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import AccountOverview from './';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
+
+const mockStore = configureMockStore();
+const store = mockStore({});
 
 describe('AccountOverview', () => {
 	it('should render correctly', () => {
@@ -9,8 +14,11 @@ describe('AccountOverview', () => {
 			balanceFiat: 1604.2,
 			label: 'Account 1'
 		};
-
-		const wrapper = shallow(<AccountOverview account={account} />);
+		const wrapper = shallow(
+			<Provider store={store}>
+				<AccountOverview account={account} />
+			</Provider>
+		);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

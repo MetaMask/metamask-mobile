@@ -24,6 +24,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
+import { renderFromTokenMinimalUnit, balanceToFiatNumber, renderFiat, weiToFiatNumber } from '../util/number';
 
 const encryptor = new Encryptor();
 
@@ -219,6 +220,43 @@ class Engine {
 		}
 	};
 
+	getTotalFiatAccountBalance = () => {
+		const {
+			CurrencyRateController,
+			PreferencesController,
+			AccountTrackerController,
+			AssetsController,
+			TokenBalancesController,
+			TokenRatesController
+		} = this.datamodel.context;
+		const { selectedAddress } = PreferencesController.state;
+		const { conversionRate, currentCurrency } = CurrencyRateController.state;
+		const { accounts } = AccountTrackerController.state;
+		const { tokens } = AssetsController.state;
+		let ethFiat = 0;
+		let tokenFiat = 0;
+		if (accounts[selectedAddress]) {
+			ethFiat = weiToFiatNumber(accounts[selectedAddress].balance, conversionRate);
+		}
+		if (tokens.length > 0) {
+			const { contractBalances: tokenBalances } = TokenBalancesController.state;
+			const { contractExchangeRates: tokenExchangeRates } = TokenRatesController.state;
+			tokens.forEach(item => {
+				const exchangeRate = item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
+				const tokenBalance =
+					item.balance ||
+					(item.address in tokenBalances
+						? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
+						: undefined);
+				const tokenBalanceFiat = balanceToFiatNumber(tokenBalance, conversionRate, exchangeRate);
+				tokenFiat += tokenBalanceFiat;
+			});
+		}
+
+		const total = ethFiat + tokenFiat;
+		return renderFiat(total, currentCurrency);
+	};
+
 	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
 		const {
 			KeyringController,
@@ -312,6 +350,9 @@ export default {
 	},
 	get datamodel() {
 		return instance.datamodel;
+	},
+	getTotalFiatAccountBalance() {
+		return instance.getTotalFiatAccountBalance();
 	},
 	sync(data) {
 		return instance.sync(data);

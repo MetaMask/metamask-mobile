@@ -267,13 +267,7 @@ class Wallet extends Component {
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
 			<View style={styles.wrapper}>
-				<AccountOverview
-					account={account}
-					conversionRate={conversionRate}
-					currentCurrency={currentCurrency}
-					navigation={navigation}
-					showAlert={showAlert}
-				/>
+				<AccountOverview account={account} navigation={navigation} showAlert={showAlert} />
 				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 					<Tokens
 						navigation={navigation}
