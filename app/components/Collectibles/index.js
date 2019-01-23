@@ -124,7 +124,7 @@ export default class Collectibles extends Component {
 		this.setState({ refreshing: false });
 	};
 
-	renderList() {
+	renderCollectiblesGroupList() {
 		const { collectibles } = this.props;
 
 		return (
@@ -155,7 +155,7 @@ export default class Collectibles extends Component {
 		const { collectibles } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'collectibles'}>
-				{collectibles && collectibles.length ? this.renderList() : this.renderEmpty()}
+				{collectibles && collectibles.length ? this.renderCollectiblesGroupList() : this.renderEmpty()}
 				<ActionSheet
 					ref={this.createActionSheetRef}
 					title={strings('wallet.remove_collectible_title')}
