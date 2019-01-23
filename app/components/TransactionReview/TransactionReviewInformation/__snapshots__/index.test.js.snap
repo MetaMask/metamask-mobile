@@ -79,7 +79,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           }
         }
       >
-        0.00000000000000033
+        0
          
         ETH
       </Text>
@@ -151,7 +151,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
       >
          
          
-        0.00000000000000033
+        0
          
         ETH
       </Text>
