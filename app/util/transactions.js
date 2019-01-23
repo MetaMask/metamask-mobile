@@ -22,14 +22,6 @@ export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 /**
  * Utility class with the single responsibility
- * of caching MethodData names
- */
-class MethodData {
-	static cache = {};
-}
-
-/**
- * Utility class with the single responsibility
  * of caching ActionKeys
  */
 class ActionKeys {
@@ -90,23 +82,13 @@ export function decodeTransferData(assetType, data) {
  * @returns {object} - Method data object containing the name if is valid
  */
 export function getMethodData(data) {
-	const baseMethodData = data.slice(0, 10);
-	const cache = MethodData.cache[baseMethodData];
-	if (cache) {
-		return cache;
-	}
-
-	let ret;
 	// TODO use eth-method-registry from GABA
 	if (data.substr(0, 10) === TOKEN_TRANSFER_FUNCTION_SIGNATURE) {
-		ret = { name: TOKEN_METHOD_TRANSFER };
+		return { name: TOKEN_METHOD_TRANSFER };
 	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
-		ret = { name: CONTRACT_METHOD_DEPLOY };
-	} else {
-		ret = {};
+		return { name: CONTRACT_METHOD_DEPLOY };
 	}
-	MethodData.cache[baseMethodData] = ret;
-	return ret;
+	return {};
 }
 
 /**
@@ -165,14 +147,17 @@ export async function getTransactionActionKey(transaction) {
 				ret = TRANSFER_FROM_ACTION_KEY;
 				break;
 		}
-		if (!toSmartContract) {
-			if (methodName === CONTRACT_METHOD_DEPLOY) {
-				ret = DEPLOY_CONTRACT_ACTION_KEY;
+
+		if (!ret) {
+			if (!toSmartContract) {
+				if (methodName === CONTRACT_METHOD_DEPLOY) {
+					ret = DEPLOY_CONTRACT_ACTION_KEY;
+				} else {
+					ret = SEND_ETHER_ACTION_KEY;
+				}
 			} else {
-				ret = SEND_ETHER_ACTION_KEY;
+				ret = UNKNOWN_FUNCTION_KEY;
 			}
-		} else {
-			ret = UNKNOWN_FUNCTION_KEY;
 		}
 		ActionKeys.cache[transactionHash] = ret;
 		return ret;
