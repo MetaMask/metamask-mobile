@@ -84,6 +84,7 @@
 		"collectible": "Collectible",
 		"collectibles": "COLLECTIBLES",
 		"transactions": "TRANSACTIONS",
+		"collectible_no_name": "This collectible has no name",
 		"no_collectibles": "You don't have any collectibles!",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",

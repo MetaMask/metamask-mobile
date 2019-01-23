@@ -134,13 +134,18 @@ export default class Collectibles extends Component {
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 				// eslint-disable-next-line react/jsx-no-bind
-				renderItem={({ item }) => (
-					<CollectibleElement
-						collectible={item}
-						onPress={this.onItemPress}
-						onLongPress={this.showRemoveMenu}
-					/>
-				)}
+				renderItem={({ item }) => {
+					if (!item.name) {
+						item.name = strings('wallet.collectible_no_name');
+					}
+					return (
+						<CollectibleElement
+							collectible={item}
+							onPress={this.onItemPress}
+							onLongPress={this.showRemoveMenu}
+						/>
+					);
+				}}
 				ListFooterComponent={this.renderFooter}
 			/>
 		);
