@@ -21,20 +21,9 @@ exports[`App should render correctly 1`] = `
             "childRouters": Object {
               "Main": Object {
                 "childRouters": Object {
-                  "AddBookmarkView": Object {
-                    "childRouters": Object {
-                      "AddBookmark": null,
-                    },
-                    "getActionCreators": [Function],
-                    "getActionForPathAndParams": [Function],
-                    "getComponentForRouteName": [Function],
-                    "getComponentForState": [Function],
-                    "getPathAndParamsForState": [Function],
-                    "getScreenOptions": [Function],
-                    "getStateForAction": [Function],
-                  },
                   "BrowserView": Object {
                     "childRouters": Object {
+                      "AddBookmark": null,
                       "ApprovalView": null,
                       "Browser": null,
                     },
@@ -265,20 +254,9 @@ exports[`App should render correctly 1`] = `
               "childRouters": Object {
                 "Main": Object {
                   "childRouters": Object {
-                    "AddBookmarkView": Object {
-                      "childRouters": Object {
-                        "AddBookmark": null,
-                      },
-                      "getActionCreators": [Function],
-                      "getActionForPathAndParams": [Function],
-                      "getComponentForRouteName": [Function],
-                      "getComponentForState": [Function],
-                      "getPathAndParamsForState": [Function],
-                      "getScreenOptions": [Function],
-                      "getStateForAction": [Function],
-                    },
                     "BrowserView": Object {
                       "childRouters": Object {
+                        "AddBookmark": null,
                         "ApprovalView": null,
                         "Browser": null,
                       },
