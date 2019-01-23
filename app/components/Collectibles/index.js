@@ -7,6 +7,7 @@ import { strings } from '../../../locales/i18n';
 import CollectibleElement from '../CollectibleElement';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../core/Engine';
+import getContractInformation from '../../util/opensea';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -70,6 +71,22 @@ export default class Collectibles extends Component {
 	actionSheet = null;
 
 	collectibleToRemove = null;
+
+	componentDidMount = async () => {
+		const { collectibles } = this.props;
+
+		const collectibleGroups = collectibles.reduce((groups, collectible) => {
+			if (!groups.includes(collectible.address)) {
+				groups.push(collectible.address);
+			}
+			return groups;
+		}, []);
+
+		const collectibleGroupInformationPromises = collectibleGroups.map(async address =>
+			getContractInformation(address)
+		);
+		await Promise.all(collectibleGroupInformationPromises);
+	};
 
 	renderEmpty = () => (
 		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
