@@ -22,7 +22,7 @@
 
 ## Android release
 
-1 - open android/app//build.gradle and change the version number
+1 - open android/app//build.gradle and change the versionName and bump the versionCode
 
 2 - Save and commit
 
