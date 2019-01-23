@@ -34,6 +34,7 @@ import { toggleNetworkModal } from '../../actions/modals';
 import { showAlert } from '../../actions/alert';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderShortAddress } from '../../util/address';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -479,6 +480,7 @@ class DrawerView extends Component {
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
+		const fiatBalance = Engine.getTotalFiatAccountBalance();
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
@@ -526,9 +528,7 @@ class DrawerView extends Component {
 										</Text>
 										<Icon name="caret-down" size={24} style={styles.caretDown} />
 									</View>
-									<Text style={styles.accountBalance}>
-										{account.balance} {strings('unit.eth')}
-									</Text>
+									<Text style={styles.accountBalance}>{fiatBalance}</Text>
 									<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
 								</TouchableOpacity>
 							</View>

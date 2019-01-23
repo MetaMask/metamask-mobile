@@ -2,12 +2,12 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Clipboard, Alert, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
-import { weiToFiat, hexToBN } from '../../util/number';
 import Identicon from '../Identicon';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { strings } from '../../../locales/i18n';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -97,14 +97,6 @@ export default class AccountOverview extends Component {
 		 */
 		account: PropTypes.object,
 		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		currentCurrency: PropTypes.string,
-		/**
 		 * Object that represents the navigator
 		 */
 		navigation: PropTypes.object,
@@ -138,10 +130,10 @@ export default class AccountOverview extends Component {
 
 	render = () => {
 		const {
-			account: { name, balance, address },
-			conversionRate,
-			currentCurrency
+			account: { name, address }
 		} = this.props;
+
+		const fiatBalance = Engine.getTotalFiatAccountBalance();
 
 		if (!address) return null;
 
@@ -150,9 +142,7 @@ export default class AccountOverview extends Component {
 				<TouchableOpacity style={styles.info} onPress={this.goToAccountDetails}>
 					<Identicon address={address} size="38" />
 					<Text style={styles.label}>{name}</Text>
-					<Text style={styles.amountFiat}>
-						${weiToFiat(hexToBN(balance), conversionRate, currentCurrency).toUpperCase()}
-					</Text>
+					<Text style={styles.amountFiat}>{fiatBalance}</Text>
 				</TouchableOpacity>
 				<View style={styles.actions}>
 					<TouchableOpacity type={'normal'} onPress={this.onSend} style={styles.button}>

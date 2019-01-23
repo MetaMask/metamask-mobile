@@ -109,7 +109,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  * @param {Number|String|BN} tokenValue - Token value to convert
  * @param {Number} decimals - Token decimals to convert
  * @param {Number} decimalsToShow - Decimals to 5
- * @returns {String} - String of token minimal unit, in render format
+ * @returns {Number} - String of token minimal unit, in render format
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
 	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
@@ -260,7 +260,7 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
  * @param {number} balance - Number corresponding to a balance of an asset
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {number} exchangeRate - Asset to ETH conversion rate
- * @param {Number} decimalsToShow - Decimals to 5
+ * @param {number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
  */
 export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decimalsToShow = 5) {
@@ -268,4 +268,18 @@ export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decim
 	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
 	return fiatFixed;
+}
+
+/**
+ * Formats a BN corresponding to a Fiat value into a string ready to be rendered
+ *
+ * @param {number} value - number corresponding to a balance of an asset
+ * @param {number} decimalsToShow - Decimals to 5
+ * @returns {string} - The converted balance
+ */
+export function renderFiat(value, currencyCode, decimalsToShow = 5) {
+	const base = Math.pow(10, decimalsToShow);
+	let fiatFixed = parseFloat(Math.round(value * base) / base);
+	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
+	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
