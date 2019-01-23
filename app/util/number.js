@@ -260,7 +260,7 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
  * @param {number} balance - Number corresponding to a balance of an asset
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {number} exchangeRate - Asset to ETH conversion rate
- * @param {Number} decimalsToShow - Decimals to 5
+ * @param {number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
  */
 export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decimalsToShow = 5) {
@@ -273,9 +273,9 @@ export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decim
 /**
  * Formats a BN corresponding to a Fiat value into a string ready to be rendered
  *
- * @param {BN} value - Number corresponding to a balance of an asset
- * @param {Number} decimalsToShow - Decimals to 5
- * @returns {Number} - The converted balance     d
+ * @param {number} value - number corresponding to a balance of an asset
+ * @param {number} decimalsToShow - Decimals to 5
+ * @returns {string} - The converted balance
  */
 export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 	const base = Math.pow(10, decimalsToShow);
