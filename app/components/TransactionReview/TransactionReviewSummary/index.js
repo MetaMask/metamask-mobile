@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { fromWei, weiToFiat, balanceToFiat, fromTokenMinimalUnit } from '../../../util/number';
+import { weiToFiat, balanceToFiat, renderFromTokenMinimalUnit, renderFromWei } from '../../../util/number';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -116,7 +116,7 @@ class TransactionReviewSummary extends Component {
 			contractExchangeRates,
 			actionKey
 		} = this.props;
-		const assetAmount = asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
+		const assetAmount = asset ? renderFromTokenMinimalUnit(amount, asset.decimals) : undefined;
 		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
 		return (
 			<View style={styles.summary}>
@@ -126,7 +126,7 @@ class TransactionReviewSummary extends Component {
 					<Text style={styles.summaryFiat}>
 						{asset
 							? assetAmount + ' ' + asset.symbol
-							: fromWei(amount).toString() + ' ' + strings('unit.eth')}
+							: renderFromWei(amount).toString() + ' ' + strings('unit.eth')}
 					</Text>
 				) : (
 					<View>
@@ -142,7 +142,7 @@ class TransactionReviewSummary extends Component {
 						<Text style={styles.summaryEth}>
 							{asset
 								? assetAmount + ' ' + asset.symbol
-								: fromWei(amount).toString() + ' ' + strings('unit.eth')}
+								: renderFromWei(amount).toString() + ' ' + strings('unit.eth')}
 						</Text>
 					</View>
 				)}
