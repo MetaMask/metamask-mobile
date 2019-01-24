@@ -8,10 +8,10 @@ import {
 	toBN,
 	isBN,
 	weiToFiat,
-	fromWei,
 	weiToFiatNumber,
 	balanceToFiatNumber,
-	fromTokenMinimalUnit
+	renderFromTokenMinimalUnit,
+	renderFromWei
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 
@@ -149,7 +149,7 @@ class TransactionReviewInformation extends Component {
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalEth = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
 		const amountEth = isBN(amount) && !asset ? amount : undefined;
-		const amountToken = asset ? fromTokenMinimalUnit(amount, asset.decimals) : undefined;
+		const amountToken = asset ? renderFromTokenMinimalUnit(amount, asset.decimals) : undefined;
 
 		return (
 			<View style={styles.overview}>
@@ -165,7 +165,7 @@ class TransactionReviewInformation extends Component {
 							{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
 						</Text>
 						<Text style={styles.overviewEth}>
-							{fromWei(totalGas).toString()} {strings('unit.eth')}
+							{renderFromWei(totalGas).toString()} {strings('unit.eth')}
 						</Text>
 					</View>
 				</View>
@@ -190,7 +190,7 @@ class TransactionReviewInformation extends Component {
 						</Text>
 						<Text style={styles.overviewEth}>
 							{asset && amountToken} {asset && asset.symbol} {asset && ' + '}
-							{fromWei(totalEth).toString()} {strings('unit.eth')}
+							{renderFromWei(totalEth).toString()} {strings('unit.eth')}
 						</Text>
 					</View>
 				</View>
