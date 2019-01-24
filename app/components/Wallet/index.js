@@ -9,7 +9,6 @@ import { colors, fontStyles } from '../../styles/common';
 import AccountOverview from '../AccountOverview';
 import Tokens from '../Tokens';
 import Transactions from '../Transactions';
-import Collectibles from '../Collectibles';
 import Modal from 'react-native-modal';
 import { getWalletNavbarOptions } from '../Navbar';
 import { strings } from '../../../locales/i18n';
@@ -21,6 +20,7 @@ import Collectible from '../Collectible';
 import Engine from '../../core/Engine';
 import Networks, { isKnownNetwork } from '../../util/networks';
 import { showAlert } from '../../actions/alert';
+import CollectibleContracts from '../CollectibleContracts';
 // eslint-disable-next-line import/no-unresolved
 const styles = StyleSheet.create({
 	wrapper: {
@@ -187,10 +187,6 @@ class Wallet extends Component {
 		this.setState({ showCollectible: false });
 	};
 
-	onShowCollectible = collectible => {
-		this.setState({ showCollectible: true, collectible });
-	};
-
 	renderAssetModal = () => {
 		const { showCollectible, collectible } = this.state;
 		return (
@@ -279,11 +275,10 @@ class Wallet extends Component {
 						tokenExchangeRates={tokenExchangeRates}
 						transactions={this.txs}
 					/>
-					<Collectibles
+					<CollectibleContracts
 						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
 						collectibles={collectibles}
-						onPress={this.onShowCollectible}
 					/>
 					<Transactions
 						navigation={navigation}

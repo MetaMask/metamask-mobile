@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import { connect } from 'react-redux';
-import Icon from 'react-native-vector-icons/Feather';
+import { ScrollView, RefreshControl, FlatList, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../core/Engine';
-import getContractInformation from '../../util/opensea';
-import CollectibleContractElement from '../CollectibleContractElement';
+import CollectibleElement from '../CollectibleElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -26,21 +23,6 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: colors.fontTertiary,
 		...fontStyles.normal
-	},
-	add: {
-		margin: 20,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
-	addText: {
-		fontSize: 15,
-		color: colors.primary,
-		...fontStyles.normal
-	},
-	footer: {
-		flex: 1,
-		paddingBottom: 30
 	}
 });
 
@@ -48,12 +30,8 @@ const styles = StyleSheet.create({
  * View that renders a list of Collectibles
  * also known as ERC-721 Tokens
  */
-class Collectibles extends Component {
+export default class Collectibles extends Component {
 	static propTypes = {
-		/**
-		 * Array of collectibleContract objects
-		 */
-		allCollectibleContracts: PropTypes.array,
 		/**
 		 * Navigation object required to push
 		 * the Asset detail view
@@ -77,32 +55,10 @@ class Collectibles extends Component {
 
 	collectibleToRemove = null;
 
-	componentDidMount = async () => {
-		const { collectibles, allCollectibleContracts } = this.props;
-		const { AssetsController } = Engine.context;
-		const collectibleGroups = collectibles.reduce((groups, collectible) => {
-			const exists = allCollectibleContracts.find(
-				collectibleContract => collectibleContract.address === collectible.address
-			);
-			if (!exists && !groups.includes(collectible.address)) {
-				groups.push(collectible.address);
-			}
-			return groups;
-		}, []);
-		const collectibleGroupInformationPromises = collectibleGroups.map(async address =>
-			getContractInformation(address)
-		);
-		const collectibleGroupInformation = await Promise.all(collectibleGroupInformationPromises);
-		collectibleGroupInformation.map(({ address, name, symbol, image_url }) =>
-			AssetsController.addCollectibleContract(address, name, symbol, image_url)
-		);
-	};
-
 	renderEmpty = () => (
 		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
 			<View style={styles.emptyView}>
 				<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
-				{this.renderFooter()}
 			</View>
 		</ScrollView>
 	);
@@ -133,15 +89,6 @@ class Collectibles extends Component {
 		this.actionSheet = ref;
 	};
 
-	renderFooter = () => (
-		<View style={styles.footer}>
-			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
-				<Icon name="plus" size={16} color={colors.primary} />
-				<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
-			</TouchableOpacity>
-		</View>
-	);
-
 	keyExtractor = item => `${item.address}_${item.tokenId}`;
 
 	onRefresh = async () => {
@@ -151,12 +98,12 @@ class Collectibles extends Component {
 		this.setState({ refreshing: false });
 	};
 
-	renderCollectiblesGroupList() {
-		const { allCollectibleContracts } = this.props;
+	renderCollectiblesList() {
+		const { collectibles } = this.props;
 
 		return (
 			<FlatList
-				data={allCollectibleContracts}
+				data={collectibles}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -166,17 +113,13 @@ class Collectibles extends Component {
 						item.name = strings('wallet.collectible_no_name');
 					}
 					return (
-						/*
 						<CollectibleElement
 							collectible={item}
 							onPress={this.onItemPress}
 							onLongPress={this.showRemoveMenu}
 						/>
-						*/
-						<CollectibleContractElement collectibleContract={item} />
 					);
 				}}
-				ListFooterComponent={this.renderFooter}
 			/>
 		);
 	}
@@ -185,7 +128,7 @@ class Collectibles extends Component {
 		const { collectibles } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'collectibles'}>
-				{collectibles && collectibles.length ? this.renderCollectiblesGroupList() : this.renderEmpty()}
+				{collectibles && collectibles.length ? this.renderCollectiblesList() : this.renderEmpty()}
 				<ActionSheet
 					ref={this.createActionSheetRef}
 					title={strings('wallet.remove_collectible_title')}
@@ -199,9 +142,3 @@ class Collectibles extends Component {
 		);
 	};
 }
-
-const mapStateToProps = state => ({
-	allCollectibleContracts: state.engine.backgroundState.AssetsController.allCollectibleContracts
-});
-
-export default connect(mapStateToProps)(Collectibles);
