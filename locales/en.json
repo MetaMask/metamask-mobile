@@ -229,7 +229,8 @@
 	},
 	"asset_overview": {
 		"send_button": "SEND",
-		"receive_button": "RECEIVE"
+		"receive_button": "RECEIVE",
+		"add_collectible_button": "ADD"
 	},
 	"account_details": {
 		"title": "Account Details",

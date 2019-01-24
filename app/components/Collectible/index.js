@@ -3,9 +3,9 @@ import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../styles/common';
 import { getNavigationOptionsTitle } from '../Navbar';
-import Engine from '../../core/Engine';
 import Collectibles from '../Collectibles';
 import CollectibleContractOverview from '../CollectibleContractOverview';
+import Engine from '../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -13,9 +13,6 @@ const styles = StyleSheet.create({
 		flex: 1
 	}
 });
-
-const TRANSACTION_ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
-const ASSET_OVERVIEW_HEIGHT = 280;
 
 /**
  * View that displays a specific collectible
@@ -35,34 +32,12 @@ export default class Collectible extends Component {
 		refreshing: false
 	};
 
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('symbol', ''));
-
-	scrollViewRef = React.createRef();
-
-	adjustScroll = index => {
-		const { current } = this.scrollViewRef;
-		const rowHeight = TRANSACTION_ROW_HEIGHT;
-		const rows = index * rowHeight;
-		current.scrollTo({ y: rows + ASSET_OVERVIEW_HEIGHT });
-	};
-
-	getFilteredTxs(transactions) {
-		const symbol = this.props.navigation.getParam('symbol', '');
-		const tokenAddress = this.props.navigation.getParam('address', '');
-		if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
-			const filteredTxs = transactions.filter(
-				tx =>
-					tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
-					tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
-			);
-			return filteredTxs;
-		}
-		return transactions;
-	}
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('name', ''));
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		await Engine.refreshTransactionHistory();
+		const { AssetsDetectionController } = Engine.context;
+		await AssetsDetectionController.detectCollectibles();
 		this.setState({ refreshing: false });
 	};
 
@@ -80,9 +55,8 @@ export default class Collectible extends Component {
 			<ScrollView
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 				style={styles.wrapper}
-				ref={this.scrollViewRef}
 			>
-				<View testID={'asset'}>
+				<View testID={'collectible'}>
 					<View style={styles.assetOverviewWrapper}>
 						<CollectibleContractOverview
 							navigation={navigation}

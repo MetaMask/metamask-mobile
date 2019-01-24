@@ -68,7 +68,7 @@ class CollectibleContracts extends Component {
 		refreshing: false
 	};
 
-	componentDidMount = async () => {
+	componentDidUpdate = async () => {
 		const { collectibles, allCollectibleContracts } = this.props;
 		const { AssetsController } = Engine.context;
 		const collectibleGroups = collectibles.reduce((groups, collectible) => {
@@ -84,8 +84,8 @@ class CollectibleContracts extends Component {
 			getContractInformation(address)
 		);
 		const collectibleGroupInformation = await Promise.all(collectibleGroupInformationPromises);
-		collectibleGroupInformation.map(({ address, name, symbol, image_url }) =>
-			AssetsController.addCollectibleContract(address, name, symbol, image_url)
+		collectibleGroupInformation.map(({ address, name, symbol, image_url, description, total_supply }) =>
+			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, total_supply)
 		);
 	};
 
