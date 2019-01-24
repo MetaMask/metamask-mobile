@@ -25,31 +25,27 @@ const styles = StyleSheet.create({
 	},
 	balance: {
 		flex: 1,
-		alignItems: 'center',
 		marginTop: 10,
 		marginBottom: 10
 	},
 	name: {
 		fontSize: 30,
 		color: colors.fontPrimary,
+		textAlign: 'center',
 		...fontStyles.normal
 	},
 	symbol: {
 		fontSize: 18,
 		color: colors.fontSecondary,
+		textAlign: 'center',
 		...fontStyles.light
 	},
-	description: {
+	content: {
 		fontSize: 12,
 		color: colors.fontSecondary,
-		...fontStyles.bold
+		...fontStyles.light
 	},
-	totalSupply: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.bold
-	},
-	address: {
+	label: {
 		fontSize: 12,
 		color: colors.fontSecondary,
 		...fontStyles.bold
@@ -93,9 +89,12 @@ export default class CollectibleContractOverview extends Component {
 				<View style={styles.balance}>
 					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.symbol}>{symbol}</Text>
-					<Text style={styles.description}>Description: {description}</Text>
-					<Text style={styles.totalSupply}>Total Supply: {total_supply}</Text>
-					<Text style={styles.address}>{renderShortAddress(address)}</Text>
+					<Text style={styles.label}>{strings('asset_overview.description')}</Text>
+					<Text style={styles.content}>{description}</Text>
+					<Text style={styles.label}>Total Supply:</Text>
+					<Text style={styles.content}>{total_supply}</Text>
+					<Text style={styles.label}>Address: </Text>
+					<Text style={styles.content}>{renderShortAddress(address)}</Text>
 				</View>
 
 				<AssetActionButtons
