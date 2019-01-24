@@ -71,22 +71,34 @@ class CollectibleContracts extends Component {
 	componentDidUpdate = async () => {
 		const { collectibles, allCollectibleContracts } = this.props;
 		const { AssetsController } = Engine.context;
-		const collectibleGroups = collectibles.reduce((groups, collectible) => {
-			const exists = allCollectibleContracts.find(
-				collectibleContract => collectibleContract.address === collectible.address
-			);
-			if (!exists && !groups.includes(collectible.address)) {
-				groups.push(collectible.address);
+		const collectibleAddresses = collectibles.reduce((list, collectible) => {
+			if (!list.includes(collectible.address)) {
+				list.push(collectible.address);
 			}
-			return groups;
+			return list;
 		}, []);
-		const collectibleGroupInformationPromises = collectibleGroups.map(async address =>
+		const collectibleContractsToFetch = collectibleAddresses.reduce((list, address) => {
+			const alreadyAdded = allCollectibleContracts.find(
+				collectibleContract => collectibleContract.address === address
+			);
+			if (!alreadyAdded && !list.includes(address)) {
+				list.push(address);
+			}
+			return list;
+		}, []);
+		const collectibleContractsPromises = collectibleContractsToFetch.map(async address =>
 			getContractInformation(address)
 		);
-		const collectibleGroupInformation = await Promise.all(collectibleGroupInformationPromises);
-		collectibleGroupInformation.map(({ address, name, symbol, image_url, description, total_supply }) =>
+		const collectibleContractsInformation = await Promise.all(collectibleContractsPromises);
+		collectibleContractsInformation.map(({ address, name, symbol, image_url, description, total_supply }) =>
 			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, total_supply)
 		);
+		allCollectibleContracts.map(collectibleContract => {
+			if (!collectibleAddresses.includes(collectibleContract.address)) {
+				AssetsController.removeCollectibleContract(collectibleContract.address);
+			}
+			return null;
+		});
 	};
 
 	renderEmpty = () => (

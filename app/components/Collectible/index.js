@@ -40,18 +40,6 @@ class Collectible extends Component {
 
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('name', ''));
 
-	componentDidMount = () => {
-		const {
-			navigation: {
-				state: { params }
-			}
-		} = this.props;
-		const address = params.address;
-		const { collectibles } = this.props;
-		const filter = collectibles.filter(collectible => collectible.address.toLowerCase() === address.toLowerCase());
-		this.setState({ collectibles: filter });
-	};
-
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
 		const { AssetsDetectionController } = Engine.context;
@@ -66,7 +54,11 @@ class Collectible extends Component {
 			},
 			navigation
 		} = this.props;
-		const { collectibles } = this.state;
+		const address = params.address;
+		const { collectibles } = this.props;
+		const filteredCollectibles = collectibles.filter(
+			collectible => collectible.address.toLowerCase() === address.toLowerCase()
+		);
 		const collectibleContract = params;
 		return (
 			<ScrollView
@@ -81,7 +73,7 @@ class Collectible extends Component {
 						/>
 					</View>
 					<View style={styles.wrapper}>
-						<Collectibles navigation={navigation} collectibles={collectibles} />
+						<Collectibles navigation={navigation} collectibles={filteredCollectibles} />
 					</View>
 				</View>
 			</ScrollView>
