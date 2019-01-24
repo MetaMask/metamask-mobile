@@ -35,7 +35,8 @@ const styles = StyleSheet.create({
 	buttons: {
 		flex: 1,
 		flexDirection: 'row',
-		marginTop: 30
+		marginTop: 30,
+		width: '50%'
 	},
 	collectibleName: {
 		fontSize: 20,
@@ -105,6 +106,18 @@ export default class CollectibleOverview extends Component {
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderImage()}</View>
+				<View style={styles.buttons}>
+					<StyledButton
+						type={'confirm'}
+						onPress={this.onSend}
+						containerStyle={styles.button}
+						style={styles.buttonContent}
+						childGroupStyle={styles.flexRow}
+					>
+						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
+						<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
+					</StyledButton>
+				</View>
 				<View style={styles.collectibleInformation}>
 					<Text style={styles.collectibleName}>{name}</Text>
 					<Text style={styles.collectibleAttribute}>
@@ -119,18 +132,6 @@ export default class CollectibleOverview extends Component {
 					<Text style={styles.collectibleAttribute}>
 						{strings('collectible.collectible_address')}: {renderShortAddress(address)}
 					</Text>
-				</View>
-				<View style={styles.buttons}>
-					<StyledButton
-						type={'confirm'}
-						onPress={this.onSend}
-						containerStyle={styles.button}
-						style={styles.buttonContent}
-						childGroupStyle={styles.flexRow}
-					>
-						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
-					</StyledButton>
 				</View>
 			</View>
 		);

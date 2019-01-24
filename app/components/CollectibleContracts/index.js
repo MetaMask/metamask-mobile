@@ -99,11 +99,7 @@ class CollectibleContracts extends Component {
 	);
 
 	onItemPress = collectibleContract => {
-		const { collectibles } = this.props;
-		const filter = collectibles.filter(
-			collectible => collectible.address.toLowerCase() === collectibleContract.address.toLowerCase()
-		);
-		this.props.navigation.push('Collectible', { collectibles: filter, collectibleContract });
+		this.props.navigation.push('Collectible', collectibleContract);
 	};
 
 	goToAddCollectible = () => {

@@ -3,6 +3,7 @@ import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../styles/common';
 import { getNavigationOptionsTitle } from '../Navbar';
+import { connect } from 'react-redux';
 import Collectibles from '../Collectibles';
 import CollectibleContractOverview from '../CollectibleContractOverview';
 import Engine from '../../core/Engine';
@@ -19,8 +20,12 @@ const styles = StyleSheet.create({
  * including the overview (name, address, symbol, logo, description, total supply)
  * and also individual collectibles list
  */
-export default class Collectible extends Component {
+class Collectible extends Component {
 	static propTypes = {
+		/**
+		 * Array of assets (in this case Collectibles)
+		 */
+		collectibles: PropTypes.array,
 		/**
 		/* navigation object required to access the props
 		/* passed by the parent component
@@ -29,10 +34,23 @@ export default class Collectible extends Component {
 	};
 
 	state = {
-		refreshing: false
+		refreshing: false,
+		collectibles: []
 	};
 
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('name', ''));
+
+	componentDidMount = () => {
+		const {
+			navigation: {
+				state: { params }
+			}
+		} = this.props;
+		const address = params.address;
+		const { collectibles } = this.props;
+		const filter = collectibles.filter(collectible => collectible.address.toLowerCase() === address.toLowerCase());
+		this.setState({ collectibles: filter });
+	};
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -48,9 +66,8 @@ export default class Collectible extends Component {
 			},
 			navigation
 		} = this.props;
-
-		const collectibles = params.collectibles;
-		const collectibleContract = params.collectibleContract;
+		const { collectibles } = this.state;
+		const collectibleContract = params;
 		return (
 			<ScrollView
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -71,3 +88,9 @@ export default class Collectible extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	collectibles: state.engine.backgroundState.AssetsController.collectibles
+});
+
+export default connect(mapStateToProps)(Collectible);
