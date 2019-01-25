@@ -96,9 +96,9 @@ export default class CollectibleContractOverview extends Component {
 					<Text style={styles.symbol}>{symbol}</Text>
 					<Text style={styles.label}>{strings('asset_overview.description')}</Text>
 					<Text style={styles.content}>{description}</Text>
-					<Text style={styles.label}>Total Supply:</Text>
+					<Text style={styles.label}>{strings('asset_overview.total_supply')}</Text>
 					<Text style={styles.content}>{total_supply}</Text>
-					<Text style={styles.label}>Address: </Text>
+					<Text style={styles.label}>{strings('asset_overview.address')}</Text>
 					<Text style={styles.content}>{renderShortAddress(address)}</Text>
 				</View>
 
