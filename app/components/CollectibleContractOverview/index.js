@@ -61,11 +61,16 @@ export default class CollectibleContractOverview extends Component {
 		/**
 		 * Object that represents the asset to be displayed
 		 */
-		collectibleContract: PropTypes.object
+		collectibleContract: PropTypes.object,
+		/**
+		 * Navigation object required to push
+		 * the Asset detail view
+		 */
+		navigation: PropTypes.object
 	};
 
 	onAdd = () => {
-		Alert.alert(strings('drawer.coming_soon'));
+		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
 	};
 
 	onSend = () => {
@@ -100,8 +105,8 @@ export default class CollectibleContractOverview extends Component {
 				<AssetActionButtons
 					leftText={strings('asset_overview.send_button').toUpperCase()}
 					rightText={strings('asset_overview.add_collectible_button').toUpperCase()}
-					onRightPress={this.onSend}
-					onLeftPress={this.onAdd}
+					onRightPress={this.onAdd}
+					onLeftPress={this.onSend}
 				/>
 			</LinearGradient>
 		);
