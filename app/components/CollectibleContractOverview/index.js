@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
+import { Alert, StyleSheet, Text, View, TouchableOpacity, InteractionManager, Image } from 'react-native';
 import PropTypes from 'prop-types';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
@@ -50,13 +50,32 @@ const styles = StyleSheet.create({
 	},
 	opensea: {
 		fontSize: 12,
+		textAlignVertical: 'center',
+		paddingRight: 5,
 		color: colors.fontSecondary,
 		...fontStyles.light
 	},
 	credits: {
-		alignItems: 'center'
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		textAlign: 'center'
+	},
+	openSeaLogo: {
+		width: 100,
+		height: 30,
+		resizeMode: 'contain'
+	},
+	creditsView: {
+		alignItems: 'center',
+		marginVertical: 5
+	},
+	creditsElements: {
+		flexDirection: 'row'
 	}
 });
+
+const openSeaLogo = require('../../images/opensea-logo-flat-colored-blue.png'); // eslint-disable-line
 
 /**
  * View that displays a specific collectible contract
@@ -109,9 +128,12 @@ export default class CollectibleContractOverview extends Component {
 				<View style={styles.information}>
 					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.symbol}>{symbol}</Text>
-					<View style={styles.credits}>
-						<TouchableOpacity onPress={this.goToOpenSea}>
-							<Text style={styles.opensea}>{strings('collectible.powered_by_opensea')}</Text>
+					<View style={styles.creditsView}>
+						<TouchableOpacity style={styles.credits} onPress={this.goToOpenSea}>
+							<View style={styles.creditsElements}>
+								<Text style={styles.opensea}>{strings('collectible.powered_by_opensea')}</Text>
+								<Image source={openSeaLogo} style={styles.openSeaLogo} />
+							</View>
 						</TouchableOpacity>
 					</View>
 					<Text style={styles.label}>{strings('asset_overview.description')}</Text>
