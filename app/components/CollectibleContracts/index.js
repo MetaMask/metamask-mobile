@@ -154,7 +154,7 @@ class CollectibleContracts extends Component {
 		</View>
 	);
 
-	renderElement = item => {
+	renderItem = ({ item }) => {
 		const { address, name, logo, symbol } = item;
 		return (
 			<AssetElement onPress={this.onItemPress} asset={item}>
@@ -191,8 +191,7 @@ class CollectibleContracts extends Component {
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				// eslint-disable-next-line react/jsx-no-bind
-				renderItem={({ item }) => this.renderElement(item)}
+				renderItem={this.renderItem}
 				ListFooterComponent={this.renderFooter}
 			/>
 		);
