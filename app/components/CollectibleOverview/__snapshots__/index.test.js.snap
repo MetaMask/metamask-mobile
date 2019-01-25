@@ -38,75 +38,10 @@ exports[`CollectibleOverview should render correctly 1`] = `
   <View
     style={
       Object {
-        "alignItems": "center",
-        "flex": 1,
-        "marginBottom": 10,
-        "marginTop": 10,
-        "padding": 20,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 20,
-          "fontWeight": "400",
-        }
-      }
-    >
-      Leopard
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
-        }
-      }
-    >
-      ID
-      : 
-      6904
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
-        }
-      }
-    >
-      Type
-      : 
-      Cryptokitties
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
-        }
-      }
-    >
-      Address
-      : 
-      0x0601...266d
-    </Text>
-  </View>
-  <View
-    style={
-      Object {
         "flex": 1,
         "flexDirection": "row",
         "marginTop": 30,
+        "width": "50%",
       }
     }
   >
@@ -171,6 +106,72 @@ exports[`CollectibleOverview should render correctly 1`] = `
         SEND
       </Text>
     </StyledButton>
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "marginBottom": 10,
+        "marginTop": 10,
+        "padding": 20,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 20,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Leopard
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+        }
+      }
+    >
+      ID
+      : 
+      6904
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Type
+      : 
+      Cryptokitties
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Address
+      : 
+      0x0601...266d
+    </Text>
   </View>
 </View>
 `;

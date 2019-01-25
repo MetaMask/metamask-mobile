@@ -43,24 +43,14 @@ exports[`Main should render correctly 1`] = `
             "getScreenOptions": [Function],
             "getStateForAction": [Function],
           },
-          "CollectibleView": Object {
-            "childRouters": Object {
-              "Collectible": null,
-            },
-            "getActionCreators": [Function],
-            "getActionForPathAndParams": [Function],
-            "getComponentForRouteName": [Function],
-            "getComponentForState": [Function],
-            "getPathAndParamsForState": [Function],
-            "getScreenOptions": [Function],
-            "getStateForAction": [Function],
-          },
           "Home": Object {
             "childRouters": Object {
               "AccountDetails": null,
               "AddAsset": null,
               "Asset": null,
               "BrowserHome": null,
+              "Collectible": null,
+              "CollectibleView": null,
               "RevealPrivateCredentialView": null,
               "WalletView": null,
             },
@@ -175,24 +165,14 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
-            "CollectibleView": Object {
-              "childRouters": Object {
-                "Collectible": null,
-              },
-              "getActionCreators": [Function],
-              "getActionForPathAndParams": [Function],
-              "getComponentForRouteName": [Function],
-              "getComponentForState": [Function],
-              "getPathAndParamsForState": [Function],
-              "getScreenOptions": [Function],
-              "getStateForAction": [Function],
-            },
             "Home": Object {
               "childRouters": Object {
                 "AccountDetails": null,
                 "AddAsset": null,
                 "Asset": null,
                 "BrowserHome": null,
+                "Collectible": null,
+                "CollectibleView": null,
                 "RevealPrivateCredentialView": null,
                 "WalletView": null,
               },

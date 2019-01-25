@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Collectible should render correctly 1`] = `
+<ScrollView
+  refreshControl={
+    <RefreshControlMock
+      onRefresh={[Function]}
+      refreshing={false}
+    />
+  }
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    testID="collectible"
+  >
+    <View>
+      <CollectibleContractOverview
+        collectibleContract={
+          Object {
+            "address": "0x1",
+          }
+        }
+        navigation={
+          Object {
+            "state": Object {
+              "params": Object {
+                "address": "0x1",
+              },
+            },
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+        }
+      }
+    >
+      <Collectibles
+        collectibles={Array []}
+        navigation={
+          Object {
+            "state": Object {
+              "params": Object {
+                "address": "0x1",
+              },
+            },
+          }
+        }
+      />
+    </View>
+  </View>
+</ScrollView>
+`;

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Collectible should render correctly 1`] = `
+exports[`CollectibleView should render correctly 1`] = `
 <LinearGradient
   colors={
     Array [
@@ -29,23 +29,6 @@ exports[`Collectible should render correctly 1`] = `
     }
   }
 >
-  <View>
-    <Text
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "600",
-          "marginHorizontal": 20,
-          "marginVertical": 12,
-          "textAlign": "center",
-        }
-      }
-    >
-      Collectible
-    </Text>
-  </View>
   <ScrollView
     style={
       Object {
@@ -63,7 +46,22 @@ exports[`Collectible should render correctly 1`] = `
           }
         }
       >
-        <CollectibleOverview />
+        <CollectibleOverview
+          collectible={
+            Object {
+              "address": "0x1",
+            }
+          }
+          navigation={
+            Object {
+              "state": Object {
+                "params": Object {
+                  "address": "0x1",
+                },
+              },
+            }
+          }
+        />
       </View>
     </View>
   </ScrollView>

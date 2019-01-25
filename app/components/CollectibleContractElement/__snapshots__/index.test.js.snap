@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleContractElement should render correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={0.2}
+  key="collectible-contract-0x0"
+  onLongPress={[Function]}
+  onPress={[Function]}
+  style={
+    Object {
+      "borderBottomColor": "#CCCCCC",
+      "borderBottomWidth": 0.5,
+      "flex": 1,
+      "flexDirection": "row",
+      "paddingHorizontal": 15,
+      "paddingVertical": 10,
+    }
+  }
+>
+  <CollectibleImage
+    collectible={
+      Object {
+        "address": "0x0",
+        "image": "logo",
+        "name": "name",
+      }
+    }
+  />
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 16,
+          "fontWeight": "400",
+        }
+      }
+    >
+      name
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "600",
+        }
+      }
+    >
+      NM
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+        }
+      }
+    >
+      0x0...0x0
+    </Text>
+  </View>
+</TouchableOpacity>
+`;
