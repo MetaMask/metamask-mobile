@@ -86,10 +86,13 @@ class CollectibleContracts extends Component {
 			}
 			return list;
 		}, []);
-		const collectibleContractsPromises = collectibleContractsToFetch.map(async address =>
-			getContractInformation(address)
-		);
-		const collectibleContractsInformation = await Promise.all(collectibleContractsPromises);
+		const collectibleContractsInformation = await collectibleContractsToFetch.reduce(async (list, address) => {
+			const contractInformation = await getContractInformation(address);
+			if (contractInformation) {
+				list.push(contractInformation);
+			}
+			return list;
+		}, []);
 		collectibleContractsInformation.map(({ address, name, symbol, image_url, description, total_supply }) =>
 			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, total_supply)
 		);

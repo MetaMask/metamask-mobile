@@ -1,3 +1,6 @@
+import Logger from '../util/Logger';
+
+const UNABLE_TO_FETCH = `Unable to fetch content from OpenSea.`;
 const ASSET_CONTRACT = 'asset_contract/';
 
 /**
@@ -17,7 +20,12 @@ function getOpenSeaBaseUrl() {
  */
 export default async function getContractInformation(contractAddress) {
 	const url = getOpenSeaBaseUrl() + ASSET_CONTRACT + contractAddress;
-	const contractInformation = await fetchOpenSeaContent(url);
+	let contractInformation;
+	try {
+		contractInformation = await fetchOpenSeaContent(url);
+	} catch (e) {
+		contractInformation = undefined;
+	}
 	return contractInformation;
 }
 
@@ -28,11 +36,18 @@ export default async function getContractInformation(contractAddress) {
  * @returns {Object} - Object containing information requested to api
  */
 async function fetchOpenSeaContent(url) {
-	return await fetch(url, {
-		headers: {},
-		body: null,
-		method: 'GET'
-	})
-		.then(r => r._bodyText)
-		.then(object => JSON.parse(object));
+	return new Promise((resolve, reject) => {
+		fetch(url, {
+			headers: {},
+			body: null,
+			method: 'GET'
+		})
+			.then(response => {
+				resolve(JSON.parse(response._bodyText));
+			})
+			.catch(error => {
+				Logger.error(UNABLE_TO_FETCH + ` Error - ${error}`);
+				reject(UNABLE_TO_FETCH + ` Error - ${error}`);
+			});
+	});
 }
