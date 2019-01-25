@@ -118,8 +118,8 @@ class CollectibleContracts extends Component {
 			}
 			return list;
 		}, []);
-		collectibleContractsInformation.map(({ address, name, symbol, image_url, description, totalSupply }) =>
-			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, totalSupply)
+		collectibleContractsInformation.map(({ address, name, symbol, image_url, description, total_supply }) =>
+			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, total_supply)
 		);
 		allCollectibleContracts.map(collectibleContract => {
 			if (!collectibleAddresses.includes(collectibleContract.address)) {
