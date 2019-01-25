@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		marginBottom: 10
 	},
-	balance: {
+	onformation: {
 		flex: 1,
 		marginTop: 10,
 		marginBottom: 10
@@ -49,6 +49,14 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.fontSecondary,
 		...fontStyles.bold
+	},
+	opensea: {
+		fontSize: 12,
+		color: colors.fontSecondary,
+		...fontStyles.light
+	},
+	credits: {
+		alignItems: 'center'
 	}
 });
 
@@ -84,6 +92,15 @@ export default class CollectibleContractOverview extends Component {
 		return logo ? <CollectibleImage collectible={{ address, image: logo }} /> : <Identicon address={address} />;
 	};
 
+	goToOpenSea = () => {
+		const openSeaUrl = 'https://opensea.io/';
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.push('BrowserView', {
+				url: openSeaUrl
+			});
+		});
+	};
+
 	render = () => {
 		const {
 			collectibleContract: { name, symbol, address, description, total_supply }
@@ -91,9 +108,14 @@ export default class CollectibleContractOverview extends Component {
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
-				<View style={styles.balance}>
+				<View style={styles.onformation}>
 					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.symbol}>{symbol}</Text>
+					<View style={styles.credits}>
+						<TouchableOpacity onPress={this.goToOpenSea}>
+							<Text style={styles.opensea}>{strings('collectible.powered_by_opensea')}</Text>
+						</TouchableOpacity>
+					</View>
 					<Text style={styles.label}>{strings('asset_overview.description')}</Text>
 					<Text style={styles.content}>{description}</Text>
 					<Text style={styles.label}>{strings('asset_overview.total_supply')}</Text>
