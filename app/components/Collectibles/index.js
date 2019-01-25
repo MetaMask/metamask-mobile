@@ -5,7 +5,9 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../core/Engine';
-import CollectibleElement from '../CollectibleElement';
+import CollectibleImage from '../CollectibleImage';
+import contractMap from 'eth-contract-metadata';
+import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -22,6 +24,28 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: colors.fontTertiary,
 		...fontStyles.normal
+	},
+	itemWrapper: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	balances: {
+		flex: 1
+	},
+	name: {
+		fontSize: 16,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	tokenId: {
+		fontSize: 12,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	collectibleName: {
+		fontSize: 12,
+		color: colors.fontPrimary,
+		...fontStyles.bold
 	}
 });
 
@@ -90,6 +114,23 @@ export default class Collectibles extends Component {
 
 	keyExtractor = item => `${item.address}_${item.tokenId}`;
 
+	renderItem = ({ item }) => (
+		<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
+			<View style={styles.itemWrapper}>
+				<CollectibleImage collectible={item} />
+				<View style={styles.balances}>
+					<Text style={styles.name}>{item.name}</Text>
+					{contractMap[item.address] && (
+						<Text style={styles.collectibleName}>{contractMap[item.address].name}</Text>
+					)}
+					<Text style={styles.tokenId}>
+						{strings('collectible.collectible_token_id')}: {item.tokenId}
+					</Text>
+				</View>
+			</View>
+		</AssetElement>
+	);
+
 	renderCollectiblesList() {
 		const { collectibles } = this.props;
 
@@ -98,14 +139,7 @@ export default class Collectibles extends Component {
 				data={collectibles}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
-				// eslint-disable-next-line react/jsx-no-bind
-				renderItem={({ item }) => (
-					<CollectibleElement
-						collectible={item}
-						onPress={this.onItemPress}
-						onLongPress={this.showRemoveMenu}
-					/>
-				)}
+				renderItem={this.renderItem}
 			/>
 		);
 	}
