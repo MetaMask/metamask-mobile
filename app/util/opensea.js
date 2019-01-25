@@ -1,9 +1,20 @@
 const ASSET_CONTRACT = 'asset_contract/';
 
+/**
+ * Return OpenSea api
+ *
+ * @returns {string} - String containing OpenSea api
+ */
 function getOpenSeaBaseUrl() {
 	return 'https://api.opensea.io/api/v1/';
 }
 
+/**
+ * Returns contract collectible information object
+ *
+ * @param {string} contractAddress - Collectible contract address
+ * @returns {Object} - Object containing collectible information object
+ */
 export default async function getContractInformation(contractAddress) {
 	const url = getOpenSeaBaseUrl() + ASSET_CONTRACT + contractAddress;
 	const contractInformation = await fetchOpenSeaContent(url);
@@ -11,9 +22,10 @@ export default async function getContractInformation(contractAddress) {
 }
 
 /**
- * Fetches gas estimated from gas station
+ * Fetches any url and returns and object as response
  *
- * @returns {Object} - Object containing basic estimates
+ * @param {string} url - OpenSea url to request
+ * @returns {Object} - Object containing information requested to api
  */
 async function fetchOpenSeaContent(url) {
 	return await fetch(url, {
