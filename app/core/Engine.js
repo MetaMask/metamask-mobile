@@ -24,7 +24,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
-import { renderFromTokenMinimalUnit, balanceToFiatNumber, renderFiat, weiToFiatNumber } from '../util/number';
+import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 
 const encryptor = new Encryptor();
 
@@ -230,7 +230,7 @@ class Engine {
 			TokenRatesController
 		} = this.datamodel.context;
 		const { selectedAddress } = PreferencesController.state;
-		const { conversionRate, currentCurrency } = CurrencyRateController.state;
+		const { conversionRate } = CurrencyRateController.state;
 		const { accounts } = AccountTrackerController.state;
 		const { tokens } = AssetsController.state;
 		let ethFiat = 0;
@@ -254,7 +254,7 @@ class Engine {
 		}
 
 		const total = ethFiat + tokenFiat;
-		return renderFiat(total, currentCurrency);
+		return total;
 	};
 
 	sync = async ({ accounts, preferences, network, transactions, seed, pass }) => {
