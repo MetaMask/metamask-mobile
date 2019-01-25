@@ -10,8 +10,7 @@ import CollectibleElement from '../CollectibleElement';
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1,
-		minHeight: 500
+		flex: 1
 	},
 	emptyView: {
 		backgroundColor: colors.white,
@@ -56,7 +55,7 @@ export default class Collectibles extends Component {
 	collectibleToRemove = null;
 
 	renderEmpty = () => (
-		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} />}>
 			<View style={styles.emptyView}>
 				<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
 			</View>
@@ -91,13 +90,6 @@ export default class Collectibles extends Component {
 
 	keyExtractor = item => `${item.address}_${item.tokenId}`;
 
-	onRefresh = async () => {
-		this.setState({ refreshing: true });
-		const { AssetsDetectionController } = Engine.context;
-		await AssetsDetectionController.detectCollectibles();
-		this.setState({ refreshing: false });
-	};
-
 	renderCollectiblesList() {
 		const { collectibles } = this.props;
 
@@ -106,7 +98,6 @@ export default class Collectibles extends Component {
 				data={collectibles}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 				// eslint-disable-next-line react/jsx-no-bind
 				renderItem={({ item }) => (
 					<CollectibleElement
