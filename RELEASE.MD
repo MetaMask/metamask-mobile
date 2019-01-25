@@ -40,7 +40,7 @@
 
 9 - Add Release notes at the bottom
 
-10 - Click review
+10 - Click Save and then click Review
 
 11 - Start rollout to ALPHA
 
