@@ -32,17 +32,20 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
   <View
     style={
       Object {
+        "alignContent": "center",
         "alignItems": "center",
-        "borderRadius": 10,
-        "justifyContent": "center",
         "marginBottom": 10,
         "marginTop": 15,
       }
     }
   >
-    <IdenticonComponent
-      address="0x123"
-      diameter={46}
+    <CollectibleImage
+      collectible={
+        Object {
+          "address": "0x123",
+          "image": undefined,
+        }
+      }
     />
   </View>
   <View

@@ -29,8 +29,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row'
 	},
-	balances: {
-		flex: 1
+	rows: {
+		flex: 1,
+		marginLeft: 20
 	},
 	name: {
 		fontSize: 16,
@@ -118,7 +119,7 @@ export default class Collectibles extends Component {
 		<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
 			<View style={styles.itemWrapper}>
 				<CollectibleImage collectible={item} />
-				<View style={styles.balances}>
+				<View style={styles.rows}>
 					<Text style={styles.name}>{item.name}</Text>
 					{contractMap[item.address] && (
 						<Text style={styles.collectibleName}>{contractMap[item.address].name}</Text>

@@ -44,7 +44,8 @@ const styles = StyleSheet.create({
 		paddingBottom: 30
 	},
 	rows: {
-		flex: 1
+		flex: 1,
+		marginLeft: 20
 	},
 	name: {
 		fontSize: 16,
@@ -117,8 +118,8 @@ class CollectibleContracts extends Component {
 			}
 			return list;
 		}, []);
-		collectibleContractsInformation.map(({ address, name, symbol, image_url, description, total_supply }) =>
-			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, total_supply)
+		collectibleContractsInformation.map(({ address, name, symbol, image_url, description, totalSupply }) =>
+			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, totalSupply)
 		);
 		allCollectibleContracts.map(collectibleContract => {
 			if (!collectibleAddresses.includes(collectibleContract.address)) {

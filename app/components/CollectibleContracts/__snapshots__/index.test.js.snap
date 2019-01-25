@@ -21,7 +21,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
           "logo": "logo",
           "name": "name",
           "symbol": "NM",
-          "total_supply": 10,
+          "totalSupply": 10,
         },
       ]
     }

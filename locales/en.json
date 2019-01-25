@@ -233,7 +233,7 @@
 		"receive_button": "RECEIVE",
 		"add_collectible_button": "ADD",
 		"description": "Description",
-		"total_supply": "Total Supply",
+		"totalSupply": "Total Supply",
 		"address": "Address"
 	},
 	"account_details": {

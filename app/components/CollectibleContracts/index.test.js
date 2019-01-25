@@ -18,7 +18,7 @@ describe('CollectibleContracts', () => {
 								address: '0x0',
 								symbol: 'NM',
 								description: 'description',
-								total_supply: 10
+								totalSupply: 10
 							}
 						]
 					}

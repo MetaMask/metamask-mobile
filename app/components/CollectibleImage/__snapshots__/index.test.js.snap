@@ -4,8 +4,9 @@ exports[`CollectibleImage should render correctly 1`] = `
 <View
   style={
     Object {
+      "alignItems": "center",
       "height": 50,
-      "marginRight": 20,
+      "justifyContent": "center",
       "width": 50,
     }
   }

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Alert, StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
@@ -17,10 +16,9 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.borderColor
 	},
 	assetLogo: {
-		marginTop: 15,
+		alignContent: 'center',
 		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 10,
+		marginTop: 15,
 		marginBottom: 10
 	},
 	information: {
@@ -89,7 +87,7 @@ export default class CollectibleContractOverview extends Component {
 		const {
 			collectibleContract: { logo, address }
 		} = this.props;
-		return logo ? <CollectibleImage collectible={{ address, image: logo }} /> : <Identicon address={address} />;
+		return <CollectibleImage collectible={{ address, image: logo }} />;
 	};
 
 	goToOpenSea = () => {
@@ -103,7 +101,7 @@ export default class CollectibleContractOverview extends Component {
 
 	render = () => {
 		const {
-			collectibleContract: { name, symbol, address, description, total_supply }
+			collectibleContract: { name, symbol, address, description, totalSupply }
 		} = this.props;
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
@@ -118,8 +116,8 @@ export default class CollectibleContractOverview extends Component {
 					</View>
 					<Text style={styles.label}>{strings('asset_overview.description')}</Text>
 					<Text style={styles.content}>{description}</Text>
-					<Text style={styles.label}>{strings('asset_overview.total_supply')}</Text>
-					<Text style={styles.content}>{total_supply}</Text>
+					<Text style={styles.label}>{strings('asset_overview.totalSupply')}</Text>
+					<Text style={styles.content}>{totalSupply}</Text>
 					<Text style={styles.label}>{strings('asset_overview.address')}</Text>
 					<Text style={styles.content}>{renderShortAddress(address)}</Text>
 				</View>
