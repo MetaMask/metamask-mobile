@@ -87,25 +87,58 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
+          "marginVertical": 5,
         }
       }
     >
       <TouchableOpacity
         activeOpacity={0.2}
         onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "textAlign": "center",
+          }
+        }
       >
-        <Text
+        <View
           style={
             Object {
-              "color": "#999999",
-              "fontFamily": "Roboto",
-              "fontSize": 12,
-              "fontWeight": "300",
+              "flexDirection": "row",
             }
           }
         >
-          Powered by OpenSea
-        </Text>
+          <Text
+            style={
+              Object {
+                "color": "#999999",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "300",
+                "paddingRight": 5,
+                "textAlignVertical": "center",
+              }
+            }
+          >
+            Powered by
+          </Text>
+          <Component
+            source={
+              Object {
+                "testUri": "../../../app/images/opensea-logo-flat-colored-blue.png",
+              }
+            }
+            style={
+              Object {
+                "height": 30,
+                "resizeMode": "contain",
+                "width": 100,
+              }
+            }
+          />
+        </View>
       </TouchableOpacity>
     </View>
     <Text
