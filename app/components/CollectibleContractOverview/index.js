@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		marginBottom: 10
 	},
-	onformation: {
+	information: {
 		flex: 1,
 		marginTop: 10,
 		marginBottom: 10
@@ -108,7 +108,7 @@ export default class CollectibleContractOverview extends Component {
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
-				<View style={styles.onformation}>
+				<View style={styles.information}>
 					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.symbol}>{symbol}</Text>
 					<View style={styles.credits}>
