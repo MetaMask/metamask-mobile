@@ -7,7 +7,9 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
 import getContractInformation from '../../util/opensea';
-import CollectibleContractElement from '../CollectibleContractElement';
+import CollectibleImage from '../CollectibleImage';
+import { renderShortAddress } from '../../util/address';
+import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -40,6 +42,28 @@ const styles = StyleSheet.create({
 	footer: {
 		flex: 1,
 		paddingBottom: 30
+	},
+	rows: {
+		flex: 1
+	},
+	name: {
+		fontSize: 16,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	tokenId: {
+		fontSize: 12,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	symbol: {
+		fontSize: 12,
+		color: colors.fontPrimary,
+		...fontStyles.bold
+	},
+	itemWrapper: {
+		flex: 1,
+		flexDirection: 'row'
 	}
 });
 
@@ -130,6 +154,22 @@ class CollectibleContracts extends Component {
 		</View>
 	);
 
+	renderElement = item => {
+		const { address, name, logo, symbol } = item;
+		return (
+			<AssetElement onPress={this.onItemPress} asset={item}>
+				<View style={styles.itemWrapper}>
+					<CollectibleImage collectible={{ address, name, image: logo }} />
+					<View style={styles.rows}>
+						<Text style={styles.name}>{name}</Text>
+						<Text style={styles.symbol}>{symbol}</Text>
+						<Text style={styles.tokenId}>{renderShortAddress(address)}</Text>
+					</View>
+				</View>
+			</AssetElement>
+		);
+	};
+
 	keyExtractor = item => `${item.address}_${item.tokenId}`;
 
 	onRefresh = async () => {
@@ -137,6 +177,10 @@ class CollectibleContracts extends Component {
 		const { AssetsDetectionController } = Engine.context;
 		await AssetsDetectionController.detectCollectibles();
 		this.setState({ refreshing: false });
+	};
+
+	handleOnItemPress = collectibleContract => {
+		this.onItemPress(collectibleContract);
 	};
 
 	renderCollectiblesGroupList() {
@@ -148,12 +192,7 @@ class CollectibleContracts extends Component {
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 				// eslint-disable-next-line react/jsx-no-bind
-				renderItem={({ item }) => {
-					if (!item.name) {
-						item.name = strings('wallet.collectible_no_name');
-					}
-					return <CollectibleContractElement collectibleContract={item} onPress={this.onItemPress} />;
-				}}
+				renderItem={({ item }) => this.renderElement(item)}
 				ListFooterComponent={this.renderFooter}
 			/>
 		);
