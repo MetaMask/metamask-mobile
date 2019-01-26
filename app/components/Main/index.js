@@ -21,6 +21,7 @@ import QrScanner from '../QRScanner';
 import LockScreen from '../LockScreen';
 import TransactionSubmitted from '../TransactionSubmitted';
 import FirstIncomingTransaction from '../FirstIncomingTransaction';
+import ProtectYourAccount from '../ProtectYourAccount';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -112,8 +113,20 @@ const MainNavigator = createStackNavigator(
 		TransactionSubmitted: {
 			screen: TransactionSubmitted
 		},
-		FirstIncomingTransaction: {
-			screen: FirstIncomingTransaction
+		SetPasswordFlow: {
+			screen: createStackNavigator(
+				{
+					FirstIncomingTransaction: {
+						screen: FirstIncomingTransaction
+					},
+					ProtectYourAccount: {
+						screen: ProtectYourAccount
+					}
+				},
+				{
+					headerMode: 'none'
+				}
+			)
 		}
 	},
 	{

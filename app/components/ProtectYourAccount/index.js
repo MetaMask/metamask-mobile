@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
 import Emoji from 'react-native-emoji';
-import { renderShortAddress } from '../../util/address';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -20,29 +19,22 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start'
 	},
 	title: {
+		width: 200,
 		fontSize: 32,
 		marginLeft: 20,
 		marginTop: 20,
-		marginBottom: 40,
+		marginBottom: 20,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal
 	},
-	dataRow: {
+	text: {
 		marginLeft: 20,
 		marginBottom: 10,
-		flexDirection: 'row',
 		justifyContent: 'center'
 	},
 	label: {
-		width: 100,
-		fontSize: 16,
-		color: colors.fontPrimary,
-		textAlign: 'left',
-		...fontStyles.normal
-	},
-	value: {
 		fontSize: 16,
 		color: colors.fontPrimary,
 		textAlign: 'left',
@@ -63,7 +55,7 @@ const styles = StyleSheet.create({
 /**
  * Component that provides ability to render transaction submitted view
  */
-export default class FirstIncomingTransaction extends Component {
+export default class ProtectYourAccount extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -72,50 +64,34 @@ export default class FirstIncomingTransaction extends Component {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('ProtectYourAccount');
+		this.props.navigation.navigate('ChoosePassword');
 	};
 
-	render = () => {
-		const { navigation } = this.props;
-		const tx = navigation.getParam('incomingTransaction', null);
-		const selectedAddress = navigation.getParam('selectedAddress', null);
-		const accountName = navigation.getParam('accountName', null);
-
+	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<View style={styles.wrapper} testID={'first-incoming-transaction-screen'}>
+				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
-						<Emoji name="raised_hands" style={styles.emoji} />
-						<Text style={styles.title}>{tx.asset} was deposited into your account</Text>
-						<View style={styles.dataRow}>
-							<Text style={styles.label}>Amount:</Text>
-							<Text style={styles.value}>{tx.amount}</Text>
+						<Emoji name="closed_lock_with_key" style={styles.emoji} />
+						<Text style={styles.title}>Protect your Account</Text>
+						<View style={styles.text}>
+							<Text
+								style={styles.label}
+							>{`Now that your account has stored value, let's create a password in order to protect your account.`}</Text>
 						</View>
-						<View style={styles.dataRow}>
-							<Text style={styles.label}>Account:</Text>
-							<Text style={styles.value}>{`${accountName} (${renderShortAddress(
-								selectedAddress
-							)})`}</Text>
-						</View>
-						{tx.from && (
-							<View style={styles.dataRow}>
-								<Text style={styles.label}>From:</Text>
-								<Text style={styles.value}>{renderShortAddress(tx.from)}</Text>
-							</View>
-						)}
 					</View>
 					<View style={styles.buttonWrapper}>
 						<StyledButton
 							containerStyle={styles.button}
 							type={'confirm'}
 							onPress={this.goNext}
-							testID={'ok-button'}
+							testID={'create-password-button'}
 						>
-							OK
+							CREATE PASSWORD
 						</StyledButton>
 					</View>
 				</View>
 			</SafeAreaView>
 		);
-	};
+	}
 }
