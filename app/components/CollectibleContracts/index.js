@@ -6,7 +6,6 @@ import Icon from 'react-native-vector-icons/Feather';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
-import getContractInformation from '../../util/opensea';
 import CollectibleImage from '../CollectibleImage';
 import { renderShortAddress } from '../../util/address';
 import AssetElement from '../AssetElement';
@@ -82,51 +81,11 @@ class CollectibleContracts extends Component {
 		 * Navigation object required to push
 		 * the Asset detail view
 		 */
-		navigation: PropTypes.object,
-		/**
-		 * Array of assets (in this case Collectibles)
-		 */
-		collectibles: PropTypes.array
+		navigation: PropTypes.object
 	};
 
 	state = {
 		refreshing: false
-	};
-
-	componentDidUpdate = async () => {
-		const { collectibles, allCollectibleContracts } = this.props;
-		const { AssetsController } = Engine.context;
-		const collectibleAddresses = collectibles.reduce((list, collectible) => {
-			if (!list.includes(collectible.address)) {
-				list.push(collectible.address);
-			}
-			return list;
-		}, []);
-		const collectibleContractsToFetch = collectibleAddresses.reduce((list, address) => {
-			const alreadyAdded = allCollectibleContracts.find(
-				collectibleContract => collectibleContract.address === address
-			);
-			if (!alreadyAdded && !list.includes(address)) {
-				list.push(address);
-			}
-			return list;
-		}, []);
-		const collectibleContractsInformation = await collectibleContractsToFetch.reduce(async (list, address) => {
-			const contractInformation = await getContractInformation(address);
-			if (contractInformation) {
-				list.push(contractInformation);
-			}
-			return list;
-		}, []);
-		collectibleContractsInformation.map(({ address, name, symbol, image_url, description, total_supply }) =>
-			AssetsController.addCollectibleContract(address, name, symbol, image_url, description, total_supply)
-		);
-		allCollectibleContracts.map(collectibleContract => {
-			if (!collectibleAddresses.includes(collectibleContract.address)) {
-				AssetsController.removeCollectibleContract(collectibleContract.address);
-			}
-			return null;
-		});
 	};
 
 	renderEmpty = () => (
