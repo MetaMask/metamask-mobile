@@ -101,7 +101,7 @@ export default class CollectibleOverview extends Component {
 
 	render = () => {
 		const {
-			collectible: { address, tokenId, name }
+			collectible: { address, tokenId, name, description }
 		} = this.props;
 		return (
 			<View style={styles.wrapper}>
@@ -131,6 +131,9 @@ export default class CollectibleOverview extends Component {
 						)}
 					<Text style={styles.collectibleAttribute}>
 						{strings('collectible.collectible_address')}: {renderShortAddress(address)}
+					</Text>
+					<Text style={styles.collectibleAttribute}>
+						{strings('collectible.collectible_description')}: {description}
 					</Text>
 				</View>
 			</View>
