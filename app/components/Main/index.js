@@ -22,6 +22,7 @@ import LockScreen from '../LockScreen';
 import TransactionSubmitted from '../TransactionSubmitted';
 import FirstIncomingTransaction from '../FirstIncomingTransaction';
 import ProtectYourAccount from '../ProtectYourAccount';
+import ChoosePassword from '../ChoosePassword';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -121,6 +122,9 @@ const MainNavigator = createStackNavigator(
 					},
 					ProtectYourAccount: {
 						screen: ProtectYourAccount
+					},
+					ChoosePassword: {
+						screen: ChoosePassword
 					}
 				},
 				{

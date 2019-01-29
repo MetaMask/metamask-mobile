@@ -7,7 +7,6 @@ import {
 import Login from '../Login';
 import QRScanner from '../QRScanner';
 import Onboarding from '../Onboarding';
-import CreateWallet from '../CreateWallet';
 import ImportWallet from '../ImportWallet';
 import ImportFromSeed from '../ImportFromSeed';
 import SyncWithExtension from '../SyncWithExtension';
@@ -25,9 +24,6 @@ const OnboardingNav = createStackNavigator(
 	{
 		Onboarding: {
 			screen: Onboarding
-		},
-		CreateWallet: {
-			screen: CreateWallet
 		},
 		ImportWallet: {
 			screen: ImportWallet

@@ -2,12 +2,12 @@ jest.useFakeTimers();
 
 import React from 'react';
 import { shallow } from 'enzyme';
-import CreateWallet from './';
+import ChoosePassword from './';
 
-describe('CreateWallet', () => {
+describe('ChoosePassword', () => {
 	it('should render correctly', () => {
 		const wrapper = shallow(
-			<CreateWallet onPasswordSaved={null} loading={false} error={null} toggleImportFromSeed={null} />
+			<ChoosePassword onPasswordSaved={null} loading={false} error={null} toggleImportFromSeed={null} />
 		);
 		expect(wrapper).toMatchSnapshot();
 	});
