@@ -37,10 +37,16 @@
 		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
-		"create_button": "CREATE",
+		"create_button": "NEXT",
 		"import_with_seed_phrase": "Import with seed phrase",
 		"password_length_error": "The password needs to be at least 8 chars long",
-		"password_dont_match": "Passwords don't match"
+		"password_dont_match": "Passwords don't match",
+		"strength_weak": "Weak",
+		"strength_good": "Good",
+		"strength_strong": "Strong",
+		"show": "Show",
+		"hide": "Hide",
+		"must_be_at_least": "Must be at least {{number}} characters"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -394,9 +400,9 @@
 		"divisor": "/"
 	},
 	"biometrics": {
-		"enable_touchid": "Enable TouchID authentication",
-		"enable_faceid": "Enable FaceID authentication",
-		"enable_fingerprint": "Enable Fingerprint authentication"
+		"enable_touchid": "Sign In with Touch ID?",
+		"enable_faceid": "Sign In with Face ID?",
+		"enable_fingerprint": "Sign In with Fingerprint?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Authentication required",

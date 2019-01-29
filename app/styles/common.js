@@ -21,6 +21,7 @@ export const colors = {
 	fontTertiary: '#AAAAAA',
 	gray: '#7c7e84',
 	green: '#02c9b1',
+	brightGreen: '#4CD964',
 	inactive: '#808080',
 	inputBorderColor: '#dedede',
 	lightGray: '#d2d8dd',
@@ -41,7 +42,9 @@ export const colors = {
 	transparent: 'transparent',
 	overlay: 'rgba(0,0,0,.5)',
 	darkAlert: 'rgba(0,0,0,.75)',
-	androidStatusbar: '#EBEBED'
+	androidStatusbar: '#EBEBED',
+	switchOnColor: '#4CD964',
+	switchOffColor: '#B3B3B3'
 };
 
 /**

@@ -11,7 +11,8 @@ import {
 	TextInput,
 	SafeAreaView,
 	StyleSheet,
-	Platform
+	Platform,
+	TouchableOpacity
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import StyledButton from '../StyledButton';
@@ -21,6 +22,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../Navbar';
 import SecureKeychain from '../../core/SecureKeychain';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -59,7 +61,7 @@ const styles = StyleSheet.create({
 
 	label: {
 		position: 'absolute',
-		marginTop: -30,
+		marginTop: -35,
 		marginLeft: 5,
 		fontSize: 16,
 		color: colors.fontSecondary,
@@ -67,7 +69,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	field: {
-		marginBottom: 20
+		marginTop: 20,
+		marginBottom: 10
 	},
 	input: {
 		borderBottomWidth: Platform.OS === 'android' ? 0 : 1,
@@ -79,16 +82,16 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	ctaWrapper: {
-		marginTop: 20
+		marginTop: 20,
+		paddingHorizontal: 10
 	},
 	errorMsg: {
 		color: colors.error,
 		...fontStyles.normal
 	},
 	biometrics: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginTop: 20,
+		alignItems: 'flex-start',
+		marginTop: 30,
 		marginBottom: 30
 	},
 	biometryLabel: {
@@ -97,7 +100,39 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	biometrySwitch: {
+		marginTop: 10,
 		flex: 0
+	},
+	passwordStrengthLabel: {
+		height: 20,
+		marginLeft: 5,
+		marginTop: 10,
+		fontSize: 12,
+		color: colors.fontSecondary,
+		textAlign: 'left',
+		...fontStyles.normal
+	},
+	// eslint-disable-next-line react-native/no-unused-styles
+	strength_weak: {
+		color: colors.red
+	},
+	// eslint-disable-next-line react-native/no-unused-styles
+	strength_good: {
+		color: colors.primary
+	},
+	// eslint-disable-next-line react-native/no-unused-styles
+	strength_strong: {
+		color: colors.brightGreen
+	},
+	showHideToggle: {
+		position: 'absolute',
+		marginTop: 8,
+		alignSelf: 'flex-end'
+	},
+	showMatchingPasswords: {
+		position: 'absolute',
+		marginTop: 8,
+		alignSelf: 'flex-end'
 	}
 });
 
@@ -119,6 +154,7 @@ export default class ChoosePassword extends Component {
 	state = {
 		password: '',
 		confirmPassword: '',
+		secureTextEntry: true,
 		biometryType: null,
 		biometryChoice: false,
 		labelsScaleNew: new Animated.Value(1),
@@ -218,6 +254,40 @@ export default class ChoosePassword extends Component {
 		}).start();
 	};
 
+	getPasswordStrengthWord() {
+		switch (this.state.passwordStrength) {
+			case 1:
+				return 'weak';
+			case 2:
+				return 'good';
+			case 3:
+				return 'strong';
+		}
+	}
+
+	onPasswordChange = val => {
+		let strength = 1;
+
+		// If the password length is greater than 6 and contain alphabet,number,special character respectively
+		if (
+			val.length > 6 &&
+			((val.match(/[a-z]/) && val.match(/\d+/)) ||
+				(val.match(/\d+/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/)) ||
+				(val.match(/[a-z]/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/)))
+		)
+			strength = 2;
+
+		// If the password length is greater than 6 and must contain alphabets,numbers and special characters
+		if (val.length > 6 && val.match(/[a-z]/) && val.match(/\d+/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/))
+			strength = 3;
+
+		this.setState({ password: val, passwordStrength: strength });
+	};
+
+	toggleShowHide = () => {
+		this.setState({ secureTextEntry: !this.state.secureTextEntry });
+	};
+
 	render() {
 		const startX = 0;
 		const startY = 0;
@@ -274,8 +344,8 @@ export default class ChoosePassword extends Component {
 								<TextInput
 									style={styles.input}
 									value={this.state.password}
-									onChangeText={val => this.setState({ password: val })} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry
+									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
+									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
 									underlineColorAndroid={colors.borderColor}
 									testID={'input-password'}
@@ -284,6 +354,20 @@ export default class ChoosePassword extends Component {
 									onFocus={() => this.animateOutLabel('new')}
 									onBlur={() => this.animateInLabel('new')}
 								/>
+								<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
+									<Text style={styles.passwordStrengthLabel}>
+										{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
+									</Text>
+								</TouchableOpacity>
+								{(this.state.password !== '' && (
+									<Text style={styles.passwordStrengthLabel}>
+										Password strength:
+										<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+											{' '}
+											{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+										</Text>
+									</Text>
+								)) || <Text style={styles.passwordStrengthLabel} />}
 							</View>
 							<View style={styles.field}>
 								<Animated.Text
@@ -323,7 +407,7 @@ export default class ChoosePassword extends Component {
 									style={styles.input}
 									value={this.state.confirmPassword}
 									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
-									secureTextEntry
+									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
 									underlineColorAndroid={colors.borderColor}
 									testID={'input-password-confirm'}
@@ -332,9 +416,17 @@ export default class ChoosePassword extends Component {
 									onFocus={() => this.animateOutLabel('confirm')}
 									onBlur={() => this.animateInLabel('confirm')}
 								/>
+								<View style={styles.showMatchingPasswords}>
+									{this.state.password !== '' &&
+									this.state.password === this.state.confirmPassword ? (
+										<Icon name="check" size={12} color={colors.brightGreen} />
+									) : null}
+								</View>
+								<Text style={styles.passwordStrengthLabel}>
+									{strings('choose_password.must_be_at_least', { number: 8 })}
+								</Text>
 							</View>
 
-							{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 							{this.state.biometryType && (
 								<View style={styles.biometrics}>
 									<Text style={styles.biometryLabel}>
@@ -346,24 +438,33 @@ export default class ChoosePassword extends Component {
 										style={styles.biometrySwitch}
 										trackColor={
 											Platform.OS === 'ios'
-												? { true: colors.primary, false: colors.concrete }
+												? { true: colors.switchOnColor, false: colors.switchOffColor }
 												: null
 										}
-										ios_backgroundColor={colors.slate}
+										ios_backgroundColor={colors.switchOffColor}
 									/>
 								</View>
 							)}
-							<View style={styles.ctaWrapper}>
-								<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'submit'}>
-									{this.state.loading ? (
-										<ActivityIndicator size="small" color="white" />
-									) : (
-										strings('choose_password.create_button')
-									)}
-								</StyledButton>
-							</View>
+
+							{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 						</View>
 					</KeyboardAwareScrollView>
+					<View style={styles.ctaWrapper}>
+						<StyledButton
+							type={'blue'}
+							onPress={this.onPressCreate}
+							testID={'submit'}
+							disabled={
+								!(this.state.password !== '' && this.state.password === this.state.confirmPassword)
+							}
+						>
+							{this.state.loading ? (
+								<ActivityIndicator size="small" color="white" />
+							) : (
+								strings('choose_password.create_button')
+							)}
+						</StyledButton>
+					</View>
 				</View>
 			</SafeAreaView>
 		);
