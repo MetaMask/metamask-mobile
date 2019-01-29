@@ -300,14 +300,14 @@ export default class ChoosePassword extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<View style={styles.content}>
-						<Text style={styles.title}>{strings('choose_password.title')}</Text>
-						<View style={styles.text}>
-							<Text style={styles.subtitle}>{strings('choose_password.subtitle')}</Text>
-						</View>
-					</View>
 					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 						<View testID={'create-password-screen'}>
+							<View style={styles.content}>
+								<Text style={styles.title}>{strings('choose_password.title')}</Text>
+								<View style={styles.text}>
+									<Text style={styles.subtitle}>{strings('choose_password.subtitle')}</Text>
+								</View>
+							</View>
 							<View style={styles.field}>
 								<Animated.Text
 									style={[
