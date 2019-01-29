@@ -11,7 +11,7 @@ describe('CollectibleContracts', () => {
 			engine: {
 				backgroundState: {
 					AssetsController: {
-						allCollectibleContracts: [
+						collectibleContracts: [
 							{
 								name: 'name',
 								logo: 'logo',

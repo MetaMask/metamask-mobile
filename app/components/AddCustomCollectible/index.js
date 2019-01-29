@@ -49,6 +49,7 @@ export default class AddCustomCollectible extends Component {
 		const { AssetsController } = Engine.context;
 		const { address, tokenId } = this.state;
 		AssetsController.addCollectible(address, tokenId);
+		AssetsController.addCollectibleContract(address);
 		this.props.navigation.goBack();
 	};
 

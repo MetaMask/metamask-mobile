@@ -76,7 +76,7 @@ class CollectibleContracts extends Component {
 		/**
 		 * Array of collectibleContract objects
 		 */
-		allCollectibleContracts: PropTypes.array,
+		collectibleContracts: PropTypes.array,
 		/**
 		 * Navigation object required to push
 		 * the Asset detail view
@@ -144,10 +144,10 @@ class CollectibleContracts extends Component {
 	};
 
 	renderCollectiblesGroupList() {
-		const { allCollectibleContracts } = this.props;
+		const { collectibleContracts } = this.props;
 		return (
 			<FlatList
-				data={allCollectibleContracts}
+				data={collectibleContracts}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -158,10 +158,10 @@ class CollectibleContracts extends Component {
 	}
 
 	render = () => {
-		const { allCollectibleContracts } = this.props;
+		const { collectibleContracts } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'collectible-contracts'}>
-				{allCollectibleContracts && allCollectibleContracts.length
+				{collectibleContracts && collectibleContracts.length
 					? this.renderCollectiblesGroupList()
 					: this.renderEmpty()}
 			</View>
@@ -170,7 +170,7 @@ class CollectibleContracts extends Component {
 }
 
 const mapStateToProps = state => ({
-	allCollectibleContracts: state.engine.backgroundState.AssetsController.allCollectibleContracts
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts
 });
 
 export default connect(mapStateToProps)(CollectibleContracts);
