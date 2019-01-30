@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { Text, View, SafeAreaView, StyleSheet } from 'react-native';
-
+import { TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
@@ -73,6 +72,16 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 12,
 		...fontStyles.normal
+	},
+	navbarLeftButton: {
+		alignSelf: 'flex-end',
+		paddingHorizontal: 28,
+		paddingVertical: 20
+	},
+	navbarLeftText: {
+		fontSize: 18,
+		color: colors.primary,
+		...fontStyles.normal
 	}
 });
 
@@ -91,12 +100,20 @@ export default class SaveYourSeedPhrase extends Component {
 		this.props.navigation.navigate('ChoosePassword');
 	};
 
+	dismiss = () => {
+		this.props.navigation.popToTop();
+		this.props.navigation.goBack(null);
+	};
+
 	learnMore = () => null;
 
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} />
+				<TouchableOpacity onPress={this.dismiss} style={styles.navbarLeftButton}>
+					<Text style={styles.navbarLeftText}>Skip</Text>
+				</TouchableOpacity>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
 						<Text style={styles.title}>{`Save your wallet's seed phrase?`}</Text>

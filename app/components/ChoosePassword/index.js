@@ -190,7 +190,7 @@ export default class ChoosePassword extends Component {
 			try {
 				this.setState({ loading: true });
 				const { KeyringController } = Engine.context;
-				const mnemonic = await KeyringController.exportSeedPhrase('');
+				const mnemonic = await KeyringController.exportSeedPhrase('hagornr79');
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
 
