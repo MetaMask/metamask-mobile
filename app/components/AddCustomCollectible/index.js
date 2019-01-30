@@ -68,12 +68,12 @@ export default class AddCustomCollectible extends Component {
 	validateCustomCollectibleAddress = async () => {
 		let validated = true;
 		const address = this.state.address;
-		const isValidEThAddress = isValidAddress(address);
-		const toSmartContract = isValidEThAddress && (await isSmartContractAddress(address));
+		const isValidEthAddress = isValidAddress(address);
+		const toSmartContract = isValidEthAddress && (await isSmartContractAddress(address));
 		if (address.length === 0) {
 			this.setState({ warningAddress: strings('collectible.address_cant_be_empty') });
 			validated = false;
-		} else if (!isValidEThAddress) {
+		} else if (!isValidEthAddress) {
 			this.setState({ warningAddress: strings('collectible.address_must_be_valid') });
 			validated = false;
 		} else if (!toSmartContract) {
