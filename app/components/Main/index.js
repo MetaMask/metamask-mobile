@@ -23,6 +23,7 @@ import TransactionSubmitted from '../TransactionSubmitted';
 import FirstIncomingTransaction from '../FirstIncomingTransaction';
 import ProtectYourAccount from '../ProtectYourAccount';
 import ChoosePassword from '../ChoosePassword';
+import SaveYourSeedPhrase from '../SaveYourSeedPhrase';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -125,6 +126,9 @@ const MainNavigator = createStackNavigator(
 					},
 					ChoosePassword: {
 						screen: ChoosePassword
+					},
+					SaveYourSeedPhrase: {
+						screen: SaveYourSeedPhrase
 					}
 				},
 				{

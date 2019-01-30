@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
 	title: {
 		width: 200,
 		fontSize: 32,
-		marginLeft: 20,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
@@ -54,7 +53,6 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	text: {
-		marginLeft: 20,
 		marginBottom: 10,
 		justifyContent: 'center'
 	},
@@ -192,7 +190,9 @@ export default class ChoosePassword extends Component {
 			try {
 				this.setState({ loading: true });
 				const { KeyringController } = Engine.context;
-				await KeyringController.createNewVaultAndKeychain(this.state.password);
+				const mnemonic = await KeyringController.exportSeedPhrase('');
+				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
+				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
 
 				const authOptions = {
 					accessControl: this.state.biometryChoice
@@ -211,7 +211,7 @@ export default class ChoosePassword extends Component {
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
-				this.props.navigation.navigate('HomeNav');
+				this.props.navigation.navigate('SaveYourSeedPhrase');
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {

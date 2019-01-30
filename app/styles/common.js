@@ -16,7 +16,7 @@ export const colors = {
 	concrete: '#f1f2f6',
 	copy: '#4d4d4d',
 	error: '#FF0000',
-	fontPrimary: '#4a4a4a',
+	fontPrimary: '#000000',
 	fontSecondary: '#999999',
 	fontTertiary: '#AAAAAA',
 	gray: '#7c7e84',
@@ -34,6 +34,7 @@ export const colors = {
 	tar: '#2f3542',
 	title: '#1B344D',
 	white: '#FFFFFF',
+	yellow: '#F8D66D',
 	success: '#5ea40c',
 	lightSuccess: '#eafad7',
 	warning: '#CA810A',
@@ -44,7 +45,8 @@ export const colors = {
 	darkAlert: 'rgba(0,0,0,.75)',
 	androidStatusbar: '#EBEBED',
 	switchOnColor: '#4CD964',
-	switchOffColor: '#B3B3B3'
+	switchOffColor: '#B3B3B3',
+	pager: '#DADADA'
 };
 
 /**
