@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
 	},
 	listImage: {
 		width: 50,
-		height: 50
+		height: 50,
+		borderRadius: 25
 	},
 	fullImage: {
 		width: 200,

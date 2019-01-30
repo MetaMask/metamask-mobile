@@ -9,6 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../locales/i18n';
 import URL from 'url-parse';
+import NavbarCollectibleContractInformation from '../NavbarCollectibleContractInformation';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -272,14 +273,6 @@ export function getCollectibleContractNavbarOptions(title, navigation) {
 			</TouchableOpacity>
 		),
 		headerTruncatedBackTitle: strings('navigation.back'),
-		headerRight: (
-			<TouchableOpacity
-				style={styles.infoButton}
-				// eslint-disable-next-line
-				onPress={() => {}}
-			>
-				<IonicIcon name="ios-information-circle-outline" size={28} style={styles.infoIcon} />
-			</TouchableOpacity>
-		)
+		headerRight: <NavbarCollectibleContractInformation />
 	};
 }

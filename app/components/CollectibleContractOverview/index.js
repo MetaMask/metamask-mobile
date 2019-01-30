@@ -5,7 +5,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
-import { renderShortAddress } from '../../util/address';
 import AssetActionButtons from '../AssetActionButtons';
 
 const styles = StyleSheet.create({
@@ -38,18 +37,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.light
 	},
-	content: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.light
-	},
-	label: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.bold
-	},
 	opensea: {
-		fontSize: 12,
+		fontSize: 8,
 		textAlignVertical: 'center',
 		paddingRight: 5,
 		color: colors.fontSecondary,
@@ -62,13 +51,13 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	openSeaLogo: {
-		width: 100,
-		height: 30,
+		width: 80,
+		height: 20,
 		resizeMode: 'contain'
 	},
 	creditsView: {
 		alignItems: 'center',
-		marginVertical: 5
+		marginTop: 15
 	},
 	creditsElements: {
 		flexDirection: 'row'
@@ -91,7 +80,11 @@ export default class CollectibleContractOverview extends Component {
 		 * Navigation object required to push
 		 * the Asset detail view
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * How many collectibles are owned by the user
+		 */
+		ownerOf: PropTypes.number
 	};
 
 	onAdd = () => {
@@ -120,12 +113,14 @@ export default class CollectibleContractOverview extends Component {
 
 	render = () => {
 		const {
-			collectibleContract: { name, symbol, address, description, totalSupply }
+			collectibleContract: { name, symbol },
+			ownerOf
 		} = this.props;
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.information}>
+					<Text style={styles.name}>{ownerOf}</Text>
 					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.symbol}>{symbol}</Text>
 					<View style={styles.creditsView}>
@@ -136,12 +131,6 @@ export default class CollectibleContractOverview extends Component {
 							</View>
 						</TouchableOpacity>
 					</View>
-					<Text style={styles.label}>{strings('asset_overview.description')}</Text>
-					<Text style={styles.content}>{description}</Text>
-					<Text style={styles.label}>{strings('asset_overview.totalSupply')}</Text>
-					<Text style={styles.content}>{totalSupply}</Text>
-					<Text style={styles.label}>{strings('asset_overview.address')}</Text>
-					<Text style={styles.content}>{renderShortAddress(address)}</Text>
 				</View>
 
 				<AssetActionButtons

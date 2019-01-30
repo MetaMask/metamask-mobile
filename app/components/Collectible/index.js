@@ -7,6 +7,9 @@ import { connect } from 'react-redux';
 import Collectibles from '../Collectibles';
 import CollectibleContractOverview from '../CollectibleContractOverview';
 import Engine from '../../core/Engine';
+import Modal from 'react-native-modal';
+import CollectibleContractInformation from '../CollectibleContractInformation';
+import { toggleCollectibleContractModal } from '../../actions/modals';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -30,7 +33,9 @@ class Collectible extends Component {
 		/* navigation object required to access the props
 		/* passed by the parent component
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		toggleCollectibleContractModal: PropTypes.func,
+		collectibleContractModalVisible: PropTypes.bool
 	};
 
 	state = {
@@ -48,42 +53,65 @@ class Collectible extends Component {
 		this.setState({ refreshing: false });
 	};
 
+	hideCollectibleContractModal = () => {
+		this.props.toggleCollectibleContractModal();
+	};
+
 	render = () => {
 		const {
 			navigation: {
 				state: { params }
 			},
-			navigation
+			navigation,
+			collectibleContractModalVisible
 		} = this.props;
 		const address = params.address;
 		const { collectibles } = this.props;
 		const filteredCollectibles = collectibles.filter(
 			collectible => collectible.address.toLowerCase() === address.toLowerCase()
 		);
+		const ownerOf = filteredCollectibles.length;
 		const collectibleContract = params;
 		return (
-			<ScrollView
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				style={styles.wrapper}
-			>
-				<View testID={'collectible'}>
-					<View style={styles.assetOverviewWrapper}>
-						<CollectibleContractOverview
-							navigation={navigation}
-							collectibleContract={collectibleContract}
-						/>
+			<View style={styles.wrapper}>
+				<ScrollView
+					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					style={styles.wrapper}
+				>
+					<View testID={'collectible'}>
+						<View style={styles.assetOverviewWrapper}>
+							<CollectibleContractOverview
+								navigation={navigation}
+								collectibleContract={collectibleContract}
+								ownerOf={ownerOf}
+							/>
+						</View>
+						<View style={styles.wrapper}>
+							<Collectibles navigation={navigation} collectibles={filteredCollectibles} />
+						</View>
 					</View>
-					<View style={styles.wrapper}>
-						<Collectibles navigation={navigation} collectibles={filteredCollectibles} />
-					</View>
-				</View>
-			</ScrollView>
+				</ScrollView>
+				<Modal isVisible={collectibleContractModalVisible} onBackdropPress={this.hideCollectibleContractModal}>
+					<CollectibleContractInformation
+						onClose={this.hideCollectibleContractModal}
+						collectibleContract={collectibleContract}
+					/>
+				</Modal>
+			</View>
 		);
 	};
 }
 
 const mapStateToProps = state => ({
-	collectibles: state.engine.backgroundState.AssetsController.collectibles
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibleContractModalVisible: state.modals.collectibleContractModalVisible
 });
 
-export default connect(mapStateToProps)(Collectible);
+const mapDispatchToProps = dispatch => ({
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Collectible);
