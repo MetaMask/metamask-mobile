@@ -105,12 +105,8 @@ export default class Collectibles extends Component {
 	};
 
 	removeCollectible = () => {
-		const { collectibles } = this.props;
 		const { AssetsController } = Engine.context;
 		AssetsController.removeCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
-		if (collectibles.length === 1) {
-			AssetsController.removeCollectibleContract(this.collectibleToRemove.address);
-		}
 	};
 
 	createActionSheetRef = ref => {
