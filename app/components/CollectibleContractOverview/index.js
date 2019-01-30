@@ -6,6 +6,7 @@ import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetActionButtons from '../AssetActionButtons';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -70,7 +71,7 @@ const openSeaLogo = require('../../images/opensea-logo-flat-colored-blue.png'); 
  * View that displays a specific collectible contract
  * including the overview (name, address, symbol, logo, description, total supply)
  */
-export default class CollectibleContractOverview extends Component {
+class CollectibleContractOverview extends Component {
 	static propTypes = {
 		/**
 		 * Object that represents the asset to be displayed
@@ -84,7 +85,11 @@ export default class CollectibleContractOverview extends Component {
 		/**
 		 * How many collectibles are owned by the user
 		 */
-		ownerOf: PropTypes.number
+		ownerOf: PropTypes.number,
+		/**
+		 * Object representing the selected network
+		 */
+		network: PropTypes.object.isRequired
 	};
 
 	onAdd = () => {
@@ -114,8 +119,10 @@ export default class CollectibleContractOverview extends Component {
 	render = () => {
 		const {
 			collectibleContract: { name, symbol },
-			ownerOf
+			ownerOf,
+			network
 		} = this.props;
+		const isMainnet = network.provider.type === 'mainnet';
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
@@ -123,14 +130,16 @@ export default class CollectibleContractOverview extends Component {
 					<Text style={styles.name}>{ownerOf}</Text>
 					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.symbol}>{symbol}</Text>
-					<View style={styles.creditsView}>
-						<TouchableOpacity style={styles.credits} onPress={this.goToOpenSea}>
-							<View style={styles.creditsElements}>
-								<Text style={styles.opensea}>{strings('collectible.powered_by_opensea')}</Text>
-								<Image source={openSeaLogo} style={styles.openSeaLogo} />
-							</View>
-						</TouchableOpacity>
-					</View>
+					{isMainnet && (
+						<View style={styles.creditsView}>
+							<TouchableOpacity style={styles.credits} onPress={this.goToOpenSea}>
+								<View style={styles.creditsElements}>
+									<Text style={styles.opensea}>{strings('collectible.powered_by_opensea')}</Text>
+									<Image source={openSeaLogo} style={styles.openSeaLogo} />
+								</View>
+							</TouchableOpacity>
+						</View>
+					)}
 				</View>
 
 				<AssetActionButtons
@@ -143,3 +152,9 @@ export default class CollectibleContractOverview extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController
+});
+
+export default connect(mapStateToProps)(CollectibleContractOverview);
