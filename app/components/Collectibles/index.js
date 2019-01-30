@@ -30,7 +30,8 @@ const styles = StyleSheet.create({
 	},
 	rows: {
 		flex: 1,
-		marginLeft: 20
+		marginLeft: 20,
+		marginTop: 5
 	},
 	name: {
 		fontSize: 16,
