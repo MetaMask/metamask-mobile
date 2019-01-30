@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../styles/common';
-import { getNavigationOptionsTitle } from '../Navbar';
+import { getCollectibleContractNavbarOptions } from '../Navbar';
 import { connect } from 'react-redux';
 import Collectibles from '../Collectibles';
 import CollectibleContractOverview from '../CollectibleContractOverview';
@@ -38,7 +38,8 @@ class Collectible extends Component {
 		collectibles: []
 	};
 
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('name', ''));
+	static navigationOptions = ({ navigation }) =>
+		getCollectibleContractNavbarOptions(navigation.getParam('name', ''), navigation);
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
