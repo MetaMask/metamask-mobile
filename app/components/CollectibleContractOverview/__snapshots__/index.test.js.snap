@@ -67,6 +67,17 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
           "textAlign": "center",
         }
       }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "textAlign": "center",
+        }
+      }
     >
       name
     </Text>
@@ -87,7 +98,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "marginVertical": 5,
+          "marginTop": 15,
         }
       }
     >
@@ -115,7 +126,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
               Object {
                 "color": "#999999",
                 "fontFamily": "Roboto",
-                "fontSize": 12,
+                "fontSize": 8,
                 "fontWeight": "300",
                 "paddingRight": 5,
                 "textAlignVertical": "center",
@@ -132,87 +143,15 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
             }
             style={
               Object {
-                "height": 30,
+                "height": 20,
                 "resizeMode": "contain",
-                "width": 100,
+                "width": 80,
               }
             }
           />
         </View>
       </TouchableOpacity>
     </View>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "600",
-        }
-      }
-    >
-      Description
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "300",
-        }
-      }
-    >
-      description
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "600",
-        }
-      }
-    >
-      Total Supply
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "300",
-        }
-      }
-    >
-      1
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "600",
-        }
-      }
-    >
-      Address
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "300",
-        }
-      }
-    >
-      0x123...x123
-    </Text>
   </View>
   <AssetActionButtons
     leftText="SEND"

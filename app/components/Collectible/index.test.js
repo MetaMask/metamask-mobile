@@ -14,6 +14,9 @@ describe('Collectible', () => {
 						collectibles: [{ address: '0x0', name: 'collectible', tokenId: 0, image: 'image' }]
 					}
 				}
+			},
+			modals: {
+				collectibleContractModalVisible: false
 			}
 		};
 

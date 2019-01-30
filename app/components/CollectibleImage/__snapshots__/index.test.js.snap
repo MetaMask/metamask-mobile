@@ -19,6 +19,7 @@ exports[`CollectibleImage should render correctly 1`] = `
     }
     style={
       Object {
+        "borderRadius": 25,
         "height": 50,
         "width": 50,
       }
