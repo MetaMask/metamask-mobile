@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderColor,
 		...fontStyles.bold
 	},
-	networksWrapper: {
+	informationWrapper: {
 		flex: 1,
 		paddingHorizontal: 20
 	},
@@ -93,15 +93,19 @@ export default class CollectibleContractInformation extends Component {
 						{name}
 					</Text>
 				</View>
-				<ScrollView style={styles.networksWrapper}>
-					<View style={styles.row}>
-						<Text style={styles.label}>{strings('asset_overview.description')}</Text>
-						<Text style={styles.content}>{description}</Text>
-					</View>
-					<View style={styles.row}>
-						<Text style={styles.label}>{strings('asset_overview.totalSupply')}</Text>
-						<Text style={styles.content}>{totalSupply}</Text>
-					</View>
+				<ScrollView style={styles.informationWrapper}>
+					{description !== '' && (
+						<View style={styles.row}>
+							<Text style={styles.label}>{strings('asset_overview.description')}</Text>
+							<Text style={styles.content}>{description}</Text>
+						</View>
+					)}
+					{totalSupply !== '' && (
+						<View style={styles.row}>
+							<Text style={styles.label}>{strings('asset_overview.totalSupply')}</Text>
+							<Text style={styles.content}>{totalSupply}</Text>
+						</View>
+					)}
 					<View style={styles.row}>
 						<Text style={styles.label}>{strings('asset_overview.address')}</Text>
 						<Text style={styles.content}>{renderShortAddress(address)}</Text>

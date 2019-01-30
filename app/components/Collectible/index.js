@@ -65,13 +65,20 @@ class Collectible extends Component {
 			navigation,
 			collectibleContractModalVisible
 		} = this.props;
+		const collectibleContract = params;
 		const address = params.address;
 		const { collectibles } = this.props;
 		const filteredCollectibles = collectibles.filter(
 			collectible => collectible.address.toLowerCase() === address.toLowerCase()
 		);
+		filteredCollectibles.map(collectible => {
+			if (!collectible.name || collectible.name === '') {
+				collectible.name = collectibleContract.name;
+			}
+			return collectible;
+		});
+
 		const ownerOf = filteredCollectibles.length;
-		const collectibleContract = params;
 		return (
 			<View style={styles.wrapper}>
 				<ScrollView

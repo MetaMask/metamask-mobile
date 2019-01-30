@@ -6,7 +6,6 @@ import { strings } from '../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../core/Engine';
 import CollectibleImage from '../CollectibleImage';
-import contractMap from 'eth-contract-metadata';
 import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
@@ -42,11 +41,6 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.fontPrimary,
 		...fontStyles.normal
-	},
-	collectibleName: {
-		fontSize: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold
 	}
 });
 
@@ -121,9 +115,6 @@ export default class Collectibles extends Component {
 				<CollectibleImage collectible={item} />
 				<View style={styles.rows}>
 					<Text style={styles.name}>{item.name}</Text>
-					{contractMap[item.address] && (
-						<Text style={styles.collectibleName}>{contractMap[item.address].name}</Text>
-					)}
 					<Text style={styles.tokenId}>
 						{strings('collectible.collectible_token_id')}: {item.tokenId}
 					</Text>
