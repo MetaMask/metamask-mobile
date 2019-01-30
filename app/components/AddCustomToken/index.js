@@ -49,8 +49,8 @@ export default class AddCustomToken extends Component {
 		navigation: PropTypes.object
 	};
 
-	addToken = () => {
-		if (!this.validateCustomToken()) return;
+	addToken = async () => {
+		if (!(await this.validateCustomToken())) return;
 		const { AssetsController } = Engine.context;
 		const { address, symbol, decimals } = this.state;
 		AssetsController.addToken(address, symbol, decimals);
@@ -128,8 +128,8 @@ export default class AddCustomToken extends Component {
 		return validated;
 	};
 
-	validateCustomToken = () => {
-		const validatedAddress = this.validateCustomTokenAddress();
+	validateCustomToken = async () => {
+		const validatedAddress = await this.validateCustomTokenAddress();
 		const validatedSymbol = this.validateCustomTokenSymbol();
 		const validatedDecimals = this.validateCustomTokenDecimals();
 		return validatedAddress && validatedSymbol && validatedDecimals;

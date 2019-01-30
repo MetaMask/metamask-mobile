@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
+import { isSmartContractAddress } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,8 +45,8 @@ export default class AddCustomCollectible extends Component {
 		navigation: PropTypes.object
 	};
 
-	addCollectible = () => {
-		if (!this.validateCustomCollectible()) return;
+	addCollectible = async () => {
+		if (!(await this.validateCustomCollectible())) return;
 		const { AssetsController } = Engine.context;
 		const { address, tokenId } = this.state;
 		AssetsController.addCollectible(address, tokenId);
@@ -64,14 +65,19 @@ export default class AddCustomCollectible extends Component {
 		this.setState({ tokenId });
 	};
 
-	validateCustomCollectibleAddress = () => {
+	validateCustomCollectibleAddress = async () => {
 		let validated = true;
 		const address = this.state.address;
+		const isValidEThAddress = isValidAddress(address);
+		const toSmartContract = isValidEThAddress && (await isSmartContractAddress(address));
 		if (address.length === 0) {
 			this.setState({ warningAddress: strings('collectible.address_cant_be_empty') });
 			validated = false;
-		} else if (!isValidAddress(address)) {
+		} else if (!isValidEThAddress) {
 			this.setState({ warningAddress: strings('collectible.address_must_be_valid') });
+			validated = false;
+		} else if (!toSmartContract) {
+			this.setState({ warningAddress: strings('collectible.address_must_be_smart_contract') });
 			validated = false;
 		} else {
 			this.setState({ warningAddress: `` });
@@ -91,8 +97,8 @@ export default class AddCustomCollectible extends Component {
 		return validated;
 	};
 
-	validateCustomCollectible = () => {
-		const validatedAddress = this.validateCustomCollectibleAddress();
+	validateCustomCollectible = async () => {
+		const validatedAddress = await this.validateCustomCollectibleAddress();
 		const validatedTokenId = this.validateCustomCollectibleTokenId();
 		return validatedAddress && validatedTokenId;
 	};

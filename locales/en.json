@@ -127,6 +127,7 @@
 		"collectible_type": "Type",
 		"collectible_token_id": "ID",
 		"address_must_be_valid": "Collectible address must be a valid address.",
+		"address_must_be_smart_contract": "Personal address detected. Input the collectible contract address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",
 		"token_id_cant_be_empty": "Collectible identifier can't be empty."
 	},
