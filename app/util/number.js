@@ -271,9 +271,10 @@ export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decim
 }
 
 /**
- * Formats a BN corresponding to a Fiat value into a string ready to be rendered
+ * Formats a fiat value into a string ready to be rendered
  *
  * @param {number} value - number corresponding to a balance of an asset
+ * @param {string} currencyCode - Current currency code to display
  * @param {number} decimalsToShow - Decimals to 5
  * @returns {string} - The converted balance
  */
