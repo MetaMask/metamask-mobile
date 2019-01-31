@@ -46,7 +46,7 @@ export default class Pager extends PureComponent {
 							style={[
 								styles.page,
 								{ width: pageWidth },
-								this.props.selected === i + 1 ? styles.selected : null
+								this.props.selected >= i + 1 ? styles.selected : null
 							]}
 						/>
 					))}

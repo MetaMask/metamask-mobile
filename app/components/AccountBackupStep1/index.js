@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
@@ -73,12 +73,12 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		...fontStyles.normal
 	},
-	navbarLeftButton: {
+	navbarRightButton: {
 		alignSelf: 'flex-end',
 		paddingHorizontal: 28,
 		paddingVertical: 20
 	},
-	navbarLeftText: {
+	navbarRightText: {
 		fontSize: 18,
 		color: colors.primary,
 		...fontStyles.normal
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
 /**
  * Component that provides ability to render transaction submitted view
  */
-export default class SaveYourSeedPhrase extends Component {
+export default class AccountBackupStep1 extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -97,12 +97,29 @@ export default class SaveYourSeedPhrase extends Component {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('ChoosePassword');
+		this.props.navigation.navigate('AccountBackupStep2');
 	};
 
 	dismiss = () => {
-		this.props.navigation.popToTop();
-		this.props.navigation.goBack(null);
+		Alert.alert(
+			'Cancel Backup',
+			'We highly recommend you save your seed phrase in order to restore your wallet.',
+			[
+				{
+					text: `Yes, I'll take the risk`,
+					onPress: () => {
+						this.props.navigation.popToTop();
+						this.props.navigation.goBack(null);
+					}
+				},
+				{
+					text: 'NO',
+					onPress: () => null,
+					style: 'cancel'
+				}
+			],
+			{ cancelable: false }
+		);
 	};
 
 	learnMore = () => null;
@@ -111,8 +128,8 @@ export default class SaveYourSeedPhrase extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} />
-				<TouchableOpacity onPress={this.dismiss} style={styles.navbarLeftButton}>
-					<Text style={styles.navbarLeftText}>Skip</Text>
+				<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
+					<Text style={styles.navbarRightText}>Skip</Text>
 				</TouchableOpacity>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>

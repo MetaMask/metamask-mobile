@@ -211,7 +211,7 @@ export default class ChoosePassword extends Component {
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
-				this.props.navigation.navigate('SaveYourSeedPhrase');
+				this.props.navigation.navigate('AccountBackupStep1');
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {

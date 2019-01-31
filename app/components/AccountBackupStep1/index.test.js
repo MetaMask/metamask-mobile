@@ -1,10 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import SaveYourSeedPhrase from './';
+import AccountBackupStep1 from './';
 
-describe('SaveYourSeedPhrase', () => {
+describe('AccountBackupStep1', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<SaveYourSeedPhrase />);
+		const wrapper = shallow(<AccountBackupStep1 />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

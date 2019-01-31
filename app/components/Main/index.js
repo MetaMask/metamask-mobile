@@ -23,7 +23,10 @@ import TransactionSubmitted from '../TransactionSubmitted';
 import FirstIncomingTransaction from '../FirstIncomingTransaction';
 import ProtectYourAccount from '../ProtectYourAccount';
 import ChoosePassword from '../ChoosePassword';
-import SaveYourSeedPhrase from '../SaveYourSeedPhrase';
+import AccountBackupStep1 from '../AccountBackupStep1';
+import AccountBackupStep2 from '../AccountBackupStep2';
+import AccountBackupStep3 from '../AccountBackupStep3';
+import AccountBackupStep4 from '../AccountBackupStep4';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -127,8 +130,17 @@ const MainNavigator = createStackNavigator(
 					ChoosePassword: {
 						screen: ChoosePassword
 					},
-					SaveYourSeedPhrase: {
-						screen: SaveYourSeedPhrase
+					AccountBackupStep1: {
+						screen: AccountBackupStep1
+					},
+					AccountBackupStep2: {
+						screen: AccountBackupStep2
+					},
+					AccountBackupStep3: {
+						screen: AccountBackupStep3
+					},
+					AccountBackupStep4: {
+						screen: AccountBackupStep4
 					}
 				},
 				{
