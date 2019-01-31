@@ -84,7 +84,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 		whole = '0';
 	}
 	if (!fraction) {
-		fraction = '0';
+		fraction = '';
 	}
 	if (fraction.length > decimals) {
 		throw new Error(
