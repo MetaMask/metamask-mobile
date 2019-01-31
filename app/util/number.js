@@ -123,7 +123,7 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
  *
  * @param {Number|String|BN} value - Wei to convert
  * @param {Number} decimalsToShow - Decimals to 5
- * @returns {String} - String of token minimal unit, in render format
+ * @returns {Number} - Number of token minimal unit, in render format
  */
 export function renderFromWei(value, decimalsToShow = 5) {
 	const wei = fromWei(value);
