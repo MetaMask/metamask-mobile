@@ -130,7 +130,7 @@ export async function isSmartContractAddress(address) {
  */
 export async function getTransactionActionKey(transaction) {
 	const { transactionHash, transaction: { data, to } = {} } = transaction;
-	if (data) {
+	if (data && data !== '0x') {
 		const cache = ActionKeys.cache[transactionHash];
 		if (cache) {
 			return Promise.resolve(cache);

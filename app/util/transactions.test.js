@@ -97,6 +97,11 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: {} });
 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
 	});
+
+	it('getTransactionActionKey send ether with empty data', async () => {
+		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { data: '0x' } });
+		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
+	});
 	it('getTransactionActionKey send token', async () => {
 		const get = await getTransactionActionKey({ transactionHash: '0x2', transaction: { data: transferData } });
 		expect(get).toEqual(SEND_TOKEN_ACTION_KEY);
