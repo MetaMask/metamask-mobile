@@ -123,7 +123,7 @@ export default class AccountBackupStep4 extends Component {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('AccountBackupStep3');
+		this.props.navigation.navigate('AccountBackupStep5');
 	};
 
 	render() {

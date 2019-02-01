@@ -26,6 +26,7 @@ export const colors = {
 	inputBorderColor: '#dedede',
 	lightGray: '#d2d8dd',
 	lighterGray: '#F7F7F7',
+	another50ShadesOfGrey: '#8E8E93',
 	lightRed: '#fff1f2',
 	primary: '#008edf',
 	primaryFox: '#f7861ce6',

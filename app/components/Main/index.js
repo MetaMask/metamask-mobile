@@ -27,6 +27,8 @@ import AccountBackupStep1 from '../AccountBackupStep1';
 import AccountBackupStep2 from '../AccountBackupStep2';
 import AccountBackupStep3 from '../AccountBackupStep3';
 import AccountBackupStep4 from '../AccountBackupStep4';
+import AccountBackupStep5 from '../AccountBackupStep5';
+import AccountBackupStep6 from '../AccountBackupStep6';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -141,6 +143,12 @@ const MainNavigator = createStackNavigator(
 					},
 					AccountBackupStep4: {
 						screen: AccountBackupStep4
+					},
+					AccountBackupStep5: {
+						screen: AccountBackupStep5
+					},
+					AccountBackupStep6: {
+						screen: AccountBackupStep6
 					}
 				},
 				{
