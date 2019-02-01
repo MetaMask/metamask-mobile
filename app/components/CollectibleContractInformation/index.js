@@ -94,13 +94,13 @@ export default class CollectibleContractInformation extends Component {
 					</Text>
 				</View>
 				<ScrollView style={styles.informationWrapper}>
-					{description !== '' && (
+					{description && (
 						<View style={styles.row}>
 							<Text style={styles.label}>{strings('asset_overview.description')}</Text>
 							<Text style={styles.content}>{description}</Text>
 						</View>
 					)}
-					{totalSupply !== '' && (
+					{totalSupply && (
 						<View style={styles.row}>
 							<Text style={styles.label}>{strings('asset_overview.totalSupply')}</Text>
 							<Text style={styles.content}>{totalSupply}</Text>

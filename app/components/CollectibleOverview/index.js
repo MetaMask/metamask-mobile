@@ -126,13 +126,12 @@ export default class CollectibleOverview extends Component {
 						<Text style={styles.label}>{strings('collectible.collectible_token_id')}</Text>
 						<Text style={styles.content}>{tokenId}</Text>
 					</View>
-					{!description ||
-						(description !== '' && (
-							<View style={styles.row}>
-								<Text style={styles.label}>{strings('collectible.collectible_description')}</Text>
-								<Text style={styles.content}>{description}</Text>
-							</View>
-						))}
+					{description && (
+						<View style={styles.row}>
+							<Text style={styles.label}>{strings('collectible.collectible_description')}</Text>
+							<Text style={styles.content}>{description}</Text>
+						</View>
+					)}
 				</View>
 			</View>
 		);
