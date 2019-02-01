@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
 	},
 	subtitle: {
 		fontSize: 16,
+		lineHeight: 23,
 		color: colors.fontPrimary,
 		textAlign: 'left',
 		...fontStyles.normal

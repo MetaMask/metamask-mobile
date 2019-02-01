@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8,
 		paddingTop: 6,
 		paddingBottom: 4,
-		width: 95,
+		width: 105,
 		fontSize: 14,
 		lineHeight: 14,
 		backgroundColor: colors.white,
@@ -99,6 +99,21 @@ export default class AccountBackupStep4 extends Component {
 		*/
 		navigation: PropTypes.object
 	};
+
+	words = [
+		'abstract',
+		'accident',
+		'acoustic',
+		'announce',
+		'artefact',
+		'attitude',
+		'bachelor',
+		'broccoli',
+		'business',
+		'category',
+		'champion',
+		'cinnamon'
+	];
 
 	dismiss = () => {
 		Alert.alert(
@@ -123,12 +138,10 @@ export default class AccountBackupStep4 extends Component {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('AccountBackupStep5');
+		this.props.navigation.navigate('AccountBackupStep5', { words: this.words });
 	};
 
 	render() {
-		const words = 'Apple Brace Brick House Chase Internet Bananas Woman Phrase Sharing World Hair'.split(' ');
-
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={3} />
@@ -146,14 +159,14 @@ export default class AccountBackupStep4 extends Component {
 
 						<View style={styles.seedPhraseWrapper}>
 							<View style={styles.colLeft}>
-								{words.slice(0, 6).map((word, i) => (
+								{this.words.slice(0, 6).map((word, i) => (
 									<Text key={`word_${i}`} style={styles.word}>
 										{`${i + 1}. ${word}`}
 									</Text>
 								))}
 							</View>
 							<View style={styles.colRight}>
-								{words.slice(-6).map((word, i) => (
+								{this.words.slice(-6).map((word, i) => (
 									<Text key={`word_${i}`} style={styles.word}>
 										{`${i + 7}. ${word}`}
 									</Text>

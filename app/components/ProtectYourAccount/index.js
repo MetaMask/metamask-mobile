@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		fontSize: 16,
+		lineHeight: 23,
 		color: colors.fontPrimary,
 		textAlign: 'left',
 		...fontStyles.normal

@@ -110,7 +110,8 @@ const styles = StyleSheet.create({
 	},
 	selectedWord: {
 		backgroundColor: colors.another50ShadesOfGrey,
-		borderWidth: 0
+		borderWidth: 1,
+		borderColor: colors.another50ShadesOfGrey
 	},
 	selectedWordText: {
 		color: colors.white
@@ -134,20 +135,7 @@ export default class AccountBackupStep5 extends Component {
 
 	constructor(props) {
 		super(props);
-		const words = [
-			'abstract',
-			'accident',
-			'acoustic',
-			'announce',
-			'artefact',
-			'attitude',
-			'bachelor',
-			'broccoli',
-			'business',
-			'category',
-			'champion',
-			'cinnamon'
-		];
+		const words = props.navigation.getParam('words', []);
 		this.words = words.sort(() => 0.5 - Math.random());
 	}
 
