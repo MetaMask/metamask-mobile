@@ -122,9 +122,13 @@ class AddCustomCollectible extends Component {
 		const { AssetsContractController } = Engine.context;
 		const { address, tokenId } = this.state;
 		const { selectedAddress } = this.props;
-		const owner = await AssetsContractController.getOwnerOf(address, tokenId);
-		const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
-		return isOwner;
+		try {
+			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			return isOwner;
+		} catch (e) {
+			return false;
+		}
 	};
 
 	render = () => (
