@@ -158,7 +158,6 @@ exports[`CollectibleOverview should render correctly 1`] = `
         6904
       </Text>
     </View>
-    <Component />
   </View>
 </View>
 `;
