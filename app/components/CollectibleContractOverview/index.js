@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
-import { Alert, StyleSheet, Text, View, TouchableOpacity, InteractionManager, Image } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetActionButtons from '../AssetActionButtons';
-import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -37,41 +36,14 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		textAlign: 'center',
 		...fontStyles.light
-	},
-	opensea: {
-		fontSize: 8,
-		textAlignVertical: 'center',
-		paddingRight: 5,
-		color: colors.fontSecondary,
-		...fontStyles.light
-	},
-	credits: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		textAlign: 'center'
-	},
-	openSeaLogo: {
-		width: 80,
-		height: 20,
-		resizeMode: 'contain'
-	},
-	creditsView: {
-		alignItems: 'center',
-		marginTop: 15
-	},
-	creditsElements: {
-		flexDirection: 'row'
 	}
 });
-
-const openSeaLogo = require('../../images/opensea-logo-flat-colored-blue.png'); // eslint-disable-line
 
 /**
  * View that displays a specific collectible contract
  * including the overview (name, address, symbol, logo, description, total supply)
  */
-class CollectibleContractOverview extends Component {
+export default class CollectibleContractOverview extends Component {
 	static propTypes = {
 		/**
 		 * Object that represents the asset to be displayed
@@ -85,11 +57,7 @@ class CollectibleContractOverview extends Component {
 		/**
 		 * How many collectibles are owned by the user
 		 */
-		ownerOf: PropTypes.number,
-		/**
-		 * Object representing the selected network
-		 */
-		network: PropTypes.object.isRequired
+		ownerOf: PropTypes.number
 	};
 
 	onAdd = () => {
@@ -107,22 +75,11 @@ class CollectibleContractOverview extends Component {
 		return <CollectibleImage collectible={{ address, image: logo }} />;
 	};
 
-	goToOpenSea = () => {
-		const openSeaUrl = 'https://opensea.io/';
-		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.push('BrowserView', {
-				url: openSeaUrl
-			});
-		});
-	};
-
 	render = () => {
 		const {
 			collectibleContract: { name, symbol },
-			ownerOf,
-			network
+			ownerOf
 		} = this.props;
-		const isMainnet = network.provider.type === 'mainnet';
 		return (
 			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
@@ -130,16 +87,6 @@ class CollectibleContractOverview extends Component {
 					<Text style={styles.name}>{ownerOf}</Text>
 					<Text style={styles.name}>{name}</Text>
 					<Text style={styles.symbol}>{symbol}</Text>
-					{isMainnet && (
-						<View style={styles.creditsView}>
-							<TouchableOpacity style={styles.credits} onPress={this.goToOpenSea}>
-								<View style={styles.creditsElements}>
-									<Text style={styles.opensea}>{strings('collectible.powered_by_opensea')}</Text>
-									<Image source={openSeaLogo} style={styles.openSeaLogo} />
-								</View>
-							</TouchableOpacity>
-						</View>
-					)}
 				</View>
 
 				<AssetActionButtons
@@ -152,9 +99,3 @@ class CollectibleContractOverview extends Component {
 		);
 	};
 }
-
-const mapStateToProps = state => ({
-	network: state.engine.backgroundState.NetworkController
-});
-
-export default connect(mapStateToProps)(CollectibleContractOverview);

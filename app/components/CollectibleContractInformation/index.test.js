@@ -1,9 +1,24 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import CollectibleContractInformation from './';
+import configureMockStore from 'redux-mock-store';
+
+const mockStore = configureMockStore();
 
 describe('CollectibleContractInformation', () => {
 	it('should render correctly', () => {
+		const initialState = {
+			engine: {
+				backgroundState: {
+					NetworkController: {
+						provider: {
+							type: 'mainnet'
+						}
+					}
+				}
+			}
+		};
+
 		const wrapper = shallow(
 			<CollectibleContractInformation
 				collectibleContract={{
@@ -13,8 +28,11 @@ describe('CollectibleContractInformation', () => {
 					address: '0x123',
 					totalSupply: 1
 				}}
-			/>
+			/>,
+			{
+				context: { store: mockStore(initialState) }
+			}
 		);
-		expect(wrapper).toMatchSnapshot();
+		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

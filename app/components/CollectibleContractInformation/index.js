@@ -1,9 +1,19 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import {
+	ScrollView,
+	TouchableOpacity,
+	StyleSheet,
+	Text,
+	View,
+	SafeAreaView,
+	InteractionManager,
+	Image
+} from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { renderShortAddress } from '../../util/address';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -60,14 +70,46 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		color: colors.primary,
 		...fontStyles.normal
+	},
+	opensea: {
+		fontSize: 8,
+		textAlignVertical: 'center',
+		paddingRight: 5,
+		color: colors.fontSecondary,
+		...fontStyles.light
+	},
+	credits: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		textAlign: 'center'
+	},
+	openSeaLogo: {
+		width: 80,
+		height: 20,
+		resizeMode: 'contain'
+	},
+	creditsView: {
+		alignItems: 'center',
+		marginTop: 15
+	},
+	creditsElements: {
+		flexDirection: 'row'
 	}
 });
+
+const openSeaLogo = require('../../images/opensea-logo-flat-colored-blue.png'); // eslint-disable-line
 
 /**
  * View that contains a collectible contract information as description, total supply and address
  */
-export default class CollectibleContractInformation extends Component {
+class CollectibleContractInformation extends Component {
 	static propTypes = {
+		/**
+		 * Navigation object required to push
+		 * the Asset detail view
+		 */
+		navigation: PropTypes.object,
 		/**
 		 * An function to handle the close event
 		 */
@@ -75,17 +117,34 @@ export default class CollectibleContractInformation extends Component {
 		/**
 		 * Collectible contract object
 		 */
-		collectibleContract: PropTypes.object
+		collectibleContract: PropTypes.object,
+		/**
+		 * Object representing the selected network
+		 */
+		network: PropTypes.object.isRequired
 	};
 
 	closeModal = () => {
 		this.props.onClose(true);
 	};
 
+	goToOpenSea = () => {
+		const openSeaUrl = 'https://opensea.io/';
+		InteractionManager.runAfterInteractions(() => {
+			this.closeModal();
+			this.props.navigation.push('BrowserView', {
+				url: openSeaUrl
+			});
+		});
+	};
+
 	render = () => {
 		const {
-			collectibleContract: { name, description, totalSupply, address }
+			collectibleContract: { name, description, totalSupply, address },
+			network
 		} = this.props;
+		const isMainnet = network.provider.type === 'mainnet';
+
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.titleWrapper}>
@@ -110,7 +169,18 @@ export default class CollectibleContractInformation extends Component {
 						<Text style={styles.label}>{strings('asset_overview.address')}</Text>
 						<Text style={styles.content}>{renderShortAddress(address)}</Text>
 					</View>
+					{isMainnet && (
+						<View style={styles.creditsView}>
+							<TouchableOpacity style={styles.credits} onPress={this.goToOpenSea}>
+								<View style={styles.creditsElements}>
+									<Text style={styles.opensea}>{strings('collectible.powered_by_opensea')}</Text>
+									<Image source={openSeaLogo} style={styles.openSeaLogo} />
+								</View>
+							</TouchableOpacity>
+						</View>
+					)}
 				</ScrollView>
+
 				<View style={styles.footer}>
 					<TouchableOpacity style={styles.footerButton} onPress={this.closeModal}>
 						<Text style={styles.closeButton}>{strings('networks.close')}</Text>
@@ -120,3 +190,9 @@ export default class CollectibleContractInformation extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController
+});
+
+export default connect(mapStateToProps)(CollectibleContractInformation);

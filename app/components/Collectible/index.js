@@ -34,7 +34,13 @@ class Collectible extends Component {
 		/* passed by the parent component
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * Called to toggle collectible contract information modal
+		 */
 		toggleCollectibleContractModal: PropTypes.func,
+		/**
+		 * Whether collectible contract information is visible
+		 */
 		collectibleContractModalVisible: PropTypes.bool
 	};
 
@@ -100,6 +106,7 @@ class Collectible extends Component {
 				</ScrollView>
 				<Modal isVisible={collectibleContractModalVisible} onBackdropPress={this.hideCollectibleContractModal}>
 					<CollectibleContractInformation
+						navigation={navigation}
 						onClose={this.hideCollectibleContractModal}
 						collectibleContract={collectibleContract}
 					/>
