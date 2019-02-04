@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
+import { isSmartContractAddress } from '../../util/transactions';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -50,7 +51,7 @@ class AddCustomCollectible extends Component {
 	};
 
 	addCollectible = async () => {
-		if (!this.validateCustomCollectible()) return;
+		if (!(await this.validateCustomCollectible())) return;
 		const isOwner = await this.validateCollectibleOwnership();
 		if (!isOwner) {
 			this.handleNotCollectibleOwner();
@@ -74,14 +75,18 @@ class AddCustomCollectible extends Component {
 		this.setState({ tokenId });
 	};
 
-	validateCustomCollectibleAddress = () => {
+	validateCustomCollectibleAddress = async () => {
 		let validated = true;
 		const address = this.state.address;
+		const isValidEthAddress = isValidAddress(address);
 		if (address.length === 0) {
 			this.setState({ warningAddress: strings('collectible.address_cant_be_empty') });
 			validated = false;
-		} else if (!isValidAddress(address)) {
+		} else if (!isValidEthAddress) {
 			this.setState({ warningAddress: strings('collectible.address_must_be_valid') });
+			validated = false;
+		} else if (!(await isSmartContractAddress(address))) {
+			this.setState({ warningAddress: strings('collectible.address_must_be_smart_contract') });
 			validated = false;
 		} else {
 			this.setState({ warningAddress: `` });
@@ -101,8 +106,8 @@ class AddCustomCollectible extends Component {
 		return validated;
 	};
 
-	validateCustomCollectible = () => {
-		const validatedAddress = this.validateCustomCollectibleAddress();
+	validateCustomCollectible = async () => {
+		const validatedAddress = await this.validateCustomCollectibleAddress();
 		const validatedTokenId = this.validateCustomCollectibleTokenId();
 		return validatedAddress && validatedTokenId;
 	};

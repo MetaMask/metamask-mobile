@@ -118,6 +118,7 @@
 		"search_tokens_placeholder": "Search Tokens",
 		"address_cant_be_empty": "Token address can't be empty.",
 		"address_must_be_valid": "Token address must be a valid address.",
+		"address_must_be_smart_contract": "Personal address detected. Input the token contract address.",
 		"symbol_cant_be_empty": "Token symbol can't be empty.",
 		"decimals_cant_be_empty": "Token decimals can't be empty.",
 		"select_token": "Select Token"
@@ -128,6 +129,7 @@
 		"collectible_token_id": "ID",
 		"collectible_description": "Description",
 		"address_must_be_valid": "Collectible address must be a valid address.",
+		"address_must_be_smart_contract": "Personal address detected. Input the collectible contract address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",
 		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
 		"ownership_error_title": "Ooops! Something happened.",

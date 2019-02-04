@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
+import { isSmartContractAddress } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -48,8 +49,8 @@ export default class AddCustomToken extends Component {
 		navigation: PropTypes.object
 	};
 
-	addToken = () => {
-		if (!this.validateCustomToken()) return;
+	addToken = async () => {
+		if (!(await this.validateCustomToken())) return;
 		const { AssetsController } = Engine.context;
 		const { address, symbol, decimals } = this.state;
 		AssetsController.addToken(address, symbol, decimals);
@@ -72,14 +73,30 @@ export default class AddCustomToken extends Component {
 		this.setState({ decimals });
 	};
 
-	validateCustomTokenAddress = () => {
+	onAddressBlur = async () => {
+		const validated = await this.validateCustomTokenAddress();
+		if (validated) {
+			const address = this.state.address;
+			const { AssetsContractController } = Engine.context;
+			const decimals = await AssetsContractController.getTokenDecimals(address);
+			const symbol = await AssetsContractController.getAssetSymbol(address);
+			this.setState({ decimals: String(decimals), symbol });
+		}
+	};
+
+	validateCustomTokenAddress = async () => {
 		let validated = true;
 		const address = this.state.address;
+		const isValidTokenAddress = isValidAddress(address);
+		const toSmartContract = isValidTokenAddress && (await isSmartContractAddress(address));
 		if (address.length === 0) {
 			this.setState({ warningAddress: strings('token.address_cant_be_empty') });
 			validated = false;
-		} else if (!isValidAddress(address)) {
+		} else if (!isValidTokenAddress) {
 			this.setState({ warningAddress: strings('token.address_must_be_valid') });
+			validated = false;
+		} else if (!toSmartContract) {
+			this.setState({ warningAddress: strings('token.address_must_be_smart_contract') });
 			validated = false;
 		} else {
 			this.setState({ warningAddress: `` });
@@ -111,8 +128,8 @@ export default class AddCustomToken extends Component {
 		return validated;
 	};
 
-	validateCustomToken = () => {
-		const validatedAddress = this.validateCustomTokenAddress();
+	validateCustomToken = async () => {
+		const validatedAddress = await this.validateCustomTokenAddress();
 		const validatedSymbol = this.validateCustomTokenSymbol();
 		const validatedDecimals = this.validateCustomTokenDecimals();
 		return validatedAddress && validatedSymbol && validatedDecimals;
@@ -148,7 +165,7 @@ export default class AddCustomToken extends Component {
 						placeholder={'0x...'}
 						value={this.state.address}
 						onChangeText={this.onAddressChange}
-						onBlur={this.validateCustomTokenAddress}
+						onBlur={this.onAddressBlur}
 						testID={'input-token-address'}
 						onSubmitEditing={this.jumpToAssetSymbol}
 						returnKeyType={'next'}
