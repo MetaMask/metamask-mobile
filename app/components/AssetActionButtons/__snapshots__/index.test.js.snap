@@ -1,0 +1,146 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetActionButtons should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+      "flexDirection": "row",
+      "marginTop": 30,
+    }
+  }
+>
+  <StyledButton
+    childGroupStyle={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+    containerStyle={
+      Array [
+        Object {
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 50,
+        },
+        Object {
+          "marginRight": 10,
+        },
+      ]
+    }
+    disabledContainerStyle={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+      }
+    }
+    styleDisabled={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    type="confirm"
+  >
+    <Icon
+      allowFontScaling={false}
+      color="#FFFFFF"
+      name="send"
+      size={15}
+      style={
+        Object {
+          "height": 15,
+          "marginTop": 0,
+          "width": 15,
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto",
+          "fontSize": 15,
+          "fontWeight": "600",
+          "marginLeft": 8,
+          "marginTop": 0,
+        }
+      }
+    >
+      leftText
+    </Text>
+  </StyledButton>
+  <StyledButton
+    childGroupStyle={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+    containerStyle={
+      Array [
+        Object {
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 50,
+        },
+        Object {
+          "marginLeft": 10,
+        },
+      ]
+    }
+    disabledContainerStyle={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+      }
+    }
+    styleDisabled={
+      Object {
+        "opacity": 0.6,
+      }
+    }
+    type="confirm"
+  >
+    <Icon
+      allowFontScaling={false}
+      color="#FFFFFF"
+      name="download"
+      size={20}
+      style={
+        Object {
+          "height": 15,
+          "marginTop": 0,
+          "width": 15,
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto",
+          "fontSize": 15,
+          "fontWeight": "600",
+          "marginLeft": 8,
+          "marginTop": 0,
+        }
+      }
+    >
+      rightText
+    </Text>
+  </StyledButton>
+</View>
+`;

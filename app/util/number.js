@@ -84,7 +84,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
 		whole = '0';
 	}
 	if (!fraction) {
-		fraction = '0';
+		fraction = '';
 	}
 	if (fraction.length > decimals) {
 		throw new Error(
@@ -123,7 +123,7 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
  *
  * @param {Number|String|BN} value - Wei to convert
  * @param {Number} decimalsToShow - Decimals to 5
- * @returns {String} - String of token minimal unit, in render format
+ * @returns {Number} - Number of token minimal unit, in render format
  */
 export function renderFromWei(value, decimalsToShow = 5) {
 	const wei = fromWei(value);
@@ -271,9 +271,10 @@ export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decim
 }
 
 /**
- * Formats a BN corresponding to a Fiat value into a string ready to be rendered
+ * Formats a fiat value into a string ready to be rendered
  *
  * @param {number} value - number corresponding to a balance of an asset
+ * @param {string} currencyCode - Current currency code to display
  * @param {number} decimalsToShow - Decimals to 5
  * @returns {string} - The converted balance
  */

@@ -1,0 +1,133 @@
+import {
+	generateTransferData,
+	decodeTransferData,
+	getMethodData,
+	isSmartContractAddress,
+	getTransactionActionKey,
+	TOKEN_METHOD_TRANSFER,
+	CONTRACT_METHOD_DEPLOY,
+	SEND_ETHER_ACTION_KEY,
+	DEPLOY_CONTRACT_ACTION_KEY,
+	SEND_TOKEN_ACTION_KEY,
+	UNKNOWN_FUNCTION_KEY
+} from './transactions';
+import Engine from '../core/Engine';
+
+const MOCK_ENGINE = {
+	context: {
+		TransactionController: {
+			query(get, [address]) {
+				if (address === '0x0') {
+					return '';
+				} else if (address === '0x1') {
+					return '0x1';
+				}
+			}
+		}
+	}
+};
+
+describe('Transactions utils :: generateTransferData', () => {
+	it('generateTransferData should throw if undefined values', () => {
+		expect(() => generateTransferData()).toThrow();
+		expect(() => generateTransferData('ERC20')).toThrow();
+		expect(() => generateTransferData('ERC20', { toAddress: '0x0' })).toThrow();
+		expect(() => generateTransferData('ERC20', { amount: 1 })).toThrow();
+		expect(() => generateTransferData('ERC20', { toAddress: '0x0', amount: 1 })).not.toThrow();
+	});
+
+	it('generateTransferData generates data correctly', () => {
+		expect(
+			generateTransferData('ERC20', { toAddress: '0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0', amount: 1 })
+		).toEqual(
+			'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001'
+		);
+	});
+});
+
+describe('Transactions utils :: decodeTransferData', () => {
+	it('decodeTransferData', () => {
+		const [address, amount] = decodeTransferData(
+			'ERC20',
+			'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001'
+		);
+		expect(address).toEqual('0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0');
+		expect(amount.toNumber()).toEqual(1);
+	});
+});
+
+describe('Transactions utils :: getMethodData', () => {
+	it('getMethodData', () => {
+		const transferData =
+			'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
+		const contractData =
+			'0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
+		const randomData = '0x987654321';
+		expect(getMethodData(transferData).name).toEqual(TOKEN_METHOD_TRANSFER);
+		expect(getMethodData(contractData).name).toEqual(CONTRACT_METHOD_DEPLOY);
+		expect(getMethodData(randomData)).toEqual({});
+	});
+});
+
+describe('Transactions utils :: isSmartContractAddress', () => {
+	it('isSmartContractAddress', async () => {
+		Engine.context = MOCK_ENGINE.context;
+		const isFirst = await isSmartContractAddress('0x0');
+		const isSecond = await isSmartContractAddress('0x1');
+		expect(isFirst).toEqual(false);
+		expect(isSecond).toEqual(true);
+	});
+
+	it('isSmartContractAddress should work with contract map', async () => {
+		Engine.context = MOCK_ENGINE.context;
+		const stub = spyOn(Engine.context.TransactionController, 'query');
+		await isSmartContractAddress('0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359');
+		expect(stub).not.toBeCalled();
+	});
+});
+
+describe('Transactions utils :: getTransactionActionKey', () => {
+	Engine.context = MOCK_ENGINE.context;
+	const transferData =
+		'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
+	const contractData =
+		'0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
+	const randomData = '0x987654321';
+	it('getTransactionActionKey send ether', async () => {
+		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: {} });
+		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
+	});
+
+	it('getTransactionActionKey send ether with empty data', async () => {
+		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { data: '0x' } });
+		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
+	});
+	it('getTransactionActionKey send token', async () => {
+		const get = await getTransactionActionKey({ transactionHash: '0x2', transaction: { data: transferData } });
+		expect(get).toEqual(SEND_TOKEN_ACTION_KEY);
+	});
+
+	it('getTransactionActionKey deploy contract', async () => {
+		const get = await getTransactionActionKey({
+			transactionHash: '0x3',
+			transaction: { data: contractData, to: '0x1' }
+		});
+		expect(get).toEqual(DEPLOY_CONTRACT_ACTION_KEY);
+	});
+
+	it('getTransactionActionKey send ether to contract', async () => {
+		const get = await getTransactionActionKey({
+			transactionHash: '0x4',
+			transaction: { data: randomData, to: '0x1' }
+		});
+		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
+	});
+
+	it('getTransactionActionKey unknown interaction with smart contract', async () => {
+		const get = await getTransactionActionKey({
+			transactionHash: '0x5',
+			transaction: { data: randomData, to: '0x0' }
+		});
+		expect(get).toEqual(UNKNOWN_FUNCTION_KEY);
+	});
+});

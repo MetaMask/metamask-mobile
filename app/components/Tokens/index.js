@@ -1,14 +1,15 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { Image, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
-import TokenElement from '../TokenElement';
 import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../util/number';
 import Engine from '../../core/Engine';
+import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -41,8 +42,30 @@ const styles = StyleSheet.create({
 	footer: {
 		flex: 1,
 		paddingBottom: 30
+	},
+	balances: {
+		flex: 1,
+		justifyContent: 'center'
+	},
+	balance: {
+		fontSize: 16,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	balanceFiat: {
+		fontSize: 12,
+		color: colors.fontSecondary,
+		...fontStyles.normal
+	},
+	ethLogo: {
+		width: 50,
+		height: 50,
+		overflow: 'hidden',
+		marginRight: 20
 	}
 });
+
+const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that renders a list of ERC-20 Tokens
@@ -128,8 +151,21 @@ export default class Tokens extends PureComponent {
 				: 0);
 		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		item = { ...item, ...{ logo, balance, balanceFiat } };
-
-		return <TokenElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} token={item} />;
+		return (
+			<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
+				{item.symbol === 'ETH' ? (
+					<Image source={ethLogo} style={styles.ethLogo} />
+				) : (
+					<TokenImage asset={item} />
+				)}
+				<View style={styles.balances}>
+					<Text style={styles.balance}>
+						{balance} {item.symbol}
+					</Text>
+					{balanceFiat ? <Text style={styles.balanceFiat}>{balanceFiat}</Text> : null}
+				</View>
+			</AssetElement>
+		);
 	};
 
 	renderList() {

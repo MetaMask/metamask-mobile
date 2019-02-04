@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
-import { Image, Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { Image, Alert, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import LinearGradient from 'react-native-linear-gradient';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import FoundationIcon from 'react-native-vector-icons/Foundation';
-import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
+import AssetActionButtons from '../AssetActionButtons';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -34,11 +32,6 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 		marginBottom: 10
 	},
-	buttons: {
-		flex: 1,
-		flexDirection: 'row',
-		marginTop: 30
-	},
 	amount: {
 		fontSize: 30,
 		color: colors.fontPrimary,
@@ -48,38 +41,6 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		color: colors.fontSecondary,
 		...fontStyles.light
-	},
-	button: {
-		flex: 1,
-		height: 50,
-		flexDirection: 'row'
-	},
-	leftButton: {
-		marginRight: 10
-	},
-	rightButton: {
-		marginLeft: 10
-	},
-	buttonText: {
-		marginLeft: 8,
-		marginTop: Platform.OS === 'ios' ? 0 : -2,
-		fontSize: 15,
-		color: colors.white,
-		...fontStyles.bold
-	},
-	buttonContent: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		justifyContent: 'center'
-	},
-	buttonIcon: {
-		width: 15,
-		height: 15,
-		marginTop: 0
-	},
-	flexRow: {
-		flexDirection: 'row'
 	}
 });
 
@@ -138,28 +99,13 @@ export default class AssetOverview extends Component {
 					</Text>
 					<Text style={styles.amountFiat}>{balanceFiat}</Text>
 				</View>
-				<View style={styles.buttons}>
-					<StyledButton
-						type={'confirm'}
-						onPress={this.onSend}
-						containerStyle={[styles.button, styles.leftButton]}
-						style={styles.buttonContent}
-						childGroupStyle={styles.flexRow}
-					>
-						<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
-					</StyledButton>
-					<StyledButton
-						type={'confirm'}
-						onPress={this.onDeposit}
-						containerStyle={[styles.button, styles.rightButton]}
-						style={styles.buttonContent}
-						childGroupStyle={styles.flexRow}
-					>
-						<FoundationIcon name={'download'} size={20} color={colors.white} style={styles.buttonIcon} />
-						<Text style={styles.buttonText}>{strings('asset_overview.receive_button').toUpperCase()}</Text>
-					</StyledButton>
-				</View>
+
+				<AssetActionButtons
+					leftText={strings('asset_overview.send_button').toUpperCase()}
+					rightText={strings('asset_overview.receive_button').toUpperCase()}
+					onLeftPress={this.onSend}
+					onRightPress={this.onDeposit}
+				/>
 			</LinearGradient>
 		);
 	};

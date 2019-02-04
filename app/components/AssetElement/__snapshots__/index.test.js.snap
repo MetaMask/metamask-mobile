@@ -1,8 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TokenElement should render correctly 1`] = `
+exports[`AssetElement should render correctly 1`] = `
 <TouchableOpacity
   activeOpacity={0.2}
+  key="asset=0x123"
   onLongPress={[Function]}
   onPress={[Function]}
   style={
@@ -16,37 +17,6 @@ exports[`TokenElement should render correctly 1`] = `
     }
   }
 >
-  <TokenElement
-    asset={
-      Object {
-        "address": "0x123",
-        "decimals": 18,
-        "symbol": "ABC",
-      }
-    }
-  />
-  <View
-    style={
-      Object {
-        "flex": 1,
-        "justifyContent": "center",
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 16,
-          "fontWeight": "400",
-        }
-      }
-    >
-       
-      ABC
-    </Text>
-  </View>
   <View
     styles={
       Object {
@@ -62,7 +32,7 @@ exports[`TokenElement should render correctly 1`] = `
       size={24}
       style={
         Object {
-          "marginTop": 8,
+          "marginTop": 16,
         }
       }
     />
