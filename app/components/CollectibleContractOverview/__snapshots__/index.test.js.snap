@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AssetOverview should render correctly 1`] = `
+exports[`CollectibleContractOverview should render correctly 1`] = `
 <LinearGradient
   colors={
     Array [
@@ -32,24 +32,18 @@ exports[`AssetOverview should render correctly 1`] = `
   <View
     style={
       Object {
+        "alignContent": "center",
         "alignItems": "center",
-        "borderRadius": 10,
-        "justifyContent": "center",
         "marginBottom": 10,
         "marginTop": 15,
       }
     }
   >
-    <Component
-      source={
+    <CollectibleImage
+      collectible={
         Object {
-          "testUri": "../../../app/images/eth-logo.png",
-        }
-      }
-      style={
-        Object {
-          "height": 70,
-          "width": 70,
+          "address": "0x123",
+          "image": undefined,
         }
       }
     />
@@ -57,7 +51,6 @@ exports[`AssetOverview should render correctly 1`] = `
   <View
     style={
       Object {
-        "alignItems": "center",
         "flex": 1,
         "marginBottom": 10,
         "marginTop": 10,
@@ -71,12 +64,22 @@ exports[`AssetOverview should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 30,
           "fontWeight": "400",
+          "textAlign": "center",
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#4a4a4a",
+          "fontFamily": "Roboto",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "textAlign": "center",
         }
       }
     >
-      4
-       
-      ETH
+      name
     </Text>
     <Text
       style={
@@ -85,17 +88,18 @@ exports[`AssetOverview should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 18,
           "fontWeight": "300",
+          "textAlign": "center",
         }
       }
     >
-      1500
+      symbol
     </Text>
   </View>
   <AssetActionButtons
     leftText="SEND"
     onLeftPress={[Function]}
     onRightPress={[Function]}
-    rightText="RECEIVE"
+    rightText="ADD"
   />
 </LinearGradient>
 `;

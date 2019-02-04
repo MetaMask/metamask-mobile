@@ -6,7 +6,6 @@ exports[`Collectibles should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
-      "minHeight": 500,
     }
   }
   testID="collectibles"
@@ -14,7 +13,6 @@ exports[`Collectibles should render correctly 1`] = `
   <ScrollView
     refreshControl={
       <RefreshControlMock
-        onRefresh={[Function]}
         refreshing={false}
       />
     }
@@ -41,47 +39,6 @@ exports[`Collectibles should render correctly 1`] = `
       >
         You don't have any collectibles!
       </Text>
-      <View
-        style={
-          Object {
-            "flex": 1,
-            "paddingBottom": 30,
-          }
-        }
-      >
-        <TouchableOpacity
-          activeOpacity={0.2}
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "margin": 20,
-            }
-          }
-          testID="add-collectible-button"
-        >
-          <Icon
-            allowFontScaling={false}
-            color="#008edf"
-            name="plus"
-            size={16}
-          />
-          <Text
-            style={
-              Object {
-                "color": "#008edf",
-                "fontFamily": "Roboto",
-                "fontSize": 15,
-                "fontWeight": "400",
-              }
-            }
-          >
-            ADD COLLECTIBLES
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   </ScrollView>
   <ActionSheet
