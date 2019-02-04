@@ -84,6 +84,7 @@
 		"collectible": "Collectible",
 		"collectibles": "COLLECTIBLES",
 		"transactions": "TRANSACTIONS",
+		"collectible_no_name": "This collectible has no name",
 		"no_collectibles": "You don't have any collectibles!",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
@@ -125,9 +126,11 @@
 		"collectible_address": "Address",
 		"collectible_type": "Type",
 		"collectible_token_id": "ID",
+		"collectible_description": "Description",
 		"address_must_be_valid": "Collectible address must be a valid address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",
-		"token_id_cant_be_empty": "Collectible identifier can't be empty."
+		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
+		"powered_by_opensea": "Powered by"
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -228,7 +231,11 @@
 	},
 	"asset_overview": {
 		"send_button": "SEND",
-		"receive_button": "RECEIVE"
+		"receive_button": "RECEIVE",
+		"add_collectible_button": "ADD",
+		"description": "Description",
+		"totalSupply": "Total Supply",
+		"address": "Address"
 	},
 	"account_details": {
 		"title": "Account Details",

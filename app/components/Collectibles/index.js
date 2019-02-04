@@ -1,18 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ScrollView, RefreshControl, FlatList, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
-import CollectibleElement from '../CollectibleElement';
 import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../core/Engine';
+import CollectibleImage from '../CollectibleImage';
+import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
-		flex: 1,
-		minHeight: 500
+		flex: 1
 	},
 	emptyView: {
 		backgroundColor: colors.white,
@@ -25,20 +24,24 @@ const styles = StyleSheet.create({
 		color: colors.fontTertiary,
 		...fontStyles.normal
 	},
-	add: {
-		margin: 20,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center'
+	itemWrapper: {
+		flex: 1,
+		flexDirection: 'row'
 	},
-	addText: {
-		fontSize: 15,
-		color: colors.primary,
+	rows: {
+		flex: 1,
+		marginLeft: 20,
+		marginTop: 5
+	},
+	name: {
+		fontSize: 16,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
-	footer: {
-		flex: 1,
-		paddingBottom: 30
+	tokenId: {
+		fontSize: 12,
+		color: colors.fontPrimary,
+		...fontStyles.normal
 	}
 });
 
@@ -72,16 +75,15 @@ export default class Collectibles extends Component {
 	collectibleToRemove = null;
 
 	renderEmpty = () => (
-		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} />}>
 			<View style={styles.emptyView}>
 				<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
-				{this.renderFooter()}
 			</View>
 		</ScrollView>
 	);
 
 	onItemPress = collectible => {
-		this.props.navigation.push('CollectibleView', collectible);
+		this.props.navigation.push('CollectibleView', { ...collectible });
 	};
 
 	handleOnPress = collectible => {
@@ -106,25 +108,23 @@ export default class Collectibles extends Component {
 		this.actionSheet = ref;
 	};
 
-	renderFooter = () => (
-		<View style={styles.footer}>
-			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
-				<Icon name="plus" size={16} color={colors.primary} />
-				<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
-			</TouchableOpacity>
-		</View>
-	);
-
 	keyExtractor = item => `${item.address}_${item.tokenId}`;
 
-	onRefresh = async () => {
-		this.setState({ refreshing: true });
-		const { AssetsDetectionController } = Engine.context;
-		await AssetsDetectionController.detectCollectibles();
-		this.setState({ refreshing: false });
-	};
+	renderItem = ({ item }) => (
+		<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
+			<View style={styles.itemWrapper}>
+				<CollectibleImage collectible={item} />
+				<View style={styles.rows}>
+					<Text style={styles.name}>{item.name}</Text>
+					<Text style={styles.tokenId}>
+						{strings('collectible.collectible_token_id')}: {item.tokenId}
+					</Text>
+				</View>
+			</View>
+		</AssetElement>
+	);
 
-	renderList() {
+	renderCollectiblesList() {
 		const { collectibles } = this.props;
 
 		return (
@@ -132,16 +132,7 @@ export default class Collectibles extends Component {
 				data={collectibles}
 				extraData={this.state}
 				keyExtractor={this.keyExtractor}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				// eslint-disable-next-line react/jsx-no-bind
-				renderItem={({ item }) => (
-					<CollectibleElement
-						collectible={item}
-						onPress={this.handleOnPress}
-						onLongPress={this.showRemoveMenu}
-					/>
-				)}
-				ListFooterComponent={this.renderFooter}
+				renderItem={this.renderItem}
 			/>
 		);
 	}
@@ -150,7 +141,7 @@ export default class Collectibles extends Component {
 		const { collectibles } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'collectibles'}>
-				{collectibles && collectibles.length ? this.renderList() : this.renderEmpty()}
+				{collectibles && collectibles.length ? this.renderCollectiblesList() : this.renderEmpty()}
 				<ActionSheet
 					ref={this.createActionSheetRef}
 					title={strings('wallet.remove_collectible_title')}

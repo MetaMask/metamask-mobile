@@ -9,6 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../locales/i18n';
 import URL from 'url-parse';
+import NavbarCollectibleContractInformation from '../NavbarCollectibleContractInformation';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -57,6 +58,14 @@ const styles = StyleSheet.create({
 		color: colors.primary,
 		fontSize: 14,
 		...fontStyles.normal
+	},
+	title: {
+		fontSize: 18,
+		...fontStyles.normal
+	},
+	titleWrapper: {
+		alignItems: 'center',
+		flex: 1
 	}
 });
 
@@ -238,5 +247,32 @@ export function getWalletNavbarOptions(title, navigation) {
 				<IonicIcon name="ios-information-circle-outline" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
 		)
+	};
+}
+
+/**
+ * Function that returns the navigation options for our collectible contract overview screen
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getCollectibleContractNavbarOptions(title, navigation) {
+	return {
+		headerTitle: (
+			<View style={styles.titleWrapper}>
+				<Text style={styles.title}>{title}</Text>
+			</View>
+		),
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerTruncatedBackTitle: strings('navigation.back'),
+		headerRight: <NavbarCollectibleContractInformation />
 	};
 }
