@@ -130,6 +130,8 @@
 		"address_must_be_valid": "Collectible address must be a valid address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",
 		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
+		"ownership_error_title": "Ooops! Something happened.",
+		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
 		"powered_by_opensea": "Powered by"
 	},
 	"transfer": {
