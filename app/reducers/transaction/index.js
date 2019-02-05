@@ -15,10 +15,10 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				initialState
 			};
-		case 'SET_AMOUNT':
+		case 'SET_VALUE':
 			return {
 				...state,
-				amount: action.amount
+				value: action.value
 			};
 		case 'SET_DATA':
 			return {
@@ -54,6 +54,27 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedCollectible: action.selectedCollectible
+			};
+		case 'PREPARE_TRANSACTION':
+			return {
+				...state,
+				gas: action.gas,
+				gasPrice: action.gasPrice,
+				value: action.value
+			};
+		case 'PREPARE_TOKEN_TRANSACTION':
+			return {
+				...state,
+				gas: action.gas,
+				gasPrice: action.gasPrice,
+				value: action.value,
+				to: action.to
+			};
+		case 'SANITIZE_TRANSACTION':
+			return {
+				...state,
+				gas: action.gas,
+				gasPrice: action.gasPrice
 			};
 		default:
 			return state;

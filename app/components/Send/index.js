@@ -8,6 +8,8 @@ import { toBN, BNToHex, hexToBN } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { getClosableNavigationOptions } from '../Navbar';
+import { connect } from 'react-redux';
+import { prepareTransaction, prepareTokenTransaction, sanitizeTransaction } from '../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -25,7 +27,7 @@ const styles = StyleSheet.create({
 /**
  * View that wraps the wraps the "Send" screen
  */
-export default class Send extends Component {
+class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
 		getClosableNavigationOptions(strings('send.title'), strings('navigation.cancel'), navigation);
 
@@ -33,7 +35,23 @@ export default class Send extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action that prepares a transaction
+		 */
+		prepareTransaction: PropTypes.func.isRequired,
+		/**
+		 * Action that prepares a token transaction
+		 */
+		prepareTokenTransaction: PropTypes.func.isRequired,
+		/**
+		 * Action that sanitizes a transaction
+		 */
+		sanitizeTransaction: PropTypes.func.isRequired,
+		/**
+		 * Transaction state
+		 */
+		transaction: PropTypes.object.isRequired
 	};
 
 	state = {
@@ -131,6 +149,7 @@ export default class Send extends Component {
 		transaction.gas = BNToHex(transaction.gas);
 		transaction.gasPrice = BNToHex(transaction.gasPrice);
 		transaction.value = BNToHex(transaction.value);
+		this.props.prepareTransaction(transaction.gas, transaction.gasPrice, transaction.value);
 		return transaction;
 	}
 
@@ -139,12 +158,14 @@ export default class Send extends Component {
 		transaction.gasPrice = BNToHex(transaction.gasPrice);
 		transaction.value = '0x0';
 		transaction.to = asset.address;
+		this.props.prepareTokenTransaction(transaction.gas, transaction.gasPrice, transaction.value, transaction.to);
 		return transaction;
 	};
 
 	sanitizeTransaction(transaction) {
 		transaction.gas = hexToBN(transaction.gas);
 		transaction.gasPrice = hexToBN(transaction.gasPrice);
+		this.props.sanitizeTransaction(transaction.gas, transaction.gasPrice);
 		return transaction;
 	}
 
@@ -158,21 +179,22 @@ export default class Send extends Component {
 		this.unmountHandled = true;
 	};
 
-	onConfirm = async (transaction, asset) => {
+	onConfirm = async (transaction2, asset) => {
 		const { TransactionController } = Engine.context;
+		const { transaction } = this.props;
 		this.setState({ transactionConfirmed: true });
 		try {
 			if (!asset) {
-				transaction = this.prepareTransaction(transaction);
+				transaction2 = this.prepareTransaction(transaction2);
 			} else {
-				transaction = this.prepareTokenTransaction(transaction, asset);
+				transaction2 = this.prepareTokenTransaction(transaction2, asset);
 			}
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+			const { result, transactionMeta } = await TransactionController.addTransaction(transaction2);
 			await TransactionController.approveTransaction(transactionMeta.id);
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.reset();
-			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
+			this.setState({ transaction, transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
@@ -210,3 +232,20 @@ export default class Send extends Component {
 		</SafeAreaView>
 	);
 }
+
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	transaction: state.transaction
+});
+
+const mapDispatchToProps = dispatch => ({
+	prepareTransaction: (gas, gasPrice, value) => dispatch(prepareTransaction(gas, gasPrice, value)),
+	prepareTokenTransaction: (gas, gasPrice, value, to) => dispatch(prepareTokenTransaction(gas, gasPrice, value, to)),
+	sanitizeTransaction: (gas, gasPrice) => dispatch(sanitizeTransaction(gas, gasPrice))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Send);

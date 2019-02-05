@@ -4,10 +4,10 @@ export function newTransaction() {
 	};
 }
 
-export function setAmount(amount) {
+export function setValue(value) {
 	return {
-		type: 'SET_AMOUNT',
-		amount
+		type: 'SET_VALUE',
+		value
 	};
 }
 
@@ -57,5 +57,32 @@ export function setSelectedCollectible(selectedCollectible) {
 	return {
 		type: 'SET_SELECTED_COLLECTIBLE',
 		selectedCollectible
+	};
+}
+
+export function prepareTransaction(gas, gasPrice, value) {
+	return {
+		type: 'PREPARE_TRANSACTION',
+		gas,
+		gasPrice,
+		value
+	};
+}
+
+export function prepareTokenTransaction(gas, gasPrice, value, to) {
+	return {
+		type: 'PREPARE_TOKEN_TRANSACTION',
+		gas,
+		gasPrice,
+		value,
+		to
+	};
+}
+
+export function sanitizeTransaction(gas, gasPrice) {
+	return {
+		type: 'SANITIZE_TRANSACTION',
+		gas,
+		gasPrice
 	};
 }
