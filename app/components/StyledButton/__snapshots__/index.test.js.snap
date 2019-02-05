@@ -93,13 +93,10 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "padding": 15,
       },
       undefined,
+      null,
     ]
   }
-  disabledContainerStyle={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  disabledContainerStyle={null}
   style={
     Array [
       Object {
@@ -110,13 +107,10 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "textAlign": "center",
       },
       undefined,
+      null,
     ]
   }
-  styleDisabled={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  styleDisabled={null}
 />
 `;
 
@@ -131,13 +125,10 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "padding": 15,
       },
       undefined,
+      null,
     ]
   }
-  disabledContainerStyle={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  disabledContainerStyle={null}
   style={
     Array [
       Object {
@@ -148,13 +139,10 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "textAlign": "center",
       },
       undefined,
+      null,
     ]
   }
-  styleDisabled={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  styleDisabled={null}
 />
 `;
 
@@ -171,13 +159,10 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "padding": 15,
       },
       undefined,
+      null,
     ]
   }
-  disabledContainerStyle={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  disabledContainerStyle={null}
   style={
     Array [
       Object {
@@ -188,13 +173,10 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "textAlign": "center",
       },
       undefined,
+      null,
     ]
   }
-  styleDisabled={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  styleDisabled={null}
 />
 `;
 
@@ -209,13 +191,10 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "padding": 15,
       },
       undefined,
+      null,
     ]
   }
-  disabledContainerStyle={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  disabledContainerStyle={null}
   style={
     Array [
       Object {
@@ -226,12 +205,9 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "textAlign": "center",
       },
       undefined,
+      null,
     ]
   }
-  styleDisabled={
-    Object {
-      "opacity": 0.6,
-    }
-  }
+  styleDisabled={null}
 />
 `;

@@ -23,7 +23,7 @@ exports[`Transactions should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <ActivityIndicator
         animating={true}
         color="#999999"
         hidesWhenStopped={true}

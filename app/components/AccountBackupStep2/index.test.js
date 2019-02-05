@@ -4,7 +4,7 @@ import AccountBackupStep2 from './';
 
 describe('AccountBackupStep2', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<AccountBackupStep2 visible />);
+		const wrapper = shallow(<AccountBackupStep2 />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

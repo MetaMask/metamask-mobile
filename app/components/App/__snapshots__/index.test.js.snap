@@ -68,6 +68,26 @@ exports[`App should render correctly 1`] = `
                     "getScreenOptions": [Function],
                     "getStateForAction": [Function],
                   },
+                  "SetPasswordFlow": Object {
+                    "childRouters": Object {
+                      "AccountBackupStep1": null,
+                      "AccountBackupStep2": null,
+                      "AccountBackupStep3": null,
+                      "AccountBackupStep4": null,
+                      "AccountBackupStep5": null,
+                      "AccountBackupStep6": null,
+                      "ChoosePassword": null,
+                      "FirstIncomingTransaction": null,
+                      "ProtectYourAccount": null,
+                    },
+                    "getActionCreators": [Function],
+                    "getActionForPathAndParams": [Function],
+                    "getComponentForRouteName": [Function],
+                    "getComponentForState": [Function],
+                    "getPathAndParamsForState": [Function],
+                    "getScreenOptions": [Function],
+                    "getStateForAction": [Function],
+                  },
                   "SettingsView": Object {
                     "childRouters": Object {
                       "RevealPrivateCredentialView": null,
@@ -107,7 +127,6 @@ exports[`App should render correctly 1`] = `
             "childRouters": Object {
               "Onboarding": Object {
                 "childRouters": Object {
-                  "CreateWallet": null,
                   "ImportFromSeed": null,
                   "ImportWallet": null,
                   "Onboarding": null,
@@ -291,6 +310,26 @@ exports[`App should render correctly 1`] = `
                       "getScreenOptions": [Function],
                       "getStateForAction": [Function],
                     },
+                    "SetPasswordFlow": Object {
+                      "childRouters": Object {
+                        "AccountBackupStep1": null,
+                        "AccountBackupStep2": null,
+                        "AccountBackupStep3": null,
+                        "AccountBackupStep4": null,
+                        "AccountBackupStep5": null,
+                        "AccountBackupStep6": null,
+                        "ChoosePassword": null,
+                        "FirstIncomingTransaction": null,
+                        "ProtectYourAccount": null,
+                      },
+                      "getActionCreators": [Function],
+                      "getActionForPathAndParams": [Function],
+                      "getComponentForRouteName": [Function],
+                      "getComponentForState": [Function],
+                      "getPathAndParamsForState": [Function],
+                      "getScreenOptions": [Function],
+                      "getStateForAction": [Function],
+                    },
                     "SettingsView": Object {
                       "childRouters": Object {
                         "RevealPrivateCredentialView": null,
@@ -330,7 +369,6 @@ exports[`App should render correctly 1`] = `
               "childRouters": Object {
                 "Onboarding": Object {
                   "childRouters": Object {
-                    "CreateWallet": null,
                     "ImportFromSeed": null,
                     "ImportWallet": null,
                     "Onboarding": null,

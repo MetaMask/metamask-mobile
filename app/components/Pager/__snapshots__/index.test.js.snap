@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Pager should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+      "width": 750,
+    }
+  }
+>
+  <View
+    key="pager_page_0"
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#DADADA",
+          "height": 7,
+          "marginRight": 4,
+        },
+        Object {
+          "width": NaN,
+        },
+        null,
+      ]
+    }
+  />
+</View>
+`;

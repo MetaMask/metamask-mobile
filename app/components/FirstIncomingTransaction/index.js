@@ -88,24 +88,25 @@ export default class FirstIncomingTransaction extends Component {
 					<View style={styles.content}>
 						<Emoji name="raised_hands" style={styles.emoji} />
 						<Text style={styles.title}>
-							{strings('first_incoming_transaction.title', { asset: tx.asset })}
+							{tx && strings('first_incoming_transaction.title', { asset: tx.asset })}
 						</Text>
 						<View style={styles.dataRow}>
 							<Text style={styles.label}>{strings('first_incoming_transaction.amount')}</Text>
-							<Text style={styles.value}>{tx.amount}</Text>
+							<Text style={styles.value}>{tx && tx.amount}</Text>
 						</View>
 						<View style={styles.dataRow}>
 							<Text style={styles.label}>{strings('first_incoming_transaction.account')}</Text>
-							<Text style={styles.value}>{`${accountName} (${renderShortAddress(
-								selectedAddress
-							)})`}</Text>
+							<Text style={styles.value}>
+								{selectedAddress && `${accountName} (${renderShortAddress(selectedAddress)})`}
+							</Text>
 						</View>
-						{tx.from && (
-							<View style={styles.dataRow}>
-								<Text style={styles.label}>{strings('first_incoming_transaction.from')}</Text>
-								<Text style={styles.value}>{renderShortAddress(tx.from)}</Text>
-							</View>
-						)}
+						{tx &&
+							tx.from && (
+								<View style={styles.dataRow}>
+									<Text style={styles.label}>{strings('first_incoming_transaction.from')}</Text>
+									<Text style={styles.value}>{renderShortAddress(tx.from)}</Text>
+								</View>
+							)}
 					</View>
 					<View style={styles.buttonWrapper}>
 						<StyledButton

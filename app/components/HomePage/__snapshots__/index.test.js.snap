@@ -52,7 +52,7 @@ exports[`HomePage should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#4a4a4a",
+          "color": "#000000",
           "fontFamily": "Roboto",
           "fontSize": 35,
           "fontWeight": "600",
@@ -115,7 +115,7 @@ exports[`HomePage should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 20,
             "fontWeight": "600",
