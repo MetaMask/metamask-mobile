@@ -67,6 +67,9 @@ class Send extends Component {
 	mounted = false;
 	unmountHandled = false;
 
+	/**
+	 * Resets gas and gasPrice of transaction, passing state to 'edit'
+	 */
 	async reset() {
 		const { transaction } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
@@ -77,6 +80,9 @@ class Send extends Component {
 		return this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
 	}
 
+	/**
+	 * Transaction state is erased, ready to create a new clean transaction
+	 */
 	clear = async () => {
 		this.props.newTransaction();
 	};
@@ -93,12 +99,18 @@ class Send extends Component {
 		this.mounted && this.setState({ ready: true });
 	}
 
+	/**
+	 * Sets state mounted to true, resets transaction and check for deeplinks
+	 */
 	async componentDidMount() {
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
 	}
 
+	/**
+	 * Cancels transaction and sets mounted to false
+	 */
 	async componentWillUnmount() {
 		const { transactionSubmitted } = this.state;
 		const { transaction } = this.state;
@@ -151,6 +163,9 @@ class Send extends Component {
 		this.mounted && this.setState({ transaction: newTxMeta });
 	};
 
+	/**
+	 * Returns transaction object with gas, gasPrice and value in hex format
+	 */
 	prepareTransaction = transaction => ({
 		...transaction,
 		gas: BNToHex(transaction.gas),
@@ -158,20 +173,30 @@ class Send extends Component {
 		value: BNToHex(transaction.value)
 	});
 
-	prepareTokenTransaction = (transaction, asset) => ({
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
+	 * and to set to selectedToken address
+	 */
+	prepareTokenTransaction = (transaction, selectedToken) => ({
 		...transaction,
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice),
 		value: '0x0',
-		to: asset.address
+		to: selectedToken.address
 	});
 
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format
+	 */
 	sanitizeTransaction = transaction => ({
 		...transaction,
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice)
 	});
 
+	/**
+	 * Cancels transaction and close send screen before clear transaction state
+	 */
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
 		if (this.state.mode !== 'edit') {
@@ -183,6 +208,12 @@ class Send extends Component {
 		this.unmountHandled = true;
 	};
 
+	/**
+	 * Confirms transaction. In case of selectedToken handles a token transfer transaction,
+	 * if not, and Ether transaction.
+	 * If success, transaction state is cleared, if not transaction is reset alert about the error
+	 * and returns to edit transaction
+	 */
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
