@@ -76,7 +76,6 @@ class AssetOverview extends Component {
 	onSend = async () => {
 		const { asset } = this.props;
 		if (asset.symbol === 'ETH') {
-			this.props.setSelectedToken(undefined);
 			this.props.navigation.navigate('SendView');
 		} else {
 			this.props.setSelectedToken(asset);

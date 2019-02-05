@@ -1,3 +1,5 @@
+import { REHYDRATE } from 'redux-persist';
+
 const initialState = {
 	value: undefined,
 	data: undefined,
@@ -11,6 +13,10 @@ const initialState = {
 
 const transactionReducer = (state = initialState, action) => {
 	switch (action.type) {
+		case REHYDRATE:
+			return {
+				...initialState
+			};
 		case 'NEW_TRANSACTION':
 			return {
 				...state,
