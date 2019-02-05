@@ -420,5 +420,76 @@
 		"address": "public address",
 		"warning":
 			"By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks."
+	},
+	"account_backup_step_1": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "NO",
+		"skip": "Skip",
+		"important": "IMPORTANT!",
+		"title": "Save your wallet's seed phrase?",
+		"highly_recommended": "HIGHLY RECOMMENDED",
+		"info_text_1":
+			"The seed phrase is a unique twelve word phrase used to recover your wallet should you ever loose your device.",
+		"info_text_2":
+			"Do not share this with anyone! It’s crucial to save this phrase in a secure place only you have access to.",
+		"info_text_3":
+			"Your password cannot be used to recover your wallet! Only the seed phrase can be used to recover your wallet and all of it’s funds!",
+		"cta_text": "YEAH, LET'S SAVE IT",
+		"learn_more": "Learn More"
+	},
+	"account_backup_step_2": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "NO",
+		"title": "Grab a pen and paper",
+		"info_text_1":
+			"You're going to need to write your seed phrase down. You will be asked to re-enter it in the other it's presented to you.",
+		"security_tips": "Security Tips",
+		"tip_1": "Write it down on paper and keep it somewhere safe!",
+		"tip_2": "Save it to a password manager",
+		"tip_3": "Never share this phrase with anyone!",
+		"cta_text": "OK"
+	},
+	"account_backup_step_3": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "NO",
+		"title": "Is anyone watching?",
+		"info_text":
+			"Make sure no other human or robot is watching your screen. If your seed phrase is copied, it can be used on other devices to steal your funds",
+		"cta_text": "NO ONE'S WATCHING ME"
+	},
+	"account_backup_step_4": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "NO",
+		"back": "Back",
+		"title": "Your seed phrase",
+		"info_text_1": "Carefully write down these words on paper. Their order matters.",
+		"info_text_2": "You'll be asked to re-enter it on the next screen",
+		"cta_text": "I'VE WRITTEN IT DOWN"
+	},
+	"account_backup_step_5": {
+		"error_title": "Oops!",
+		"error_message":
+			"The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
+		"back": "Back",
+		"title": "Confirm seed phrase",
+		"info_text": "Insert each phrase in the order it was presented to you on the previous screen.",
+		"cta_text": "CONFIRM PHRASE"
+	},
+	"account_backup_step_6": {
+		"error_title": "Oops!",
+		"error_message":
+			"The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
+		"back": "Back",
+		"title": "Confirm seed phrase",
+		"info_text": "Insert each phrase in the order it was presented to you on the previous screen.",
+		"cta_text": "CONFIRM PHRASE"
 	}
 }

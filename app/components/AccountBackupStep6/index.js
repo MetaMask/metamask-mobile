@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -113,34 +114,30 @@ export default class AccountBackupStep6 extends Component {
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
 						<Emoji name="tada" style={styles.emoji} />
-						<Text style={styles.title}>Congratulations!</Text>
+						<Text style={styles.title}>{strings('account_backup_step_6.title')}</Text>
 						<View style={styles.text}>
-							<Text style={styles.label}>
-								{`You passed the test. Keep your seed phrase safe, it's your responsibility!`}
-							</Text>
+							<Text style={styles.label}>{strings('account_backup_step_6.info_text')}</Text>
 						</View>
 						<View style={styles.text}>
-							<Text style={[styles.label, styles.bold]}>Tips on storing it safely</Text>
+							<Text style={[styles.label, styles.bold]}>{strings('account_backup_step_6.tips')}</Text>
 						</View>
 						<View style={styles.text}>
 							<View style={styles.bulletPoint}>
 								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>Save a backup in multiple places</Text>
+								<Text style={styles.label}>{strings('account_backup_step_6.tip_1')}</Text>
 							</View>
 							<View style={styles.bulletPoint}>
 								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>Never tell anyone</Text>
+								<Text style={styles.label}>{strings('account_backup_step_6.tip_2')}</Text>
 							</View>
 						</View>
 						<View style={styles.text}>
-							<Text style={styles.label}>
-								{`If you need to back it up again, you can find them in Settings => Security.`}
-							</Text>
+							<Text style={styles.label}>{strings('account_backup_step_6.tip_3')}</Text>
 						</View>
 						<View style={styles.text}>
-							<Text style={styles.label}>{`*MetaMask cannot recover your seedphrase`}</Text>
+							<Text style={styles.label}>{strings('account_backup_step_6.disclaimer')}</Text>
 							<TouchableOpacity style={styles.link} onPress={this.learnMore}>
-								<Text style={styles.linkText}>{`Learn More`}</Text>
+								<Text style={styles.linkText}>{strings('account_backup_step_6.learn_more')}</Text>
 								<Text style={styles.dot}>.</Text>
 							</TouchableOpacity>
 						</View>
@@ -153,7 +150,7 @@ export default class AccountBackupStep6 extends Component {
 							testID={'create-password-button'}
 						>
 							<Icon name="check" size={15} style={styles.closeIcon} />
-							{`ALL DONE`}
+							{strings('account_backup_step_6.cta_text')}
 						</StyledButton>
 					</View>
 				</View>

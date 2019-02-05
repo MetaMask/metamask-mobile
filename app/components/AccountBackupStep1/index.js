@@ -5,6 +5,7 @@ import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
 import Button from '../Button';
 import Pager from '../Pager';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -102,18 +103,18 @@ export default class AccountBackupStep1 extends Component {
 
 	dismiss = () => {
 		Alert.alert(
-			'Cancel Backup',
-			'We highly recommend you save your seed phrase in order to restore your wallet.',
+			strings('account_backup_step_1.cancel_backup_title'),
+			strings('account_backup_step_1.cancel_backup_message'),
 			[
 				{
-					text: `Yes, I'll take the risk`,
+					text: strings('account_backup_step_1.cancel_backup_ok'),
 					onPress: () => {
 						this.props.navigation.popToTop();
 						this.props.navigation.goBack(null);
 					}
 				},
 				{
-					text: 'NO',
+					text: strings('account_backup_step_1.cancel_backup_no'),
 					onPress: () => null,
 					style: 'cancel'
 				}
@@ -129,28 +130,21 @@ export default class AccountBackupStep1 extends Component {
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} />
 				<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
-					<Text style={styles.navbarRightText}>Skip</Text>
+					<Text style={styles.navbarRightText}>{strings('account_backup_step_1.skip')}</Text>
 				</TouchableOpacity>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
-						<Text style={styles.title}>{`Save your wallet's seed phrase?`}</Text>
+						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
 						<View style={styles.recommended}>
-							<Text style={styles.recommendedText}>HIGHLY RECOMMENDED</Text>
+							<Text style={styles.recommendedText}>
+								{strings('account_backup_step_1.highly_recommended')}
+							</Text>
 						</View>
 						<View style={styles.text}>
-							<Text style={styles.label}>
-								The seed phrase is a unique twelve word phrase used to recover your wallet should you
-								ever loose your device.
-							</Text>
-							<Text style={styles.label}>
-								Do not share this with anyone! It’s crucial to save this phrase in a secure place only
-								you have access to.
-							</Text>
-							<Text style={styles.bold}>IMPORTANT!</Text>
-							<Text style={styles.label}>
-								Your password cannot be used to recover your wallet! Only the seed phrase can be used to
-								recover your wallet and all of it’s funds!
-							</Text>
+							<Text style={styles.label}>{strings('account_backup_step_1.info_text_1')}</Text>
+							<Text style={styles.label}>{strings('account_backup_step_1.info_text_2')}</Text>
+							<Text style={styles.bold}>{strings('account_backup_step_1.important')}</Text>
+							<Text style={styles.label}>{strings('account_backup_step_1.info_text_3')}</Text>
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
@@ -160,14 +154,14 @@ export default class AccountBackupStep1 extends Component {
 							onPress={this.goNext}
 							testID={'create-password-button'}
 						>
-							{`YEAH, LET'S SAVE IT`}
+							{strings('account_backup_step_1.cta_text')}
 						</StyledButton>
 						<Button
 							style={styles.learnMoreButton}
 							onPress={this.learnMore}
 							testID={'create-password-button'}
 						>
-							<Text style={styles.learnMore}>{`Learn More`}</Text>
+							<Text style={styles.learnMore}>{strings('account_backup_step_1.learn_more')}</Text>
 						</Button>
 					</View>
 				</View>

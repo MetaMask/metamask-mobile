@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -152,10 +153,7 @@ export default class AccountBackupStep5 extends Component {
 		if (this.words.join('') === this.state.confirmedWords.join('')) {
 			this.props.navigation.navigate('AccountBackupStep6');
 		} else {
-			Alert.alert(
-				'Oops!',
-				'The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary'
-			);
+			Alert.alert(strings('account_backup_step_5.error_title'), strings('account_backup_step_5.error_message'));
 		}
 	};
 
@@ -191,15 +189,13 @@ export default class AccountBackupStep5 extends Component {
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={4} />
 				<TouchableOpacity onPress={this.goBack} style={styles.navbarLeftButton}>
-					<Text style={styles.navbarLeftText}>Back</Text>
+					<Text style={styles.navbarLeftText}>{strings('account_backup_step_5.back')}</Text>
 				</TouchableOpacity>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
-						<Text style={styles.title}>Confirm seed phrase</Text>
+						<Text style={styles.title}>{strings('account_backup_step_5.title')}</Text>
 						<View style={styles.text}>
-							<Text style={styles.label}>
-								Insert each phrase in the order it was presented to you on the previous screen.
-							</Text>
+							<Text style={styles.label}>{strings('account_backup_step_5.info_text')}</Text>
 						</View>
 
 						<View style={styles.seedPhraseWrapper}>
@@ -257,7 +253,7 @@ export default class AccountBackupStep5 extends Component {
 							testID={'create-password-button'}
 							disabled={!(this.state.confirmedWords.filter(word => word === undefined).length === 0)}
 						>
-							CONFIRM PHRASE
+							{strings('account_backup_step_5.cta_text')}
 						</StyledButton>
 					</View>
 				</View>

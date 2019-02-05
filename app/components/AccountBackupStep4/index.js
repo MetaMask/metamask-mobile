@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -117,20 +118,20 @@ export default class AccountBackupStep4 extends Component {
 
 	dismiss = () => {
 		Alert.alert(
-			'Cancel Backup',
-			'We highly recommend you save your seed phrase in order to restore your wallet.',
+			strings('account_backup_step_4.cancel_backup_title'),
+			strings('account_backup_step_4.cancel_backup_message'),
 			[
 				{
-					text: 'Cancel',
-					onPress: () => null,
-					style: 'cancel'
-				},
-				{
-					text: 'OK',
+					text: strings('account_backup_step_4.cancel_backup_ok'),
 					onPress: () => {
 						this.props.navigation.popToTop();
 						this.props.navigation.goBack(null);
 					}
+				},
+				{
+					text: strings('account_backup_step_4.cancel_backup_no'),
+					onPress: () => null,
+					style: 'cancel'
 				}
 			],
 			{ cancelable: false }
@@ -146,15 +147,13 @@ export default class AccountBackupStep4 extends Component {
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={3} />
 				<TouchableOpacity onPress={this.dismiss} style={styles.navbarLeftButton}>
-					<Text style={styles.navbarLeftText}>Back</Text>
+					<Text style={styles.navbarLeftText}>{strings('account_backup_step_4.back')}</Text>
 				</TouchableOpacity>
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
-						<Text style={styles.title}>Your seed phrase</Text>
+						<Text style={styles.title}>{strings('account_backup_step_4.title')}</Text>
 						<View style={styles.text}>
-							<Text style={styles.label}>
-								Carefully write down these words on paper. Their order matters.
-							</Text>
+							<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
 						</View>
 
 						<View style={styles.seedPhraseWrapper}>
@@ -175,7 +174,7 @@ export default class AccountBackupStep4 extends Component {
 						</View>
 
 						<View style={styles.text}>
-							<Text style={styles.label}>{`You'll be asked to re-enter it on the next screen`}</Text>
+							<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
@@ -185,7 +184,7 @@ export default class AccountBackupStep4 extends Component {
 							onPress={this.goNext}
 							testID={'create-password-button'}
 						>
-							{`I'VE WRITTEN IT DOWN`}
+							{strings('account_backup_step_4.cta_text')}
 						</StyledButton>
 					</View>
 				</View>

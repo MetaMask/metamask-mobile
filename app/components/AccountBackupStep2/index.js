@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -91,20 +92,20 @@ export default class AccountBackupStep2 extends Component {
 
 	dismiss = () => {
 		Alert.alert(
-			'Cancel Backup',
-			'We highly recommend you save your seed phrase in order to restore your wallet.',
+			strings('account_backup_step_2.cancel_backup_title'),
+			strings('account_backup_step_2.cancel_backup_message'),
 			[
 				{
-					text: 'Cancel',
-					onPress: () => null,
-					style: 'cancel'
-				},
-				{
-					text: 'OK',
+					text: strings('account_backup_step_2.cancel_backup_ok'),
 					onPress: () => {
 						this.props.navigation.popToTop();
 						this.props.navigation.goBack(null);
 					}
+				},
+				{
+					text: strings('account_backup_step_2.cancel_backup_no'),
+					onPress: () => null,
+					style: 'cancel'
 				}
 			],
 			{ cancelable: false }
@@ -125,27 +126,29 @@ export default class AccountBackupStep2 extends Component {
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
 						<Emoji name="writing_hand" style={styles.emoji} />
-						<Text style={styles.title}>Grab a pen and paper</Text>
+						<Text style={styles.title}>{strings('acount_backup_step_2.title')}</Text>
 						<View style={styles.warning}>
 							<Text style={[styles.label, styles.warningText]}>
-								{`You're going to need to write your seed phrase down. You will be asked to re-enter it in the other it's presented to you.`}
+								{strings('acount_backup_step_2.info_text_1')}
 							</Text>
 						</View>
 						<View style={styles.text}>
-							<Text style={[styles.label, styles.subtitle]}>Security Tips</Text>
+							<Text style={[styles.label, styles.subtitle]}>
+								{strings('acount_backup_step_2.security_tips')}
+							</Text>
 						</View>
 						<View style={styles.text}>
 							<View style={styles.bulletPoint}>
 								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>Write it down on paper and keep it somewhere safe!</Text>
+								<Text style={styles.label}>{strings('acount_backup_step_2.tip_1')}</Text>
 							</View>
 							<View style={styles.bulletPoint}>
 								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>Save it to a password manager</Text>
+								<Text style={styles.label}>{strings('acount_backup_step_2.tip_2')}</Text>
 							</View>
 							<View style={styles.bulletPoint}>
 								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>Never share this phrase with anyone!</Text>
+								<Text style={styles.label}>{strings('acount_backup_step_2.tip_3')}</Text>
 							</View>
 						</View>
 					</View>
@@ -156,7 +159,7 @@ export default class AccountBackupStep2 extends Component {
 							onPress={this.goNext}
 							testID={'create-password-button'}
 						>
-							OK
+							{strings('acount_backup_step_2.cta_text')}
 						</StyledButton>
 					</View>
 				</View>

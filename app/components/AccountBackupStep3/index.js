@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -75,20 +76,20 @@ export default class AccountBackupStep3 extends Component {
 
 	dismiss = () => {
 		Alert.alert(
-			'Cancel Backup',
-			'We highly recommend you save your seed phrase in order to restore your wallet.',
+			strings('account_backup_step_3.cancel_backup_title'),
+			strings('account_backup_step_3.cancel_backup_message'),
 			[
 				{
-					text: 'Cancel',
-					onPress: () => null,
-					style: 'cancel'
-				},
-				{
-					text: 'OK',
+					text: strings('account_backup_step_3.cancel_backup_ok'),
 					onPress: () => {
 						this.props.navigation.popToTop();
 						this.props.navigation.goBack(null);
 					}
+				},
+				{
+					text: strings('account_backup_step_3.cancel_backup_no'),
+					onPress: () => null,
+					style: 'cancel'
 				}
 			],
 			{ cancelable: false }
@@ -109,12 +110,9 @@ export default class AccountBackupStep3 extends Component {
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
 						<Emoji name="eye" style={styles.emoji} />
-						<Text style={styles.title}>Is anyone watching?</Text>
+						<Text style={styles.title}>{strings('account_backup_step_3.title')}</Text>
 						<View style={styles.text}>
-							<Text style={styles.label}>
-								Make sure no other human or robot is watching your screen. If your seed phrase is
-								copied, it can be used on other devices to steal your funds
-							</Text>
+							<Text style={styles.label}>{strings('account_backup_step_3.info_text')}</Text>
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
@@ -124,7 +122,7 @@ export default class AccountBackupStep3 extends Component {
 							onPress={this.goNext}
 							testID={'create-password-button'}
 						>
-							{`NO ONE'S WATCHING ME`}
+							{strings('account_backup_step_3.cta_text')}
 						</StyledButton>
 					</View>
 				</View>
