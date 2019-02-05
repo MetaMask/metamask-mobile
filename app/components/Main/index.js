@@ -15,6 +15,7 @@ import Asset from '../Asset';
 import AccountDetails from '../AccountDetails';
 import AddAsset from '../AddAsset';
 import Collectible from '../Collectible';
+import CollectibleView from '../CollectibleView';
 import Send from '../Send';
 import RevealPrivateCredential from '../RevealPrivateCredential';
 import QrScanner from '../QRScanner';
@@ -59,7 +60,12 @@ const MainNavigator = createStackNavigator(
 				AccountDetails: {
 					screen: AccountDetails
 				},
-
+				Collectible: {
+					screen: Collectible
+				},
+				CollectibleView: {
+					screen: CollectibleView
+				},
 				RevealPrivateCredentialView: {
 					screen: RevealPrivateCredential
 				}
@@ -93,13 +99,6 @@ const MainNavigator = createStackNavigator(
 				},
 				RevealPrivateCredentialView: {
 					screen: RevealPrivateCredential
-				}
-			})
-		},
-		CollectibleView: {
-			screen: createStackNavigator({
-				Collectible: {
-					screen: Collectible
 				}
 			})
 		},

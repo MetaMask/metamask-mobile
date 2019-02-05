@@ -1,75 +1,131 @@
 import React, { Component } from 'react';
-import { ScrollView, View, StyleSheet, Text } from 'react-native';
+import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../styles/common';
-import CollectibleOverview from '../CollectibleOverview';
-import { strings } from '../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../Navbar';
-import LinearGradient from 'react-native-linear-gradient';
+import { colors } from '../../styles/common';
+import { getCollectibleContractNavbarOptions } from '../Navbar';
+import { connect } from 'react-redux';
+import Collectibles from '../Collectibles';
+import CollectibleContractOverview from '../CollectibleContractOverview';
+import Engine from '../../core/Engine';
+import Modal from 'react-native-modal';
+import CollectibleContractInformation from '../CollectibleContractInformation';
+import { toggleCollectibleContractModal } from '../../actions/modals';
 
 const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: 600,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10
-	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
-	},
 	wrapper: {
-		flex: 1
-	},
-	assetOverviewWrapper: {
+		backgroundColor: colors.white,
 		flex: 1
 	}
 });
 
 /**
- * View that displays a specific collectible asset
+ * View that displays a specific collectible
+ * including the overview (name, address, symbol, logo, description, total supply)
+ * and also individual collectibles list
  */
-export default class Collectible extends Component {
+class Collectible extends Component {
 	static propTypes = {
+		/**
+		 * Array of assets (in this case Collectibles)
+		 */
+		collectibles: PropTypes.array,
 		/**
 		/* navigation object required to access the props
 		/* passed by the parent component
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * Object that represents the collectible to be displayed
+		 * Called to toggle collectible contract information modal
 		 */
-		collectible: PropTypes.object,
+		toggleCollectibleContractModal: PropTypes.func,
 		/**
-		 * Callback triggered on modal hide
+		 * Whether collectible contract information is visible
 		 */
-		onHide: PropTypes.func
+		collectibleContractModalVisible: PropTypes.bool
+	};
+
+	state = {
+		refreshing: false,
+		collectibles: []
 	};
 
 	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(`${navigation.getParam('name', '')} (${navigation.getParam('symbol', '')})`);
+		getCollectibleContractNavbarOptions(navigation.getParam('name', ''), navigation);
+
+	onRefresh = async () => {
+		this.setState({ refreshing: true });
+		const { AssetsDetectionController } = Engine.context;
+		await AssetsDetectionController.detectCollectibles();
+		this.setState({ refreshing: false });
+	};
+
+	hideCollectibleContractModal = () => {
+		this.props.toggleCollectibleContractModal();
+	};
 
 	render = () => {
-		const { collectible, navigation, onHide } = this.props;
+		const {
+			navigation: {
+				state: { params }
+			},
+			navigation,
+			collectibleContractModalVisible
+		} = this.props;
+		const collectibleContract = params;
+		const address = params.address;
+		const { collectibles } = this.props;
+		const filteredCollectibles = collectibles.filter(
+			collectible => collectible.address.toLowerCase() === address.toLowerCase()
+		);
+		filteredCollectibles.map(collectible => {
+			if (!collectible.name || collectible.name === '') {
+				collectible.name = collectibleContract.name;
+			}
+			return collectible;
+		});
+
+		const ownerOf = filteredCollectibles.length;
 		return (
-			<LinearGradient colors={[colors.slate, colors.white]} style={styles.root}>
-				<View>
-					<Text style={styles.title} onPress={onHide}>
-						{strings('wallet.collectible')}
-					</Text>
-				</View>
-				<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
-					<View testID={'asset'}>
+			<View style={styles.wrapper}>
+				<ScrollView
+					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					style={styles.wrapper}
+				>
+					<View testID={'collectible'}>
 						<View style={styles.assetOverviewWrapper}>
-							<CollectibleOverview navigation={navigation} collectible={collectible} />
+							<CollectibleContractOverview
+								navigation={navigation}
+								collectibleContract={collectibleContract}
+								ownerOf={ownerOf}
+							/>
+						</View>
+						<View style={styles.wrapper}>
+							<Collectibles navigation={navigation} collectibles={filteredCollectibles} />
 						</View>
 					</View>
 				</ScrollView>
-			</LinearGradient>
+				<Modal isVisible={collectibleContractModalVisible} onBackdropPress={this.hideCollectibleContractModal}>
+					<CollectibleContractInformation
+						navigation={navigation}
+						onClose={this.hideCollectibleContractModal}
+						collectibleContract={collectibleContract}
+					/>
+				</Modal>
+			</View>
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	collectibleContractModalVisible: state.modals.collectibleContractModalVisible
+});
+
+const mapDispatchToProps = dispatch => ({
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Collectible);

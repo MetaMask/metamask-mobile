@@ -44,8 +44,14 @@ class SmartContractAddresses {
  * @returns {String} - String containing the generated transfer data
  */
 export function generateTransferData(assetType, opts) {
+	if (!assetType) {
+		throw new Error('[transactions] assetType must be defined');
+	}
 	switch (assetType) {
 		case 'ERC20':
+			if (!opts.toAddress || !opts.amount) {
+				throw new Error(`[transactions] 'toAddress' and 'amount' must be defined for 'assetType' ERC20`);
+			}
 			return (
 				TOKEN_TRANSFER_FUNCTION_SIGNATURE +
 				Array.prototype.map
@@ -124,7 +130,7 @@ export async function isSmartContractAddress(address) {
  */
 export async function getTransactionActionKey(transaction) {
 	const { transactionHash, transaction: { data, to } = {} } = transaction;
-	if (data) {
+	if (data && data !== '0x') {
 		const cache = ActionKeys.cache[transactionHash];
 		if (cache) {
 			return Promise.resolve(cache);
@@ -133,7 +139,6 @@ export async function getTransactionActionKey(transaction) {
 		let ret;
 
 		const methodData = getMethodData(data);
-		const toSmartContract = await isSmartContractAddress(to);
 		const { name } = methodData;
 		const methodName = name && name.toLowerCase();
 		switch (methodName) {
@@ -146,18 +151,16 @@ export async function getTransactionActionKey(transaction) {
 			case TOKEN_METHOD_TRANSFER_FROM:
 				ret = TRANSFER_FROM_ACTION_KEY;
 				break;
+			case CONTRACT_METHOD_DEPLOY:
+				ret = DEPLOY_CONTRACT_ACTION_KEY;
+				break;
 		}
+		const toSmartContract = !ret && (await isSmartContractAddress(to));
 
-		if (!ret) {
-			if (!toSmartContract) {
-				if (methodName === CONTRACT_METHOD_DEPLOY) {
-					ret = DEPLOY_CONTRACT_ACTION_KEY;
-				} else {
-					ret = SEND_ETHER_ACTION_KEY;
-				}
-			} else {
-				ret = UNKNOWN_FUNCTION_KEY;
-			}
+		if (!ret && toSmartContract) {
+			ret = SEND_ETHER_ACTION_KEY;
+		} else if (!ret) {
+			ret = UNKNOWN_FUNCTION_KEY;
 		}
 		ActionKeys.cache[transactionHash] = ret;
 		return ret;

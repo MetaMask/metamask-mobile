@@ -4,10 +4,7 @@ exports[`CollectibleOverview should render correctly 1`] = `
 <View
   style={
     Object {
-      "alignItems": "center",
       "flex": 1,
-      "justifyContent": "center",
-      "padding": 20,
     }
   }
 >
@@ -15,162 +12,152 @@ exports[`CollectibleOverview should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 20,
-        "justifyContent": "center",
-        "marginTop": 15,
-        "paddingVertical": 15,
-        "width": 300,
-      }
-    }
-  >
-    <CollectibleImage
-      collectible={
-        Object {
-          "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
-          "name": "Leopard",
-          "tokenId": 6904,
-        }
-      }
-      renderFull={true}
-    />
-  </View>
-  <View
-    style={
-      Object {
-        "alignItems": "center",
         "flex": 1,
-        "marginBottom": 10,
-        "marginTop": 10,
+        "justifyContent": "center",
         "padding": 20,
       }
     }
   >
-    <Text
+    <View
       style={
         Object {
-          "color": "#4a4a4a",
-          "fontFamily": "Roboto",
-          "fontSize": 20,
-          "fontWeight": "400",
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 20,
+          "justifyContent": "center",
+          "marginTop": 15,
+          "paddingVertical": 15,
+          "width": 300,
         }
       }
     >
-      Leopard
-    </Text>
-    <Text
+      <CollectibleImage
+        collectible={
+          Object {
+            "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
+            "name": "Leopard",
+            "tokenId": 6904,
+          }
+        }
+        renderFull={true}
+      />
+    </View>
+    <View
       style={
         Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+          "justifyContent": "center",
+          "marginTop": 30,
+          "width": "50%",
         }
       }
     >
-      ID
-      : 
-      6904
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
+      <StyledButton
+        childGroupStyle={
+          Object {
+            "flexDirection": "row",
+          }
         }
-      }
-    >
-      Type
-      : 
-      Cryptokitties
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "400",
+        containerStyle={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+          }
         }
-      }
-    >
-      Address
-      : 
-      0x0601...266d
-    </Text>
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "flex-start",
+            "flex": 1,
+            "flexDirection": "row",
+            "justifyContent": "center",
+          }
+        }
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="confirm"
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#FFFFFF"
+          name="send"
+          size={15}
+          style={
+            Object {
+              "height": 15,
+              "marginTop": 0,
+              "width": 15,
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#FFFFFF",
+              "fontFamily": "Roboto",
+              "fontSize": 15,
+              "fontWeight": "600",
+              "marginLeft": 8,
+              "marginTop": 0,
+            }
+          }
+        >
+          SEND
+        </Text>
+      </StyledButton>
+    </View>
   </View>
   <View
     style={
       Object {
         "flex": 1,
-        "flexDirection": "row",
-        "marginTop": 30,
+        "paddingHorizontal": 30,
       }
     }
   >
-    <StyledButton
-      childGroupStyle={
-        Object {
-          "flexDirection": "row",
-        }
-      }
-      containerStyle={
-        Object {
-          "flex": 1,
-          "flexDirection": "row",
-        }
-      }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      onPress={[Function]}
+    <View
       style={
         Object {
-          "alignItems": "flex-start",
-          "flex": 1,
-          "flexDirection": "row",
-          "justifyContent": "center",
+          "marginVertical": 10,
         }
       }
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      type="confirm"
     >
-      <Icon
-        allowFontScaling={false}
-        color="#FFFFFF"
-        name="send"
-        size={15}
-        style={
-          Object {
-            "height": 15,
-            "marginTop": 0,
-            "width": 15,
-          }
-        }
-      />
       <Text
         style={
           Object {
-            "color": "#FFFFFF",
+            "borderColor": "#CCCCCC",
             "fontFamily": "Roboto",
-            "fontSize": 15,
             "fontWeight": "600",
-            "marginLeft": 8,
             "marginTop": 0,
           }
         }
       >
-        SEND
+        ID
       </Text>
-    </StyledButton>
+      <Text
+        style={
+          Object {
+            "color": "#4a4a4a",
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "paddingTop": 10,
+          }
+        }
+      >
+        6904
+      </Text>
+    </View>
   </View>
 </View>
 `;
