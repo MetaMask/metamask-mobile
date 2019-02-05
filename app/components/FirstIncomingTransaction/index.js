@@ -6,6 +6,7 @@ import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
 import Emoji from 'react-native-emoji';
 import { renderShortAddress } from '../../util/address';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -86,20 +87,22 @@ export default class FirstIncomingTransaction extends Component {
 				<View style={styles.wrapper} testID={'first-incoming-transaction-screen'}>
 					<View style={styles.content}>
 						<Emoji name="raised_hands" style={styles.emoji} />
-						<Text style={styles.title}>{tx.asset} was deposited into your account</Text>
+						<Text style={styles.title}>
+							{strings('first_incoming_transaction.title', { asset: tx.asset })}
+						</Text>
 						<View style={styles.dataRow}>
-							<Text style={styles.label}>Amount:</Text>
+							<Text style={styles.label}>{strings('first_incoming_transaction.amount')}</Text>
 							<Text style={styles.value}>{tx.amount}</Text>
 						</View>
 						<View style={styles.dataRow}>
-							<Text style={styles.label}>Account:</Text>
+							<Text style={styles.label}>{strings('first_incoming_transaction.account')}</Text>
 							<Text style={styles.value}>{`${accountName} (${renderShortAddress(
 								selectedAddress
 							)})`}</Text>
 						</View>
 						{tx.from && (
 							<View style={styles.dataRow}>
-								<Text style={styles.label}>From:</Text>
+								<Text style={styles.label}>{strings('first_incoming_transaction.from')}</Text>
 								<Text style={styles.value}>{renderShortAddress(tx.from)}</Text>
 							</View>
 						)}
@@ -111,7 +114,7 @@ export default class FirstIncomingTransaction extends Component {
 							onPress={this.goNext}
 							testID={'ok-button'}
 						>
-							OK
+							{strings('first_incoming_transaction.cta_text')}
 						</StyledButton>
 					</View>
 				</View>

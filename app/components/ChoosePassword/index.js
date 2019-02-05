@@ -217,8 +217,8 @@ export default class ChoosePassword extends Component {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 					Alert.alert(
-						'Security Alert',
-						'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
+						strings('choose_password.security_alert_title'),
+						strings('choose_password.security_alert_message')
 					);
 					this.setState({ loading: false });
 				} else {
@@ -362,7 +362,7 @@ export default class ChoosePassword extends Component {
 								</TouchableOpacity>
 								{(this.state.password !== '' && (
 									<Text style={styles.passwordStrengthLabel}>
-										Password strength:
+										{strings('choose_password.password_strength')}
 										<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
 											{' '}
 											{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}

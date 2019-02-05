@@ -421,6 +421,19 @@
 		"warning":
 			"By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks."
 	},
+	"first_incoming_transaction": {
+		"title": "{{asset}} was deposited in your account",
+		"amount": "Amount:",
+		"account": "Account:",
+		"from": "From:",
+		"cta_text": "OK"
+	},
+	"protect_your_account": {
+		"title": "Protect your Account",
+		"info_text":
+			"Now that your account has stored value, let's create a password in order to protect your account.",
+		"cta_text": "CREATE PASSWORD"
+	},
 	"account_backup_step_1": {
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
@@ -484,12 +497,14 @@
 		"cta_text": "CONFIRM PHRASE"
 	},
 	"account_backup_step_6": {
-		"error_title": "Oops!",
-		"error_message":
-			"The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
-		"back": "Back",
-		"title": "Confirm seed phrase",
-		"info_text": "Insert each phrase in the order it was presented to you on the previous screen.",
-		"cta_text": "CONFIRM PHRASE"
+		"title": "Congratulations!",
+		"info_text": "You passed the test. Keep your seed phrase safe, it's your responsibility!",
+		"tips": "Tips on storing it safely",
+		"tip_1": "Save a backup in multiple places",
+		"tip_2": "Never tell anyone",
+		"tip_3": "If you need to back it up again, you can find them in Settings => Security.",
+		"disclaimer": "*MetaMask cannot recover your seedphrase",
+		"learn_more": "Learn More",
+		"cta_text": "ALL DONE"
 	}
 }

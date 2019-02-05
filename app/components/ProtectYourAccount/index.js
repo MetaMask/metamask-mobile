@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
 import Emoji from 'react-native-emoji';
+import { strings } from '../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -74,11 +75,9 @@ export default class ProtectYourAccount extends Component {
 				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
 					<View style={styles.content}>
 						<Emoji name="closed_lock_with_key" style={styles.emoji} />
-						<Text style={styles.title}>Protect your Account</Text>
+						<Text style={styles.title}>{strings('protect_your_account.title')}</Text>
 						<View style={styles.text}>
-							<Text
-								style={styles.label}
-							>{`Now that your account has stored value, let's create a password in order to protect your account.`}</Text>
+							<Text style={styles.label}>{strings('protect_your_account.info_text')}</Text>
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
@@ -88,7 +87,7 @@ export default class ProtectYourAccount extends Component {
 							onPress={this.goNext}
 							testID={'create-password-button'}
 						>
-							CREATE PASSWORD
+							{strings('protect_your_account.cta_text')}
 						</StyledButton>
 					</View>
 				</View>
