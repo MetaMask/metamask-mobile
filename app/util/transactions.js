@@ -132,7 +132,7 @@ export async function getTransactionActionKey(transaction) {
 	const { transactionHash, transaction: { data, to } = {} } = transaction;
 	if (data && data !== '0x') {
 		const cache = ActionKeys.cache[transactionHash];
-		if (cache) {
+		if (transactionHash && cache) {
 			return Promise.resolve(cache);
 		}
 

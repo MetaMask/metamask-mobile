@@ -199,7 +199,7 @@ class TransactionEdit extends Component {
 	}
 
 	fillMax = () => {
-		const { gas, gasPrice, from, asset } = this.props.transactionData;
+		const { gas, gasPrice, from, selectedToken } = this.props.transactionData;
 		const { balance } = this.props.accounts[from];
 		const { contractBalances } = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
@@ -208,9 +208,10 @@ class TransactionEdit extends Component {
 			.gt(fromWei(0))
 			? hexToBN(balance).sub(totalGas)
 			: fromWei(0);
-		this.props.handleUpdateAmount(asset ? hexToBN(contractBalances[asset.address].toString(16)) : ethMaxAmount);
-		const readableValue = asset
-			? fromTokenMinimalUnit(hexToBN(contractBalances[asset.address].toString(16)), asset.decimals)
+		const selectedTokenBalance = hexToBN(contractBalances[selectedToken.address].toString(16));
+		this.props.handleUpdateAmount(selectedToken ? selectedTokenBalance : ethMaxAmount);
+		const readableValue = selectedToken
+			? fromTokenMinimalUnit(selectedTokenBalance, selectedToken.decimals)
 			: fromWei(ethMaxAmount);
 		this.props.handleUpdateReadableValue(readableValue);
 		this.setState({ fillMax: true });
@@ -239,10 +240,10 @@ class TransactionEdit extends Component {
 	};
 
 	updateAmount = async amount => {
-		const { asset } = this.props.transactionData;
+		const { selectedToken } = this.props.transactionData;
 		let processedAmount;
-		if (asset) {
-			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, asset.decimals) : undefined;
+		if (selectedToken) {
+			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedToken.decimals) : undefined;
 		} else {
 			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
 		}
@@ -281,7 +282,7 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, data, from, to, asset },
+			transactionData: { amount, gas, gasPrice, data, from, to, selectedToken },
 			showHexData
 		} = this.props;
 		const { amountError, gasError, toAddressError } = this.state;
@@ -310,7 +311,7 @@ class TransactionEdit extends Component {
 							<EthInput
 								onChange={this.updateAmount}
 								value={amount}
-								asset={asset}
+								asset={selectedToken}
 								handleUpdateAsset={this.props.handleUpdateAsset}
 								readableValue={this.props.readableValue}
 								fillMax={this.state.fillMax}

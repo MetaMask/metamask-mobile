@@ -62,27 +62,12 @@ class TransactionEditor extends Component {
 		 */
 		contractBalances: PropTypes.object,
 		/**
-		 * Action that sets new gas to a transaction
-		 */
-		setGas: PropTypes.func.isRequired,
-		/**
-		 * Action that sets new gas price to a transaction
-		 */
-		setGasPrice: PropTypes.func.isRequired,
-		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func.isRequired
 	};
 
 	state = {
-		amount: this.props.transaction.value,
-		data: this.props.transaction.data,
-		from: this.props.transaction.from,
-		gas: this.props.transaction.gas,
-		gasPrice: this.props.transaction.gasPrice,
-		to: this.props.transaction.to,
-		asset: this.props.transaction.asset,
 		toFocused: false,
 		readableValue: undefined
 	};
@@ -93,30 +78,24 @@ class TransactionEditor extends Component {
 	};
 
 	onConfirm = () => {
-		const { amount, gas, gasPrice, data, from, to, asset } = this.state;
-		const { onConfirm, transaction } = this.props;
-		!this.validate() &&
-			onConfirm &&
-			onConfirm(
-				{
-					...transaction,
-					...{ value: amount, data, from, gas, gasPrice, to }
-				},
-				asset
-			);
+		const { onConfirm } = this.props;
+		!this.validate() && onConfirm && onConfirm();
 	};
 
 	estimateGas = async opts => {
 		const { TransactionController } = Engine.context;
-		const { from, asset } = this.state;
-		const { amount = this.state.amount, data = this.state.data, to = this.state.to } = opts;
+		const {
+			transaction: { from, selectedToken },
+			transaction
+		} = this.props;
+		const { amount = transaction.amount, data = transaction.data, to = transaction.to } = opts;
 		let estimation;
 		try {
 			estimation = await TransactionController.estimateGas({
 				amount,
 				from,
 				data,
-				to: asset ? asset.address : to
+				to: selectedToken ? selectedToken.address : to
 			});
 		} catch (e) {
 			estimation = { gas: '0x5208' };
@@ -125,22 +104,21 @@ class TransactionEditor extends Component {
 	};
 
 	handleGasFeeSelection = (gasLimit, gasPrice) => {
-		this.props.setGas(gasLimit);
-		this.props.setGasPrice(gasPrice);
-		this.setState({ gas: gasLimit, gasPrice });
+		this.props.setTransactionObject({ gas: gasLimit, gasPrice });
 	};
 
 	handleUpdateAmount = async amount => {
-		const { to, data, asset } = this.state;
-		const tokenAmountToSend = asset && amount && amount.toString(16);
+		const {
+			transaction: { to, data, selectedToken }
+		} = this.props;
+		const tokenAmountToSend = selectedToken && amount && amount.toString(16);
 		const newData =
-			to && asset && tokenAmountToSend
+			to && selectedToken && tokenAmountToSend
 				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
 				: data;
-		const amountToSend = asset ? '0x0' : amount;
+		const amountToSend = selectedToken ? '0x0' : amount;
 		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
 		this.props.setTransactionObject({ value: amount, gas: hexToBN(gas), data: newData });
-		this.setState({ amount, data: newData, gas: hexToBN(gas) });
 	};
 
 	handleUpdateReadableValue = readableValue => {
@@ -150,30 +128,29 @@ class TransactionEditor extends Component {
 	handleUpdateData = async data => {
 		const { gas } = await this.estimateGas({ data });
 		this.props.setTransactionObject({ gas: hexToBN(gas), data });
-		this.setState({ data, gas: hexToBN(gas) });
 	};
 
 	handleUpdateFromAddress = from => {
 		this.props.setTransactionObject({ from });
-		this.setState({ from });
 	};
 
 	handleUpdateToAddress = async to => {
-		const { amount, data, asset } = this.state;
-		const tokenAmountToSend = asset && amount && amount.toString(16);
+		const {
+			transaction: { selectedToken, value, data }
+		} = this.props;
+		const tokenAmountToSend = selectedToken && value && value.toString(16);
 		const newData =
-			asset && tokenAmountToSend
+			selectedToken && tokenAmountToSend
 				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
 				: data;
-		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
+		const { gas } = await this.estimateGas({ data: newData, to: selectedToken ? selectedToken.address : to });
 		this.props.setTransactionObject({ to, gas: hexToBN(gas), data: newData });
-		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
 
 	handleUpdateAsset = async asset => {
+		const { transaction } = this.props;
 		this.props.setTransactionObject({ value: undefined, data: undefined, selectedToken: asset });
-		await this.setState({ amount: undefined, data: undefined, asset, readableValue: undefined });
-		await this.handleUpdateToAddress(this.state.to);
+		await this.handleUpdateToAddress(transaction.to);
 	};
 
 	validate = () => {
@@ -183,24 +160,28 @@ class TransactionEditor extends Component {
 	};
 
 	validateAmount = (allowEmpty = true) => {
-		const { asset } = this.state;
-		return asset ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
+		const {
+			transaction: { selectedToken }
+		} = this.props;
+		return selectedToken ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
 	};
 
 	validateEtherAmount = (allowEmpty = true) => {
 		let error;
 		if (!allowEmpty) {
-			const { amount, gas, gasPrice, from } = this.state;
+			const {
+				transaction: { value, gas, gasPrice, from }
+			} = this.props;
 			const checksummedFrom = from ? toChecksumAddress(from) : '';
 			const fromAccount = this.props.accounts[checksummedFrom];
-			(!amount || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
-			amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-			amount &&
+			(!value || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
+			value && !isBN(value) && (error = strings('transaction.invalid_amount'));
+			value &&
 				fromAccount &&
 				isBN(gas) &&
 				isBN(gasPrice) &&
-				isBN(amount) &&
-				hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
+				isBN(value) &&
+				hexToBN(fromAccount.balance).lt(value.add(gas.mul(gasPrice))) &&
 				(error = strings('transaction.insufficient'));
 		}
 		return error;
@@ -209,18 +190,20 @@ class TransactionEditor extends Component {
 	validateTokenAmount = (allowEmpty = true) => {
 		let error;
 		if (!allowEmpty) {
-			const { amount, gas, gasPrice, from, asset } = this.state;
-			const { contractBalances } = this.props;
+			const {
+				transaction: { value, gas, gasPrice, from, selectedToken },
+				contractBalances
+			} = this.props;
 			const checksummedFrom = from ? toChecksumAddress(from) : '';
 			const fromAccount = this.props.accounts[checksummedFrom];
-			if (!amount || !gas || !gasPrice || !from) {
+			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
 			}
-			const contractBalanceForAddress = hexToBN(contractBalances[asset.address].toString(16));
-			amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-			const validateAssetAmount = contractBalanceForAddress.lt(amount);
+			const contractBalanceForAddress = hexToBN(contractBalances[selectedToken.address].toString(16));
+			value && !isBN(value) && (error = strings('transaction.invalid_amount'));
+			const validateAssetAmount = contractBalanceForAddress.lt(value);
 			const ethTotalAmount = gas.mul(gasPrice);
-			amount &&
+			value &&
 				fromAccount &&
 				isBN(gas) &&
 				isBN(gasPrice) &&
@@ -232,7 +215,9 @@ class TransactionEditor extends Component {
 
 	validateGas = () => {
 		let error;
-		const { gas, gasPrice } = this.state;
+		const {
+			transaction: { gas, gasPrice }
+		} = this.props;
 		!gas && (error = strings('transaction.invalid_gas'));
 		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
 		!gasPrice && (error = strings('transaction.invalid_gas_price'));
@@ -243,7 +228,9 @@ class TransactionEditor extends Component {
 
 	validateToAddress = () => {
 		let error;
-		const { to } = this.state;
+		const {
+			transaction: { to }
+		} = this.props;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
@@ -280,9 +267,8 @@ class TransactionEditor extends Component {
 	};
 
 	render = () => {
-		const { amount, gas, gasPrice, from, to, data, asset, readableValue } = this.state;
-		const { mode, transactionConfirmed } = this.props;
-		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
+		const { readableValue } = this.state;
+		const { mode, transactionConfirmed, transaction } = this.props;
 		return (
 			<View style={styles.root}>
 				{mode === 'edit' && (
@@ -297,7 +283,7 @@ class TransactionEditor extends Component {
 						handleUpdateFromAddress={this.handleUpdateFromAddress}
 						handleUpdateToAddress={this.handleUpdateToAddress}
 						handleGasFeeSelection={this.handleGasFeeSelection}
-						transactionData={transactionData}
+						transactionData={transaction}
 						validateAmount={this.validateAmount}
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
@@ -312,7 +298,7 @@ class TransactionEditor extends Component {
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
 						onModeChange={this.props.onModeChange}
-						transactionData={transactionData}
+						transactionData={transaction}
 						validateAmount={this.validateAmount}
 						transactionConfirmed={transactionConfirmed}
 					/>
@@ -324,7 +310,8 @@ class TransactionEditor extends Component {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	transaction: state.transaction
 });
 
 const mapDispatchToProps = dispatch => ({

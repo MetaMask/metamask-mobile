@@ -111,38 +111,38 @@ class TransactionReviewSummary extends Component {
 
 	render = () => {
 		const {
-			transactionData: { amount, asset },
+			transactionData: { value, selectedToken },
 			currentCurrency,
 			contractExchangeRates,
 			actionKey
 		} = this.props;
-		const assetAmount = asset ? renderFromTokenMinimalUnit(amount, asset.decimals) : undefined;
-		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
+		const assetAmount = selectedToken ? renderFromTokenMinimalUnit(value, selectedToken.decimals) : undefined;
+		const conversionRate = selectedToken ? contractExchangeRates[selectedToken.address] : this.props.conversionRate;
 		return (
 			<View style={styles.summary}>
 				<Text style={styles.confirmBadge}>{actionKey}</Text>
 
 				{!conversionRate ? (
 					<Text style={styles.summaryFiat}>
-						{asset
-							? assetAmount + ' ' + asset.symbol
-							: renderFromWei(amount).toString() + ' ' + strings('unit.eth')}
+						{selectedToken
+							? assetAmount + ' ' + selectedToken.symbol
+							: renderFromWei(value).toString() + ' ' + strings('unit.eth')}
 					</Text>
 				) : (
 					<View>
 						<Text style={styles.summaryFiat}>
 							{this.getAssetFiat(
-								asset,
-								asset ? assetAmount : amount,
+								selectedToken,
+								selectedToken ? assetAmount : value,
 								this.props.conversionRate,
-								(asset && contractExchangeRates[asset.address]) || null,
+								(selectedToken && contractExchangeRates[selectedToken.address]) || null,
 								currentCurrency
 							)}
 						</Text>
 						<Text style={styles.summaryEth}>
-							{asset
-								? assetAmount + ' ' + asset.symbol
-								: renderFromWei(amount).toString() + ' ' + strings('unit.eth')}
+							{selectedToken
+								? assetAmount + ' ' + selectedToken.symbol
+								: renderFromWei(value).toString() + ' ' + strings('unit.eth')}
 						</Text>
 					</View>
 				)}

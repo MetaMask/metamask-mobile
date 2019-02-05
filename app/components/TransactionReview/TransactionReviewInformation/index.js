@@ -139,17 +139,17 @@ class TransactionReviewInformation extends Component {
 
 	render = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, asset },
+			transactionData: { value, gas, gasPrice, selectedToken },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
+		const conversionRateAsset = selectedToken ? contractExchangeRates[selectedToken.address] : undefined;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalEth = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const amountEth = isBN(amount) && !asset ? amount : undefined;
-		const amountToken = asset ? renderFromTokenMinimalUnit(amount, asset.decimals) : undefined;
+		const totalEth = isBN(value) && !selectedToken ? value.add(totalGas) : totalGas;
+		const amountEth = isBN(value) && !selectedToken ? value : undefined;
+		const amountToken = selectedToken ? renderFromTokenMinimalUnit(value, selectedToken.decimals) : undefined;
 
 		return (
 			<View style={styles.overview}>
@@ -179,7 +179,7 @@ class TransactionReviewInformation extends Component {
 						</Text>
 						<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
 							{this.getTotalFiat(
-								asset,
+								selectedToken,
 								totalGas,
 								conversionRate,
 								conversionRateAsset,
@@ -189,7 +189,8 @@ class TransactionReviewInformation extends Component {
 							)}
 						</Text>
 						<Text style={styles.overviewEth}>
-							{asset && amountToken} {asset && asset.symbol} {asset && ' + '}
+							{selectedToken && amountToken} {selectedToken && selectedToken.symbol}{' '}
+							{selectedToken && ' + '}
 							{renderFromWei(totalEth).toString()} {strings('unit.eth')}
 						</Text>
 					</View>

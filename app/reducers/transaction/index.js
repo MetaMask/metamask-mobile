@@ -13,7 +13,8 @@ const transactionReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case 'NEW_TRANSACTION':
 			return {
-				initialState
+				...state,
+				...initialState
 			};
 		case 'SET_VALUE':
 			return {

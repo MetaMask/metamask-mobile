@@ -9,7 +9,13 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { getClosableNavigationOptions } from '../Navbar';
 import { connect } from 'react-redux';
-import { prepareTransaction, prepareTokenTransaction, sanitizeTransaction } from '../../actions/transaction';
+import {
+	prepareTransaction,
+	prepareTokenTransaction,
+	sanitizeTransaction,
+	newTransaction,
+	setTransactionObject
+} from '../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -37,22 +43,21 @@ class Send extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Action that prepares a transaction
+		 * Action that cleans transaction state
 		 */
-		prepareTransaction: PropTypes.func.isRequired,
+		newTransaction: PropTypes.func.isRequired,
 		/**
-		 * Action that prepares a token transaction
+		 * Action that sets transaction attributes from object to a transaction
 		 */
-		prepareTokenTransaction: PropTypes.func.isRequired,
+		setTransactionObject: PropTypes.func.isRequired,
 		/**
-		 * Action that sanitizes a transaction
+		 * Transaction state
 		 */
-		sanitizeTransaction: PropTypes.func.isRequired
+		transaction: PropTypes.object.isRequired
 	};
 
 	state = {
 		mode: 'edit',
-		transaction: undefined,
 		transactionKey: undefined,
 		ready: false,
 		transactionConfirmed: false,
@@ -63,14 +68,18 @@ class Send extends Component {
 	unmountHandled = false;
 
 	async reset() {
-		const { navigation } = this.props;
-		const asset = navigation.state && navigation.state && navigation.state.params;
-		const transaction = { asset };
+		const { transaction } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
-		transaction.gas = hexToBN(gas);
-		transaction.gasPrice = hexToBN(gasPrice);
-		return this.mounted && this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
+		this.props.setTransactionObject({
+			gas: hexToBN(gas),
+			gasPrice: hexToBN(gasPrice)
+		});
+		return this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
 	}
+
+	clear = async () => {
+		this.props.newTransaction();
+	};
 
 	checkForDeeplinks() {
 		const { navigation } = this.props;
@@ -91,7 +100,8 @@ class Send extends Component {
 	}
 
 	async componentWillUnmount() {
-		const { transaction, transactionSubmitted } = this.state;
+		const { transactionSubmitted } = this.state;
+		const { transaction } = this.state;
 		if (!transactionSubmitted && !this.unmountHandled) {
 			transaction && (await this.onCancel(transaction.id));
 		}
@@ -141,38 +151,26 @@ class Send extends Component {
 		this.mounted && this.setState({ transaction: newTxMeta });
 	};
 
-	prepareTransaction(transaction) {
-		transaction.gas = BNToHex(transaction.gas);
-		transaction.gasPrice = BNToHex(transaction.gasPrice);
-		transaction.value = BNToHex(transaction.value);
-		this.props.prepareTransaction(
-			BNToHex(transaction.gas),
-			BNToHex(transaction.gasPrice),
-			BNToHex(transaction.value)
-		);
-		return transaction;
-	}
+	prepareTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: BNToHex(transaction.value)
+	});
 
-	prepareTokenTransaction = (transaction, asset) => {
-		transaction.gas = BNToHex(transaction.gas);
-		transaction.gasPrice = BNToHex(transaction.gasPrice);
-		transaction.value = '0x0';
-		transaction.to = asset.address;
-		this.props.prepareTokenTransaction(
-			BNToHex(transaction.gas),
-			BNToHex(transaction.gasPrice),
-			'0x0',
-			asset.address
-		);
-		return transaction;
-	};
+	prepareTokenTransaction = (transaction, asset) => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: '0x0',
+		to: asset.address
+	});
 
-	sanitizeTransaction(transaction) {
-		transaction.gas = hexToBN(transaction.gas);
-		transaction.gasPrice = hexToBN(transaction.gasPrice);
-		this.props.sanitizeTransaction(hexToBN(transaction.gas), hexToBN(transaction.gasPrice));
-		return transaction;
-	}
+	sanitizeTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice)
+	});
 
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
@@ -181,28 +179,33 @@ class Send extends Component {
 		} else {
 			this.props.navigation.pop();
 		}
+		this.clear();
 		this.unmountHandled = true;
 	};
 
-	onConfirm = async (transaction2, asset) => {
+	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
+		const {
+			transaction: { selectedToken }
+		} = this.props;
+		let { transaction } = this.props;
 		try {
-			if (!asset) {
-				transaction2 = this.prepareTransaction(transaction2);
+			if (!selectedToken) {
+				transaction = this.prepareTransaction(transaction);
 			} else {
-				transaction2 = this.prepareTokenTransaction(transaction2, asset);
+				transaction = this.prepareTokenTransaction(transaction, selectedToken);
 			}
-			const { result, transactionMeta } = await TransactionController.addTransaction(transaction2);
+			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 			await TransactionController.approveTransaction(transactionMeta.id);
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
-			this.reset();
+			await this.clear();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
-			this.reset();
+			await this.reset();
 		}
 	};
 
@@ -227,7 +230,6 @@ class Send extends Component {
 					onCancel={this.onCancel}
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
-					transaction={this.state.transaction}
 					transactionConfirmed={this.state.transactionConfirmed}
 				/>
 			) : (
@@ -246,7 +248,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	prepareTransaction: (gas, gasPrice, value) => dispatch(prepareTransaction(gas, gasPrice, value)),
 	prepareTokenTransaction: (gas, gasPrice, value, to) => dispatch(prepareTokenTransaction(gas, gasPrice, value, to)),
-	sanitizeTransaction: (gas, gasPrice) => dispatch(sanitizeTransaction(gas, gasPrice))
+	sanitizeTransaction: (gas, gasPrice) => dispatch(sanitizeTransaction(gas, gasPrice)),
+	newTransaction: () => dispatch(newTransaction()),
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
 });
 
 export default connect(
