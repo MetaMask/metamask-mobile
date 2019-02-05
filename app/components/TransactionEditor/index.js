@@ -9,6 +9,7 @@ import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
 import { generateTransferData } from '../../util/transactions';
+import { setTransactionObject } from '../../actions/transaction';
 
 import Engine from '../../core/Engine';
 
@@ -59,7 +60,19 @@ class TransactionEditor extends Component {
 		/**
 		 * Object containing accounts balances
 		 */
-		contractBalances: PropTypes.object
+		contractBalances: PropTypes.object,
+		/**
+		 * Action that sets new gas to a transaction
+		 */
+		setGas: PropTypes.func.isRequired,
+		/**
+		 * Action that sets new gas price to a transaction
+		 */
+		setGasPrice: PropTypes.func.isRequired,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired
 	};
 
 	state = {
@@ -112,6 +125,8 @@ class TransactionEditor extends Component {
 	};
 
 	handleGasFeeSelection = (gasLimit, gasPrice) => {
+		this.props.setGas(gasLimit);
+		this.props.setGasPrice(gasPrice);
 		this.setState({ gas: gasLimit, gasPrice });
 	};
 
@@ -124,6 +139,7 @@ class TransactionEditor extends Component {
 				: data;
 		const amountToSend = asset ? '0x0' : amount;
 		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
+		this.props.setTransactionObject({ value: amount, gas: hexToBN(gas), data: newData });
 		this.setState({ amount, data: newData, gas: hexToBN(gas) });
 	};
 
@@ -133,10 +149,12 @@ class TransactionEditor extends Component {
 
 	handleUpdateData = async data => {
 		const { gas } = await this.estimateGas({ data });
+		this.props.setTransactionObject({ gas: hexToBN(gas), data });
 		this.setState({ data, gas: hexToBN(gas) });
 	};
 
 	handleUpdateFromAddress = from => {
+		this.props.setTransactionObject({ from });
 		this.setState({ from });
 	};
 
@@ -148,10 +166,12 @@ class TransactionEditor extends Component {
 				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
 				: data;
 		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
+		this.props.setTransactionObject({ to, gas: hexToBN(gas), data: newData });
 		this.setState({ to, gas: hexToBN(gas), data: newData });
 	};
 
 	handleUpdateAsset = async asset => {
+		this.props.setTransactionObject({ value: undefined, data: undefined, selectedToken: asset });
 		await this.setState({ amount: undefined, data: undefined, asset, readableValue: undefined });
 		await this.handleUpdateToAddress(this.state.to);
 	};
@@ -244,10 +264,12 @@ class TransactionEditor extends Component {
 				this.handleUpdateAmount(toBN(value));
 			}
 			if (gas) {
+				this.props.setTransactionObject({ gas: toBN(gas) });
 				this.setState({ gas: toBN(gas) });
 			}
 			if (gasPrice) {
-				this.setState({ gas: toBN(gasPrice) });
+				this.props.setTransactionObject({ gasPrice: toBN(gasPrice) });
+				this.setState({ gasPrice: toBN(gasPrice) });
 			}
 
 			// TODO: We should add here support for:
@@ -305,4 +327,11 @@ const mapStateToProps = state => ({
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
-export default connect(mapStateToProps)(TransactionEditor);
+const mapDispatchToProps = dispatch => ({
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(TransactionEditor);

@@ -1,5 +1,5 @@
 const initialState = {
-	amount: undefined,
+	value: undefined,
 	data: undefined,
 	from: undefined,
 	gas: undefined,
@@ -75,6 +75,11 @@ const transactionReducer = (state = initialState, action) => {
 				...state,
 				gas: action.gas,
 				gasPrice: action.gasPrice
+			};
+		case 'SET_TRANSACTION_OBJECT':
+			return {
+				...state,
+				...action.transaction
 			};
 		default:
 			return state;

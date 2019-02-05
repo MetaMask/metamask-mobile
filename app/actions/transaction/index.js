@@ -86,3 +86,10 @@ export function sanitizeTransaction(gas, gasPrice) {
 		gasPrice
 	};
 }
+
+export function setTransactionObject(transaction) {
+	return {
+		type: 'SET_TRANSACTION_OBJECT',
+		transaction
+	};
+}

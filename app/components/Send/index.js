@@ -47,11 +47,7 @@ class Send extends Component {
 		/**
 		 * Action that sanitizes a transaction
 		 */
-		sanitizeTransaction: PropTypes.func.isRequired,
-		/**
-		 * Transaction state
-		 */
-		transaction: PropTypes.object.isRequired
+		sanitizeTransaction: PropTypes.func.isRequired
 	};
 
 	state = {
@@ -149,7 +145,11 @@ class Send extends Component {
 		transaction.gas = BNToHex(transaction.gas);
 		transaction.gasPrice = BNToHex(transaction.gasPrice);
 		transaction.value = BNToHex(transaction.value);
-		this.props.prepareTransaction(transaction.gas, transaction.gasPrice, transaction.value);
+		this.props.prepareTransaction(
+			BNToHex(transaction.gas),
+			BNToHex(transaction.gasPrice),
+			BNToHex(transaction.value)
+		);
 		return transaction;
 	}
 
@@ -158,14 +158,19 @@ class Send extends Component {
 		transaction.gasPrice = BNToHex(transaction.gasPrice);
 		transaction.value = '0x0';
 		transaction.to = asset.address;
-		this.props.prepareTokenTransaction(transaction.gas, transaction.gasPrice, transaction.value, transaction.to);
+		this.props.prepareTokenTransaction(
+			BNToHex(transaction.gas),
+			BNToHex(transaction.gasPrice),
+			'0x0',
+			asset.address
+		);
 		return transaction;
 	};
 
 	sanitizeTransaction(transaction) {
 		transaction.gas = hexToBN(transaction.gas);
 		transaction.gasPrice = hexToBN(transaction.gasPrice);
-		this.props.sanitizeTransaction(transaction.gas, transaction.gasPrice);
+		this.props.sanitizeTransaction(hexToBN(transaction.gas), hexToBN(transaction.gasPrice));
 		return transaction;
 	}
 
@@ -181,7 +186,6 @@ class Send extends Component {
 
 	onConfirm = async (transaction2, asset) => {
 		const { TransactionController } = Engine.context;
-		const { transaction } = this.props;
 		this.setState({ transactionConfirmed: true });
 		try {
 			if (!asset) {
@@ -194,7 +198,7 @@ class Send extends Component {
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.reset();
-			this.setState({ transaction, transactionConfirmed: false, transactionSubmitted: true });
+			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
