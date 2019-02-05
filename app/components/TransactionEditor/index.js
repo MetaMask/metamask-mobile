@@ -268,12 +268,11 @@ class TransactionEditor extends Component {
 
 	render = () => {
 		const { readableValue } = this.state;
-		const { mode, transactionConfirmed, transaction } = this.props;
+		const { mode, transactionConfirmed } = this.props;
 		return (
 			<View style={styles.root}>
 				{mode === 'edit' && (
 					<TransactionEdit
-						accounts={this.props.accounts}
 						navigation={this.props.navigation}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
@@ -283,7 +282,6 @@ class TransactionEditor extends Component {
 						handleUpdateFromAddress={this.handleUpdateFromAddress}
 						handleUpdateToAddress={this.handleUpdateToAddress}
 						handleGasFeeSelection={this.handleGasFeeSelection}
-						transactionData={transaction}
 						validateAmount={this.validateAmount}
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
@@ -294,11 +292,9 @@ class TransactionEditor extends Component {
 				)}
 				{mode === 'review' && (
 					<TransactionReview
-						accounts={this.props.accounts}
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
 						onModeChange={this.props.onModeChange}
-						transactionData={transaction}
 						validateAmount={this.validateAmount}
 						transactionConfirmed={transactionConfirmed}
 					/>

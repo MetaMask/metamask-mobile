@@ -101,7 +101,7 @@ class TransactionReviewInformation extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transactionData: PropTypes.object,
+		transaction: PropTypes.object,
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
@@ -139,7 +139,7 @@ class TransactionReviewInformation extends Component {
 
 	render = () => {
 		const {
-			transactionData: { value, gas, gasPrice, selectedToken },
+			transaction: { value, gas, gasPrice, selectedToken },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
@@ -211,7 +211,8 @@ class TransactionReviewInformation extends Component {
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(TransactionReviewInformation);

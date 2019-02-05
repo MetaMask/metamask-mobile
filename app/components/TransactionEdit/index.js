@@ -121,9 +121,9 @@ class TransactionEdit extends Component {
 		 */
 		onModeChange: PropTypes.func,
 		/**
-		 * Transaction object associated with this transaction, if sending token it includes assetSymbol
+		 * Transaction object associated with this transaction,
 		 */
-		transactionData: PropTypes.object,
+		transaction: PropTypes.object,
 		/**
 		 * Callback to open the qr scanner
 		 */
@@ -192,14 +192,14 @@ class TransactionEdit extends Component {
 	};
 
 	componentDidMount() {
-		const { transactionData } = this.props;
-		if (transactionData && transactionData.amount) {
-			this.props.handleUpdateAmount(transactionData.amount);
+		const { transaction } = this.props;
+		if (transaction && transaction.value) {
+			this.props.handleUpdateAmount(transaction.value);
 		}
 	}
 
 	fillMax = () => {
-		const { gas, gasPrice, from, selectedToken } = this.props.transactionData;
+		const { gas, gasPrice, from, selectedToken } = this.props.transaction;
 		const { balance } = this.props.accounts[from];
 		const { contractBalances } = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
@@ -240,7 +240,7 @@ class TransactionEdit extends Component {
 	};
 
 	updateAmount = async amount => {
-		const { selectedToken } = this.props.transactionData;
+		const { selectedToken } = this.props.transaction;
 		let processedAmount;
 		if (selectedToken) {
 			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedToken.decimals) : undefined;
@@ -282,7 +282,7 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, data, from, to, selectedToken },
+			transaction: { value, gas, gasPrice, data, from, to, selectedToken },
 			showHexData
 		} = this.props;
 		const { amountError, gasError, toAddressError } = this.state;
@@ -310,7 +310,7 @@ class TransactionEdit extends Component {
 							</View>
 							<EthInput
 								onChange={this.updateAmount}
-								value={amount}
+								value={value}
 								asset={selectedToken}
 								handleUpdateAsset={this.props.handleUpdateAsset}
 								readableValue={this.props.readableValue}
@@ -369,7 +369,8 @@ class TransactionEdit extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	showHexData: state.settings.showHexData
+	showHexData: state.settings.showHexData,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(TransactionEdit);

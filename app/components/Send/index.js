@@ -9,13 +9,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { getClosableNavigationOptions } from '../Navbar';
 import { connect } from 'react-redux';
-import {
-	prepareTransaction,
-	prepareTokenTransaction,
-	sanitizeTransaction,
-	newTransaction,
-	setTransactionObject
-} from '../../actions/transaction';
+import { newTransaction, setTransactionObject } from '../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -165,6 +159,8 @@ class Send extends Component {
 
 	/**
 	 * Returns transaction object with gas, gasPrice and value in hex format
+	 *
+	 * @param transaction - Transaction object
 	 */
 	prepareTransaction = transaction => ({
 		...transaction,
@@ -176,6 +172,8 @@ class Send extends Component {
 	/**
 	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
 	 * and to set to selectedToken address
+	 *
+	 * @param transaction - Transaction object
 	 */
 	prepareTokenTransaction = (transaction, selectedToken) => ({
 		...transaction,
@@ -187,6 +185,8 @@ class Send extends Component {
 
 	/**
 	 * Returns transaction object with gas and gasPrice in hex format
+	 *
+	 * @param transaction - Transaction object
 	 */
 	sanitizeTransaction = transaction => ({
 		...transaction,
@@ -196,6 +196,8 @@ class Send extends Component {
 
 	/**
 	 * Cancels transaction and close send screen before clear transaction state
+	 *
+	 * @param if - Transaction id
 	 */
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
@@ -204,8 +206,8 @@ class Send extends Component {
 		} else {
 			this.props.navigation.pop();
 		}
-		this.clear();
 		this.unmountHandled = true;
+		this.clear();
 	};
 
 	/**
@@ -277,9 +279,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	prepareTransaction: (gas, gasPrice, value) => dispatch(prepareTransaction(gas, gasPrice, value)),
-	prepareTokenTransaction: (gas, gasPrice, value, to) => dispatch(prepareTokenTransaction(gas, gasPrice, value, to)),
-	sanitizeTransaction: (gas, gasPrice) => dispatch(sanitizeTransaction(gas, gasPrice)),
 	newTransaction: () => dispatch(newTransaction()),
 	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
 });
