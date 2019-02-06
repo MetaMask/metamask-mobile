@@ -17,6 +17,11 @@ const userReducer = (state = initialState, action) => {
 				...state,
 				passwordSet: true
 			};
+		case 'PASSWORD_UNSET':
+			return {
+				...state,
+				passwordSet: false
+			};
 		case 'SEEDPHRASE_BACKED_UP':
 			return {
 				...state,

@@ -306,8 +306,8 @@ class DrawerView extends Component {
 			if (
 				!this.props.passwordSet &&
 				!this.processedNewBalance &&
-				this.currentBalance > this.previousBalance &&
-				this.previousBalance === 0
+				this.currentBalance >= this.previousBalance &&
+				this.currentBalance > 0
 			) {
 				this.processedNewBalance = true;
 				const { selectedAddress, network, identities } = this.props;

@@ -148,7 +148,7 @@ class AccountBackupStep5 extends Component {
 		super(props);
 		const words = props.navigation.getParam('words', []);
 		if (process.env.JEST_WORKER_ID === undefined) {
-			this.words = words.sort(() => 0.5 - Math.random());
+			this.words = [...words].sort(() => 0.5 - Math.random());
 		} else {
 			this.words = words;
 		}

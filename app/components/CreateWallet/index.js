@@ -6,6 +6,8 @@ import OnboardingScreenWithBg from '../OnboardingScreenWithBg';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
 import SecureKeychain from '../../core/SecureKeychain';
+import { passwordUnset } from '../../actions/user';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -44,7 +46,7 @@ const styles = StyleSheet.create({
 /**
  * View that is displayed to first time (new) users
  */
-export default class CreateWallet extends Component {
+class CreateWallet extends Component {
 	static navigationOptions = () => ({
 		headerStyle: {
 			shadowColor: 'transparent',
@@ -61,7 +63,11 @@ export default class CreateWallet extends Component {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action to reset the flag password_set in redux
+		 */
+		passwordUnset: PropTypes.func
 	};
 
 	componentDidMount() {
@@ -72,6 +78,9 @@ export default class CreateWallet extends Component {
 			await SecureKeychain.setGenericPassword('metamask-user', '');
 			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			// Making sure we reset the flag while going to
+			// the first time flow
+			this.props.passwordUnset();
 			this.props.navigation.navigate('HomeNav');
 		});
 	}
@@ -91,3 +100,12 @@ export default class CreateWallet extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	passwordUnset: () => dispatch(passwordUnset())
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(CreateWallet);

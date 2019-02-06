@@ -4,6 +4,12 @@ export default function passwordSet() {
 	};
 }
 
+export function passwordUnset() {
+	return {
+		type: 'PASSWORD_UNSET'
+	};
+}
+
 export function seedphraseBackedUp() {
 	return {
 		type: 'SEEDPHRASE_BACKED_UP'
