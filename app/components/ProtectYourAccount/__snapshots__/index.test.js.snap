@@ -9,11 +9,17 @@ exports[`ProtectYourAccount should render correctly 1`] = `
     }
   }
 >
-  <View
-    style={
+  <ScrollView
+    contentContainerStyle={
       Object {
         "flex": 1,
         "padding": 20,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
       }
     }
     testID="protect-your-account-screen"
@@ -99,12 +105,12 @@ exports[`ProtectYourAccount should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        testID="create-password-button"
+        testID="submit-button"
         type="confirm"
       >
         CREATE PASSWORD
       </StyledButton>
     </View>
-  </View>
+  </ScrollView>
 </SafeAreaView>
 `;

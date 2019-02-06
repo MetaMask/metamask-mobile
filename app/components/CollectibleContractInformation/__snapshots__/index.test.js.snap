@@ -60,7 +60,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        Description
+        [missing "en.asset_overview.description" translation]
       </Text>
       <Text
         style={
@@ -93,7 +93,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        Total Supply
+        [missing "en.asset_overview.totalSupply" translation]
       </Text>
       <Text
         style={
@@ -126,7 +126,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        Address
+        [missing "en.asset_overview.address" translation]
       </Text>
       <Text
         style={
@@ -181,7 +181,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
               }
             }
           >
-            Powered by
+            [missing "en.collectible.powered_by_opensea" translation]
           </Text>
           <Component
             source={

@@ -16,7 +16,7 @@ exports[`ChoosePassword should render correctly 1`] = `
         "padding": 20,
       }
     }
-    testID="protect-your-account-screen"
+    testID="choose-password-screen"
   >
     <KeyboardAwareScrollView
       enableAutomaticScroll={true}
@@ -310,7 +310,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        testID="submit"
+        testID="submit-button"
         type="blue"
       >
         NEXT

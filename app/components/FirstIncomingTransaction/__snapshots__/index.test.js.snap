@@ -9,11 +9,17 @@ exports[`FirstIncomingTransaction should render correctly 1`] = `
     }
   }
 >
-  <View
-    style={
+  <ScrollView
+    contentContainerStyle={
       Object {
         "flex": 1,
         "padding": 20,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
       }
     }
     testID="first-incoming-transaction-screen"
@@ -144,12 +150,12 @@ exports[`FirstIncomingTransaction should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        testID="ok-button"
+        testID="submit-button"
         type="confirm"
       >
         OK
       </StyledButton>
     </View>
-  </View>
+  </ScrollView>
 </SafeAreaView>
 `;

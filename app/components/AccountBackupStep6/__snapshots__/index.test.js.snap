@@ -13,15 +13,21 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
     pages={5}
     selected={5}
   />
-  <View
-    style={
+  <ScrollView
+    contentContainerStyle={
       Object {
         "flex": 1,
         "padding": 30,
         "paddingTop": 0,
       }
     }
-    testID="protect-your-account-screen"
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="account-backup-step-6-screen"
   >
     <View
       style={
@@ -293,7 +299,7 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        testID="create-password-button"
+        testID="submit-button"
         type="confirm"
       >
         <Icon
@@ -310,6 +316,6 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
         ALL DONE
       </StyledButton>
     </View>
-  </View>
+  </ScrollView>
 </SafeAreaView>
 `;
