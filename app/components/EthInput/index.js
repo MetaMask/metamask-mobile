@@ -180,12 +180,20 @@ class EthInput extends Component {
 		 */
 		updateFillMax: PropTypes.func,
 		/**
-		 * Array of assets (in this case ERC20 tokens)
+		 * Array of ERC20 assets
 		 */
-		tokens: PropTypes.array
+		tokens: PropTypes.array,
+		/**
+		 * Array of ERC721 assets
+		 */
+		collectibles: PropTypes.array,
+		/**
+		 * Transaction object associated with this transaction
+		 */
+		transaction: PropTypes.object
 	};
 
-	state = { isOpen: false, readableValue: undefined };
+	state = { isOpen: false, readableValue: undefined, assets: undefined };
 
 	componentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
@@ -196,7 +204,49 @@ class EthInput extends Component {
 	};
 
 	componentDidMount = () => {
-		const { readableValue } = this.props;
+		const { readableValue, transaction, collectibles } = this.props;
+		switch (transaction.type) {
+			case 'TOKENS_TRANSACTION':
+				this.setState({
+					assets: [
+						{
+							name: 'Ether',
+							symbol: 'ETH'
+						},
+						...this.props.tokens
+					]
+				});
+				break;
+			case 'ETHER_TRANSACTION':
+				this.setState({
+					assets: [
+						{
+							name: 'Ether',
+							symbol: 'ETH'
+						}
+					]
+				});
+				break;
+			case 'INDIVIDUAL_TOKEN_TRANSACTION':
+				this.setState({
+					assets: [transaction.selectedAsset]
+				});
+				break;
+			case 'INDIVIDUAL_COLLECTIBLE_TRANSACTION':
+				this.setState({
+					assets: [transaction.selectedAsset]
+				});
+				break;
+			case 'CONTRACT_COLLECTIBLE_TRANSACTION': {
+				const collectiblesToShow = collectibles.filter(
+					collectible => transaction.selectedAsset.address === collectible.address
+				);
+				this.setState({
+					assets: [collectiblesToShow]
+				});
+				break;
+			}
+		}
 		this.setState({ readableValue });
 	};
 
@@ -338,7 +388,9 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(EthInput);

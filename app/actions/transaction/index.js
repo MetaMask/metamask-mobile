@@ -71,11 +71,11 @@ export function setIndividualCollectibleTransaction(collectible) {
 /**
  * Enable selectable ERC721 assets who's current account is owner of a specific contract to be sent in a transaction
  *
- * @param {object} contractCollectible - Contract collectible object to be sent
+ * @param {object} collectible - Collectible of the type contract collectible that the user wants to send
  */
-export function setCollectibleContractTransaction(contractCollectible) {
+export function setCollectibleContractTransaction(collectible) {
 	return {
 		type: 'SET_COLLECTIBLE_CONTRACT_TRANSACTION',
-		contractCollectible
+		collectible
 	};
 }

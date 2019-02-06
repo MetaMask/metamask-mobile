@@ -71,7 +71,8 @@ class CollectibleContractOverview extends Component {
 	};
 
 	onSend = () => {
-		this.props.setCollectibleContractTransaction();
+		const { collectibleContract } = this.props;
+		this.props.setCollectibleContractTransaction(collectibleContract);
 		this.props.navigation.navigate('SendView');
 	};
 
@@ -108,7 +109,7 @@ class CollectibleContractOverview extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setCollectibleContractTransaction: () => dispatch(setCollectibleContractTransaction())
+	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible))
 });
 
 export default connect(

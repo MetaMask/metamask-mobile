@@ -102,7 +102,8 @@ class CollectibleOverview extends Component {
 	};
 
 	onSend = async () => {
-		this.props.setIndividualCollectibleTransaction();
+		const { collectible } = this.props;
+		this.props.setIndividualCollectibleTransaction(collectible);
 		this.props.navigation.navigate('SendView');
 	};
 
@@ -151,7 +152,7 @@ class CollectibleOverview extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setIndividualCollectibleTransaction: () => dispatch(setIndividualCollectibleTransaction())
+	setIndividualCollectibleTransaction: collectible => dispatch(setIndividualCollectibleTransaction(collectible))
 });
 
 export default connect(

@@ -46,19 +46,19 @@ const transactionReducer = (state = initialState, action) => {
 		case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
 			return {
 				...state,
-				asset: action.token,
+				selectedAsset: action.token,
 				type: 'INDIVIDUAL_TOKEN_TRANSACTION'
 			};
 		case 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION':
 			return {
 				...state,
-				asset: action.collectible,
+				selectedAsset: action.collectible,
 				type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION'
 			};
 		case 'SET_COLLECTIBLE_CONTRACT_TRANSACTION':
 			return {
 				...state,
-				asset: action.contractCollectible,
+				selectedAsset: action.collectible,
 				type: 'CONTRACT_COLLECTIBLE_TRANSACTION'
 			};
 		default:
