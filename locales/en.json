@@ -12,6 +12,10 @@
 		"import_wallet_button": "Import a wallet",
 		"start_exploring_now": "Start exploring now"
 	},
+	"create_wallet": {
+		"title": "Hang tight, we're building this thing while it's flying.",
+		"subtitle": "- The Blockchain"
+	},
 	"import_wallet": {
 		"title": "Import Wallet",
 		"sync_help": "Sync your wallet with the extension",
