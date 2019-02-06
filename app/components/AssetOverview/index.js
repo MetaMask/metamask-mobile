@@ -7,7 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
-import { setSelectedToken } from '../../actions/transaction';
+import { setSelectedAsset } from '../../actions/transaction';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -66,7 +66,7 @@ class AssetOverview extends Component {
 		/**
 		 * Action that selects a token in a transaction
 		 */
-		setSelectedToken: PropTypes.func.isRequired
+		setSelectedAsset: PropTypes.func.isRequired
 	};
 
 	onDeposit = () => {
@@ -78,7 +78,7 @@ class AssetOverview extends Component {
 		if (asset.symbol === 'ETH') {
 			this.props.navigation.navigate('SendView');
 		} else {
-			this.props.setSelectedToken(asset);
+			this.props.setSelectedAsset(asset);
 			this.props.navigation.navigate('SendView');
 		}
 	};
@@ -119,7 +119,7 @@ class AssetOverview extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setSelectedToken: asset => dispatch(setSelectedToken(asset))
+	setSelectedAsset: asset => dispatch(setSelectedAsset(asset))
 });
 
 export default connect(

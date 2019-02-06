@@ -171,16 +171,16 @@ class Send extends Component {
 
 	/**
 	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
-	 * and to set to selectedToken address
+	 * and to set to selectedAsset address
 	 *
 	 * @param transaction - Transaction object
 	 */
-	prepareTokenTransaction = (transaction, selectedToken) => ({
+	prepareTokenTransaction = (transaction, selectedAsset) => ({
 		...transaction,
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice),
 		value: '0x0',
-		to: selectedToken.address
+		to: selectedAsset.address
 	});
 
 	/**
@@ -211,7 +211,7 @@ class Send extends Component {
 	};
 
 	/**
-	 * Confirms transaction. In case of selectedToken handles a token transfer transaction,
+	 * Confirms transaction. In case of selectedAsset handles a token transfer transaction,
 	 * if not, and Ether transaction.
 	 * If success, transaction state is cleared, if not transaction is reset alert about the error
 	 * and returns to edit transaction
@@ -220,14 +220,14 @@ class Send extends Component {
 		const { TransactionController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
 		const {
-			transaction: { selectedToken }
+			transaction: { selectedAsset }
 		} = this.props;
 		let { transaction } = this.props;
 		try {
-			if (!selectedToken) {
+			if (!selectedAsset) {
 				transaction = this.prepareTransaction(transaction);
 			} else {
-				transaction = this.prepareTokenTransaction(transaction, selectedToken);
+				transaction = this.prepareTokenTransaction(transaction, selectedAsset);
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 			await TransactionController.approveTransaction(transactionMeta.id);

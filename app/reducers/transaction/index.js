@@ -7,8 +7,9 @@ const initialState = {
 	gas: undefined,
 	gasPrice: undefined,
 	to: undefined,
-	selectedToken: undefined,
-	selectedCollectible: undefined
+	asset: undefined,
+	selectedAsset: undefined,
+	type: undefined
 };
 
 const transactionReducer = (state = initialState, action) => {
@@ -22,71 +23,43 @@ const transactionReducer = (state = initialState, action) => {
 				...state,
 				...initialState
 			};
-		case 'SET_VALUE':
+		case 'SET_SELECTED_ASSET':
 			return {
 				...state,
-				value: action.value
-			};
-		case 'SET_DATA':
-			return {
-				...state,
-				data: action.data
-			};
-		case 'SET_FROM':
-			return {
-				...state,
-				from: action.from
-			};
-		case 'SET_GAS':
-			return {
-				...state,
-				gas: action.gas
-			};
-		case 'SET_GAS_PRICE':
-			return {
-				...state,
-				gasPrice: action.gasPrice
-			};
-		case 'SET_TO':
-			return {
-				...state,
-				to: action.to
-			};
-		case 'SET_SELECTED_TOKEN':
-			return {
-				...state,
-				selectedToken: action.selectedToken
-			};
-		case 'SET_SELECTED_COLLECTIBLE':
-			return {
-				...state,
-				selectedCollectible: action.selectedCollectible
-			};
-		case 'PREPARE_TRANSACTION':
-			return {
-				...state,
-				gas: action.gas,
-				gasPrice: action.gasPrice,
-				value: action.value
-			};
-		case 'PREPARE_TOKEN_TRANSACTION':
-			return {
-				...state,
-				gas: action.gas,
-				gasPrice: action.gasPrice,
-				value: action.value,
-				to: action.to
-			};
-		case 'SANITIZE_TRANSACTION':
-			return {
-				...state,
-				gas: action.gas,
-				gasPrice: action.gasPrice
+				selectedAsset: action.asset
 			};
 		case 'SET_TRANSACTION_OBJECT':
 			return {
 				...state,
 				...action.transaction
+			};
+		case 'SET_TOKENS_TRANSACTION':
+			return {
+				...state,
+				type: 'TOKENS_TRANSACTION'
+			};
+		case 'SET_ETHER_TRANSACTION':
+			return {
+				...state,
+				type: 'ETHER_TRANSACTION'
+			};
+		case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
+			return {
+				...state,
+				asset: action.token,
+				type: 'INDIVIDUAL_TOKEN_TRANSACTION'
+			};
+		case 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION':
+			return {
+				...state,
+				asset: action.collectible,
+				type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION'
+			};
+		case 'SET_CONTRACT_COLLECTIBLE_TRANSACTION':
+			return {
+				...state,
+				asset: action.contractCollectible,
+				type: 'CONTRACT_COLLECTIBLE_TRANSACTION'
 			};
 		default:
 			return state;

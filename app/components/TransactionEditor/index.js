@@ -85,7 +85,7 @@ class TransactionEditor extends Component {
 	estimateGas = async opts => {
 		const { TransactionController } = Engine.context;
 		const {
-			transaction: { from, selectedToken },
+			transaction: { from, selectedAsset },
 			transaction
 		} = this.props;
 		const { amount = transaction.amount, data = transaction.data, to = transaction.to } = opts;
@@ -95,7 +95,7 @@ class TransactionEditor extends Component {
 				amount,
 				from,
 				data,
-				to: selectedToken ? selectedToken.address : to
+				to: selectedAsset ? selectedAsset.address : to
 			});
 		} catch (e) {
 			estimation = { gas: '0x5208' };
@@ -109,14 +109,14 @@ class TransactionEditor extends Component {
 
 	handleUpdateAmount = async amount => {
 		const {
-			transaction: { to, data, selectedToken }
+			transaction: { to, data, selectedAsset }
 		} = this.props;
-		const tokenAmountToSend = selectedToken && amount && amount.toString(16);
+		const tokenAmountToSend = selectedAsset && amount && amount.toString(16);
 		const newData =
-			to && selectedToken && tokenAmountToSend
+			to && selectedAsset && tokenAmountToSend
 				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
 				: data;
-		const amountToSend = selectedToken ? '0x0' : amount;
+		const amountToSend = selectedAsset ? '0x0' : amount;
 		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
 		this.props.setTransactionObject({ value: amount, gas: hexToBN(gas), data: newData });
 	};
@@ -136,20 +136,20 @@ class TransactionEditor extends Component {
 
 	handleUpdateToAddress = async to => {
 		const {
-			transaction: { selectedToken, value, data }
+			transaction: { selectedAsset, value, data }
 		} = this.props;
-		const tokenAmountToSend = selectedToken && value && value.toString(16);
+		const tokenAmountToSend = selectedAsset && value && value.toString(16);
 		const newData =
-			selectedToken && tokenAmountToSend
+			selectedAsset && tokenAmountToSend
 				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
 				: data;
-		const { gas } = await this.estimateGas({ data: newData, to: selectedToken ? selectedToken.address : to });
+		const { gas } = await this.estimateGas({ data: newData, to: selectedAsset ? selectedAsset.address : to });
 		this.props.setTransactionObject({ to, gas: hexToBN(gas), data: newData });
 	};
 
 	handleUpdateAsset = async asset => {
 		const { transaction } = this.props;
-		this.props.setTransactionObject({ value: undefined, data: undefined, selectedToken: asset });
+		this.props.setTransactionObject({ value: undefined, data: undefined, selectedAsset: asset });
 		await this.handleUpdateToAddress(transaction.to);
 	};
 
@@ -161,9 +161,9 @@ class TransactionEditor extends Component {
 
 	validateAmount = (allowEmpty = true) => {
 		const {
-			transaction: { selectedToken }
+			transaction: { selectedAsset }
 		} = this.props;
-		return selectedToken ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
+		return selectedAsset ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
 	};
 
 	validateEtherAmount = (allowEmpty = true) => {
@@ -191,7 +191,7 @@ class TransactionEditor extends Component {
 		let error;
 		if (!allowEmpty) {
 			const {
-				transaction: { value, gas, gasPrice, from, selectedToken },
+				transaction: { value, gas, gasPrice, from, selectedAsset },
 				contractBalances
 			} = this.props;
 			const checksummedFrom = from ? toChecksumAddress(from) : '';
@@ -199,7 +199,7 @@ class TransactionEditor extends Component {
 			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
 			}
-			const contractBalanceForAddress = hexToBN(contractBalances[selectedToken.address].toString(16));
+			const contractBalanceForAddress = hexToBN(contractBalances[selectedAsset.address].toString(16));
 			value && !isBN(value) && (error = strings('transaction.invalid_amount'));
 			const validateAssetAmount = contractBalanceForAddress.lt(value);
 			const ethTotalAmount = gas.mul(gasPrice);
