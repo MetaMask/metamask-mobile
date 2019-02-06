@@ -501,7 +501,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              attitude
+              bachelor
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -538,7 +538,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              business
+              attitude
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -575,7 +575,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              bachelor
+              category
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -612,7 +612,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              category
+              accident
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -649,7 +649,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              accident
+              cinnamon
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -723,7 +723,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              abstract
+              artefact
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -797,7 +797,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              acoustic
+              business
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -834,7 +834,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              artefact
+              acoustic
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -871,7 +871,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 ]
               }
             >
-              cinnamon
+              abstract
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

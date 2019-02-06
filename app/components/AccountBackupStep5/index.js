@@ -262,6 +262,7 @@ class AccountBackupStep5 extends Component {
 									const selectedText = selected ? styles.selectedWordText : null;
 									return (
 										<TouchableOpacity
+											// eslint-disable-next-line react/jsx-no-bind
 											onPress={() => this.selectWord(word, i)}
 											style={[styles.selectableWord, selected]}
 											key={`selectableWord_${i}`}
