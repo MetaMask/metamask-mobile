@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
@@ -12,9 +12,13 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
+	scrollviewWrapper: {
+		flex: 1
+	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		padding: 20,
+		paddingBottom: 0
 	},
 	content: {
 		alignItems: 'flex-start'
@@ -129,42 +133,48 @@ export default class AccountBackupStep1 extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} />
-				<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
-					<Text style={styles.navbarRightText}>{strings('account_backup_step_1.skip')}</Text>
-				</TouchableOpacity>
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<View style={styles.content}>
-						<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
-						<View style={styles.recommended}>
-							<Text style={styles.recommendedText}>
-								{strings('account_backup_step_1.highly_recommended')}
-							</Text>
+				<ScrollView
+					contentContainerStyle={styles.scrollviewWrapper}
+					style={styles.mainWrapper}
+					testID={'account-backup-step-1-screen'}
+				>
+					<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
+						<Text style={styles.navbarRightText}>{strings('account_backup_step_1.skip')}</Text>
+					</TouchableOpacity>
+					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+						<View style={styles.content}>
+							<Text style={styles.title}>{strings('account_backup_step_1.title')}</Text>
+							<View style={styles.recommended}>
+								<Text style={styles.recommendedText}>
+									{strings('account_backup_step_1.highly_recommended')}
+								</Text>
+							</View>
+							<View style={styles.text}>
+								<Text style={styles.label}>{strings('account_backup_step_1.info_text_1')}</Text>
+								<Text style={styles.label}>{strings('account_backup_step_1.info_text_2')}</Text>
+								<Text style={styles.bold}>{strings('account_backup_step_1.important')}</Text>
+								<Text style={styles.label}>{strings('account_backup_step_1.info_text_3')}</Text>
+							</View>
 						</View>
-						<View style={styles.text}>
-							<Text style={styles.label}>{strings('account_backup_step_1.info_text_1')}</Text>
-							<Text style={styles.label}>{strings('account_backup_step_1.info_text_2')}</Text>
-							<Text style={styles.bold}>{strings('account_backup_step_1.important')}</Text>
-							<Text style={styles.label}>{strings('account_backup_step_1.info_text_3')}</Text>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.goNext}
+								testID={'submit-button'}
+							>
+								{strings('account_backup_step_1.cta_text')}
+							</StyledButton>
+							<Button
+								style={styles.learnMoreButton}
+								onPress={this.learnMore}
+								testID={'learn-more-button'}
+							>
+								<Text style={styles.learnMore}>{strings('account_backup_step_1.learn_more')}</Text>
+							</Button>
 						</View>
 					</View>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							onPress={this.goNext}
-							testID={'create-password-button'}
-						>
-							{strings('account_backup_step_1.cta_text')}
-						</StyledButton>
-						<Button
-							style={styles.learnMoreButton}
-							onPress={this.learnMore}
-							testID={'create-password-button'}
-						>
-							<Text style={styles.learnMore}>{strings('account_backup_step_1.learn_more')}</Text>
-						</Button>
-					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}

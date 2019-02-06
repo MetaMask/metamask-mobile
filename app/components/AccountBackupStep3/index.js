@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
@@ -12,6 +12,9 @@ import { strings } from '../../../locales/i18n';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	scrollviewWrapper: {
 		flex: 1
 	},
 	wrapper: {
@@ -104,28 +107,34 @@ export default class AccountBackupStep3 extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={2} />
-				<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
-					<Icon name="close" size={15} style={styles.closeIcon} />
-				</TouchableOpacity>
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<View style={styles.content}>
-						<Emoji name="eye" style={styles.emoji} />
-						<Text style={styles.title}>{strings('account_backup_step_3.title')}</Text>
-						<View style={styles.text}>
-							<Text style={styles.label}>{strings('account_backup_step_3.info_text')}</Text>
+				<ScrollView
+					contentContainerStyle={styles.scrollviewWrapper}
+					style={styles.mainWrapper}
+					testID={'account-backup-step-3-screen'}
+				>
+					<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
+						<Icon name="close" size={15} style={styles.closeIcon} />
+					</TouchableOpacity>
+					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+						<View style={styles.content}>
+							<Emoji name="eye" style={styles.emoji} />
+							<Text style={styles.title}>{strings('account_backup_step_3.title')}</Text>
+							<View style={styles.text}>
+								<Text style={styles.label}>{strings('account_backup_step_3.info_text')}</Text>
+							</View>
+						</View>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.goNext}
+								testID={'submit-button'}
+							>
+								{strings('account_backup_step_3.cta_text')}
+							</StyledButton>
 						</View>
 					</View>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							onPress={this.goNext}
-							testID={'create-password-button'}
-						>
-							{strings('account_backup_step_3.cta_text')}
-						</StyledButton>
-					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}

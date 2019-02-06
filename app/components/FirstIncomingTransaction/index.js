@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
@@ -84,7 +84,11 @@ export default class FirstIncomingTransaction extends Component {
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<View style={styles.wrapper} testID={'first-incoming-transaction-screen'}>
+				<ScrollView
+					contentContainerStyle={styles.wrapper}
+					style={styles.mainWrapper}
+					testID={'first-incoming-transaction-screen'}
+				>
 					<View style={styles.content}>
 						<Emoji name="raised_hands" style={styles.emoji} />
 						<Text style={styles.title}>
@@ -113,12 +117,12 @@ export default class FirstIncomingTransaction extends Component {
 							containerStyle={styles.button}
 							type={'confirm'}
 							onPress={this.goNext}
-							testID={'ok-button'}
+							testID={'submit-button'}
 						>
 							{strings('first_incoming_transaction.cta_text')}
 						</StyledButton>
 					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	};

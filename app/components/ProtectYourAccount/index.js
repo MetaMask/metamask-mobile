@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
@@ -72,7 +72,11 @@ export default class ProtectYourAccount extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+				<ScrollView
+					contentContainerStyle={styles.wrapper}
+					style={styles.mainWrapper}
+					testID={'protect-your-account-screen'}
+				>
 					<View style={styles.content}>
 						<Emoji name="closed_lock_with_key" style={styles.emoji} />
 						<Text style={styles.title}>{strings('protect_your_account.title')}</Text>
@@ -85,12 +89,12 @@ export default class ProtectYourAccount extends Component {
 							containerStyle={styles.button}
 							type={'confirm'}
 							onPress={this.goNext}
-							testID={'create-password-button'}
+							testID={'submit-button'}
 						>
 							{strings('protect_your_account.cta_text')}
 						</StyledButton>
 					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}

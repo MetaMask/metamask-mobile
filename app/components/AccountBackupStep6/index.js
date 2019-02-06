@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
@@ -111,7 +111,11 @@ export default class AccountBackupStep6 extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={5} />
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+				<ScrollView
+					contentContainerStyle={styles.wrapper}
+					style={styles.mainWrapper}
+					testID={'account-backup-step-6-screen'}
+				>
 					<View style={styles.content}>
 						<Emoji name="tada" style={styles.emoji} />
 						<Text style={styles.title}>{strings('account_backup_step_6.title')}</Text>
@@ -147,13 +151,13 @@ export default class AccountBackupStep6 extends Component {
 							containerStyle={styles.button}
 							type={'confirm'}
 							onPress={this.dismiss}
-							testID={'create-password-button'}
+							testID={'submit-button'}
 						>
 							<Icon name="check" size={15} style={styles.closeIcon} />
 							{strings('account_backup_step_6.cta_text')}
 						</StyledButton>
 					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
@@ -9,6 +9,9 @@ import { strings } from '../../../locales/i18n';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	scrollviewWrapper: {
 		flex: 1
 	},
 	wrapper: {
@@ -188,75 +191,86 @@ export default class AccountBackupStep5 extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={4} />
-				<TouchableOpacity onPress={this.goBack} style={styles.navbarLeftButton}>
-					<Text style={styles.navbarLeftText}>{strings('account_backup_step_5.back')}</Text>
-				</TouchableOpacity>
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<View style={styles.content}>
-						<Text style={styles.title}>{strings('account_backup_step_5.title')}</Text>
-						<View style={styles.text}>
-							<Text style={styles.label}>{strings('account_backup_step_5.info_text')}</Text>
-						</View>
-
-						<View style={styles.seedPhraseWrapper}>
-							<View style={styles.colLeft}>
-								{this.state.confirmedWords.slice(0, 6).map((word, i) => (
-									<TouchableOpacity key={`word_${i}`} onPress={() => this.updateWordAtIndex(i)}>
-										<Text
-											style={[
-												styles.word,
-												i === this.state.currentIndex ? styles.currentWord : null
-											]}
-										>
-											{word && `${i + 1}. ${word}`}
-										</Text>
-									</TouchableOpacity>
-								))}
+				<ScrollView
+					contentContainerStyle={styles.scrollviewWrapper}
+					style={styles.mainWrapper}
+					testID={'account-backup-step-5-screen'}
+				>
+					<TouchableOpacity onPress={this.goBack} style={styles.navbarLeftButton}>
+						<Text style={styles.navbarLeftText}>{strings('account_backup_step_5.back')}</Text>
+					</TouchableOpacity>
+					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+						<View style={styles.content}>
+							<Text style={styles.title}>{strings('account_backup_step_5.title')}</Text>
+							<View style={styles.text}>
+								<Text style={styles.label}>{strings('account_backup_step_5.info_text')}</Text>
 							</View>
-							<View style={styles.colRight}>
-								{this.state.confirmedWords.slice(-6).map((word, i) => (
-									<TouchableOpacity onPress={() => this.updateWordAtIndex(i + 6)} key={`word_${i}`}>
-										<Text
-											style={[
-												styles.word,
-												i + 6 === this.state.currentIndex ? styles.currentWord : null
-											]}
+
+							<View style={styles.seedPhraseWrapper}>
+								<View style={styles.colLeft}>
+									{this.state.confirmedWords.slice(0, 6).map((word, i) => (
+										<TouchableOpacity key={`word_${i}`} onPress={() => this.updateWordAtIndex(i)}>
+											<Text
+												style={[
+													styles.word,
+													i === this.state.currentIndex ? styles.currentWord : null
+												]}
+											>
+												{word && `${i + 1}. ${word}`}
+											</Text>
+										</TouchableOpacity>
+									))}
+								</View>
+								<View style={styles.colRight}>
+									{this.state.confirmedWords.slice(-6).map((word, i) => (
+										<TouchableOpacity
+											onPress={() => this.updateWordAtIndex(i + 6)}
+											key={`word_${i}`}
 										>
-											{word && `${i + 7}. ${word}`}
-										</Text>
-									</TouchableOpacity>
-								))}
+											<Text
+												style={[
+													styles.word,
+													i + 6 === this.state.currentIndex ? styles.currentWord : null
+												]}
+											>
+												{word && `${i + 7}. ${word}`}
+											</Text>
+										</TouchableOpacity>
+									))}
+								</View>
+							</View>
+
+							<View style={styles.words}>
+								{this.words.map((word, i) => {
+									const selected = this.state.confirmedWords.includes(word)
+										? styles.selectedWord
+										: null;
+									const selectedText = selected ? styles.selectedWordText : null;
+									return (
+										<TouchableOpacity
+											onPress={() => this.selectWord(word, i)}
+											style={[styles.selectableWord, selected]}
+											key={`selectableWord_${i}`}
+										>
+											<Text style={[styles.selectableWordText, selectedText]}>{word}</Text>
+										</TouchableOpacity>
+									);
+								})}
 							</View>
 						</View>
-
-						<View style={styles.words}>
-							{this.words.map((word, i) => {
-								const selected = this.state.confirmedWords.includes(word) ? styles.selectedWord : null;
-								const selectedText = selected ? styles.selectedWordText : null;
-								return (
-									<TouchableOpacity
-										onPress={() => this.selectWord(word, i)}
-										style={[styles.selectableWord, selected]}
-										key={`selectableWord_${i}`}
-									>
-										<Text style={[styles.selectableWordText, selectedText]}>{word}</Text>
-									</TouchableOpacity>
-								);
-							})}
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.goNext}
+								testID={'submit-button'}
+								disabled={!(this.state.confirmedWords.filter(word => word === undefined).length === 0)}
+							>
+								{strings('account_backup_step_5.cta_text')}
+							</StyledButton>
 						</View>
 					</View>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							onPress={this.goNext}
-							testID={'create-password-button'}
-							disabled={!(this.state.confirmedWords.filter(word => word === undefined).length === 0)}
-						>
-							{strings('account_backup_step_5.cta_text')}
-						</StyledButton>
-					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}

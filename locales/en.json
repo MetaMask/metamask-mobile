@@ -41,12 +41,16 @@
 		"import_with_seed_phrase": "Import with seed phrase",
 		"password_length_error": "The password needs to be at least 8 chars long",
 		"password_dont_match": "Passwords don't match",
+		"password_strength": "Password strength:",
 		"strength_weak": "Weak",
 		"strength_good": "Good",
 		"strength_strong": "Strong",
 		"show": "Show",
 		"hide": "Hide",
-		"must_be_at_least": "Must be at least {{number}} characters"
+		"must_be_at_least": "Must be at least {{number}} characters",
+		"security_alert_title": "Security Alert",
+		"security_alert_message":
+			"In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -91,7 +95,6 @@
 		"collectible": "Collectible",
 		"collectibles": "COLLECTIBLES",
 		"transactions": "TRANSACTIONS",
-		"collectible_no_name": "This collectible has no name",
 		"no_collectibles": "You don't have any collectibles!",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
@@ -125,7 +128,6 @@
 		"search_tokens_placeholder": "Search Tokens",
 		"address_cant_be_empty": "Token address can't be empty.",
 		"address_must_be_valid": "Token address must be a valid address.",
-		"address_must_be_smart_contract": "Personal address detected. Input the token contract address.",
 		"symbol_cant_be_empty": "Token symbol can't be empty.",
 		"decimals_cant_be_empty": "Token decimals can't be empty.",
 		"select_token": "Select Token"
@@ -134,14 +136,9 @@
 		"collectible_address": "Address",
 		"collectible_type": "Type",
 		"collectible_token_id": "ID",
-		"collectible_description": "Description",
 		"address_must_be_valid": "Collectible address must be a valid address.",
-		"address_must_be_smart_contract": "Personal address detected. Input the collectible contract address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",
-		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
-		"ownership_error_title": "Ooops! Something happened.",
-		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
-		"powered_by_opensea": "Powered by"
+		"token_id_cant_be_empty": "Collectible identifier can't be empty."
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -242,11 +239,7 @@
 	},
 	"asset_overview": {
 		"send_button": "SEND",
-		"receive_button": "RECEIVE",
-		"add_collectible_button": "ADD",
-		"description": "Description",
-		"totalSupply": "Total Supply",
-		"address": "Address"
+		"receive_button": "RECEIVE"
 	},
 	"account_details": {
 		"title": "Account Details",

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import Pager from '../Pager';
@@ -10,6 +10,9 @@ import { strings } from '../../../locales/i18n';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	scrollviewWrapper: {
 		flex: 1
 	},
 	wrapper: {
@@ -146,48 +149,54 @@ export default class AccountBackupStep4 extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={3} />
-				<TouchableOpacity onPress={this.dismiss} style={styles.navbarLeftButton}>
-					<Text style={styles.navbarLeftText}>{strings('account_backup_step_4.back')}</Text>
-				</TouchableOpacity>
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<View style={styles.content}>
-						<Text style={styles.title}>{strings('account_backup_step_4.title')}</Text>
-						<View style={styles.text}>
-							<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
-						</View>
-
-						<View style={styles.seedPhraseWrapper}>
-							<View style={styles.colLeft}>
-								{this.words.slice(0, 6).map((word, i) => (
-									<Text key={`word_${i}`} style={styles.word}>
-										{`${i + 1}. ${word}`}
-									</Text>
-								))}
+				<ScrollView
+					contentContainerStyle={styles.scrollviewWrapper}
+					style={styles.mainWrapper}
+					testID={'account-backup-step-4-screen'}
+				>
+					<TouchableOpacity onPress={this.dismiss} style={styles.navbarLeftButton}>
+						<Text style={styles.navbarLeftText}>{strings('account_backup_step_4.back')}</Text>
+					</TouchableOpacity>
+					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+						<View style={styles.content}>
+							<Text style={styles.title}>{strings('account_backup_step_4.title')}</Text>
+							<View style={styles.text}>
+								<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
 							</View>
-							<View style={styles.colRight}>
-								{this.words.slice(-6).map((word, i) => (
-									<Text key={`word_${i}`} style={styles.word}>
-										{`${i + 7}. ${word}`}
-									</Text>
-								))}
+
+							<View style={styles.seedPhraseWrapper}>
+								<View style={styles.colLeft}>
+									{this.words.slice(0, 6).map((word, i) => (
+										<Text key={`word_${i}`} style={styles.word}>
+											{`${i + 1}. ${word}`}
+										</Text>
+									))}
+								</View>
+								<View style={styles.colRight}>
+									{this.words.slice(-6).map((word, i) => (
+										<Text key={`word_${i}`} style={styles.word}>
+											{`${i + 7}. ${word}`}
+										</Text>
+									))}
+								</View>
+							</View>
+
+							<View style={styles.text}>
+								<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
 							</View>
 						</View>
-
-						<View style={styles.text}>
-							<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.goNext}
+								testID={'submit-button'}
+							>
+								{strings('account_backup_step_4.cta_text')}
+							</StyledButton>
 						</View>
 					</View>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							onPress={this.goNext}
-							testID={'create-password-button'}
-						>
-							{strings('account_backup_step_4.cta_text')}
-						</StyledButton>
-					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}

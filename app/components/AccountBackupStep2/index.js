@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
@@ -12,6 +12,9 @@ import { strings } from '../../../locales/i18n';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
+		flex: 1
+	},
+	scrollviewWrapper: {
 		flex: 1
 	},
 	wrapper: {
@@ -120,49 +123,55 @@ export default class AccountBackupStep2 extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={1} />
-				<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
-					<Icon name="close" size={15} style={styles.closeIcon} />
-				</TouchableOpacity>
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-					<View style={styles.content}>
-						<Emoji name="writing_hand" style={styles.emoji} />
-						<Text style={styles.title}>{strings('acount_backup_step_2.title')}</Text>
-						<View style={styles.warning}>
-							<Text style={[styles.label, styles.warningText]}>
-								{strings('acount_backup_step_2.info_text_1')}
-							</Text>
+				<ScrollView
+					contentContainerStyle={styles.scrollviewWrapper}
+					style={styles.mainWrapper}
+					testID={'account-backup-step-2-screen'}
+				>
+					<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
+						<Icon name="close" size={15} style={styles.closeIcon} />
+					</TouchableOpacity>
+					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+						<View style={styles.content}>
+							<Emoji name="writing_hand" style={styles.emoji} />
+							<Text style={styles.title}>{strings('account_backup_step_2.title')}</Text>
+							<View style={styles.warning}>
+								<Text style={[styles.label, styles.warningText]}>
+									{strings('account_backup_step_2.info_text_1')}
+								</Text>
+							</View>
+							<View style={styles.text}>
+								<Text style={[styles.label, styles.subtitle]}>
+									{strings('account_backup_step_2.security_tips')}
+								</Text>
+							</View>
+							<View style={styles.text}>
+								<View style={styles.bulletPoint}>
+									<Text style={styles.bullet}>{'\u2022'}</Text>
+									<Text style={styles.label}>{strings('account_backup_step_2.tip_1')}</Text>
+								</View>
+								<View style={styles.bulletPoint}>
+									<Text style={styles.bullet}>{'\u2022'}</Text>
+									<Text style={styles.label}>{strings('account_backup_step_2.tip_2')}</Text>
+								</View>
+								<View style={styles.bulletPoint}>
+									<Text style={styles.bullet}>{'\u2022'}</Text>
+									<Text style={styles.label}>{strings('account_backup_step_2.tip_3')}</Text>
+								</View>
+							</View>
 						</View>
-						<View style={styles.text}>
-							<Text style={[styles.label, styles.subtitle]}>
-								{strings('acount_backup_step_2.security_tips')}
-							</Text>
-						</View>
-						<View style={styles.text}>
-							<View style={styles.bulletPoint}>
-								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>{strings('acount_backup_step_2.tip_1')}</Text>
-							</View>
-							<View style={styles.bulletPoint}>
-								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>{strings('acount_backup_step_2.tip_2')}</Text>
-							</View>
-							<View style={styles.bulletPoint}>
-								<Text style={styles.bullet}>{'\u2022'}</Text>
-								<Text style={styles.label}>{strings('acount_backup_step_2.tip_3')}</Text>
-							</View>
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								containerStyle={styles.button}
+								type={'confirm'}
+								onPress={this.goNext}
+								testID={'submit-button'}
+							>
+								{strings('account_backup_step_2.cta_text')}
+							</StyledButton>
 						</View>
 					</View>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							containerStyle={styles.button}
-							type={'confirm'}
-							onPress={this.goNext}
-							testID={'create-password-button'}
-						>
-							{strings('acount_backup_step_2.cta_text')}
-						</StyledButton>
-					</View>
-				</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}

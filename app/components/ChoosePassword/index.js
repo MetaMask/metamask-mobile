@@ -191,7 +191,7 @@ export default class ChoosePassword extends Component {
 			try {
 				this.setState({ loading: true });
 				const { KeyringController } = Engine.context;
-				const mnemonic = await KeyringController.exportSeedPhrase('');
+				const mnemonic = await KeyringController.exportSeedPhrase('hagornr79');
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
 
@@ -300,7 +300,7 @@ export default class ChoosePassword extends Component {
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+				<View style={styles.wrapper} testID={'choose-password-screen'}>
 					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 						<View testID={'create-password-screen'}>
 							<View style={styles.content}>
@@ -454,7 +454,7 @@ export default class ChoosePassword extends Component {
 						<StyledButton
 							type={'blue'}
 							onPress={this.onPressCreate}
-							testID={'submit'}
+							testID={'submit-button'}
 							disabled={
 								!(this.state.password !== '' && this.state.password === this.state.confirmPassword)
 							}
