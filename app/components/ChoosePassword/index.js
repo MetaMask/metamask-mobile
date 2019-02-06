@@ -15,6 +15,8 @@ import {
 	TouchableOpacity
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { connect } from 'react-redux';
+import passwordSet from '../../actions/user';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 
@@ -140,14 +142,19 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 /**
  * View where users can set their password for the first time
  */
-export default class ChoosePassword extends Component {
+class ChoosePassword extends Component {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * The action to update the password set flag
+		 * in the redux store
+		 */
+		passwordSet: PropTypes.func
 	};
 
 	state = {
@@ -191,7 +198,7 @@ export default class ChoosePassword extends Component {
 			try {
 				this.setState({ loading: true });
 				const { KeyringController } = Engine.context;
-				const mnemonic = await KeyringController.exportSeedPhrase('hagornr79');
+				const mnemonic = await KeyringController.exportSeedPhrase('');
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
 
@@ -212,7 +219,8 @@ export default class ChoosePassword extends Component {
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
-				this.props.navigation.navigate('AccountBackupStep1');
+				this.props.passwordSet();
+				this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -471,3 +479,12 @@ export default class ChoosePassword extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	passwordSet: () => dispatch(passwordSet())
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(ChoosePassword);

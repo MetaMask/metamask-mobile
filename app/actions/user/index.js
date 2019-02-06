@@ -3,3 +3,9 @@ export default function passwordSet() {
 		type: 'PASSWORD_SET'
 	};
 }
+
+export function seedphraseBackedUp() {
+	return {
+		type: 'SEEDPHRASE_BACKED_UP'
+	};
+}

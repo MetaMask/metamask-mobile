@@ -5,6 +5,8 @@ import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../locales/i18n';
+import { connect } from 'react-redux';
+import { seedphraseBackedUp } from '../../actions/user';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -129,12 +131,17 @@ const styles = StyleSheet.create({
 /**
  * Component that provides ability to render transaction submitted view
  */
-export default class AccountBackupStep5 extends Component {
+class AccountBackupStep5 extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * The action to update the seedphrase backed up flag
+		 * in the redux store
+		 */
+		seedphraseBackedUp: PropTypes.func
 	};
 
 	constructor(props) {
@@ -153,7 +160,9 @@ export default class AccountBackupStep5 extends Component {
 	};
 
 	goNext = () => {
-		if (this.words.join('') === this.state.confirmedWords.join('')) {
+		const words = this.props.navigation.getParam('words', []);
+		if (words.join('') === this.state.confirmedWords.join('')) {
+			this.props.seedphraseBackedUp();
 			this.props.navigation.navigate('AccountBackupStep6');
 		} else {
 			Alert.alert(strings('account_backup_step_5.error_title'), strings('account_backup_step_5.error_message'));
@@ -209,7 +218,11 @@ export default class AccountBackupStep5 extends Component {
 							<View style={styles.seedPhraseWrapper}>
 								<View style={styles.colLeft}>
 									{this.state.confirmedWords.slice(0, 6).map((word, i) => (
-										<TouchableOpacity key={`word_${i}`} onPress={() => this.updateWordAtIndex(i)}>
+										<TouchableOpacity
+											key={`word_${i}`}
+											// eslint-disable-next-line react/jsx-no-bind
+											onPress={() => this.updateWordAtIndex(i)}
+										>
 											<Text
 												style={[
 													styles.word,
@@ -224,6 +237,7 @@ export default class AccountBackupStep5 extends Component {
 								<View style={styles.colRight}>
 									{this.state.confirmedWords.slice(-6).map((word, i) => (
 										<TouchableOpacity
+											// eslint-disable-next-line react/jsx-no-bind
 											onPress={() => this.updateWordAtIndex(i + 6)}
 											key={`word_${i}`}
 										>
@@ -275,3 +289,12 @@ export default class AccountBackupStep5 extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(AccountBackupStep5);

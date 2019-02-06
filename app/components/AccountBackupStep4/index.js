@@ -104,21 +104,6 @@ export default class AccountBackupStep4 extends Component {
 		navigation: PropTypes.object
 	};
 
-	words = [
-		'abstract',
-		'accident',
-		'acoustic',
-		'announce',
-		'artefact',
-		'attitude',
-		'bachelor',
-		'broccoli',
-		'business',
-		'category',
-		'champion',
-		'cinnamon'
-	];
-
 	dismiss = () => {
 		Alert.alert(
 			strings('account_backup_step_4.cancel_backup_title'),
@@ -142,10 +127,12 @@ export default class AccountBackupStep4 extends Component {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('AccountBackupStep5', { words: this.words });
+		this.props.navigation.navigate('AccountBackupStep5', { words: this.props.navigation.getParam('words', []) });
 	};
 
 	render() {
+		const words = this.props.navigation.getParam('words', []);
+
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={3} />
@@ -166,14 +153,14 @@ export default class AccountBackupStep4 extends Component {
 
 							<View style={styles.seedPhraseWrapper}>
 								<View style={styles.colLeft}>
-									{this.words.slice(0, 6).map((word, i) => (
+									{words.slice(0, 6).map((word, i) => (
 										<Text key={`word_${i}`} style={styles.word}>
 											{`${i + 1}. ${word}`}
 										</Text>
 									))}
 								</View>
 								<View style={styles.colRight}>
-									{this.words.slice(-6).map((word, i) => (
+									{words.slice(-6).map((word, i) => (
 										<Text key={`word_${i}`} style={styles.word}>
 											{`${i + 7}. ${word}`}
 										</Text>

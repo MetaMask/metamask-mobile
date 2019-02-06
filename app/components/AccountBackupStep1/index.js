@@ -102,7 +102,7 @@ export default class AccountBackupStep1 extends Component {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('AccountBackupStep2');
+		this.props.navigation.navigate('AccountBackupStep2', { ...this.props.navigation.state.params });
 	};
 
 	dismiss = () => {
