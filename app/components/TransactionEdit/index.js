@@ -123,7 +123,7 @@ class TransactionEdit extends Component {
 		/**
 		 * Transaction object associated with this transaction,
 		 */
-		transaction: PropTypes.object,
+		transaction: PropTypes.object.isRequired,
 		/**
 		 * Callback to open the qr scanner
 		 */

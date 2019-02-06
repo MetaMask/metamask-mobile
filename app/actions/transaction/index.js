@@ -73,9 +73,9 @@ export function setIndividualCollectibleTransaction(collectible) {
  *
  * @param {object} contractCollectible - Contract collectible object to be sent
  */
-export function setContractCollectibleTransaction(contractCollectible) {
+export function setCollectibleContractTransaction(contractCollectible) {
 	return {
-		type: 'SET_CONTRACT_COLLECTIBLE_TRANSACTION',
+		type: 'SET_COLLECTIBLE_CONTRACT_TRANSACTION',
 		contractCollectible
 	};
 }

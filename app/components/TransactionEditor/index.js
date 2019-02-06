@@ -135,14 +135,21 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { to, data, selectedAsset }
 		} = this.props;
-		const tokenAmountToSend = selectedAsset && amount && amount.toString(16);
-		const newData =
-			to && selectedAsset && tokenAmountToSend
-				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
-				: data;
-		const amountToSend = selectedAsset ? '0x0' : amount;
-		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
-		this.props.setTransactionObject({ value: amount, gas: hexToBN(gas), data: newData });
+
+		// If ETH transaction, there is no need to generate new data
+		if (!selectedAsset) {
+			const { gas } = await this.estimateGas({ amount, data, to });
+			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas) });
+		}
+		// If selectedAsset, could be an ERC20 or ERC721 asset
+		// ERC721 transactions do not change amount
+		// If ERC20, decimals is defined
+		else if (selectedAsset.decimals) {
+			const tokenAmountToSend = amount && amount.toString(16);
+			const newData = generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend });
+			const { gas } = await this.estimateGas({ amount: '0x0', data: newData, to: selectedAsset.address });
+			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data: newData });
+		}
 	};
 
 	/**
@@ -181,15 +188,32 @@ class TransactionEditor extends Component {
 	 */
 	handleUpdateToAddress = async to => {
 		const {
-			transaction: { selectedAsset, value, data }
+			transaction: { selectedAsset, value, data, from }
 		} = this.props;
-		const tokenAmountToSend = selectedAsset && value && value.toString(16);
-		const newData =
-			selectedAsset && tokenAmountToSend
-				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
-				: data;
-		const { gas } = await this.estimateGas({ data: newData, to: selectedAsset ? selectedAsset.address : to });
-		this.props.setTransactionObject({ to, gas: hexToBN(gas), data: newData });
+		// If ETH transaction, there is no need to generate new data
+		if (!selectedAsset) {
+			const { gas } = await this.estimateGas({ data, to });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas) });
+		}
+		// If selectedAsset, could be an ERC20 or ERC721 asset
+		// If ERC20, decimals is defined
+		else {
+			let newData;
+			if (selectedAsset.decimals) {
+				const tokenAmountToSend = selectedAsset && value && value.toString(16);
+				newData = generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend });
+			}
+			// If ERC721, tokenId is defined
+			else if (selectedAsset.tokenId) {
+				newData = generateTransferData('ERC721', {
+					fromAddress: from,
+					toAddress: to,
+					tokenId: selectedAsset.tokenId
+				});
+			}
+			const { gas } = await this.estimateGas({ data: newData, to: selectedAsset.address });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), data: newData });
+		}
 	};
 
 	/**
@@ -198,9 +222,7 @@ class TransactionEditor extends Component {
 	 * @param {object} asset - New asset to send in transaction
 	 */
 	handleUpdateAsset = async asset => {
-		const { transaction } = this.props;
 		this.props.setTransactionObject({ value: undefined, data: undefined, selectedAsset: asset });
-		await this.handleUpdateToAddress(transaction.to);
 	};
 
 	/**

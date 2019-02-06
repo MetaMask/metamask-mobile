@@ -55,7 +55,7 @@ const transactionReducer = (state = initialState, action) => {
 				asset: action.collectible,
 				type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION'
 			};
-		case 'SET_CONTRACT_COLLECTIBLE_TRANSACTION':
+		case 'SET_COLLECTIBLE_CONTRACT_TRANSACTION':
 			return {
 				...state,
 				asset: action.contractCollectible,

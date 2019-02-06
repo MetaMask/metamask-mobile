@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetActionButtons from '../AssetActionButtons';
+import { setCollectibleContractTransaction } from '../../actions/transaction';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
  * View that displays a specific collectible contract
  * including the overview (name, address, symbol, logo, description, total supply)
  */
-export default class CollectibleContractOverview extends Component {
+class CollectibleContractOverview extends Component {
 	static propTypes = {
 		/**
 		 * Object that represents the asset to be displayed
@@ -57,7 +59,11 @@ export default class CollectibleContractOverview extends Component {
 		/**
 		 * How many collectibles are owned by the user
 		 */
-		ownerOf: PropTypes.number
+		ownerOf: PropTypes.number,
+		/**
+		 * Action that sets a collectible contract type transaction
+		 */
+		setCollectibleContractTransaction: PropTypes.func.isRequired
 	};
 
 	onAdd = () => {
@@ -65,7 +71,8 @@ export default class CollectibleContractOverview extends Component {
 	};
 
 	onSend = () => {
-		Alert.alert(strings('drawer.coming_soon'));
+		this.props.setCollectibleContractTransaction();
+		this.props.navigation.navigate('SendView');
 	};
 
 	renderLogo = () => {
@@ -99,3 +106,12 @@ export default class CollectibleContractOverview extends Component {
 		);
 	};
 }
+
+const mapDispatchToProps = dispatch => ({
+	setCollectibleContractTransaction: () => dispatch(setCollectibleContractTransaction())
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(CollectibleContractOverview);

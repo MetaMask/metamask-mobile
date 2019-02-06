@@ -89,7 +89,6 @@ class Send extends Component {
 				this.handleNewTxMeta(txMeta);
 			}
 		}
-
 		this.mounted && this.setState({ ready: true });
 	}
 
@@ -161,7 +160,7 @@ class Send extends Component {
 	/**
 	 * Returns transaction object with gas, gasPrice and value in hex format
 	 *
-	 * @param transaction - Transaction object
+	 * @param {object} transaction - Transaction object
 	 */
 	prepareTransaction = transaction => ({
 		...transaction,
@@ -174,9 +173,10 @@ class Send extends Component {
 	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
 	 * and to set to selectedAsset address
 	 *
-	 * @param transaction - Transaction object
+	 * @param {object} transaction - Transaction object
+	 * @param {object} selectedAsset - Asset object
 	 */
-	prepareTokenTransaction = (transaction, selectedAsset) => ({
+	prepareAssetTransaction = (transaction, selectedAsset) => ({
 		...transaction,
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice),
@@ -228,7 +228,7 @@ class Send extends Component {
 			if (!selectedAsset) {
 				transaction = this.prepareTransaction(transaction);
 			} else {
-				transaction = this.prepareTokenTransaction(transaction, selectedAsset);
+				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 			await TransactionController.approveTransaction(transactionMeta.id);
