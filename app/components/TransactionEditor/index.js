@@ -72,16 +72,28 @@ class TransactionEditor extends Component {
 		readableValue: undefined
 	};
 
+	/**
+	 * Call callback when transaction is cancelled
+	 */
 	onCancel = () => {
 		const { onCancel } = this.props;
 		onCancel && onCancel();
 	};
 
+	/**
+	 * Call callback when transaction is confirmed, after being validated
+	 */
 	onConfirm = () => {
 		const { onConfirm } = this.props;
 		!this.validate() && onConfirm && onConfirm();
 	};
 
+	/**
+	 * Estimates gas limit
+	 *
+	 * @param {object} opts - Object containing optional attributes object to calculate gas with (amount, dat and to)
+	 * @returns {object} - Object containing gas estimation
+	 */
 	estimateGas = async opts => {
 		const { TransactionController } = Engine.context;
 		const {
@@ -103,10 +115,22 @@ class TransactionEditor extends Component {
 		return estimation;
 	};
 
+	/**
+	 * Updates gas and gasPrice in transaction state
+	 *
+	 * @param {object} gasLimit - BN object containing gasLimit value
+	 * @param {object} gasPrice - BN object containing gasPrice value
+	 */
 	handleGasFeeSelection = (gasLimit, gasPrice) => {
 		this.props.setTransactionObject({ gas: gasLimit, gasPrice });
 	};
 
+	/**
+	 * Updates value in transaction state
+	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
+	 *
+	 * @param {object} amount - BN object containing transaction amount
+	 */
 	handleUpdateAmount = async amount => {
 		const {
 			transaction: { to, data, selectedAsset }
@@ -121,19 +145,40 @@ class TransactionEditor extends Component {
 		this.props.setTransactionObject({ value: amount, gas: hexToBN(gas), data: newData });
 	};
 
+	/**
+	 * Updates readableValue in state
+	 *
+	 * @param {string} readableValue - String containing the readable value
+	 */
 	handleUpdateReadableValue = readableValue => {
 		this.setState({ readableValue });
 	};
 
+	/**
+	 * Updates data in transaction state, after gas is estimated according to this data
+	 *
+	 * @param {string} data - String containing new data
+	 */
 	handleUpdateData = async data => {
 		const { gas } = await this.estimateGas({ data });
 		this.props.setTransactionObject({ gas: hexToBN(gas), data });
 	};
 
+	/**
+	 * Updates from in transaction state
+	 *
+	 * @param {string} from - String containing from address
+	 */
 	handleUpdateFromAddress = from => {
 		this.props.setTransactionObject({ from });
 	};
 
+	/**
+	 * Updates to in transaction object
+	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
+	 *
+	 * @param {string} to - String containing to address
+	 */
 	handleUpdateToAddress = async to => {
 		const {
 			transaction: { selectedAsset, value, data }
@@ -147,18 +192,35 @@ class TransactionEditor extends Component {
 		this.props.setTransactionObject({ to, gas: hexToBN(gas), data: newData });
 	};
 
+	/**
+	 * Updates selectedAsset in transaction state
+	 *
+	 * @param {object} asset - New asset to send in transaction
+	 */
 	handleUpdateAsset = async asset => {
 		const { transaction } = this.props;
 		this.props.setTransactionObject({ value: undefined, data: undefined, selectedAsset: asset });
 		await this.handleUpdateToAddress(transaction.to);
 	};
 
+	/**
+	 * Validates amount, gas and to address
+	 *
+	 * @returns {boolean} - Whether the transaction is valid or not
+	 */
 	validate = () => {
 		if (this.validateAmount(false) || this.validateGas() || this.validateToAddress()) {
 			return true;
 		}
+		return false;
 	};
 
+	/**
+	 * Validates amount
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
 	validateAmount = (allowEmpty = true) => {
 		const {
 			transaction: { selectedAsset }
@@ -166,6 +228,12 @@ class TransactionEditor extends Component {
 		return selectedAsset ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
 	};
 
+	/**
+	 * Validates Ether transaction amount
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
 	validateEtherAmount = (allowEmpty = true) => {
 		let error;
 		if (!allowEmpty) {
@@ -187,6 +255,12 @@ class TransactionEditor extends Component {
 		return error;
 	};
 
+	/**
+	 * Validates asset (ERC20) transaction amount
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
 	validateTokenAmount = (allowEmpty = true) => {
 		let error;
 		if (!allowEmpty) {
@@ -213,6 +287,11 @@ class TransactionEditor extends Component {
 		return error;
 	};
 
+	/**
+	 * Validates transaction gas
+	 *
+	 * @returns {string} - String containing error message whether the transaction gas is valid or not
+	 */
 	validateGas = () => {
 		let error;
 		const {
@@ -226,6 +305,11 @@ class TransactionEditor extends Component {
 		return error;
 	};
 
+	/**
+	 * Validates transaction to address
+	 *
+	 * @returns {string} - String containing error message whether the transaction to address is valid or not
+	 */
 	validateToAddress = () => {
 		let error;
 		const {
