@@ -111,6 +111,7 @@ class Send extends Component {
 		if (!transactionSubmitted && !this.unmountHandled) {
 			transaction && (await this.onCancel(transaction.id));
 		}
+		this.clear();
 		this.mounted = false;
 	}
 
@@ -206,8 +207,8 @@ class Send extends Component {
 		} else {
 			this.props.navigation.pop();
 		}
-		this.unmountHandled = true;
 		this.clear();
+		this.unmountHandled = true;
 	};
 
 	/**

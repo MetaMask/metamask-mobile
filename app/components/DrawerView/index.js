@@ -35,6 +35,7 @@ import { showAlert } from '../../actions/alert';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderShortAddress } from '../../util/address';
 import Engine from '../../core/Engine';
+import { setTokensTransaction } from '../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -281,7 +282,11 @@ class DrawerView extends Component {
 		/**
 		 * Boolean that determines the status of the networks modal
 		 */
-		networkModalVisible: PropTypes.bool.isRequired
+		networkModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Action that sets a tokens type transaction
+		 */
+		setTokensTransaction: PropTypes.func.isRequired
 	};
 
 	state = {
@@ -321,6 +326,7 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
+		this.props.setTokensTransaction();
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 	};
@@ -635,7 +641,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	setTokensTransaction: () => dispatch(setTokensTransaction())
 });
 
 export default connect(

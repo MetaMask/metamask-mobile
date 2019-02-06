@@ -91,7 +91,7 @@ class TransactionEditor extends Component {
 	/**
 	 * Estimates gas limit
 	 *
-	 * @param {object} opts - Object containing optional attributes object to calculate gas with (amount, dat and to)
+	 * @param {object} opts - Object containing optional attributes object to calculate gas with (amount, data and to)
 	 * @returns {object} - Object containing gas estimation
 	 */
 	estimateGas = async opts => {
@@ -100,7 +100,7 @@ class TransactionEditor extends Component {
 			transaction: { from, selectedAsset },
 			transaction
 		} = this.props;
-		const { amount = transaction.amount, data = transaction.data, to = transaction.to } = opts;
+		const { amount = transaction.value, data = transaction.data, to = transaction.to } = opts;
 		let estimation;
 		try {
 			estimation = await TransactionController.estimateGas({

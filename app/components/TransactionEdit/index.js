@@ -188,13 +188,17 @@ class TransactionEdit extends Component {
 		addressError: '',
 		toAddressError: '',
 		gasError: '',
-		fillMax: false
+		fillMax: false,
+		tokensTransaction: false
 	};
 
 	componentDidMount() {
 		const { transaction } = this.props;
 		if (transaction && transaction.value) {
 			this.props.handleUpdateAmount(transaction.value);
+		}
+		if (transaction.type.match(/TOKEN|ETHER/)) {
+			this.setState({ tokensTransaction: true });
 		}
 	}
 
@@ -280,12 +284,35 @@ class TransactionEdit extends Component {
 		});
 	};
 
+	renderAmountLabel = () => {
+		const { amountError, tokensTransaction } = this.state;
+		if (tokensTransaction) {
+			return (
+				<View style={styles.label}>
+					<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
+					{amountError ? (
+						<Text style={styles.error}>{amountError}</Text>
+					) : (
+						<TouchableOpacity onPress={this.fillMax}>
+							<Text style={styles.max}>{strings('transaction.max')}</Text>
+						</TouchableOpacity>
+					)}
+				</View>
+			);
+		}
+		return (
+			<View style={styles.label}>
+				<Text style={styles.labelText}>Collectible:</Text>
+			</View>
+		);
+	};
+
 	render = () => {
 		const {
 			transaction: { value, gas, gasPrice, data, from, to, selectedAsset },
 			showHexData
 		} = this.props;
-		const { amountError, gasError, toAddressError } = this.state;
+		const { gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -298,16 +325,7 @@ class TransactionEdit extends Component {
 							<AccountSelect value={from} onChange={this.updateFromAddress} enabled={false} />
 						</View>
 						<View style={[styles.formRow, styles.row, styles.amountRow]}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
-								{amountError ? (
-									<Text style={styles.error}>{amountError}</Text>
-								) : (
-									<TouchableOpacity onPress={this.fillMax}>
-										<Text style={styles.max}>{strings('transaction.max')}</Text>
-									</TouchableOpacity>
-								)}
-							</View>
+							{this.renderAmountLabel()}
 							<EthInput
 								onChange={this.updateAmount}
 								value={value}
