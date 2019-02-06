@@ -146,7 +146,10 @@ class TransactionEditor extends Component {
 		// If ERC20, decimals is defined
 		else if (selectedAsset.decimals) {
 			const tokenAmountToSend = amount && amount.toString(16);
-			const newData = generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend });
+			const newData =
+				to && tokenAmountToSend
+					? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+					: undefined;
 			const { gas } = await this.estimateGas({ amount: '0x0', data: newData, to: selectedAsset.address });
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data: newData });
 		}
@@ -201,7 +204,10 @@ class TransactionEditor extends Component {
 			let newData;
 			if (selectedAsset.decimals) {
 				const tokenAmountToSend = selectedAsset && value && value.toString(16);
-				newData = generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend });
+				newData =
+					to && tokenAmountToSend
+						? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+						: undefined;
 			}
 			// If ERC721, tokenId is defined
 			else if (selectedAsset.tokenId) {
