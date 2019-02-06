@@ -6,13 +6,11 @@
 		"info": "Info"
 	},
 	"onboarding": {
-		"title": "Welcome",
-		"subtitle": "The decentralized web awaits",
-		"lets_get_started": "Let's get started!",
-		"already_using_metamask": "Already using MetaMask?",
-		"import_wallet_button": "Import Wallet",
-		"or": "OR",
-		"create_new_wallet_button": "Create New Wallet"
+		"title": "Welcome to MetaMask",
+		"subtitle":
+			"A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.",
+		"import_wallet_button": "Import a wallet",
+		"start_exploring_now": "Start exploring now"
 	},
 	"import_wallet": {
 		"title": "Import Wallet",
