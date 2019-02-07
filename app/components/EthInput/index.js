@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, View, Image, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -15,6 +15,8 @@ import TokenImage from '../TokenImage';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
 import ElevatedView from 'react-native-elevated-view';
+import CollectibleImage from '../CollectibleImage';
+import SelectableAsset from './SelectableAsset';
 
 const styles = StyleSheet.create({
 	root: {
@@ -23,7 +25,6 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		flexDirection: 'row',
-		paddingLeft: 10,
 		paddingRight: 40,
 		paddingVertical: 6,
 		position: 'relative',
@@ -70,8 +71,7 @@ const styles = StyleSheet.create({
 	},
 	logo: {
 		width: 20,
-		height: 20,
-		marginRight: 0
+		height: 20
 	},
 	arrow: {
 		color: colors.inputBorderColor,
@@ -97,22 +97,6 @@ const styles = StyleSheet.create({
 		top: 0,
 		left: 0,
 		right: 0
-	},
-	option: {
-		flexDirection: 'row',
-		paddingBottom: 4,
-		paddingLeft: 8,
-		paddingRight: 10,
-		paddingTop: 8
-	},
-	symbol: {
-		...fontStyles.bold
-	},
-	balance: {
-		...fontStyles.normal
-	},
-	optionContent: {
-		paddingLeft: 8
 	}
 });
 
@@ -193,7 +177,7 @@ class EthInput extends Component {
 		transaction: PropTypes.object
 	};
 
-	state = { isOpen: false, readableValue: undefined, assets: undefined };
+	state = { isOpen: false, readableValue: undefined, assets: undefined, assetType: undefined };
 
 	componentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
@@ -214,7 +198,8 @@ class EthInput extends Component {
 							symbol: 'ETH'
 						},
 						...this.props.tokens
-					]
+					],
+					assetType: 'ERC20'
 				});
 				break;
 			case 'ETHER_TRANSACTION':
@@ -224,25 +209,30 @@ class EthInput extends Component {
 							name: 'Ether',
 							symbol: 'ETH'
 						}
-					]
+					],
+					assetType: 'ERC20'
 				});
 				break;
 			case 'INDIVIDUAL_TOKEN_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset]
+					assets: [transaction.selectedAsset],
+					assetType: 'ERC20'
 				});
 				break;
 			case 'INDIVIDUAL_COLLECTIBLE_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset]
+					assets: [transaction.selectedAsset],
+					assetType: 'ERC721'
 				});
 				break;
 			case 'CONTRACT_COLLECTIBLE_TRANSACTION': {
 				const collectiblesToShow = collectibles.filter(
-					collectible => transaction.selectedAsset.address === collectible.address
+					collectible => collectible.address.toLowerCase() === transaction.selectedAsset.address.toLowerCase()
 				);
+
 				this.setState({
-					assets: [collectiblesToShow]
+					assets: collectiblesToShow,
+					assetType: 'ERC721'
 				});
 				break;
 			}
@@ -265,48 +255,40 @@ class EthInput extends Component {
 	};
 
 	renderAsset = (asset, onPress) => {
-		const { tokenBalances, accounts, selectedAddress } = this.props;
-		const balance =
-			asset.symbol !== 'ETH'
-				? asset.address in tokenBalances
-					? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals)
-					: undefined
-				: renderFromWei(accounts[selectedAddress].balance);
-
-		return (
-			<TouchableOpacity key={asset.address || asset.symbol} onPress={onPress} style={styles.option}>
-				<View style={styles.icon}>
-					{asset.symbol !== 'ETH' ? (
-						<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
-					) : (
-						<Image source={ethLogo} style={styles.logo} />
-					)}
-				</View>
-				<View style={styles.optionContent}>
-					<Text style={styles.symbol}>{asset.symbol}</Text>
-					<Text style={styles.balance}>
-						{balance} {asset.symbol}
-					</Text>
-				</View>
-			</TouchableOpacity>
-		);
+		const { assetType } = this.state;
+		let title, subTitle, icon;
+		if (assetType === 'ERC20') {
+			const { tokenBalances, accounts, selectedAddress } = this.props;
+			title = asset.symbol;
+			subTitle =
+				asset.symbol !== 'ETH'
+					? asset.address in tokenBalances
+						? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals) + ' ' + asset.symbol
+						: undefined
+					: renderFromWei(accounts[selectedAddress].balance) + ' ' + asset.symbol;
+			icon =
+				asset.symbol !== 'ETH' ? (
+					<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+				) : (
+					<Image source={ethLogo} style={styles.logo} />
+				);
+		} else {
+			title = asset.name;
+			subTitle = 'ID: ' + asset.tokenId;
+			icon = <CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />;
+		}
+		return <SelectableAsset onPress={onPress} title={title} subTitle={subTitle} icon={icon} asset={asset} />;
 	};
 
 	renderAssetsList = () => {
-		const tokens = [
-			{
-				name: 'Ether',
-				symbol: 'ETH'
-			},
-			...this.props.tokens
-		];
+		const { assets } = this.state;
 		return (
 			<ElevatedView elevation={10} style={styles.root}>
 				<ScrollView style={styles.componentContainer}>
 					<View style={styles.optionList}>
-						{tokens.map(token =>
-							this.renderAsset(token, async () => {
-								await this.selectAsset(token);
+						{assets.map(asset =>
+							this.renderAsset(asset, async () => {
+								await this.selectAsset(asset);
 							})
 						)}
 					</View>
@@ -323,7 +305,7 @@ class EthInput extends Component {
 
 	render = () => {
 		const { currentCurrency, readonly, value, asset, contractExchangeRates, conversionRate } = this.props;
-		const { isOpen, readableValue } = this.state;
+		const { isOpen, readableValue, assetType } = this.state;
 		let convertedAmount;
 		if (asset) {
 			const exchangeRate = contractExchangeRates[asset.address];
@@ -342,37 +324,54 @@ class EthInput extends Component {
 		}
 		return (
 			<View style={styles.root}>
-				<View style={styles.container}>
-					<View style={styles.icon}>
-						{asset ? (
-							<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
-						) : (
-							<Image source={ethLogo} style={styles.logo} />
-						)}
+				{assetType === 'ERC721' ? (
+					<View style={styles.container}>
+						<SelectableAsset
+							title={asset.name}
+							subTitle={`ID: ${asset.tokenId}`}
+							icon={
+								<CollectibleImage
+									collectible={asset}
+									containerStyle={styles.logo}
+									iconStyle={styles.logo}
+								/>
+							}
+							asset={asset}
+						/>
 					</View>
-					<View style={styles.ethContainer}>
-						<View style={styles.split}>
-							<TextInput
-								autoCapitalize="none"
-								autoCorrect={false}
-								editable={!readonly}
-								keyboardType="numeric"
-								numberOfLines={1}
-								onChangeText={this.onChange}
-								placeholder={'0.00'}
-								spellCheck={false}
-								style={styles.input}
-								value={readableValue}
-							/>
-							<Text style={styles.eth} numberOfLines={1}>
-								{(asset && asset.symbol) || strings('unit.eth')}
+				) : (
+					<View style={styles.container}>
+						<View style={styles.icon}>
+							{asset ? (
+								<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
+							) : (
+								<Image source={ethLogo} style={styles.logo} />
+							)}
+						</View>
+						<View style={styles.ethContainer}>
+							<View style={styles.split}>
+								<TextInput
+									autoCapitalize="none"
+									autoCorrect={false}
+									editable={!readonly}
+									keyboardType="numeric"
+									numberOfLines={1}
+									onChangeText={this.onChange}
+									placeholder={'0.00'}
+									spellCheck={false}
+									style={styles.input}
+									value={readableValue}
+								/>
+								<Text style={styles.eth} numberOfLines={1}>
+									{(asset && asset.symbol) || strings('unit.eth')}
+								</Text>
+							</View>
+							<Text style={styles.fiatValue} numberOfLines={1}>
+								{convertedAmount}
 							</Text>
 						</View>
-						<Text style={styles.fiatValue} numberOfLines={1}>
-							{convertedAmount}
-						</Text>
 					</View>
-				</View>
+				)}
 
 				<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				{isOpen && this.renderAssetsList()}

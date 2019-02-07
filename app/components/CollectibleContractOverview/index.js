@@ -52,6 +52,10 @@ class CollectibleContractOverview extends Component {
 		 */
 		collectibleContract: PropTypes.object,
 		/**
+		 * Array of ERC721 assets
+		 */
+		collectibles: PropTypes.array,
+		/**
 		 * Navigation object required to push
 		 * the Asset detail view
 		 */
@@ -71,8 +75,11 @@ class CollectibleContractOverview extends Component {
 	};
 
 	onSend = () => {
-		const { collectibleContract } = this.props;
-		this.props.setCollectibleContractTransaction(collectibleContract);
+		const { collectibleContract, collectibles } = this.props;
+		const collectible = collectibles.find(
+			collectible => collectible.address.toLowerCase() === collectibleContract.address.toLowerCase()
+		);
+		this.props.setCollectibleContractTransaction(collectible);
 		this.props.navigation.navigate('SendView');
 	};
 
@@ -108,11 +115,15 @@ class CollectibleContractOverview extends Component {
 	};
 }
 
+const mapStateToProps = state => ({
+	collectibles: state.engine.backgroundState.AssetsController.collectibles
+});
+
 const mapDispatchToProps = dispatch => ({
 	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible))
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(CollectibleContractOverview);
