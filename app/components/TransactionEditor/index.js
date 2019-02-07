@@ -211,11 +211,13 @@ class TransactionEditor extends Component {
 			}
 			// If ERC721, tokenId is defined
 			else if (selectedAsset.tokenId) {
-				newData = generateTransferData('ERC721', {
-					fromAddress: from,
-					toAddress: to,
-					tokenId: selectedAsset.tokenId
-				});
+				newData =
+					to &&
+					generateTransferData('ERC721', {
+						fromAddress: from,
+						toAddress: to,
+						tokenId: selectedAsset.tokenId
+					});
 			}
 			const { gas } = await this.estimateGas({ data: newData, to: selectedAsset.address });
 			this.props.setTransactionObject({ to, gas: hexToBN(gas), data: newData });
@@ -228,7 +230,9 @@ class TransactionEditor extends Component {
 	 * @param {object} asset - New asset to send in transaction
 	 */
 	handleUpdateAsset = async asset => {
+		const { transaction } = this.props;
 		this.props.setTransactionObject({ value: undefined, data: undefined, selectedAsset: asset });
+		await this.handleUpdateToAddress(transaction.to);
 	};
 
 	/**
