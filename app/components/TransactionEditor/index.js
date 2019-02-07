@@ -355,13 +355,21 @@ class TransactionEditor extends Component {
 	validateGas = () => {
 		let error;
 		const {
-			transaction: { gas, gasPrice }
+			transaction: { gas, gasPrice, from }
 		} = this.props;
 		!gas && (error = strings('transaction.invalid_gas'));
 		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
 		!gasPrice && (error = strings('transaction.invalid_gas_price'));
 		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
 		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('custom_gas.warning_gas_limit'));
+
+		const checksummedFrom = from ? toChecksumAddress(from) : '';
+		const fromAccount = this.props.accounts[checksummedFrom];
+		fromAccount &&
+			isBN(gas) &&
+			isBN(gasPrice) &&
+			hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)) &&
+			(error = strings('transaction.insufficient'));
 		return error;
 	};
 
