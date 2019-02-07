@@ -28,10 +28,13 @@ export function setTransactionObject(transaction) {
 
 /**
  * Enable selectable tokens (ERC20 and Ether) to send in a transaction
+ *
+ * @param {object} asset - Asset to start the transaction with
  */
-export function setTokensTransaction() {
+export function setTokensTransaction(asset) {
 	return {
-		type: 'SET_TOKENS_TRANSACTION'
+		type: 'SET_TOKENS_TRANSACTION',
+		asset
 	};
 }
 

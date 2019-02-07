@@ -225,7 +225,7 @@ class Send extends Component {
 		} = this.props;
 		let { transaction } = this.props;
 		try {
-			if (!selectedAsset) {
+			if (selectedAsset.symbol === 'ETH') {
 				transaction = this.prepareTransaction(transaction);
 			} else {
 				transaction = this.prepareAssetTransaction(transaction, selectedAsset);

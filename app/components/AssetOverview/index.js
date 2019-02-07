@@ -7,7 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
-import { setSelectedAsset, setTokensTransaction } from '../../actions/transaction';
+import { setTokensTransaction } from '../../actions/transaction';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -64,10 +64,6 @@ class AssetOverview extends Component {
 		 */
 		asset: PropTypes.object,
 		/**
-		 * Action that selects a token in a transaction
-		 */
-		setSelectedAsset: PropTypes.func.isRequired,
-		/**
 		 * Action that sets a tokens type transaction
 		 */
 		setTokensTransaction: PropTypes.func.isRequired
@@ -80,11 +76,10 @@ class AssetOverview extends Component {
 	onSend = async () => {
 		const { asset } = this.props;
 		if (asset.symbol === 'ETH') {
-			this.props.setTokensTransaction();
+			this.props.setTokensTransaction({ symbol: 'ETH' });
 			this.props.navigation.navigate('SendView');
 		} else {
-			this.props.setSelectedAsset(asset);
-			this.props.setTokensTransaction();
+			this.props.setTokensTransaction(asset);
 			this.props.navigation.navigate('SendView');
 		}
 	};
@@ -125,8 +120,7 @@ class AssetOverview extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setSelectedAsset: asset => dispatch(setSelectedAsset(asset)),
-	setTokensTransaction: () => dispatch(setTokensTransaction())
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });
 
 export default connect(

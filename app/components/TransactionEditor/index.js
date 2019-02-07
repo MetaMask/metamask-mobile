@@ -137,7 +137,7 @@ class TransactionEditor extends Component {
 		} = this.props;
 
 		// If ETH transaction, there is no need to generate new data
-		if (!selectedAsset) {
+		if (selectedAsset.symbol === 'ETH') {
 			const { gas } = await this.estimateGas({ amount, data, to });
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas) });
 		}
@@ -187,7 +187,7 @@ class TransactionEditor extends Component {
 			transaction: { selectedAsset, data }
 		} = this.props;
 		// If ETH transaction, there is no need to generate new data
-		if (!selectedAsset) {
+		if (selectedAsset.symbol === 'ETH') {
 			const { gas } = await this.estimateGas({ data, to });
 			this.props.setTransactionObject({ to, gas: hexToBN(gas) });
 		}
@@ -205,12 +205,12 @@ class TransactionEditor extends Component {
 	 */
 	handleUpdateAsset = async asset => {
 		const { transaction } = this.props;
-		if (!asset) {
+		if (asset.symbol === 'ETH') {
 			const { gas } = await this.estimateGas({ to: transaction.to });
 			this.props.setTransactionObject({
 				value: undefined,
 				data: undefined,
-				selectedAsset: asset,
+				selectedAsset: { symbol: 'ETH' },
 				gas: hexToBN(gas)
 			});
 		} else {
@@ -279,7 +279,13 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { selectedAsset }
 		} = this.props;
-		return selectedAsset ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
+		if (selectedAsset.symbol === 'ETH') {
+			return this.validateEtherAmount(allowEmpty);
+		} else if (selectedAsset.tokenId) {
+			// TODO ownership validation
+			return undefined;
+		}
+		return this.validateTokenAmount(allowEmpty);
 	};
 
 	/**

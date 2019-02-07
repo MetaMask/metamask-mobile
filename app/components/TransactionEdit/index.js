@@ -188,8 +188,7 @@ class TransactionEdit extends Component {
 		addressError: '',
 		toAddressError: '',
 		gasError: '',
-		fillMax: false,
-		tokensTransaction: false
+		fillMax: false
 	};
 
 	componentDidMount() {
@@ -197,26 +196,27 @@ class TransactionEdit extends Component {
 		if (transaction && transaction.value) {
 			this.props.handleUpdateAmount(transaction.value);
 		}
-		if (transaction.type.match(/TOKEN|ETHER/)) {
-			this.setState({ tokensTransaction: true });
-		}
 	}
 
 	fillMax = () => {
-		const { gas, gasPrice, from, selectedAsset } = this.props.transaction;
+		const { gas, gasPrice, from, selectedAsset, assetType } = this.props.transaction;
 		const { balance } = this.props.accounts[from];
+
 		const { contractBalances } = this.props;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
-		const ethMaxAmount = hexToBN(balance)
-			.sub(totalGas)
-			.gt(fromWei(0))
-			? hexToBN(balance).sub(totalGas)
-			: fromWei(0);
-		const selectedTokenBalance = hexToBN(contractBalances[selectedAsset.address].toString(16));
-		this.props.handleUpdateAmount(selectedAsset ? selectedTokenBalance : ethMaxAmount);
-		const readableValue = selectedAsset
-			? fromTokenMinimalUnit(selectedTokenBalance, selectedAsset.decimals)
-			: fromWei(ethMaxAmount);
+		let value, readableValue;
+		if (assetType === 'ETH') {
+			const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
+			value = hexToBN(balance)
+				.sub(totalGas)
+				.gt(fromWei(0))
+				? hexToBN(balance).sub(totalGas)
+				: fromWei(0);
+			readableValue = fromWei(value);
+		} else if (assetType === 'ERC20') {
+			value = hexToBN(contractBalances[selectedAsset.address].toString(16));
+			readableValue = fromTokenMinimalUnit(value, selectedAsset.decimals);
+		}
+		this.props.handleUpdateAmount(value);
 		this.props.handleUpdateReadableValue(readableValue);
 		this.setState({ fillMax: true });
 	};
@@ -244,9 +244,9 @@ class TransactionEdit extends Component {
 	};
 
 	updateAmount = async amount => {
-		const { selectedAsset } = this.props.transaction;
+		const { selectedAsset, assetType } = this.props.transaction;
 		let processedAmount;
-		if (selectedAsset) {
+		if (assetType !== 'ETH') {
 			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
 		} else {
 			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
@@ -285,8 +285,9 @@ class TransactionEdit extends Component {
 	};
 
 	renderAmountLabel = () => {
-		const { amountError, tokensTransaction } = this.state;
-		if (tokensTransaction) {
+		const { amountError } = this.state;
+		const { assetType } = this.props.transaction;
+		if (assetType !== 'ERC721') {
 			return (
 				<View style={styles.label}>
 					<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
@@ -303,6 +304,7 @@ class TransactionEdit extends Component {
 		return (
 			<View style={styles.label}>
 				<Text style={styles.labelText}>Collectible:</Text>
+				{amountError ? <Text style={styles.error}>{amountError}</Text> : undefined}
 			</View>
 		);
 	};

@@ -326,7 +326,7 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
-		this.props.setTokensTransaction();
+		this.props.setTokensTransaction({ symbol: 'ETH' });
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 	};
@@ -642,7 +642,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	showAlert: config => dispatch(showAlert(config)),
-	setTokensTransaction: () => dispatch(setTokensTransaction())
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });
 
 export default connect(

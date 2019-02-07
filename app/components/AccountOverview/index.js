@@ -115,7 +115,7 @@ class AccountOverview extends Component {
 		Alert.alert(strings('drawer.coming_soon'));
 	};
 	onSend = () => {
-		this.props.setTokensTransaction();
+		this.props.setTokensTransaction({ symbol: 'ETH' });
 		this.props.navigation.navigate('SendView');
 	};
 	onCopy = async () => {
@@ -192,7 +192,7 @@ class AccountOverview extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setTokensTransaction: () => dispatch(setTokensTransaction())
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });
 
 export default connect(

@@ -9,7 +9,8 @@ const initialState = {
 	to: undefined,
 	asset: undefined,
 	selectedAsset: undefined,
-	type: undefined
+	type: undefined,
+	assetType: undefined
 };
 
 const transactionReducer = (state = initialState, action) => {
@@ -23,21 +24,61 @@ const transactionReducer = (state = initialState, action) => {
 				...state,
 				...initialState
 			};
-		case 'SET_SELECTED_ASSET':
+		case 'SET_SELECTED_ASSET': {
+			const selectedAsset = action.asset;
+			let assetType;
+			if (selectedAsset) {
+				if (selectedAsset.tokenId) {
+					assetType = 'ERC721';
+				} else if (selectedAsset.symbol === 'ETH') {
+					assetType = 'ETH';
+				} else {
+					assetType = 'ERC20';
+				}
+			}
 			return {
 				...state,
-				selectedAsset: action.asset
+				selectedAsset,
+				assetType
 			};
-		case 'SET_TRANSACTION_OBJECT':
+		}
+		case 'SET_TRANSACTION_OBJECT': {
+			const selectedAsset = action.transaction.selectedAsset;
+			if (selectedAsset) {
+				let assetType;
+				if (selectedAsset.tokenId) {
+					assetType = 'ERC721';
+				} else if (selectedAsset.symbol === 'ETH') {
+					assetType = 'ETH';
+				} else {
+					assetType = 'ERC20';
+				}
+				action.transaction.assetType = assetType;
+			}
 			return {
 				...state,
 				...action.transaction
 			};
-		case 'SET_TOKENS_TRANSACTION':
+		}
+		case 'SET_TOKENS_TRANSACTION': {
+			const selectedAsset = action.asset;
+			let assetType;
+			if (selectedAsset) {
+				if (selectedAsset.tokenId) {
+					assetType = 'ERC721';
+				} else if (selectedAsset.symbol === 'ETH') {
+					assetType = 'ETH';
+				} else {
+					assetType = 'ERC20';
+				}
+			}
 			return {
 				...state,
-				type: 'TOKENS_TRANSACTION'
+				type: 'TOKENS_TRANSACTION',
+				selectedAsset: action.asset,
+				assetType
 			};
+		}
 		case 'SET_ETHER_TRANSACTION':
 			return {
 				...state,
@@ -53,12 +94,14 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedAsset: action.collectible,
+				assetType: 'ERC721',
 				type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION'
 			};
 		case 'SET_COLLECTIBLE_CONTRACT_TRANSACTION':
 			return {
 				...state,
 				selectedAsset: action.collectible,
+				assetType: 'ERC721',
 				type: 'CONTRACT_COLLECTIBLE_TRANSACTION'
 			};
 		default:
