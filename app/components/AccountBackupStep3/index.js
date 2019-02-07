@@ -67,7 +67,8 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to render transaction submitted view
+ * View that's shown during the third step of
+ * the backup seed phrase flow
  */
 export default class AccountBackupStep3 extends Component {
 	static propTypes = {

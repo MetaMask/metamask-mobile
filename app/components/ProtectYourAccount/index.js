@@ -55,7 +55,8 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to render transaction submitted view
+ * View that is displayed in the flow after detecting that
+ * the user received funds for the first time
  */
 export default class ProtectYourAccount extends Component {
 	static propTypes = {

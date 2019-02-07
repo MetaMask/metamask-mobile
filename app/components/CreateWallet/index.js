@@ -6,7 +6,7 @@ import OnboardingScreenWithBg from '../OnboardingScreenWithBg';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
 import SecureKeychain from '../../core/SecureKeychain';
-import { passwordUnset } from '../../actions/user';
+import { passwordUnset, seedphraseNotBackedUp } from '../../actions/user';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
 
 /**
  * View that is displayed to first time (new) users
+ * while their wallet is created
  */
 class CreateWallet extends Component {
 	static navigationOptions = () => ({
@@ -65,9 +66,13 @@ class CreateWallet extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Action to reset the flag password_set in redux
+		 * Action to reset the flag passwordSet in redux
 		 */
-		passwordUnset: PropTypes.func
+		passwordUnset: PropTypes.func,
+		/**
+		 * Action to reset the flag seedphraseBackedUp in redux
+		 */
+		seedphraseNotBackedUp: PropTypes.func
 	};
 
 	componentDidMount() {
@@ -81,7 +86,10 @@ class CreateWallet extends Component {
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();
-			this.props.navigation.navigate('HomeNav');
+			this.props.seedphraseNotBackedUp();
+			setTimeout(() => {
+				this.props.navigation.navigate('HomeNav');
+			}, 1000);
 		});
 	}
 
@@ -102,7 +110,8 @@ class CreateWallet extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	passwordUnset: () => dispatch(passwordUnset())
+	passwordUnset: () => dispatch(passwordUnset()),
+	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
 });
 
 export default connect(

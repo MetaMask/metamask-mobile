@@ -91,7 +91,8 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to render transaction submitted view
+ * View that's shown during the first step of
+ * the backup seed phrase flow
  */
 export default class AccountBackupStep1 extends Component {
 	static propTypes = {
@@ -127,7 +128,10 @@ export default class AccountBackupStep1 extends Component {
 		);
 	};
 
-	learnMore = () => null;
+	learnMore = () =>
+		this.props.navigation.navigate('BrowserView', {
+			url: 'https://support.metamask.io'
+		});
 
 	render() {
 		return (

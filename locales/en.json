@@ -304,6 +304,9 @@
 	"home_page": {
 		"lets_get_started": "Let's get started!",
 		"web3_awaits": "The decentralized web awaits",
+		"search_placeholder": "Search or type URL",
+		"backup_alert_title": "Protect your funds",
+		"backup_alert_message": "Tap to save your seed phrase",
 		"bookmarks": "Bookmarks",
 		"no_bookmarks": "Your bookmarks will show up here",
 		"remove_bookmark_title": "Do you want to remove this bookmark?"
@@ -444,7 +447,7 @@
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "NO",
+		"cancel_backup_no": "No, back up Seed Phrase",
 		"skip": "Skip",
 		"important": "IMPORTANT!",
 		"title": "Save your wallet's seed phrase?",
@@ -462,7 +465,7 @@
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "NO",
+		"cancel_backup_no": "No, back up Seed Phrase",
 		"title": "Grab a pen and paper",
 		"info_text_1":
 			"You're going to need to write your seed phrase down. You will be asked to re-enter it in the other it's presented to you.",
@@ -476,7 +479,7 @@
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "NO",
+		"cancel_backup_no": "No, back up Seed Phrase",
 		"title": "Is anyone watching?",
 		"info_text":
 			"Make sure no other human or robot is watching your screen. If your seed phrase is copied, it can be used on other devices to steal your funds",
@@ -486,7 +489,7 @@
 		"cancel_backup_title": "Cancel Backup",
 		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
 		"cancel_backup_ok": "Yes, I'll take the risk",
-		"cancel_backup_no": "NO",
+		"cancel_backup_no": "No, back up Seed Phrase",
 		"back": "Back",
 		"title": "Your seed phrase",
 		"info_text_1": "Carefully write down these words on paper. Their order matters.",

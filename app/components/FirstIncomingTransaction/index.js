@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to render transaction submitted view
+ * View that's displayed the first time a user receives funds
  */
 export default class FirstIncomingTransaction extends Component {
 	static propTypes = {

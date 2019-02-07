@@ -1,11 +1,22 @@
 import React, { Component } from 'react';
-import { ScrollView, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import {
+	ActivityIndicator,
+	ScrollView,
+	Alert,
+	Text,
+	TouchableOpacity,
+	View,
+	SafeAreaView,
+	StyleSheet
+} from 'react-native';
 
 import PropTypes from 'prop-types';
 import Pager from '../Pager';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../locales/i18n';
+import Engine from '../../core/Engine';
+import SecureKeychain from '../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -90,11 +101,19 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		marginBottom: 15,
 		borderRadius: 4
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		minHeight: 300,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
 /**
- * Component that provides ability to render transaction submitted view
+ * View that's shown during the fourth step of
+ * the backup seed phrase flow
  */
 export default class AccountBackupStep4 extends Component {
 	static propTypes = {
@@ -103,6 +122,27 @@ export default class AccountBackupStep4 extends Component {
 		*/
 		navigation: PropTypes.object
 	};
+	state = {
+		ready: false
+	};
+
+	async componentDidMount() {
+		this.words = this.props.navigation.getParam('words', []);
+		// If the user is going to the backup seed flow directly
+		if (!this.words.length) {
+			const credentials = await SecureKeychain.getGenericPassword();
+			if (credentials) {
+				const { KeyringController } = Engine.context;
+				const mnemonic = await KeyringController.exportSeedPhrase(credentials.password);
+				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
+				this.words = seed.split(' ');
+			} else {
+				this.props.navigation.popToTop();
+				this.props.navigation.goBack(null);
+			}
+		}
+		this.setState({ ready: true });
+	}
 
 	dismiss = () => {
 		Alert.alert(
@@ -127,12 +167,21 @@ export default class AccountBackupStep4 extends Component {
 	};
 
 	goNext = () => {
-		this.props.navigation.navigate('AccountBackupStep5', { words: this.props.navigation.getParam('words', []) });
+		this.props.navigation.navigate('AccountBackupStep5', { words: this.words });
 	};
 
-	render() {
-		const words = this.props.navigation.getParam('words', []);
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
 
+	render() {
+		const { ready } = this.state;
+		return ready ? this.renderContent() : this.renderLoader();
+	}
+
+	renderContent() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<Pager pages={5} selected={3} />
@@ -153,14 +202,14 @@ export default class AccountBackupStep4 extends Component {
 
 							<View style={styles.seedPhraseWrapper}>
 								<View style={styles.colLeft}>
-									{words.slice(0, 6).map((word, i) => (
+									{this.words.slice(0, 6).map((word, i) => (
 										<Text key={`word_${i}`} style={styles.word}>
 											{`${i + 1}. ${word}`}
 										</Text>
 									))}
 								</View>
 								<View style={styles.colRight}>
-									{words.slice(-6).map((word, i) => (
+									{this.words.slice(-6).map((word, i) => (
 										<Text key={`word_${i}`} style={styles.word}>
 											{`${i + 7}. ${word}`}
 										</Text>

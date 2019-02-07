@@ -38,6 +38,8 @@ export const colors = {
 	title: '#1B344D',
 	white: '#FFFFFF',
 	yellow: '#F8D66D',
+	yellowBorder: '#ECD391',
+	warningText: '#735710',
 	success: '#5ea40c',
 	lightSuccess: '#eafad7',
 	warning: '#CA810A',

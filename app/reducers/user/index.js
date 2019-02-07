@@ -22,6 +22,11 @@ const userReducer = (state = initialState, action) => {
 				...state,
 				passwordSet: false
 			};
+		case 'SEEDPHRASE_NOT_BACKED_UP':
+			return {
+				...state,
+				seedphraseBackedUp: false
+			};
 		case 'SEEDPHRASE_BACKED_UP':
 			return {
 				...state,

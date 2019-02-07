@@ -15,3 +15,9 @@ export function seedphraseBackedUp() {
 		type: 'SEEDPHRASE_BACKED_UP'
 	};
 }
+
+export function seedphraseNotBackedUp() {
+	return {
+		type: 'SEEDPHRASE_NOT_BACKED_UP'
+	};
+}
