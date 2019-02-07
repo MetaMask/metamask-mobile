@@ -282,12 +282,23 @@ class EthInput extends Component {
 	};
 
 	renderAssetsList = () => {
-		const { assets } = this.state;
+		const { assets, assetType } = this.state;
+		const {
+			transaction: { selectedAsset }
+		} = this.props;
+		let assetsList;
+		if (!selectedAsset) {
+			assetsList = assets.filter(asset => asset.symbol !== 'ETH');
+		} else if (assetType === 'ERC721') {
+			assetsList = assets.filter(asset => asset.tokenId !== selectedAsset.tokenId);
+		} else {
+			assetsList = assets.filter(asset => asset.symbol !== selectedAsset.symbol);
+		}
 		return (
 			<ElevatedView elevation={10} style={styles.root}>
 				<ScrollView style={styles.componentContainer}>
 					<View style={styles.optionList}>
-						{assets.map(asset => (
+						{assetsList.map(asset => (
 							<View key={asset.address + asset.tokenId || asset.symbol} style={styles.selectableAsset}>
 								{this.renderAsset(asset, async () => {
 									await this.selectAsset(asset);
@@ -308,7 +319,8 @@ class EthInput extends Component {
 
 	render = () => {
 		const { currentCurrency, readonly, value, asset, contractExchangeRates, conversionRate } = this.props;
-		const { isOpen, readableValue, assetType } = this.state;
+		const { isOpen, readableValue, assetType, assets } = this.state;
+		const selectAssets = assets && assets.length > 1;
 		let convertedAmount;
 		if (asset) {
 			const exchangeRate = contractExchangeRates[asset.address];
@@ -376,8 +388,10 @@ class EthInput extends Component {
 					</View>
 				)}
 
-				<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
-				{isOpen && this.renderAssetsList()}
+				{selectAssets && (
+					<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
+				)}
+				{selectAssets && isOpen && this.renderAssetsList()}
 			</View>
 		);
 	};
