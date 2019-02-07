@@ -106,7 +106,10 @@ export default class AccountBackupStep6 extends Component {
 		this.props.navigation.goBack(null);
 	};
 
-	learnMore = () => null;
+	learnMore = () =>
+		this.props.navigation.navigate('BrowserView', {
+			url: 'https://support.metamask.io'
+		});
 
 	render() {
 		return (
