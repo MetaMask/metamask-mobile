@@ -68,8 +68,8 @@ export default class StyledButton extends Component {
 				styleDisabled={disabled ? styleDisabled : null}
 				disabledContainerStyle={disabled ? disabledContainerStyle : null}
 				onPress={onPress}
-				style={[fontStyle, style, disabled ? styleDisabled : null]}
-				containerStyle={[containerStyle, this.props.containerStyle, disabled ? disabledContainerStyle : null]}
+				style={[...fontStyle, style]}
+				containerStyle={[...containerStyle, this.props.containerStyle]}
 			>
 				{children}
 			</Button>

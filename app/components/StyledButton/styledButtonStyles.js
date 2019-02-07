@@ -109,8 +109,8 @@ function getStyles(type) {
 	}
 
 	return {
-		fontStyle: { ...styles.text, ...fontStyle },
-		containerStyle: { ...styles.container, ...containerStyle }
+		fontStyle: [styles.text, fontStyle],
+		containerStyle: [styles.container, containerStyle]
 	};
 }
 

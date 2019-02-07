@@ -73,7 +73,7 @@
     "react-native-aes-crypto": "github:brunobar79/react-native-aes#495bf43f119f6ee5998e7e42b9cb02bb39a5a524",
     "react-native-branch": "^2.3.3",
     "react-native-browser-polyfill": "^0.1.2",
-    "react-native-button": "^2.3.0",
+    "react-native-button": "github:brunobar79/react-native-button#master",
     "react-native-camera": "^1.2.0",
     "react-native-crypto": "^2.1.2",
     "react-native-elevated-view": "0.0.6",
