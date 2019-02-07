@@ -8,7 +8,7 @@ exports[`PersonalSign should render correctly 1`] = `
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
       "minHeight": 600,
-      "paddingBottom": 0,
+      "paddingBottom": 20,
     }
   }
 >
