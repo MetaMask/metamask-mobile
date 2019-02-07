@@ -6,15 +6,10 @@ import { fontStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	icon: {
 		paddingTop: 5,
-		paddingLeft: 4,
 		paddingRight: 8
 	},
 	option: {
-		flexDirection: 'row',
-		paddingBottom: 4,
-		paddingLeft: 8,
-		paddingRight: 10,
-		paddingTop: 8
+		flexDirection: 'row'
 	},
 	symbol: {
 		...fontStyles.bold
@@ -53,11 +48,13 @@ export default class SelectableAsset extends Component {
 
 	render = () => {
 		const { onPress, title, subTitle, icon, asset } = this.props;
+		const disable = onPress ? undefined : true;
 		return (
 			<TouchableOpacity
 				key={asset.address + asset.tokenId || asset.symbol}
 				onPress={onPress}
 				style={styles.option}
+				disabled={disable}
 			>
 				<View style={styles.icon}>{icon}</View>
 				<View style={styles.optionContent}>

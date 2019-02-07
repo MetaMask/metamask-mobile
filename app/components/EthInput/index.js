@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row',
 		paddingRight: 40,
-		paddingVertical: 6,
+		paddingVertical: 10,
+		paddingLeft: 14,
 		position: 'relative',
 		backgroundColor: colors.white,
 		borderColor: colors.inputBorderColor,
@@ -65,13 +66,13 @@ const styles = StyleSheet.create({
 		paddingRight: 30
 	},
 	icon: {
-		paddingTop: 5,
-		paddingLeft: 4,
-		paddingRight: 8
+		paddingBottom: 4,
+		paddingRight: 10,
+		paddingTop: 6
 	},
 	logo: {
-		width: 20,
-		height: 20
+		width: 22,
+		height: 22
 	},
 	arrow: {
 		color: colors.inputBorderColor,
@@ -91,12 +92,12 @@ const styles = StyleSheet.create({
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1,
+		paddingLeft: 14,
 		paddingBottom: 12,
-		paddingTop: 10,
-		width: '100%',
-		top: 0,
-		left: 0,
-		right: 0
+		width: '100%'
+	},
+	selectableAsset: {
+		paddingTop: 12
 	}
 });
 
@@ -286,11 +287,13 @@ class EthInput extends Component {
 			<ElevatedView elevation={10} style={styles.root}>
 				<ScrollView style={styles.componentContainer}>
 					<View style={styles.optionList}>
-						{assets.map(asset =>
-							this.renderAsset(asset, async () => {
-								await this.selectAsset(asset);
-							})
-						)}
+						{assets.map(asset => (
+							<View key={asset.address + asset.tokenId || asset.symbol} style={styles.selectableAsset}>
+								{this.renderAsset(asset, async () => {
+									await this.selectAsset(asset);
+								})}
+							</View>
+						))}
 					</View>
 				</ScrollView>
 			</ElevatedView>
