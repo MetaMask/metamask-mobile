@@ -63,6 +63,8 @@
     "fuse.js": "^3.2.0",
     "gaba": "^1.0.0-beta.58",
     "https-browserify": "0.0.1",
+    "jsc-android": "^236355.1.1",
+    "metamask-logo-react-native": "git+https://github.com/brunobar79/metamask-logo-react-native.git",
     "multihashes": "^0.4.14",
     "number-to-bn": "^1.7.0",
     "prop-types": "^15.6.2",
