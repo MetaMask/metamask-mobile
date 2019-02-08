@@ -2,18 +2,19 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ActionSheet from 'react-native-actionsheet';
 import { connect } from 'react-redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
+	Image,
 	InteractionManager,
 	SafeAreaView,
-	ScrollView,
 	TouchableOpacity,
-	Image,
 	Text,
 	Platform,
 	StyleSheet,
 	TextInput,
 	View
 } from 'react-native';
+import AnimatedFox from 'metamask-logo-react-native';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { removeBookmark } from '../../actions/bookmarks';
@@ -22,7 +23,6 @@ import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DeviceSize from '../../util/DeviceSize';
 import { withNavigation } from 'react-navigation';
-
 const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 const styles = StyleSheet.create({
@@ -34,7 +34,6 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	startPageWrapperContent: {
-		flex: 1,
 		backgroundColor: colors.white,
 		padding: 30,
 		paddingBottom: 0
@@ -42,10 +41,10 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		marginTop: 10,
 		marginBottom: 0,
-		height: 120,
-		alignItems: 'center'
+		height: 120
 	},
 	image: {
+		alignSelf: 'center',
 		width: 120,
 		height: 120
 	},
@@ -275,9 +274,17 @@ class HomePage extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.flex}>
-				<ScrollView style={styles.startPageWrapper} contentContainerStyle={styles.startPageWrapperContent}>
+				<KeyboardAwareScrollView
+					style={styles.startPageWrapper}
+					contentContainerStyle={styles.startPageWrapperContent}
+					resetScrollToCoords={{ x: 0, y: 0 }}
+				>
 					<View style={styles.foxWrapper}>
-						<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+						{Platform.OS === 'android' ? (
+							<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+						) : (
+							<AnimatedFox />
+						)}
 					</View>
 					<View style={styles.startPageContent}>
 						<Text style={styles.startPageTitle}>{strings('home_page.lets_get_started')}</Text>
@@ -296,7 +303,7 @@ class HomePage extends Component {
 						/>
 						{this.renderBookmarks()}
 					</View>
-				</ScrollView>
+				</KeyboardAwareScrollView>
 				{this.props.passwordSet &&
 					!this.props.seedphraseBackedUp && (
 						<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
