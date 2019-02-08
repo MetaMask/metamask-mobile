@@ -95,7 +95,7 @@ jobs:
             name: All Tests Passed
             command: echo 'weew - everything passed!'
 
-  android:
+  publish-pre-release:
     working_directory:  ~/MetaMask/android
     docker:
       - image: circleci/android:api-28-node8-alpha
