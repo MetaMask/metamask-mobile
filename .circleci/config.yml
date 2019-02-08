@@ -93,15 +93,17 @@ jobs:
     steps:
         - run:
             name: All Tests Passed
-            command: echo 'weew - everything passed!'
+			command: echo 'weew - everything passed!'
+
   publish-pre-release:
-    <<: *defaults
-    macos:
-      xcode: 10.1.0
-    steps:
-      - checkout
+    working_directory: ~/MetaMask/android
+    docker:
+	  - image: circleci/android:api-28-node8-alpha
+	steps:
+	  - checkout:
+		  path: ~/MetaMask
       - attach_workspace:
-          at: .
+          at: ~/MetaMask
       - run:
           name: Load dependencies
           command:
