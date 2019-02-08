@@ -107,12 +107,12 @@ export default class AccountBackupStep3 extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<Pager pages={5} selected={2} />
 				<ScrollView
 					contentContainerStyle={styles.scrollviewWrapper}
 					style={styles.mainWrapper}
 					testID={'account-backup-step-3-screen'}
 				>
+					<Pager pages={5} selected={2} />
 					<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
 						<Icon name="close" size={15} style={styles.closeIcon} />
 					</TouchableOpacity>

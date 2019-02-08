@@ -7,7 +7,8 @@ import {
 	TouchableOpacity,
 	View,
 	SafeAreaView,
-	StyleSheet
+	StyleSheet,
+	Platform
 } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -95,6 +96,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 4,
 		width: 105,
 		fontSize: 14,
+		color: colors.fontPrimary,
 		lineHeight: 14,
 		backgroundColor: colors.white,
 		borderColor: colors.borderColor,
@@ -184,12 +186,12 @@ export default class AccountBackupStep4 extends Component {
 	renderContent() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<Pager pages={5} selected={3} />
 				<ScrollView
-					contentContainerStyle={styles.scrollviewWrapper}
+					contentContainerStyle={Platform.OS === 'android' ? null : styles.scrollviewWrapper}
 					style={styles.mainWrapper}
 					testID={'account-backup-step-4-screen'}
 				>
+					<Pager pages={5} selected={3} />
 					<TouchableOpacity onPress={this.dismiss} style={styles.navbarLeftButton}>
 						<Text style={styles.navbarLeftText}>{strings('account_backup_step_4.back')}</Text>
 					</TouchableOpacity>

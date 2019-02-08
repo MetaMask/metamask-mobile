@@ -63,10 +63,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginBottom: 5
 	},
-	closeIcon: {
-		color: colors.white,
-		fontSize: 20
-	},
 	link: {
 		flexDirection: 'row'
 	},
@@ -84,8 +80,21 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		...fontStyles.normal
 	},
-	button: {
-		flexDirection: 'row'
+	buttonContent: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	successIcon: {
+		color: colors.white,
+		fontSize: 20,
+		marginRight: 10
+	},
+	buttonText: {
+		fontSize: 18,
+		textAlign: 'center',
+		color: colors.white,
+		...fontStyles.bold
 	}
 });
 
@@ -157,8 +166,10 @@ export default class AccountBackupStep6 extends Component {
 							onPress={this.dismiss}
 							testID={'submit-button'}
 						>
-							<Icon name="check" size={15} style={styles.closeIcon} />
-							{strings('account_backup_step_6.cta_text')}
+							<View style={styles.buttonContent}>
+								<Icon name="check" size={15} style={styles.successIcon} />
+								<Text style={styles.buttonText}>{strings('account_backup_step_6.cta_text')}</Text>
+							</View>
 						</StyledButton>
 					</View>
 				</ScrollView>

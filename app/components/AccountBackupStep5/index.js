@@ -13,9 +13,6 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1
 	},
-	scrollviewWrapper: {
-		flex: 1
-	},
 	wrapper: {
 		flex: 1,
 		padding: 30,
@@ -45,6 +42,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	buttonWrapper: {
+		marginTop: 30,
 		flex: 1,
 		justifyContent: 'flex-end'
 	},
@@ -86,6 +84,7 @@ const styles = StyleSheet.create({
 		width: 105,
 		fontSize: 14,
 		lineHeight: 14,
+		color: colors.fontPrimary,
 		backgroundColor: colors.white,
 		borderColor: colors.borderColor,
 		borderWidth: 1,
@@ -99,6 +98,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 5,
 		width: 95,
 		fontSize: 14,
+		color: colors.fontPrimary,
 		lineHeight: 14,
 		backgroundColor: colors.white,
 		marginBottom: 6,
@@ -204,12 +204,8 @@ class AccountBackupStep5 extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<Pager pages={5} selected={4} />
-				<ScrollView
-					contentContainerStyle={styles.scrollviewWrapper}
-					style={styles.mainWrapper}
-					testID={'account-backup-step-5-screen'}
-				>
+				<ScrollView style={styles.mainWrapper} testID={'account-backup-step-5-screen'}>
+					<Pager pages={5} selected={4} />
 					<TouchableOpacity onPress={this.goBack} style={styles.navbarLeftButton}>
 						<Text style={styles.navbarLeftText}>{strings('account_backup_step_5.back')}</Text>
 					</TouchableOpacity>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { Platform, ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../styles/common';
 import StyledButton from '../StyledButton';
@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		padding: 20,
+		paddingTop: Platform.OS === 'android' ? 0 : 20,
 		paddingBottom: 0
 	},
 	content: {
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
 		width: 260,
 		fontSize: 32,
 		marginLeft: 20,
-		marginTop: 20,
+		marginTop: Platform.OS === 'android' ? 0 : 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
@@ -136,12 +137,12 @@ export default class AccountBackupStep1 extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
-				<Pager pages={5} />
 				<ScrollView
 					contentContainerStyle={styles.scrollviewWrapper}
 					style={styles.mainWrapper}
 					testID={'account-backup-step-1-screen'}
 				>
+					<Pager pages={5} />
 					<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
 						<Text style={styles.navbarRightText}>{strings('account_backup_step_1.skip')}</Text>
 					</TouchableOpacity>
