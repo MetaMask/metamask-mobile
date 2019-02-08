@@ -83,9 +83,9 @@ class TransactionEditor extends Component {
 	/**
 	 * Call callback when transaction is confirmed, after being validated
 	 */
-	onConfirm = () => {
+	onConfirm = async () => {
 		const { onConfirm } = this.props;
-		!this.validate() && onConfirm && onConfirm();
+		!(await this.validate()) && onConfirm && onConfirm();
 	};
 
 	/**
@@ -259,8 +259,8 @@ class TransactionEditor extends Component {
 	 *
 	 * @returns {boolean} - Whether the transaction is valid or not
 	 */
-	validate = () => {
-		if (this.validateAmount(false) || this.validateGas() || this.validateToAddress()) {
+	validate = async () => {
+		if ((await this.validateAmount(false)) || this.validateGas() || this.validateToAddress()) {
 			return true;
 		}
 		return false;
@@ -272,16 +272,36 @@ class TransactionEditor extends Component {
 	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
 	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
 	 */
-	validateAmount = (allowEmpty = true) => {
+	validateAmount = async (allowEmpty = true) => {
 		const {
 			transaction: { assetType }
 		} = this.props;
 		const validations = {
 			ETH: () => this.validateEtherAmount(allowEmpty),
 			ERC20: () => this.validateTokenAmount(allowEmpty),
-			ERC721: () => undefined
+			ERC721: async () => await this.validateCollectibleOwnership()
 		};
-		return validations[assetType]();
+		return await validations[assetType]();
+	};
+
+	validateCollectibleOwnership = async () => {
+		const { AssetsContractController } = Engine.context;
+		const {
+			transaction: {
+				selectedAsset: { address, tokenId }
+			}
+		} = this.props;
+		const { selectedAddress } = this.props;
+		try {
+			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			if (!isOwner) {
+				return strings('transaction.invalid_collectible_ownership');
+			}
+			return undefined;
+		} catch (e) {
+			return false;
+		}
 	};
 
 	/**
@@ -455,6 +475,7 @@ class TransactionEditor extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	transaction: state.transaction
 });
 

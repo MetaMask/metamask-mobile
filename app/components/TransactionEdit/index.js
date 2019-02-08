@@ -233,11 +233,11 @@ class TransactionEdit extends Component {
 	review = async () => {
 		const { onModeChange } = this.props;
 		await this.setState({ toFocused: true });
-		!this.validate() && onModeChange && onModeChange('review');
+		!(await this.validate()) && onModeChange && onModeChange('review');
 	};
 
-	validate = () => {
-		const amountError = this.props.validateAmount(false);
+	validate = async () => {
+		const amountError = await this.props.validateAmount(false);
 		const gasError = this.props.validateGas();
 		const toAddressError = this.props.validateToAddress();
 		this.setState({ amountError, gasError, toAddressError });
@@ -254,7 +254,7 @@ class TransactionEdit extends Component {
 		}
 		await this.props.handleUpdateAmount(processedAmount);
 		this.props.handleUpdateReadableValue(amount);
-		const amountError = this.props.validateAmount(true);
+		const amountError = await this.props.validateAmount(true);
 		this.setState({ amountError });
 	};
 

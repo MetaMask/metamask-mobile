@@ -146,7 +146,7 @@ class TransactionReview extends Component {
 		} = this.props;
 		let { showHexData } = this.props;
 		showHexData = showHexData || data;
-		const amountError = validateAmount && validateAmount();
+		const amountError = validateAmount && (await validateAmount());
 		const actionKey = await getTransactionReviewActionKey(transaction);
 		this.setState({ amountError, actionKey, showHexData });
 	};

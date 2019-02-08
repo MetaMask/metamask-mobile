@@ -281,6 +281,7 @@
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
+		"invalid_collectible_ownership": "You don't own this collectible",
 		"max": "Max",
 		"recipient_address": "Recipient Address",
 		"required": "Required",
