@@ -72,7 +72,8 @@ const styles = StyleSheet.create({
 	},
 	logo: {
 		width: 22,
-		height: 22
+		height: 22,
+		borderRadius: 11
 	},
 	arrow: {
 		color: colors.inputBorderColor,
