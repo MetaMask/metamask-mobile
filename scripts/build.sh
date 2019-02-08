@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o pipefail
+
 PLATFORM=$1
 MODE=$2
 TARGET=$3
@@ -138,6 +140,14 @@ buildAndroidRelease(){
 		adb uninstall io.metamask || true
 	fi
 	prebuild_android
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		TARGET="android/app/build.gradle"
+		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
+		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
+		rm 'android/app/build.gradle-e'
+	fi
+
 	cd android &&
 	./gradlew assembleRelease
 	if [ "$PRE_RELEASE" = false ] ; then
