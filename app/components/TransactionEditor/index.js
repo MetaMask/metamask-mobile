@@ -263,7 +263,7 @@ class TransactionEditor extends Component {
 	 * @returns {boolean} - Whether the transaction is valid or not
 	 */
 	validate = () => {
-		if (this.validateAmount(false) || this.validateGas() || this.validateToAddress()) {
+		if (this.validateAmount(false) || this.validate.lidateGas() || this.validateToAddress()) {
 			return true;
 		}
 		return false;

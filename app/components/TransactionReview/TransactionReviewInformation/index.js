@@ -118,15 +118,10 @@ class TransactionReviewInformation extends Component {
 		actionKey: strings('transactions.tx_review_confirm')
 	};
 
-	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountEth, amountToken) => {
+	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
 		let total = 0;
 		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
-		let balanceFiat;
-		if (asset && exchangeRate) {
-			balanceFiat = balanceToFiatNumber(parseFloat(amountToken), conversionRate, exchangeRate);
-		} else {
-			balanceFiat = weiToFiatNumber(amountEth, conversionRate);
-		}
+		const balanceFiat = balanceToFiatNumber(parseFloat(amountToken), conversionRate, exchangeRate);
 		const base = Math.pow(10, 5);
 		total = ((parseFloat(gasFeeFiat) + parseFloat(balanceFiat)) * base) / base;
 		return `${total} ${currentCurrency.toUpperCase()}`;
@@ -139,17 +134,58 @@ class TransactionReviewInformation extends Component {
 
 	render = () => {
 		const {
-			transaction: { value, gas, gasPrice, selectedAsset },
+			transaction: { value, gas, gasPrice, selectedAsset, assetType },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const conversionRateAsset = selectedAsset ? contractExchangeRates[selectedAsset.address] : undefined;
+
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalEth = isBN(value) && !selectedAsset ? value.add(totalGas) : totalGas;
-		const amountEth = isBN(value) && !selectedAsset ? value : undefined;
-		const amountToken = selectedAsset ? renderFromTokenMinimalUnit(value, selectedAsset.decimals) : undefined;
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const totalGasEth = renderFromWei(totalGas).toString() + ' ' + strings('unit.eth');
+
+		let totalFiat, totalValue;
+		switch (assetType) {
+			case 'ETH': {
+				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
+				totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+				totalValue = renderFromWei(totalEth).toString() + ' ' + strings('unit.eth');
+				break;
+			}
+			case 'ERC20': {
+				const amountToken = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
+				const conversionRateAsset = contractExchangeRates[selectedAsset.address];
+				totalFiat = this.getTotalFiat(
+					selectedAsset,
+					totalGas,
+					conversionRate,
+					conversionRateAsset,
+					currentCurrency,
+					amountToken
+				);
+				totalValue =
+					amountToken +
+					' ' +
+					selectedAsset.symbol +
+					' + ' +
+					renderFromWei(totalGas).toString() +
+					' ' +
+					strings('unit.eth');
+				break;
+			}
+			case 'ERC721':
+				totalFiat = totalGasFiat;
+				totalValue =
+					selectedAsset.name +
+					' (#' +
+					selectedAsset.tokenId +
+					') + ' +
+					renderFromWei(totalGas).toString() +
+					' ' +
+					strings('unit.eth');
+				break;
+		}
 
 		return (
 			<View style={styles.overview}>
@@ -161,12 +197,8 @@ class TransactionReviewInformation extends Component {
 								{strings('transaction.edit').toUpperCase()}
 							</Text>
 						</TouchableOpacity>
-						<Text style={styles.overviewFiat}>
-							{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
-						</Text>
-						<Text style={styles.overviewEth}>
-							{renderFromWei(totalGas).toString()} {strings('unit.eth')}
-						</Text>
+						<Text style={styles.overviewFiat}>{totalGasFiat}</Text>
+						<Text style={styles.overviewEth}>{totalGasEth}</Text>
 					</View>
 				</View>
 
@@ -177,24 +209,11 @@ class TransactionReviewInformation extends Component {
 							{strings('transaction.amount').toUpperCase()} +{' '}
 							{strings('transaction.gas_fee').toUpperCase()}
 						</Text>
-						<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-							{this.getTotalFiat(
-								selectedAsset,
-								totalGas,
-								conversionRate,
-								conversionRateAsset,
-								currentCurrency,
-								amountEth,
-								amountToken
-							)}
-						</Text>
-						<Text style={styles.overviewEth}>
-							{selectedAsset && amountToken} {selectedAsset && selectedAsset.symbol}{' '}
-							{selectedAsset && ' + '}
-							{renderFromWei(totalEth).toString()} {strings('unit.eth')}
-						</Text>
+						<Text style={[styles.overviewFiat, styles.overviewAccent]}>{totalFiat}</Text>
+						<Text style={styles.overviewEth}>{totalValue}</Text>
 					</View>
 				</View>
+
 				{amountError ? (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />

@@ -226,6 +226,9 @@ export async function getTransactionReviewActionKey(transaction) {
 			return strings('transactions.tx_review_confirm');
 		case DEPLOY_CONTRACT_ACTION_KEY:
 			return strings('transactions.tx_review_contract_deployment');
+		case TRANSFER_FROM_ACTION_KEY:
+			return strings('transactions.tx_review_transfer_from');
+
 		default:
 			return strings('transactions.tx_review_unknown');
 	}
