@@ -14,7 +14,7 @@ import {
 	TextInput,
 	View
 } from 'react-native';
-import AnimatedFox from 'metamask-logo-react-native';
+import AnimatedFox from 'react-native-animated-fox';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { removeBookmark } from '../../actions/bookmarks';

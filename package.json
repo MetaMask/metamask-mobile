@@ -64,7 +64,7 @@
     "gaba": "^1.0.0-beta.58",
     "https-browserify": "0.0.1",
     "jsc-android": "^236355.1.1",
-    "metamask-logo-react-native": "git+https://github.com/brunobar79/metamask-logo-react-native.git",
+    "react-native-animated-fox": "github:brunobar79/react-native-animated-fox#master",
     "multihashes": "^0.4.14",
     "number-to-bn": "^1.7.0",
     "prop-types": "^15.6.2",
@@ -221,8 +221,7 @@
       "<rootDir>/app/**/*.{js,jsx}",
       "!<rootDir>/node_modules/",
       "!<rootDir>/app/util/*.{js,jsx}",
-      "!<rootDir>/app/entry*.js",
-      "!<rootDir>/app/components/AnimatedFox/"
+      "!<rootDir>/app/entry*.js"
     ]
   },
   "react-native": {
