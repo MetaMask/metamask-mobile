@@ -93,15 +93,15 @@ jobs:
     steps:
         - run:
             name: All Tests Passed
-			command: echo 'weew - everything passed!'
+            command: echo 'weew - everything passed!'
 
-  publish-pre-release:
-    working_directory: ~/MetaMask/android
+  android:
+    working_directory:  ~/MetaMask/android
     docker:
-	  - image: circleci/android:api-28-node8-alpha
-	steps:
-	  - checkout:
-		  path: ~/MetaMask
+      - image: circleci/android:api-28-node8-alpha
+    steps:
+      - checkout:
+          path: ~/MetaMask
       - attach_workspace:
           at: ~/MetaMask
       - run:
@@ -115,6 +115,7 @@ jobs:
       - run:
           name: build:announce
           command: npm run build:announce
+
 workflows:
   version: 2
   ful_test:
