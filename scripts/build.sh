@@ -4,6 +4,7 @@ PLATFORM=$1
 MODE=$2
 TARGET=$3
 RUN_DEVICE=false
+PRE_RELEASE=false
 
 displayHelp() {
     echo ''
@@ -78,6 +79,8 @@ checkParameters(){
                 displayHelp
                 exit 0;
             fi
+		elif [ "$3"  == "--pre" ] ; then
+			PRE_RELEASE=true
         else
             printError "Unknown argument: $4"
             displayHelp
@@ -131,11 +134,15 @@ buildIosRelease(){
 }
 
 buildAndroidRelease(){
-	adb uninstall io.metamask || true
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask || true
+	fi
 	prebuild_android
 	cd android &&
-	./gradlew assembleRelease &&
-	adb install app/build/outputs/apk/release/app-release.apk
+	./gradlew assembleRelease
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb install app/build/outputs/apk/release/app-release.apk
+	fi
 }
 
 

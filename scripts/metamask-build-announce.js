@@ -22,7 +22,7 @@ async function start() {
 	const SHORT_SHA1 = CIRCLE_SHA1.slice(0, 7);
 	const BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-42009758-gh.circle-artifacts.com/0`;
 
-	const ANDROID = `${BUILD_LINK_BASE}/builds/metamask-chrome-${VERSION}.zip`;
+	const ANDROID = `${BUILD_LINK_BASE}/builds/app-release.apk`;
 
 	const commentBody = `
   <details>

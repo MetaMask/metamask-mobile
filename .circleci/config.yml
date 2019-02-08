@@ -108,7 +108,7 @@ jobs:
           name: Load dependencies
           command:
             |
-              npm run build:android:release
+              npm run build:android:pre-release
       - store_artifacts:
           path: builds
           destination: android/app/build/outputs/apk/release

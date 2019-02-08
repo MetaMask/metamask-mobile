@@ -13,6 +13,7 @@
     "start:android": "./scripts/build.sh android debug",
     "build:announce": "node ./scripts/metamask-bot-build-announce.js",
     "build:android:release": "./scripts/build.sh android release",
+    "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:ios:release": "./scripts/build.sh ios release",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
