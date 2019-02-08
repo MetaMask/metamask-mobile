@@ -10,7 +10,8 @@ const initialState = {
 	asset: undefined,
 	selectedAsset: undefined,
 	type: undefined,
-	assetType: undefined
+	assetType: undefined,
+	id: undefined
 };
 
 const transactionReducer = (state = initialState, action) => {

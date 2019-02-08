@@ -289,7 +289,10 @@ class EthInput extends Component {
 				<ScrollView style={styles.componentContainer}>
 					<View style={styles.optionList}>
 						{assetsList.map(asset => (
-							<View key={asset.address + asset.tokenId || asset.symbol} style={styles.selectableAsset}>
+							<View
+								key={asset.address + asset.tokenId || asset.symbol || undefined}
+								style={styles.selectableAsset}
+							>
 								{this.renderAsset(asset, async () => {
 									await this.selectAsset(asset);
 								})}
@@ -318,7 +321,7 @@ class EthInput extends Component {
 		const { isOpen, readableValue, assets } = this.state;
 		const selectAssets = assets && assets.length > 1;
 		let convertedAmount;
-		if (selectedAsset.symbol !== 'ETH') {
+		if (selectedAsset && selectedAsset.symbol !== 'ETH') {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
 			if (exchangeRate) {
 				convertedAmount = balanceToFiat(

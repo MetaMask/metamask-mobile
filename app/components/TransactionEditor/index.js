@@ -263,7 +263,7 @@ class TransactionEditor extends Component {
 	 * @returns {boolean} - Whether the transaction is valid or not
 	 */
 	validate = () => {
-		if (this.validateAmount(false) || this.validate.lidateGas() || this.validateToAddress()) {
+		if (this.validateAmount(false) || this.validateGas() || this.validateToAddress()) {
 			return true;
 		}
 		return false;
@@ -277,15 +277,17 @@ class TransactionEditor extends Component {
 	 */
 	validateAmount = (allowEmpty = true) => {
 		const {
-			transaction: { selectedAsset }
+			transaction: { assetType }
 		} = this.props;
-		if (selectedAsset.symbol === 'ETH') {
-			return this.validateEtherAmount(allowEmpty);
-		} else if (selectedAsset.tokenId) {
-			// TODO ownership validation
-			return undefined;
+		switch (assetType) {
+			case 'ETH':
+				return this.validateEtherAmount(allowEmpty);
+			case 'ERC20':
+				return this.validateTokenAmount(allowEmpty);
+			case 'ERC721':
+				// TODO ownership validation
+				return undefined;
 		}
-		return this.validateTokenAmount(allowEmpty);
 	};
 
 	/**

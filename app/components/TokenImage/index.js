@@ -20,10 +20,16 @@ const styles = StyleSheet.create({
 export default class TokenElement extends Component {
 	static propTypes = {
 		/**
-		 * Asset object (in this case ERC20 token)
+		 * Asset object
 		 */
 		asset: PropTypes.object,
+		/**
+		 * Style to apply to main view
+		 */
 		containerStyle: PropTypes.object,
+		/**
+		 * Style to apply to image
+		 */
 		iconStyle: PropTypes.object
 	};
 
