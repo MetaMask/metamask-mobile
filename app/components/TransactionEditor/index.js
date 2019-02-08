@@ -8,7 +8,7 @@ import { isBN, hexToBN, toBN } from '../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
-import { generateTransferData } from '../../util/transactions';
+import { generateTransferData, ETH, ERC20, ERC721 } from '../../util/transactions';
 import { setTransactionObject } from '../../actions/transaction';
 
 import Engine from '../../core/Engine';
@@ -137,12 +137,12 @@ class TransactionEditor extends Component {
 		} = this.props;
 
 		// If ETH transaction, there is no need to generate new data
-		if (assetType === 'ETH') {
+		if (assetType === ETH) {
 			const { gas } = await this.estimateGas({ amount, data, to });
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas) });
 		}
 		// If selectedAsset defined, generates data
-		else if (assetType === 'ERC20') {
+		else if (assetType === ERC20) {
 			const { data, gas } = await this.handleDataGeneration({ value: amount });
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data });
 		}
@@ -187,7 +187,7 @@ class TransactionEditor extends Component {
 			transaction: { data, assetType }
 		} = this.props;
 		// If ETH transaction, there is no need to generate new data
-		if (assetType === 'ETH') {
+		if (assetType === ETH) {
 			const { gas } = await this.estimateGas({ data, to });
 			this.props.setTransactionObject({ to, gas: hexToBN(gas) });
 		}
@@ -205,12 +205,12 @@ class TransactionEditor extends Component {
 	 */
 	handleUpdateAsset = async asset => {
 		const { transaction } = this.props;
-		if (asset.symbol === 'ETH') {
+		if (asset.symbol === ETH) {
 			const { gas } = await this.estimateGas({ to: transaction.to });
 			this.props.setTransactionObject({
 				value: undefined,
 				data: undefined,
-				selectedAsset: { symbol: 'ETH' },
+				selectedAsset: { symbol: ETH },
 				gas: hexToBN(gas)
 			});
 		} else {
@@ -231,19 +231,19 @@ class TransactionEditor extends Component {
 			transaction
 		} = this.props;
 		const selectedAsset = opts.selectedAsset ? opts.selectedAsset : transaction.selectedAsset;
-		const assetType = selectedAsset.tokenId ? 'ERC721' : 'ERC20';
+		const assetType = selectedAsset.tokenId ? ERC721 : ERC20;
 		const value = opts.value ? opts.value : transaction.value;
 		const to = opts.to ? opts.to : transaction.to;
 		const generateData = {
 			ERC20: () => {
 				const tokenAmountToSend = selectedAsset && value && value.toString(16);
 				return to && tokenAmountToSend
-					? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+					? generateTransferData(ERC20, { toAddress: to, amount: tokenAmountToSend })
 					: undefined;
 			},
 			ERC721: () =>
 				to &&
-				generateTransferData('ERC721', {
+				generateTransferData(ERC721, {
 					fromAddress: from,
 					toAddress: to,
 					tokenId: selectedAsset.tokenId

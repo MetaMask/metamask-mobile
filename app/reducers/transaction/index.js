@@ -1,4 +1,5 @@
 import { REHYDRATE } from 'redux-persist';
+import { ETH, ERC20, ERC721 } from '../../util/transactions';
 
 const initialState = {
 	value: undefined,
@@ -18,11 +19,11 @@ const getAssetType = selectedAsset => {
 	let assetType;
 	if (selectedAsset) {
 		if (selectedAsset.tokenId) {
-			assetType = 'ERC721';
-		} else if (selectedAsset.symbol === 'ETH') {
-			assetType = 'ETH';
+			assetType = ERC721;
+		} else if (selectedAsset.symbol === ETH) {
+			assetType = ETH;
 		} else {
-			assetType = 'ERC20';
+			assetType = ERC20;
 		}
 	}
 	return assetType;
@@ -84,14 +85,14 @@ const transactionReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedAsset: action.collectible,
-				assetType: 'ERC721',
+				assetType: ERC721,
 				type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION'
 			};
 		case 'SET_COLLECTIBLE_CONTRACT_TRANSACTION':
 			return {
 				...state,
 				selectedAsset: action.collectible,
-				assetType: 'ERC721',
+				assetType: ERC721,
 				type: 'CONTRACT_COLLECTIBLE_TRANSACTION'
 			};
 		default:

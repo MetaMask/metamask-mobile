@@ -10,6 +10,7 @@ import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
 import { setTokensTransaction } from '../../actions/transaction';
 import { connect } from 'react-redux';
+import { ETH } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -115,7 +116,7 @@ class AccountOverview extends Component {
 		Alert.alert(strings('drawer.coming_soon'));
 	};
 	onSend = () => {
-		this.props.setTokensTransaction({ symbol: 'ETH' });
+		this.props.setTokensTransaction({ symbol: ETH });
 		this.props.navigation.navigate('SendView');
 	};
 	onCopy = async () => {

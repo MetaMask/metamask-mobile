@@ -19,6 +19,7 @@ import {
 } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import CustomGas from '../CustomGas';
+import { ETH, ERC20, ERC721 } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -204,7 +205,7 @@ class TransactionEdit extends Component {
 
 		const { contractBalances } = this.props;
 		let value, readableValue;
-		if (assetType === 'ETH') {
+		if (assetType === ETH) {
 			const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
 			value = hexToBN(balance)
 				.sub(totalGas)
@@ -212,7 +213,7 @@ class TransactionEdit extends Component {
 				? hexToBN(balance).sub(totalGas)
 				: fromWei(0);
 			readableValue = fromWei(value);
-		} else if (assetType === 'ERC20') {
+		} else if (assetType === ERC20) {
 			value = hexToBN(contractBalances[selectedAsset.address].toString(16));
 			readableValue = fromTokenMinimalUnit(value, selectedAsset.decimals);
 		}
@@ -246,7 +247,7 @@ class TransactionEdit extends Component {
 	updateAmount = async amount => {
 		const { selectedAsset, assetType } = this.props.transaction;
 		let processedAmount;
-		if (assetType !== 'ETH') {
+		if (assetType !== ETH) {
 			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
 		} else {
 			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
@@ -287,7 +288,7 @@ class TransactionEdit extends Component {
 	renderAmountLabel = () => {
 		const { amountError } = this.state;
 		const { assetType } = this.props.transaction;
-		if (assetType !== 'ERC721') {
+		if (assetType !== ERC721) {
 			return (
 				<View style={styles.label}>
 					<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>

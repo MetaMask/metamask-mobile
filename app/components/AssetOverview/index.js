@@ -9,6 +9,7 @@ import { strings } from '../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
 import { setTokensTransaction } from '../../actions/transaction';
 import { connect } from 'react-redux';
+import { ETH } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -75,8 +76,8 @@ class AssetOverview extends Component {
 
 	onSend = async () => {
 		const { asset } = this.props;
-		if (asset.symbol === 'ETH') {
-			this.props.setTokensTransaction({ symbol: 'ETH' });
+		if (asset.symbol === ETH) {
+			this.props.setTokensTransaction({ symbol: ETH });
 			this.props.navigation.navigate('SendView');
 		} else {
 			this.props.setTokensTransaction(asset);
@@ -88,7 +89,7 @@ class AssetOverview extends Component {
 		const {
 			asset: { address, logo, symbol }
 		} = this.props;
-		if (symbol === 'ETH') {
+		if (symbol === ETH) {
 			return <Image source={ethLogo} style={styles.ethLogo} />;
 		}
 		return logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />;

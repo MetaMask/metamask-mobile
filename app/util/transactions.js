@@ -21,6 +21,10 @@ export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
+export const ETH = 'ETH';
+export const ERC721 = 'ERC721';
+export const ERC20 = 'ERC20';
+
 /**
  * Utility class with the single responsibility
  * of caching ActionKeys
@@ -49,7 +53,7 @@ export function generateTransferData(assetType, opts) {
 		throw new Error('[transactions] assetType must be defined');
 	}
 	switch (assetType) {
-		case 'ERC20':
+		case ERC20:
 			if (!opts.toAddress || !opts.amount) {
 				throw new Error(`[transactions] 'toAddress' and 'amount' must be defined for 'assetType' ERC20`);
 			}
@@ -61,7 +65,7 @@ export function generateTransferData(assetType, opts) {
 					)
 					.join('')
 			);
-		case 'ERC721':
+		case ERC721:
 			return (
 				COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE +
 				Array.prototype.map
@@ -87,7 +91,7 @@ export function generateTransferData(assetType, opts) {
 export function decodeTransferData(assetType, data) {
 	let encodedAddress, encodedAmount, bufferEncodedAddress;
 	switch (assetType) {
-		case 'ERC20':
+		case ERC20:
 			encodedAddress = data.substr(10, 64);
 			encodedAmount = data.substr(74, 138);
 			bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);

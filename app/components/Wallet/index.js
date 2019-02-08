@@ -21,6 +21,7 @@ import Engine from '../../core/Engine';
 import Networks, { isKnownNetwork } from '../../util/networks';
 import { showAlert } from '../../actions/alert';
 import CollectibleContracts from '../CollectibleContracts';
+import { ETH } from '../../util/transactions';
 // eslint-disable-next-line import/no-unresolved
 const styles = StyleSheet.create({
 	wrapper: {
@@ -246,7 +247,7 @@ class Wallet extends Component {
 			assets = [
 				{
 					name: 'Ether',
-					symbol: 'ETH',
+					symbol: ETH,
 					balance,
 					balanceFiat: weiToFiat(
 						hexToBN(accounts[selectedAddress].balance),
