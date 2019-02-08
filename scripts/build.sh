@@ -145,7 +145,8 @@ buildAndroidRelease(){
 		TARGET="android/app/build.gradle"
 		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
 		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
-		rm 'android/app/build.gradle-e'
+		# required by react-native-aes-crypto
+		echo “Y” | /opt/android/sdk/tools/bin/sdkmanager “platforms;android-26”
 	fi
 
 	cd android &&

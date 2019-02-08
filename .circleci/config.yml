@@ -96,7 +96,7 @@ jobs:
             command: echo 'weew - everything passed!'
 
   publish-pre-release:
-    working_directory:  ~/MetaMask/android
+    working_directory:  ~/MetaMask
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
@@ -105,7 +105,7 @@ jobs:
       - attach_workspace:
           at: ~/MetaMask
       - run:
-          name: Load dependencies
+          name: build:pre-release
           command:
             |
               npm run build:android:pre-release
@@ -114,7 +114,7 @@ jobs:
           destination: android/app/build/outputs/apk/release
       - run:
           name: build:announce
-          command: npm run build:announce
+          command: cdnpm run build:announce
 
 workflows:
   version: 2
