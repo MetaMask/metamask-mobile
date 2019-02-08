@@ -178,8 +178,9 @@ class AccountBackupStep5 extends Component {
 		const newConfirmedWords = this.state.confirmedWords.slice();
 		let newIndex;
 		if (newConfirmedWords.includes(word)) {
-			newConfirmedWords[newConfirmedWords.indexOf(word)] = undefined;
-			newIndex = i;
+			const matchIndex = newConfirmedWords.indexOf(word);
+			newConfirmedWords[matchIndex] = undefined;
+			newIndex = matchIndex;
 		} else {
 			// Find next empty cell
 			newConfirmedWords[this.state.currentIndex] = word;
