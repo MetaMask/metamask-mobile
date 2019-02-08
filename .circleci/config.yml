@@ -105,6 +105,9 @@ jobs:
       - attach_workspace:
           at: ~/MetaMask
       - run:
+          name: build:accept-android-licenses
+          command: (echo y; echo y; echo y; echo y; echo y; echo y) | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+      - run:
           name: build:pre-release
           command:
             |
