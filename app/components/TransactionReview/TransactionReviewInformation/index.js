@@ -132,31 +132,26 @@ class TransactionReviewInformation extends Component {
 		edit && edit();
 	};
 
-	render = () => {
+	getRenderTotals = () => {
 		const {
 			transaction: { value, gas, gasPrice, selectedAsset, assetType },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-
-		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
-		const totalGasEth = renderFromWei(totalGas).toString() + ' ' + strings('unit.eth');
-
-		let totalFiat, totalValue;
-		switch (assetType) {
-			case 'ETH': {
+		const totals = {
+			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-				totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
-				totalValue = renderFromWei(totalEth).toString() + ' ' + strings('unit.eth');
-				break;
-			}
-			case 'ERC20': {
+				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+				const totalValue = renderFromWei(totalEth).toString() + ' ' + strings('unit.eth');
+				return [totalFiat, totalValue];
+			},
+			ERC20: () => {
 				const amountToken = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
 				const conversionRateAsset = contractExchangeRates[selectedAsset.address];
-				totalFiat = this.getTotalFiat(
+				const totalFiat = this.getTotalFiat(
 					selectedAsset,
 					totalGas,
 					conversionRate,
@@ -164,7 +159,7 @@ class TransactionReviewInformation extends Component {
 					currentCurrency,
 					amountToken
 				);
-				totalValue =
+				const totalValue =
 					amountToken +
 					' ' +
 					selectedAsset.symbol +
@@ -172,11 +167,11 @@ class TransactionReviewInformation extends Component {
 					renderFromWei(totalGas).toString() +
 					' ' +
 					strings('unit.eth');
-				break;
-			}
-			case 'ERC721':
-				totalFiat = totalGasFiat;
-				totalValue =
+				return [totalFiat, totalValue];
+			},
+			ERC721: () => {
+				const totalFiat = totalGasFiat;
+				const totalValue =
 					selectedAsset.name +
 					' (#' +
 					selectedAsset.tokenId +
@@ -184,8 +179,26 @@ class TransactionReviewInformation extends Component {
 					renderFromWei(totalGas).toString() +
 					' ' +
 					strings('unit.eth');
-				break;
-		}
+				return [totalFiat, totalValue];
+			},
+			default: () => [undefined, undefined]
+		};
+		return totals[assetType] || totals.default;
+	};
+
+	render = () => {
+		const {
+			transaction: { gas, gasPrice },
+			currentCurrency,
+			conversionRate
+		} = this.props;
+
+		const { amountError } = this.state;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const totalGasEth = renderFromWei(totalGas).toString() + ' ' + strings('unit.eth');
+
+		const [totalFiat, totalValue] = this.getRenderTotals()();
 
 		return (
 			<View style={styles.overview}>

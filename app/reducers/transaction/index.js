@@ -14,6 +14,20 @@ const initialState = {
 	id: undefined
 };
 
+const getAssetType = selectedAsset => {
+	let assetType;
+	if (selectedAsset) {
+		if (selectedAsset.tokenId) {
+			assetType = 'ERC721';
+		} else if (selectedAsset.symbol === 'ETH') {
+			assetType = 'ETH';
+		} else {
+			assetType = 'ERC20';
+		}
+	}
+	return assetType;
+};
+
 const transactionReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case REHYDRATE:
@@ -27,16 +41,7 @@ const transactionReducer = (state = initialState, action) => {
 			};
 		case 'SET_SELECTED_ASSET': {
 			const selectedAsset = action.asset;
-			let assetType;
-			if (selectedAsset) {
-				if (selectedAsset.tokenId) {
-					assetType = 'ERC721';
-				} else if (selectedAsset.symbol === 'ETH') {
-					assetType = 'ETH';
-				} else {
-					assetType = 'ERC20';
-				}
-			}
+			const assetType = getAssetType(selectedAsset);
 			return {
 				...state,
 				selectedAsset,
@@ -46,14 +51,7 @@ const transactionReducer = (state = initialState, action) => {
 		case 'SET_TRANSACTION_OBJECT': {
 			const selectedAsset = action.transaction.selectedAsset;
 			if (selectedAsset) {
-				let assetType;
-				if (selectedAsset.tokenId) {
-					assetType = 'ERC721';
-				} else if (selectedAsset.symbol === 'ETH') {
-					assetType = 'ETH';
-				} else {
-					assetType = 'ERC20';
-				}
+				const assetType = getAssetType(selectedAsset);
 				action.transaction.assetType = assetType;
 			}
 			return {
@@ -63,16 +61,7 @@ const transactionReducer = (state = initialState, action) => {
 		}
 		case 'SET_TOKENS_TRANSACTION': {
 			const selectedAsset = action.asset;
-			let assetType;
-			if (selectedAsset) {
-				if (selectedAsset.tokenId) {
-					assetType = 'ERC721';
-				} else if (selectedAsset.symbol === 'ETH') {
-					assetType = 'ETH';
-				} else {
-					assetType = 'ERC20';
-				}
-			}
+			const assetType = getAssetType(selectedAsset);
 			return {
 				...state,
 				type: 'TOKENS_TRANSACTION',

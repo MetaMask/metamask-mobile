@@ -217,11 +217,11 @@ class Send extends Component {
 		const { TransactionController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
 		const {
-			transaction: { selectedAsset }
+			transaction: { selectedAsset, assetType }
 		} = this.props;
 		let { transaction } = this.props;
 		try {
-			if (selectedAsset.symbol === 'ETH') {
+			if (assetType === 'ETH') {
 				transaction = this.prepareTransaction(transaction);
 			} else {
 				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
@@ -230,7 +230,7 @@ class Send extends Component {
 			await TransactionController.approveTransaction(transactionMeta.id);
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
-			await this.clear();
+			this.clear();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);

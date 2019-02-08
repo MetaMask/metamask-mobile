@@ -96,36 +96,45 @@ class TransactionReviewSummary extends Component {
 		edit && edit();
 	};
 
-	render = () => {
+	getRenderValues = () => {
 		const {
 			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
-			contractExchangeRates,
-			actionKey
+			contractExchangeRates
 		} = this.props;
-		let assetAmount, conversionRate, fiatValue;
-		switch (assetType) {
-			case 'ETH':
-				assetAmount = renderFromWei(value).toString() + ' ' + strings('unit.eth');
-				conversionRate = this.props.conversionRate;
-				fiatValue = weiToFiat(value, conversionRate, currentCurrency);
-				break;
-			case 'ERC20':
-				assetAmount = renderFromTokenMinimalUnit(value, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
-				conversionRate = contractExchangeRates[selectedAsset.address];
-				fiatValue = balanceToFiat(
+		const values = {
+			ETH: () => {
+				const assetAmount = renderFromWei(value).toString() + ' ' + strings('unit.eth');
+				const conversionRate = this.props.conversionRate;
+				const fiatValue = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
+				return [assetAmount, conversionRate, fiatValue];
+			},
+			ERC20: () => {
+				const assetAmount =
+					renderFromTokenMinimalUnit(value, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
+				const conversionRate = contractExchangeRates[selectedAsset.address];
+				const fiatValue = balanceToFiat(
 					(value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
 					this.props.conversionRate,
 					conversionRate,
 					currentCurrency
 				);
-				break;
-			case 'ERC721':
-				assetAmount = ' #' + selectedAsset.tokenId;
-				conversionRate = '-';
-				fiatValue = selectedAsset.name;
-				break;
-		}
+				return [assetAmount, conversionRate, fiatValue];
+			},
+			ERC721: () => {
+				const assetAmount = strings('unit.token_id') + selectedAsset.tokenId;
+				const conversionRate = true;
+				const fiatValue = selectedAsset.name;
+				return [assetAmount, conversionRate, fiatValue];
+			},
+			default: () => [undefined, undefined, undefined]
+		};
+		return values[assetType] || values.default;
+	};
+
+	render = () => {
+		const { actionKey } = this.props;
+		const [assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
 		return (
 			<View style={styles.summary}>
 				<Text style={styles.confirmBadge} numberOfLines={1}>

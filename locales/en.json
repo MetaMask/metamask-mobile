@@ -402,7 +402,8 @@
 	"unit": {
 		"eth": "ETH",
 		"negative": "-",
-		"divisor": "/"
+		"divisor": "/",
+		"token_id": "#"
 	},
 	"biometrics": {
 		"enable_touchid": "Enable TouchID authentication",

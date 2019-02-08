@@ -272,18 +272,12 @@ class EthInput extends Component {
 		const {
 			transaction: { selectedAsset, assetType }
 		} = this.props;
-		let assetsList;
-		switch (assetType) {
-			case 'ETH':
-				assetsList = assets.filter(asset => asset.symbol !== 'ETH');
-				break;
-			case 'ERC20':
-				assetsList = assets.filter(asset => asset.symbol !== selectedAsset.symbol);
-				break;
-			case 'ERC721':
-				assetsList = assets.filter(asset => asset.tokenId !== selectedAsset.tokenId);
-				break;
-		}
+		const assetsLists = {
+			ETH: () => assets.filter(asset => asset.symbol !== 'ETH'),
+			ERC20: () => assets.filter(asset => asset.symbol !== selectedAsset.symbol),
+			ERC721: () => assets.filter(asset => asset.tokenId !== selectedAsset.tokenId)
+		};
+		const assetsList = assetsLists[assetType]();
 		return (
 			<ElevatedView elevation={10} style={styles.root}>
 				<ScrollView style={styles.componentContainer}>
@@ -310,7 +304,7 @@ class EthInput extends Component {
 		this.setState({ readableValue: value });
 	};
 
-	render = () => {
+	renderInput = () => {
 		const {
 			currentCurrency,
 			readonly,
@@ -318,53 +312,14 @@ class EthInput extends Component {
 			conversionRate,
 			transaction: { assetType, selectedAsset, value }
 		} = this.props;
-		const { isOpen, readableValue, assets } = this.state;
-		const selectAssets = assets && assets.length > 1;
-		let convertedAmount;
-		if (selectedAsset && selectedAsset.symbol !== 'ETH') {
-			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			if (exchangeRate) {
-				convertedAmount = balanceToFiat(
-					(value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
-					conversionRate,
-					exchangeRate,
-					currentCurrency
-				).toUpperCase();
-			} else {
-				convertedAmount = strings('transaction.conversion_not_available');
-			}
-		} else {
-			convertedAmount = weiToFiat(value, conversionRate, currentCurrency).toUpperCase();
-		}
-		return (
-			<View style={styles.root}>
-				{assetType === 'ERC721' ? (
-					<View style={styles.container}>
-						<SelectableAsset
-							title={selectedAsset.name}
-							subTitle={`ID: ${selectedAsset.tokenId}`}
-							icon={
-								<CollectibleImage
-									collectible={selectedAsset}
-									containerStyle={styles.logo}
-									iconStyle={styles.logo}
-								/>
-							}
-							asset={selectedAsset}
-						/>
-					</View>
-				) : (
+		const { readableValue } = this.state;
+		const inputs = {
+			ETH: () => {
+				const convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
+				return (
 					<View style={styles.container}>
 						<View style={styles.icon}>
-							{assetType === 'ERC20' ? (
-								<TokenImage
-									asset={selectedAsset}
-									containerStyle={styles.logo}
-									iconStyle={styles.logo}
-								/>
-							) : (
-								<Image source={ethLogo} style={styles.logo} />
-							)}
+							<Image source={ethLogo} style={styles.logo} />
 						</View>
 						<View style={styles.ethContainer}>
 							<View style={styles.split}>
@@ -381,7 +336,7 @@ class EthInput extends Component {
 									value={readableValue}
 								/>
 								<Text style={styles.eth} numberOfLines={1}>
-									{(selectedAsset && selectedAsset.symbol) || strings('unit.eth')}
+									{strings('unit.eth')}
 								</Text>
 							</View>
 							<Text style={styles.fiatValue} numberOfLines={1}>
@@ -389,8 +344,77 @@ class EthInput extends Component {
 							</Text>
 						</View>
 					</View>
-				)}
+				);
+			},
+			ERC20: () => {
+				const exchangeRate = contractExchangeRates[selectedAsset.address];
+				let convertedAmount;
+				if (exchangeRate) {
+					convertedAmount = balanceToFiat(
+						(value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
+						conversionRate,
+						exchangeRate,
+						currentCurrency.toUpperCase()
+					);
+				} else {
+					convertedAmount = strings('transaction.conversion_not_available');
+				}
+				return (
+					<View style={styles.container}>
+						<View style={styles.icon}>
+							<TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />
+						</View>
+						<View style={styles.ethContainer}>
+							<View style={styles.split}>
+								<TextInput
+									autoCapitalize="none"
+									autoCorrect={false}
+									editable={!readonly}
+									keyboardType="numeric"
+									numberOfLines={1}
+									onChangeText={this.onChange}
+									placeholder={'0.00'}
+									spellCheck={false}
+									style={styles.input}
+									value={readableValue}
+								/>
+								<Text style={styles.eth} numberOfLines={1}>
+									{selectedAsset.symbol}
+								</Text>
+							</View>
+							<Text style={styles.fiatValue} numberOfLines={1}>
+								{convertedAmount}
+							</Text>
+						</View>
+					</View>
+				);
+			},
+			ERC721: () => (
+				<View style={styles.container}>
+					<SelectableAsset
+						title={selectedAsset.name}
+						subTitle={`${strings('unit.token_id')}${selectedAsset.tokenId}`}
+						icon={
+							<CollectibleImage
+								collectible={selectedAsset}
+								containerStyle={styles.logo}
+								iconStyle={styles.logo}
+							/>
+						}
+						asset={selectedAsset}
+					/>
+				</View>
+			)
+		};
+		return assetType && inputs[assetType]();
+	};
 
+	render = () => {
+		const { isOpen, assets } = this.state;
+		const selectAssets = assets && assets.length > 1;
+		return (
+			<View style={styles.root}>
+				{this.renderInput()}
 				{selectAssets && (
 					<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				)}
