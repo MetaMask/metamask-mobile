@@ -283,11 +283,6 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
       }
     >
       <StyledButton
-        containerStyle={
-          Object {
-            "flexDirection": "row",
-          }
-        }
         disabledContainerStyle={
           Object {
             "opacity": 0.6,
@@ -302,18 +297,41 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
         testID="submit-button"
         type="confirm"
       >
-        <Icon
-          allowFontScaling={false}
-          name="check"
-          size={15}
+        <View
           style={
             Object {
-              "color": "#FFFFFF",
-              "fontSize": 20,
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "center",
             }
           }
-        />
-        ALL DONE
+        >
+          <Icon
+            allowFontScaling={false}
+            name="check"
+            size={15}
+            style={
+              Object {
+                "color": "#FFFFFF",
+                "fontSize": 20,
+                "marginRight": 10,
+              }
+            }
+          />
+          <Text
+            style={
+              Object {
+                "color": "#FFFFFF",
+                "fontFamily": "Roboto",
+                "fontSize": 18,
+                "fontWeight": "600",
+                "textAlign": "center",
+              }
+            }
+          >
+            ALL DONE
+          </Text>
+        </View>
       </StyledButton>
     </View>
   </ScrollView>

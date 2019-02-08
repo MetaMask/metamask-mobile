@@ -9,16 +9,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
     }
   }
 >
-  <Pager
-    pages={5}
-    selected={4}
-  />
   <ScrollView
-    contentContainerStyle={
-      Object {
-        "flex": 1,
-      }
-    }
     style={
       Object {
         "backgroundColor": "#FFFFFF",
@@ -27,6 +18,10 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
     }
     testID="account-backup-step-5-screen"
   >
+    <Pager
+      pages={5}
+      selected={4}
+    />
     <TouchableOpacity
       activeOpacity={0.2}
       onPress={[Function]}
@@ -144,6 +139,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -173,6 +169,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -199,6 +196,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -225,6 +223,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -251,6 +250,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -277,6 +277,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -313,6 +314,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -339,6 +341,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -365,6 +368,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -391,6 +395,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -417,6 +422,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -443,6 +449,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "borderColor": "#CCCCCC",
                       "borderRadius": 4,
                       "borderWidth": 1,
+                      "color": "#000000",
                       "fontSize": 14,
                       "lineHeight": 14,
                       "marginBottom": 15,
@@ -478,6 +485,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -515,6 +523,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -552,6 +561,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -589,6 +599,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -626,6 +637,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -663,6 +675,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -700,6 +713,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -737,6 +751,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -774,6 +789,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -811,6 +827,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -848,6 +865,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -885,6 +903,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   "borderColor": "#008edf",
                   "borderRadius": 4,
                   "borderWidth": 1,
+                  "color": "#000000",
                   "fontSize": 14,
                   "lineHeight": 14,
                   "marginBottom": 6,
@@ -918,6 +937,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
           Object {
             "flex": 1,
             "justifyContent": "flex-end",
+            "marginTop": 30,
           }
         }
       >

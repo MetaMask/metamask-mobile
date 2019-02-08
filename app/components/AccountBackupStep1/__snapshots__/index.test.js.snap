@@ -9,9 +9,6 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
     }
   }
 >
-  <Pager
-    pages={5}
-  />
   <ScrollView
     contentContainerStyle={
       Object {
@@ -26,6 +23,9 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
     }
     testID="account-backup-step-1-screen"
   >
+    <Pager
+      pages={5}
+    />
     <TouchableOpacity
       activeOpacity={0.2}
       onPress={[Function]}
@@ -56,6 +56,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           "flex": 1,
           "padding": 20,
           "paddingBottom": 0,
+          "paddingTop": 20,
         }
       }
       testID="protect-your-account-screen"

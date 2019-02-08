@@ -9,10 +9,6 @@ exports[`AccountBackupStep3 should render correctly 1`] = `
     }
   }
 >
-  <Pager
-    pages={5}
-    selected={2}
-  />
   <ScrollView
     contentContainerStyle={
       Object {
@@ -27,6 +23,10 @@ exports[`AccountBackupStep3 should render correctly 1`] = `
     }
     testID="account-backup-step-3-screen"
   >
+    <Pager
+      pages={5}
+      selected={2}
+    />
     <TouchableOpacity
       activeOpacity={0.2}
       onPress={[Function]}
