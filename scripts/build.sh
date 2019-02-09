@@ -143,8 +143,7 @@ buildAndroidRelease(){
 
 	if [ "$PRE_RELEASE" = true ] ; then
 		TARGET="android/app/build.gradle"
-		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
-		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
+		sed -i'' -e "s/signingConfig signingConfigs.release/ /" $TARGET;
 	fi
 
 	cd android &&
