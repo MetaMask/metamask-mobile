@@ -113,11 +113,11 @@ jobs:
             |
               npm run build:android:pre-release
       - store_artifacts:
-          path: builds
-          destination: android/app/build/outputs/apk/release
+          path: android/app/build/outputs/apk/release
+          destination: builds
       - run:
           name: build:announce
-          command: cdnpm run build:announce
+          command: npm run build:announce
 
 workflows:
   version: 2
