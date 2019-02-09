@@ -20,7 +20,7 @@ async function start() {
 
 	const CIRCLE_PR_NUMBER = CIRCLE_PULL_REQUEST.split('/').pop();
 	const SHORT_SHA1 = CIRCLE_SHA1.slice(0, 7);
-	const BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-42009758-gh.circle-artifacts.com/0`;
+	const BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-141427485-gh.circle-artifacts.com/0`;
 
 	const ANDROID = `${BUILD_LINK_BASE}/builds/app-release-unsigned.apk`;
 
