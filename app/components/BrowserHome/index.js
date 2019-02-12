@@ -101,7 +101,13 @@ class BrowserHome extends Component {
 		await this.go(sanitizedInput);
 	};
 
-	render = () => <HomePage onBookmarkTapped={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} />;
+	render = () => (
+		<HomePage
+			onBookmarkTapped={this.go}
+			onInitialUrlSubmit={this.onInitialUrlSubmit}
+			navigation={this.props.navigation}
+		/>
+	);
 }
 
 const mapStateToProps = state => ({

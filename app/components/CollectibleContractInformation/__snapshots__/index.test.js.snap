@@ -22,7 +22,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       onPress={[Function]}
       style={
         Object {
-          "color": "#4a4a4a",
+          "color": "#000000",
           "fontFamily": "Roboto",
           "fontSize": 18,
           "fontWeight": "600",
@@ -60,12 +60,12 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        Description
+        [missing "en.asset_overview.description" translation]
       </Text>
       <Text
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",
@@ -93,12 +93,12 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        Total Supply
+        [missing "en.asset_overview.totalSupply" translation]
       </Text>
       <Text
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",
@@ -126,12 +126,12 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        Address
+        [missing "en.asset_overview.address" translation]
       </Text>
       <Text
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",
@@ -181,7 +181,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
               }
             }
           >
-            Powered by
+            [missing "en.collectible.powered_by_opensea" translation]
           </Text>
           <Component
             source={

@@ -8,7 +8,7 @@ exports[`AccountApproval should render correctly 1`] = `
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
       "height": 600,
-      "paddingBottom": 0,
+      "paddingBottom": 20,
     }
   }
 >
@@ -16,7 +16,7 @@ exports[`AccountApproval should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#4a4a4a",
+          "color": "#000000",
           "fontFamily": "Roboto",
           "fontSize": 14,
           "fontWeight": "600",
@@ -82,7 +82,7 @@ exports[`AccountApproval should render correctly 1`] = `
             numberOfLines={1}
             style={
               Object {
-                "color": "#4a4a4a",
+                "color": "#000000",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -181,7 +181,7 @@ exports[`AccountApproval should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#4a4a4a",
+                "color": "#000000",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -197,7 +197,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 20,
             "fontWeight": "400",
@@ -209,7 +209,7 @@ exports[`AccountApproval should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#4a4a4a",
+              "color": "#000000",
               "fontFamily": "Roboto",
               "fontSize": 20,
               "fontWeight": "600",
@@ -239,7 +239,7 @@ exports[`AccountApproval should render correctly 1`] = `
           numberOfLines={1}
           style={
             Object {
-              "color": "#4a4a4a",
+              "color": "#000000",
               "flexGrow": 1,
               "flexShrink": 1,
               "fontFamily": "Roboto",
@@ -252,7 +252,7 @@ exports[`AccountApproval should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#4a4a4a",
+                "color": "#000000",
                 "fontFamily": "Roboto",
                 "fontSize": 14,
                 "fontWeight": "600",
@@ -273,7 +273,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",

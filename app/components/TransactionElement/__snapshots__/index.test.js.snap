@@ -74,7 +74,7 @@ exports[`TransactionElement should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#4a4a4a",
+                "color": "#000000",
                 "fontFamily": "Roboto",
                 "fontSize": 15,
                 "fontWeight": "400",
@@ -115,7 +115,7 @@ exports[`TransactionElement should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#4a4a4a",
+                "color": "#000000",
                 "fontFamily": "Roboto",
                 "fontSize": 15,
                 "fontWeight": "400",
