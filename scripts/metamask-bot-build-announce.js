@@ -64,14 +64,14 @@ async function start() {
 	const SLACK_API_URI = `https://hooks.slack.com/services/${process.env.SLACK_TOKEN}/${process.env.SLACK_SECRET}/${process.env.SLACK_ROOM}`
 
 
-	// await request({
-	// 	method: 'POST',
-	// 	uri: SLACK_API_URI,
-	// 	body: JSON_PAYLOAD,
-	// 	headers: {
-	// 		'Content-type': 'application/json',
-	// 	}
-	// });
+	await request({
+		method: 'POST',
+		uri: SLACK_API_URI,
+		body: JSON_PAYLOAD,
+		headers: {
+			'Content-type': 'application/json',
+		}
+	});
 }
 
 
