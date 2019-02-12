@@ -1,11 +1,22 @@
 #!/usr/bin/env node
 const request = require('request-promise');
-const VERSION = require('../package.json').version;
+const github = require('octonode');
+
 
 start().catch(console.error);
 
+async function getPullRequestTitle () {
+
+	const client = github.client(process.env.GITHUB_TOKEN);
+	const PR = client.pr('metamask/MetaMask', 360);
+
+	const response = await PR.infoAsync();
+	if(response && response[0] && response[0].title){
+		return response[0].title;
+	}
+}
+
 async function start() {
-	const GITHUB_COMMENT_TOKEN = process.env.GITHUB_COMMENT_TOKEN;
 	const CIRCLE_PULL_REQUEST = process.env.CIRCLE_PULL_REQUEST;
 	console.log('CIRCLE_PULL_REQUEST', CIRCLE_PULL_REQUEST);
 	const CIRCLE_SHA1 = process.env.CIRCLE_SHA1;
@@ -18,33 +29,46 @@ async function start() {
 		return;
 	}
 
+
+	const APK_BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-141427485-gh.circle-artifacts.com/0`;
+
+	const APK_LINK = `${APK_BUILD_LINK_BASE}/builds/app-release.apk`;
+
+	const GITHUB_PR_TITLE = await getPullRequestTitle();
+
 	const CIRCLE_PR_NUMBER = CIRCLE_PULL_REQUEST.split('/').pop();
-	const SHORT_SHA1 = CIRCLE_SHA1.slice(0, 7);
-	const BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-141427485-gh.circle-artifacts.com/0`;
 
-	const ANDROID = `${BUILD_LINK_BASE}/builds/app-release-unsigned.apk`;
 
-	const commentBody = `
-  <details>
-    <summary>
-      Builds ready [${SHORT_SHA1}]:
-      <a href="${ANDROID}">Android</a>,
-    </summary>
-  </details>
-  `;
+	const content = {
+		"text": `NEW BUILDS AVAILABLE! Including <${CIRCLE_PULL_REQUEST}|#${CIRCLE_PR_NUMBER} - ${GITHUB_PR_TITLE}>`,
+		"attachments": [
+			{
+				"title_link": "itms-beta://beta.itunes.apple.com/v1/app/1438144202",
+				"title": "iOS",
+				"text": "Install via TestFlight",
+				"thumb_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Apple-Apple.svg/488px-Apple-Apple.svg.png"
+			},
+			{
+				"title_link": APK_LINK,
+				"title" : "Android",
+				"text": "Download APK",
+				"thumb_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png"
+			}
+		]
+	};
 
-	const JSON_PAYLOAD = JSON.stringify({ body: commentBody });
-	const POST_COMMENT_URI = `https://api.github.com/repos/metamask/metamask/issues/${CIRCLE_PR_NUMBER}/comments`;
-	console.log(`Announcement:\n${commentBody}`);
-	console.log(`Posting to: ${POST_COMMENT_URI}`);
+	const JSON_PAYLOAD = JSON.stringify(content);
+	const SLACK_API_URI = `https://hooks.slack.com/services/${process.env.SLACK_TOKEN}/${process.env.SLACK_SECRET}/${process.env.SLACK_ROOM}`
+
 
 	await request({
 		method: 'POST',
-		uri: POST_COMMENT_URI,
+		uri: SLACK_API_URI,
 		body: JSON_PAYLOAD,
 		headers: {
-			'User-Agent': 'metamaskbot',
-			Authorization: `token ${GITHUB_COMMENT_TOKEN}`
+			'Content-type': 'application/json',
 		}
 	});
 }
+
+
