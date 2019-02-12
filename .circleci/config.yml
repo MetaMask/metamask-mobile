@@ -118,7 +118,7 @@ jobs:
           name: build:pre-release
           command:
             |
-              npm run build:ios:release # && npm run build:android:pre-release
+              npm run build:android:pre-release
       - store_artifacts:
           path: android/app/build/outputs/apk/release
           destination: builds
@@ -132,6 +132,7 @@ jobs:
     shell: /bin/bash --login -o pipefail
     steps:
       - checkout
+      - run: echo "ruby-2.4" > ~/.ruby-version
       - run: cd ios && bundle install
       - run:
           name: Fastlane
