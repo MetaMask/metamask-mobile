@@ -60,7 +60,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#4a4a4a",
+          "color": "#000000",
           "fontFamily": "Roboto",
           "fontSize": 30,
           "fontWeight": "400",
@@ -71,7 +71,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#4a4a4a",
+          "color": "#000000",
           "fontFamily": "Roboto",
           "fontSize": 30,
           "fontWeight": "400",
@@ -99,7 +99,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
     leftText="SEND"
     onLeftPress={[Function]}
     onRightPress={[Function]}
-    rightText="ADD"
+    rightText="[MISSING \\"EN.ASSET_OVERVIEW.ADD_COLLECTIBLE_BUTTON\\" TRANSLATION]"
   />
 </LinearGradient>
 `;

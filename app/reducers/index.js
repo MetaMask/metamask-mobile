@@ -5,6 +5,7 @@ import modalsReducer from './modals';
 import settingsReducer from './settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
+import userReducer from './user';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -14,7 +15,8 @@ const rootReducer = combineReducers({
 	modals: modalsReducer,
 	settings: settingsReducer,
 	alert: alertReducer,
-	transaction: transactionReducer
+	transaction: transactionReducer,
+	user: userReducer
 });
 
 export default rootReducer;

@@ -8,7 +8,11 @@ const mockStore = configureMockStore();
 describe('HomePage', () => {
 	it('should render correctly', () => {
 		const initialState = {
-			bookmarks: [{ url: 'url', name: 'name' }]
+			bookmarks: [{ url: 'url', name: 'name' }],
+			user: {
+				seedphraseBackedUp: false,
+				passwordSet: false
+			}
 		};
 
 		const wrapper = shallow(<HomePage />, {

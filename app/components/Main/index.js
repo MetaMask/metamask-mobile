@@ -21,6 +21,15 @@ import RevealPrivateCredential from '../RevealPrivateCredential';
 import QrScanner from '../QRScanner';
 import LockScreen from '../LockScreen';
 import TransactionSubmitted from '../TransactionSubmitted';
+import FirstIncomingTransaction from '../FirstIncomingTransaction';
+import ProtectYourAccount from '../ProtectYourAccount';
+import ChoosePassword from '../ChoosePassword';
+import AccountBackupStep1 from '../AccountBackupStep1';
+import AccountBackupStep2 from '../AccountBackupStep2';
+import AccountBackupStep3 from '../AccountBackupStep3';
+import AccountBackupStep4 from '../AccountBackupStep4';
+import AccountBackupStep5 from '../AccountBackupStep5';
+import AccountBackupStep6 from '../AccountBackupStep6';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -109,6 +118,42 @@ const MainNavigator = createStackNavigator(
 		},
 		TransactionSubmitted: {
 			screen: TransactionSubmitted
+		},
+		SetPasswordFlow: {
+			screen: createStackNavigator(
+				{
+					FirstIncomingTransaction: {
+						screen: FirstIncomingTransaction
+					},
+					ProtectYourAccount: {
+						screen: ProtectYourAccount
+					},
+					ChoosePassword: {
+						screen: ChoosePassword
+					},
+					AccountBackupStep1: {
+						screen: AccountBackupStep1
+					},
+					AccountBackupStep2: {
+						screen: AccountBackupStep2
+					},
+					AccountBackupStep3: {
+						screen: AccountBackupStep3
+					},
+					AccountBackupStep4: {
+						screen: AccountBackupStep4
+					},
+					AccountBackupStep5: {
+						screen: AccountBackupStep5
+					},
+					AccountBackupStep6: {
+						screen: AccountBackupStep6
+					}
+				},
+				{
+					headerMode: 'none'
+				}
+			)
 		}
 	},
 	{

@@ -1,0 +1,966 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountBackupStep5 should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ScrollView
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="account-backup-step-5-screen"
+  >
+    <Pager
+      pages={5}
+      selected={4}
+    />
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "alignSelf": "flex-start",
+          "paddingBottom": 10,
+          "paddingHorizontal": 22,
+          "paddingTop": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#008edf",
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Back
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "padding": 30,
+          "paddingTop": 0,
+        }
+      }
+      testID="protect-your-account-screen"
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "flex-start",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 32,
+              "fontWeight": "400",
+              "justifyContent": "center",
+              "marginBottom": 20,
+              "marginTop": 20,
+              "textAlign": "left",
+            }
+          }
+        >
+          Confirm seed phrase
+        </Text>
+        <View
+          style={
+            Object {
+              "justifyContent": "center",
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 23,
+                "textAlign": "left",
+              }
+            }
+          >
+            Insert each phrase in the order it was presented to you on the previous screen.
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "backgroundColor": "#F7F7F7",
+              "borderColor": "#CCCCCC",
+              "borderRadius": 10,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "marginBottom": 22,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "borderColor": "#CCCCCC",
+                "borderRightWidth": 1,
+                "flex": 1,
+                "paddingVertical": 20,
+              }
+            }
+          >
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_0"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    Object {
+                      "borderColor": "#008edf",
+                      "borderWidth": 1,
+                    },
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_1"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_2"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_3"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_4"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_5"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flex": 1,
+                "paddingVertical": 20,
+              }
+            }
+          >
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_0"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_1"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_2"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_3"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_4"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.2}
+              key="word_5"
+              onPress={[Function]}
+            >
+              <Text
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#CCCCCC",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#000000",
+                      "fontSize": 14,
+                      "lineHeight": 14,
+                      "marginBottom": 15,
+                      "paddingBottom": 4,
+                      "paddingHorizontal": 8,
+                      "paddingTop": 6,
+                      "width": 105,
+                    },
+                    null,
+                  ]
+                }
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "justifyContent": "space-between",
+            }
+          }
+        >
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_0"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              abstract
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_1"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              accident
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_2"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              acoustic
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_3"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              announce
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_4"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              artefact
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_5"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              attitude
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_6"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              bachelor
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_7"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              broccoli
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_8"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              business
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_9"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              category
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_10"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              champion
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            key="selectableWord_11"
+            onPress={[Function]}
+            style={
+              Array [
+                Object {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#008edf",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "color": "#000000",
+                  "fontSize": 14,
+                  "lineHeight": 14,
+                  "marginBottom": 6,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 5,
+                  "width": 95,
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "fontSize": 14,
+                    "lineHeight": 14,
+                    "textAlign": "center",
+                  },
+                  null,
+                ]
+              }
+            >
+              cinnamon
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "justifyContent": "flex-end",
+            "marginTop": 30,
+          }
+        }
+      >
+        <StyledButton
+          disabled={true}
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="submit-button"
+          type="confirm"
+        >
+          CONFIRM PHRASE
+        </StyledButton>
+      </View>
+    </View>
+  </ScrollView>
+</SafeAreaView>
+`;

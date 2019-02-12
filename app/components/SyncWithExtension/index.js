@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, AsyncStorage, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
+import { passwordSet, seedphraseBackedUp } from '../../actions/user';
 import SecureKeychain from '../../core/SecureKeychain';
 import PubNub from 'pubnub';
 import { colors, fontStyles } from '../../styles/common';
@@ -65,7 +66,17 @@ class SyncWithExtension extends Component {
 		/**
 		 * Map of accounts to information objects including balances
 		 */
-		accounts: PropTypes.object
+		accounts: PropTypes.object,
+		/**
+		 * The action to update the password set flag
+		 * in the redux store
+		 */
+		passwordSet: PropTypes.func,
+		/**
+		 * The action to update the seedphrase backed up flag
+		 * in the redux store
+		 */
+		seedphraseBackedUp: PropTypes.func
 	};
 
 	seedwords = null;
@@ -277,6 +288,8 @@ class SyncWithExtension extends Component {
 			this.setState({ loading: false });
 		}
 		await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+		this.props.passwordSet();
+		this.props.seedphraseBackedUp();
 	}
 
 	goBack = () => {
@@ -325,4 +338,12 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts
 });
 
-export default connect(mapStateToProps)(SyncWithExtension);
+const mapDispatchToProps = dispatch => ({
+	passwordSet: () => dispatch(passwordSet()),
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(SyncWithExtension);
