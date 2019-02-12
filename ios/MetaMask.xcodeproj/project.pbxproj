@@ -1781,7 +1781,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncp -rf ../.ios.env ./debug.xcconfig\ncp -rf ../.ios.env ./release.xcconfig\n";
+			shellScript = "if [ \"$CIRCLECI\" != true ] ; then\n    cp -rf ../.ios.env ./debug.xcconfig\n    cp -rf ../.ios.env ./release.xcconfig\nfi\n# Type a script or drag a script file from your workspace to insert its path.\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
