@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../Navbar';
+import { connect } from 'react-redux';
+import { passwordSet, seedphraseBackedUp } from '../../actions/user';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 
@@ -100,14 +102,24 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set restore their account
  * using a seed phrase
  */
-export default class ImportFromSeed extends Component {
+class ImportFromSeed extends Component {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * The action to update the password set flag
+		 * in the redux store
+		 */
+		passwordSet: PropTypes.func,
+		/**
+		 * The action to update the seedphrase backed up flag
+		 * in the redux store
+		 */
+		seedphraseBackedUp: PropTypes.func
 	};
 
 	state = {
@@ -175,6 +187,8 @@ export default class ImportFromSeed extends Component {
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
+				this.props.passwordSet();
+				this.props.seedphraseBackedUp();
 				this.props.navigation.navigate('HomeNav');
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
@@ -296,3 +310,13 @@ export default class ImportFromSeed extends Component {
 		</SafeAreaView>
 	);
 }
+
+const mapDispatchToProps = dispatch => ({
+	passwordSet: () => dispatch(passwordSet()),
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(ImportFromSeed);

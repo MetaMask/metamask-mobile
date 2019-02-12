@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, StyleSheet } from 'react-native';
+import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import Engine from '../../core/Engine';
 import PropTypes from 'prop-types';
 import { strings } from '../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
+import { isSmartContractAddress } from '../../util/transactions';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,9 +31,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Copmonent that provides ability to add custom collectibles.
+ * Component that provides ability to add custom collectibles.
  */
-export default class AddCustomCollectible extends Component {
+class AddCustomCollectible extends Component {
 	state = {
 		address: '',
 		tokenId: ''
@@ -41,11 +43,20 @@ export default class AddCustomCollectible extends Component {
 		/**
 		/* navigation object required to push new views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
-	addCollectible = () => {
-		if (!this.validateCustomCollectible()) return;
+	addCollectible = async () => {
+		if (!(await this.validateCustomCollectible())) return;
+		const isOwner = await this.validateCollectibleOwnership();
+		if (!isOwner) {
+			this.handleNotCollectibleOwner();
+			return;
+		}
 		const { AssetsController } = Engine.context;
 		const { address, tokenId } = this.state;
 		AssetsController.addCollectible(address, tokenId);
@@ -64,14 +75,18 @@ export default class AddCustomCollectible extends Component {
 		this.setState({ tokenId });
 	};
 
-	validateCustomCollectibleAddress = () => {
+	validateCustomCollectibleAddress = async () => {
 		let validated = true;
 		const address = this.state.address;
+		const isValidEthAddress = isValidAddress(address);
 		if (address.length === 0) {
 			this.setState({ warningAddress: strings('collectible.address_cant_be_empty') });
 			validated = false;
-		} else if (!isValidAddress(address)) {
+		} else if (!isValidEthAddress) {
 			this.setState({ warningAddress: strings('collectible.address_must_be_valid') });
+			validated = false;
+		} else if (!(await isSmartContractAddress(address))) {
+			this.setState({ warningAddress: strings('collectible.address_must_be_smart_contract') });
 			validated = false;
 		} else {
 			this.setState({ warningAddress: `` });
@@ -91,8 +106,8 @@ export default class AddCustomCollectible extends Component {
 		return validated;
 	};
 
-	validateCustomCollectible = () => {
-		const validatedAddress = this.validateCustomCollectibleAddress();
+	validateCustomCollectible = async () => {
+		const validatedAddress = await this.validateCustomCollectibleAddress();
 		const validatedTokenId = this.validateCustomCollectibleTokenId();
 		return validatedAddress && validatedTokenId;
 	};
@@ -102,6 +117,23 @@ export default class AddCustomCollectible extends Component {
 	jumpToAssetTokenId = () => {
 		const { current } = this.assetTokenIdInput;
 		current && current.focus();
+	};
+
+	handleNotCollectibleOwner = () => {
+		Alert.alert(strings('collectible.ownership_error_title'), strings('collectible.ownership_error'));
+	};
+
+	validateCollectibleOwnership = async () => {
+		const { AssetsContractController } = Engine.context;
+		const { address, tokenId } = this.state;
+		const { selectedAddress } = this.props;
+		try {
+			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			return isOwner;
+		} catch (e) {
+			return false;
+		}
 	};
 
 	render = () => (
@@ -147,3 +179,9 @@ export default class AddCustomCollectible extends Component {
 		</View>
 	);
 }
+
+const mapStateToProps = state => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+});
+
+export default connect(mapStateToProps)(AddCustomCollectible);

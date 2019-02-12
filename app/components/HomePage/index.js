@@ -2,25 +2,33 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ActionSheet from 'react-native-actionsheet';
 import { connect } from 'react-redux';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
-	InteractionManager,
-	ScrollView,
-	TouchableOpacity,
 	Image,
+	InteractionManager,
+	SafeAreaView,
+	TouchableOpacity,
 	Text,
 	Platform,
 	StyleSheet,
 	TextInput,
 	View
 } from 'react-native';
+import AnimatedFox from 'react-native-animated-fox';
 import { colors, baseStyles, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { removeBookmark } from '../../actions/bookmarks';
 import WebsiteIcon from '../WebsiteIcon';
-
+import ElevatedView from 'react-native-elevated-view';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import DeviceSize from '../../util/DeviceSize';
+import { withNavigation } from 'react-navigation';
 const foxImage = require('../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 const styles = StyleSheet.create({
+	flex: {
+		flex: 1
+	},
 	startPageWrapper: {
 		...baseStyles.flexGrow,
 		backgroundColor: colors.white
@@ -33,10 +41,10 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		marginTop: 10,
 		marginBottom: 0,
-		height: 120,
-		alignItems: 'center'
+		height: 120
 	},
 	image: {
+		alignSelf: 'center',
 		width: 120,
 		height: 120
 	},
@@ -107,6 +115,39 @@ const styles = StyleSheet.create({
 	},
 	fallbackTextStyle: {
 		fontSize: 12
+	},
+	backupAlert: {
+		position: 'absolute',
+		bottom: DeviceSize.isIphoneX() ? 50 : 30,
+		left: 16,
+		right: 16
+	},
+	backupAlertWrapper: {
+		padding: 9,
+		flexDirection: 'row',
+		backgroundColor: colors.lightWarning,
+		borderWidth: 1,
+		borderColor: colors.yellowBorder,
+		borderRadius: 8
+	},
+	backupAlertIconWrapper: {
+		marginRight: 13
+	},
+	backupAlertIcon: {
+		fontSize: 22,
+		color: colors.warningText
+	},
+	backupAlertTitle: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: colors.warningText,
+		...fontStyles.bold
+	},
+	backupAlertMessage: {
+		fontSize: 10,
+		lineHeight: 14,
+		color: colors.warningText,
+		...fontStyles.normal
 	}
 });
 
@@ -115,6 +156,10 @@ const styles = StyleSheet.create({
  */
 class HomePage extends Component {
 	static propTypes = {
+		/**
+		 * react-navigation object used to switch between screens
+		 */
+		navigation: PropTypes.object,
 		/**
 		 * Array containing all the bookmark items
 		 */
@@ -130,7 +175,16 @@ class HomePage extends Component {
 		/**
 		 * function that removes a bookmark
 		 */
-		removeBookmark: PropTypes.func
+		removeBookmark: PropTypes.func,
+		/**
+		 * redux flag that indicates if the user set a password
+		 */
+		passwordSet: PropTypes.bool,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	state = {
@@ -168,6 +222,10 @@ class HomePage extends Component {
 
 	createActionSheetRef = ref => {
 		this.actionSheet = ref;
+	};
+
+	backupAlertPress = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
 	renderBookmarks = () => {
@@ -213,34 +271,66 @@ class HomePage extends Component {
 		);
 	};
 
-	render = () => (
-		<ScrollView style={styles.startPageWrapper} contentContainerStyle={styles.startPageWrapperContent}>
-			<View style={styles.foxWrapper}>
-				<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-			</View>
-			<View style={styles.startPageContent}>
-				<Text style={styles.startPageTitle}>{strings('home_page.lets_get_started')}</Text>
-				<Text style={styles.startPageSubtitle}>{strings('home_page.web3_awaits')}</Text>
-				<TextInput
-					style={styles.searchInput}
-					autoCapitalize="none"
-					autoCorrect={false}
-					clearButtonMode="while-editing"
-					onChangeText={this.onInitialUrlChange}
-					onSubmitEditing={this.onInitialUrlSubmit}
-					placeholder="Search or type URL"
-					placeholderTextColor={colors.asphalt}
-					returnKeyType="go"
-					value={this.state.searchInputValue}
-				/>
-				{this.renderBookmarks()}
-			</View>
-		</ScrollView>
-	);
+	render() {
+		return (
+			<SafeAreaView style={styles.flex}>
+				<KeyboardAwareScrollView
+					style={styles.startPageWrapper}
+					contentContainerStyle={styles.startPageWrapperContent}
+					resetScrollToCoords={{ x: 0, y: 0 }}
+				>
+					<View style={styles.foxWrapper}>
+						{Platform.OS === 'android' ? (
+							<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+						) : (
+							<AnimatedFox />
+						)}
+					</View>
+					<View style={styles.startPageContent}>
+						<Text style={styles.startPageTitle}>{strings('home_page.lets_get_started')}</Text>
+						<Text style={styles.startPageSubtitle}>{strings('home_page.web3_awaits')}</Text>
+						<TextInput
+							style={styles.searchInput}
+							autoCapitalize="none"
+							autoCorrect={false}
+							clearButtonMode="while-editing"
+							onChangeText={this.onInitialUrlChange}
+							onSubmitEditing={this.onInitialUrlSubmit}
+							placeholder={strings('home_page.search_placeholder')}
+							placeholderTextColor={colors.asphalt}
+							returnKeyType="go"
+							value={this.state.searchInputValue}
+						/>
+						{this.renderBookmarks()}
+					</View>
+				</KeyboardAwareScrollView>
+				{this.props.passwordSet &&
+					!this.props.seedphraseBackedUp && (
+						<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
+							<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
+								<View style={styles.backupAlertIconWrapper}>
+									<Icon name="info-outline" style={styles.backupAlertIcon} />
+								</View>
+								<View>
+									<Text style={styles.backupAlertTitle}>
+										{strings('home_page.backup_alert_title')}
+									</Text>
+									<Text style={styles.backupAlertMessage}>
+										{strings('home_page.backup_alert_message')}
+									</Text>
+								</View>
+							</ElevatedView>
+						</TouchableOpacity>
+					)}
+			</SafeAreaView>
+		);
+	}
 }
 
 const mapStateToProps = state => ({
-	bookmarks: state.bookmarks
+	bookmarks: state.bookmarks,
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -250,4 +340,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(HomePage);
+)(withNavigation(HomePage));

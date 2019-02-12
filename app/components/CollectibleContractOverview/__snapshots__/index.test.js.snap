@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleContractOverview should render correctly 1`] = `
+<LinearGradient
+  colors={
+    Array [
+      "#dfe4ea",
+      "#FFFFFF",
+    ]
+  }
+  end={
+    Object {
+      "x": 0.5,
+      "y": 1,
+    }
+  }
+  start={
+    Object {
+      "x": 0.5,
+      "y": 0,
+    }
+  }
+  style={
+    Object {
+      "borderBottomColor": "#CCCCCC",
+      "borderBottomWidth": 0.5,
+      "flex": 1,
+      "padding": 20,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "alignItems": "center",
+        "marginBottom": 10,
+        "marginTop": 15,
+      }
+    }
+  >
+    <CollectibleImage
+      collectible={
+        Object {
+          "address": "0x123",
+          "image": undefined,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "marginBottom": 10,
+        "marginTop": 10,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "Roboto",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "textAlign": "center",
+        }
+      }
+    />
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "Roboto",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "textAlign": "center",
+        }
+      }
+    >
+      name
+    </Text>
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "300",
+          "textAlign": "center",
+        }
+      }
+    >
+      symbol
+    </Text>
+  </View>
+  <AssetActionButtons
+    leftText="SEND"
+    onLeftPress={[Function]}
+    onRightPress={[Function]}
+    rightText="[MISSING \\"EN.ASSET_OVERVIEW.ADD_COLLECTIBLE_BUTTON\\" TRANSLATION]"
+  />
+</LinearGradient>
+`;

@@ -246,7 +246,11 @@ export class Browser extends Component {
 		/**
 		 * Array of bookmarks
 		 */
-		bookmarks: PropTypes.array
+		bookmarks: PropTypes.array,
+		/**
+		 * String representing the current search engine
+		 */
+		searchEngine: PropTypes.string
 	};
 
 	state = {

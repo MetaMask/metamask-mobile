@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleView should render correctly 1`] = `
+<LinearGradient
+  colors={
+    Array [
+      "#dfe4ea",
+      "#FFFFFF",
+    ]
+  }
+  end={
+    Object {
+      "x": 0.5,
+      "y": 1,
+    }
+  }
+  start={
+    Object {
+      "x": 0.5,
+      "y": 0,
+    }
+  }
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 10,
+      "borderTopRightRadius": 10,
+      "minHeight": 600,
+    }
+  }
+>
+  <ScrollView
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      testID="asset"
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <CollectibleOverview
+          collectible={
+            Object {
+              "address": "0x1",
+            }
+          }
+          navigation={
+            Object {
+              "state": Object {
+                "params": Object {
+                  "address": "0x1",
+                },
+              },
+            }
+          }
+        />
+      </View>
+    </View>
+  </ScrollView>
+</LinearGradient>
+`;

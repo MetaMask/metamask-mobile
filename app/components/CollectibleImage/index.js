@@ -8,7 +8,8 @@ const styles = StyleSheet.create({
 	listWrapper: {
 		width: 50,
 		height: 50,
-		marginRight: 20
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	fullWrapper: {
 		width: 200,
@@ -20,7 +21,8 @@ const styles = StyleSheet.create({
 	},
 	listImage: {
 		width: 50,
-		height: 50
+		height: 50,
+		borderRadius: 25
 	},
 	fullImage: {
 		width: 200,

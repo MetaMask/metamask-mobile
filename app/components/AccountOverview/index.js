@@ -8,6 +8,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
+import { renderFiat } from '../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -103,7 +104,11 @@ export default class AccountOverview extends Component {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired
+		showAlert: PropTypes.func.isRequired,
+		/**
+		/* Selected currency
+		*/
+		currentCurrency: PropTypes.string
 	};
 	onDeposit = () => {
 		Alert.alert(strings('drawer.coming_soon'));
@@ -130,10 +135,11 @@ export default class AccountOverview extends Component {
 
 	render = () => {
 		const {
-			account: { name, address }
+			account: { name, address },
+			currentCurrency
 		} = this.props;
 
-		const fiatBalance = Engine.getTotalFiatAccountBalance();
+		const fiatBalance = renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency);
 
 		if (!address) return null;
 
