@@ -91,18 +91,17 @@ jobs:
     macos:
       xcode: 10.1.0
     steps:
-        - run:
-            name: All Tests Passed
-			command: echo 'weew - everything passed!'
+      - run:
+          name:  All Tests Passed
+          command: echo 'weew - everything passed!'
   announce-pre-release:
     <<: *defaults
     macos:
       xcode: 10.1.0
     steps:
-        - run:
-            name: Announcing pre-release
-            command: npm run build:announce
-  publish-pre-release-android:
+      - run:
+          name: Announcing pre-release
+          command: npm run build:announce
     working_directory:  ~/MetaMask
     docker:
       - image: circleci/android:api-28-node8-alpha
