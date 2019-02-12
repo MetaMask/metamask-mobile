@@ -19,7 +19,6 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
-*.xcconfig
 
 # android / intellij
 build/

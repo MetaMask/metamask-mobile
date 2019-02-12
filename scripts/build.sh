@@ -132,7 +132,15 @@ buildIosDevice(){
 
 buildIosRelease(){
 	prebuild_ios
+
+	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
+		TARGET="ios/release.xcconfig"
+		sed -i'' -e "s/MM_FOX_CODE = XXX/MM_FOX_CODE = $MM_FOX_CODE/" $TARGET;
+		sed -i'' -e "s/MM_FABRIC_API_KEY = XXX/MM_FABRIC_API_KEY = $MM_FABRIC_API_KEY/" $TARGET;
+		sed -i'' -e "s/MM_BRANCH_KEY_TEST = XXX/MM_BRANCH_KEY_TEST = $MM_BRANCH_KEY_TEST/" $TARGET;
+		sed -i'' -e "s/MM_BRANCH_KEY_LIVE = XXX/MM_BRANCH_KEY_LIVE = $MM_BRANCH_KEY_LIVE/" $TARGET;
+
 		cd ios && fastlane prerelease
 	else
 		cd ios && fastlane beta
