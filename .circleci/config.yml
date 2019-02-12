@@ -124,7 +124,7 @@ jobs:
           destination: builds
   publish-pre-release-ios:
     macos:
-      xcode: "9.0"
+      xcode: 10.1.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
