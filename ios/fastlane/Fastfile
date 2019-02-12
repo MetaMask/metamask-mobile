@@ -61,7 +61,6 @@ platform :ios do
       		distribute_external: false,
 			skip_waiting_for_build_processing: true
     	)
-		upload_symbols_to_crashlytics(dsym_path: "./MetaMask.app.dSYM.zip")
 
 	end
 end
