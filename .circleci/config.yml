@@ -132,10 +132,9 @@ jobs:
     shell: /bin/bash --login -o pipefail
     steps:
       - checkout
-      - run: cd ios && bundle install
       - run:
           name: Fastlane
-          command: bundle exec fastlane $FASTLANE_LANE
+          command: cd ios && bundle install && bundle exec fastlane $FASTLANE_LANE
 
 workflows:
   version: 2
