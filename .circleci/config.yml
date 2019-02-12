@@ -94,7 +94,6 @@ jobs:
         - run:
             name: All Tests Passed
 			command: echo 'weew - everything passed!'
-
   announce-pre-release:
     <<: *defaults
     macos:
@@ -103,7 +102,6 @@ jobs:
         - run:
             name: Announcing pre-release
             command: npm run build:announce
-
   publish-pre-release-android:
     working_directory:  ~/MetaMask
     docker:
@@ -124,7 +122,6 @@ jobs:
       - store_artifacts:
           path: android/app/build/outputs/apk/release
           destination: builds
-
   publish-pre-release-ios:
     macos:
       xcode: "9.0"
