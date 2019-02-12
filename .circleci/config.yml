@@ -132,7 +132,6 @@ jobs:
     shell: /bin/bash --login -o pipefail
     steps:
       - checkout
-      - run: gem update bundler
       - run: cd ios && bundle install
       - run:
           name: Fastlane
