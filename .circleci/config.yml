@@ -164,7 +164,7 @@ workflows:
 	#    - publish-pre-release-android:
 	# 	   requires:
 	# 		 - publish-pre-release-ios
-	   - announce-pre-release:
-			requires:
-			 - publish-pre-release-ios
+	#    - announce-pre-release:
+	# 		requires:
+	# 		 - publish-pre-release-ios
 
