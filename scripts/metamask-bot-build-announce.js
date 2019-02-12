@@ -8,7 +8,10 @@ start().catch(console.error);
 async function getPullRequestTitle () {
 
 	const client = github.client(process.env.GITHUB_TOKEN);
-	const PR = client.pr('metamask/MetaMask', 360);
+
+	const CIRCLE_PR_NUMBER = process.env.CIRCLE_PULL_REQUEST.split('/').pop();
+
+	const PR = client.pr('metamask/MetaMask', parseInt(CIRCLE_PR_NUMBER, 10));
 
 	const response = await PR.infoAsync();
 	if(response && response[0] && response[0].title){
@@ -36,7 +39,7 @@ async function start() {
 
 	const GITHUB_PR_TITLE = await getPullRequestTitle();
 
-	const CIRCLE_PR_NUMBER = CIRCLE_PULL_REQUEST.split('/').pop();
+	const CIRCLE_PR_NUMBER = process.env.CIRCLE_PULL_REQUEST.split('/').pop();
 
 
 	const content = {
@@ -61,14 +64,14 @@ async function start() {
 	const SLACK_API_URI = `https://hooks.slack.com/services/${process.env.SLACK_TOKEN}/${process.env.SLACK_SECRET}/${process.env.SLACK_ROOM}`
 
 
-	await request({
-		method: 'POST',
-		uri: SLACK_API_URI,
-		body: JSON_PAYLOAD,
-		headers: {
-			'Content-type': 'application/json',
-		}
-	});
+	// await request({
+	// 	method: 'POST',
+	// 	uri: SLACK_API_URI,
+	// 	body: JSON_PAYLOAD,
+	// 	headers: {
+	// 		'Content-type': 'application/json',
+	// 	}
+	// });
 }
 
 
