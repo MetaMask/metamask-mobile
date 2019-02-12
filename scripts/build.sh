@@ -141,7 +141,7 @@ buildIosRelease(){
 		sed -i'' -e "s/MM_BRANCH_KEY_TEST = XXX/MM_BRANCH_KEY_TEST = $MM_BRANCH_KEY_TEST/" $TARGET;
 		sed -i'' -e "s/MM_BRANCH_KEY_LIVE = XXX/MM_BRANCH_KEY_LIVE = $MM_BRANCH_KEY_LIVE/" $TARGET;
 
-		cd ios && fastlane prerelease
+		cd ios && bundle install && bundle exec fastlane prerelease
 	else
 		cd ios && fastlane beta
 	fi

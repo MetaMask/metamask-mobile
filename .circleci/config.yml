@@ -128,7 +128,6 @@ jobs:
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
-      FASTLANE_LANE: prerelease
     shell: /bin/bash --login -o pipefail
     steps:
       - checkout:
@@ -136,8 +135,8 @@ jobs:
       - attach_workspace:
           at: ~/MetaMask
       - run:
-          name: Fastlane
-          command: cd ios && bundle install && bundle exec fastlane $FASTLANE_LANE
+          name: pre-release
+          command: npm run build:ios:pre-release
 
 workflows:
   version: 2
