@@ -102,7 +102,8 @@ jobs:
       - run:
           name: Announcing pre-release
           command: npm run build:announce
-    working_directory:  ~/MetaMask
+  publish-pre-release-android:
+	working_directory:  ~/MetaMask
     docker:
       - image: circleci/android:api-28-node8-alpha
     steps:
@@ -124,14 +125,14 @@ jobs:
   publish-pre-release-ios:
     macos:
       xcode: "9.0"
-    working_directory:  ~/MetaMask/ios
+    working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
       FASTLANE_LANE: prerelease
     shell: /bin/bash --login -o pipefail
     steps:
       - checkout
-      - run: bundle install
+      - run: cd ios && bundle install
       - run:
           name: Fastlane
           command: bundle exec fastlane $FASTLANE_LANE
