@@ -138,12 +138,13 @@ jobs:
 
 workflows:
   version: 2
-  ful_test:
+  full_test:
     jobs:
-       - prep-deps
-       - publish-pre-release-ios:
-           requires:
-             - prep-deps
+      - prep-deps
+      - publish-pre-release-ios:
+          requires:
+            - prep-deps
+
     #   - lint:
     #       requires:
     #         - prep-deps
