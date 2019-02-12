@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
-import passwordSet from '../../actions/user';
+import { passwordSet } from '../../actions/user';
 import StyledButton from '../StyledButton';
 import Engine from '../../core/Engine';
 

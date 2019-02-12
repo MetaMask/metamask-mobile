@@ -1,4 +1,4 @@
-export default function passwordSet() {
+export function passwordSet() {
 	return {
 		type: 'PASSWORD_SET'
 	};
