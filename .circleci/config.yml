@@ -131,7 +131,10 @@ jobs:
       FASTLANE_LANE: prerelease
     shell: /bin/bash --login -o pipefail
     steps:
-      - checkout
+      - checkout:
+          path: ~/MetaMask
+      - attach_workspace:
+          at: ~/MetaMask
       - run:
           name: Fastlane
           command: cd ios && bundle install && bundle exec fastlane $FASTLANE_LANE
