@@ -17,7 +17,7 @@ import {
 } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
-import { getActionKey, decodeTransferData, ERC20 } from '../../util/transactions';
+import { getActionKey, decodeTransferData } from '../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 
 const styles = StyleSheet.create({
@@ -222,7 +222,7 @@ export default class TransactionElement extends PureComponent {
 			showAlert
 		} = this.props;
 		const { actionKey } = this.state;
-		const [addressTo, amount] = decodeTransferData(ERC20, tx.transaction.data);
+		const [addressTo, amount] = decodeTransferData('ERC20', tx.transaction.data);
 		const userHasToken = toChecksumAddress(tx.transaction.to) in tokens;
 		const token = userHasToken ? tokens[toChecksumAddress(tx.transaction.to)] : null;
 		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;

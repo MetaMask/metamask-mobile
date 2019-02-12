@@ -10,7 +10,6 @@ import {
 	renderFromTokenMinimalUnit,
 	renderFromWei
 } from '../../util/number';
-import { ETH, ERC20 } from '../../util/transactions';
 import { strings } from '../../../locales/i18n';
 import TokenImage from '../TokenImage';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -190,7 +189,7 @@ class EthInput extends Component {
 					assets: [
 						{
 							name: 'Ether',
-							symbol: ETH
+							symbol: 'ETH'
 						},
 						...this.props.tokens
 					]
@@ -201,7 +200,7 @@ class EthInput extends Component {
 					assets: [
 						{
 							name: 'Ether',
-							symbol: ETH
+							symbol: 'ETH'
 						}
 					]
 				});
@@ -245,17 +244,17 @@ class EthInput extends Component {
 	renderAsset = (asset, onPress) => {
 		const { assetType } = this.props.transaction;
 		let title, subTitle, icon;
-		if (assetType === ERC20 || assetType === ETH) {
+		if (assetType === 'ERC20' || assetType === 'ETH') {
 			const { tokenBalances, accounts, selectedAddress } = this.props;
 			title = asset.symbol;
 			subTitle =
-				asset.symbol !== ETH
+				asset.symbol !== 'ETH'
 					? asset.address in tokenBalances
 						? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals) + ' ' + asset.symbol
 						: undefined
 					: renderFromWei(accounts[selectedAddress].balance) + ' ' + asset.symbol;
 			icon =
-				asset.symbol !== ETH ? (
+				asset.symbol !== 'ETH' ? (
 					<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
 				) : (
 					<Image source={ethLogo} style={styles.logo} />
@@ -274,7 +273,7 @@ class EthInput extends Component {
 			transaction: { selectedAsset, assetType }
 		} = this.props;
 		const assetsLists = {
-			ETH: () => assets.filter(asset => asset.symbol !== ETH),
+			ETH: () => assets.filter(asset => asset.symbol !== 'ETH'),
 			ERC20: () => assets.filter(asset => asset.symbol !== selectedAsset.symbol),
 			ERC721: () => assets.filter(asset => asset.tokenId !== selectedAsset.tokenId)
 		};

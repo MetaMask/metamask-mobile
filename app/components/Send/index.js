@@ -10,7 +10,6 @@ import { strings } from '../../../locales/i18n';
 import { getClosableNavigationOptions } from '../Navbar';
 import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../actions/transaction';
-import { ETH } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -222,7 +221,7 @@ class Send extends Component {
 		} = this.props;
 		let { transaction } = this.props;
 		try {
-			if (assetType === ETH) {
+			if (assetType === 'ETH') {
 				transaction = this.prepareTransaction(transaction);
 			} else {
 				transaction = this.prepareAssetTransaction(transaction, selectedAsset);

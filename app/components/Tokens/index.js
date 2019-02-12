@@ -10,7 +10,6 @@ import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../util/number';
 import Engine from '../../core/Engine';
 import AssetElement from '../AssetElement';
-import { ETH } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -154,7 +153,7 @@ export default class Tokens extends PureComponent {
 		item = { ...item, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
-				{item.symbol === ETH ? (
+				{item.symbol === 'ETH' ? (
 					<Image source={ethLogo} style={styles.ethLogo} />
 				) : (
 					<TokenImage asset={item} containerStyle={styles.ethLogo} />

@@ -36,7 +36,6 @@ import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderShortAddress } from '../../util/address';
 import Engine from '../../core/Engine';
 import { setTokensTransaction } from '../../actions/transaction';
-import { ETH } from '../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -327,7 +326,7 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
-		this.props.setTokensTransaction({ symbol: ETH });
+		this.props.setTokensTransaction({ symbol: 'ETH' });
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 	};
