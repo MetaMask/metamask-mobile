@@ -93,9 +93,18 @@ jobs:
     steps:
         - run:
             name: All Tests Passed
-            command: echo 'weew - everything passed!'
+			command: echo 'weew - everything passed!'
 
-  publish-pre-release:
+  announce-pre-release:
+    <<: *defaults
+    macos:
+      xcode: 10.1.0
+    steps:
+        - run:
+            name: Announcing pre-release
+            command: npm run build:announce
+
+  publish-pre-release-android:
     working_directory:  ~/MetaMask
     docker:
       - image: circleci/android:api-28-node8-alpha
@@ -115,9 +124,21 @@ jobs:
       - store_artifacts:
           path: android/app/build/outputs/apk/release
           destination: builds
+
+  publish-pre-release-ios:
+    macos:
+      xcode: "9.0"
+    working_directory:  ~/MetaMask/ios
+    environment:
+      FL_OUTPUT_DIR: output
+      FASTLANE_LANE: prerelease
+    shell: /bin/bash --login -o pipefail
+    steps:
+      - checkout
+      - run: bundle install
       - run:
-          name: build:announce
-          command: npm run build:announce
+          name: Fastlane
+          command: bundle exec fastlane $FASTLANE_LANE
 
 workflows:
   version: 2
@@ -141,6 +162,13 @@ workflows:
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-       - publish-pre-release:
+       - publish-pre-release-ios:
            requires:
-             - prep-deps
+			 - prep-deps
+	#    - publish-pre-release-android:
+	# 	   requires:
+	# 		 - publish-pre-release-ios
+	   - announce-pre-release:
+			requires:
+			 - publish-pre-release-ios
+

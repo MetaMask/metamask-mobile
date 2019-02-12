@@ -132,7 +132,11 @@ buildIosDevice(){
 
 buildIosRelease(){
 	prebuild_ios
-	cd ios && fastlane beta
+	if [ "$PRE_RELEASE" = true ] ; then
+		cd ios && fastlane prerelease
+	else
+		cd ios && fastlane beta
+	fi
 }
 
 buildAndroidRelease(){
