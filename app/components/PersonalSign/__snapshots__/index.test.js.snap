@@ -8,7 +8,7 @@ exports[`PersonalSign should render correctly 1`] = `
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
       "minHeight": 600,
-      "paddingBottom": 0,
+      "paddingBottom": 20,
     }
   }
 >
@@ -17,7 +17,7 @@ exports[`PersonalSign should render correctly 1`] = `
       onPress={[Function]}
       style={
         Object {
-          "color": "#4a4a4a",
+          "color": "#000000",
           "fontFamily": "Roboto",
           "fontSize": 18,
           "fontWeight": "600",
@@ -65,7 +65,7 @@ exports[`PersonalSign should render correctly 1`] = `
         key="txt_0"
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "flex": 1,
             "fontFamily": "Roboto",
             "fontSize": 14,

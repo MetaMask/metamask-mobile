@@ -1,0 +1,116 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProtectYourAccount should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      Object {
+        "flex": 1,
+        "padding": 20,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="protect-your-account-screen"
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+        }
+      }
+    >
+      <Emoji
+        name="closed_lock_with_key"
+        style={
+          Object {
+            "fontSize": 72,
+            "marginLeft": 20,
+            "marginTop": 30,
+            "textAlign": "left",
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 32,
+            "fontWeight": "400",
+            "justifyContent": "center",
+            "marginBottom": 20,
+            "marginLeft": 20,
+            "marginTop": 20,
+            "textAlign": "left",
+            "width": 200,
+          }
+        }
+      >
+        Protect your Account
+      </Text>
+      <View
+        style={
+          Object {
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginLeft": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "lineHeight": 23,
+              "textAlign": "left",
+            }
+          }
+        >
+          Now that your account has stored value, let's create a password in order to protect your account.
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "justifyContent": "flex-end",
+        }
+      }
+    >
+      <StyledButton
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID="submit-button"
+        type="confirm"
+      >
+        CREATE PASSWORD
+      </StyledButton>
+    </View>
+  </ScrollView>
+</SafeAreaView>
+`;

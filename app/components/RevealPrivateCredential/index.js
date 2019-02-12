@@ -122,7 +122,11 @@ class RevealPrivateCredential extends Component {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired
+		showAlert: PropTypes.func.isRequired,
+		/**
+		 * String that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	async componentDidMount() {

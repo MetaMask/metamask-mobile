@@ -6,13 +6,15 @@
 		"info": "Info"
 	},
 	"onboarding": {
-		"title": "Welcome",
-		"subtitle": "The decentralized web awaits",
-		"lets_get_started": "Let's get started!",
-		"already_using_metamask": "Already using MetaMask?",
-		"import_wallet_button": "Import Wallet",
-		"or": "OR",
-		"create_new_wallet_button": "Create New Wallet"
+		"title": "Welcome to MetaMask",
+		"subtitle":
+			"A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.",
+		"import_wallet_button": "Import a wallet",
+		"start_exploring_now": "Start exploring now"
+	},
+	"create_wallet": {
+		"title": "Hang tight, we're building this thing while it's flying.",
+		"subtitle": "- The Blockchain"
 	},
 	"import_wallet": {
 		"title": "Import Wallet",
@@ -32,14 +34,25 @@
 		"go_back": "Go Back",
 		"invalid_password": "Invalid password"
 	},
-	"create_wallet": {
-		"title": "Create New Wallet",
-		"password": "Password (min. 8 characters)",
+	"choose_password": {
+		"title": "Choose a password",
+		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
+		"password": "New Password",
 		"confirm_password": "Confirm Password",
-		"create_button": "CREATE",
+		"create_button": "NEXT",
 		"import_with_seed_phrase": "Import with seed phrase",
 		"password_length_error": "The password needs to be at least 8 chars long",
-		"password_dont_match": "Passwords don't match"
+		"password_dont_match": "Passwords don't match",
+		"password_strength": "Password strength:",
+		"strength_weak": "Weak",
+		"strength_good": "Good",
+		"strength_strong": "Strong",
+		"show": "Show",
+		"hide": "Hide",
+		"must_be_at_least": "Must be at least {{number}} characters",
+		"security_alert_title": "Security Alert",
+		"security_alert_message":
+			"In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -84,7 +97,6 @@
 		"collectible": "Collectible",
 		"collectibles": "COLLECTIBLES",
 		"transactions": "TRANSACTIONS",
-		"collectible_no_name": "This collectible has no name",
 		"no_collectibles": "You don't have any collectibles!",
 		"add_tokens": "ADD TOKENS",
 		"no_tokens": "You don't have any tokens!",
@@ -118,7 +130,6 @@
 		"search_tokens_placeholder": "Search Tokens",
 		"address_cant_be_empty": "Token address can't be empty.",
 		"address_must_be_valid": "Token address must be a valid address.",
-		"address_must_be_smart_contract": "Personal address detected. Input the token contract address.",
 		"symbol_cant_be_empty": "Token symbol can't be empty.",
 		"decimals_cant_be_empty": "Token decimals can't be empty.",
 		"select_token": "Select Token"
@@ -127,14 +138,9 @@
 		"collectible_address": "Address",
 		"collectible_type": "Type",
 		"collectible_token_id": "ID",
-		"collectible_description": "Description",
 		"address_must_be_valid": "Collectible address must be a valid address.",
-		"address_must_be_smart_contract": "Personal address detected. Input the collectible contract address.",
 		"address_cant_be_empty": "Collectible address can't be empty.",
-		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
-		"ownership_error_title": "Ooops! Something happened.",
-		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
-		"powered_by_opensea": "Powered by"
+		"token_id_cant_be_empty": "Collectible identifier can't be empty."
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -235,11 +241,7 @@
 	},
 	"asset_overview": {
 		"send_button": "SEND",
-		"receive_button": "RECEIVE",
-		"add_collectible_button": "ADD",
-		"description": "Description",
-		"totalSupply": "Total Supply",
-		"address": "Address"
+		"receive_button": "RECEIVE"
 	},
 	"account_details": {
 		"title": "Account Details",
@@ -302,6 +304,9 @@
 	"home_page": {
 		"lets_get_started": "Let's get started!",
 		"web3_awaits": "The decentralized web awaits",
+		"search_placeholder": "Search or type URL",
+		"backup_alert_title": "Protect your funds",
+		"backup_alert_message": "Tap to save your seed phrase",
 		"bookmarks": "Bookmarks",
 		"no_bookmarks": "Your bookmarks will show up here",
 		"remove_bookmark_title": "Do you want to remove this bookmark?"
@@ -404,9 +409,9 @@
 		"divisor": "/"
 	},
 	"biometrics": {
-		"enable_touchid": "Enable TouchID authentication",
-		"enable_faceid": "Enable FaceID authentication",
-		"enable_fingerprint": "Enable Fingerprint authentication"
+		"enable_touchid": "Sign In with Touch ID?",
+		"enable_faceid": "Sign In with Face ID?",
+		"enable_fingerprint": "Sign In with Fingerprint?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Authentication required",
@@ -424,5 +429,91 @@
 		"address": "public address",
 		"warning":
 			"By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks."
+	},
+	"first_incoming_transaction": {
+		"title": "{{asset}} was deposited in your account",
+		"amount": "Amount:",
+		"account": "Account:",
+		"from": "From:",
+		"cta_text": "OK"
+	},
+	"protect_your_account": {
+		"title": "Protect your Account",
+		"info_text":
+			"Now that your account has stored value, let's create a password in order to protect your account.",
+		"cta_text": "CREATE PASSWORD"
+	},
+	"account_backup_step_1": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "No, back up Seed Phrase",
+		"skip": "Skip",
+		"important": "IMPORTANT!",
+		"title": "Save your wallet's seed phrase?",
+		"highly_recommended": "HIGHLY RECOMMENDED",
+		"info_text_1":
+			"The seed phrase is a unique twelve word phrase used to recover your wallet should you ever loose your device.",
+		"info_text_2":
+			"Do not share this with anyone! It’s crucial to save this phrase in a secure place only you have access to.",
+		"info_text_3":
+			"Your password cannot be used to recover your wallet! Only the seed phrase can be used to recover your wallet and all of it’s funds!",
+		"cta_text": "YEAH, LET'S SAVE IT",
+		"learn_more": "Learn More"
+	},
+	"account_backup_step_2": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "No, back up Seed Phrase",
+		"title": "Grab a pen and paper",
+		"info_text_1":
+			"You're going to need to write your seed phrase down. You will be asked to re-enter it in the other it's presented to you.",
+		"security_tips": "Security Tips",
+		"tip_1": "Write it down on paper and keep it somewhere safe!",
+		"tip_2": "Save it to a password manager",
+		"tip_3": "Never share this phrase with anyone!",
+		"cta_text": "OK"
+	},
+	"account_backup_step_3": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "No, back up Seed Phrase",
+		"title": "Is anyone watching?",
+		"info_text":
+			"Make sure no other human or robot is watching your screen. If your seed phrase is copied, it can be used on other devices to steal your funds",
+		"cta_text": "NO ONE'S WATCHING ME"
+	},
+	"account_backup_step_4": {
+		"cancel_backup_title": "Cancel Backup",
+		"cancel_backup_message": "We highly recommend you save your seed phrase in order to restore your wallet.",
+		"cancel_backup_ok": "Yes, I'll take the risk",
+		"cancel_backup_no": "No, back up Seed Phrase",
+		"back": "Back",
+		"title": "Your seed phrase",
+		"info_text_1": "Carefully write down these words on paper. Their order matters.",
+		"info_text_2": "You'll be asked to re-enter it on the next screen",
+		"cta_text": "I'VE WRITTEN IT DOWN"
+	},
+	"account_backup_step_5": {
+		"error_title": "Oops!",
+		"error_message":
+			"The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
+		"back": "Back",
+		"title": "Confirm seed phrase",
+		"info_text": "Insert each phrase in the order it was presented to you on the previous screen.",
+		"cta_text": "CONFIRM PHRASE"
+	},
+	"account_backup_step_6": {
+		"title": "Congratulations!",
+		"info_text": "You passed the test. Keep your seed phrase safe, it's your responsibility!",
+		"tips": "Tips on storing it safely",
+		"tip_1": "Save a backup in multiple places",
+		"tip_2": "Never tell anyone",
+		"tip_3": "If you need to back it up again, you can find them in Settings => Security.",
+		"disclaimer": "*MetaMask cannot recover your seedphrase",
+		"learn_more": "Learn More",
+		"cta_text": "ALL DONE"
 	}
 }

@@ -22,7 +22,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#4a4a4a",
+          "color": "#000000",
           "fontFamily": "Roboto",
           "fontSize": 32,
           "fontWeight": "600",
@@ -65,7 +65,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4a4a4a",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",
