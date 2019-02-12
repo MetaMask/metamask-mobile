@@ -158,7 +158,7 @@ workflows:
     #   - upload-coverage:
     #       requires:
     #         - test-unit
-       - publish-pre-release-ios:
+      - publish-pre-release-ios:
           requires:
             - prep-deps
 	#    - publish-pre-release-android:
