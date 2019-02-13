@@ -12,3 +12,4 @@ app/util/blockies.js
 /shim.js
 babel.config.js
 jest.preprocessor.js
+scripts/metamask-bot-build-announce.js

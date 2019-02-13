@@ -141,8 +141,6 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
-def pass = getPassword("mm","mm-upload-key")
-
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -175,6 +173,7 @@ android {
     }
 
 	signingConfigs {
+		def pass = getPassword("mm","mm-upload-key")
         release {
             storeFile file('../keystores/release.keystore')
             storePassword pass
