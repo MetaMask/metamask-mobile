@@ -35,6 +35,7 @@ import { showAlert } from '../../actions/alert';
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderShortAddress } from '../../util/address';
 import Engine from '../../core/Engine';
+import AppConstants from '../../core/AppConstants';
 import { setTokensTransaction } from '../../actions/transaction';
 import findFirstIncomingTransaction from '../../util/accountSecurity';
 
@@ -430,6 +431,10 @@ class DrawerView extends Component {
 		this.goToBrowserUrl(url);
 	};
 
+	goToFeedback = () => {
+		this.goToBrowserUrl(AppConstants.FEEDBACK_URL);
+	};
+
 	showHelp = () => {
 		this.goToBrowserUrl('https://support.metamask.io');
 	};
@@ -509,6 +514,10 @@ class DrawerView extends Component {
 			{
 				name: strings('drawer.help'),
 				action: this.showHelp
+			},
+			{
+				name: strings('drawer.submit_feedback'),
+				action: this.goToFeedback
 			},
 			{
 				name: strings('drawer.logout'),
