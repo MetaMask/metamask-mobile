@@ -91,13 +91,56 @@ jobs:
     macos:
       xcode: 10.1.0
     steps:
-        - run:
-            name: All Tests Passed
-            command: echo 'weew - everything passed!'
+      - run:
+          name:  All Tests Passed
+          command: echo 'weew - everything passed!'
+  announce-pre-release:
+    <<: *defaults
+    macos:
+      xcode: 10.1.0
+    steps:
+      - run:
+          name: Announcing pre-release
+          command: npm run build:announce
+  publish-pre-release-android:
+    working_directory:  ~/MetaMask
+    docker:
+      - image: circleci/android:api-28-node8-alpha
+    steps:
+      - checkout:
+          path: ~/MetaMask
+      - attach_workspace:
+          at: ~/MetaMask
+      - run:
+          name: build:accept-android-licenses
+          command: (echo y; echo y; echo y; echo y; echo y; echo y) | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+      - run:
+          name: build:pre-release
+          command:
+            |
+              npm run build:android:pre-release
+      - store_artifacts:
+          path: android/app/build/outputs/apk/release
+          destination: builds
+  publish-pre-release-ios:
+    macos:
+      xcode: 10.1.0
+    working_directory:  ~/MetaMask
+    environment:
+      FL_OUTPUT_DIR: output
+    shell: /bin/bash --login -o pipefail
+    steps:
+      - checkout:
+          path: ~/MetaMask
+      - attach_workspace:
+          at: ~/MetaMask
+      - run:
+          name: pre-release
+          command: npm run build:ios:pre-release
 
 workflows:
   version: 2
-  ful_test:
+  full_test:
     jobs:
       - prep-deps
       - lint:
@@ -117,5 +160,19 @@ workflows:
       - upload-coverage:
           requires:
             - test-unit
-
-
+      - publish-pre-release-ios:
+          requires:
+            - all-tests-pass
+          filters:
+            branches:
+              only: master
+      - publish-pre-release-android:
+          requires:
+          - all-tests-pass
+          filters:
+            branches:
+              only: master
+      - announce-pre-release:
+          requires:
+            - publish-pre-release-ios
+            - publish-pre-release-android
