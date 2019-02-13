@@ -162,13 +162,13 @@ workflows:
             - test-unit
       - publish-pre-release-ios:
           requires:
-            - all-tests-pass
+            - prep-deps
           filters:
             branches:
               only: master
       - publish-pre-release-android:
           requires:
-          - all-tests-pass
+          - prep-deps
           filters:
             branches:
               only: master
