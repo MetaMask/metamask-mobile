@@ -18,6 +18,7 @@ export const TRANSFER_FROM_ACTION_KEY = 'transferFrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 
 export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
+export const COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 /**
@@ -60,6 +61,19 @@ export function generateTransferData(assetType, opts) {
 					)
 					.join('')
 			);
+		case 'ERC721':
+			return (
+				COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE +
+				Array.prototype.map
+					.call(
+						rawEncode(
+							['address', 'address', 'uint256'],
+							[opts.fromAddress, opts.toAddress, addHexPrefix(opts.tokenId)]
+						),
+						x => ('00' + x.toString(16)).slice(-2)
+					)
+					.join('')
+			);
 	}
 }
 
@@ -91,6 +105,8 @@ export function getMethodData(data) {
 	// TODO use eth-method-registry from GABA
 	if (data.substr(0, 10) === TOKEN_TRANSFER_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER };
+	} else if (data.substr(0, 10) === COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE) {
+		return { name: TOKEN_METHOD_TRANSFER_FROM };
 	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
 	}
@@ -132,7 +148,7 @@ export async function getTransactionActionKey(transaction) {
 	const { transactionHash, transaction: { data, to } = {} } = transaction;
 	if (data && data !== '0x') {
 		const cache = ActionKeys.cache[transactionHash];
-		if (cache) {
+		if (transactionHash && cache) {
 			return Promise.resolve(cache);
 		}
 
@@ -210,6 +226,9 @@ export async function getTransactionReviewActionKey(transaction) {
 			return strings('transactions.tx_review_confirm');
 		case DEPLOY_CONTRACT_ACTION_KEY:
 			return strings('transactions.tx_review_contract_deployment');
+		case TRANSFER_FROM_ACTION_KEY:
+			return strings('transactions.tx_review_transfer_from');
+
 		default:
 			return strings('transactions.tx_review_unknown');
 	}

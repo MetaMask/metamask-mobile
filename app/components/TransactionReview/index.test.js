@@ -12,11 +12,17 @@ describe('TransactionReview', () => {
 				backgroundState: {
 					PreferencesController: {
 						selectedAddress: '0x2'
+					},
+					AccountTrackerController: {
+						accounts: []
 					}
 				}
 			},
 			settings: {
 				showHexData: true
+			},
+			transaction: {
+				from: ''
 			}
 		};
 

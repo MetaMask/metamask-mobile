@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { weiToFiat, balanceToFiat, renderFromTokenMinimalUnit, renderFromWei } from '../../../util/number';
+import {
+	weiToFiat,
+	balanceToFiat,
+	renderFromTokenMinimalUnit,
+	renderFromWei,
+	fromTokenMinimalUnit
+} from '../../../util/number';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -18,7 +24,7 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 22,
 		textAlign: 'center',
-		width: 74
+		width: 144
 	},
 	summary: {
 		backgroundColor: colors.beige,
@@ -62,7 +68,7 @@ class TransactionReviewSummary extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transactionData: PropTypes.object,
+		transaction: PropTypes.object,
 		/**
 		 * ETH to current currency conversion rate
 		 */
@@ -85,65 +91,62 @@ class TransactionReviewSummary extends Component {
 		edit: PropTypes.func
 	};
 
-	getAssetFiat = (asset, amount, conversionRate, exchangeRate, currentCurrency) => {
-		let convertedAmount;
-		if (asset) {
-			if (exchangeRate) {
-				convertedAmount = balanceToFiat(
-					parseFloat(amount) || 0,
-					conversionRate,
-					exchangeRate,
-					currentCurrency
-				).toUpperCase();
-			} else {
-				convertedAmount = strings('transaction.conversion_not_available');
-			}
-		} else {
-			convertedAmount = weiToFiat(amount, conversionRate, currentCurrency).toUpperCase();
-		}
-		return convertedAmount;
-	};
-
 	edit = () => {
 		const { edit } = this.props;
 		edit && edit();
 	};
 
-	render = () => {
+	getRenderValues = () => {
 		const {
-			transactionData: { amount, asset },
+			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
-			contractExchangeRates,
-			actionKey
+			contractExchangeRates
 		} = this.props;
-		const assetAmount = asset ? renderFromTokenMinimalUnit(amount, asset.decimals) : undefined;
-		const conversionRate = asset ? contractExchangeRates[asset.address] : this.props.conversionRate;
+		const values = {
+			ETH: () => {
+				const assetAmount = renderFromWei(value).toString() + ' ' + strings('unit.eth');
+				const conversionRate = this.props.conversionRate;
+				const fiatValue = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
+				return [assetAmount, conversionRate, fiatValue];
+			},
+			ERC20: () => {
+				const assetAmount =
+					renderFromTokenMinimalUnit(value, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
+				const conversionRate = contractExchangeRates[selectedAsset.address];
+				const fiatValue = balanceToFiat(
+					(value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
+					this.props.conversionRate,
+					conversionRate,
+					currentCurrency
+				);
+				return [assetAmount, conversionRate, fiatValue];
+			},
+			ERC721: () => {
+				const assetAmount = strings('unit.token_id') + selectedAsset.tokenId;
+				const conversionRate = true;
+				const fiatValue = selectedAsset.name;
+				return [assetAmount, conversionRate, fiatValue];
+			},
+			default: () => [undefined, undefined, undefined]
+		};
+		return values[assetType] || values.default;
+	};
+
+	render = () => {
+		const { actionKey } = this.props;
+		const [assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
 		return (
 			<View style={styles.summary}>
-				<Text style={styles.confirmBadge}>{actionKey}</Text>
+				<Text style={styles.confirmBadge} numberOfLines={1}>
+					{actionKey}
+				</Text>
 
 				{!conversionRate ? (
-					<Text style={styles.summaryFiat}>
-						{asset
-							? assetAmount + ' ' + asset.symbol
-							: renderFromWei(amount).toString() + ' ' + strings('unit.eth')}
-					</Text>
+					<Text style={styles.summaryFiat}>{assetAmount}</Text>
 				) : (
 					<View>
-						<Text style={styles.summaryFiat}>
-							{this.getAssetFiat(
-								asset,
-								asset ? assetAmount : amount,
-								this.props.conversionRate,
-								(asset && contractExchangeRates[asset.address]) || null,
-								currentCurrency
-							)}
-						</Text>
-						<Text style={styles.summaryEth}>
-							{asset
-								? assetAmount + ' ' + asset.symbol
-								: renderFromWei(amount).toString() + ' ' + strings('unit.eth')}
-						</Text>
+						<Text style={styles.summaryFiat}>{fiatValue}</Text>
+						<Text style={styles.summaryEth}>{assetAmount}</Text>
 					</View>
 				)}
 
@@ -159,7 +162,8 @@ class TransactionReviewSummary extends Component {
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(TransactionReviewSummary);

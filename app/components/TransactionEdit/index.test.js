@@ -1,8 +1,8 @@
+import { BN } from 'ethereumjs-util';
 import React from 'react';
 import TransactionEdit from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
-import { BN } from 'ethereumjs-util';
 
 const mockStore = configureMockStore();
 
@@ -24,6 +24,16 @@ describe('TransactionEdit', () => {
 			},
 			settings: {
 				showHexData: true
+			},
+			transaction: {
+				value: '',
+				data: '',
+				from: '0x1',
+				gas: '',
+				gasPrice: '',
+				to: '0x2',
+				selectedAsset: undefined,
+				assetType: undefined
 			}
 		};
 
