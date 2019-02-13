@@ -146,9 +146,15 @@ workflows:
       - lint:
           requires:
             - prep-deps
+          filters:
+            branches:
+              ignore: master
       - test-unit:
           requires:
             - prep-deps
+          filters:
+            branches:
+              ignore: master
     #   - test-e2e-ios:
     #       requires:
     #         - test-unit
@@ -168,7 +174,7 @@ workflows:
               only: master
       - publish-pre-release-android:
           requires:
-          - prep-deps
+            - prep-deps
           filters:
             branches:
               only: master
