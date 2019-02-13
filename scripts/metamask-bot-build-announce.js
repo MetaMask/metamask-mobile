@@ -7,6 +7,9 @@ const CIRCLE_BUILD_NUM = process.env.CIRCLE_BUILD_NUM;
 const CIRCLE_PROJECT_REPONAME = process.env.CIRCLE_PROJECT_REPONAME;
 const CIRCLE_PROJECT_USERNAME = process.env.CIRCLE_PROJECT_USERNAME;
 const CIRCLE_SHA1 = process.env.CIRCLE_SHA1;
+const SLACK_TOKEN = process.env.SLACK_TOKEN;
+const SLACK_SECRET = process.env.SLACK_SECRET;
+const SLACK_ROOM = process.env.SLACK_ROOM;
 
 start().catch(console.error);
 
