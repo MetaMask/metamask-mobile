@@ -2,48 +2,45 @@
 const request = require('request-promise');
 const github = require('octonode');
 
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const CIRCLE_BUILD_NUM = process.env.CIRCLE_BUILD_NUM;
+const CIRCLE_PROJECT_REPONAME = process.env.CIRCLE_PROJECT_REPONAME;
+const CIRCLE_PROJECT_USERNAME = process.env.CIRCLE_PROJECT_USERNAME;
+const CIRCLE_SHA1 = process.env.CIRCLE_SHA1;
+const SLACK_TOKEN = process.env.SLACK_TOKEN;
+const SLACK_SECRET = process.env.SLACK_SECRET;
+const SLACK_ROOM = process.env.SLACK_ROOM;
 
 start().catch(console.error);
 
-async function getPullRequestTitle () {
+async function getPRInfo () {
 
-	const client = github.client(process.env.GITHUB_TOKEN);
+	const client = github.client(GITHUB_TOKEN);
+	const REPO = client.repo(`${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}`);
 
-	const CIRCLE_PR_NUMBER = process.env.CIRCLE_PULL_REQUEST.split('/').pop();
-
-	const PR = client.pr('metamask/MetaMask', parseInt(CIRCLE_PR_NUMBER, 10));
-
-	const response = await PR.infoAsync();
-	if(response && response[0] && response[0].title){
-		return response[0].title;
+	const response = await REPO.prsAsync({state: 'closed'});
+	const PR = response[0].find( obj => obj.merge_commit_sha === CIRCLE_SHA1);
+	if(PR){
+		return { title: PR.title, number: PR.number, url: PR.html_url };
 	}
 }
 
 async function start() {
-	const CIRCLE_PULL_REQUEST = process.env.CIRCLE_PULL_REQUEST;
-	console.log('CIRCLE_PULL_REQUEST', CIRCLE_PULL_REQUEST);
-	const CIRCLE_SHA1 = process.env.CIRCLE_SHA1;
-	console.log('CIRCLE_SHA1', CIRCLE_SHA1);
-	const CIRCLE_BUILD_NUM = process.env.CIRCLE_BUILD_NUM;
-	console.log('CIRCLE_BUILD_NUM', CIRCLE_BUILD_NUM);
 
-	if (!CIRCLE_PULL_REQUEST) {
-		console.warn(`No pull request detected for commit "${CIRCLE_SHA1}"`);
-		return;
-	}
+	const PR_INFO = await getPRInfo();
+
+	console.log('PR_URL', PR_INFO.url);
+	console.log('CIRCLE_SHA1', CIRCLE_SHA1);
+	console.log('CIRCLE_BUILD_NUM', CIRCLE_BUILD_NUM);
 
 
 	const APK_BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-141427485-gh.circle-artifacts.com/0`;
 
 	const APK_LINK = `${APK_BUILD_LINK_BASE}/builds/app-release.apk`;
 
-	const GITHUB_PR_TITLE = await getPullRequestTitle();
-
-	const CIRCLE_PR_NUMBER = process.env.CIRCLE_PULL_REQUEST.split('/').pop();
-
 
 	const content = {
-		"text": `NEW BUILDS AVAILABLE! Including <${CIRCLE_PULL_REQUEST}|#${CIRCLE_PR_NUMBER} - ${GITHUB_PR_TITLE}>`,
+		"text": `NEW BUILDS AVAILABLE! Including <${PR_INFO.url}|#${PR_INFO.number} - ${PR_INFO.title}>`,
 		"attachments": [
 			{
 				"title_link": "itms-beta://beta.itunes.apple.com/v1/app/1438144202",
@@ -61,7 +58,7 @@ async function start() {
 	};
 
 	const JSON_PAYLOAD = JSON.stringify(content);
-	const SLACK_API_URI = `https://hooks.slack.com/services/${process.env.SLACK_TOKEN}/${process.env.SLACK_SECRET}/${process.env.SLACK_ROOM}`
+	const SLACK_API_URI = `https://hooks.slack.com/services/${SLACK_TOKEN}/${SLACK_SECRET}/${SLACK_ROOM}`
 
 
 	await request({
