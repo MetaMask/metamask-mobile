@@ -7,13 +7,6 @@ export function newTransaction() {
 	};
 }
 
-export function setSelectedAsset(asset) {
-	return {
-		type: 'SET_SELECTED_ASSET',
-		asset
-	};
-}
-
 /**
  * Sets any attribute in transaction object
  *
