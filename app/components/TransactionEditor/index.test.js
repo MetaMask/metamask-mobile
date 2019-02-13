@@ -16,6 +16,9 @@ describe('TransactionEditor', () => {
 					},
 					TokenBalancesController: {
 						contractBalances: { '0x2': new BN(0) }
+					},
+					PreferencesController: {
+						selectedAddress: '0x0'
 					}
 				}
 			}

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TextInput } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -44,12 +45,12 @@ const styles = StyleSheet.create({
 /**
  * Component that supports reviewing transaction data
  */
-export default class TransactionReviewData extends Component {
+class TransactionReviewData extends Component {
 	static propTypes = {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transactionData: PropTypes.object,
+		transaction: PropTypes.object,
 		/**
 		 * Transaction corresponding action key
 		 */
@@ -58,7 +59,7 @@ export default class TransactionReviewData extends Component {
 
 	render = () => {
 		const {
-			transactionData: { data },
+			transaction: { data },
 			actionKey
 		} = this.props;
 		return (
@@ -87,3 +88,12 @@ export default class TransactionReviewData extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	transaction: state.transaction
+});
+
+export default connect(mapStateToProps)(TransactionReviewData);

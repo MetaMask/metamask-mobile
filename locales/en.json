@@ -283,6 +283,7 @@
 		"invalid_amount": "Invalid amount",
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
+		"invalid_collectible_ownership": "You don't own this collectible",
 		"max": "Max",
 		"recipient_address": "Recipient Address",
 		"required": "Required",
@@ -337,6 +338,7 @@
 		"tx_review_confirm": "CONFIRM",
 		"tx_review_transfer": "TRANSFER",
 		"tx_review_contract_deployment": "CONTRACT DEPLOYMENT",
+		"tx_review_transfer_from": "TRANSFER FROM",
 		"tx_review_unknown": "UNKNOWN METHOD",
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
@@ -406,7 +408,8 @@
 	"unit": {
 		"eth": "ETH",
 		"negative": "-",
-		"divisor": "/"
+		"divisor": "/",
+		"token_id": "#"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",

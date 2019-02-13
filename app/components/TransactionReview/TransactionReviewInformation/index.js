@@ -101,7 +101,7 @@ class TransactionReviewInformation extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transactionData: PropTypes.object,
+		transaction: PropTypes.object,
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
@@ -118,15 +118,10 @@ class TransactionReviewInformation extends Component {
 		actionKey: strings('transactions.tx_review_confirm')
 	};
 
-	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountEth, amountToken) => {
+	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
 		let total = 0;
 		const gasFeeFiat = weiToFiatNumber(totalGas, conversionRate);
-		let balanceFiat;
-		if (asset && exchangeRate) {
-			balanceFiat = balanceToFiatNumber(parseFloat(amountToken), conversionRate, exchangeRate);
-		} else {
-			balanceFiat = weiToFiatNumber(amountEth, conversionRate);
-		}
+		const balanceFiat = balanceToFiatNumber(parseFloat(amountToken), conversionRate, exchangeRate);
 		const base = Math.pow(10, 5);
 		total = ((parseFloat(gasFeeFiat) + parseFloat(balanceFiat)) * base) / base;
 		return `${total} ${currentCurrency.toUpperCase()}`;
@@ -137,19 +132,73 @@ class TransactionReviewInformation extends Component {
 		edit && edit();
 	};
 
-	render = () => {
+	getRenderTotals = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, asset },
+			transaction: { value, gas, gasPrice, selectedAsset, assetType },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const conversionRateAsset = asset ? contractExchangeRates[asset.address] : undefined;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const totals = {
+			ETH: () => {
+				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
+				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+				const totalValue = renderFromWei(totalEth).toString() + ' ' + strings('unit.eth');
+				return [totalFiat, totalValue];
+			},
+			ERC20: () => {
+				const amountToken = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
+				const conversionRateAsset = contractExchangeRates[selectedAsset.address];
+				const totalFiat = this.getTotalFiat(
+					selectedAsset,
+					totalGas,
+					conversionRate,
+					conversionRateAsset,
+					currentCurrency,
+					amountToken
+				);
+				const totalValue =
+					amountToken +
+					' ' +
+					selectedAsset.symbol +
+					' + ' +
+					renderFromWei(totalGas).toString() +
+					' ' +
+					strings('unit.eth');
+				return [totalFiat, totalValue];
+			},
+			ERC721: () => {
+				const totalFiat = totalGasFiat;
+				const totalValue =
+					selectedAsset.name +
+					' (#' +
+					selectedAsset.tokenId +
+					') + ' +
+					renderFromWei(totalGas).toString() +
+					' ' +
+					strings('unit.eth');
+				return [totalFiat, totalValue];
+			},
+			default: () => [undefined, undefined]
+		};
+		return totals[assetType] || totals.default;
+	};
+
+	render = () => {
+		const {
+			transaction: { gas, gasPrice },
+			currentCurrency,
+			conversionRate
+		} = this.props;
+
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalEth = isBN(amount) && !asset ? amount.add(totalGas) : totalGas;
-		const amountEth = isBN(amount) && !asset ? amount : undefined;
-		const amountToken = asset ? renderFromTokenMinimalUnit(amount, asset.decimals) : undefined;
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const totalGasEth = renderFromWei(totalGas).toString() + ' ' + strings('unit.eth');
+
+		const [totalFiat, totalValue] = this.getRenderTotals()();
 
 		return (
 			<View style={styles.overview}>
@@ -161,12 +210,8 @@ class TransactionReviewInformation extends Component {
 								{strings('transaction.edit').toUpperCase()}
 							</Text>
 						</TouchableOpacity>
-						<Text style={styles.overviewFiat}>
-							{weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase()}
-						</Text>
-						<Text style={styles.overviewEth}>
-							{renderFromWei(totalGas).toString()} {strings('unit.eth')}
-						</Text>
+						<Text style={styles.overviewFiat}>{totalGasFiat}</Text>
+						<Text style={styles.overviewEth}>{totalGasEth}</Text>
 					</View>
 				</View>
 
@@ -177,23 +222,11 @@ class TransactionReviewInformation extends Component {
 							{strings('transaction.amount').toUpperCase()} +{' '}
 							{strings('transaction.gas_fee').toUpperCase()}
 						</Text>
-						<Text style={{ ...styles.overviewFiat, ...styles.overviewAccent }}>
-							{this.getTotalFiat(
-								asset,
-								totalGas,
-								conversionRate,
-								conversionRateAsset,
-								currentCurrency,
-								amountEth,
-								amountToken
-							)}
-						</Text>
-						<Text style={styles.overviewEth}>
-							{asset && amountToken} {asset && asset.symbol} {asset && ' + '}
-							{renderFromWei(totalEth).toString()} {strings('unit.eth')}
-						</Text>
+						<Text style={[styles.overviewFiat, styles.overviewAccent]}>{totalFiat}</Text>
+						<Text style={styles.overviewEth}>{totalValue}</Text>
 					</View>
 				</View>
+
 				{amountError ? (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
@@ -210,7 +243,8 @@ class TransactionReviewInformation extends Component {
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(TransactionReviewInformation);

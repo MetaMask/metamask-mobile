@@ -46,7 +46,7 @@ exports[`CollectibleView should render correctly 1`] = `
           }
         }
       >
-        <CollectibleOverview
+        <Connect(CollectibleOverview)
           collectible={
             Object {
               "address": "0x1",

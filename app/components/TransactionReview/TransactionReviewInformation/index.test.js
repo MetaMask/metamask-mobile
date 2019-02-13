@@ -21,6 +21,16 @@ describe('TransactionReviewInformation', () => {
 						conversionRate: 0.1
 					}
 				}
+			},
+			transaction: {
+				value: '',
+				data: '',
+				from: '0x1',
+				gas: '',
+				gasPrice: '',
+				to: '0x2',
+				selectedAsset: undefined,
+				assetType: undefined
 			}
 		};
 

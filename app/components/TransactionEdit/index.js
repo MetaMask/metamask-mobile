@@ -121,9 +121,9 @@ class TransactionEdit extends Component {
 		 */
 		onModeChange: PropTypes.func,
 		/**
-		 * Transaction object associated with this transaction, if sending token it includes assetSymbol
+		 * Transaction object associated with this transaction,
 		 */
-		transactionData: PropTypes.object,
+		transaction: PropTypes.object.isRequired,
 		/**
 		 * Callback to open the qr scanner
 		 */
@@ -192,26 +192,31 @@ class TransactionEdit extends Component {
 	};
 
 	componentDidMount() {
-		const { transactionData } = this.props;
-		if (transactionData && transactionData.amount) {
-			this.props.handleUpdateAmount(transactionData.amount);
+		const { transaction } = this.props;
+		if (transaction && transaction.value) {
+			this.props.handleUpdateAmount(transaction.value);
 		}
 	}
 
 	fillMax = () => {
-		const { gas, gasPrice, from, asset } = this.props.transactionData;
+		const { gas, gasPrice, from, selectedAsset, assetType } = this.props.transaction;
 		const { balance } = this.props.accounts[from];
+
 		const { contractBalances } = this.props;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
-		const ethMaxAmount = hexToBN(balance)
-			.sub(totalGas)
-			.gt(fromWei(0))
-			? hexToBN(balance).sub(totalGas)
-			: fromWei(0);
-		this.props.handleUpdateAmount(asset ? hexToBN(contractBalances[asset.address].toString(16)) : ethMaxAmount);
-		const readableValue = asset
-			? fromTokenMinimalUnit(hexToBN(contractBalances[asset.address].toString(16)), asset.decimals)
-			: fromWei(ethMaxAmount);
+		let value, readableValue;
+		if (assetType === 'ETH') {
+			const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : fromWei(0);
+			value = hexToBN(balance)
+				.sub(totalGas)
+				.gt(fromWei(0))
+				? hexToBN(balance).sub(totalGas)
+				: fromWei(0);
+			readableValue = fromWei(value);
+		} else if (assetType === 'ERC20') {
+			value = hexToBN(contractBalances[selectedAsset.address].toString(16));
+			readableValue = fromTokenMinimalUnit(value, selectedAsset.decimals);
+		}
+		this.props.handleUpdateAmount(value);
 		this.props.handleUpdateReadableValue(readableValue);
 		this.setState({ fillMax: true });
 	};
@@ -227,11 +232,11 @@ class TransactionEdit extends Component {
 	review = async () => {
 		const { onModeChange } = this.props;
 		await this.setState({ toFocused: true });
-		!this.validate() && onModeChange && onModeChange('review');
+		!(await this.validate()) && onModeChange && onModeChange('review');
 	};
 
-	validate = () => {
-		const amountError = this.props.validateAmount(false);
+	validate = async () => {
+		const amountError = await this.props.validateAmount(false);
 		const gasError = this.props.validateGas();
 		const toAddressError = this.props.validateToAddress();
 		this.setState({ amountError, gasError, toAddressError });
@@ -239,16 +244,16 @@ class TransactionEdit extends Component {
 	};
 
 	updateAmount = async amount => {
-		const { asset } = this.props.transactionData;
+		const { selectedAsset, assetType } = this.props.transaction;
 		let processedAmount;
-		if (asset) {
-			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, asset.decimals) : undefined;
+		if (assetType !== 'ETH') {
+			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
 		} else {
 			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
 		}
 		await this.props.handleUpdateAmount(processedAmount);
 		this.props.handleUpdateReadableValue(amount);
-		const amountError = this.props.validateAmount(true);
+		const amountError = await this.props.validateAmount(true);
 		this.setState({ amountError });
 	};
 
@@ -279,12 +284,37 @@ class TransactionEdit extends Component {
 		});
 	};
 
+	renderAmountLabel = () => {
+		const { amountError } = this.state;
+		const { assetType } = this.props.transaction;
+		if (assetType !== 'ERC721') {
+			return (
+				<View style={styles.label}>
+					<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
+					{amountError ? (
+						<Text style={styles.error}>{amountError}</Text>
+					) : (
+						<TouchableOpacity onPress={this.fillMax}>
+							<Text style={styles.max}>{strings('transaction.max')}</Text>
+						</TouchableOpacity>
+					)}
+				</View>
+			);
+		}
+		return (
+			<View style={styles.label}>
+				<Text style={styles.labelText}>Collectible:</Text>
+				{amountError ? <Text style={styles.error}>{amountError}</Text> : undefined}
+			</View>
+		);
+	};
+
 	render = () => {
 		const {
-			transactionData: { amount, gas, gasPrice, data, from, to, asset },
+			transaction: { value, gas, gasPrice, data, from, to, selectedAsset },
 			showHexData
 		} = this.props;
-		const { amountError, gasError, toAddressError } = this.state;
+		const { gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -297,20 +327,11 @@ class TransactionEdit extends Component {
 							<AccountSelect value={from} onChange={this.updateFromAddress} enabled={false} />
 						</View>
 						<View style={[styles.formRow, styles.row, styles.amountRow]}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.amount')}:</Text>
-								{amountError ? (
-									<Text style={styles.error}>{amountError}</Text>
-								) : (
-									<TouchableOpacity onPress={this.fillMax}>
-										<Text style={styles.max}>{strings('transaction.max')}</Text>
-									</TouchableOpacity>
-								)}
-							</View>
+							{this.renderAmountLabel()}
 							<EthInput
 								onChange={this.updateAmount}
-								value={amount}
-								asset={asset}
+								value={value}
+								asset={selectedAsset}
 								handleUpdateAsset={this.props.handleUpdateAsset}
 								readableValue={this.props.readableValue}
 								fillMax={this.state.fillMax}
@@ -368,7 +389,8 @@ class TransactionEdit extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	showHexData: state.settings.showHexData
+	showHexData: state.settings.showHexData,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(TransactionEdit);
