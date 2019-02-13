@@ -9,7 +9,9 @@ import {
 	SEND_ETHER_ACTION_KEY,
 	DEPLOY_CONTRACT_ACTION_KEY,
 	SEND_TOKEN_ACTION_KEY,
-	UNKNOWN_FUNCTION_KEY
+	UNKNOWN_FUNCTION_KEY,
+	TOKEN_METHOD_TRANSFER_FROM,
+	TRANSFER_FROM_ACTION_KEY
 } from './transactions';
 import Engine from '../core/Engine';
 
@@ -63,8 +65,10 @@ describe('Transactions utils :: getMethodData', () => {
 		const contractData =
 			'0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
 		const randomData = '0x987654321';
+		const transferFromData = '0x23b872dd0000000000000000000000000000';
 		expect(getMethodData(transferData).name).toEqual(TOKEN_METHOD_TRANSFER);
 		expect(getMethodData(contractData).name).toEqual(CONTRACT_METHOD_DEPLOY);
+		expect(getMethodData(transferFromData).name).toEqual(TOKEN_METHOD_TRANSFER_FROM);
 		expect(getMethodData(randomData)).toEqual({});
 	});
 });
@@ -93,6 +97,7 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 	const contractData =
 		'0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
 	const randomData = '0x987654321';
+	const transferFromData = '0x23b872dd0000000000000000000000000000';
 	it('getTransactionActionKey send ether', async () => {
 		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: {} });
 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
@@ -105,6 +110,11 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 	it('getTransactionActionKey send token', async () => {
 		const get = await getTransactionActionKey({ transactionHash: '0x2', transaction: { data: transferData } });
 		expect(get).toEqual(SEND_TOKEN_ACTION_KEY);
+	});
+
+	it('getTransactionActionKey send collectible', async () => {
+		const get = await getTransactionActionKey({ transactionHash: '0x6', transaction: { data: transferFromData } });
+		expect(get).toEqual(TRANSFER_FROM_ACTION_KEY);
 	});
 
 	it('getTransactionActionKey deploy contract', async () => {

@@ -114,10 +114,6 @@ class TransactionReview extends Component {
 		 */
 		onConfirm: PropTypes.func,
 		/**
-		 * Currently-active account address in the current keychain
-		 */
-		selectedAddress: PropTypes.string,
-		/**
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
 		showHexData: PropTypes.bool,
@@ -128,7 +124,7 @@ class TransactionReview extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transactionData: PropTypes.object,
+		transaction: PropTypes.object,
 		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
@@ -145,13 +141,13 @@ class TransactionReview extends Component {
 	componentDidMount = async () => {
 		const {
 			validateAmount,
-			transactionData,
-			transactionData: { data }
+			transaction,
+			transaction: { data }
 		} = this.props;
 		let { showHexData } = this.props;
 		showHexData = showHexData || data;
-		const amountError = validateAmount && validateAmount();
-		const actionKey = await getTransactionReviewActionKey(transactionData);
+		const amountError = validateAmount && (await validateAmount());
+		const actionKey = await getTransactionReviewActionKey(transaction);
 		this.setState({ amountError, actionKey, showHexData });
 	};
 
@@ -162,7 +158,7 @@ class TransactionReview extends Component {
 
 	renderTransactionDirection = () => {
 		const {
-			transactionData: { from = this.props.selectedAddress, to },
+			transaction: { from, to },
 			identities
 		} = this.props;
 		return (
@@ -201,31 +197,26 @@ class TransactionReview extends Component {
 
 	renderTransactionDetails = () => {
 		const { showHexData, actionKey } = this.state;
-		const { transactionData } = this.props;
+		const { transaction } = this.props;
 		return (
 			<View style={styles.overview}>
-				{showHexData && transactionData.data ? (
+				{showHexData && transaction.data ? (
 					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 						<TransactionReviewInformation
 							edit={this.edit}
-							transactionData={transactionData}
 							tabLabel={strings('transaction.review_details')}
 						/>
-						<TransactionReviewData
-							transactionData={transactionData}
-							actionKey={actionKey}
-							tabLabel={strings('transaction.review_data')}
-						/>
+						<TransactionReviewData actionKey={actionKey} tabLabel={strings('transaction.review_data')} />
 					</ScrollableTabView>
 				) : (
-					<TransactionReviewInformation edit={this.edit} transactionData={transactionData} />
+					<TransactionReviewInformation edit={this.edit} />
 				)}
 			</View>
 		);
 	};
 
 	render = () => {
-		const { transactionData, transactionConfirmed } = this.props;
+		const { transactionConfirmed } = this.props;
 		const { actionKey } = this.state;
 		return (
 			<View style={styles.root}>
@@ -237,11 +228,7 @@ class TransactionReview extends Component {
 					onConfirmPress={this.props.onConfirm}
 					confirmed={transactionConfirmed}
 				>
-					<TransactionReviewSummary
-						edit={this.edit}
-						transactionData={transactionData}
-						actionKey={actionKey}
-					/>
+					<TransactionReviewSummary edit={this.edit} actionKey={actionKey} />
 					<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
 				</ActionView>
 			</View>
@@ -250,9 +237,10 @@ class TransactionReview extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	showHexData: state.settings.showHexData
+	showHexData: state.settings.showHexData,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(TransactionReview);

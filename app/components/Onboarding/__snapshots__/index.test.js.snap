@@ -3,6 +3,11 @@
 exports[`Onboarding should render correctly 1`] = `
 <OnboardingScreenWithBg>
   <ScrollView
+    contentContainerStyle={
+      Object {
+        "flex": 1,
+      }
+    }
     style={
       Object {
         "flex": 1,
@@ -13,6 +18,7 @@ exports[`Onboarding should render correctly 1`] = `
     <View
       style={
         Object {
+          "flex": 1,
           "paddingBottom": 30,
           "paddingHorizontal": 40,
           "paddingTop": 10,
@@ -22,157 +28,129 @@ exports[`Onboarding should render correctly 1`] = `
       <View
         style={
           Object {
-            "alignItems": "center",
-            "justifyContent": "center",
+            "alignItems": "flex-start",
+            "flex": 1,
           }
         }
       >
-        <Component
-          resizeMethod="auto"
-          source={
-            Object {
-              "testUri": "../../../app/images/fox.png",
-            }
-          }
+        <View
           style={
             Object {
-              "height": 119,
-              "marginTop": 45,
-              "width": 128,
+              "alignItems": "flex-start",
+              "justifyContent": "flex-start",
             }
           }
-        />
-      </View>
-      <Text
-        style={
-          Object {
-            "color": "#4a4a4a",
-            "fontFamily": "Roboto",
-            "fontSize": 32,
-            "fontWeight": "600",
-            "justifyContent": "center",
-            "marginBottom": 10,
-            "marginTop": 20,
-            "textAlign": "center",
-          }
-        }
-      >
-        Welcome
-      </Text>
-      <Text
-        style={
-          Object {
-            "color": "#4a4a4a",
-            "fontFamily": "Roboto",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "justifyContent": "center",
-            "marginBottom": 20,
-            "textAlign": "center",
-          }
-        }
-      >
-        The decentralized web awaits
-      </Text>
-      <Text
-        style={
-          Object {
-            "color": "#4a4a4a",
-            "fontFamily": "Roboto",
-            "fontSize": 22,
-            "fontWeight": "400",
-            "marginBottom": 30,
-            "marginTop": 50,
-            "textAlign": "center",
-          }
-        }
-      >
-        Let's get started!
-      </Text>
-      <Text
-        style={
-          Object {
-            "color": "#4a4a4a",
-            "fontFamily": "Roboto",
-            "fontSize": 18,
-            "fontWeight": "400",
-            "marginBottom": 12,
-            "marginTop": 12,
-            "textAlign": "center",
-          }
-        }
-      >
-        Already using MetaMask?
-      </Text>
-      <View
-        style={
-          Object {
-            "marginTop": 10,
-          }
-        }
-      >
-        <StyledButton
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          onPress={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          testID="onboarding-import-button"
-          type="blue"
         >
-          Import Wallet
-        </StyledButton>
-      </View>
-      <Text
-        style={
-          Array [
+          <Component
+            resizeMethod="auto"
+            source={
+              Object {
+                "testUri": "../../../app/images/fox.png",
+              }
+            }
+            style={
+              Object {
+                "height": 63,
+                "marginTop": 45,
+                "width": 66,
+              }
+            }
+          />
+        </View>
+        <Text
+          style={
             Object {
-              "color": "#4a4a4a",
+              "color": "#000000",
               "fontFamily": "Roboto",
-              "fontSize": 18,
-              "fontWeight": "400",
-              "marginBottom": 12,
-              "marginTop": 12,
-              "textAlign": "center",
-            },
+              "fontSize": 32,
+              "fontWeight": "600",
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+              "marginTop": 20,
+              "textAlign": "left",
+            }
+          }
+        >
+          Welcome to MetaMask
+        </Text>
+        <Text
+          style={
             Object {
-              "marginBottom": 0,
-            },
-          ]
-        }
-      >
-        OR
-      </Text>
+              "color": "#4d4d4d",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "justifyContent": "flex-start",
+              "lineHeight": 19,
+              "marginBottom": 20,
+              "textAlign": "left",
+            }
+          }
+        >
+          A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.
+        </Text>
+      </View>
       <View
         style={
           Object {
-            "marginTop": 10,
+            "height": 210,
+            "justifyContent": "flex-end",
+            "paddingBottom": 50,
           }
         }
       >
-        <StyledButton
-          disabledContainerStyle={
+        <View
+          style={
             Object {
-              "opacity": 0.6,
+              "flex": 1,
+              "justifyContent": "flex-end",
             }
           }
-          onPress={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          testID="onboarding-new-button"
-          type="blue"
         >
-          Create New Wallet
-        </StyledButton>
+          <StyledButton
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            testID="onboarding-new-button"
+            type="blue"
+          >
+            Start exploring now
+          </StyledButton>
+        </View>
+        <View
+          style={
+            Object {
+              "flex": 1,
+              "justifyContent": "flex-end",
+            }
+          }
+        >
+          <StyledButton
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            testID="onboarding-import-button"
+            type="normal"
+          >
+            Import a wallet
+          </StyledButton>
+        </View>
       </View>
     </View>
   </ScrollView>

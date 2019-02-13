@@ -32,7 +32,7 @@ export default class DeviceSize {
 	}
 
 	static isIphoneX() {
-		return Dimensions.get('window').width === 375 && Dimensions.get('window').height === 812;
+		return Dimensions.get('window').width >= 375 && Dimensions.get('window').height >= 812;
 	}
 
 	static isIpadPortrait9_7() {

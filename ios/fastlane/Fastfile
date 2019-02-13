@@ -22,9 +22,32 @@ platform :ios do
 		# Ensure that your git status is not dirty
   		ensure_git_status_clean
 
-		increment_build_number(
-			xcodeproj: "MetaMask.xcodeproj"
+		increment_build_number({
+  			build_number: latest_testflight_build_number + 1
+		})
+
+		match(type: "appstore")
+		gym(
+			clean: true,
+			scheme: "MetaMask",
+			configuration: "Release",
+		    export_method: "app-store",
+			output_name: "MetaMask"
 		)
+		upload_to_testflight(
+      		distribute_external: false,
+			skip_waiting_for_build_processing: true
+    	)
+
+	end
+
+	desc "Pre-release via CircleCI"
+	lane :prerelease do
+		setup_circle_ci
+
+		increment_build_number({
+  			build_number: latest_testflight_build_number + 1
+		})
 
 		match(type: "appstore")
 		gym(

@@ -24,7 +24,7 @@ import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
-import { renderFromWei } from '../../util/number';
+import { renderFromWei, renderFiat } from '../../util/number';
 import { strings } from '../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
@@ -36,6 +36,8 @@ import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { renderShortAddress } from '../../util/address';
 import Engine from '../../core/Engine';
 import AppConstants from '../../core/AppConstants';
+import { setTokensTransaction } from '../../actions/transaction';
+import findFirstIncomingTransaction from '../../util/accountSecurity';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -268,6 +270,10 @@ class DrawerView extends Component {
 		 */
 		identities: PropTypes.object,
 		/**
+		/* Selected currency
+		*/
+		currentCurrency: PropTypes.string,
+		/**
 		 * List of keyrings
 		 */
 		keyrings: PropTypes.array,
@@ -282,12 +288,47 @@ class DrawerView extends Component {
 		/**
 		 * Boolean that determines the status of the networks modal
 		 */
-		networkModalVisible: PropTypes.bool.isRequired
+		networkModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Action that sets a tokens type transaction
+		 */
+		setTokensTransaction: PropTypes.func.isRequired,
+		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	state = {
 		accountsModalVisible: false
 	};
+
+	currentBalance = null;
+	previousBalance = null;
+	processedNewBalance = false;
+
+	componentDidUpdate() {
+		setTimeout(async () => {
+			if (
+				!this.props.passwordSet &&
+				!this.processedNewBalance &&
+				this.currentBalance >= this.previousBalance &&
+				this.currentBalance > 0
+			) {
+				this.processedNewBalance = true;
+				const { selectedAddress, network, identities } = this.props;
+
+				const incomingTransaction = await findFirstIncomingTransaction(network.provider.type, selectedAddress);
+				if (incomingTransaction) {
+					this.props.navigation.navigate('FirstIncomingTransaction', {
+						incomingTransaction,
+						selectedAddress,
+						accountName: identities[selectedAddress].name
+					});
+				}
+			}
+		}, 1000);
+	}
 
 	onNetworkPress = () => {
 		this.props.toggleNetworkModal();
@@ -322,6 +363,7 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
+		this.props.setTokensTransaction({ symbol: 'ETH' });
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 	};
@@ -485,11 +527,16 @@ class DrawerView extends Component {
 	];
 
 	render = () => {
-		const { network, accounts, identities, selectedAddress, keyrings } = this.props;
+		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
+		if (fiatBalance !== this.previousBalance) {
+			this.previousBalance = this.currentBalance;
+		}
+		this.currentBalance = fiatBalance;
+		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
@@ -537,7 +584,7 @@ class DrawerView extends Component {
 										</Text>
 										<Icon name="caret-down" size={24} style={styles.caretDown} />
 									</View>
-									<Text style={styles.accountBalance}>{fiatBalance}</Text>
+									<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
 									<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
 								</TouchableOpacity>
 							</View>
@@ -637,14 +684,17 @@ const mapStateToProps = state => ({
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,
-	tokensCount: state.engine.backgroundState.AssetsController.tokens.length
+	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });
 
 export default connect(

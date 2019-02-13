@@ -38,7 +38,7 @@ exports[`TransactionReview should render correctly 1`] = `
       }
     >
       <IdenticonComponent
-        address="0x0"
+        address=""
         diameter={18}
       />
       <Text
@@ -52,9 +52,7 @@ exports[`TransactionReview should render correctly 1`] = `
             "marginLeft": 9,
           }
         }
-      >
-        0x0...0x0
-      </Text>
+      />
     </View>
     <View
       style={
@@ -130,14 +128,6 @@ exports[`TransactionReview should render correctly 1`] = `
     <Connect(TransactionReviewSummary)
       actionKey="CONFIRM"
       edit={[Function]}
-      transactionData={
-        Object {
-          "amount": 0,
-          "from": "0x0",
-          "gas": 0,
-          "gasPrice": 1,
-        }
-      }
     />
     <View
       style={
@@ -155,14 +145,6 @@ exports[`TransactionReview should render correctly 1`] = `
       >
         <Connect(TransactionReviewInformation)
           edit={[Function]}
-          transactionData={
-            Object {
-              "amount": 0,
-              "from": "0x0",
-              "gas": 0,
-              "gasPrice": 1,
-            }
-          }
         />
       </View>
     </View>

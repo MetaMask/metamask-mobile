@@ -79,9 +79,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           }
         }
       >
-        0
-         
-        ETH
+        0 ETH
       </Text>
     </View>
   </View>
@@ -127,17 +125,20 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
-            "color": "#008edf",
-            "fontFamily": "Roboto",
-            "fontSize": 24,
-            "fontWeight": "600",
-            "textAlign": "right",
-          }
+          Array [
+            Object {
+              "color": "#4d4d4d",
+              "fontFamily": "Roboto",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "textAlign": "right",
+            },
+            Object {
+              "color": "#008edf",
+            },
+          ]
         }
-      >
-        0 USD
-      </Text>
+      />
       <Text
         style={
           Object {
@@ -148,13 +149,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
             "textAlign": "right",
           }
         }
-      >
-         
-         
-        0
-         
-        ETH
-      </Text>
+      />
     </View>
   </View>
 </View>

@@ -8,8 +8,8 @@ const styles = StyleSheet.create({
 	listWrapper: {
 		width: 50,
 		height: 50,
-		alignItems: 'center',
-		justifyContent: 'center'
+		borderRadius: 25,
+		overflow: 'hidden'
 	},
 	fullWrapper: {
 		width: 200,
@@ -21,8 +21,7 @@ const styles = StyleSheet.create({
 	},
 	listImage: {
 		width: 50,
-		height: 50,
-		borderRadius: 25
+		height: 50
 	},
 	fullImage: {
 		width: 200,
@@ -39,6 +38,8 @@ export default class CollectibleImage extends Component {
 		 * Collectible object (in this case ERC721 token)
 		 */
 		collectible: PropTypes.object,
+		containerStyle: PropTypes.object,
+		iconStyle: PropTypes.object,
 		/**
 		 * Whether collectible image has to render in full size
 		 */
@@ -48,14 +49,19 @@ export default class CollectibleImage extends Component {
 	render = () => {
 		const {
 			collectible: { image, address, tokenId },
-			renderFull
+			renderFull,
+			containerStyle,
+			iconStyle
 		} = this.props;
 		return (
-			<View style={renderFull ? styles.fullWrapper : styles.listWrapper}>
+			<View style={renderFull ? styles.fullWrapper : [styles.listWrapper, containerStyle]}>
 				{image && image.length !== 0 ? (
-					<Image source={{ uri: image }} style={renderFull ? styles.fullImage : styles.listImage} />
+					<Image
+						source={{ uri: image }}
+						style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
+					/>
 				) : (
-					<Identicon address={address + tokenId} />
+					<Identicon address={address + tokenId} customStyle={iconStyle} />
 				)}
 			</View>
 		);

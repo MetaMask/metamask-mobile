@@ -67,7 +67,7 @@ export default class StyledButton extends Component {
 
 	renderGroupedChildren = fontStyle => {
 		const { disabled } = this.props;
-		const style = [fontStyle, this.props.style, disabled ? this.props.styleDisabled : null];
+		const style = [...fontStyle, this.props.style, disabled ? this.props.styleDisabled : null];
 
 		const childGroupStyle = [this.props.childGroupStyle];
 
@@ -92,7 +92,7 @@ export default class StyledButton extends Component {
 		const { fontStyle, containerStyle } = getStyles(type);
 		const touchableProps = {};
 		const containerStyles = [
-			containerStyle,
+			...containerStyle,
 			this.props.disabled ? this.props.disabledContainerStyle : null,
 			this.props.containerStyle
 		];
@@ -102,7 +102,7 @@ export default class StyledButton extends Component {
 		}
 
 		return (
-			<TouchableNativeFeedback {...touchableProps} testID={this.props.testID}>
+			<TouchableNativeFeedback {...touchableProps} testID={this.props.testID} disabled={this.props.disabled}>
 				<View style={containerStyles}>{this.renderGroupedChildren(fontStyle, containerStyles)}</View>
 			</TouchableNativeFeedback>
 		);

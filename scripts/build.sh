@@ -1,9 +1,12 @@
 #!/bin/bash
 
+set -o pipefail
+
 PLATFORM=$1
 MODE=$2
 TARGET=$3
 RUN_DEVICE=false
+PRE_RELEASE=false
 
 displayHelp() {
     echo ''
@@ -78,6 +81,8 @@ checkParameters(){
                 displayHelp
                 exit 0;
             fi
+		elif [ "$3"  == "--pre" ] ; then
+			PRE_RELEASE=true
         else
             printError "Unknown argument: $4"
             displayHelp
@@ -127,15 +132,39 @@ buildIosDevice(){
 
 buildIosRelease(){
 	prebuild_ios
-	cd ios && fastlane beta
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		TARGET="ios/release.xcconfig"
+		sed -i'' -e "s/MM_FOX_CODE = XXX/MM_FOX_CODE = $MM_FOX_CODE/" $TARGET;
+		sed -i'' -e "s/MM_FABRIC_API_KEY = XXX/MM_FABRIC_API_KEY = $MM_FABRIC_API_KEY/" $TARGET;
+		sed -i'' -e "s/MM_BRANCH_KEY_TEST = XXX/MM_BRANCH_KEY_TEST = $MM_BRANCH_KEY_TEST/" $TARGET;
+		sed -i'' -e "s/MM_BRANCH_KEY_LIVE = XXX/MM_BRANCH_KEY_LIVE = $MM_BRANCH_KEY_LIVE/" $TARGET;
+
+		cd ios && bundle install && bundle exec fastlane prerelease
+	else
+		cd ios && fastlane beta
+	fi
 }
 
 buildAndroidRelease(){
-	adb uninstall io.metamask || true
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask || true
+	fi
 	prebuild_android
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		TARGET="android/app/build.gradle"
+		sed -i'' -e 's/getPassword("mm","mm-upload-key")/"ANDROID_KEY"/' $TARGET;
+		sed -i'' -e "s/ANDROID_KEY/$ANDROID_KEY/" $TARGET;
+		echo $ANDROID_KEYSTORE | base64 --decode > android/keystores/release.keystore
+	fi
+
 	cd android &&
-	./gradlew assembleRelease &&
-	adb install app/build/outputs/apk/release/app-release.apk
+	./gradlew assembleRelease
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb install app/build/outputs/apk/release/app-release.apk
+	fi
 }
 
 

@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import StyledButton from '../StyledButton';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
+import { setIndividualCollectibleTransaction } from '../../actions/transaction';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,16 +84,27 @@ const styles = StyleSheet.create({
 /**
  * View that displays the information of a specific ERC-721 Token
  */
-export default class CollectibleOverview extends Component {
+class CollectibleOverview extends Component {
 	static propTypes = {
 		/**
 		 * Object that represents the collectible to be displayed
 		 */
-		collectible: PropTypes.object
+		collectible: PropTypes.object,
+		/**
+		 * Navigation object required to push
+		 * the Asset detail view
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * Action that sets a collectible contract type transaction
+		 */
+		setIndividualCollectibleTransaction: PropTypes.func.isRequired
 	};
 
 	onSend = async () => {
-		Alert.alert(strings('drawer.coming_soon'));
+		const { collectible } = this.props;
+		this.props.setIndividualCollectibleTransaction(collectible);
+		this.props.navigation.navigate('SendView');
 	};
 
 	renderImage = () => {
@@ -137,3 +150,12 @@ export default class CollectibleOverview extends Component {
 		);
 	};
 }
+
+const mapDispatchToProps = dispatch => ({
+	setIndividualCollectibleTransaction: collectible => dispatch(setIndividualCollectibleTransaction(collectible))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(CollectibleOverview);
