@@ -145,10 +145,16 @@ workflows:
       - prep-deps
       - lint:
           requires:
-            - prep-deps
+          - prep-deps
+          filters:
+            branches:
+              ignore: master
       - test-unit:
           requires:
-            - prep-deps
+          - prep-deps
+          filters:
+            branches:
+              ignore: master
     #   - test-e2e-ios:
     #       requires:
     #         - test-unit
