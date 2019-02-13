@@ -174,7 +174,7 @@ workflows:
               only: master
       - publish-pre-release-android:
           requires:
-          - prep-deps
+            - prep-deps
           filters:
             branches:
               only: master
