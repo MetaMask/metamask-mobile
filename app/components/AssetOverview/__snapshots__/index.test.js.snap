@@ -1,101 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetOverview should render correctly 1`] = `
-<LinearGradient
-  colors={
-    Array [
-      "#dfe4ea",
-      "#FFFFFF",
-    ]
-  }
-  end={
+<AssetOverview
+  asset={
     Object {
-      "x": 0.5,
-      "y": 1,
+      "balance": 4,
+      "balanceFiat": 1500,
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg",
+      "name": "Ethereum",
+      "symbol": "ETH",
     }
   }
-  start={
-    Object {
-      "x": 0.5,
-      "y": 0,
-    }
-  }
-  style={
-    Object {
-      "borderBottomColor": "#CCCCCC",
-      "borderBottomWidth": 0.5,
-      "flex": 1,
-      "padding": 20,
-    }
-  }
->
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "borderRadius": 10,
-        "justifyContent": "center",
-        "marginBottom": 10,
-        "marginTop": 15,
-      }
-    }
-  >
-    <Component
-      source={
-        Object {
-          "testUri": "../../../app/images/eth-logo.png",
-        }
-      }
-      style={
-        Object {
-          "height": 70,
-          "width": 70,
-        }
-      }
-    />
-  </View>
-  <View
-    style={
-      Object {
-        "alignItems": "center",
-        "flex": 1,
-        "marginBottom": 10,
-        "marginTop": 10,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "Roboto",
-          "fontSize": 30,
-          "fontWeight": "400",
-        }
-      }
-    >
-      4
-       
-      ETH
-    </Text>
-    <Text
-      style={
-        Object {
-          "color": "#999999",
-          "fontFamily": "Roboto",
-          "fontSize": 18,
-          "fontWeight": "300",
-        }
-      }
-    >
-      1500
-    </Text>
-  </View>
-  <AssetActionButtons
-    leftText="SEND"
-    onLeftPress={[Function]}
-    onRightPress={[Function]}
-    rightText="RECEIVE"
-  />
-</LinearGradient>
+  setTokensTransaction={[Function]}
+/>
 `;

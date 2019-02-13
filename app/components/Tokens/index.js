@@ -156,7 +156,7 @@ export default class Tokens extends PureComponent {
 				{item.symbol === 'ETH' ? (
 					<Image source={ethLogo} style={styles.ethLogo} />
 				) : (
-					<TokenImage asset={item} />
+					<TokenImage asset={item} containerStyle={styles.ethLogo} />
 				)}
 				<View style={styles.balances}>
 					<Text style={styles.balance}>

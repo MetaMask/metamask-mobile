@@ -9,6 +9,7 @@ import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { connect } from 'react-redux';
 import { generateTransferData } from '../../util/transactions';
+import { setTransactionObject } from '../../actions/transaction';
 
 import Engine from '../../core/Engine';
 
@@ -59,51 +60,54 @@ class TransactionEditor extends Component {
 		/**
 		 * Object containing accounts balances
 		 */
-		contractBalances: PropTypes.object
+		contractBalances: PropTypes.object,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired
 	};
 
 	state = {
-		amount: this.props.transaction.value,
-		data: this.props.transaction.data,
-		from: this.props.transaction.from,
-		gas: this.props.transaction.gas,
-		gasPrice: this.props.transaction.gasPrice,
-		to: this.props.transaction.to,
-		asset: this.props.transaction.asset,
 		toFocused: false,
 		readableValue: undefined
 	};
 
+	/**
+	 * Call callback when transaction is cancelled
+	 */
 	onCancel = () => {
 		const { onCancel } = this.props;
 		onCancel && onCancel();
 	};
 
-	onConfirm = () => {
-		const { amount, gas, gasPrice, data, from, to, asset } = this.state;
-		const { onConfirm, transaction } = this.props;
-		!this.validate() &&
-			onConfirm &&
-			onConfirm(
-				{
-					...transaction,
-					...{ value: amount, data, from, gas, gasPrice, to }
-				},
-				asset
-			);
+	/**
+	 * Call callback when transaction is confirmed, after being validated
+	 */
+	onConfirm = async () => {
+		const { onConfirm } = this.props;
+		!(await this.validate()) && onConfirm && onConfirm();
 	};
 
+	/**
+	 * Estimates gas limit
+	 *
+	 * @param {object} opts - Object containing optional attributes object to calculate gas with (amount, data and to)
+	 * @returns {object} - Object containing gas estimation
+	 */
 	estimateGas = async opts => {
 		const { TransactionController } = Engine.context;
-		const { from, asset } = this.state;
-		const { amount = this.state.amount, data = this.state.data, to = this.state.to } = opts;
+		const {
+			transaction: { from, selectedAsset },
+			transaction
+		} = this.props;
+		const { amount = transaction.value, data = transaction.data, to = transaction.to } = opts;
 		let estimation;
 		try {
 			estimation = await TransactionController.estimateGas({
 				amount,
 				from,
 				data,
-				to: asset ? asset.address : to
+				to: selectedAsset ? selectedAsset.address : to
 			});
 		} catch (e) {
 			estimation = { gas: '0x5208' };
@@ -111,96 +115,245 @@ class TransactionEditor extends Component {
 		return estimation;
 	};
 
+	/**
+	 * Updates gas and gasPrice in transaction state
+	 *
+	 * @param {object} gasLimit - BN object containing gasLimit value
+	 * @param {object} gasPrice - BN object containing gasPrice value
+	 */
 	handleGasFeeSelection = (gasLimit, gasPrice) => {
-		this.setState({ gas: gasLimit, gasPrice });
+		this.props.setTransactionObject({ gas: gasLimit, gasPrice });
 	};
 
+	/**
+	 * Updates value in transaction state
+	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
+	 *
+	 * @param {object} amount - BN object containing transaction amount
+	 */
 	handleUpdateAmount = async amount => {
-		const { to, data, asset } = this.state;
-		const tokenAmountToSend = asset && amount && amount.toString(16);
-		const newData =
-			to && asset && tokenAmountToSend
-				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
-				: data;
-		const amountToSend = asset ? '0x0' : amount;
-		const { gas } = await this.estimateGas({ amount: amountToSend, data: newData });
-		this.setState({ amount, data: newData, gas: hexToBN(gas) });
+		const {
+			transaction: { to, data, assetType }
+		} = this.props;
+
+		// If ETH transaction, there is no need to generate new data
+		if (assetType === 'ETH') {
+			const { gas } = await this.estimateGas({ amount, data, to });
+			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas) });
+		}
+		// If selectedAsset defined, generates data
+		else if (assetType === 'ERC20') {
+			const { data, gas } = await this.handleDataGeneration({ value: amount });
+			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data });
+		}
 	};
 
+	/**
+	 * Updates readableValue in state
+	 *
+	 * @param {string} readableValue - String containing the readable value
+	 */
 	handleUpdateReadableValue = readableValue => {
 		this.setState({ readableValue });
 	};
 
+	/**
+	 * Updates data in transaction state, after gas is estimated according to this data
+	 *
+	 * @param {string} data - String containing new data
+	 */
 	handleUpdateData = async data => {
 		const { gas } = await this.estimateGas({ data });
-		this.setState({ data, gas: hexToBN(gas) });
+		this.props.setTransactionObject({ gas: hexToBN(gas), data });
 	};
 
+	/**
+	 * Updates from in transaction state
+	 *
+	 * @param {string} from - String containing from address
+	 */
 	handleUpdateFromAddress = from => {
-		this.setState({ from });
+		this.props.setTransactionObject({ from });
 	};
 
+	/**
+	 * Updates to in transaction object
+	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
+	 *
+	 * @param {string} to - String containing to address
+	 */
 	handleUpdateToAddress = async to => {
-		const { amount, data, asset } = this.state;
-		const tokenAmountToSend = asset && amount && amount.toString(16);
-		const newData =
-			asset && tokenAmountToSend
-				? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
-				: data;
-		const { gas } = await this.estimateGas({ data: newData, to: asset ? asset.address : to });
-		this.setState({ to, gas: hexToBN(gas), data: newData });
-	};
-
-	handleUpdateAsset = async asset => {
-		await this.setState({ amount: undefined, data: undefined, asset, readableValue: undefined });
-		await this.handleUpdateToAddress(this.state.to);
-	};
-
-	validate = () => {
-		if (this.validateAmount(false) || this.validateGas() || this.validateToAddress()) {
-			return true;
+		const {
+			transaction: { data, assetType }
+		} = this.props;
+		// If ETH transaction, there is no need to generate new data
+		if (assetType === 'ETH') {
+			const { gas } = await this.estimateGas({ data, to });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas) });
+		}
+		// If selectedAsset defined, generates data
+		else {
+			const { data, gas } = await this.handleDataGeneration({ to });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), data });
 		}
 	};
 
-	validateAmount = (allowEmpty = true) => {
-		const { asset } = this.state;
-		return asset ? this.validateTokenAmount(allowEmpty) : this.validateEtherAmount(allowEmpty);
+	/**
+	 * Updates selectedAsset in transaction state
+	 *
+	 * @param {object} asset - New asset to send in transaction
+	 */
+	handleUpdateAsset = async asset => {
+		const { transaction } = this.props;
+		if (asset.symbol === 'ETH') {
+			const { gas } = await this.estimateGas({ to: transaction.to });
+			this.props.setTransactionObject({
+				value: undefined,
+				data: undefined,
+				selectedAsset: { symbol: 'ETH' },
+				gas: hexToBN(gas)
+			});
+		} else {
+			const { data, gas } = await this.handleDataGeneration({ selectedAsset: asset });
+			this.props.setTransactionObject({ value: undefined, data, selectedAsset: asset, gas: hexToBN(gas) });
+		}
 	};
 
+	/**
+	 * Handle data generation is selectedAsset is defined in transaction
+	 *
+	 * @param {object} opts? - Optional object to customize data generation, containing selectedAsset, value and to
+	 * @returns {object} - Object containing data and gas, according to new generated data
+	 */
+	handleDataGeneration = async opts => {
+		const {
+			transaction: { from },
+			transaction
+		} = this.props;
+		const selectedAsset = opts.selectedAsset ? opts.selectedAsset : transaction.selectedAsset;
+		const assetType = selectedAsset.tokenId ? 'ERC721' : 'ERC20';
+		const value = opts.value ? opts.value : transaction.value;
+		const to = opts.to ? opts.to : transaction.to;
+		const generateData = {
+			ERC20: () => {
+				const tokenAmountToSend = selectedAsset && value && value.toString(16);
+				return to && tokenAmountToSend
+					? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+					: undefined;
+			},
+			ERC721: () =>
+				to &&
+				generateTransferData('ERC721', {
+					fromAddress: from,
+					toAddress: to,
+					tokenId: selectedAsset.tokenId
+				})
+		};
+		const data = generateData[assetType]();
+		const { gas } = await this.estimateGas({ data, to: selectedAsset.address });
+		return { data, gas };
+	};
+
+	/**
+	 * Validates amount, gas and to address
+	 *
+	 * @returns {boolean} - Whether the transaction is valid or not
+	 */
+	validate = async () => {
+		if ((await this.validateAmount(false)) || this.validateGas() || this.validateToAddress()) {
+			return true;
+		}
+		return false;
+	};
+
+	/**
+	 * Validates amount
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
+	validateAmount = async (allowEmpty = true) => {
+		const {
+			transaction: { assetType }
+		} = this.props;
+		const validations = {
+			ETH: () => this.validateEtherAmount(allowEmpty),
+			ERC20: () => this.validateTokenAmount(allowEmpty),
+			ERC721: async () => await this.validateCollectibleOwnership()
+		};
+		return await validations[assetType]();
+	};
+
+	validateCollectibleOwnership = async () => {
+		const { AssetsContractController } = Engine.context;
+		const {
+			transaction: {
+				selectedAsset: { address, tokenId }
+			}
+		} = this.props;
+		const { selectedAddress } = this.props;
+		try {
+			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const isOwner = owner.toLowerCase() === selectedAddress.toLowerCase();
+			if (!isOwner) {
+				return strings('transaction.invalid_collectible_ownership');
+			}
+			return undefined;
+		} catch (e) {
+			return false;
+		}
+	};
+
+	/**
+	 * Validates Ether transaction amount
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
 	validateEtherAmount = (allowEmpty = true) => {
 		let error;
 		if (!allowEmpty) {
-			const { amount, gas, gasPrice, from } = this.state;
+			const {
+				transaction: { value, gas, gasPrice, from }
+			} = this.props;
 			const checksummedFrom = from ? toChecksumAddress(from) : '';
 			const fromAccount = this.props.accounts[checksummedFrom];
-			(!amount || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
-			amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-			amount &&
+			(!value || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
+			value && !isBN(value) && (error = strings('transaction.invalid_amount'));
+			value &&
 				fromAccount &&
 				isBN(gas) &&
 				isBN(gasPrice) &&
-				isBN(amount) &&
-				hexToBN(fromAccount.balance).lt(amount.add(gas.mul(gasPrice))) &&
+				isBN(value) &&
+				hexToBN(fromAccount.balance).lt(value.add(gas.mul(gasPrice))) &&
 				(error = strings('transaction.insufficient'));
 		}
 		return error;
 	};
 
+	/**
+	 * Validates asset (ERC20) transaction amount
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
 	validateTokenAmount = (allowEmpty = true) => {
 		let error;
 		if (!allowEmpty) {
-			const { amount, gas, gasPrice, from, asset } = this.state;
-			const { contractBalances } = this.props;
+			const {
+				transaction: { value, gas, gasPrice, from, selectedAsset },
+				contractBalances
+			} = this.props;
 			const checksummedFrom = from ? toChecksumAddress(from) : '';
 			const fromAccount = this.props.accounts[checksummedFrom];
-			if (!amount || !gas || !gasPrice || !from) {
+			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
 			}
-			const contractBalanceForAddress = hexToBN(contractBalances[asset.address].toString(16));
-			amount && !isBN(amount) && (error = strings('transaction.invalid_amount'));
-			const validateAssetAmount = contractBalanceForAddress.lt(amount);
+			const contractBalanceForAddress = hexToBN(contractBalances[selectedAsset.address].toString(16));
+			value && !isBN(value) && (error = strings('transaction.invalid_amount'));
+			const validateAssetAmount = contractBalanceForAddress.lt(value);
 			const ethTotalAmount = gas.mul(gasPrice);
-			amount &&
+			value &&
 				fromAccount &&
 				isBN(gas) &&
 				isBN(gasPrice) &&
@@ -210,20 +363,42 @@ class TransactionEditor extends Component {
 		return error;
 	};
 
+	/**
+	 * Validates transaction gas
+	 *
+	 * @returns {string} - String containing error message whether the transaction gas is valid or not
+	 */
 	validateGas = () => {
 		let error;
-		const { gas, gasPrice } = this.state;
+		const {
+			transaction: { gas, gasPrice, from }
+		} = this.props;
 		!gas && (error = strings('transaction.invalid_gas'));
 		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
 		!gasPrice && (error = strings('transaction.invalid_gas_price'));
 		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
 		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('custom_gas.warning_gas_limit'));
+
+		const checksummedFrom = from ? toChecksumAddress(from) : '';
+		const fromAccount = this.props.accounts[checksummedFrom];
+		fromAccount &&
+			isBN(gas) &&
+			isBN(gasPrice) &&
+			hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)) &&
+			(error = strings('transaction.insufficient'));
 		return error;
 	};
 
+	/**
+	 * Validates transaction to address
+	 *
+	 * @returns {string} - String containing error message whether the transaction to address is valid or not
+	 */
 	validateToAddress = () => {
 		let error;
-		const { to } = this.state;
+		const {
+			transaction: { to }
+		} = this.props;
 		!to && (error = strings('transaction.required'));
 		!to && this.state.toFocused && (error = strings('transaction.required'));
 		to && !isValidAddress(to) && (error = strings('transaction.invalid_address'));
@@ -244,10 +419,12 @@ class TransactionEditor extends Component {
 				this.handleUpdateAmount(toBN(value));
 			}
 			if (gas) {
+				this.props.setTransactionObject({ gas: toBN(gas) });
 				this.setState({ gas: toBN(gas) });
 			}
 			if (gasPrice) {
-				this.setState({ gas: toBN(gasPrice) });
+				this.props.setTransactionObject({ gasPrice: toBN(gasPrice) });
+				this.setState({ gasPrice: toBN(gasPrice) });
 			}
 
 			// TODO: We should add here support for:
@@ -258,14 +435,12 @@ class TransactionEditor extends Component {
 	};
 
 	render = () => {
-		const { amount, gas, gasPrice, from, to, data, asset, readableValue } = this.state;
+		const { readableValue } = this.state;
 		const { mode, transactionConfirmed } = this.props;
-		const transactionData = { amount, gas, gasPrice, from, to, data, asset };
 		return (
 			<View style={styles.root}>
 				{mode === 'edit' && (
 					<TransactionEdit
-						accounts={this.props.accounts}
 						navigation={this.props.navigation}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
@@ -275,7 +450,6 @@ class TransactionEditor extends Component {
 						handleUpdateFromAddress={this.handleUpdateFromAddress}
 						handleUpdateToAddress={this.handleUpdateToAddress}
 						handleGasFeeSelection={this.handleGasFeeSelection}
-						transactionData={transactionData}
 						validateAmount={this.validateAmount}
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
@@ -286,11 +460,9 @@ class TransactionEditor extends Component {
 				)}
 				{mode === 'review' && (
 					<TransactionReview
-						accounts={this.props.accounts}
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
 						onModeChange={this.props.onModeChange}
-						transactionData={transactionData}
 						validateAmount={this.validateAmount}
 						transactionConfirmed={transactionConfirmed}
 					/>
@@ -302,7 +474,16 @@ class TransactionEditor extends Component {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	transaction: state.transaction
 });
 
-export default connect(mapStateToProps)(TransactionEditor);
+const mapDispatchToProps = dispatch => ({
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(TransactionEditor);

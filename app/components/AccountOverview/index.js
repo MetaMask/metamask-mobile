@@ -8,6 +8,8 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FoundationIcon from 'react-native-vector-icons/Foundation';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../core/Engine';
+import { setTokensTransaction } from '../../actions/transaction';
+import { connect } from 'react-redux';
 import { renderFiat } from '../../util/number';
 
 const styles = StyleSheet.create({
@@ -91,7 +93,7 @@ const styles = StyleSheet.create({
  * View that's part of the <Wallet /> component
  * which shows information about the selected account
  */
-export default class AccountOverview extends Component {
+class AccountOverview extends Component {
 	static propTypes = {
 		/**
 		 * Object that represents the selected account
@@ -106,6 +108,10 @@ export default class AccountOverview extends Component {
 		 */
 		showAlert: PropTypes.func.isRequired,
 		/**
+		 * Action that sets a tokens type transaction
+		 */
+		setTokensTransaction: PropTypes.func.isRequired,
+		/**
 		/* Selected currency
 		*/
 		currentCurrency: PropTypes.string
@@ -114,6 +120,7 @@ export default class AccountOverview extends Component {
 		Alert.alert(strings('drawer.coming_soon'));
 	};
 	onSend = () => {
+		this.props.setTokensTransaction({ symbol: 'ETH' });
 		this.props.navigation.navigate('SendView');
 	};
 	onCopy = async () => {
@@ -189,3 +196,12 @@ export default class AccountOverview extends Component {
 		);
 	};
 }
+
+const mapDispatchToProps = dispatch => ({
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(AccountOverview);

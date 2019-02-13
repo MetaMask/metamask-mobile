@@ -27,7 +27,7 @@ exports[`Collectible should render correctly 1`] = `
       testID="collectible"
     >
       <View>
-        <CollectibleContractOverview
+        <Connect(CollectibleContractOverview)
           collectibleContract={
             Object {
               "address": "0x1",

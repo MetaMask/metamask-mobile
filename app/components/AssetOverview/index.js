@@ -7,6 +7,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
+import { setTokensTransaction } from '../../actions/transaction';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,7 +52,7 @@ const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
  * View that displays the information of a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
  */
-export default class AssetOverview extends Component {
+class AssetOverview extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to access the props
@@ -60,7 +62,11 @@ export default class AssetOverview extends Component {
 		/**
 		 * Object that represents the asset to be displayed
 		 */
-		asset: PropTypes.object
+		asset: PropTypes.object,
+		/**
+		 * Action that sets a tokens type transaction
+		 */
+		setTokensTransaction: PropTypes.func.isRequired
 	};
 
 	onDeposit = () => {
@@ -70,9 +76,11 @@ export default class AssetOverview extends Component {
 	onSend = async () => {
 		const { asset } = this.props;
 		if (asset.symbol === 'ETH') {
+			this.props.setTokensTransaction({ symbol: 'ETH' });
 			this.props.navigation.navigate('SendView');
 		} else {
-			this.props.navigation.navigate('SendView', asset);
+			this.props.setTokensTransaction(asset);
+			this.props.navigation.navigate('SendView');
 		}
 	};
 
@@ -110,3 +118,12 @@ export default class AssetOverview extends Component {
 		);
 	};
 }
+
+const mapDispatchToProps = dispatch => ({
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(AssetOverview);

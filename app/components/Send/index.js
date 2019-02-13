@@ -8,6 +8,8 @@ import { toBN, BNToHex, hexToBN } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../locales/i18n';
 import { getClosableNavigationOptions } from '../Navbar';
+import { connect } from 'react-redux';
+import { newTransaction, setTransactionObject } from '../../actions/transaction';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -25,7 +27,7 @@ const styles = StyleSheet.create({
 /**
  * View that wraps the wraps the "Send" screen
  */
-export default class Send extends Component {
+class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
 		getClosableNavigationOptions(strings('send.title'), strings('navigation.cancel'), navigation);
 
@@ -33,12 +35,23 @@ export default class Send extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action that cleans transaction state
+		 */
+		newTransaction: PropTypes.func.isRequired,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Transaction state
+		 */
+		transaction: PropTypes.object.isRequired
 	};
 
 	state = {
 		mode: 'edit',
-		transaction: undefined,
 		transactionKey: undefined,
 		ready: false,
 		transactionConfirmed: false,
@@ -48,15 +61,25 @@ export default class Send extends Component {
 	mounted = false;
 	unmountHandled = false;
 
+	/**
+	 * Resets gas and gasPrice of transaction, passing state to 'edit'
+	 */
 	async reset() {
-		const { navigation } = this.props;
-		const asset = navigation.state && navigation.state && navigation.state.params;
-		const transaction = { asset };
+		const { transaction } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
-		transaction.gas = hexToBN(gas);
-		transaction.gasPrice = hexToBN(gasPrice);
-		return this.mounted && this.setState({ mode: 'edit', transaction, transactionKey: Date.now() });
+		this.props.setTransactionObject({
+			gas: hexToBN(gas),
+			gasPrice: hexToBN(gasPrice)
+		});
+		return this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
 	}
+
+	/**
+	 * Transaction state is erased, ready to create a new clean transaction
+	 */
+	clear = async () => {
+		this.props.newTransaction();
+	};
 
 	checkForDeeplinks() {
 		const { navigation } = this.props;
@@ -66,21 +89,28 @@ export default class Send extends Component {
 				this.handleNewTxMeta(txMeta);
 			}
 		}
-
 		this.mounted && this.setState({ ready: true });
 	}
 
+	/**
+	 * Sets state mounted to true, resets transaction and check for deeplinks
+	 */
 	async componentDidMount() {
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
 	}
 
+	/**
+	 * Cancels transaction and sets mounted to false
+	 */
 	async componentWillUnmount() {
-		const { transaction, transactionSubmitted } = this.state;
+		const { transactionSubmitted } = this.state;
+		const { transaction } = this.state;
 		if (!transactionSubmitted && !this.unmountHandled) {
 			transaction && (await this.onCancel(transaction.id));
 		}
+		this.clear();
 		this.mounted = false;
 	}
 
@@ -127,56 +157,85 @@ export default class Send extends Component {
 		this.mounted && this.setState({ transaction: newTxMeta });
 	};
 
-	prepareTransaction(transaction) {
-		transaction.gas = BNToHex(transaction.gas);
-		transaction.gasPrice = BNToHex(transaction.gasPrice);
-		transaction.value = BNToHex(transaction.value);
-		return transaction;
-	}
+	/**
+	 * Returns transaction object with gas, gasPrice and value in hex format
+	 *
+	 * @param {object} transaction - Transaction object
+	 */
+	prepareTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: BNToHex(transaction.value)
+	});
 
-	prepareTokenTransaction = (transaction, asset) => {
-		transaction.gas = BNToHex(transaction.gas);
-		transaction.gasPrice = BNToHex(transaction.gasPrice);
-		transaction.value = '0x0';
-		transaction.to = asset.address;
-		return transaction;
-	};
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
+	 * and to set to selectedAsset address
+	 *
+	 * @param {object} transaction - Transaction object
+	 * @param {object} selectedAsset - Asset object
+	 */
+	prepareAssetTransaction = (transaction, selectedAsset) => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: '0x0',
+		to: selectedAsset.address
+	});
 
-	sanitizeTransaction(transaction) {
-		transaction.gas = hexToBN(transaction.gas);
-		transaction.gasPrice = hexToBN(transaction.gasPrice);
-		return transaction;
-	}
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format
+	 *
+	 * @param transaction - Transaction object
+	 */
+	sanitizeTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice)
+	});
 
+	/**
+	 * Cancels transaction and close send screen before clear transaction state
+	 *
+	 * @param if - Transaction id
+	 */
 	onCancel = id => {
 		Engine.context.TransactionController.cancelTransaction(id);
-		if (this.state.mode !== 'edit') {
-			this.props.navigation.pop(2);
-		} else {
-			this.props.navigation.pop();
-		}
+		this.props.navigation.pop();
 		this.unmountHandled = true;
+		this.clear();
 	};
 
-	onConfirm = async (transaction, asset) => {
+	/**
+	 * Confirms transaction. In case of selectedAsset handles a token transfer transaction,
+	 * if not, and Ether transaction.
+	 * If success, transaction state is cleared, if not transaction is reset alert about the error
+	 * and returns to edit transaction
+	 */
+	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
+		const {
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		let { transaction } = this.props;
 		try {
-			if (!asset) {
+			if (assetType === 'ETH') {
 				transaction = this.prepareTransaction(transaction);
 			} else {
-				transaction = this.prepareTokenTransaction(transaction, asset);
+				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 			await TransactionController.approveTransaction(transactionMeta.id);
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
-			this.reset();
+			this.clear();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
-			this.reset();
+			await this.reset();
 		}
 	};
 
@@ -201,7 +260,6 @@ export default class Send extends Component {
 					onCancel={this.onCancel}
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
-					transaction={this.state.transaction}
 					transactionConfirmed={this.state.transactionConfirmed}
 				/>
 			) : (
@@ -210,3 +268,19 @@ export default class Send extends Component {
 		</SafeAreaView>
 	);
 }
+
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	transaction: state.transaction
+});
+
+const mapDispatchToProps = dispatch => ({
+	newTransaction: () => dispatch(newTransaction()),
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Send);

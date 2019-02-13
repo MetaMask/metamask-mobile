@@ -72,7 +72,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         <Connect(AccountSelect)
           enabled={false}
           onChange={[Function]}
-          value="0x0"
+          value="0x1"
         />
       </View>
       <View
@@ -140,7 +140,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           fillMax={false}
           onChange={[Function]}
           updateFillMax={[Function]}
-          value={0}
+          value=""
         />
       </View>
       <View
@@ -187,6 +187,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           onFocus={[Function]}
           placeholder="Recipient Address"
           showQRScanner={[Function]}
+          value="0x2"
         />
       </View>
       <View
@@ -229,8 +230,8 @@ exports[`TransactionEdit should render correctly 1`] = `
           </Text>
         </View>
         <Connect(CustomGas)
-          gas={"5208"}
-          gasPrice={1}
+          gas=""
+          gasPrice=""
           handleGasFeeSelection={[Function]}
           totalGas={"14a"}
         />
@@ -292,6 +293,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             }
           }
           underlineColorAndroid="transparent"
+          value=""
         />
       </View>
     </View>
