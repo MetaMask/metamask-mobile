@@ -99,6 +99,9 @@ jobs:
     macos:
       xcode: 10.1.0
     steps:
+      - checkout
+      - attach_workspace:
+          at: .
       - run:
           name: Announcing pre-release
           command: npm run build:announce
