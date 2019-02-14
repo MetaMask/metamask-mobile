@@ -35,6 +35,7 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import PersonalSign from '../PersonalSign';
 import TypedSign from '../TypedSign';
+import UrlAutocomplete from '../UrlAutocomplete';
 import AccountApproval from '../AccountApproval';
 import { approveHost } from '../../actions/privacy';
 import { addBookmark } from '../../actions/bookmarks';
@@ -501,8 +502,8 @@ export class Browser extends Component {
 		}
 	}
 
-	onUrlInputSubmit = async () => {
-		const { inputValue } = this.state;
+	onUrlInputSubmit = async (input = null) => {
+		const inputValue = input || this.state.inputValue;
 		const { defaultProtocol, searchEngine } = this.props;
 		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
 		const url = await this.go(sanitizedInput);
@@ -832,6 +833,13 @@ export class Browser extends Component {
 		current.clear();
 	};
 
+	onAutocomplete = (link) => {
+		this.setState({ inputValue: link }, () => {
+			this.onUrlInputSubmit(link);
+		});
+
+	}
+
 	renderUrlModal = () => {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
@@ -881,6 +889,10 @@ export class Browser extends Component {
 						</TouchableOpacity>
 					)}
 				</View>
+				<UrlAutocomplete
+						onSubmit={this.onAutocomplete}
+						input={this.state.inputValue}
+					/>
 			</Modal>
 		);
 	};
