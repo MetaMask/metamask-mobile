@@ -94,17 +94,6 @@ jobs:
       - run:
           name:  All Tests Passed
           command: echo 'weew - everything passed!'
-  announce-pre-release:
-    <<: *defaults
-    macos:
-      xcode: 10.1.0
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - run:
-          name: Announcing pre-release
-          command: npm run build:announce
   publish-pre-release-android:
     working_directory:  ~/MetaMask
     docker:
@@ -125,6 +114,9 @@ jobs:
       - store_artifacts:
           path: android/app/build/outputs/apk/release
           destination: builds
+      - run:
+          name: Announcing pre-release
+          command: npm run build:announce
   publish-pre-release-ios:
     macos:
       xcode: 10.1.0
@@ -177,11 +169,7 @@ workflows:
               only: master
       - publish-pre-release-android:
           requires:
-            - prep-deps
+            - publish-pre-release-ios
           filters:
             branches:
               only: master
-      - announce-pre-release:
-          requires:
-            - publish-pre-release-ios
-            - publish-pre-release-android

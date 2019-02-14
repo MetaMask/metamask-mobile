@@ -3,7 +3,7 @@ const request = require('request-promise');
 const github = require('octonode');
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const CIRCLE_BUILD_NUM = process.env.CIRCLE_BUILD_NUM - 1;
+const CIRCLE_BUILD_NUM = process.env.CIRCLE_BUILD_NUM;
 const CIRCLE_PROJECT_REPONAME = process.env.CIRCLE_PROJECT_REPONAME;
 const CIRCLE_PROJECT_USERNAME = process.env.CIRCLE_PROJECT_USERNAME;
 const CIRCLE_SHA1 = process.env.CIRCLE_SHA1;
