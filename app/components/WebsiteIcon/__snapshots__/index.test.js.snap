@@ -3,14 +3,18 @@
 exports[`WebsiteIcon should render correctly 1`] = `
 <View>
   <View>
-    <Component
-      onError={[Function]}
-      source={
-        Object {
-          "uri": "https://api.faviconkit.com//64",
+    <FadeIn
+      useNativeDriver={true}
+    >
+      <Component
+        onError={[Function]}
+        source={
+          Object {
+            "uri": "https://api.faviconkit.com//64",
+          }
         }
-      }
-    />
+      />
+    </FadeIn>
   </View>
 </View>
 `;

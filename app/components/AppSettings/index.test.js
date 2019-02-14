@@ -21,6 +21,9 @@ describe('AppSettings', () => {
 						currentCurrency: 'usd'
 					}
 				}
+			},
+			browser: {
+				history: []
 			}
 		};
 

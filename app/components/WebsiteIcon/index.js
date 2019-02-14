@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image } from 'react-native';
+import FadeIn from 'react-native-fade-in-image';
 import { colors, fontStyles } from '../../styles/common';
-import URL from 'url-parse';
+import { getHost } from '../../util/browser';
 
 const styles = StyleSheet.create({
 	fallback: {
@@ -56,14 +57,8 @@ export default class WebsiteIcon extends Component {
 		this.getIconUrl(this.props.url);
 	};
 
-	getHost(url) {
-		const urlObj = new URL(url);
-		const { hostname } = urlObj;
-		return hostname;
-	}
-
 	getIconUrl = url => {
-		const iconUrl = `https://api.faviconkit.com/${this.getHost(url)}/64`;
+		const iconUrl = `https://api.faviconkit.com/${getHost(url)}/64`;
 		this.setState({ apiLogoUrl: { uri: iconUrl } });
 	};
 
@@ -78,7 +73,9 @@ export default class WebsiteIcon extends Component {
 			<View>
 				{!renderIconUrlError && (
 					<View style={viewStyle}>
-						<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+						<FadeIn>
+							<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+						</FadeIn>
 					</View>
 				)}
 				{renderIconUrlError &&
