@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		paddingVertical: 15,
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.white
 	},
 	bookmarkIco: {
 		width: 26,
@@ -34,16 +34,13 @@ const styles = StyleSheet.create({
 	},
 	item: {
 		flex: 1,
-		marginBottom: 20,
+		marginBottom: 20
 	},
 	itemWrapper: {
 		flexDirection: 'row',
-		marginBottom: 20,
-	},
-
+		marginBottom: 20
+	}
 });
-
-
 
 const fuse = new Fuse(dappUrlList, {
 	shouldSort: true,
@@ -56,53 +53,45 @@ const fuse = new Fuse(dappUrlList, {
 });
 
 export default class UrlAutocomplete extends Component {
-
 	state = {
 		results: []
-	}
+	};
 
-	componentDidUpdate(prevProps){
-		if(prevProps.input !== this.props.input){
+	componentDidUpdate(prevProps) {
+		if (prevProps.input !== this.props.input) {
 			const fuseSearchResult = fuse.search(this.props.input);
-			this.setState({results: [...fuseSearchResult]});
+			this.setState({ results: [...fuseSearchResult] });
 		}
 	}
 
 	render() {
-		if(this.props.input.length < 2) return null;
-		if(this.state.results.length === 0) return null;
+		if (this.props.input.length < 2) return null;
+		if (this.state.results.length === 0) return null;
 		return (
 			<View style={styles.wrapper}>
-				{
-					this.state.results.slice(0, 6).map((r, i) => {
-						const { url, name } = r;
-						return (
-							<TouchableOpacity
-								containerStyle={styles.item}
-								onPress={() => this.props.onSubmit(url)} // eslint-disable-line
-								key={url}
-							>
-								<View style={styles.itemWrapper}>
-									<WebsiteIcon
-										style={styles.bookmarkIco}
-										url={url}
-										title={name}
-										textStyle={styles.fallbackTextStyle}
-									/>
-									<View>
-										<Text style={styles.name}>
-											{name}
-										</Text>
-										<Text style={styles.url}>
-											{url}
-										</Text>
-									</View>
+				{this.state.results.slice(0, 6).map((r, i) => {
+					const { url, name } = r;
+					return (
+						<TouchableOpacity
+							containerStyle={styles.item}
+							onPress={() => this.props.onSubmit(url)} // eslint-disable-line
+							key={url}
+						>
+							<View style={styles.itemWrapper}>
+								<WebsiteIcon
+									style={styles.bookmarkIco}
+									url={url}
+									title={name}
+									textStyle={styles.fallbackTextStyle}
+								/>
+								<View>
+									<Text style={styles.name}>{name}</Text>
+									<Text style={styles.url}>{url}</Text>
 								</View>
-							</TouchableOpacity>
-						);
-					})
-				}
-
+							</View>
+						</TouchableOpacity>
+					);
+				})}
 			</View>
 		);
 	}

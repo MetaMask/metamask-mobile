@@ -833,12 +833,11 @@ export class Browser extends Component {
 		current.clear();
 	};
 
-	onAutocomplete = (link) => {
+	onAutocomplete = link => {
 		this.setState({ inputValue: link }, () => {
 			this.onUrlInputSubmit(link);
 		});
-
-	}
+	};
 
 	renderUrlModal = () => {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
@@ -889,10 +888,7 @@ export class Browser extends Component {
 						</TouchableOpacity>
 					)}
 				</View>
-				<UrlAutocomplete
-						onSubmit={this.onAutocomplete}
-						input={this.state.inputValue}
-					/>
+				<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.inputValue} />
 			</Modal>
 		);
 	};
