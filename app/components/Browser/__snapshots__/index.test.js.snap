@@ -135,6 +135,10 @@ exports[`Browser should render correctly 1`] = `
         </Text>
       </TouchableOpacity>
     </View>
+    <Connect(UrlAutocomplete)
+      input=""
+      onSubmit={[Function]}
+    />
   </ReactNativeModal>
   <ReactNativeModal
     animationIn="slideInUp"

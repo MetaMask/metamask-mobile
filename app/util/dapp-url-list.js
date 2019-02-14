@@ -92,7 +92,7 @@ export default [
 		name: 'Gods Unchained'
 	},
 	{
-		url: 'https://land.axieinfinity.com/purchase?r=b2eD2l0oCSszpjF79ZtY9erjbYg',
+		url: 'https://land.axieinfinity.com/',
 		name: 'Axie Infinity'
 	},
 	{
@@ -108,7 +108,7 @@ export default [
 		name: 'Origin Protocol'
 	},
 	{
-		url: 'https://cryptoassault.io/?refcode=0x3622af90ab6234d8c4fa802fe69f29d54f49f95b',
+		url: 'https://cryptoassault.io/',
 		name: 'CryptoAssault'
 	},
 	{
@@ -232,10 +232,6 @@ export default [
 		name: 'First Blood'
 	},
 	{
-		url: 'https://enjincoin.io/',
-		name: 'Enjin Coin'
-	},
-	{
 		url: 'https://www.cryptopioneers.co/world',
 		name: 'CryptoPioneers'
 	},
@@ -272,7 +268,7 @@ export default [
 		name: 'SpankChain'
 	},
 	{
-		url: 'https://eth.evolution.land/?utm_source=stateofthedapps&utm_media=detailpage&utm_campaign=eth',
+		url: 'https://eth.evolution.land/',
 		name: 'Evolution Land'
 	},
 	{
@@ -308,10 +304,6 @@ export default [
 		name: 'Loopring'
 	},
 	{
-		url: 'https://play.google.com/store/apps/details?id=co.bitnation',
-		name: 'BITNATION'
-	},
-	{
 		url: 'https://switcheo.exchange/',
 		name: 'Switcheo'
 	},
@@ -324,7 +316,7 @@ export default [
 		name: 'Gnosis'
 	},
 	{
-		url: 'https://cryptoflowers.io?r=443S2',
+		url: 'https://cryptoflowers.io',
 		name: 'CryptoFlowers'
 	},
 	{
@@ -972,10 +964,6 @@ export default [
 		name: 'Fishbank'
 	},
 	{
-		url: 'https://blog.gnosis.pm/tagged/dutchx',
-		name: 'DutchX'
-	},
-	{
 		url: 'https://origintrail.io/opencall/projects',
 		name: "OriginTrail's Open Call"
 	},
@@ -1126,10 +1114,6 @@ export default [
 	{
 		url: 'https://geon.network/',
 		name: 'Geon App'
-	},
-	{
-		url: 'https://itunes.apple.com/tr/app/peerguess-cryptocoin-ticker/id1330979580',
-		name: 'Peerguess'
 	},
 	{
 		url: 'https://eth7.space/',
@@ -1330,14 +1314,6 @@ export default [
 	{
 		url: 'https://slumberswap.com/ss/#/marketplace',
 		name: 'Slumber Swap'
-	},
-	{
-		url: 'https://itunes.apple.com/app/id1328551769',
-		name: 'Multy'
-	},
-	{
-		url: 'https://token.im/',
-		name: 'imToken'
 	},
 	{
 		url: 'https://www.etherdragons.world/trybeta',
@@ -2988,10 +2964,6 @@ export default [
 		name: 'ExpandLand'
 	},
 	{
-		url: 'https://itunes.apple.com/us/app/alpha-browser/id1330570744?l=zh&amp;ls=1&amp;mt=8',
-		name: 'Alpha Browser'
-	},
-	{
 		url: 'http://www.rentalcurrency.com',
 		name: 'Car Sharing Platform'
 	},
@@ -3776,10 +3748,6 @@ export default [
 		name: 'Interbet'
 	},
 	{
-		url: 'https://chrome.google.com/webstore/detail/extend/babconedajpngaajmlnnhpahcladpcna',
-		name: 'Extend'
-	},
-	{
 		url: 'https://aloha.pheme.app/',
 		name: 'Pheme'
 	},
@@ -4468,10 +4436,6 @@ export default [
 		name: 'Prolet'
 	},
 	{
-		url: 'https://chrome.google.com/webstore/detail/spacesuit/ogonghphdgcdealjfknchhgiaabendkl',
-		name: 'SpaceSuit'
-	},
-	{
 		url: 'https://sacrific3d.stronghand.me/',
 		name: 'Sacrific3d'
 	},
@@ -4542,10 +4506,6 @@ export default [
 	{
 		url: 'http://otcexchange.info/',
 		name: 'OTC Exchange'
-	},
-	{
-		url: 'https://play.google.com/store/apps/details?id=com.quidwallet.quidwalletapp',
-		name: 'Quid Wallet'
 	},
 	{
 		url: 'https://app.photochain.network/',
@@ -5008,10 +4968,6 @@ export default [
 		name: 'Ether WordCloud'
 	},
 	{
-		url: 'https://etherscan.io/address/0x1e1eb815db3e66dd4cc896a6bbf40099a5422886',
-		name: 'JadeZ Games'
-	},
-	{
 		url: 'https://ethgg.io/#dice',
 		name: 'ETHGG'
 	},
@@ -5364,7 +5320,7 @@ export default [
 		name: 'Infura'
 	},
 	{
-		url: 'https://coinflip.4dapp.io/?ref=sofd',
+		url: 'https://coinflip.4dapp.io/',
 		name: 'CoinFlip'
 	},
 	{
@@ -5916,10 +5872,6 @@ export default [
 		name: 'BlockBet'
 	},
 	{
-		url: 'https://www.youtube.com/watch?v=WFeJYv3PSaI',
-		name: 'Project Groundhog'
-	},
-	{
 		url: 'https://p4d.io/',
 		name: 'PoWH4D - P4D'
 	},
@@ -6308,10 +6260,6 @@ export default [
 		name: 'Chasm'
 	},
 	{
-		url: 'https://drive.google.com/file/d/0B3G6GO7V7fnkQ3oxQkNqd1o5MG8/view',
-		name: 'B-Umbrella'
-	},
-	{
 		url: 'https://fiftyflip.pocgames.co/',
 		name: 'Fifty Flip'
 	},
@@ -6334,10 +6282,6 @@ export default [
 	{
 		url: 'https://roulette.netlify.com/',
 		name: 'High-Stakes SmartRoulette'
-	},
-	{
-		url: 'https://docs.google.com/document/d/1VNkBjjGhcZUV9CyC0ccWYbqeOoVKT2maqX0rK3yXB20/mobilebasic',
-		name: 'Curation Markets'
 	},
 	{
 		url: 'http://thot.blocklog.xyz',

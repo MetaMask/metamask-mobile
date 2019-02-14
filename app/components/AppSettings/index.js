@@ -21,6 +21,7 @@ import ActionModal from '../ActionModal';
 import { isWebUri } from 'valid-url';
 import SelectComponent from '../SelectComponent';
 import { getNavigationOptionsTitle } from '../Navbar';
+import { clearHistory } from '../../actions/browser';
 import { clearHosts, setPrivacyMode } from '../../actions/privacy';
 import { setSearchEngine, setShowHexData } from '../../actions/settings';
 
@@ -116,6 +117,7 @@ class AppSettings extends Component {
 		currentLanguage: I18n.locale,
 		modalVisible: false,
 		approvalModalVisible: false,
+		browserHistoryModalVisible: false,
 		rpcUrl: '',
 		warningRpcUrl: ''
 	};
@@ -126,9 +128,17 @@ class AppSettings extends Component {
 		 */
 		approvedHosts: PropTypes.object,
 		/**
+		 * Array of visited websites
+		 */
+		browserHistory: PropTypes.array,
+		/**
 		 * Called to clear all hostnames with account access
 		 */
 		clearHosts: PropTypes.func,
+		/**
+		 * Called to clear the list of visited urls
+		 */
+		clearBrowserHistory: PropTypes.func,
 		/**
 		/* State current currency
 		*/
@@ -204,6 +214,10 @@ class AppSettings extends Component {
 		this.setState({ approvalModalVisible: true });
 	};
 
+	displayClearBrowserHistoryModal = () => {
+		this.setState({ browserHistoryModalVisible: true });
+	};
+
 	resetAccount = () => {
 		const { TransactionController } = Engine.context;
 		const { navigation } = this.props;
@@ -216,12 +230,21 @@ class AppSettings extends Component {
 		this.cancelClearApprovals();
 	};
 
+	clearBrowserHistory = () => {
+		this.props.clearBrowserHistory();
+		this.cancelClearBrowserHistory();
+	};
+
 	cancelResetAccount = () => {
 		this.setState({ modalVisible: false });
 	};
 
 	cancelClearApprovals = () => {
 		this.setState({ approvalModalVisible: false });
+	};
+
+	cancelClearBrowserHistory = () => {
+		this.setState({ browserHistoryModalVisible: false });
 	};
 
 	addRpcUrl = () => {
@@ -262,8 +285,8 @@ class AppSettings extends Component {
 	};
 
 	render = () => {
-		const { modalVisible, approvalModalVisible } = this.state;
-		const { approvedHosts, currentCurrency, privacyMode, showHexData } = this.props;
+		const { modalVisible, approvalModalVisible, browserHistoryModalVisible } = this.state;
+		const { approvedHosts, browserHistory, currentCurrency, privacyMode, showHexData } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
 				<ScrollView contentContainerStyle={styles.wrapperContent}>
@@ -292,6 +315,23 @@ class AppSettings extends Component {
 							<Text style={styles.modalTitle}>{strings('app_settings.clear_approvals_modal_title')}</Text>
 							<Text style={styles.modalText}>
 								{strings('app_settings.clear_approvals_modal_message')}
+							</Text>
+						</View>
+					</ActionModal>
+					<ActionModal
+						modalVisible={browserHistoryModalVisible}
+						confirmText={strings('app_settings.clear')}
+						cancelText={strings('app_settings.reset_account_cancel_button')}
+						onCancelPress={this.cancelClearBrowserHistory}
+						onRequestClose={this.cancelClearBrowserHistory}
+						onConfirmPress={this.clearBrowserHistory}
+					>
+						<View style={styles.modalView}>
+							<Text style={styles.modalTitle}>
+								{strings('app_settings.clear_browser_history_modal_title')}
+							</Text>
+							<Text style={styles.modalText}>
+								{strings('app_settings.clear_browser_history_modal_message')}
 							</Text>
 						</View>
 					</ActionModal>
@@ -375,13 +415,23 @@ class AppSettings extends Component {
 						</View>
 					</View>
 					<View style={styles.setting}>
-						<Text style={styles.text}>{strings('app_settings.clear_desc')}</Text>
+						<Text style={styles.text}>{strings('app_settings.clear_approve_dapps_desc')}</Text>
 						<StyledButton
 							type="confirm"
 							onPress={this.displayClearApprovalsModal}
 							disabled={Object.keys(approvedHosts).length === 0}
 						>
 							{strings('app_settings.clear_approved_dapps')}
+						</StyledButton>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.text}>{strings('app_settings.clear_browser_history_desc')}</Text>
+						<StyledButton
+							type="confirm"
+							onPress={this.displayClearBrowserHistoryModal}
+							disabled={browserHistory.length === 0}
+						>
+							{strings('app_settings.clear_browser_history')}
 						</StyledButton>
 					</View>
 					<View style={styles.setting}>
@@ -404,6 +454,7 @@ class AppSettings extends Component {
 
 const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
+	browserHistory: state.browser.history,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
@@ -412,6 +463,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	clearHosts: () => dispatch(clearHosts()),
+	clearBrowserHistory: () => dispatch(clearHistory()),
 	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled)),
 	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine)),
 	setShowHexData: showHexData => dispatch(setShowHexData(showHexData))

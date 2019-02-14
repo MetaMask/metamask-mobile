@@ -1,4 +1,5 @@
 import bookmarksReducer from './bookmarks';
+import browserReducer from './browser';
 import engineReducer from './engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
 	engine: engineReducer,
 	privacy: privacyReducer,
 	bookmarks: bookmarksReducer,
+	browser: browserReducer,
 	modals: modalsReducer,
 	settings: settingsReducer,
 	alert: alertReducer,

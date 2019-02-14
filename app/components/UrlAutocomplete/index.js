@@ -3,8 +3,10 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import dappUrlList from '../../util/dapp-url-list';
 import Fuse from 'fuse.js';
+import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { colors, fontStyles } from '../../styles/common';
+import { getHost } from '../../util/browser';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -39,29 +41,69 @@ const styles = StyleSheet.create({
 	itemWrapper: {
 		flexDirection: 'row',
 		marginBottom: 20
+	},
+	textContent: {
+		marginLeft: 10
 	}
 });
 
-const fuse = new Fuse(dappUrlList, {
-	shouldSort: true,
-	threshold: 0.45,
-	location: 0,
-	distance: 100,
-	maxPatternLength: 32,
-	minMatchCharLength: 1,
-	keys: [{ name: 'name', weight: 0.5 }, { name: 'url', weight: 0.5 }]
-});
+/**
+ * Component that renders an autocomplete
+ * based on an input string
+ */
+class UrlAutocomplete extends Component {
+	static propTypes = {
+		/**
+		 * input text for the autocomplete
+		 */
+		input: PropTypes.string,
+		/**
+		 * Callback that is triggered while
+		 * choosing one of the autocomplete options
+		 */
+		onSubmit: PropTypes.func,
+		/**
+		 * An array of visited urls and names
+		 */
+		browserHistory: PropTypes.array
+	};
 
-export default class UrlAutocomplete extends Component {
 	state = {
 		results: []
 	};
 
+	componentDidMount() {
+		const allUrls = [...this.props.browserHistory, ...dappUrlList];
+		const singleUrlLlist = [];
+		const singleUrls = [];
+		for (let i = 0; i < allUrls.length; i++) {
+			const el = allUrls[i];
+			if (!singleUrlLlist.includes(el.url)) {
+				singleUrlLlist.push(el.url);
+				singleUrls.push(el);
+			}
+		}
+
+		this.fuse = new Fuse(singleUrls, {
+			shouldSort: true,
+			threshold: 0.45,
+			location: 0,
+			distance: 100,
+			maxPatternLength: 32,
+			minMatchCharLength: 1,
+			keys: [{ name: 'name', weight: 0.5 }, { name: 'url', weight: 0.5 }]
+		});
+	}
+
 	componentDidUpdate(prevProps) {
 		if (prevProps.input !== this.props.input) {
-			const fuseSearchResult = fuse.search(this.props.input);
-			this.setState({ results: [...fuseSearchResult] });
+			const fuseSearchResult = this.fuse.search(this.props.input);
+			this.updateResults([...fuseSearchResult]);
 		}
+	}
+
+	updateResults(results) {
+		this.setState({ results });
 	}
 
 	render() {
@@ -69,7 +111,7 @@ export default class UrlAutocomplete extends Component {
 		if (this.state.results.length === 0) return null;
 		return (
 			<View style={styles.wrapper}>
-				{this.state.results.slice(0, 6).map((r, i) => {
+				{this.state.results.slice(0, 3).map(r => {
 					const { url, name } = r;
 					return (
 						<TouchableOpacity
@@ -84,8 +126,8 @@ export default class UrlAutocomplete extends Component {
 									title={name}
 									textStyle={styles.fallbackTextStyle}
 								/>
-								<View>
-									<Text style={styles.name}>{name}</Text>
+								<View style={styles.textContent}>
+									<Text style={styles.name}>{name || getHost(url)}</Text>
 									<Text style={styles.url}>{url}</Text>
 								</View>
 							</View>
@@ -96,3 +138,9 @@ export default class UrlAutocomplete extends Component {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	browserHistory: state.browser.history
+});
+
+export default connect(mapStateToProps)(UrlAutocomplete);

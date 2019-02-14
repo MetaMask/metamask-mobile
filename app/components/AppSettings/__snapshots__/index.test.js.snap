@@ -117,6 +117,55 @@ exports[`AppSettings should render correctly 1`] = `
         </Text>
       </View>
     </ActionModal>
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="NEVERMIND"
+      confirmButtonMode="warning"
+      confirmTestID=""
+      confirmText="CLEAR"
+      modalVisible={false}
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+      onRequestClose={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          Clear Browser History?
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          We are about to remove all your browser history. Are you sure?
+        </Text>
+      </View>
+    </ActionModal>
     <View
       style={
         Object {
@@ -720,6 +769,45 @@ exports[`AppSettings should render correctly 1`] = `
         type="confirm"
       >
         CLEAR APPROVED DAPPS
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginBottom": 22,
+          "marginTop": 22,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "marginBottom": 5,
+            "textAlign": "left",
+          }
+        }
+      >
+        Browser history
+      </Text>
+      <StyledButton
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="confirm"
+      >
+        CLEAR BROWSER HISTORY
       </StyledButton>
     </View>
     <View
