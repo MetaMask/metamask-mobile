@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import Image from 'react-native-remote-svg';
 import Identicon from '../Identicon';
+import FadeIn from 'react-native-fade-in-image';
+import { colors } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	listWrapper: {
@@ -56,10 +58,12 @@ export default class CollectibleImage extends Component {
 		return (
 			<View style={renderFull ? styles.fullWrapper : [styles.listWrapper, containerStyle]}>
 				{image && image.length !== 0 ? (
-					<Image
-						source={{ uri: image }}
-						style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
-					/>
+					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+						<Image
+							source={{ uri: image }}
+							style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
+						/>
+					</FadeIn>
 				) : (
 					<Identicon address={address + tokenId} customStyle={iconStyle} />
 				)}

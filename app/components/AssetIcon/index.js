@@ -3,6 +3,8 @@ import { StyleSheet } from 'react-native';
 import Image from 'react-native-remote-svg';
 import PropTypes from 'prop-types';
 import getAssetLogoPath from '../../util/assets';
+import FadeIn from 'react-native-fade-in-image';
+import { colors } from '../../styles/common';
 
 const styles = StyleSheet.create({
 	logo: {
@@ -38,6 +40,11 @@ export default class AssetIcon extends Component {
 		const { logo, customStyle } = this.props;
 		if (!logo) return;
 		const uri = getAssetLogoPath(logo);
-		return logo ? <Image source={{ uri }} style={[styles.logo, customStyle]} /> : null;
+
+		return logo ? (
+			<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+				<Image source={{ uri }} style={[styles.logo, customStyle]} />
+			</FadeIn>
+		) : null;
 	};
 }
