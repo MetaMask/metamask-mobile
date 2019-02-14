@@ -35,9 +35,11 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import PersonalSign from '../PersonalSign';
 import TypedSign from '../TypedSign';
+import UrlAutocomplete from '../UrlAutocomplete';
 import AccountApproval from '../AccountApproval';
 import { approveHost } from '../../actions/privacy';
 import { addBookmark } from '../../actions/bookmarks';
+import { addToHistory } from '../../actions/browser';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -250,7 +252,11 @@ export class Browser extends Component {
 		/**
 		 * String representing the current search engine
 		 */
-		searchEngine: PropTypes.string
+		searchEngine: PropTypes.string,
+		/**
+		 * Function to store the a page in the browser history
+		 */
+		addToBrowserHistory: PropTypes.func
 	};
 
 	state = {
@@ -452,6 +458,7 @@ export class Browser extends Component {
 		this.timeoutHandler = setTimeout(() => {
 			this.urlTimedOut(urlToGo);
 		}, 60000);
+
 		return sanitizedURL;
 	};
 
@@ -501,8 +508,8 @@ export class Browser extends Component {
 		}
 	}
 
-	onUrlInputSubmit = async () => {
-		const { inputValue } = this.state;
+	onUrlInputSubmit = async (input = null) => {
+		const inputValue = (typeof input === 'string' && input) || this.state.inputValue;
 		const { defaultProtocol, searchEngine } = this.props;
 		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
 		const url = await this.go(sanitizedInput);
@@ -658,6 +665,15 @@ export class Browser extends Component {
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
 			this.backgroundBridge.enableAccounts();
 		}
+
+		// Wait for the title, then store the visit
+		setTimeout(() => {
+			// Check if it's already in the
+			this.props.addToBrowserHistory({
+				name: this.state.currentPageTitle,
+				url: this.state.inputValue
+			});
+		}, 1000);
 
 		// We need to get the title of the page first
 		const { current } = this.webview;
@@ -832,6 +848,12 @@ export class Browser extends Component {
 		current.clear();
 	};
 
+	onAutocomplete = link => {
+		this.setState({ inputValue: link }, () => {
+			this.onUrlInputSubmit(link);
+		});
+	};
+
 	renderUrlModal = () => {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
@@ -881,6 +903,7 @@ export class Browser extends Component {
 						</TouchableOpacity>
 					)}
 				</View>
+				<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.inputValue} />
 			</Modal>
 		);
 	};
@@ -1020,7 +1043,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	approveHost: hostname => dispatch(approveHost(hostname)),
-	addBookmark: bookmark => dispatch(addBookmark(bookmark))
+	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
+	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name }))
 });
 
 export default connect(
