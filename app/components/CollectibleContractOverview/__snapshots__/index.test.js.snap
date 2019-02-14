@@ -99,7 +99,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
     leftText="SEND"
     onLeftPress={[Function]}
     onRightPress={[Function]}
-    rightText="[MISSING \\"EN.ASSET_OVERVIEW.ADD_COLLECTIBLE_BUTTON\\" TRANSLATION]"
+    rightText="ADD"
   />
 </LinearGradient>
 `;
