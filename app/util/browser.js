@@ -1,3 +1,5 @@
+import URL from 'url-parse';
+
 /**
  * Returns a sanitized url, which could be a search engine url if
  * a keyword is detected instead of a url
@@ -21,4 +23,10 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
 	const hasProtocol = input.match(/^[a-z]*:\/\//);
 	const sanitizedURL = hasProtocol ? input : `${defaultProtocol}${input}`;
 	return sanitizedURL;
+}
+
+export function getHost(url) {
+	const urlObj = new URL(url);
+	const { hostname } = urlObj;
+	return hostname;
 }
