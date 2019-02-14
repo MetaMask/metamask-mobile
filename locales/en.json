@@ -242,7 +242,11 @@
 	},
 	"asset_overview": {
 		"send_button": "SEND",
-		"receive_button": "RECEIVE"
+		"receive_button": "RECEIVE",
+		"add_collectible_button": "ADD",
+		"description": "Description",
+		"totalSupply": "Total Supply",
+		"address": "Address"
 	},
 	"account_details": {
 		"title": "Account Details",
