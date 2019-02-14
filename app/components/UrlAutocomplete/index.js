@@ -74,12 +74,12 @@ class UrlAutocomplete extends Component {
 
 	componentDidMount() {
 		const allUrls = [...this.props.browserHistory, ...dappUrlList];
-		const singleUrlLlist = [];
+		const singleUrlList = [];
 		const singleUrls = [];
 		for (let i = 0; i < allUrls.length; i++) {
 			const el = allUrls[i];
-			if (!singleUrlLlist.includes(el.url)) {
-				singleUrlLlist.push(el.url);
+			if (!singleUrlList.includes(el.url)) {
+				singleUrlList.push(el.url);
 				singleUrls.push(el);
 			}
 		}
