@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../styles/common';
 import { strings } from '../../../locales/i18n';
 import { toLocaleDateTime } from '../../util/date';
@@ -88,14 +88,8 @@ const styles = StyleSheet.create({
 	statusFailed: {
 		backgroundColor: colors.lightRed,
 		color: colors.error
-	},
-	ethLogo: {
-		width: 24,
-		height: 24
 	}
 });
-
-const ethLogo = require('../../images/eth-logo.png'); // eslint-disable-line
 
 /**
  * View that renders a transaction item part of transactions list
@@ -210,6 +204,32 @@ export default class TransactionElement extends PureComponent {
 			/>
 		) : null;
 
+	/**
+	 * Renders an horizontal bar with basic tx information
+	 *
+	 * @param {string} addressTo - Transaction to address
+	 * @param {string} actionKey - Transaction action key
+	 * @param {string} status - Transaction status
+	 * @param {string} value - Transaction crypto value (ETH, assets ERC20 and ERC721)
+	 * @param {string} fiatValue - transaction fiat crypto value, if available
+	 */
+	renderTxElement = (addressTo, actionKey, status, value, fiatValue) => (
+		<View style={styles.rowOnly}>
+			{this.renderTxTime()}
+			<View style={styles.subRow}>
+				<Identicon address={addressTo} diameter={24} />
+				<View style={styles.info}>
+					<Text style={styles.address}>{actionKey}</Text>
+					<Text style={[styles.status, this.getStatusStyle(status)]}>{status.toUpperCase()}</Text>
+				</View>
+				<View style={styles.amounts}>
+					<Text style={styles.amount}>{value}</Text>
+					<Text style={styles.amountFiat}>{fiatValue}</Text>
+				</View>
+			</View>
+		</View>
+	);
+
 	renderTransferElement = () => {
 		const {
 			tx,
@@ -253,24 +273,13 @@ export default class TransactionElement extends PureComponent {
 		};
 		return (
 			<View style={styles.rowContent}>
-				<View style={styles.rowOnly}>
-					{this.renderTxTime()}
-					<View style={styles.subRow}>
-						<Identicon address={addressTo} diameter={24} />
-						<View style={styles.info}>
-							<Text style={styles.address}>{renderActionKey}</Text>
-							<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
-								{tx.status.toUpperCase()}
-							</Text>
-						</View>
-						<View style={styles.amounts}>
-							<Text style={styles.amount}>
-								{!renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount}
-							</Text>
-							<Text style={styles.amountFiat}>{renderTokenFiatAmount}</Text>
-						</View>
-					</View>
-				</View>
+				{this.renderTxElement(
+					addressTo,
+					renderActionKey,
+					tx.status,
+					!renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
+					renderTokenFiatAmount
+				)}
 				{this.renderTxDetails(
 					selected,
 					{ ...tx, ...{ transfer } },
@@ -301,22 +310,7 @@ export default class TransactionElement extends PureComponent {
 		const renderTotalEthFiat = weiToFiat(totalETh, conversionRate, currentCurrency).toUpperCase();
 		return (
 			<View style={styles.rowContent}>
-				<View style={styles.rowOnly}>
-					{this.renderTxTime()}
-					<View style={styles.subRow}>
-						<Identicon address={tx.transaction.to} diameter={24} />
-						<View style={styles.info}>
-							<Text style={styles.address}>{actionKey}</Text>
-							<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
-								{tx.status.toUpperCase()}
-							</Text>
-						</View>
-						<View style={styles.amounts}>
-							<Text style={styles.amount}>{renderTotalEth}</Text>
-							<Text style={styles.amountFiat}>{renderTotalEthFiat}</Text>
-						</View>
-					</View>
-				</View>
+				{this.renderTxElement(tx.transaction.to, actionKey, tx.status, renderTotalEth, renderTotalEthFiat)}
 				{this.renderTxDetails(selected, tx, blockExplorer, showAlert, currentCurrency, conversionRate)}
 			</View>
 		);
@@ -329,22 +323,7 @@ export default class TransactionElement extends PureComponent {
 		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
 		return (
 			<View style={styles.rowContent}>
-				<View style={styles.rowOnly}>
-					{this.renderTxTime()}
-					<View style={styles.subRow}>
-						<Image source={ethLogo} style={styles.ethLogo} />
-						<View style={styles.info}>
-							<Text style={styles.address}>{actionKey}</Text>
-							<Text style={[styles.status, this.getStatusStyle(tx.status)]}>
-								{tx.status.toUpperCase()}
-							</Text>
-						</View>
-						<View style={styles.amounts}>
-							<Text style={styles.amount}>{renderTotalEth}</Text>
-							<Text style={styles.amountFiat}>{renderTotalEthFiat}</Text>
-						</View>
-					</View>
-				</View>
+				{this.renderTxElement(tx.transaction.to, actionKey, tx.status, renderTotalEth, renderTotalEthFiat)}
 				{this.renderTxDetails(selected, tx, blockExplorer, showAlert, currentCurrency, conversionRate)}
 			</View>
 		);
