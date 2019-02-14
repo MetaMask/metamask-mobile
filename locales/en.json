@@ -75,6 +75,7 @@
 		"deposit_button": "Deposit",
 		"coming_soon": "Coming soon...",
 		"assets": "Your Assets",
+		"submit_feedback": "Submit Feedback",
 		"copy_address": "Copy my Public Address",
 		"view_in_etherscan": "View on Etherscan",
 		"dapp_browser": "Explore ÐApps",
@@ -241,7 +242,11 @@
 	},
 	"asset_overview": {
 		"send_button": "SEND",
-		"receive_button": "RECEIVE"
+		"receive_button": "RECEIVE",
+		"add_collectible_button": "ADD",
+		"description": "Description",
+		"totalSupply": "Total Supply",
+		"address": "Address"
 	},
 	"account_details": {
 		"title": "Account Details",

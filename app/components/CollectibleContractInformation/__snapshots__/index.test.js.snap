@@ -60,7 +60,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        [missing "en.asset_overview.description" translation]
+        Description
       </Text>
       <Text
         style={
@@ -93,7 +93,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        [missing "en.asset_overview.totalSupply" translation]
+        Total Supply
       </Text>
       <Text
         style={
@@ -126,7 +126,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           }
         }
       >
-        [missing "en.asset_overview.address" translation]
+        Address
       </Text>
       <Text
         style={
