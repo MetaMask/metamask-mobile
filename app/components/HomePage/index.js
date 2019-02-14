@@ -206,11 +206,6 @@ class HomePage extends Component {
 		});
 	};
 
-	getHost(url) {
-		const tmp = url.split('/');
-		return tmp[2];
-	}
-
 	showRemoveMenu = index => {
 		this.bookmarkIndexToRemove = index;
 		this.actionSheet.show();
