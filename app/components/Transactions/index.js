@@ -57,7 +57,7 @@ class Transactions extends PureComponent {
 		/**
 		 * An array that represents the user collectible contracts
 		 */
-		collectibleContracts: PropTypes.object,
+		collectibleContracts: PropTypes.array,
 		/**
 		 * An array that represents the user tokens
 		 */
