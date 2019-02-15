@@ -96,7 +96,7 @@
     "react-native-progress": "^3.5.0",
     "react-native-qrcode-svg": "^5.1.1",
     "react-native-randombytes": "^3.5.0",
-    "react-native-remote-svg": "^1.4.0",
+    "react-native-remote-svg": "github:brunobar79/react-native-remote-svg#92ebf7d079a6174e4451a47d372fe2335308c65e",
     "react-native-screens": "^1.0.0-alpha.21",
     "react-native-scrollable-tab-view": "github:estebanmino/react-native-scrollable-tab-view#master",
     "react-native-settings-list": "^1.8.0",

@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Image } from 'react-native';
 import { toDataUrl } from '../../util/blockies.js';
+import FadeIn from 'react-native-fade-in-image';
+import { colors } from '../../styles/common.js';
 
 /**
  * UI component that renders an Identicon
@@ -36,17 +38,19 @@ export default class IdenticonComponent extends Component {
 		const { diameter, address, customStyle } = this.props;
 
 		return address ? (
-			<Image
-				source={{ uri: toDataUrl(address) }}
-				style={[
-					{
-						height: diameter,
-						width: diameter,
-						borderRadius: diameter / 2
-					},
-					customStyle
-				]}
-			/>
+			<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+				<Image
+					source={{ uri: toDataUrl(address) }}
+					style={[
+						{
+							height: diameter,
+							width: diameter,
+							borderRadius: diameter / 2
+						},
+						customStyle
+					]}
+				/>
+			</FadeIn>
 		) : null;
 	};
 }

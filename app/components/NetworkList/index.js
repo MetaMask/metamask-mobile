@@ -148,7 +148,15 @@ export class NetworkList extends Component {
 		NetworkController.setProviderType(type);
 		setTimeout(() => {
 			this.props.onClose(false);
-			InteractionManager.runAfterInteractions(() => Engine.refreshTransactionHistory());
+			InteractionManager.runAfterInteractions(() => {
+				const { AssetsDetectionController, AccountTrackerController } = Engine.context;
+				const actions = [
+					AssetsDetectionController.detectAssets(),
+					AccountTrackerController.refresh(),
+					Engine.refreshTransactionHistory()
+				];
+				Promise.all(actions);
+			});
 		}, 300);
 	};
 
