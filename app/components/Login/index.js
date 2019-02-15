@@ -157,7 +157,7 @@ export default class Login extends Component {
 			} else {
 				if (this.state.rememberMe) {
 					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
-						accessControl: SecureKeychain.ACCESS_CONTROL.ALWAYS_THIS_DEVICE_ONLY
+						accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
 					});
 				} else {
 					await SecureKeychain.resetGenericPassword();
