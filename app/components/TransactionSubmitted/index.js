@@ -118,7 +118,6 @@ class TransactionSubmitted extends Component {
 		const { navigation, network } = this.props;
 		const hash = navigation.getParam('hash', null);
 		const url = getEtherscanTransactionUrl(network, hash);
-		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.push('BrowserView', {
 				url
