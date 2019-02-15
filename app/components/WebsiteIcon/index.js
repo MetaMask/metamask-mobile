@@ -73,7 +73,7 @@ export default class WebsiteIcon extends Component {
 			<View>
 				{!renderIconUrlError && (
 					<View style={viewStyle}>
-						<FadeIn>
+						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 							<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
 						</FadeIn>
 					</View>

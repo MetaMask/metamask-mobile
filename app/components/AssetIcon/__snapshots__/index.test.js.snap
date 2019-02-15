@@ -2,6 +2,12 @@
 
 exports[`AssetIcon should render correctly 1`] = `
 <MyImage
+  fadeIn={true}
+  placeholderStyle={
+    Object {
+      "backgroundColor": "#FFFFFF",
+    }
+  }
   source={
     Object {
       "uri": "https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/metamark.svg",
