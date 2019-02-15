@@ -99,7 +99,7 @@ class TransactionSubmitted extends Component {
 	}
 
 	goBack = () => {
-		this.props.navigation.goBack(null);
+		this.props.navigation.popToTop();
 		this.props.navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
 			this.props.navigation.navigate('WalletView', { page: 2 });

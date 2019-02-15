@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Text, View, ScrollView, StyleSheet, Image } from 'react-native';
+import { AsyncStorage, Platform, Text, View, ScrollView, StyleSheet, Image } from 'react-native';
 import StyledButton from '../StyledButton';
 
 import { colors, fontStyles } from '../../styles/common';
 import OnboardingScreenWithBg from '../OnboardingScreenWithBg';
 import { strings } from '../../../locales/i18n';
+import Button from 'react-native-button';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -56,6 +57,15 @@ const styles = StyleSheet.create({
 	ctaWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
+	},
+	footer: {
+		marginTop: -20,
+		marginBottom: 20
+	},
+	login: {
+		fontSize: 15,
+		color: colors.fontSecondary,
+		...fontStyles.normal
 	}
 });
 
@@ -78,6 +88,25 @@ export default class Onboarding extends Component {
 		 * The navigator object
 		 */
 		navigation: PropTypes.object
+	};
+
+	state = {
+		existingUser: false
+	};
+
+	componentDidMount() {
+		this.checkIfExistingUser();
+	}
+
+	async checkIfExistingUser() {
+		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		if (existingUser !== null) {
+			this.setState({ existingUser: true });
+		}
+	}
+
+	onLogin = () => {
+		this.props.navigation.navigate('Login');
 	};
 
 	onPressCreate = () => {
@@ -124,6 +153,13 @@ export default class Onboarding extends Component {
 								</StyledButton>
 							</View>
 						</View>
+						{this.state.existingUser && (
+							<View style={styles.footer}>
+								<Button style={styles.login} onPress={this.onLogin}>
+									{strings('onboarding.login')}
+								</Button>
+							</View>
+						)}
 					</View>
 				</ScrollView>
 			</OnboardingScreenWithBg>

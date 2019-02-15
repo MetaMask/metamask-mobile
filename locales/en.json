@@ -10,7 +10,8 @@
 		"subtitle":
 			"A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.",
 		"import_wallet_button": "Import a wallet",
-		"start_exploring_now": "Start exploring now"
+		"start_exploring_now": "Start exploring now",
+		"login": "Login"
 	},
 	"create_wallet": {
 		"title": "Hang tight, we're building this thing while it's flying.",
