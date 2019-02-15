@@ -5,7 +5,8 @@ describe('InpageBridge', () => {
 	beforeAll(() => {
 		global.window = {
 			postMessageToNative: jest.fn(),
-			postMessage: jest.fn()
+			postMessage: jest.fn(),
+			addEventListener: jest.fn()
 		};
 
 		global.document = {
@@ -21,10 +22,6 @@ describe('InpageBridge', () => {
 			}
 		});
 		require('./InpageBridge');
-	});
-
-	it('should return connection status', () => {
-		expect(INSTANCE.isConnected()).toBe(true);
 	});
 
 	it('should set internal state', () => {
