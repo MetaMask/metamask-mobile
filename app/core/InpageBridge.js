@@ -30,52 +30,44 @@ class InpageBridge {
 	}
 
 	_onStateUpdate(state) {
+		const oldAddress = this._selectedAddress;
+		const oldNetwork = this._network;
 		this._selectedAddress = state.selectedAddress && state.selectedAddress.toLowerCase();
 		this._network = state.network;
-		// Legacy Provider support
+
+		this._selectedAddress !== oldAddress && this.emit('accountsChanged', [this._selectedAddress]);
+		this._network !== oldNetwork && this.emit('networkChanged', this._network);
+
+		// Legacy web3 support
 		if (window.web3 && window.web3.eth) {
 			window.web3.eth.defaultAccount = this._selectedAddress;
-			try {
-				window.web3.eth.accounts = [this._selectedAddress];
-			} catch (e) {
-				// eslint-disable-next-line no-console
-				console.error('Error while setting window.web3.eth.accounts on', location.href);
-			}
 		}
 	}
 
-	/**
-	 * Creates a new InpageBridge instance
-	 */
-	constructor() {
-		this._pending = {};
-		this.isMetaMask = true;
-		this._network = undefined; // INITIAL_NETWORK
-		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
-		document.addEventListener('message', ({ data }) => {
-			if (data.toString().indexOf('INPAGE_RESPONSE') !== -1 || data.toString().indexOf('STATE_UPDATE') !== -1) {
-				this._onMessage(data);
+	_sendStandard(method, params = []) {
+		if (method === 'eth_requestAccounts') return this.enable();
+
+		return new Promise((resolve, reject) => {
+			try {
+				this.sendAsync({ method, params, beta: true }, (error, response) => {
+					error = error || response.error;
+					error ? reject(error) : resolve(response);
+				});
+			} catch (error) {
+				// Per EIP-1193, send should never throw, only reject its Promise. Here
+				// we swallow thrown errors, which is safe since we handle them above.
 			}
 		});
 	}
 
-	/**
-	 * Returns the connection status of this provider bridge
-	 */
-	isConnected() {
-		return true;
-	}
+	_sendLegacy(action, callback) {
+		if (callback) {
+			return this.sendAsync(action, callback);
+		}
 
-	/**
-	 * Initiates a synchronous RPC call
-	 *
-	 * @param {object} payload - Payload object containing method name and argument(s)
-	 * @returns - Object containing RPC result and metadata
-	 */
-	send(payload) {
 		let result;
 
-		switch (payload.method) {
+		switch (action.method) {
 			case 'eth_accounts':
 				result = this._selectedAddress ? [this._selectedAddress] : [];
 				break;
@@ -85,7 +77,7 @@ class InpageBridge {
 				break;
 
 			case 'eth_uninstallFilter':
-				this.sendAsync(payload);
+				this.sendAsync(action);
 				break;
 
 			case 'net_version':
@@ -95,16 +87,81 @@ class InpageBridge {
 			default:
 				throw new Error(
 					`This provider requires a callback to be passed when executing methods like ${
-						payload.method
+						action.method
 					}. This is because all methods are always executed asynchronously. See https://git.io/fNi6S for more information.`
 				);
 		}
 
 		return {
-			id: payload.id,
-			jsonrpc: payload.jsonrpc,
+			id: action.id,
+			jsonrpc: action.jsonrpc,
 			result
 		};
+	}
+
+	async _ping() {
+		try {
+			await this.send('net_version');
+			if (!this.isConnected()) {
+				this._connected = true;
+				this.emit('connect');
+			}
+		} catch (error) {
+			if (this.isConnected()) {
+				this._connected = false;
+				this.emit('close', {
+					code: 1011,
+					reason: 'Network connection error'
+				});
+			}
+		}
+		setTimeout(() => this._ping(), 10000);
+	}
+
+	_subscribe() {
+		document.addEventListener('message', ({ data }) => {
+			if (data.toString().indexOf('INPAGE_RESPONSE') !== -1 || data.toString().indexOf('STATE_UPDATE') !== -1) {
+				this._onMessage(data);
+			}
+		});
+
+		window.addEventListener('load', () => {
+			this._ping();
+		});
+	}
+
+	/**
+	 * Creates a new InpageBridge instance
+	 */
+	constructor() {
+		this._pending = {};
+		this._connected = false;
+		this.events = {};
+		this.isMetaMask = true;
+		this._network = undefined; // INITIAL_NETWORK
+		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
+		this._subscribe();
+	}
+
+	/**
+	 * Returns the connection status of this provider bridge
+	 */
+	isConnected() {
+		return this._connected;
+	}
+
+	/**
+	 * Initiates a synchronous RPC call
+	 *
+	 * @param {object|string} action - Standard RPC method name or legacy payload object
+	 * @param {Function|Array} [meta] - Standard RPC method params or legacy callback
+	 * @returns - Standard Promise or legacy object containing RPC result
+	 */
+	send(action, meta) {
+		if ((typeof action === 'string' && !meta) || Array.isArray(meta)) {
+			return this._sendStandard(action, meta);
+		}
+		return this._sendLegacy(action, meta);
 	}
 
 	/**
@@ -175,6 +232,49 @@ class InpageBridge {
 				}
 				resolve(response.result);
 			});
+		});
+	}
+
+	/**
+	 * Attach a listener for a specific event
+	 *
+	 * @param {string} event - Event name
+	 * @param {Function} listener - Callback invoked when event triggered
+	 * @returns {InpageBridge}
+	 */
+	on(event, listener) {
+		if (!Array.isArray(this.events[event])) {
+			this.events[event] = [];
+		}
+
+		this.events[event].push(listener);
+	}
+
+	/**
+	 * Remove a listener for a specific event
+	 *
+	 * @param {string} event - Event name
+	 * @param {Function} listener - Callback to remove
+	 */
+	off(event, listener) {
+		if (!Array.isArray(this.events[event])) return;
+		this.events[event].forEach((cachedListener, i) => {
+			if (cachedListener === listener) {
+				this.events[event].splice(i, 1);
+			}
+		});
+	}
+
+	/**
+	 * Emit data for a given event
+	 *
+	 * @param {string} event - Event name
+	 * @param  {...any} args - Data to emit
+	 */
+	emit(event, ...args) {
+		if (!Array.isArray(this.events[event])) return;
+		this.events[event].forEach(listener => {
+			listener(...args);
 		});
 	}
 }
