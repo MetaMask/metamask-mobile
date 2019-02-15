@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {
+	BackHandler,
 	TouchableOpacity,
 	InteractionManager,
 	Animated,
@@ -84,6 +85,20 @@ class TransactionSubmitted extends Component {
 		network: PropTypes.string
 	};
 
+	componentDidMount() {
+		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+		this.animateIcon();
+	}
+
+	componentWillUnmount() {
+		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+	}
+
+	handleBackPress = () => {
+		this.goBack();
+		return true;
+	};
+
 	renderLoader() {
 		return (
 			<View style={styles.loader}>
@@ -93,10 +108,6 @@ class TransactionSubmitted extends Component {
 	}
 
 	iconSpringVal = new Animated.Value(0.4);
-
-	componentDidMount() {
-		this.animateIcon();
-	}
 
 	goBack = () => {
 		this.props.navigation.popToTop();
