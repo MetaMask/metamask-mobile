@@ -210,6 +210,8 @@ export async function getActionKey(tx, selectedAddress) {
 	switch (actionKey) {
 		case SEND_TOKEN_ACTION_KEY:
 			return strings('transactions.sent_tokens');
+		case TRANSFER_FROM_ACTION_KEY:
+			return strings('transactions.sent_collectible');
 		case SEND_ETHER_ACTION_KEY:
 			return incoming
 				? selfSent
