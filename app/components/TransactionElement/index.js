@@ -204,19 +204,7 @@ export default class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTxDetails = (
-		selected,
-		tx,
-		renderFrom,
-		renderTo,
-		transactionHash,
-		renderValue,
-		renderGas,
-		renderGasPrice,
-		renderTotalValue,
-		renderTotalValueFiat,
-		valueLabel = undefined
-	) => {
+	renderTxDetails = (selected, tx, transactionDetails) => {
 		const { showAlert, blockExplorer } = this.props;
 		return selected ? (
 			<TransactionDetails
@@ -224,15 +212,7 @@ export default class TransactionElement extends PureComponent {
 				blockExplorer={blockExplorer}
 				showAlert={showAlert}
 				viewOnEtherscan={this.props.viewOnEtherscan}
-				renderTo={renderTo}
-				renderFrom={renderFrom}
-				transactionHash={transactionHash}
-				valueLabel={valueLabel}
-				renderValue={renderValue}
-				renderGas={renderGas}
-				renderGasPrice={renderGasPrice}
-				renderTotalValue={renderTotalValue}
-				renderTotalValueFiat={renderTotalValueFiat}
+				transactionDetails={transactionDetails}
 			/>
 		) : null;
 	};
@@ -242,31 +222,35 @@ export default class TransactionElement extends PureComponent {
 	 *
 	 * @param {string} addressTo - Transaction to address
 	 * @param {string} actionKey - Transaction action key
-	 * @param {string} status - Transaction status
 	 * @param {string} value - Transaction crypto value (ETH, assets ERC20 and ERC721)
 	 * @param {string} fiatValue - transaction fiat crypto value, if available
 	 * @param {bool} contractDeployment - Whether the transaction corresponds to a contract deployment
 	 */
-	renderTxElement = (addressTo, actionKey, status, value, fiatValue, contractDeployment = false) => (
-		<View style={styles.rowOnly}>
-			{this.renderTxTime()}
-			<View style={styles.subRow}>
-				{contractDeployment ? (
-					<Image source={ethLogo} style={styles.ethLogo} />
-				) : (
-					<Identicon address={addressTo} diameter={24} />
-				)}
-				<View style={styles.info}>
-					<Text style={styles.address}>{actionKey}</Text>
-					<Text style={[styles.status, this.getStatusStyle(status)]}>{status.toUpperCase()}</Text>
-				</View>
-				<View style={styles.amounts}>
-					<Text style={styles.amount}>{value}</Text>
-					<Text style={styles.amountFiat}>{fiatValue}</Text>
+	renderTxElement = (addressTo, actionKey, value, fiatValue, contractDeployment = false) => {
+		const {
+			tx: { status }
+		} = this.props;
+		return (
+			<View style={styles.rowOnly}>
+				{this.renderTxTime()}
+				<View style={styles.subRow}>
+					{contractDeployment ? (
+						<Image source={ethLogo} style={styles.ethLogo} />
+					) : (
+						<Identicon address={addressTo} diameter={24} />
+					)}
+					<View style={styles.info}>
+						<Text style={styles.address}>{actionKey}</Text>
+						<Text style={[styles.status, this.getStatusStyle(status)]}>{status.toUpperCase()}</Text>
+					</View>
+					<View style={styles.amounts}>
+						<Text style={styles.amount}>{value}</Text>
+						<Text style={styles.amountFiat}>{fiatValue}</Text>
+					</View>
 				</View>
 			</View>
-		</View>
-	);
+		);
+	};
 
 	renderTransferElement = () => {
 		const {
@@ -305,46 +289,36 @@ export default class TransactionElement extends PureComponent {
 				exchangeRate
 			);
 		}
-		const renderFrom = tx.transaction.from;
-		const renderTo = addressTo;
-		const transactionHash = tx.transaction.hash;
-		const renderValue = token
-			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
-			: strings('transaction.value_not_available');
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const renderTotalValue = token
-			? renderValue + ' ' + strings('unit.divisor') + ' ' + renderFromWei(totalGas)
-			: renderFromWei(totalGas);
-		const renderTotalValueFiat = token
-			? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber + +' ' + currentCurrency.toUpperCase()
-			: weiToFiatNumber(totalGas, conversionRate);
-
-		const renderGas = parseInt(gas, 16).toString();
-		const renderGasPrice = toGwei(gasPrice);
+		const renderToken = token
+			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
+			: strings('transaction.value_not_available');
+		const totalFiatNumber = renderTokenFiatNumber
+			? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
+			: undefined;
+		const transactionDetails = {
+			renderFrom: tx.transaction.from,
+			renderTo: addressTo,
+			transactionHash: tx.transaction.hash,
+			renderValue: renderToken,
+			renderGas: parseInt(gas, 16).toString(),
+			renderGasPrice: toGwei(gasPrice),
+			renderTotalValue:
+				renderToken + ' ' + strings('unit.divisor') + ' ' + renderFromWei(totalGas) + ' ' + strings('unit.eth'),
+			renderTotalValueFiat: totalFiatNumber ? totalFiatNumber + ' ' + currentCurrency.toUpperCase() : undefined
+		};
 
 		return (
 			<View style={styles.rowContent}>
 				{this.renderTxElement(
 					addressTo,
 					renderActionKey,
-					tx.status,
 					!renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
 					renderTokenFiatAmount
 				)}
-				{this.renderTxDetails(
-					selected,
-					tx,
-					renderFrom,
-					renderTo,
-					transactionHash,
-					renderValue,
-					renderGas,
-					renderGasPrice,
-					renderTotalValue,
-					renderTotalValueFiat
-				)}
+				{this.renderTxDetails(selected, tx, transactionDetails)}
 			</View>
 		);
 	};
@@ -356,9 +330,7 @@ export default class TransactionElement extends PureComponent {
 				transaction: { gas, gasPrice }
 			},
 			selected,
-			collectibleContracts,
-			conversionRate,
-			currentCurrency
+			collectibleContracts
 		} = this.props;
 		let { actionKey } = this.state;
 		const [addressFrom, addressTo, tokenId] = decodeTransferData('ERC721', tx.transaction.data);
@@ -372,41 +344,35 @@ export default class TransactionElement extends PureComponent {
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+		const renderCollectible = '#' + tokenId + ' ' + (collectible ? collectible.symbol : undefined);
 
-		const renderFrom = addressFrom;
-		const renderTo = addressTo;
-		const transactionHash = tx.transaction.hash;
-		const renderValue = '#' + tokenId + ' ' + (collectible ? collectible.symbol : undefined);
-		const renderGas = parseInt(gas, 16).toString();
-		const renderGasPrice = toGwei(gasPrice);
-
-		const renderTotalValue = collectible
-			? renderValue + ' ' + strings('unit.divisor') + ' ' + renderFromWei(totalGas)
-			: renderFromWei(totalGas);
-		const renderTotalValueFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const transactionDetails = {
+			renderFrom: addressFrom,
+			renderTo: addressTo,
+			transactionHash: tx.transaction.hash,
+			renderValue: renderCollectible,
+			renderGas: parseInt(gas, 16).toString(),
+			renderGasPrice: toGwei(gasPrice),
+			renderTotalValue:
+				renderCollectible +
+				' ' +
+				strings('unit.divisor') +
+				' ' +
+				renderFromWei(totalGas) +
+				' ' +
+				strings('unit.eth'),
+			renderTotalValueFiat: undefined
+		};
 
 		return (
 			<View style={styles.rowContent}>
 				{this.renderTxElement(
 					addressTo,
 					actionKey,
-					tx.status,
 					`#${tokenId}`,
 					collectible ? collectible.symbol : undefined
 				)}
-				{this.renderTxDetails(
-					selected,
-					tx,
-					renderFrom,
-					renderTo,
-					transactionHash,
-					renderValue,
-					renderGas,
-					renderGasPrice,
-					renderTotalValue,
-					renderTotalValueFiat,
-					'Collectible'
-				)}
+				{this.renderTxDetails(selected, tx, transactionDetails)}
 			</View>
 		);
 	};
@@ -422,39 +388,30 @@ export default class TransactionElement extends PureComponent {
 			selected
 		} = this.props;
 		const { actionKey } = this.state;
-		const totalETh = hexToBN(value);
-		const renderTotalEth = renderFromWei(totalETh) + ' ' + strings('unit.eth');
-		const renderTotalEthFiat = weiToFiat(totalETh, conversionRate, currentCurrency).toUpperCase();
+		const totalEth = hexToBN(value);
+		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.eth');
+		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
 
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
+		const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
 
-		const renderFrom = tx.transaction.from;
-		const renderTo = tx.transaction.to;
-		const transactionHash = tx.transaction.hash;
-		const renderValue = renderFromWei(value) + ' ' + strings('unit.eth');
-		const renderGas = parseInt(gas, 16).toString();
-		const renderGasPrice = toGwei(gasPrice);
-		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-		const renderTotalValue = renderFromWei(totalEth) + ' ' + strings('unit.eth');
-		const renderTotalValueFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+		const transactionDetails = {
+			renderFrom: tx.transaction.from,
+			renderTo: tx.transaction.to,
+			transactionHash: tx.transaction.hash,
+			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
+			renderGas: parseInt(gas, 16).toString(),
+			renderGasPrice: toGwei(gasPrice),
+			renderTotalValue: renderFromWei(totalValue) + ' ' + strings('unit.eth'),
+			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency).toUpperCase()
+		};
 
 		return (
 			<View style={styles.rowContent}>
-				{this.renderTxElement(tx.transaction.to, actionKey, tx.status, renderTotalEth, renderTotalEthFiat)}
-				{this.renderTxDetails(
-					selected,
-					tx,
-					renderFrom,
-					renderTo,
-					transactionHash,
-					renderValue,
-					renderGas,
-					renderGasPrice,
-					renderTotalValue,
-					renderTotalValueFiat
-				)}
+				{this.renderTxElement(tx.transaction.to, actionKey, renderTotalEth, renderTotalEthFiat)}
+				{this.renderTxDetails(selected, tx, transactionDetails)}
 			</View>
 		);
 	};
@@ -476,39 +433,23 @@ export default class TransactionElement extends PureComponent {
 
 		const renderTotalEth = renderFromWei(totalGas) + ' ' + strings('unit.eth');
 		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
-
-		const renderFrom = tx.transaction.from;
-		const renderTo = strings('transactions.to_contract');
-		const transactionHash = tx.transaction.hash;
-		const renderValue = renderFromWei(value) + ' ' + strings('unit.eth');
-		const renderGas = parseInt(gas, 16).toString();
-		const renderGasPrice = toGwei(gasPrice);
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-		const renderTotalValue = renderFromWei(totalEth) + ' ' + strings('unit.eth');
-		const renderTotalValueFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+
+		const transactionDetails = {
+			renderFrom: tx.transaction.from,
+			renderTo: strings('transactions.to_contract'),
+			transactionHash: tx.transaction.hash,
+			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
+			renderGas: parseInt(gas, 16).toString(),
+			renderGasPrice: toGwei(gasPrice),
+			renderTotalValue: renderFromWei(totalEth) + ' ' + strings('unit.eth'),
+			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase()
+		};
 
 		return (
 			<View style={styles.rowContent}>
-				{this.renderTxElement(
-					tx.transaction.to,
-					actionKey,
-					tx.status,
-					renderTotalEth,
-					renderTotalEthFiat,
-					true
-				)}
-				{this.renderTxDetails(
-					selected,
-					tx,
-					renderFrom,
-					renderTo,
-					transactionHash,
-					renderValue,
-					renderGas,
-					renderGasPrice,
-					renderTotalValue,
-					renderTotalValueFiat
-				)}
+				{this.renderTxElement(tx.transaction.to, actionKey, renderTotalEth, renderTotalEthFiat, true)}
+				{this.renderTxDetails(selected, tx, transactionDetails)}
 			</View>
 		);
 	};

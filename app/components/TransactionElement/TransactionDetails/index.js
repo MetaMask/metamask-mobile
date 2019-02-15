@@ -95,15 +95,7 @@ export default class TransactionDetails extends PureComponent {
 		 * Action that shows the global alert
 		 */
 		viewOnEtherscan: PropTypes.func.isRequired,
-		renderFrom: PropTypes.string,
-		renderTo: PropTypes.string,
-		transactionHash: PropTypes.string,
-		valueLabel: PropTypes.string,
-		renderValue: PropTypes.string,
-		renderGas: PropTypes.string,
-		renderGasPrice: PropTypes.string,
-		renderTotalValue: PropTypes.string,
-		renderTotalValueFiat: PropTypes.string
+		transactionDetails: PropTypes.object
 	};
 
 	renderTxHash = transactionHash => {
@@ -123,7 +115,7 @@ export default class TransactionDetails extends PureComponent {
 	};
 
 	copy = async () => {
-		await Clipboard.setString(this.props.transactionHash);
+		await Clipboard.setString(this.props.transactionDetails.transactionHash);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 2000,
@@ -142,7 +134,7 @@ export default class TransactionDetails extends PureComponent {
 		const {
 			transactionObject: { networkID }
 		} = this.props;
-		this.props.viewOnEtherscan(networkID, this.props.transactionHash);
+		this.props.viewOnEtherscan(networkID, this.props.transactionDetails.transactionHash);
 	};
 
 	render = () => {
@@ -150,48 +142,56 @@ export default class TransactionDetails extends PureComponent {
 
 		return (
 			<View style={styles.detailRowWrapper}>
-				{this.renderTxHash(this.props.transactionHash)}
+				{this.renderTxHash(this.props.transactionDetails.transactionHash)}
 				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText}>{this.props.renderFrom}</Text>
+					<Text style={styles.detailRowText}>{this.props.transactionDetails.renderFrom}</Text>
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText}>{this.props.renderTo}</Text>
+					<Text style={styles.detailRowText}>{this.props.transactionDetails.renderTo}</Text>
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
 				<View style={styles.detailRowInfo}>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>
-							{this.props.valueLabel || strings('transactions.amount')}
+							{this.props.transactionDetails.valueLabel || strings('transactions.amount')}
 						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{this.props.renderValue}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderValue}
+						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>
 							{strings('transactions.gas_limit')}
 						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{this.props.renderGas}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderGas}
+						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>
 							{strings('transactions.gas_price')}
 						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{this.props.renderGasPrice}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderGasPrice}
+						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{this.props.renderTotalValue}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderTotalValue}
+						</Text>
 					</View>
-					{this.props.renderTotalValueFiat && (
+					{this.props.transactionDetails.renderTotalValueFiat && (
 						<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
 							<Text style={[styles.detailRowText, styles.alignRight]}>
-								{this.props.renderTotalValueFiat}
+								{this.props.transactionDetails.renderTotalValueFiat}
 							</Text>
 						</View>
 					)}
 				</View>
-				{this.props.transactionHash &&
+				{this.props.transactionDetails.transactionHash &&
 					blockExplorer && (
 						<TouchableOpacity
 							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
