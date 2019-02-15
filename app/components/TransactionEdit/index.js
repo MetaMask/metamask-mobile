@@ -345,6 +345,7 @@ class TransactionEdit extends Component {
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
+								onBlur={this.updateToAddress}
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScanSuccess}

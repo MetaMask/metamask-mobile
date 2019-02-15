@@ -155,7 +155,7 @@ export default class Tokens extends PureComponent {
 		return (
 			<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
 				{item.symbol === 'ETH' ? (
-					<FadeIn>
+					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 						<Image source={ethLogo} style={styles.ethLogo} />
 					</FadeIn>
 				) : (
