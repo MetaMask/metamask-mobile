@@ -287,6 +287,45 @@ exports[`ChoosePassword should render correctly 1`] = `
             Must be at least 8 characters
           </Text>
         </View>
+        <View
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "marginBottom": 30,
+              "marginTop": 30,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "flex": 1,
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+              }
+            }
+          >
+            Remember me
+          </Text>
+          <Switch
+            ios_backgroundColor="#B3B3B3"
+            onValueChange={[Function]}
+            style={
+              Object {
+                "flex": 0,
+                "marginTop": 10,
+              }
+            }
+            trackColor={
+              Object {
+                "false": "#B3B3B3",
+                "true": "#4CD964",
+              }
+            }
+            value={false}
+          />
+        </View>
       </View>
     </KeyboardAwareScrollView>
     <View
