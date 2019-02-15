@@ -15,6 +15,12 @@ exports[`CollectibleImage should render correctly 1`] = `
   }
 >
   <MyImage
+    fadeIn={true}
+    placeholderStyle={
+      Object {
+        "backgroundColor": "#FFFFFF",
+      }
+    }
     source={
       Object {
         "uri": "IMAGE",

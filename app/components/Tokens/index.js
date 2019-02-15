@@ -10,6 +10,7 @@ import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../util/number';
 import Engine from '../../core/Engine';
 import AssetElement from '../AssetElement';
+import FadeIn from 'react-native-fade-in-image';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -154,7 +155,9 @@ export default class Tokens extends PureComponent {
 		return (
 			<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
 				{item.symbol === 'ETH' ? (
-					<Image source={ethLogo} style={styles.ethLogo} />
+					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+						<Image source={ethLogo} style={styles.ethLogo} />
+					</FadeIn>
 				) : (
 					<TokenImage asset={item} containerStyle={styles.ethLogo} />
 				)}
