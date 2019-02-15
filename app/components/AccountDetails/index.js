@@ -185,7 +185,7 @@ class AccountDetails extends Component {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: `${strings('account_details.share_public_key')} ${selectedAddress}`
+			message: `ethereum:${selectedAddress}`
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
@@ -249,12 +249,7 @@ class AccountDetails extends Component {
 
 				<View style={styles.detailsWrapper}>
 					<View style={styles.qrCode}>
-						<QRCode
-							value={selectedAddress}
-							size={Dimensions.get('window').width - 120}
-							backgroundColor={colors.fontPrimary}
-							color={colors.white}
-						/>
+						<QRCode value={`ethereum:${selectedAddress}`} size={Dimensions.get('window').width - 120} />
 					</View>
 					<View style={styles.addressWrapper}>
 						<Text style={styles.address} testID={'public-address-text'}>
