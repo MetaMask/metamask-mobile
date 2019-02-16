@@ -21,8 +21,17 @@ describe('TransactionDetails', () => {
 		const wrapper = shallow(
 			<TransactionDetails
 				transactionObject={{
-					transaction: { transactionHash: '0x1', gas: '', gasPrice: '', value: '', to: '', from: '' },
 					networkID: '1'
+				}}
+				transactionDetails={{
+					renderFrom: '0x0',
+					renderTo: '0x1',
+					transactionHash: '0x2',
+					renderValue: '2 TKN',
+					renderGas: '21000',
+					renderGasPrice: '2',
+					renderTotalValue: '2 TKN / 0.001 ETH',
+					renderTotalValueFiat: ''
 				}}
 			/>,
 			{
