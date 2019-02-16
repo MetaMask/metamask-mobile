@@ -7,7 +7,7 @@ buildscript {
 		minSdkVersion = 19
 		compileSdkVersion = 28
 		targetSdkVersion = 28
-		supportLibVersion = "27.1.1"
+		supportLibVersion = "28.0.0"
 	}
     repositories {
         google()
@@ -51,6 +51,6 @@ subprojects {project ->
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.4'
+    gradleVersion = '4.7'
     distributionUrl = distributionUrl.replace("bin", "all")
 }
