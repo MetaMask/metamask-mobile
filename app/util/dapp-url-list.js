@@ -6814,5 +6814,9 @@ export default [
 	{
 		url: 'https://faucet.ropsten.be/',
 		name: 'Ropsten Ethereum Faucet'
+	},
+	{
+		url: 'https://faucet.metamask.io/',
+		name: 'Metamask Ether Faucet (Ropsten)'
 	}
 ];
