@@ -206,6 +206,20 @@ export function toGwei(value, unit = 'ether') {
 }
 
 /**
+ * Converts some unit to Gwei and return it in render format
+ *
+ * @param {number|string|BN} value - Value to convert
+ * @param {string} unit - Unit to convert from, ether by default
+ * @returns {string} - String instance containing the renderable number
+ */
+export function renderToGwei(value, unit = 'ether') {
+	const gwei = fromWei(value, unit) * 1000000000;
+	let gweiFixed = parseFloat(Math.round(gwei));
+	gweiFixed = isNaN(gweiFixed) ? 0 : gweiFixed;
+	return gweiFixed;
+}
+
+/**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
  * @param {number} wei - BN corresponding to an amount of wei

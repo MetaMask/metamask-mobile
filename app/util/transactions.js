@@ -85,13 +85,25 @@ export function generateTransferData(assetType, opts) {
  * @returns {Object} - Object containing the decoded transfer data
  */
 export function decodeTransferData(assetType, data) {
-	let encodedAddress, encodedAmount, bufferEncodedAddress;
 	switch (assetType) {
-		case 'ERC20':
-			encodedAddress = data.substr(10, 64);
-			encodedAmount = data.substr(74, 138);
-			bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
+		case 'ERC20': {
+			const encodedAddress = data.substr(10, 64);
+			const encodedAmount = data.substr(74, 138);
+			const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
 			return [addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]), hexToBN(encodedAmount)];
+		}
+		case 'ERC721': {
+			const encodedFromAddress = data.substr(10, 64);
+			const encodedToAddress = data.substr(74, 64);
+			const encodedTokenId = data.substr(138, 64);
+			const bufferEncodedFromAddress = rawEncode(['address'], [addHexPrefix(encodedFromAddress)]);
+			const bufferEncodedToAddress = rawEncode(['address'], [addHexPrefix(encodedToAddress)]);
+			return [
+				addHexPrefix(rawDecode(['address'], bufferEncodedFromAddress)[0]),
+				addHexPrefix(rawDecode(['address'], bufferEncodedToAddress)[0]),
+				parseInt(encodedTokenId, 16).toString()
+			];
+		}
 	}
 }
 
@@ -198,6 +210,8 @@ export async function getActionKey(tx, selectedAddress) {
 	switch (actionKey) {
 		case SEND_TOKEN_ACTION_KEY:
 			return strings('transactions.sent_tokens');
+		case TRANSFER_FROM_ACTION_KEY:
+			return strings('transactions.sent_collectible');
 		case SEND_ETHER_ACTION_KEY:
 			return incoming
 				? selfSent

@@ -55,6 +55,10 @@ class Transactions extends PureComponent {
 		*/
 		navigation: PropTypes.object,
 		/**
+		 * An array that represents the user collectible contracts
+		 */
+		collectibleContracts: PropTypes.array,
+		/**
 		 * An array that represents the user tokens
 		 */
 		tokens: PropTypes.object,
@@ -186,6 +190,7 @@ class Transactions extends PureComponent {
 			onPressItem={this.toggleDetailsView}
 			blockExplorer
 			tokens={this.props.tokens}
+			collectibleContracts={this.props.collectibleContracts}
 			contractExchangeRates={this.props.contractExchangeRates}
 			conversionRate={this.props.conversionRate}
 			currentCurrency={this.props.currentCurrency}
@@ -230,6 +235,7 @@ const mapStateToProps = state => ({
 		tokens[token.address] = token;
 		return tokens;
 	}, {}),
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
