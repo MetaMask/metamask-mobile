@@ -75,6 +75,17 @@ class Send extends Component {
 	}
 
 	/**
+	 * Removes collectible in case an ERC721 asset is being sent
+	 */
+	removeCollectible = () => {
+		const { selectedAsset, assetType } = this.props.transaction;
+		if (assetType === 'ERC721') {
+			const { AssetsController } = Engine.context;
+			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
+		}
+	};
+
+	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = async () => {
@@ -230,6 +241,7 @@ class Send extends Component {
 			await TransactionController.approveTransaction(transactionMeta.id);
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
+			this.removeCollectible();
 			this.clear();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
