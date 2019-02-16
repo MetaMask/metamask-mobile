@@ -10,7 +10,8 @@
 		"subtitle":
 			"A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.",
 		"import_wallet_button": "Import a wallet",
-		"start_exploring_now": "Start exploring now"
+		"start_exploring_now": "Start exploring now",
+		"login": "Login"
 	},
 	"create_wallet": {
 		"title": "Hang tight, we're building this thing while it's flying.",
@@ -50,6 +51,7 @@
 		"show": "Show",
 		"hide": "Hide",
 		"must_be_at_least": "Must be at least {{number}} characters",
+		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
 		"security_alert_message":
 			"In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"

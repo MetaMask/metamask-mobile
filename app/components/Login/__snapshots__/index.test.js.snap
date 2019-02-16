@@ -116,6 +116,45 @@ exports[`Login should render correctly 1`] = `
       <View
         style={
           Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "marginBottom": 30,
+            "marginTop": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Remember me
+        </Text>
+        <Switch
+          ios_backgroundColor="#B3B3B3"
+          onValueChange={[Function]}
+          style={
+            Object {
+              "flex": 0,
+            }
+          }
+          trackColor={
+            Object {
+              "false": "#B3B3B3",
+              "true": "#4CD964",
+            }
+          }
+          value={false}
+        />
+      </View>
+      <View
+        style={
+          Object {
             "marginTop": 20,
           }
         }
@@ -132,7 +171,7 @@ exports[`Login should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          type="orange"
+          type="confirm"
         >
           LOG IN
         </StyledButton>
