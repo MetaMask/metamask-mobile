@@ -253,7 +253,8 @@ export default class TransactionElement extends PureComponent {
 	renderTransferElement = () => {
 		const {
 			tx: {
-				transaction: { gas, gasPrice, to, data, hash, from }
+				transaction: { gas, gasPrice, to, data, from },
+				transactionHash
 			},
 			conversionRate,
 			currentCurrency,
@@ -298,7 +299,7 @@ export default class TransactionElement extends PureComponent {
 		const transactionDetails = {
 			renderFrom: renderFullAddress(from),
 			renderTo: renderFullAddress(addressTo),
-			transactionHash: hash,
+			transactionHash,
 			renderValue: renderToken,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
@@ -320,7 +321,8 @@ export default class TransactionElement extends PureComponent {
 	renderTransferFromElement = () => {
 		const {
 			tx: {
-				transaction: { gas, gasPrice, data, to, hash }
+				transaction: { gas, gasPrice, data, to },
+				transactionHash
 			},
 			collectibleContracts
 		} = this.props;
@@ -336,12 +338,13 @@ export default class TransactionElement extends PureComponent {
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const renderCollectible = '#' + tokenId + ' ' + (collectible ? collectible.symbol : undefined);
+		const renderCollectible =
+			strings('unit.token_id') + tokenId + ' ' + (collectible ? collectible.symbol : undefined);
 
 		const transactionDetails = {
 			renderFrom: renderFullAddress(addressFrom),
 			renderTo: renderFullAddress(addressTo),
-			transactionHash: hash,
+			transactionHash,
 			renderValue: renderCollectible,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
@@ -359,7 +362,7 @@ export default class TransactionElement extends PureComponent {
 		const transactionElement = {
 			addressTo,
 			actionKey,
-			value: `#${tokenId}`,
+			value: `${strings('unit.token_id')}${tokenId}`,
 			fiatValue: collectible ? collectible.symbol : undefined
 		};
 
@@ -369,7 +372,8 @@ export default class TransactionElement extends PureComponent {
 	renderConfirmElement = () => {
 		const {
 			tx: {
-				transaction: { value, gas, gasPrice, from, to, hash }
+				transaction: { value, gas, gasPrice, from, to },
+				transactionHash
 			},
 			conversionRate,
 			currentCurrency
@@ -387,7 +391,7 @@ export default class TransactionElement extends PureComponent {
 		const transactionDetails = {
 			renderFrom: renderFullAddress(from),
 			renderTo: renderFullAddress(to),
-			transactionHash: hash,
+			transactionHash,
 			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
@@ -408,7 +412,8 @@ export default class TransactionElement extends PureComponent {
 	renderDeploymentElement = () => {
 		const {
 			tx: {
-				transaction: { value, gas, gasPrice, to, from, hash }
+				transaction: { value, gas, gasPrice, to, from },
+				transactionHash
 			},
 			conversionRate,
 			currentCurrency
@@ -432,7 +437,7 @@ export default class TransactionElement extends PureComponent {
 		const transactionDetails = {
 			renderFrom: renderFullAddress(from),
 			renderTo: strings('transactions.to_contract'),
-			transactionHash: hash,
+			transactionHash,
 			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
@@ -469,7 +474,6 @@ export default class TransactionElement extends PureComponent {
 			default:
 				[transactionElement, transactionDetails] = this.renderConfirmElement(totalGas);
 		}
-
 		return (
 			<TouchableOpacity
 				style={styles.row}
