@@ -79,8 +79,8 @@ class Send extends Component {
 	 */
 	removeCollectible = () => {
 		const { selectedAsset, assetType } = this.props.transaction;
-		const { AssetsController } = Engine.context;
 		if (assetType === 'ERC721') {
+			const { AssetsController } = Engine.context;
 			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
 		}
 	};
