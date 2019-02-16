@@ -95,6 +95,9 @@ export default class TransactionDetails extends PureComponent {
 		 * Action that shows the global alert
 		 */
 		viewOnEtherscan: PropTypes.func.isRequired,
+		/**
+		 * Object with information to render
+		 */
 		transactionDetails: PropTypes.object
 	};
 

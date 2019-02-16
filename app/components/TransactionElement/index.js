@@ -338,8 +338,9 @@ export default class TransactionElement extends PureComponent {
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const renderCollectible =
-			strings('unit.token_id') + tokenId + ' ' + (collectible ? collectible.symbol : undefined);
+		const renderCollectible = collectible
+			? strings('unit.token_id') + tokenId + ' ' + collectible.symbol
+			: strings('unit.token_id') + tokenId;
 
 		const transactionDetails = {
 			renderFrom: renderFullAddress(addressFrom),
