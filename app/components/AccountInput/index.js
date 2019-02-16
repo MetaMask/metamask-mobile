@@ -105,6 +105,10 @@ class AccountInput extends Component {
 		 */
 		onFocus: PropTypes.func,
 		/**
+		 * Callback triggered when the input is blurred
+		 */
+		onBlur: PropTypes.func,
+		/**
 		 * Placeholder text to show inside this input
 		 */
 		placeholder: PropTypes.string,
@@ -125,6 +129,11 @@ class AccountInput extends Component {
 		const { isOpen } = this.state;
 		this.setState({ isOpen: !isOpen });
 		onFocus && onFocus();
+	};
+
+	onBlur = () => {
+		const { onBlur, value } = this.props;
+		onBlur && onBlur(value);
 	};
 
 	selectAccount(account) {
@@ -198,6 +207,7 @@ class AccountInput extends Component {
 					spellCheck={false}
 					style={styles.input}
 					value={value}
+					onBlur={this.onBlur}
 				/>
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
 					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
