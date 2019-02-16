@@ -14,7 +14,7 @@ import {
 	toBN,
 	isBN,
 	balanceToFiatNumber,
-	toGwei,
+	renderToGwei,
 	weiToFiatNumber
 } from '../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -301,7 +301,7 @@ export default class TransactionElement extends PureComponent {
 			transactionHash: hash,
 			renderValue: renderToken,
 			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: toGwei(gasPrice),
+			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue:
 				renderToken + ' ' + strings('unit.divisor') + ' ' + renderFromWei(totalGas) + ' ' + strings('unit.eth'),
 			renderTotalValueFiat: totalFiatNumber ? totalFiatNumber + ' ' + currentCurrency.toUpperCase() : undefined
@@ -344,7 +344,7 @@ export default class TransactionElement extends PureComponent {
 			transactionHash: hash,
 			renderValue: renderCollectible,
 			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: toGwei(gasPrice),
+			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue:
 				renderCollectible +
 				' ' +
@@ -390,7 +390,7 @@ export default class TransactionElement extends PureComponent {
 			transactionHash: hash,
 			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
 			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: toGwei(gasPrice),
+			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalValue) + ' ' + strings('unit.eth'),
 			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency).toUpperCase()
 		};
@@ -435,7 +435,7 @@ export default class TransactionElement extends PureComponent {
 			transactionHash: hash,
 			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
 			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: toGwei(gasPrice),
+			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalEth) + ' ' + strings('unit.eth'),
 			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase()
 		};
