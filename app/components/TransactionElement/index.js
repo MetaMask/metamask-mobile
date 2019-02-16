@@ -22,6 +22,7 @@ import Identicon from '../Identicon';
 import { getActionKey, decodeTransferData } from '../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 import { renderFullAddress } from '../../util/address';
+import FadeIn from 'react-native-fade-in-image';
 
 const styles = StyleSheet.create({
 	row: {
@@ -233,7 +234,9 @@ export default class TransactionElement extends PureComponent {
 				{this.renderTxTime()}
 				<View style={styles.subRow}>
 					{contractDeployment ? (
-						<Image source={ethLogo} style={styles.ethLogo} />
+						<FadeIn>
+							<Image source={ethLogo} style={styles.ethLogo} />
+						</FadeIn>
 					) : (
 						<Identicon address={addressTo} diameter={24} />
 					)}
