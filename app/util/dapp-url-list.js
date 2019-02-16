@@ -6810,5 +6810,9 @@ export default [
 	{
 		url: 'https://ponzico.win/',
 		name: 'PonzICO'
+	},
+	{
+		url: 'https://faucet.ropsten.be/',
+		name: 'Ropsten Ethereum Faucet'
 	}
 ];
