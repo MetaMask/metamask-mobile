@@ -358,6 +358,7 @@
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
 		"sent_tokens": "Sent Tokens",
+		"sent_collectible": "Sent Collectible",
 		"sent": "Sent",
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
