@@ -1832,7 +1832,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp -rf ../.ios.env ./debug.xcconfig\ncp -rf ../.ios.env ./release.xcconfig\n# Type a script or drag a script file from your workspace to insert its path.\n\n";
+			shellScript = "cp -rf ../.ios.env ./debug.xcconfig\ncp -rf ../.ios.env ./release.xcconfig\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
