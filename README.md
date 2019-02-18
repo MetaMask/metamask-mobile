@@ -22,20 +22,20 @@ The code is built using React-Native and running code locally requires a Mac or 
  -  Now clone this repo and then install all our dependencies
 
 ```bash
-   cd MetaMask
-   npm install
+	cd MetaMask
+	npm i
 ```
 
 - Running the app on Android: 
 
 ```bash
-   npm run start:android
+	npm run start:android
 ```
 
 - Running the app on iOS:
 
 ```bash
-	npm run start:android
+	npm run start:ios
 ```
 
 ### Running tests:
