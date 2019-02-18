@@ -47,7 +47,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            new RNDeviceInfo(),
+				new RNDeviceInfo(),
 				new SvgPackage(),
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),
