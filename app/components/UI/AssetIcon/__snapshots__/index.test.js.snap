@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetIcon should render correctly 1`] = `
+<MyImage
+  fadeIn={true}
+  placeholderStyle={
+    Object {
+      "backgroundColor": "#FFFFFF",
+    }
+  }
+  source={
+    Object {
+      "uri": "https://raw.githubusercontent.com/MetaMask/eth-contract-metadata/master/images/metamark.svg",
+    }
+  }
+  style={
+    Array [
+      Object {
+        "height": 50,
+        "width": 50,
+      },
+      undefined,
+    ]
+  }
+/>
+`;

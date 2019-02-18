@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollectibleImage should render correctly 1`] = `
+<View
+  style={
+    Array [
+      Object {
+        "borderRadius": 25,
+        "height": 50,
+        "overflow": "hidden",
+        "width": 50,
+      },
+      undefined,
+    ]
+  }
+>
+  <MyImage
+    fadeIn={true}
+    placeholderStyle={
+      Object {
+        "backgroundColor": "#FFFFFF",
+      }
+    }
+    source={
+      Object {
+        "uri": "IMAGE",
+      }
+    }
+    style={
+      Array [
+        Object {
+          "height": 50,
+          "width": 50,
+        },
+        undefined,
+      ]
+    }
+  />
+</View>
+`;

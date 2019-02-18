@@ -1,0 +1,231 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImportFromSeed should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    resetScrollToCoords={
+      Object {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
+        "padding": 20,
+      }
+    }
+    viewIsInsideTabBar={false}
+  >
+    <View
+      testID="import-from-seed-screen"
+    >
+      <Text
+        style={
+          Object {
+            "color": "#1B344D",
+            "fontFamily": "Roboto",
+            "fontSize": 25,
+            "fontWeight": "600",
+            "justifyContent": "center",
+            "marginBottom": 20,
+            "marginTop": 20,
+            "textAlign": "center",
+          }
+        }
+      >
+        Import from seed
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        blurOnSubmit={true}
+        multiline={true}
+        numberOfLines={3}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Enter your seed phrase here"
+        returnKeyType="next"
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#CCCCCC",
+            "borderRadius": 10,
+            "borderWidth": 0.5,
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "height": 110,
+            "marginBottom": 10,
+            "marginTop": 10,
+            "paddingBottom": 20,
+            "paddingLeft": 20,
+            "paddingRight": 20,
+            "paddingTop": 20,
+          }
+        }
+        testID="input-seed-phrase"
+        underlineColorAndroid="transparent"
+      />
+      <View
+        style={
+          Object {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontSize": 16,
+              "marginBottom": 10,
+              "marginTop": 10,
+            }
+          }
+        >
+          New Password (min. 8 characters)
+        </Text>
+        <TextInput
+          allowFontScaling={true}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder=""
+          returnKeyType="next"
+          secureTextEntry={true}
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "padding": 10,
+            }
+          }
+          testID="input-password"
+          underlineColorAndroid="#CCCCCC"
+          value=""
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "marginBottom": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontSize": 16,
+              "marginBottom": 10,
+              "marginTop": 10,
+            }
+          }
+        >
+          Confirm Password
+        </Text>
+        <TextInput
+          allowFontScaling={true}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder=""
+          returnKeyType="done"
+          secureTextEntry={true}
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "padding": 10,
+            }
+          }
+          testID="input-password-confirm"
+          underlineColorAndroid="#CCCCCC"
+          value=""
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "marginBottom": 30,
+            "marginTop": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Remember me
+        </Text>
+        <Switch
+          ios_backgroundColor="#B3B3B3"
+          onValueChange={[Function]}
+          style={
+            Object {
+              "flex": 0,
+            }
+          }
+          trackColor={
+            Object {
+              "false": "#B3B3B3",
+              "true": "#4CD964",
+            }
+          }
+          value={false}
+        />
+      </View>
+      <View
+        style={
+          Object {
+            "marginTop": 20,
+          }
+        }
+      >
+        <StyledButton
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          testID="submit"
+          type="blue"
+        >
+          IMPORT
+        </StyledButton>
+      </View>
+    </View>
+  </KeyboardAwareScrollView>
+</SafeAreaView>
+`;

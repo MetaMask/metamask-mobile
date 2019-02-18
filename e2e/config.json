@@ -1,6 +1,6 @@
 {
 	"rootDir": "../",
-	"setupTestFrameworkScriptFile": "./e2e/init.js",
+	"setupFilesAfterEnv": ["./e2e/init.js"],
 	"preset": "react-native",
 	"forceExit": true,
 	"transform": {
