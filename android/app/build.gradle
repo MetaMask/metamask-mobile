@@ -143,6 +143,11 @@ def enableProguardInReleaseBuilds = false
 
 
 android {
+
+	packagingOptions {
+    	pickFirst '**/libjsc.so'
+	}
+
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
@@ -236,6 +241,8 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
     implementation project(':react-native-branch')
+	implementation "io.branch.sdk.android:library:3.0.4"
+
     implementation project(':react-native-web3-webview')
     implementation project(':react-native-camera')
     implementation project(':react-native-share')
@@ -250,7 +257,6 @@ dependencies {
     implementation project(':react-native-vector-icons')
     implementation project(':react-native-shake')
 
-    implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }

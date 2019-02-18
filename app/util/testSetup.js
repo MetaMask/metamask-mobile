@@ -99,9 +99,3 @@ NativeModules.RNGestureHandlerModule = {
 NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };
-
-NativeModules.UIManager = {
-	RCTView: () => ({
-		directEventTypes: {}
-	})
-};

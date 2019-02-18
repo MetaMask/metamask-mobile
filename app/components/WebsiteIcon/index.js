@@ -66,29 +66,31 @@ export default class WebsiteIcon extends Component {
 		await this.setState({ renderIconUrlError: true });
 	};
 
-	render = () => {
+	renderIconWithFallback = error => {
 		const { viewStyle, style, title, textStyle } = this.props;
-		const { apiLogoUrl, renderIconUrlError } = this.state;
-		return (
-			<View>
-				{!renderIconUrlError && (
-					<View style={viewStyle}>
-						<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
-							<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
-						</FadeIn>
+		const { apiLogoUrl } = this.state;
+
+		if (error && title) {
+			return (
+				<View style={viewStyle}>
+					<View style={[styles.fallback, style]}>
+						<Text style={[styles.fallbackText, textStyle]}>{title.substring(0, 1).toUpperCase()}</Text>
 					</View>
-				)}
-				{renderIconUrlError &&
-					title && (
-						<View style={viewStyle}>
-							<View style={[styles.fallback, style]}>
-								<Text style={[styles.fallbackText, textStyle]}>
-									{title.substring(0, 1).toUpperCase()}
-								</Text>
-							</View>
-						</View>
-					)}
+				</View>
+			);
+		}
+
+		return (
+			<View style={viewStyle}>
+				<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+				</FadeIn>
 			</View>
 		);
+	};
+
+	render = () => {
+		const { renderIconUrlError } = this.state;
+		return <View>{this.renderIconWithFallback(renderIconUrlError)}</View>;
 	};
 }
