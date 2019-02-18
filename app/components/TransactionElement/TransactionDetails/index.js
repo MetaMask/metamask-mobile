@@ -3,9 +3,7 @@ import PropTypes from 'prop-types';
 import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN, isBN, toBN, toGwei, weiToFiatNumber } from '../../../util/number';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { renderFullAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -82,14 +80,6 @@ const styles = StyleSheet.create({
 export default class TransactionDetails extends PureComponent {
 	static propTypes = {
 		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
-		/**
-		 * Currency code of the currently-active currency
-		 */
-		currentCurrency: PropTypes.string,
-		/**
 		 * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
 		 */
 		transactionObject: PropTypes.object,
@@ -104,7 +94,11 @@ export default class TransactionDetails extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		viewOnEtherscan: PropTypes.func.isRequired
+		viewOnEtherscan: PropTypes.func.isRequired,
+		/**
+		 * Object with information to render
+		 */
+		transactionDetails: PropTypes.object
 	};
 
 	renderTxHash = transactionHash => {
@@ -124,10 +118,7 @@ export default class TransactionDetails extends PureComponent {
 	};
 
 	copy = async () => {
-		const {
-			transactionObject: { transactionHash }
-		} = this.props;
-		await Clipboard.setString(transactionHash);
+		await Clipboard.setString(this.props.transactionDetails.transactionHash);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 2000,
@@ -144,87 +135,66 @@ export default class TransactionDetails extends PureComponent {
 
 	viewOnEtherscan = () => {
 		const {
-			transactionObject: { transactionHash, networkID }
+			transactionObject: { networkID }
 		} = this.props;
-		this.props.viewOnEtherscan(networkID, transactionHash);
+		this.props.viewOnEtherscan(networkID, this.props.transactionDetails.transactionHash);
 	};
 
 	render = () => {
-		const {
-			transactionObject: {
-				transaction: { gas, gasPrice, value, to, from },
-				transactionHash,
-				transfer
-			},
-			blockExplorer
-		} = this.props;
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const amount = hexToBN(value);
-		const { conversionRate, currentCurrency } = this.props;
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const totalEth = isBN(amount) ? amount.add(totalGas) : totalGas;
-		const renderAmount = transfer
-			? !transfer.amount
-				? strings('transaction.value_not_available')
-				: transfer.amount
-			: renderFromWei(value) + ' ' + strings('unit.eth');
-		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.eth');
-		const renderTotal = transfer
-			? transfer.amount
-				? transfer.amount + ' ' + strings('unit.divisor') + ' ' + renderTotalEth
-				: strings('transaction.value_not_available')
-			: renderTotalEth;
-
-		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
-		const totalEthFiatAmount = weiToFiatNumber(totalEth, conversionRate);
-		const renderTotalFiat = transfer
-			? transfer.amountFiat
-				? totalEthFiatAmount + transfer.amountFiat + ' ' + currentCurrency.toUpperCase()
-				: undefined
-			: renderTotalEthFiat;
-		const renderTo = transfer ? transfer.to : !to ? strings('transactions.to_contract') : renderFullAddress(to);
+		const { blockExplorer } = this.props;
 
 		return (
 			<View style={styles.detailRowWrapper}>
-				{this.renderTxHash(transactionHash)}
+				{this.renderTxHash(this.props.transactionDetails.transactionHash)}
 				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText}>{renderFullAddress(from)}</Text>
+					<Text style={styles.detailRowText}>{this.props.transactionDetails.renderFrom}</Text>
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText}>{renderTo}</Text>
+					<Text style={styles.detailRowText}>{this.props.transactionDetails.renderTo}</Text>
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
 				<View style={styles.detailRowInfo}>
 					<View style={styles.detailRowInfoItem}>
-						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.amount')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{renderAmount}</Text>
+						<Text style={[styles.detailRowText, styles.alignLeft]}>
+							{this.props.transactionDetails.valueLabel || strings('transactions.amount')}
+						</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderValue}
+						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>
 							{strings('transactions.gas_limit')}
 						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{hexToBN(gas).toNumber()}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderGas}
+						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>
 							{strings('transactions.gas_price')}
 						</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{toGwei(gasPrice)}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderGasPrice}
+						</Text>
 					</View>
 					<View style={styles.detailRowInfoItem}>
 						<Text style={[styles.detailRowText, styles.alignLeft]}>{strings('transactions.total')}</Text>
-						<Text style={[styles.detailRowText, styles.alignRight]}>{renderTotal}</Text>
+						<Text style={[styles.detailRowText, styles.alignRight]}>
+							{this.props.transactionDetails.renderTotalValue}
+						</Text>
 					</View>
-					{renderTotalFiat && (
+					{this.props.transactionDetails.renderTotalValueFiat && (
 						<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
-							<Text style={[styles.detailRowText, styles.alignRight]}>{renderTotalFiat}</Text>
+							<Text style={[styles.detailRowText, styles.alignRight]}>
+								{this.props.transactionDetails.renderTotalValueFiat}
+							</Text>
 						</View>
 					)}
 				</View>
-				{transactionHash &&
+				{this.props.transactionDetails.transactionHash &&
 					blockExplorer && (
 						<TouchableOpacity
 							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind

@@ -277,11 +277,18 @@ class TransactionEdit extends Component {
 		this.setState({ toAddressError });
 	};
 
-	onScanSuccess = () => {
+	onScan = () => {
 		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: this.props.onScanSuccess,
+			onScanSuccess: this.onScanSuccess,
 			addressOnly: true
 		});
+	};
+
+	onScanSuccess = meta => {
+		this.props.onScanSuccess(meta);
+		if (meta.target_address) {
+			this.updateToAddress(meta.target_address);
+		}
 	};
 
 	renderAmountLabel = () => {
@@ -345,9 +352,10 @@ class TransactionEdit extends Component {
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
+								onBlur={this.updateToAddress}
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipient_address')}
-								showQRScanner={this.onScanSuccess}
+								showQRScanner={this.onScan}
 								value={to}
 							/>
 						</View>

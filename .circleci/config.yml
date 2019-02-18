@@ -166,10 +166,14 @@ workflows:
             - prep-deps
           filters:
             branches:
-              only: master
+              only: 
+                - master
+                - develop
       - publish-pre-release-android:
           requires:
             - publish-pre-release-ios
           filters:
             branches:
-              only: master
+              only: 
+                - master
+                - develop

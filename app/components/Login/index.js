@@ -112,6 +112,7 @@ export default class Login extends Component {
 	state = {
 		password: '',
 		biometryType: null,
+		rememberMe: false,
 		biometryChoice: false,
 		loading: false,
 		error: null
@@ -139,19 +140,29 @@ export default class Login extends Component {
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
 
-			const authOptions = {
-				accessControl: this.state.biometryChoice
-					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
-			};
+			if (this.state.biometryType) {
+				const authOptions = {
+					accessControl: this.state.biometryChoice
+						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+						: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+				};
 
-			await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
-			await KeyringController.submitPassword(this.state.password);
+				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
-			if (!this.state.biometryChoice) {
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				if (!this.state.biometryChoice) {
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				} else {
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				}
 			} else {
-				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				if (this.state.rememberMe) {
+					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
+						accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+					});
+				} else {
+					await SecureKeychain.resetGenericPassword();
+				}
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			}
 
 			this.setState({ loading: false });
@@ -174,6 +185,42 @@ export default class Login extends Component {
 
 	onPressGoBack = () => {
 		this.props.navigation.navigate('OnboardingRootNav');
+	};
+
+	renderSwitch = () => {
+		if (this.state.biometryType) {
+			return (
+				<View style={styles.biometrics}>
+					<Text style={styles.biometryLabel}>
+						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+					</Text>
+					<Switch
+						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+						value={this.state.biometryChoice}
+						style={styles.biometrySwitch}
+						trackColor={
+							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+						}
+						ios_backgroundColor={colors.switchOffColor}
+					/>
+				</View>
+			);
+		}
+
+		return (
+			<View style={styles.biometrics}>
+				<Text style={styles.biometryLabel}>{strings(`choose_password.remember_me`)}</Text>
+				<Switch
+					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
+					value={this.state.rememberMe}
+					style={styles.biometrySwitch}
+					trackColor={
+						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+					}
+					ios_backgroundColor={colors.switchOffColor}
+				/>
+			</View>
+		);
 	};
 
 	setPassword = val => this.setState({ password: val });
@@ -199,25 +246,13 @@ export default class Login extends Component {
 							returnKeyType={'done'}
 						/>
 					</View>
+
+					{this.renderSwitch()}
+
 					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
-					{this.state.biometryType && (
-						<View style={styles.biometrics}>
-							<Text style={styles.biometryLabel}>
-								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-							</Text>
-							<Switch
-								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
-								value={this.state.biometryChoice}
-								style={styles.biometrySwitch}
-								trackColor={
-									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
-								}
-								ios_backgroundColor={colors.slate}
-							/>
-						</View>
-					)}
+
 					<View style={styles.ctaWrapper}>
-						<StyledButton type={'orange'} onPress={this.onLogin}>
+						<StyledButton type={'confirm'} onPress={this.onLogin}>
 							{this.state.loading ? (
 								<ActivityIndicator size="small" color="white" />
 							) : (

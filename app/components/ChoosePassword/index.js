@@ -163,6 +163,7 @@ class ChoosePassword extends Component {
 		secureTextEntry: true,
 		biometryType: null,
 		biometryChoice: false,
+		rememberMe: false,
 		labelsScaleNew: new Animated.Value(1),
 		labelsScaleConfirm: new Animated.Value(1),
 		loading: false,
@@ -202,18 +203,27 @@ class ChoosePassword extends Component {
 				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
 				await KeyringController.createNewVaultAndRestore(this.state.password, seed);
 
-				const authOptions = {
-					accessControl: this.state.biometryChoice
-						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-						: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
-				};
+				if (this.state.biometryType) {
+					const authOptions = {
+						accessControl: this.state.biometryChoice
+							? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+							: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+					};
 
-				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
-				if (!this.state.biometryChoice) {
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					if (!this.state.biometryChoice) {
+						await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					} else {
+						await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					}
 				} else {
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					if (this.state.rememberMe) {
+						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
+							accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+						});
+					}
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				}
 
 				// mark the user as existing so it doesn't see the create password screen again
@@ -273,6 +283,42 @@ class ChoosePassword extends Component {
 				return 'strong';
 		}
 	}
+
+	renderSwitch = () => {
+		if (this.state.biometryType) {
+			return (
+				<View style={styles.biometrics}>
+					<Text style={styles.biometryLabel}>
+						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+					</Text>
+					<Switch
+						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+						value={this.state.biometryChoice}
+						style={styles.biometrySwitch}
+						trackColor={
+							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+						}
+						ios_backgroundColor={colors.switchOffColor}
+					/>
+				</View>
+			);
+		}
+
+		return (
+			<View style={styles.biometrics}>
+				<Text style={styles.biometryLabel}>{strings(`choose_password.remember_me`)}</Text>
+				<Switch
+					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
+					value={this.state.rememberMe}
+					style={styles.biometrySwitch}
+					trackColor={
+						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+					}
+					ios_backgroundColor={colors.switchOffColor}
+				/>
+			</View>
+		);
+	};
 
 	onPasswordChange = val => {
 		let strength = 1;
@@ -436,24 +482,7 @@ class ChoosePassword extends Component {
 								</Text>
 							</View>
 
-							{this.state.biometryType && (
-								<View style={styles.biometrics}>
-									<Text style={styles.biometryLabel}>
-										{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-									</Text>
-									<Switch
-										onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
-										value={this.state.biometryChoice}
-										style={styles.biometrySwitch}
-										trackColor={
-											Platform.OS === 'ios'
-												? { true: colors.switchOnColor, false: colors.switchOffColor }
-												: null
-										}
-										ios_backgroundColor={colors.switchOffColor}
-									/>
-								</View>
-							)}
+							{this.renderSwitch()}
 
 							{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 						</View>

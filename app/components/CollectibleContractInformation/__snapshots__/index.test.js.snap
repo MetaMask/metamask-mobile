@@ -181,7 +181,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
               }
             }
           >
-            [missing "en.collectible.powered_by_opensea" translation]
+            Powered by
           </Text>
           <Component
             source={

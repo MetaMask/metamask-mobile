@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image } from 'react-native';
+import FadeIn from 'react-native-fade-in-image';
 import { colors, fontStyles } from '../../styles/common';
-import URL from 'url-parse';
+import { getHost } from '../../util/browser';
 
 const styles = StyleSheet.create({
 	fallback: {
@@ -56,14 +57,8 @@ export default class WebsiteIcon extends Component {
 		this.getIconUrl(this.props.url);
 	};
 
-	getHost(url) {
-		const urlObj = new URL(url);
-		const { hostname } = urlObj;
-		return hostname;
-	}
-
 	getIconUrl = url => {
-		const iconUrl = `https://api.faviconkit.com/${this.getHost(url)}/64`;
+		const iconUrl = `https://api.faviconkit.com/${getHost(url)}/64`;
 		this.setState({ apiLogoUrl: { uri: iconUrl } });
 	};
 
@@ -71,27 +66,31 @@ export default class WebsiteIcon extends Component {
 		await this.setState({ renderIconUrlError: true });
 	};
 
-	render = () => {
+	renderIconWithFallback = error => {
 		const { viewStyle, style, title, textStyle } = this.props;
-		const { apiLogoUrl, renderIconUrlError } = this.state;
-		return (
-			<View>
-				{!renderIconUrlError && (
-					<View style={viewStyle}>
-						<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+		const { apiLogoUrl } = this.state;
+
+		if (error && title) {
+			return (
+				<View style={viewStyle}>
+					<View style={[styles.fallback, style]}>
+						<Text style={[styles.fallbackText, textStyle]}>{title.substring(0, 1).toUpperCase()}</Text>
 					</View>
-				)}
-				{renderIconUrlError &&
-					title && (
-						<View style={viewStyle}>
-							<View style={[styles.fallback, style]}>
-								<Text style={[styles.fallbackText, textStyle]}>
-									{title.substring(0, 1).toUpperCase()}
-								</Text>
-							</View>
-						</View>
-					)}
+				</View>
+			);
+		}
+
+		return (
+			<View style={viewStyle}>
+				<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
+				</FadeIn>
 			</View>
 		);
+	};
+
+	render = () => {
+		const { renderIconUrlError } = this.state;
+		return <View>{this.renderIconWithFallback(renderIconUrlError)}</View>;
 	};
 }

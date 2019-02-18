@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {
+	BackHandler,
 	TouchableOpacity,
 	InteractionManager,
 	Animated,
@@ -84,6 +85,20 @@ class TransactionSubmitted extends Component {
 		network: PropTypes.string
 	};
 
+	componentDidMount() {
+		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+		this.animateIcon();
+	}
+
+	componentWillUnmount() {
+		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+	}
+
+	handleBackPress = () => {
+		this.goBack();
+		return true;
+	};
+
 	renderLoader() {
 		return (
 			<View style={styles.loader}>
@@ -94,12 +109,8 @@ class TransactionSubmitted extends Component {
 
 	iconSpringVal = new Animated.Value(0.4);
 
-	componentDidMount() {
-		this.animateIcon();
-	}
-
 	goBack = () => {
-		this.props.navigation.goBack(null);
+		this.props.navigation.popToTop();
 		this.props.navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
 			this.props.navigation.navigate('WalletView', { page: 2 });
@@ -118,7 +129,6 @@ class TransactionSubmitted extends Component {
 		const { navigation, network } = this.props;
 		const hash = navigation.getParam('hash', null);
 		const url = getEtherscanTransactionUrl(network, hash);
-		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.push('BrowserView', {
 				url
