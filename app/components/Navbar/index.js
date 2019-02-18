@@ -25,33 +25,34 @@ const styles = StyleSheet.create({
 		marginLeft: Platform.OS === 'android' ? 20 : 0
 	},
 	closeIcon: {
-		marginTop: -3
+		marginRight: 20,
+		marginTop: 5
 	},
 	backIcon: {
-		marginTop: -3,
 		color: colors.primary
 	},
 	backButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
-		paddingRight: Platform.OS === 'android' ? 22 : 18
+		paddingRight: Platform.OS === 'android' ? 22 : 18,
+		marginTop: 5
 	},
 	infoButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
-		paddingRight: Platform.OS === 'android' ? 22 : 18
+		paddingRight: Platform.OS === 'android' ? 22 : 18,
+		marginTop: 5
 	},
 	infoIcon: {
-		marginTop: -3,
 		color: colors.primary
 	},
 	moreIcon: {
-		marginRight: 15
+		marginRight: 15,
+		marginTop: 5
 	},
 	flex: {
 		flex: 1
 	},
 	closeButton: {
-		paddingLeft: Platform.OS === 'android' ? 22 : 18,
-		paddingRight: Platform.OS === 'android' ? 22 : 18
+		paddingHorizontal: 22
 	},
 	closeButtonText: {
 		color: colors.primary,
@@ -65,10 +66,6 @@ const styles = StyleSheet.create({
 	titleWrapper: {
 		alignItems: 'center',
 		flex: 1
-	},
-	headerStyle: {
-		paddingBottom: 10,
-		marginTop: 10
 	}
 });
 
@@ -87,8 +84,7 @@ export default function getNavbarOptions(title, navigation) {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
 		headerTruncatedBackTitle: strings('navigation.back'),
-		headerRight: <View />,
-		headerStyle: styles.headerStyle
+		headerRight: <View />
 	};
 }
 
@@ -107,8 +103,7 @@ export function getNavigationOptionsTitle(title) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerTintColor: colors.primary,
-		headerStyle: styles.headerStyle
+		headerTintColor: colors.primary
 	};
 }
 /**
@@ -150,11 +145,10 @@ export function getBrowserViewNavbarOptions(navigation) {
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line
-				<TouchableOpacity style={{ flex: 1 }} onPress={() => navigation.pop()}>
+				<TouchableOpacity onPress={() => navigation.pop()}>
 					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
 				</TouchableOpacity>
-			),
-		headerStyle: styles.headerStyle
+			)
 	};
 }
 
@@ -219,8 +213,7 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
-			),
-		headerStyle: styles.headerStyle
+			)
 	};
 }
 
@@ -251,10 +244,9 @@ export function getWalletNavbarOptions(title, navigation) {
 					navigation.navigate('AccountDetails');
 				}}
 			>
-				<IonicIcon name="ios-information-circle-outline" size={24} style={styles.infoIcon} />
+				<IonicIcon name="ios-information-circle-outline" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
-		),
-		headerStyle: styles.headerStyle
+		)
 	};
 }
 
@@ -281,7 +273,6 @@ export function getCollectibleContractNavbarOptions(title, navigation) {
 			</TouchableOpacity>
 		),
 		headerTruncatedBackTitle: strings('navigation.back'),
-		headerRight: <NavbarCollectibleContractInformation />,
-		headerStyle: styles.headerStyle
+		headerRight: <NavbarCollectibleContractInformation />
 	};
 }

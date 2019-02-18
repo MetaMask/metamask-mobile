@@ -6,8 +6,9 @@ import Identicon from '../Identicon';
 
 const styles = StyleSheet.create({
 	leftButton: {
-		flex: 1,
-		marginLeft: 12
+		marginTop: 12,
+		marginLeft: 12,
+		marginBottom: 12
 	}
 });
 

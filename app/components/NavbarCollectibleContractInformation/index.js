@@ -13,7 +13,6 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	infoIcon: {
-		marginTop: -3,
 		color: colors.primary
 	}
 });

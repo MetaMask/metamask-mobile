@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 	},
 	network: {
 		flexDirection: 'row',
-		marginTop: 5
+		marginBottom: 5
 	},
 	networkName: {
 		marginTop: -3,
@@ -31,7 +31,8 @@ const styles = StyleSheet.create({
 	currentUrlWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		flex: 1
 	},
 	lockIcon: {
 		marginTop: 2,
