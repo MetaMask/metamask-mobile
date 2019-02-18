@@ -6,7 +6,7 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask_io)
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://metamask.github.io/metamask-docs/).
 
-# MetaMask Mobile 
+## MetaMask Mobile 
 
 ### Building locally 
 The code is built using React-Native and running code locally requires a Mac or Linux OS.
@@ -53,9 +53,9 @@ The code is built using React-Native and running code locally requires a Mac or 
 ``` 
 
     
- - Troubleshooting 
-    <br />
-    Visit [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
+### Troubleshooting 
+
+Visit [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
     
 ## License
 
