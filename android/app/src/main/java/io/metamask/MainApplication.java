@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import com.clipsub.RNShake.RNShakeEventPackage;
@@ -46,6 +47,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
+				new RNDeviceInfo(),
 				new SvgPackage(),
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),

@@ -10,6 +10,7 @@ import {
 	TouchableOpacity,
 	Linking
 } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -55,6 +56,14 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		top: 20,
 		marginBottom: 40
+	},
+	versionInfo: {
+		marginTop: 20,
+		fontSize: 18,
+		textAlign: 'left',
+		marginBottom: 20,
+		color: colors.fontSecondary,
+		...fontStyles.normal
 	}
 });
 
@@ -112,11 +121,20 @@ export default class AppInformation extends Component {
 		Linking.openURL('mailto:help@metamask.io?subject=Feedback');
 	};
 
+	getAppInfo = () => {
+		const appName = DeviceInfo.getApplicationName();
+		const appVersion = DeviceInfo.getVersion();
+		const buildNumber = DeviceInfo.getBuildNumber();
+
+		return `${appName} v${appVersion} (${buildNumber})`;
+	};
+
 	render = () => (
 		<SafeAreaView style={styles.wrapper} testID={'app-settings-screen'}>
 			<ScrollView contentContainerStyle={styles.wrapperContent}>
 				<View style={styles.logoWrapper}>
 					<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+					<Text style={styles.versionInfo}>{this.getAppInfo()}</Text>
 				</View>
 				<Text style={styles.title}>{strings('app_information.links')}</Text>
 				<View style={styles.links}>
