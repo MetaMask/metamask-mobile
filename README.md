@@ -22,34 +22,34 @@ The code is built using React-Native and running code locally requires a Mac or 
  -  Now clone this repo and then install all our dependencies
 
 ```bash
-	cd MetaMask
-	npm i
+cd MetaMask
+npm i
 ```
 
 - Running the app on Android: 
 
 ```bash
-	npm run start:android
+npm run start:android
 ```
 
 - Running the app on iOS:
 
 ```bash
-	npm run start:ios
+npm run start:ios
 ```
 
 ### Running tests:
  - Unit test: 
 ```
-	npm run test:unit
+npm run test:unit
 ``` 
  - E2E Tests (iOS)
 ```
-	npm run test:e2e:ios
+npm run test:e2e:ios
 ``` 
  - E2E Tests (Android)
 ```
-	npm run test:e2e:android
+npm run test:e2e:android
 ``` 
 
     
