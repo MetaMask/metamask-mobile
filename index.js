@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Accessing view manager configs directly off',
 	'Function components cannot be given refs.',
 	'Task orphaned for request',
 	'Module RNOS requires',

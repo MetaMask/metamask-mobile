@@ -143,7 +143,7 @@ buildIosRelease(){
 
 		cd ios && bundle install && bundle exec fastlane prerelease
 	else
-		cd ios && fastlane beta
+		react-native run-ios  --configuration Release
 	fi
 }
 
