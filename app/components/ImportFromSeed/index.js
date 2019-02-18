@@ -127,6 +127,7 @@ class ImportFromSeed extends Component {
 		confirmPassword: '',
 		seed: '',
 		biometryType: null,
+		rememberMe: false,
 		biometryChoice: false,
 		loading: false,
 		error: null
@@ -171,17 +172,28 @@ class ImportFromSeed extends Component {
 
 				await KeyringController.createNewVaultAndRestore(this.state.password, this.state.seed);
 
-				const authOptions = {
-					accessControl: this.state.biometryChoice
-						? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-						: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
-				};
-				await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
+				if (this.state.biometryType) {
+					const authOptions = {
+						accessControl: this.state.biometryChoice
+							? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+							: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+					};
+					await SecureKeychain.setGenericPassword('metamask-user', this.state.password, authOptions);
 
-				if (!this.state.biometryChoice) {
-					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					if (!this.state.biometryChoice) {
+						await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					} else {
+						await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					}
 				} else {
-					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					if (this.state.rememberMe) {
+						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
+							accessControl: SecureKeychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY
+						});
+					} else {
+						await SecureKeychain.resetGenericPassword();
+					}
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				}
 
 				// mark the user as existing so it doesn't see the create password screen again
@@ -229,6 +241,42 @@ class ImportFromSeed extends Component {
 	jumpToConfirmPassword = () => {
 		const { current } = this.confirmPasswordInput;
 		current && current.focus();
+	};
+
+	renderSwitch = () => {
+		if (this.state.biometryType) {
+			return (
+				<View style={styles.biometrics}>
+					<Text style={styles.biometryLabel}>
+						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+					</Text>
+					<Switch
+						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+						value={this.state.biometryChoice}
+						style={styles.biometrySwitch}
+						trackColor={
+							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+						}
+						ios_backgroundColor={colors.switchOffColor}
+					/>
+				</View>
+			);
+		}
+
+		return (
+			<View style={styles.biometrics}>
+				<Text style={styles.biometryLabel}>{strings(`choose_password.remember_me`)}</Text>
+				<Switch
+					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
+					value={this.state.rememberMe}
+					style={styles.biometrySwitch}
+					trackColor={
+						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+					}
+					ios_backgroundColor={colors.switchOffColor}
+				/>
+			</View>
+		);
 	};
 
 	render = () => (
@@ -279,23 +327,10 @@ class ImportFromSeed extends Component {
 						/>
 					</View>
 
+					{this.renderSwitch()}
+
 					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
-					{this.state.biometryType && (
-						<View style={styles.biometrics}>
-							<Text style={styles.biometryLabel}>
-								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-							</Text>
-							<Switch
-								onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
-								value={this.state.biometryChoice}
-								style={styles.biometrySwitch}
-								trackColor={
-									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
-								}
-								ios_backgroundColor={colors.slate}
-							/>
-						</View>
-					)}
+
 					<View style={styles.ctaWrapper}>
 						<StyledButton type={'blue'} onPress={this.onPressImport} testID={'submit'}>
 							{this.state.loading ? (
