@@ -15,7 +15,6 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme"
-      android:screenOrientation="portrait"
 	  android:hardwareAccelerated="true"
 	  android:usesCleartextTraffic="${isDebug}"
 	>
@@ -34,6 +33,7 @@
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
         android:windowSoftInputMode="adjustResize"
+      android:screenOrientation="portrait"
         android:exported="true">
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
