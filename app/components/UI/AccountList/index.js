@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
 	InteractionManager,
-	ScrollView,
+	FlatList,
 	TouchableOpacity,
 	StyleSheet,
 	Text,
@@ -142,7 +142,7 @@ export default class AccountList extends Component {
 		loading: false
 	};
 
-	scrollViewRef = React.createRef();
+	flatList = React.createRef();
 	lastPosition = 0;
 
 	getInitialSelectedAccountIndex = () => {
@@ -154,39 +154,17 @@ export default class AccountList extends Component {
 		});
 	};
 
-	componentDidUpdate() {
-		this.scrollToCurrentAccount();
-	}
-
 	componentDidMount() {
 		this.getInitialSelectedAccountIndex();
-		this.scrollToCurrentAccount();
+		InteractionManager.runAfterInteractions(() => {
+			this.scrollToCurrentAccount();
+		});
 	}
 
 	scrollToCurrentAccount() {
-		let position = this.state.selectedAccountIndex * 81;
-		if (position - 215 > 0) {
-			position -= 215;
-			if (this.lastPosition === position) {
-				return false;
-			}
-		} else {
-			return false;
-		}
-
-		!this.scrolling &&
-			this.scrollViewRef &&
-			this.scrollViewRef.current &&
-			this.scrollViewRef.current.scrollTo({
-				x: 0,
-				y: position,
-				animated: true
-			});
-		this.scrolling = true;
-		setTimeout(() => {
-			this.scrolling = false;
-			this.lastPosition = position;
-		}, 300);
+		this.flatList &&
+			this.flatList.current &&
+			this.flatList.current.scrollToIndex({ index: this.state.selectedAccountIndex, animated: true });
 	}
 
 	onAccountChange = async newIndex => {
@@ -231,7 +209,7 @@ export default class AccountList extends Component {
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
 			this.setState({ selectedAccountIndex: newIndex });
 			setTimeout(() => {
-				this.scrollViewRef && this.scrollViewRef.current && this.scrollViewRef.current.scrollToEnd();
+				this.flatList && this.flatList.current && this.flatList.current.scrollToEnd();
 				this.setState({ loading: false });
 			}, 500);
 		} catch (e) {
@@ -253,7 +231,38 @@ export default class AccountList extends Component {
 		return ret;
 	}
 
-	renderAccounts() {
+	renderItem = ({ item }) => {
+		const { index, name, address, balance, isSelected, isImported } = item;
+
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
+		const imported = isImported ? (
+			<View style={styles.importedWrapper}>
+				<Text numberOfLines={1} style={styles.importedText}>
+					{strings('accounts.imported')}
+				</Text>
+			</View>
+		) : null;
+
+		return (
+			<TouchableOpacity
+				style={styles.account}
+				key={`account-${address}`}
+				onPress={() => this.onAccountChange(index)} // eslint-disable-line
+			>
+				<Identicon address={address} diameter={38} />
+				<View style={styles.accountInfo}>
+					<Text style={styles.accountLabel}>{name}</Text>
+					<Text style={styles.accountBalance}>
+						{renderFromWei(balance)} {strings('unit.eth')}
+					</Text>
+					<View style={styles.imported}>{imported}</View>
+				</View>
+				<View style={styles.selected}>{selected}</View>
+			</TouchableOpacity>
+		);
+	};
+
+	getAccounts() {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
@@ -270,44 +279,27 @@ export default class AccountList extends Component {
 			if (accounts[identityAddressChecksummed]) {
 				balance = accounts[identityAddressChecksummed].balance;
 			}
-			const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
-			const imported = isImported ? (
-				<View style={styles.importedWrapper}>
-					<Text numberOfLines={1} style={styles.importedText}>
-						{strings('accounts.imported')}
-					</Text>
-				</View>
-			) : null;
-
-			return (
-				<TouchableOpacity
-					style={styles.account}
-					key={`account-${address}`}
-					onPress={() => this.onAccountChange(index)} // eslint-disable-line
-				>
-					<Identicon address={address} diameter={38} />
-					<View style={styles.accountInfo}>
-						<Text style={styles.accountLabel}>{name}</Text>
-						<Text style={styles.accountBalance}>
-							{renderFromWei(balance)} {strings('unit.eth')}
-						</Text>
-						<View style={styles.imported}>{imported}</View>
-					</View>
-					<View style={styles.selected}>{selected}</View>
-				</TouchableOpacity>
-			);
+			return { index, name, address: identityAddressChecksummed, balance, isSelected, isImported };
 		});
 	}
 
-	render() {
+	keyExtractor = item => item.address;
+
+	render = () => {
+		const accounts = this.getAccounts();
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<View style={styles.titleWrapper}>
 					<View style={styles.dragger} />
 				</View>
-				<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
-					{this.renderAccounts()}
-				</ScrollView>
+				<FlatList
+					data={accounts}
+					keyExtractor={this.keyExtractor}
+					renderItem={this.renderItem}
+					ref={this.flatList}
+					style={styles.accountsWrapper}
+				/>
 				<View style={styles.footer}>
 					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
 						{this.state.loading ? (
@@ -322,5 +314,5 @@ export default class AccountList extends Component {
 				</View>
 			</SafeAreaView>
 		);
-	}
+	};
 }
