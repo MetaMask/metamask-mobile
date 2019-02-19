@@ -7,6 +7,8 @@ import { BNToHex, hexToBN } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
+import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -18,26 +20,50 @@ const styles = StyleSheet.create({
 /**
  * Component that manages transaction approval from the dapp browser
  */
-export default class Approval extends Component {
+class Approval extends Component {
 	static navigationOptions = () => getNavigationOptionsTitle(strings('approval.title'));
 
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action that cleans transaction state
+		 */
+		newTransaction: PropTypes.func.isRequired,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Transaction state
+		 */
+		transaction: PropTypes.object.isRequired
 	};
 
 	state = {
 		mode: 'review'
 	};
 
+	componentDidMount = () => {
+		let { transaction } = this.props;
+		transaction = this.sanitizeTransaction(transaction);
+		this.props.setTransactionObject(transaction);
+	};
+
+	/**
+	 * Transaction state is erased, ready to create a new clean transaction
+	 */
+	clear = async () => {
+		this.props.newTransaction();
+	};
+
 	onCancel = () => {
-		const {
-			params: { transactionMeta }
-		} = this.props.navigation.state;
-		Engine.context.TransactionController.cancelTransaction(transactionMeta.id);
+		const { transaction } = this.props;
+		Engine.context.TransactionController.cancelTransaction(transaction.id);
 		this.props.navigation.goBack();
+		this.clear();
 	};
 
 	onConfirm = transaction => {
@@ -45,35 +71,32 @@ export default class Approval extends Component {
 		const {
 			params: { transactionMeta }
 		} = this.props.navigation.state;
-		transactionMeta.transaction = transaction;
-		TransactionController.updateTransaction(this.prepareTransactionMeta(transactionMeta));
+		TransactionController.updateTransaction(this.prepareTransactionMeta(transaction));
 		TransactionController.approveTransaction(transactionMeta.id);
 		this.props.navigation.goBack();
+		this.clear();
 	};
 
 	onModeChange = mode => {
 		this.setState({ mode });
 	};
 
-	prepareTransactionMeta(meta) {
-		meta.transaction.gas = BNToHex(meta.transaction.gas);
-		meta.transaction.gasPrice = BNToHex(meta.transaction.gasPrice);
-		meta.transaction.value = BNToHex(meta.transaction.value);
-		return meta;
+	prepareTransaction(transaction) {
+		transaction.gas = BNToHex(transaction.gas);
+		transaction.gasPrice = BNToHex(transaction.gasPrice);
+		transaction.value = BNToHex(transaction.value);
+		return transaction;
 	}
 
-	sanitizeTransactionMeta(meta) {
-		meta.transaction.gas = hexToBN(meta.transaction.gas);
-		meta.transaction.gasPrice = hexToBN(meta.transaction.gasPrice);
-		meta.transaction.value = hexToBN(meta.transaction.value);
-		return meta;
+	sanitizeTransaction(transaction) {
+		transaction.gas = hexToBN(transaction.gas);
+		transaction.gasPrice = hexToBN(transaction.gasPrice);
+		transaction.value = hexToBN(transaction.value);
+		return transaction;
 	}
 
 	render = () => {
-		const {
-			params: { transactionMeta }
-		} = this.props.navigation.state;
-		const { transaction } = this.sanitizeTransactionMeta(transactionMeta);
+		const { transaction } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionEditor
@@ -88,3 +111,17 @@ export default class Approval extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	transaction: state.transaction
+});
+
+const mapDispatchToProps = dispatch => ({
+	newTransaction: () => dispatch(newTransaction()),
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Approval);
