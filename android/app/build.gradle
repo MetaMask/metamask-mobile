@@ -141,6 +141,10 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
+/**
+*
+* override fabric properties file if MM_FABRIC_API_KEY is set
+*/
 def buildFabricPropertiesIfNeeded() {
     def propertiesFile = file("fabric.properties")
     def FABRIC_API_KEY = System.getenv('MM_FABRIC_API_KEY')
@@ -158,12 +162,6 @@ android {
 	afterEvaluate {
 		buildFabricPropertiesIfNeeded()
 	}
-
-	/**
-	*
-	* override fabric properties file if MM_FABRIC_API_KEY is set
-	*/
-
 
 	packagingOptions {
     	pickFirst '**/libjsc.so'
