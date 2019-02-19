@@ -30,6 +30,8 @@ import AccountBackupStep3 from '../../Views/AccountBackupStep3';
 import AccountBackupStep4 from '../../Views/AccountBackupStep4';
 import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
+import ImportPrivateKey from '../../Views/ImportPrivateKey';
+import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -101,6 +103,21 @@ const MainNavigator = createStackNavigator(
 					screen: RevealPrivateCredential
 				}
 			})
+		},
+		ImportPrivateKeyView: {
+			screen: createStackNavigator(
+				{
+					ImportPrivateKey: {
+						screen: ImportPrivateKey
+					},
+					ImportPrivateKeySuccess: {
+						screen: ImportPrivateKeySuccess
+					}
+				},
+				{
+					headerMode: 'none'
+				}
+			)
 		},
 		SendView: {
 			screen: createStackNavigator({

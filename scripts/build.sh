@@ -132,6 +132,7 @@ prebuild_android(){
 buildAndroid(){
 	prebuild_android
 	react-native run-android
+	git checkout android/app/fabric.properties
 }
 
 buildIosSimulator(){
