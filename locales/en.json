@@ -156,8 +156,9 @@
 		"receive": "RECEIVE"
 	},
 	"accounts": {
-		"title": "Accounts",
-		"create_new_account": "Create new account"
+		"create_new_account": "Create New Account",
+		"import_account": "Import an Account",
+		"imported": "IMPORTED"
 	},
 	"app_settings": {
 		"title": "Settings",
@@ -449,6 +450,22 @@
 		"address": "public address",
 		"warning":
 			"By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks."
+	},
+	"import_private_key": {
+		"title": "Import Account",
+		"description_one":
+			"Imported accounts are viewable in your wallet but are not recoverable with your MetaMask seed phrase.",
+		"learn_more_here": "Learn more about imported accounts here.",
+		"subtitle": "Paste your private key string",
+		"cta_text": "IMPORT",
+		"example": "e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
+		"error_title": "Ooops! something went wrong...",
+		"error_message": "We couldn't import that private key. Please make sure you entered it correctly.",
+		"error_empty_message": "You need to enter your private key."
+	},
+	"import_private_key_success": {
+		"title": "Account succesfully imported!",
+		"description_one": "You'll be now able to view your account in MetaMask."
 	},
 	"first_incoming_transaction": {
 		"title": "{{asset}} was deposited in your account",

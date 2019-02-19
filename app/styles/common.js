@@ -28,6 +28,7 @@ export const colors = {
 	lighterGray: '#F7F7F7',
 	another50ShadesOfGrey: '#8E8E93',
 	lightRed: '#fff1f2',
+	lightBlue: '#F2F9FE',
 	primary: '#008edf',
 	primaryFox: '#f7861ce6',
 	red: '#f00',
@@ -51,7 +52,8 @@ export const colors = {
 	androidStatusbar: '#EBEBED',
 	switchOnColor: '#4CD964',
 	switchOffColor: '#B3B3B3',
-	pager: '#DADADA'
+	pager: '#DADADA',
+	modalDragGrey: '#C4C4C4'
 };
 
 /**
