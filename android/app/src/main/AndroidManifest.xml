@@ -56,9 +56,6 @@
 		</intent-filter>
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
-      <meta-data
-        android:name="io.fabric.ApiKey"
-         android:value="${MM_FABRIC_API_KEY}" />
 	  <!-- Branch init -->
 	  <meta-data android:name="io.branch.sdk.BranchKey" android:value="${MM_BRANCH_KEY_LIVE}" />
 	  <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="${MM_BRANCH_KEY_TEST}" />

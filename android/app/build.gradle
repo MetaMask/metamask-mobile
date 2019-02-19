@@ -141,8 +141,27 @@ def enableSeparateBuildPerCPUArchitecture = false
  */
 def enableProguardInReleaseBuilds = false
 
+/**
+*
+* override fabric properties file if MM_FABRIC_API_KEY is set
+*/
+def buildFabricPropertiesIfNeeded() {
+    def propertiesFile = file("fabric.properties")
+    def FABRIC_API_KEY = System.getenv('MM_FABRIC_API_KEY')
+    if (FABRIC_API_KEY) {
+        def commentMessage = "AUTOGEN FABRIC PROPERTIES"
+        ant.propertyfile(file: "fabric.properties", comment: commentMessage) {
+            entry(key: "apiKey", value: FABRIC_API_KEY)
+        }
+    }
+}
 
 android {
+
+
+	afterEvaluate {
+		buildFabricPropertiesIfNeeded()
+	}
 
 	packagingOptions {
     	pickFirst '**/libjsc.so'
@@ -169,7 +188,6 @@ android {
         }
 
         manifestPlaceholders = [
-                MM_FABRIC_API_KEY: "$System.env.MM_FABRIC_API_KEY",
                 MM_BRANCH_KEY_TEST: "$System.env.MM_BRANCH_KEY_TEST",
                 MM_BRANCH_KEY_LIVE: "$System.env.MM_BRANCH_KEY_LIVE"
         ]

@@ -12,9 +12,6 @@ import Transactions from '../../UI/Transactions';
 import Modal from 'react-native-modal';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import Branch from 'react-native-branch';
-import Logger from '../../../util/Logger';
-import DeeplinkManager from '../../../core/DeeplinkManager';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Collectible from '../Collectible';
 import Engine from '../../../core/Engine';
@@ -122,7 +119,6 @@ class Wallet extends Component {
 	scrollableTabViewRef = React.createRef();
 
 	componentDidMount() {
-		Branch.subscribe(this.handleDeeplinks);
 		InteractionManager.runAfterInteractions(async () => {
 			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
 			AssetsDetectionController.detectAssets();
@@ -171,17 +167,6 @@ class Wallet extends Component {
 			/>
 		);
 	}
-
-	handleDeeplinks = async ({ error, params }) => {
-		if (error) {
-			Logger.error('Error from Branch: ', error);
-			return;
-		}
-		if (params['+non_branch_link']) {
-			const dm = new DeeplinkManager(this.props.navigation);
-			dm.parse(params['+non_branch_link']);
-		}
-	};
 
 	onHideCollectible = () => {
 		this.setState({ showCollectible: false });
