@@ -11,9 +11,11 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	SafeAreaView
+	SafeAreaView,
+	Platform
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
+import DeviceSize from '../../../util/DeviceSize';
 import { renderFromWei } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -38,7 +40,8 @@ const styles = StyleSheet.create({
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.gray
+		backgroundColor: colors.gray,
+		opacity: Platform.OS === 'android' ? 0.6 : 0.5
 	},
 	accountsWrapper: {
 		flex: 1
@@ -70,8 +73,8 @@ const styles = StyleSheet.create({
 		alignContent: 'flex-end'
 	},
 	footer: {
-		height: 120,
-		paddingBottom: 30,
+		height: DeviceSize.isIphoneX() ? 120 : 100,
+		paddingBottom: DeviceSize.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center'

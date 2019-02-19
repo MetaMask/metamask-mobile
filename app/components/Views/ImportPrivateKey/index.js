@@ -121,6 +121,12 @@ export default class ImportPrivateKey extends Component {
 	};
 
 	goNext = async () => {
+		if (this.state.privateKey === '') {
+			Alert.alert(strings('import_private_key.error_title'), strings('import_private_key.error_empty_message'));
+			this.setState({ loading: false });
+			return;
+		}
+
 		this.setState({ loading: true });
 		// Import private key
 		try {

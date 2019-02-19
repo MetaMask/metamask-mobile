@@ -72,18 +72,6 @@ export default class ImportPrivateKey extends Component {
 		navigation: PropTypes.object
 	};
 
-	state = {
-		privateKey: ''
-	};
-
-	goNext = () => {
-		this.props.navigation.navigate('ImportPrivateKeySuccess');
-	};
-
-	onInputChange = value => {
-		this.setState({ privateKey: value });
-	};
-
 	dismiss = () => {
 		this.props.navigation.popToTop();
 		this.props.navigation.goBack(null);

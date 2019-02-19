@@ -52,7 +52,8 @@ export const colors = {
 	androidStatusbar: '#EBEBED',
 	switchOnColor: '#4CD964',
 	switchOffColor: '#B3B3B3',
-	pager: '#DADADA'
+	pager: '#DADADA',
+	modalDragGrey: '#C4C4C4'
 };
 
 /**
