@@ -1,19 +1,21 @@
 import React, { Component } from 'react';
 import Engine from '../../../core/Engine';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
 	InteractionManager,
-	ScrollView,
+	FlatList,
 	TouchableOpacity,
 	StyleSheet,
 	Text,
 	View,
-	SafeAreaView
+	SafeAreaView,
+	Platform
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
+import DeviceSize from '../../../util/DeviceSize';
 import { renderFromWei } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -27,16 +29,19 @@ const styles = StyleSheet.create({
 		minHeight: 450
 	},
 	titleWrapper: {
+		width: '100%',
+		height: 33,
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor
 	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
+	dragger: {
+		width: 48,
+		height: 5,
+		borderRadius: 4,
+		backgroundColor: colors.gray,
+		opacity: Platform.OS === 'android' ? 0.6 : 0.5
 	},
 	accountsWrapper: {
 		flex: 1
@@ -68,18 +73,39 @@ const styles = StyleSheet.create({
 		alignContent: 'flex-end'
 	},
 	footer: {
-		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
-		height: 80,
+		height: DeviceSize.isIphoneX() ? 120 : 100,
+		paddingBottom: DeviceSize.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
-		flexDirection: 'row',
-		alignItems: 'center',
-		paddingBottom: 30
+		flexDirection: 'column',
+		alignItems: 'center'
 	},
-	addAccountText: {
-		fontSize: 16,
+	btnText: {
+		fontSize: 14,
 		color: colors.primary,
 		...fontStyles.normal
+	},
+	footerButton: {
+		width: '100%',
+		height: 43,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderTopWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor
+	},
+	importedText: {
+		color: colors.another50ShadesOfGrey,
+		fontSize: 10,
+		...fontStyles.bold
+	},
+	importedWrapper: {
+		width: Platform.OS === 'android' ? 73 : 70,
+		flex: 1,
+		marginTop: 5,
+		paddingHorizontal: 10,
+		paddingVertical: 3,
+		borderRadius: 10,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.another50ShadesOfGrey
 	}
 });
 
@@ -107,7 +133,11 @@ export default class AccountList extends Component {
 		/**
 		 * function to be called when switching accounts
 		 */
-		onAccountChange: PropTypes.func
+		onAccountChange: PropTypes.func,
+		/**
+		 * function to be called when importing an account
+		 */
+		onImportAccount: PropTypes.func
 	};
 
 	state = {
@@ -115,7 +145,7 @@ export default class AccountList extends Component {
 		loading: false
 	};
 
-	scrollViewRef = React.createRef();
+	flatList = React.createRef();
 	lastPosition = 0;
 
 	getInitialSelectedAccountIndex = () => {
@@ -127,33 +157,17 @@ export default class AccountList extends Component {
 		});
 	};
 
-	componentDidUpdate() {
-		this.scrollToCurrentAccount();
-	}
-
-	scrollToCurrentAccount() {
-		const position = this.state.selectedAccountIndex * 68;
-		if (position < 400) return;
-		if (position - this.lastPosition < 68) return;
+	componentDidMount() {
+		this.getInitialSelectedAccountIndex();
 		InteractionManager.runAfterInteractions(() => {
-			!this.scrolling &&
-				this.scrollViewRef &&
-				this.scrollViewRef.current &&
-				this.scrollViewRef.current.scrollTo({
-					x: 0,
-					y: position,
-					animated: true
-				});
-			this.scrolling = true;
-			setTimeout(() => {
-				this.scrolling = false;
-				this.lastPosition = position;
-			}, 500);
+			this.scrollToCurrentAccount();
 		});
 	}
 
-	componentDidMount() {
-		this.getInitialSelectedAccountIndex();
+	scrollToCurrentAccount() {
+		this.flatList &&
+			this.flatList.current &&
+			this.flatList.current.scrollToIndex({ index: this.state.selectedAccountIndex, animated: true });
 	}
 
 	onAccountChange = async newIndex => {
@@ -162,7 +176,7 @@ export default class AccountList extends Component {
 		const { keyrings } = this.props;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
-			// This is a temporary fix until we can read the state from GABA
+
 			const allKeyrings =
 				keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
@@ -184,6 +198,10 @@ export default class AccountList extends Component {
 		}
 	};
 
+	importAccount = () => {
+		this.props.onImportAccount();
+	};
+
 	addAccount = async () => {
 		this.setState({ loading: true });
 		const { KeyringController } = Engine.context;
@@ -194,7 +212,7 @@ export default class AccountList extends Component {
 			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
 			this.setState({ selectedAccountIndex: newIndex });
 			setTimeout(() => {
-				this.scrollViewRef && this.scrollViewRef.current && this.scrollViewRef.current.scrollToEnd();
+				this.flatList && this.flatList.current && this.flatList.current.scrollToEnd();
 				this.setState({ loading: false });
 			}, 500);
 		} catch (e) {
@@ -204,60 +222,100 @@ export default class AccountList extends Component {
 		}
 	};
 
-	renderAccounts() {
+	isImported(allKeyrings, address) {
+		let ret = false;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(address)) {
+				ret = keyring.type !== 'HD Key Tree';
+				break;
+			}
+		}
+
+		return ret;
+	}
+
+	renderItem = ({ item }) => {
+		const { index, name, address, balance, isSelected, isImported } = item;
+
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
+		const imported = isImported ? (
+			<View style={styles.importedWrapper}>
+				<Text numberOfLines={1} style={styles.importedText}>
+					{strings('accounts.imported')}
+				</Text>
+			</View>
+		) : null;
+
+		return (
+			<TouchableOpacity
+				style={styles.account}
+				key={`account-${address}`}
+				onPress={() => this.onAccountChange(index)} // eslint-disable-line
+			>
+				<Identicon address={address} diameter={38} />
+				<View style={styles.accountInfo}>
+					<Text style={styles.accountLabel}>{name}</Text>
+					<Text style={styles.accountBalance}>
+						{renderFromWei(balance)} {strings('unit.eth')}
+					</Text>
+					<View style={styles.imported}>{imported}</View>
+				</View>
+				<View style={styles.selected}>{selected}</View>
+			</TouchableOpacity>
+		);
+	};
+
+	getAccounts() {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
 			const checksummedAddress = toChecksumAddress(addr);
 			const identity = identities[checksummedAddress];
 			const { name, address } = identity;
-			const isSelected = toChecksumAddress(address) === toChecksumAddress(selectedAddress);
+			const identityAddressChecksummed = toChecksumAddress(address);
+			const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
+			const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
 			let balance = 0x0;
-			if (accounts[toChecksumAddress(address)]) {
-				balance = accounts[toChecksumAddress(address)].balance;
+			if (accounts[identityAddressChecksummed]) {
+				balance = accounts[identityAddressChecksummed].balance;
 			}
-			const selected = isSelected ? <Icon name="check" size={30} color={colors.success} /> : null;
-
-			return (
-				<TouchableOpacity
-					style={styles.account}
-					key={`account-${address}`}
-					onPress={() => this.onAccountChange(index)} // eslint-disable-line
-				>
-					<Identicon address={address} diameter={38} />
-					<View style={styles.accountInfo}>
-						<Text style={styles.accountLabel}>{name}</Text>
-						<Text style={styles.accountBalance}>
-							{renderFromWei(balance)} {strings('unit.eth')}
-						</Text>
-					</View>
-					<View style={styles.selected}>{selected}</View>
-				</TouchableOpacity>
-			);
+			return { index, name, address: identityAddressChecksummed, balance, isSelected, isImported };
 		});
 	}
 
-	render = () => (
-		<SafeAreaView style={styles.wrapper} testID={'account-list'}>
-			<View style={styles.titleWrapper}>
-				<Text testID={'account-list-title'} style={styles.title}>
-					{strings('accounts.title')}
-				</Text>
-			</View>
-			<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
-				{this.renderAccounts()}
-			</ScrollView>
-			<View style={styles.footer}>
-				<TouchableOpacity onPress={this.addAccount}>
-					{this.state.loading ? (
-						<ActivityIndicator size="small" color={colors.primary} />
-					) : (
-						<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
-					)}
-				</TouchableOpacity>
-			</View>
-		</SafeAreaView>
-	);
+	keyExtractor = item => item.address;
+
+	render = () => {
+		const accounts = this.getAccounts();
+
+		return (
+			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
+				<View style={styles.titleWrapper}>
+					<View style={styles.dragger} />
+				</View>
+				<FlatList
+					data={accounts}
+					keyExtractor={this.keyExtractor}
+					renderItem={this.renderItem}
+					ref={this.flatList}
+					style={styles.accountsWrapper}
+				/>
+				<View style={styles.footer}>
+					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
+						{this.state.loading ? (
+							<ActivityIndicator size="small" color={colors.primary} />
+						) : (
+							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
+						)}
+					</TouchableOpacity>
+					<TouchableOpacity onPress={this.importAccount} style={styles.footerButton}>
+						<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
+					</TouchableOpacity>
+				</View>
+			</SafeAreaView>
+		);
+	};
 }
