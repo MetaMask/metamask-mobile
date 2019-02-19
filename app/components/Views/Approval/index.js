@@ -66,6 +66,9 @@ class Approval extends Component {
 		this.clear();
 	};
 
+	/**
+	 * Callback on confirm transaction
+	 */
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		const {
