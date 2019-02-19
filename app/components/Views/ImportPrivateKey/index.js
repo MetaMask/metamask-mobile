@@ -1,19 +1,11 @@
 import React, { Component } from 'react';
-import {
-	Alert,
-	ActivityIndicator,
-	TouchableOpacity,
-	TextInput,
-	ScrollView,
-	Text,
-	View,
-	StyleSheet
-} from 'react-native';
+import { Alert, ActivityIndicator, TouchableOpacity, TextInput, Text, View, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import Icon from 'react-native-vector-icons/Feather';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import DeviceSize from '../../../util/DeviceSize';
@@ -22,9 +14,6 @@ import Engine from '../../../core/Engine';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.lightBlue,
-		flex: 1
-	},
-	wrapper: {
 		flex: 1
 	},
 	content: {
@@ -156,10 +145,11 @@ export default class ImportPrivateKey extends Component {
 	render() {
 		return (
 			<View style={styles.mainWrapper}>
-				<ScrollView
+				<KeyboardAwareScrollView
 					contentContainerStyle={styles.wrapper}
 					style={styles.mainWrapper}
 					testID={'first-incoming-transaction-screen'}
+					resetScrollToCoords={{ x: 0, y: 0 }}
 				>
 					<View style={styles.content}>
 						<TouchableOpacity onPress={this.dismiss} style={styles.navbarRightButton}>
@@ -209,7 +199,7 @@ export default class ImportPrivateKey extends Component {
 							)}
 						</StyledButton>
 					</View>
-				</ScrollView>
+				</KeyboardAwareScrollView>
 			</View>
 		);
 	}

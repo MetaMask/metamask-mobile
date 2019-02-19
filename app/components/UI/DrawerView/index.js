@@ -465,8 +465,8 @@ class DrawerView extends Component {
 
 	onImportAccount = () => {
 		this.hideAccountsModal();
-		this.hideDrawer();
 		this.props.navigation.navigate('ImportPrivateKey');
+		this.hideDrawer();
 	};
 
 	getIcon(name, size) {

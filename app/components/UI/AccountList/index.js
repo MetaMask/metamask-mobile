@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	importedWrapper: {
-		width: 70,
+		width: Platform.OS === 'android' ? 73 : 70,
 		flex: 1,
 		marginTop: 5,
 		paddingHorizontal: 10,
