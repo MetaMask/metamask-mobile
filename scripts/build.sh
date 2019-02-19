@@ -106,6 +106,11 @@ prebuild(){
 
 prebuild_ios(){
 	prebuild
+	# Generate xcconfig files for CircleCI
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "" > ios/debug.xcconfig
+		echo "" > ios/release.xcconfig
+	fi
 }
 
 prebuild_android(){
