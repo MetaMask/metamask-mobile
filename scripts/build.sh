@@ -97,12 +97,20 @@ prebuild(){
 	./node_modules/.bin/concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
-		source .js.env
+		if [ -e .js.env ]
+		then
+			source .js.env
+		fi
 	fi
 }
 
 prebuild_ios(){
 	prebuild
+	# Generate xcconfig files for CircleCI
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "" > ios/debug.xcconfig
+		echo "" > ios/release.xcconfig
+	fi
 }
 
 prebuild_android(){
@@ -114,7 +122,10 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 	if [ "$PRE_RELEASE" = false ] ; then
-		source .android.env
+		if [ -e .js.env ]
+		then
+			source .android.env
+		fi
 	fi
 }
 

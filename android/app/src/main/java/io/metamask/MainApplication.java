@@ -82,8 +82,10 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		Fabric.with(this, new Crashlytics());
-		Branch.getAutoInstance(this);
+		if (!BuildConfig.DEBUG){
+			Fabric.with(this, new Crashlytics());
+			Branch.getAutoInstance(this);
+		}
 		SoLoader.init(this, /* native exopackage */ false);
 	}
 }
