@@ -96,3 +96,7 @@ sed -i'' -e 's/ 23/ 27/' $TARGET;
 sed -i'' -e 's/ 22/ 27/' $TARGET;
 sed -i'' -e 's/ 16/ 19/' $TARGET;
 sed -i'' -e 's/compile /api /' $TARGET;
+
+echo "10. Create xcconfig files..."
+echo "" > ios/debug.xcconfig
+echo "" > ios/release.xcconfig
