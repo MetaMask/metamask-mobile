@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, Alert } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -66,27 +66,65 @@ class Approval extends Component {
 		this.clear();
 	};
 
-	onConfirm = transaction => {
+	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		const {
-			params: { transactionMeta }
-		} = this.props.navigation.state;
-		TransactionController.updateTransaction(this.prepareTransactionMeta(transaction));
-		TransactionController.approveTransaction(transactionMeta.id);
-		this.props.navigation.goBack();
-		this.clear();
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		let { transaction } = this.props;
+		try {
+			if (assetType === 'ETH') {
+				transaction = this.prepareTransaction(transaction);
+			} else {
+				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
+			}
+			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+				if (transactionMeta.status === 'submitted') {
+					const hash = transactionMeta.transactionHash;
+					this.props.navigation.push('TransactionSubmitted', { hash });
+					this.clear();
+				} else {
+					throw transactionMeta.error;
+				}
+			});
+			await TransactionController.updateTransaction({ transaction });
+			await TransactionController.approveTransaction(transaction.id);
+		} catch (error) {
+			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			this.setState({ transactionConfirmed: false });
+		}
 	};
 
 	onModeChange = mode => {
 		this.setState({ mode });
 	};
 
-	prepareTransaction(transaction) {
-		transaction.gas = BNToHex(transaction.gas);
-		transaction.gasPrice = BNToHex(transaction.gasPrice);
-		transaction.value = BNToHex(transaction.value);
-		return transaction;
-	}
+	/**
+	 * Returns transaction object with gas, gasPrice and value in hex format
+	 *
+	 * @param {object} transaction - Transaction object
+	 */
+	prepareTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: BNToHex(transaction.value)
+	});
+
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
+	 * and to set to selectedAsset address
+	 *
+	 * @param {object} transaction - Transaction object
+	 * @param {object} selectedAsset - Asset object
+	 */
+	prepareAssetTransaction = (transaction, selectedAsset) => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: '0x0',
+		to: selectedAsset.address
+	});
 
 	sanitizeTransaction(transaction) {
 		transaction.gas = hexToBN(transaction.gas);
