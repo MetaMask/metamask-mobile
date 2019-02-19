@@ -9,10 +9,17 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
-    contentContainerStyle={
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    resetScrollToCoords={
       Object {
-        "flex": 1,
+        "x": 0,
+        "y": 0,
       }
     }
     style={
@@ -22,6 +29,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
       }
     }
     testID="first-incoming-transaction-screen"
+    viewIsInsideTabBar={false}
   >
     <View
       style={
@@ -232,6 +240,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         IMPORT
       </StyledButton>
     </View>
-  </ScrollView>
+  </KeyboardAwareScrollView>
 </View>
 `;
