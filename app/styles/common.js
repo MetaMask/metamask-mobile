@@ -28,6 +28,7 @@ export const colors = {
 	lighterGray: '#F7F7F7',
 	another50ShadesOfGrey: '#8E8E93',
 	lightRed: '#fff1f2',
+	lightBlue: '#F2F9FE',
 	primary: '#008edf',
 	primaryFox: '#f7861ce6',
 	red: '#f00',

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Engine from '../../../core/Engine';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
 import {
@@ -27,16 +27,18 @@ const styles = StyleSheet.create({
 		minHeight: 450
 	},
 	titleWrapper: {
+		width: '100%',
+		height: 33,
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor
 	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold
+	dragger: {
+		width: 48,
+		height: 5,
+		borderRadius: 4,
+		backgroundColor: colors.gray
 	},
 	accountsWrapper: {
 		flex: 1
@@ -68,18 +70,39 @@ const styles = StyleSheet.create({
 		alignContent: 'flex-end'
 	},
 	footer: {
-		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
-		height: 80,
+		height: 120,
+		paddingBottom: 30,
 		justifyContent: 'center',
-		flexDirection: 'row',
-		alignItems: 'center',
-		paddingBottom: 30
+		flexDirection: 'column',
+		alignItems: 'center'
 	},
-	addAccountText: {
-		fontSize: 16,
+	btnText: {
+		fontSize: 14,
 		color: colors.primary,
 		...fontStyles.normal
+	},
+	footerButton: {
+		width: '100%',
+		height: 43,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderTopWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.borderColor
+	},
+	importedText: {
+		color: colors.another50ShadesOfGrey,
+		fontSize: 10,
+		...fontStyles.bold
+	},
+	importedWrapper: {
+		width: 70,
+		flex: 1,
+		marginTop: 5,
+		paddingHorizontal: 10,
+		paddingVertical: 3,
+		borderRadius: 10,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.another50ShadesOfGrey
 	}
 });
 
@@ -107,7 +130,11 @@ export default class AccountList extends Component {
 		/**
 		 * function to be called when switching accounts
 		 */
-		onAccountChange: PropTypes.func
+		onAccountChange: PropTypes.func,
+		/**
+		 * function to be called when importing an account
+		 */
+		onImportAccount: PropTypes.func
 	};
 
 	state = {
@@ -131,29 +158,35 @@ export default class AccountList extends Component {
 		this.scrollToCurrentAccount();
 	}
 
-	scrollToCurrentAccount() {
-		const position = this.state.selectedAccountIndex * 68;
-		if (position < 400) return;
-		if (position - this.lastPosition < 68) return;
-		InteractionManager.runAfterInteractions(() => {
-			!this.scrolling &&
-				this.scrollViewRef &&
-				this.scrollViewRef.current &&
-				this.scrollViewRef.current.scrollTo({
-					x: 0,
-					y: position,
-					animated: true
-				});
-			this.scrolling = true;
-			setTimeout(() => {
-				this.scrolling = false;
-				this.lastPosition = position;
-			}, 500);
-		});
-	}
-
 	componentDidMount() {
 		this.getInitialSelectedAccountIndex();
+		this.scrollToCurrentAccount();
+	}
+
+	scrollToCurrentAccount() {
+		let position = this.state.selectedAccountIndex * 81;
+		if (position - 215 > 0) {
+			position -= 215;
+			if (this.lastPosition === position) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+
+		!this.scrolling &&
+			this.scrollViewRef &&
+			this.scrollViewRef.current &&
+			this.scrollViewRef.current.scrollTo({
+				x: 0,
+				y: position,
+				animated: true
+			});
+		this.scrolling = true;
+		setTimeout(() => {
+			this.scrolling = false;
+			this.lastPosition = position;
+		}, 300);
 	}
 
 	onAccountChange = async newIndex => {
@@ -162,7 +195,7 @@ export default class AccountList extends Component {
 		const { keyrings } = this.props;
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
-			// This is a temporary fix until we can read the state from GABA
+
 			const allKeyrings =
 				keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
@@ -182,6 +215,10 @@ export default class AccountList extends Component {
 			this.setState({ selectedAccountIndex: previousIndex });
 			Logger.error('error while trying change the selected account', e); // eslint-disable-line
 		}
+	};
+
+	importAccount = () => {
+		this.props.onImportAccount();
 	};
 
 	addAccount = async () => {
@@ -204,21 +241,43 @@ export default class AccountList extends Component {
 		}
 	};
 
+	isImported(allKeyrings, address) {
+		let ret = false;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(address)) {
+				ret = keyring.type !== 'HD Key Tree';
+				break;
+			}
+		}
+
+		return ret;
+	}
+
 	renderAccounts() {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
 			const checksummedAddress = toChecksumAddress(addr);
 			const identity = identities[checksummedAddress];
 			const { name, address } = identity;
-			const isSelected = toChecksumAddress(address) === toChecksumAddress(selectedAddress);
+			const identityAddressChecksummed = toChecksumAddress(address);
+			const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
+			const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
 			let balance = 0x0;
-			if (accounts[toChecksumAddress(address)]) {
-				balance = accounts[toChecksumAddress(address)].balance;
+			if (accounts[identityAddressChecksummed]) {
+				balance = accounts[identityAddressChecksummed].balance;
 			}
-			const selected = isSelected ? <Icon name="check" size={30} color={colors.success} /> : null;
+			const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
+			const imported = isImported ? (
+				<View style={styles.importedWrapper}>
+					<Text numberOfLines={1} style={styles.importedText}>
+						{strings('accounts.imported')}
+					</Text>
+				</View>
+			) : null;
 
 			return (
 				<TouchableOpacity
@@ -232,6 +291,7 @@ export default class AccountList extends Component {
 						<Text style={styles.accountBalance}>
 							{renderFromWei(balance)} {strings('unit.eth')}
 						</Text>
+						<View style={styles.imported}>{imported}</View>
 					</View>
 					<View style={styles.selected}>{selected}</View>
 				</TouchableOpacity>
@@ -239,25 +299,28 @@ export default class AccountList extends Component {
 		});
 	}
 
-	render = () => (
-		<SafeAreaView style={styles.wrapper} testID={'account-list'}>
-			<View style={styles.titleWrapper}>
-				<Text testID={'account-list-title'} style={styles.title}>
-					{strings('accounts.title')}
-				</Text>
-			</View>
-			<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
-				{this.renderAccounts()}
-			</ScrollView>
-			<View style={styles.footer}>
-				<TouchableOpacity onPress={this.addAccount}>
-					{this.state.loading ? (
-						<ActivityIndicator size="small" color={colors.primary} />
-					) : (
-						<Text style={styles.addAccountText}>{strings('accounts.create_new_account')}</Text>
-					)}
-				</TouchableOpacity>
-			</View>
-		</SafeAreaView>
-	);
+	render() {
+		return (
+			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
+				<View style={styles.titleWrapper}>
+					<View style={styles.dragger} />
+				</View>
+				<ScrollView ref={this.scrollViewRef} style={styles.accountsWrapper}>
+					{this.renderAccounts()}
+				</ScrollView>
+				<View style={styles.footer}>
+					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
+						{this.state.loading ? (
+							<ActivityIndicator size="small" color={colors.primary} />
+						) : (
+							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
+						)}
+					</TouchableOpacity>
+					<TouchableOpacity onPress={this.importAccount} style={styles.footerButton}>
+						<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
+					</TouchableOpacity>
+				</View>
+			</SafeAreaView>
+		);
+	}
 }

@@ -463,6 +463,12 @@ class DrawerView extends Component {
 		}, 300);
 	};
 
+	onImportAccount = () => {
+		this.hideAccountsModal();
+		this.hideDrawer();
+		this.props.navigation.navigate('ImportPrivateKey');
+	};
+
 	getIcon(name, size) {
 		return <Icon name={name} size={size || 24} color={colors.gray} />;
 	}
@@ -669,6 +675,7 @@ class DrawerView extends Component {
 						selectedAddress={selectedAddress}
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
+						onImportAccount={this.onImportAccount}
 					/>
 				</Modal>
 			</SafeAreaView>
