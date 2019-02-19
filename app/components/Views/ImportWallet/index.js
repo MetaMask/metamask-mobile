@@ -94,6 +94,9 @@ const styles = StyleSheet.create({
 	}
 });
 
+const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
+const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
+
 /**
  * View where users can decide how to import their wallet
  */
@@ -189,12 +192,9 @@ class ImportWallet extends Component {
 		this.loading = true;
 		this.mounted && this.setState({ loading: true });
 
-		// We need to use ENV variables to set this
-		// And rotate keys before going opensource
-		// See https://github.com/MetaMask/MetaMask/issues/145
 		this.pubnub = new PubNub({
-			subscribeKey: process.env['MM_PUBNUB_SUB_KEY'], // eslint-disable-line dot-notation
-			publishKey: process.env['MM_PUBNUB_PUB_KEY'], // eslint-disable-line dot-notation
+			subscribeKey: SUB_KEY,
+			publishKey: PUB_KEY,
 			cipherKey: this.cipherKey,
 			ssl: true
 		});
@@ -331,6 +331,15 @@ class ImportWallet extends Component {
 	};
 
 	onPressSync = () => {
+		if (!PUB_KEY || PUB_KEY === 'KEY') {
+			// Dev message
+			Alert.alert(
+				'This feature has been disabled',
+				`Because you did not set the .js.env file. Look at .js.env.example for more information`
+			);
+			return false;
+		}
+
 		if (this.props.navigation.getParam('existingUser', false)) {
 			Alert.alert(
 				strings('sync_with_extension.warning_title'),
