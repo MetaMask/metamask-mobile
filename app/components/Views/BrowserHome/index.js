@@ -55,7 +55,9 @@ class BrowserHome extends Component {
 
 	componentDidMount() {
 		this.mounted = true;
-		Branch.subscribe(this.handleDeeplinks);
+		if (!__DEV__) {
+			Branch.subscribe(this.handleDeeplinks);
+		}
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 		this.feedback = new Feedback({
 			action: () => {
