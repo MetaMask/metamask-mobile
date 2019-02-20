@@ -40,6 +40,7 @@ import AccountApproval from '../../UI/AccountApproval';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory } from '../../../actions/browser';
+import { setTransactionObject } from '../../../actions/transaction';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -254,6 +255,10 @@ export class Browser extends Component {
 		 */
 		searchEngine: PropTypes.string,
 		/**
+		 * Action that sets a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
 		 * Function to store the a page in the browser history
 		 */
 		addToBrowserHistory: PropTypes.func
@@ -365,7 +370,11 @@ export class Browser extends Component {
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
-			this.props.navigation.push('ApprovalView', { transactionMeta });
+			this.props.setTransactionObject({
+				...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
+				...transactionMeta.transaction
+			});
+			this.props.navigation.push('ApprovalView');
 		});
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
@@ -1044,7 +1053,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	approveHost: hostname => dispatch(approveHost(hostname)),
 	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
-	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name }))
+	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
+	setTransactionObject: asset => dispatch(setTransactionObject(asset))
 });
 
 export default connect(

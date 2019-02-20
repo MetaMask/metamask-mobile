@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, Alert } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -7,6 +7,8 @@ import { BNToHex, hexToBN } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
+import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -18,62 +20,125 @@ const styles = StyleSheet.create({
 /**
  * Component that manages transaction approval from the dapp browser
  */
-export default class Approval extends Component {
+class Approval extends Component {
 	static navigationOptions = () => getNavigationOptionsTitle(strings('approval.title'));
 
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action that cleans transaction state
+		 */
+		newTransaction: PropTypes.func.isRequired,
+		/**
+		 * Action that sets transaction attributes from object to a transaction
+		 */
+		setTransactionObject: PropTypes.func.isRequired,
+		/**
+		 * Transaction state
+		 */
+		transaction: PropTypes.object.isRequired
 	};
 
 	state = {
 		mode: 'review'
 	};
 
+	componentDidMount = () => {
+		let { transaction } = this.props;
+		transaction = this.sanitizeTransaction(transaction);
+		this.props.setTransactionObject(transaction);
+	};
+
+	componentWillUnmount = () => {
+		const { transaction } = this.props;
+		Engine.context.TransactionController.cancelTransaction(transaction.id);
+		this.clear();
+	};
+
+	/**
+	 * Transaction state is erased, ready to create a new clean transaction
+	 */
+	clear = () => {
+		this.props.newTransaction();
+	};
+
 	onCancel = () => {
-		const {
-			params: { transactionMeta }
-		} = this.props.navigation.state;
-		Engine.context.TransactionController.cancelTransaction(transactionMeta.id);
 		this.props.navigation.goBack();
 	};
 
-	onConfirm = transaction => {
+	/**
+	 * Callback on confirm transaction
+	 */
+	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
 		const {
-			params: { transactionMeta }
-		} = this.props.navigation.state;
-		transactionMeta.transaction = transaction;
-		TransactionController.updateTransaction(this.prepareTransactionMeta(transactionMeta));
-		TransactionController.approveTransaction(transactionMeta.id);
-		this.props.navigation.goBack();
+			transaction: { assetType }
+		} = this.props;
+		let { transaction } = this.props;
+		try {
+			if (assetType === 'ETH') {
+				transaction = this.prepareTransaction(transaction);
+			}
+			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+				if (transactionMeta.status === 'submitted') {
+					const hash = transactionMeta.transactionHash;
+					this.props.navigation.push('TransactionSubmitted', { hash });
+					this.clear();
+				} else {
+					throw transactionMeta.error;
+				}
+			});
+			await TransactionController.updateTransaction({ transaction });
+			await TransactionController.approveTransaction(transaction.id);
+		} catch (error) {
+			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			this.setState({ transactionConfirmed: false });
+		}
 	};
 
 	onModeChange = mode => {
 		this.setState({ mode });
 	};
 
-	prepareTransactionMeta(meta) {
-		meta.transaction.gas = BNToHex(meta.transaction.gas);
-		meta.transaction.gasPrice = BNToHex(meta.transaction.gasPrice);
-		meta.transaction.value = BNToHex(meta.transaction.value);
-		return meta;
-	}
+	/**
+	 * Returns transaction object with gas, gasPrice and value in hex format
+	 *
+	 * @param {object} transaction - Transaction object
+	 */
+	prepareTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: BNToHex(transaction.value)
+	});
 
-	sanitizeTransactionMeta(meta) {
-		meta.transaction.gas = hexToBN(meta.transaction.gas);
-		meta.transaction.gasPrice = hexToBN(meta.transaction.gasPrice);
-		meta.transaction.value = hexToBN(meta.transaction.value);
-		return meta;
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
+	 * and to set to selectedAsset address
+	 *
+	 * @param {object} transaction - Transaction object
+	 * @param {object} selectedAsset - Asset object
+	 */
+	prepareAssetTransaction = (transaction, selectedAsset) => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: '0x0',
+		to: selectedAsset.address
+	});
+
+	sanitizeTransaction(transaction) {
+		transaction.gas = hexToBN(transaction.gas);
+		transaction.gasPrice = hexToBN(transaction.gasPrice);
+		transaction.value = hexToBN(transaction.value);
+		return transaction;
 	}
 
 	render = () => {
-		const {
-			params: { transactionMeta }
-		} = this.props.navigation.state;
-		const { transaction } = this.sanitizeTransactionMeta(transactionMeta);
+		const { transaction } = this.props;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionEditor
@@ -88,3 +153,17 @@ export default class Approval extends Component {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	transaction: state.transaction
+});
+
+const mapDispatchToProps = dispatch => ({
+	newTransaction: () => dispatch(newTransaction()),
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Approval);
