@@ -154,23 +154,6 @@ exports[`TransactionReview should render correctly 1`] = `
         />
       </View>
     </View>
-    <Text
-      style={
-        Object {
-          "backgroundColor": "#fff1f2",
-          "color": "#FF0000",
-          "fontFamily": "Roboto",
-          "fontSize": 12,
-          "fontWeight": "400",
-          "letterSpacing": 0.5,
-          "marginHorizontal": 14,
-          "marginTop": 5,
-          "paddingHorizontal": 5,
-          "paddingVertical": 8,
-          "textAlign": "center",
-        }
-      }
-    />
   </ActionView>
 </View>
 `;
