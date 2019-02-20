@@ -12,6 +12,8 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import BrowserFeatured from '../../Views/BrowserHomePage/BrowserFeatured';
 import BrowserFavourites from '../../Views/BrowserHomePage/BrowserFavourites';
+import UrlAutocomplete from '../UrlAutocomplete';
+import onUrlSubmit from '../../../util/browser';
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
@@ -127,6 +129,13 @@ const styles = StyleSheet.create({
 	metamaskName: {
 		width: 90,
 		height: 16
+	},
+	urlAutocomplete: {
+		position: 'absolute',
+		marginTop: 60,
+		backgroundColor: colors.white,
+		width: '100%',
+		height: '100%'
 	}
 });
 
@@ -161,7 +170,8 @@ class HomePage extends Component {
 	};
 
 	state = {
-		searchInputValue: ''
+		searchInputValue: '',
+		inputValue: ''
 	};
 
 	actionSheet = null;
@@ -195,6 +205,22 @@ class HomePage extends Component {
 			/>
 		);
 	}
+	onUrlInputSubmit = async (input = null) => {
+		const inputValue = (typeof input === 'string' && input) || this.state.inputValue;
+		const { defaultProtocol, searchEngine } = this.props;
+		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
+		if (sanitizedInput) {
+			await this.props.goTo(sanitizedInput);
+		} else {
+			this.onInitialUrlSubmit(input);
+		}
+	};
+
+	onAutocomplete = link => {
+		this.setState({ inputValue: link }, () => {
+			this.onUrlInputSubmit(link);
+		});
+	};
 
 	render() {
 		return (
@@ -258,6 +284,11 @@ class HomePage extends Component {
 							</ElevatedView>
 						</TouchableOpacity>
 					)}
+				{this.state.searchInputValue.length > 1 && (
+					<ElevatedView elevation={10} style={styles.urlAutocomplete}>
+						<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
+					</ElevatedView>
+				)}
 			</View>
 		);
 	}
