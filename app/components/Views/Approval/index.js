@@ -52,7 +52,7 @@ class Approval extends Component {
 		this.props.setTransactionObject(transaction);
 	};
 
-	componentWillUnmount = async () => {
+	componentWillUnmount = () => {
 		const { transaction } = this.props;
 		Engine.context.TransactionController.cancelTransaction(transaction.id);
 		this.clear();
@@ -61,7 +61,7 @@ class Approval extends Component {
 	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
-	clear = async () => {
+	clear = () => {
 		this.props.newTransaction();
 	};
 

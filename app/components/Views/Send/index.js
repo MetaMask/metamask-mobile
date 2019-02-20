@@ -88,7 +88,7 @@ class Send extends Component {
 	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
-	clear = async () => {
+	clear = () => {
 		this.props.newTransaction();
 	};
 
