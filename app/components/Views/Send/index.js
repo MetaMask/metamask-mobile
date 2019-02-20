@@ -88,7 +88,7 @@ class Send extends Component {
 	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
-	clear = async () => {
+	clear = () => {
 		this.props.newTransaction();
 	};
 
@@ -215,7 +215,6 @@ class Send extends Component {
 		Engine.context.TransactionController.cancelTransaction(id);
 		this.props.navigation.pop();
 		this.unmountHandled = true;
-		this.clear();
 	};
 
 	/**
@@ -242,7 +241,6 @@ class Send extends Component {
 			const hash = await result;
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.removeCollectible();
-			this.clear();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);

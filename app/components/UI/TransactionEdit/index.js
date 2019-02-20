@@ -191,12 +191,15 @@ class TransactionEdit extends Component {
 		fillMax: false
 	};
 
-	componentDidMount() {
+	componentDidMount = () => {
 		const { transaction } = this.props;
 		if (transaction && transaction.value) {
 			this.props.handleUpdateAmount(transaction.value);
 		}
-	}
+		if (transaction && transaction.assetType === 'ETH') {
+			this.props.handleUpdateReadableValue(fromWei(transaction.value));
+		}
+	};
 
 	fillMax = () => {
 		const { gas, gasPrice, from, selectedAsset, assetType } = this.props.transaction;
@@ -319,7 +322,8 @@ class TransactionEdit extends Component {
 	render = () => {
 		const {
 			transaction: { value, gas, gasPrice, data, from, to, selectedAsset },
-			showHexData
+			showHexData,
+			readableValue
 		} = this.props;
 		const { gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -340,7 +344,7 @@ class TransactionEdit extends Component {
 								value={value}
 								asset={selectedAsset}
 								handleUpdateAsset={this.props.handleUpdateAsset}
-								readableValue={this.props.readableValue}
+								readableValue={readableValue}
 								fillMax={this.state.fillMax}
 								updateFillMax={this.updateFillMax}
 							/>
