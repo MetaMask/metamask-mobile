@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ActionSheet from 'react-native-actionsheet';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -17,11 +16,14 @@ import {
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { removeBookmark } from '../../../actions/bookmarks';
-import WebsiteIcon from '../WebsiteIcon';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DeviceSize from '../../../util/DeviceSize';
 import { withNavigation } from 'react-navigation';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import BrowserFeatured from '../../Views/BrowserHomePage/BrowserFeatured';
+import BrowserFavourites from '../../Views/BrowserHomePage/BrowserFavourites';
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
@@ -34,8 +36,11 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	startPageWrapperContent: {
-		backgroundColor: colors.white,
-		paddingHorizontal: 18
+		backgroundColor: colors.white
+	},
+	homePageContent: {
+		paddingHorizontal: 18,
+		marginBottom: 43
 	},
 	foxWrapper: {
 		height: 20
@@ -73,36 +78,6 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
-	bookmarksWrapper: {
-		alignSelf: 'flex-start',
-		flex: 1
-	},
-	bookmarksTitle: {
-		fontSize: Platform.OS === 'android' ? 15 : 20,
-		marginTop: 20,
-		marginBottom: 10,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		...fontStyles.bold
-	},
-	bookmarkItem: {
-		marginBottom: 15,
-		paddingVertical: 5
-	},
-	bookmarkTouchable: {
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
-	bookmarkUrl: {
-		paddingRight: 35,
-		...fontStyles.normal
-	},
-	bookmarkIco: {
-		width: 26,
-		height: 26,
-		marginRight: 7,
-		borderRadius: 13
-	},
 	searchWrapper: {
 		flex: 1,
 		flexDirection: 'row',
@@ -114,13 +89,6 @@ const styles = StyleSheet.create({
 		width: '100%',
 		fontSize: 14,
 		...fontStyles.normal
-	},
-	noBookmarks: {
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	fallbackTextStyle: {
-		fontSize: 12
 	},
 	backupAlert: {
 		position: 'absolute',
@@ -154,6 +122,19 @@ const styles = StyleSheet.create({
 		lineHeight: 14,
 		color: colors.warningText,
 		...fontStyles.normal
+	},
+	tabUnderlineStyle: {
+		height: 2,
+		backgroundColor: colors.primary
+	},
+	tabStyle: {
+		paddingHorizontal: 0,
+		backgroundColor: colors.beige
+	},
+	textStyle: {
+		fontSize: 12,
+		letterSpacing: 0.5,
+		...fontStyles.bold
 	}
 });
 
@@ -229,48 +210,18 @@ class HomePage extends Component {
 		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
-	renderBookmarks = () => {
-		let content = null;
-		if (this.props.bookmarks.length) {
-			content = this.props.bookmarks.map((item, i) => (
-				<View key={item.url} style={styles.bookmarkItem}>
-					<TouchableOpacity
-						style={styles.bookmarkTouchable}
-						onPress={() => this.props.onBookmarkTapped(item.url)} // eslint-disable-line react/jsx-no-bind
-						// eslint-disable-next-line react/jsx-no-bind
-						onLongPress={() => this.showRemoveMenu(i)}
-					>
-						<WebsiteIcon
-							style={styles.bookmarkIco}
-							url={item.url}
-							title={item.name}
-							textStyle={styles.fallbackTextStyle}
-						/>
-						<Text numberOfLines={1} style={styles.bookmarkUrl}>
-							{item.name}
-						</Text>
-					</TouchableOpacity>
-				</View>
-			));
-		} else {
-			content = <Text style={styles.noBookmarks}>{strings('home_page.no_bookmarks')}</Text>;
-		}
+	renderTabBar() {
 		return (
-			<View style={styles.bookmarksWrapper}>
-				<Text style={styles.bookmarksTitle}>{strings('home_page.bookmarks')}</Text>
-				<View style={styles.bookmarksItemsWrapper}>{content}</View>
-				<ActionSheet
-					ref={this.createActionSheetRef}
-					title={strings('home_page.remove_bookmark_title')}
-					options={['Remove', 'cancel']}
-					cancelButtonIndex={1}
-					destructiveButtonIndex={0}
-					// eslint-disable-next-line react/jsx-no-bind
-					onPress={index => (index === 0 ? this.removeBookmark() : null)}
-				/>
-			</View>
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.primary}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.textStyle}
+			/>
 		);
-	};
+	}
 
 	render() {
 		return (
@@ -280,38 +231,43 @@ class HomePage extends Component {
 					contentContainerStyle={styles.startPageWrapperContent}
 					resetScrollToCoords={{ x: 0, y: 0 }}
 				>
-					<View style={styles.searchWrapper}>
-						<Icon name="search" size={18} color={colors.fontPrimary} />
-						<TextInput
-							style={styles.searchInput}
-							autoCapitalize="none"
-							autoCorrect={false}
-							clearButtonMode="while-editing"
-							onChangeText={this.onInitialUrlChange}
-							onSubmitEditing={this.onInitialUrlSubmit}
-							placeholder={'SEARCH'}
-							placeholderTextColor={colors.asphalt}
-							returnKeyType="go"
-							value={this.state.searchInputValue}
-						/>
-					</View>
-					<View style={styles.topBarWrapper}>
-						<View style={styles.foxWrapper}>
-							<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+					<View style={styles.homePageContent}>
+						<View style={styles.searchWrapper}>
+							<Icon name="search" size={18} color={colors.fontPrimary} />
+							<TextInput
+								style={styles.searchInput}
+								autoCapitalize="none"
+								autoCorrect={false}
+								clearButtonMode="while-editing"
+								onChangeText={this.onInitialUrlChange}
+								onSubmitEditing={this.onInitialUrlSubmit}
+								placeholder={'SEARCH'}
+								placeholderTextColor={colors.asphalt}
+								returnKeyType="go"
+								value={this.state.searchInputValue}
+							/>
 						</View>
-						<View style={styles.titleWrapper}>
-							<Text style={styles.title}>Metamask | DAPP BROWSER</Text>
+						<View style={styles.topBarWrapper}>
+							<View style={styles.foxWrapper}>
+								<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+							</View>
+							<View style={styles.titleWrapper}>
+								<Text style={styles.title}>Metamask | DAPP BROWSER</Text>
+							</View>
+						</View>
+
+						<View style={styles.startPageContent}>
+							<Text style={styles.startPageTitle}>Welcome!</Text>
+							<Text style={styles.startPageSubtitle}>
+								MetaMask is your wallet and browser for the decentralized web. Have a look around!
+							</Text>
 						</View>
 					</View>
 
-					<View style={styles.startPageContent}>
-						<Text style={styles.startPageTitle}>Welcome!</Text>
-						<Text style={styles.startPageSubtitle}>
-							MetaMask is your wallet and browser for the decentralized web. Have a look around!
-						</Text>
-
-						{this.renderBookmarks()}
-					</View>
+					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
+						<BrowserFeatured tabLabel={'FEATURED DAPPS'} />
+						<BrowserFavourites tabLabel={'MY FAVORITES'} onBookmarkTapped={this.props.onBookmarkTapped} />
+					</ScrollableTabView>
 				</KeyboardAwareScrollView>
 				{this.props.passwordSet &&
 					!this.props.seedphraseBackedUp && (
