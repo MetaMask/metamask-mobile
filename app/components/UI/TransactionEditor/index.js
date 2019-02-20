@@ -257,7 +257,7 @@ class TransactionEditor extends Component {
 	/**
 	 * Validates amount, gas and to address
 	 *
-	 * @returns {boolean} - Whether the transaction is valid or not
+	 * @returns {string} - Whether the transaction is valid or not, if not it returns error message
 	 */
 	validate = async () => (await this.validateAmount(false)) || this.validateGas() || this.validateToAddress();
 
