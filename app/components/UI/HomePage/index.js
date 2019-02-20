@@ -149,7 +149,7 @@ class HomePage extends Component {
 		/**
 		 * Function to be called when tapping on a bookmark item
 		 */
-		onBookmarkTapped: PropTypes.any,
+		goTo: PropTypes.any,
 		/**
 		 * function to be called when submitting the text input field
 		 */
@@ -243,8 +243,8 @@ class HomePage extends Component {
 					</View>
 
 					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-						<BrowserFeatured tabLabel={'FEATURED DAPPS'} />
-						<BrowserFavourites tabLabel={'MY FAVORITES'} onBookmarkTapped={this.props.onBookmarkTapped} />
+						<BrowserFeatured tabLabel={'FEATURED DAPPS'} goTo={this.props.goTo} />
+						<BrowserFavourites tabLabel={'MY FAVORITES'} goTo={this.props.goTo} />
 					</ScrollableTabView>
 				</KeyboardAwareScrollView>
 				{this.props.passwordSet &&

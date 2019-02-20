@@ -56,7 +56,7 @@ class BrowserFavourites extends Component {
 		/**
 		 * Function to be called when tapping on a bookmark item
 		 */
-		onBookmarkTapped: PropTypes.any,
+		goTo: PropTypes.any,
 		/**
 		 * function that removes a bookmark
 		 */
@@ -87,7 +87,7 @@ class BrowserFavourites extends Component {
 				<View key={item.url} style={styles.bookmarkItem}>
 					<TouchableOpacity
 						style={styles.bookmarkTouchable}
-						onPress={() => this.props.onBookmarkTapped(item.url)} // eslint-disable-line react/jsx-no-bind
+						onPress={() => this.props.goTo(item.url)} // eslint-disable-line react/jsx-no-bind
 						// eslint-disable-next-line react/jsx-no-bind
 						onLongPress={() => this.showRemoveMenu(i)}
 					>
