@@ -147,7 +147,7 @@ class TransactionReview extends Component {
 		toFocused: false,
 		actionKey: strings('transactions.tx_review_confirm'),
 		showHexData: false,
-		error: ''
+		error: undefined
 	};
 
 	componentDidMount = async () => {
@@ -239,11 +239,11 @@ class TransactionReview extends Component {
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}
 					confirmed={transactionConfirmed}
-					confirmDisabled={error !== ''}
+					confirmDisabled={error !== undefined}
 				>
 					<TransactionReviewSummary edit={this.edit} actionKey={actionKey} />
 					<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
-					<Text style={styles.error}>{this.state.error}</Text>
+					{error && <Text style={styles.error}>{error}</Text>}
 				</ActionView>
 			</View>
 		);
