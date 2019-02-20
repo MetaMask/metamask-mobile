@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, View, FlatList } from 'react-native';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import { colors, fontStyles } from '../../../../styles/common';
 import ActionSheet from 'react-native-actionsheet';
@@ -11,19 +11,22 @@ import { removeBookmark } from '../../../../actions/bookmarks';
 
 const styles = StyleSheet.create({
 	bookmarksWrapper: {
-		alignSelf: 'flex-start',
 		flex: 1
 	},
 	bookmarkItem: {
-		marginBottom: 15,
-		paddingVertical: 5
+		paddingVertical: 5,
+		paddingHorizontal: 18
 	},
+	bookmarksItemsWrapper: {
+		flex: 1
+	},
+
 	bookmarkTouchable: {
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
 	bookmarkUrl: {
-		paddingRight: 35,
+		flex: 1,
 		...fontStyles.normal
 	},
 	bookmarkIco: {
@@ -40,7 +43,7 @@ const styles = StyleSheet.create({
 		fontSize: 12
 	},
 	wrapper: {
-		padding: 18
+		flex: 1
 	}
 });
 
@@ -65,44 +68,53 @@ class BrowserFavourites extends Component {
 
 	actionSheet = null;
 
-	bookmarkIndexToRemove = null;
+	keyExtractor = item => item.url;
 
-	showRemoveMenu = index => {
-		this.bookmarkIndexToRemove = index;
+	bookmarkUrlToRemove = null;
+
+	showRemoveMenu = url => {
+		this.bookmarkUrlToRemove = url;
 		this.actionSheet.show();
 	};
 
 	removeBookmark = () => {
-		this.props.removeBookmark(this.props.bookmarks[this.bookmarkIndexToRemove]);
+		const bookmark = this.props.bookmarks.find(bookmark => bookmark.url === this.bookmarkUrlToRemove);
+		this.props.removeBookmark(bookmark);
 	};
 
 	createActionSheetRef = ref => {
 		this.actionSheet = ref;
 	};
 
-	renderBookmarks = () => {
+	renderItem = ({ item }) => {
+		const { url, name } = item;
+		return (
+			<View key={item.url} style={styles.bookmarkItem}>
+				<TouchableOpacity
+					style={styles.bookmarkTouchable}
+					onPress={() => this.props.goTo(url)} // eslint-disable-line react/jsx-no-bind
+					// eslint-disable-next-line react/jsx-no-bind
+					onLongPress={() => this.showRemoveMenu(url)}
+				>
+					<WebsiteIcon
+						style={styles.bookmarkIco}
+						url={url}
+						title={name}
+						textStyle={styles.fallbackTextStyle}
+					/>
+					<Text numberOfLines={1} style={styles.bookmarkUrl}>
+						{name}
+					</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	};
+
+	renderBookmarks() {
+		const { bookmarks } = this.props;
 		let content = null;
-		if (this.props.bookmarks.length) {
-			content = this.props.bookmarks.map((item, i) => (
-				<View key={item.url} style={styles.bookmarkItem}>
-					<TouchableOpacity
-						style={styles.bookmarkTouchable}
-						onPress={() => this.props.goTo(item.url)} // eslint-disable-line react/jsx-no-bind
-						// eslint-disable-next-line react/jsx-no-bind
-						onLongPress={() => this.showRemoveMenu(i)}
-					>
-						<WebsiteIcon
-							style={styles.bookmarkIco}
-							url={item.url}
-							title={item.name}
-							textStyle={styles.fallbackTextStyle}
-						/>
-						<Text numberOfLines={1} style={styles.bookmarkUrl}>
-							{item.name}
-						</Text>
-					</TouchableOpacity>
-				</View>
-			));
+		if (bookmarks.length) {
+			content = <FlatList data={bookmarks} keyExtractor={this.keyExtractor} renderItem={this.renderItem} />;
 		} else {
 			content = <Text style={styles.noBookmarks}>{strings('home_page.no_bookmarks')}</Text>;
 		}
@@ -112,7 +124,7 @@ class BrowserFavourites extends Component {
 				<ActionSheet
 					ref={this.createActionSheetRef}
 					title={strings('home_page.remove_bookmark_title')}
-					options={['Remove', 'cancel']}
+					options={['Remove', 'Cancel']}
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					// eslint-disable-next-line react/jsx-no-bind
@@ -120,7 +132,7 @@ class BrowserFavourites extends Component {
 				/>
 			</View>
 		);
-	};
+	}
 
 	render() {
 		return <View style={styles.wrapper}>{this.renderBookmarks()}</View>;

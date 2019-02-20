@@ -6,8 +6,7 @@ import { TouchableOpacity, FlatList, StyleSheet, View } from 'react-native';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
-		minHeight: 500
+		flex: 1
 	}
 });
 
@@ -21,6 +20,8 @@ export default class BrowserFeatured extends Component {
 		 */
 		goTo: PropTypes.any
 	};
+
+	keyExtractor = item => item.name;
 
 	renderItem = ({ item }) => {
 		const { name, description, url } = item;
@@ -36,7 +37,7 @@ export default class BrowserFeatured extends Component {
 	render() {
 		return (
 			<View style={styles.wrapper}>
-				<FlatList data={dappList} renderItem={this.renderItem} />
+				<FlatList data={dappList} keyExtractor={this.keyExtractor} renderItem={this.renderItem} />
 			</View>
 		);
 	}

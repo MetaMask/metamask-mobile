@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
 	Image,
 	InteractionManager,
@@ -13,7 +12,7 @@ import {
 	TextInput,
 	View
 } from 'react-native';
-import { colors, baseStyles, fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -30,13 +29,6 @@ const styles = StyleSheet.create({
 	flex: {
 		flex: 1
 	},
-	startPageWrapper: {
-		...baseStyles.flexGrow,
-		backgroundColor: colors.white
-	},
-	startPageWrapperContent: {
-		backgroundColor: colors.white
-	},
 	homePageContent: {
 		paddingHorizontal: 18,
 		marginBottom: 43
@@ -45,7 +37,6 @@ const styles = StyleSheet.create({
 		height: 20
 	},
 	topBarWrapper: {
-		flex: 1,
 		flexDirection: 'row'
 	},
 	titleWrapper: {
@@ -56,7 +47,6 @@ const styles = StyleSheet.create({
 		height: 20
 	},
 	startPageContent: {
-		flex: 1,
 		alignItems: 'flex-start'
 	},
 	startPageTitle: {
@@ -78,15 +68,15 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	searchWrapper: {
-		flex: 1,
 		flexDirection: 'row',
 		marginVertical: 20
 	},
 	searchInput: {
 		backgroundColor: colors.white,
-		marginLeft: 10,
+		marginHorizontal: 10,
 		width: '100%',
 		fontSize: 14,
+		flex: 1,
 		...fontStyles.normal
 	},
 	backupAlert: {
@@ -204,49 +194,44 @@ class HomePage extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.flex}>
-				<KeyboardAwareScrollView
-					style={styles.startPageWrapper}
-					contentContainerStyle={styles.startPageWrapperContent}
-					resetScrollToCoords={{ x: 0, y: 0 }}
-				>
-					<View style={styles.homePageContent}>
-						<View style={styles.searchWrapper}>
-							<Icon name="search" size={18} color={colors.fontPrimary} />
-							<TextInput
-								style={styles.searchInput}
-								autoCapitalize="none"
-								autoCorrect={false}
-								clearButtonMode="while-editing"
-								onChangeText={this.onInitialUrlChange}
-								onSubmitEditing={this.onInitialUrlSubmit}
-								placeholder={'SEARCH'}
-								placeholderTextColor={colors.asphalt}
-								returnKeyType="go"
-								value={this.state.searchInputValue}
-							/>
+				<View style={styles.homePageContent}>
+					<View style={styles.searchWrapper}>
+						<Icon name="search" size={18} color={colors.fontPrimary} />
+						<TextInput
+							style={styles.searchInput}
+							autoCapitalize="none"
+							autoCorrect={false}
+							clearButtonMode="while-editing"
+							onChangeText={this.onInitialUrlChange}
+							onSubmitEditing={this.onInitialUrlSubmit}
+							placeholder={'SEARCH'}
+							placeholderTextColor={colors.asphalt}
+							returnKeyType="go"
+							value={this.state.searchInputValue}
+						/>
+					</View>
+					<View style={styles.topBarWrapper}>
+						<View style={styles.foxWrapper}>
+							<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
 						</View>
-						<View style={styles.topBarWrapper}>
-							<View style={styles.foxWrapper}>
-								<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-							</View>
-							<View style={styles.titleWrapper}>
-								<Text style={styles.title}>Metamask | DAPP BROWSER</Text>
-							</View>
-						</View>
-
-						<View style={styles.startPageContent}>
-							<Text style={styles.startPageTitle}>Welcome!</Text>
-							<Text style={styles.startPageSubtitle}>
-								MetaMask is your wallet and browser for the decentralized web. Have a look around!
-							</Text>
+						<View style={styles.titleWrapper}>
+							<Text style={styles.title}>Metamask | DAPP BROWSER</Text>
 						</View>
 					</View>
 
-					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-						<BrowserFeatured tabLabel={'FEATURED DAPPS'} goTo={this.props.goTo} />
-						<BrowserFavourites tabLabel={'MY FAVORITES'} goTo={this.props.goTo} />
-					</ScrollableTabView>
-				</KeyboardAwareScrollView>
+					<View style={styles.startPageContent}>
+						<Text style={styles.startPageTitle}>Welcome!</Text>
+						<Text style={styles.startPageSubtitle}>
+							MetaMask is your wallet and browser for the decentralized web. Have a look around!
+						</Text>
+					</View>
+				</View>
+
+				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
+					<BrowserFeatured tabLabel={'FEATURED DAPPS'} goTo={this.props.goTo} />
+					<BrowserFavourites tabLabel={'MY FAVORITES'} goTo={this.props.goTo} />
+				</ScrollableTabView>
+
 				{this.props.passwordSet &&
 					!this.props.seedphraseBackedUp && (
 						<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
