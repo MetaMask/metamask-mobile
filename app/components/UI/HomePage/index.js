@@ -235,7 +235,7 @@ class HomePage extends Component {
 							clearButtonMode="while-editing"
 							onChangeText={this.onInitialUrlChange}
 							onSubmitEditing={this.onInitialUrlSubmit}
-							placeholder={'SEARCH'}
+							placeholder={strings('browser.search')}
 							placeholderTextColor={colors.asphalt}
 							returnKeyType="go"
 							value={this.state.searchInputValue}
@@ -249,21 +249,19 @@ class HomePage extends Component {
 							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 
 							<Text style={styles.separator}> | </Text>
-							<Text style={styles.title}>DAPP BROWSER</Text>
+							<Text style={styles.title}>{strings('browser.dapp_browser')}</Text>
 						</View>
 					</View>
 
 					<View style={styles.startPageContent}>
 						<Text style={styles.startPageTitle}>Welcome!</Text>
-						<Text style={styles.startPageSubtitle}>
-							MetaMask is your wallet and browser for the decentralized web. Have a look around!
-						</Text>
+						<Text style={styles.startPageSubtitle}>{strings('browser.dapp_browser_message')}</Text>
 					</View>
 				</View>
 
 				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-					<BrowserFeatured tabLabel={'FEATURED DAPPS'} goTo={this.props.goTo} />
-					<BrowserFavourites tabLabel={'MY FAVORITES'} goTo={this.props.goTo} />
+					<BrowserFeatured tabLabel={strings('browser.featured_dapps')} goTo={this.props.goTo} />
+					<BrowserFavourites tabLabel={strings('browser.my_favorites')} goTo={this.props.goTo} />
 				</ScrollableTabView>
 
 				{this.props.passwordSet &&

@@ -340,7 +340,12 @@
 		"go_back": "Go Back",
 		"go_forward": "Go Forward",
 		"close": "Close",
-		"open_in_browser": "Open in Browser"
+		"open_in_browser": "Open in Browser",
+		"dapp_browser": "DAPP BROWSER",
+		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
+		"featured_dapps": "FEATURED DAPPS",
+		"my_favorites": "MY FAVORITES",
+		"search": "SEARCH"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",
