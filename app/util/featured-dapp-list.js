@@ -1,52 +1,23 @@
 export default [
 	{
-		url: 'https://cdp.makerdao.com/',
+		url: 'https://dai.makerdao.com/',
 		name: 'MakerDAO',
-		description: 'Some description ...'
+		description: 'Maker is comprised of a stablecoin, collateral loans, and decentralized governance.'
 	},
 	{
-		url: 'https://www.mycryptoheroes.net/',
-		name: 'My Crypto Heroes',
-		description: 'Some description ...'
+		url: 'https://peepeth.com/welcome',
+		name: 'Peepeth',
+		description: 'A blockchain-powered social network for our best selves.'
 	},
 	{
-		url: 'https://basicattentiontoken.org/',
-		name: 'Basic Attention Token',
-		description: 'Some description ...'
+		url: 'https://3box.io/',
+		name: '3Box',
+		description:
+			'Create a social profile for your Ethereum account to start building trust, connection, and community.'
 	},
 	{
-		url: 'https://idex.market/',
-		name: 'IDEX',
-		description: 'Some description ...'
-	},
-	{
-		url: 'http://status.im/',
-		name: 'Status',
-		description: 'Some description ...'
-	},
-	{
-		url: 'https://storj.io/',
-		name: 'Storj',
-		description: 'Some description ...'
-	},
-	{
-		url: 'https://www.friendsfingers.com',
-		name: 'FriendsFingers',
-		description: 'Some description ...'
-	},
-	{
-		url: 'http://lordless.games',
-		name: 'LORDLESS',
-		description: 'Some description ...'
-	},
-	{
-		url: 'https://www.0xproject.com/portal',
-		name: '0x',
-		description: 'Some description ...'
-	},
-	{
-		url: 'https://market.decentraland.org/',
-		name: 'Decentraland',
-		description: 'Some description ...'
+		url: 'https://gitcoin.co/',
+		name: 'Gitcoin',
+		description: 'Gitcoin is the easiest way to leverage the open source community to incentivize or monetize work.'
 	}
 ];

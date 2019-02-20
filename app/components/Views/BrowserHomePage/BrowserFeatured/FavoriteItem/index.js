@@ -6,7 +6,7 @@ import { colors, fontStyles } from '../../../../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		padding: 18,
+		padding: 15,
 		flex: 1,
 		flexDirection: 'row'
 	},
@@ -15,16 +15,20 @@ const styles = StyleSheet.create({
 		width: 35
 	},
 	iconWrapper: {
-		borderWidth: 2,
-		borderRadius: 10,
+		borderRadius: 8,
 		height: 88,
 		width: 88,
-		borderColor: colors.lightGray,
+		backgroundColor: colors.white,
 		alignItems: 'center',
 		justifyContent: 'center',
-		shadowOpacity: 0.2
+		shadowOpacity: 0.25,
+		shadowOffset: {
+			width: 0,
+			height: 0
+		}
 	},
 	contentWrapper: {
+		flex: 1,
 		paddingHorizontal: 18
 	},
 	name: {
@@ -33,6 +37,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	description: {
+		fontSize: 14,
 		...fontStyles.normal
 	}
 });
@@ -60,12 +65,14 @@ export default class FavoriteItem extends Component {
 		const { name, url, description } = this.props;
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.iconWrapper} elevation={5}>
+				<View style={styles.iconWrapper}>
 					<WebsiteIcon style={styles.icon} title={name} url={url} />
 				</View>
 				<View style={styles.contentWrapper}>
 					<Text style={styles.name}>{name}</Text>
-					<Text style={styles.description}>{description}</Text>
+					<Text style={styles.description} numberOfLines={3}>
+						{description}
+					</Text>
 				</View>
 			</View>
 		);

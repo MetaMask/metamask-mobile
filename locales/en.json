@@ -327,7 +327,7 @@
 		"backup_alert_message": "Tap to save your seed phrase",
 		"bookmarks": "Bookmarks",
 		"no_bookmarks": "Your bookmarks will show up here",
-		"remove_bookmark_title": "Do you want to remove this bookmark?"
+		"remove_bookmark_title": "Do you want to remove this favorite site?"
 	},
 	"browser": {
 		"reload": "Reload",

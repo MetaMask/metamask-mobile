@@ -1,17 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import {
-	Image,
-	InteractionManager,
-	SafeAreaView,
-	TouchableOpacity,
-	Text,
-	Platform,
-	StyleSheet,
-	TextInput,
-	View
-} from 'react-native';
+import { Image, InteractionManager, TouchableOpacity, Text, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
@@ -40,11 +30,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	titleWrapper: {
-		marginLeft: 8
+		flex: 1,
+		flexDirection: 'row',
+		marginLeft: 8,
+		marginTop: 2
 	},
 	image: {
-		width: 20,
-		height: 20
+		width: 22,
+		height: 22
 	},
 	startPageContent: {
 		alignItems: 'flex-start'
@@ -59,8 +52,14 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	title: {
-		fontSize: 16,
+		fontSize: 12,
+		top: 1,
 		...fontStyles.light
+	},
+	separator: {
+		fontSize: 16,
+		top: -2,
+		...fontStyles.normal
 	},
 	startPageSubtitle: {
 		fontSize: Platform.OS === 'android' ? 14 : 16,
@@ -124,8 +123,14 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		letterSpacing: 0.5,
 		...fontStyles.bold
+	},
+	metamaskName: {
+		width: 90,
+		height: 16
 	}
 });
+
+const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 
 /**
  * Main view component for the Lock screen
@@ -193,10 +198,10 @@ class HomePage extends Component {
 
 	render() {
 		return (
-			<SafeAreaView style={styles.flex}>
+			<View style={styles.flex}>
 				<View style={styles.homePageContent}>
 					<View style={styles.searchWrapper}>
-						<Icon name="search" size={18} color={colors.fontPrimary} />
+						<Icon name="search" size={18} color={colors.asphalt} />
 						<TextInput
 							style={styles.searchInput}
 							autoCapitalize="none"
@@ -215,7 +220,10 @@ class HomePage extends Component {
 							<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
 						</View>
 						<View style={styles.titleWrapper}>
-							<Text style={styles.title}>Metamask | DAPP BROWSER</Text>
+							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+
+							<Text style={styles.separator}> | </Text>
+							<Text style={styles.title}>DAPP BROWSER</Text>
 						</View>
 					</View>
 
@@ -250,7 +258,7 @@ class HomePage extends Component {
 							</ElevatedView>
 						</TouchableOpacity>
 					)}
-			</SafeAreaView>
+			</View>
 		);
 	}
 }
