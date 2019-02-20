@@ -8,7 +8,8 @@ import {
 	balanceToFiat,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
-	renderFromWei
+	renderFromWei,
+	fromWei
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -182,7 +183,8 @@ class EthInput extends Component {
 	};
 
 	componentDidMount = () => {
-		const { readableValue, transaction, collectibles } = this.props;
+		const { transaction, collectibles } = this.props;
+		let { readableValue } = this.props;
 		switch (transaction.type) {
 			case 'TOKENS_TRANSACTION':
 				this.setState({
@@ -225,6 +227,9 @@ class EthInput extends Component {
 				break;
 			}
 		}
+		// If value is set, do the same with readable value
+		readableValue =
+			(transaction.value && transaction.assetType === 'ETH' && fromWei(transaction.value)) || readableValue;
 		this.setState({ readableValue });
 	};
 
