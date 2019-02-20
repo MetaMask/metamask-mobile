@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	bookmarkItem: {
-		paddingVertical: 5,
+		paddingTop: 20,
 		paddingHorizontal: 18
 	},
 	bookmarksItemsWrapper: {
