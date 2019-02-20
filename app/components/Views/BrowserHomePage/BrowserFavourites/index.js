@@ -7,6 +7,7 @@ import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import { colors, fontStyles } from '../../../../styles/common';
 import ActionSheet from 'react-native-actionsheet';
+import { removeBookmark } from '../../../../actions/bookmarks';
 
 const styles = StyleSheet.create({
 	bookmarksWrapper: {
@@ -55,7 +56,28 @@ class BrowserFavourites extends Component {
 		/**
 		 * Function to be called when tapping on a bookmark item
 		 */
-		onBookmarkTapped: PropTypes.any
+		onBookmarkTapped: PropTypes.any,
+		/**
+		 * function that removes a bookmark
+		 */
+		removeBookmark: PropTypes.func
+	};
+
+	actionSheet = null;
+
+	bookmarkIndexToRemove = null;
+
+	showRemoveMenu = index => {
+		this.bookmarkIndexToRemove = index;
+		this.actionSheet.show();
+	};
+
+	removeBookmark = () => {
+		this.props.removeBookmark(this.props.bookmarks[this.bookmarkIndexToRemove]);
+	};
+
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
 	};
 
 	renderBookmarks = () => {
@@ -109,4 +131,11 @@ const mapStateToProps = state => ({
 	bookmarks: state.bookmarks
 });
 
-export default connect(mapStateToProps)(withNavigation(BrowserFavourites));
+const mapDispatchToProps = dispatch => ({
+	removeBookmark: bookmark => dispatch(removeBookmark(bookmark))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(withNavigation(BrowserFavourites));

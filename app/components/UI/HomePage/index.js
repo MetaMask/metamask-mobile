@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { removeBookmark } from '../../../actions/bookmarks';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DeviceSize from '../../../util/DeviceSize';
@@ -148,10 +147,6 @@ class HomePage extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * Array containing all the bookmark items
-		 */
-		bookmarks: PropTypes.array,
-		/**
 		 * Function to be called when tapping on a bookmark item
 		 */
 		onBookmarkTapped: PropTypes.any,
@@ -159,10 +154,6 @@ class HomePage extends Component {
 		 * function to be called when submitting the text input field
 		 */
 		onInitialUrlSubmit: PropTypes.any,
-		/**
-		 * function that removes a bookmark
-		 */
-		removeBookmark: PropTypes.func,
 		/**
 		 * redux flag that indicates if the user set a password
 		 */
@@ -191,19 +182,6 @@ class HomePage extends Component {
 		InteractionManager.runAfterInteractions(() => {
 			this.setState({ searchInputValue: '' });
 		});
-	};
-
-	showRemoveMenu = index => {
-		this.bookmarkIndexToRemove = index;
-		this.actionSheet.show();
-	};
-
-	removeBookmark = () => {
-		this.props.removeBookmark(this.props.bookmarks[this.bookmarkIndexToRemove]);
-	};
-
-	createActionSheetRef = ref => {
-		this.actionSheet = ref;
 	};
 
 	backupAlertPress = () => {
@@ -293,16 +271,8 @@ class HomePage extends Component {
 }
 
 const mapStateToProps = state => ({
-	bookmarks: state.bookmarks,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	passwordSet: state.user.passwordSet
 });
 
-const mapDispatchToProps = dispatch => ({
-	removeBookmark: bookmark => dispatch(removeBookmark(bookmark))
-});
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(HomePage));
+export default connect(mapStateToProps)(withNavigation(HomePage));
