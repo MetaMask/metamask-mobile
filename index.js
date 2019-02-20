@@ -13,6 +13,7 @@ useScreens();
 YellowBox.ignoreWarnings([
 	'this.web3.eth',
 	'collectibles.map',
+	'AssetsDectionController._callee',
 	'Accessing view manager configs directly off',
 	'Function components cannot be given refs.',
 	'Task orphaned for request',

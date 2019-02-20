@@ -1,0 +1,245 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ImportPrivateKey should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#F2F9FE",
+      "flex": 1,
+    }
+  }
+>
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
+    resetScrollToCoords={
+      Object {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    style={
+      Object {
+        "backgroundColor": "#F2F9FE",
+        "flex": 1,
+      }
+    }
+    testID="first-incoming-transaction-screen"
+    viewIsInsideTabBar={false}
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+        }
+      }
+    >
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "marginTop": 40,
+            "paddingBottom": 10,
+            "paddingHorizontal": 22,
+            "paddingTop": 20,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          name="close"
+          size={15}
+          style={
+            Object {
+              "color": "#999999",
+              "fontSize": 28,
+            }
+          }
+        />
+      </TouchableOpacity>
+      <View
+        style={
+          Object {
+            "padding": 30,
+            "paddingTop": 0,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          name="download"
+          size={12}
+          style={
+            Object {
+              "fontSize": 50,
+              "marginLeft": 0,
+              "marginTop": 0,
+              "textAlign": "left",
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 32,
+              "fontWeight": "400",
+              "justifyContent": "center",
+              "marginBottom": 40,
+              "marginTop": 20,
+              "textAlign": "left",
+            }
+          }
+        >
+          Import Account
+        </Text>
+        <View
+          style={
+            Object {
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "textAlign": "left",
+              }
+            }
+          >
+            Imported accounts are viewable in your wallet but are not recoverable with your MetaMask seed phrase.
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            onPress={[Function]}
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "textAlign": "left",
+              }
+            }
+          >
+            Learn more about imported accounts here.
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "padding": 30,
+            "width": "100%",
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 18,
+              "fontWeight": "600",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 18,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Paste your private key string
+          </Text>
+        </View>
+        <TextInput
+          allowFontScaling={true}
+          blurOnSubmit={true}
+          multiline={true}
+          numberOfLines={3}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
+          returnKeyType="next"
+          style={
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 0.5,
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "height": 120,
+              "marginBottom": 10,
+              "marginTop": 20,
+              "paddingBottom": 20,
+              "paddingLeft": 20,
+              "paddingRight": 20,
+              "paddingTop": 20,
+            }
+          }
+          testID="input-private-key"
+          underlineColorAndroid="transparent"
+          value=""
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+          "justifyContent": "flex-end",
+          "padding": 20,
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginBottom": 20,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID="submit-button"
+        type="confirm"
+      >
+        IMPORT
+      </StyledButton>
+    </View>
+  </KeyboardAwareScrollView>
+</View>
+`;
