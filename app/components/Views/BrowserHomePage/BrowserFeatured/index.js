@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { View, Text } from 'react-native';
+import dappList from '../../../../util/featured-dapp-list';
+import FavoriteItem from './FavoriteItem';
+import { ScrollView } from 'react-native-gesture-handler';
 
 /**
  * Favourites
@@ -7,9 +9,11 @@ import { View, Text } from 'react-native';
 export default class BrowserFeatured extends Component {
 	render() {
 		return (
-			<View>
-				<Text>BrowserFeatured</Text>
-			</View>
+			<ScrollView>
+				{dappList.map(({ name, url, description }) => (
+					<FavoriteItem key={url} name={name} url={url} description={description} />
+				))}
+			</ScrollView>
 		);
 	}
 }
