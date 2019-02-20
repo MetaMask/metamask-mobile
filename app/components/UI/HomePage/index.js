@@ -14,7 +14,6 @@ import {
 	TextInput,
 	View
 } from 'react-native';
-import AnimatedFox from 'react-native-animated-fox';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { removeBookmark } from '../../../actions/bookmarks';
@@ -23,6 +22,7 @@ import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DeviceSize from '../../../util/DeviceSize';
 import { withNavigation } from 'react-navigation';
+
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 const styles = StyleSheet.create({
@@ -35,22 +35,25 @@ const styles = StyleSheet.create({
 	},
 	startPageWrapperContent: {
 		backgroundColor: colors.white,
-		padding: 30,
-		paddingBottom: 0
+		paddingHorizontal: 18
 	},
 	foxWrapper: {
-		marginTop: 10,
-		marginBottom: 0,
-		height: 120
+		height: 20
+	},
+	topBarWrapper: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	titleWrapper: {
+		marginLeft: 8
 	},
 	image: {
-		alignSelf: 'center',
-		width: 120,
-		height: 120
+		width: 20,
+		height: 20
 	},
 	startPageContent: {
 		flex: 1,
-		alignItems: 'center'
+		alignItems: 'flex-start'
 	},
 	startPageTitle: {
 		fontSize: Platform.OS === 'android' ? 30 : 35,
@@ -61,16 +64,19 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold
 	},
+	title: {
+		fontSize: 16,
+		...fontStyles.light
+	},
 	startPageSubtitle: {
-		fontSize: Platform.OS === 'android' ? 18 : 20,
-		color: colors.fontSecondary,
+		fontSize: Platform.OS === 'android' ? 14 : 16,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
 	bookmarksWrapper: {
 		alignSelf: 'flex-start',
 		flex: 1
 	},
-
 	bookmarksTitle: {
 		fontSize: Platform.OS === 'android' ? 15 : 20,
 		marginTop: 20,
@@ -79,7 +85,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		...fontStyles.bold
 	},
-
 	bookmarkItem: {
 		marginBottom: 15,
 		paddingVertical: 5
@@ -98,15 +103,16 @@ const styles = StyleSheet.create({
 		marginRight: 7,
 		borderRadius: 13
 	},
+	searchWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		marginVertical: 20
+	},
 	searchInput: {
-		marginVertical: 20,
 		backgroundColor: colors.white,
-		padding: 15,
+		marginLeft: 10,
 		width: '100%',
-		borderColor: colors.borderColor,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderRadius: 3,
-		fontSize: 17,
+		fontSize: 14,
 		...fontStyles.normal
 	},
 	noBookmarks: {
@@ -274,16 +280,8 @@ class HomePage extends Component {
 					contentContainerStyle={styles.startPageWrapperContent}
 					resetScrollToCoords={{ x: 0, y: 0 }}
 				>
-					<View style={styles.foxWrapper}>
-						{Platform.OS === 'android' ? (
-							<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-						) : (
-							<AnimatedFox />
-						)}
-					</View>
-					<View style={styles.startPageContent}>
-						<Text style={styles.startPageTitle}>{strings('home_page.lets_get_started')}</Text>
-						<Text style={styles.startPageSubtitle}>{strings('home_page.web3_awaits')}</Text>
+					<View style={styles.searchWrapper}>
+						<Icon name="search" size={18} color={colors.fontPrimary} />
 						<TextInput
 							style={styles.searchInput}
 							autoCapitalize="none"
@@ -291,11 +289,27 @@ class HomePage extends Component {
 							clearButtonMode="while-editing"
 							onChangeText={this.onInitialUrlChange}
 							onSubmitEditing={this.onInitialUrlSubmit}
-							placeholder={strings('home_page.search_placeholder')}
+							placeholder={'SEARCH'}
 							placeholderTextColor={colors.asphalt}
 							returnKeyType="go"
 							value={this.state.searchInputValue}
 						/>
+					</View>
+					<View style={styles.topBarWrapper}>
+						<View style={styles.foxWrapper}>
+							<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+						</View>
+						<View style={styles.titleWrapper}>
+							<Text style={styles.title}>Metamask | DAPP BROWSER</Text>
+						</View>
+					</View>
+
+					<View style={styles.startPageContent}>
+						<Text style={styles.startPageTitle}>Welcome!</Text>
+						<Text style={styles.startPageSubtitle}>
+							MetaMask is your wallet and browser for the decentralized web. Have a look around!
+						</Text>
+
 						{this.renderBookmarks()}
 					</View>
 				</KeyboardAwareScrollView>
