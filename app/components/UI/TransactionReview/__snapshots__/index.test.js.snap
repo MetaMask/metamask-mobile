@@ -38,7 +38,7 @@ exports[`TransactionReview should render correctly 1`] = `
       }
     >
       <IdenticonComponent
-        address=""
+        address="0x1"
         diameter={18}
       />
       <Text
@@ -52,7 +52,9 @@ exports[`TransactionReview should render correctly 1`] = `
             "marginLeft": 9,
           }
         }
-      />
+      >
+        0x1...0x1
+      </Text>
     </View>
     <View
       style={
@@ -99,6 +101,7 @@ exports[`TransactionReview should render correctly 1`] = `
       }
     >
       <IdenticonComponent
+        address="0x2"
         diameter={18}
       />
       <Text
@@ -112,13 +115,16 @@ exports[`TransactionReview should render correctly 1`] = `
             "marginLeft": 9,
           }
         }
-      />
+      >
+        0x2...0x2
+      </Text>
     </View>
   </View>
   <ActionView
     cancelTestID=""
     cancelText="Reject"
     confirmButtonMode="confirm"
+    confirmDisabled={false}
     confirmTestID=""
     confirmText="Confirm"
     confirmed={false}

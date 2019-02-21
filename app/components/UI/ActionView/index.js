@@ -39,7 +39,8 @@ export default function ActionView({
 	onConfirmPress,
 	showCancelButton,
 	showConfirmButton,
-	confirmed
+	confirmed,
+	confirmDisabled
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
@@ -64,7 +65,7 @@ export default function ActionView({
 						type={confirmButtonMode}
 						onPress={onConfirmPress}
 						containerStyle={[styles.button, styles.confirm]}
-						disabled={confirmed}
+						disabled={confirmed || confirmDisabled}
 					>
 						{confirmed ? <ActivityIndicator size="small" color="white" /> : confirmText.toUpperCase()}
 					</StyledButton>
@@ -114,6 +115,10 @@ ActionView.propTypes = {
 	 * Whether action view was confirmed in order to block any other interaction
 	 */
 	confirmed: PropTypes.bool,
+	/**
+	 * Whether action view confirm button should be disabled
+	 */
+	confirmDisabled: PropTypes.bool,
 	/**
 	 * Called when the cancel button is clicked
 	 */

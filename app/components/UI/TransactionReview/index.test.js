@@ -22,7 +22,14 @@ describe('TransactionReview', () => {
 				showHexData: true
 			},
 			transaction: {
-				from: ''
+				value: '',
+				data: '',
+				from: '0x1',
+				gas: '',
+				gasPrice: '',
+				to: '0x2',
+				selectedAsset: undefined,
+				assetType: undefined
 			}
 		};
 

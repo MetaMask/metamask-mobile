@@ -1,3 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Approval should render correctly 1`] = `<Approval />`;
+exports[`Approval should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <Connect(TransactionEditor)
+    mode="review"
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    onModeChange={[Function]}
+    transaction={
+      Object {
+        "assetType": undefined,
+        "data": "",
+        "from": "0x1",
+        "gas": "0",
+        "gasPrice": "0",
+        "selectedAsset": undefined,
+        "to": "0x2",
+        "value": "0",
+      }
+    }
+  />
+</SafeAreaView>
+`;
