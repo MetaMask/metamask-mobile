@@ -2,12 +2,12 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 import { TouchableOpacity, Text, StyleSheet, View, FlatList } from 'react-native';
-import WebsiteIcon from '../../../UI/WebsiteIcon';
-import { colors, fontStyles } from '../../../../styles/common';
+import WebsiteIcon from '../WebsiteIcon';
+import { colors, fontStyles } from '../../../styles/common';
 import ActionSheet from 'react-native-actionsheet';
-import { removeBookmark } from '../../../../actions/bookmarks';
+import { removeBookmark } from '../../../actions/bookmarks';
 
 const styles = StyleSheet.create({
 	bookmarksWrapper: {
@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Favourites
+ * Browser favorite sites
  */
-class BrowserFavourites extends Component {
+class BrowserFavorites extends Component {
 	static propTypes = {
 		/**
 		 * Array containing all the bookmark items
@@ -150,4 +150,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(withNavigation(BrowserFavourites));
+)(withNavigation(BrowserFavorites));

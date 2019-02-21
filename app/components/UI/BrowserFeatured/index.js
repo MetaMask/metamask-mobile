@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import dappList from '../../../../util/featured-dapp-list';
+import dappList from '../../../util/featured-dapp-list';
 import FavoriteItem from './FavoriteItem';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, FlatList, StyleSheet, View } from 'react-native';

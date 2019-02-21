@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Text, StyleSheet, View } from 'react-native';
-import WebsiteIcon from '../../../../UI/WebsiteIcon';
-import { colors, fontStyles } from '../../../../../styles/common';
+import WebsiteIcon from '../../WebsiteIcon';
+import { colors, fontStyles } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {

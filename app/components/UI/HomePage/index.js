@@ -10,8 +10,8 @@ import DeviceSize from '../../../util/DeviceSize';
 import { withNavigation } from 'react-navigation';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import BrowserFeatured from '../../Views/BrowserHomePage/BrowserFeatured';
-import BrowserFavourites from '../../Views/BrowserHomePage/BrowserFavourites';
+import BrowserFeatured from '../BrowserFeatured';
+import BrowserFavorites from '../BrowserFavorites';
 import UrlAutocomplete from '../UrlAutocomplete';
 import onUrlSubmit from '../../../util/browser';
 
@@ -261,7 +261,7 @@ class HomePage extends Component {
 
 				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
 					<BrowserFeatured tabLabel={strings('browser.featured_dapps')} goTo={this.props.goTo} />
-					<BrowserFavourites tabLabel={strings('browser.my_favorites')} goTo={this.props.goTo} />
+					<BrowserFavorites tabLabel={strings('browser.my_favorites')} goTo={this.props.goTo} />
 				</ScrollableTabView>
 
 				{this.props.passwordSet &&
