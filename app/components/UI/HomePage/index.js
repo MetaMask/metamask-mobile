@@ -254,7 +254,7 @@ class HomePage extends Component {
 					</View>
 
 					<View style={styles.startPageContent}>
-						<Text style={styles.startPageTitle}>Welcome!</Text>
+						<Text style={styles.startPageTitle}>{strings('browser.welcome')}</Text>
 						<Text style={styles.startPageSubtitle}>{strings('browser.dapp_browser_message')}</Text>
 					</View>
 				</View>
