@@ -214,6 +214,7 @@ class HomePage extends Component {
 		} else {
 			this.onInitialUrlSubmit(input);
 		}
+		this.setState({ inputValue: '' });
 	};
 
 	onAutocomplete = link => {
