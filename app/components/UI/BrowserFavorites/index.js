@@ -124,7 +124,7 @@ class BrowserFavorites extends Component {
 				<ActionSheet
 					ref={this.createActionSheetRef}
 					title={strings('home_page.remove_bookmark_title')}
-					options={['Remove', 'Cancel']}
+					options={[strings('browser.remove'), strings('browser.cancel')]}
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					// eslint-disable-next-line react/jsx-no-bind

@@ -58,15 +58,19 @@ export default class FeaturedItem extends Component {
 		/**
 		 * Dapp url
 		 */
-		url: PropTypes.string
+		url: PropTypes.string,
+		/**
+		 * Dapp image url, could be undefined
+		 */
+		imageUrl: PropTypes.string
 	};
 
 	render() {
-		const { name, url, description } = this.props;
+		const { name, url, description, imageUrl } = this.props;
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.iconWrapper}>
-					<WebsiteIcon style={styles.icon} title={name} url={url} />
+					<WebsiteIcon style={styles.icon} title={name} url={imageUrl || url} />
 				</View>
 				<View style={styles.contentWrapper}>
 					<Text style={styles.name}>{name}</Text>

@@ -327,7 +327,7 @@
 		"backup_alert_message": "Tap to save your seed phrase",
 		"bookmarks": "Bookmarks",
 		"no_bookmarks": "Your bookmarks will show up here",
-		"remove_bookmark_title": "Do you want to remove this favorite site?"
+		"remove_bookmark_title": "Do you want to remove this site from your favorites?"
 	},
 	"browser": {
 		"reload": "Reload",
@@ -346,7 +346,8 @@
 		"featured_dapps": "FEATURED DAPPS",
 		"my_favorites": "MY FAVORITES",
 		"search": "SEARCH",
-		"welcome": "Welcome!"
+		"welcome": "Welcome!",
+		"remove": "Remove"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",

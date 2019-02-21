@@ -24,13 +24,13 @@ export default class BrowserFeatured extends Component {
 	keyExtractor = item => item.name;
 
 	renderItem = ({ item }) => {
-		const { name, description, url } = item;
+		const { name, description, url, imageUrl } = item;
 		return (
 			<TouchableOpacity
 				key={url}
 				onPress={() => this.props.goTo(url)} // eslint-disable-line react/jsx-no-bind
 			>
-				<FeaturedItem name={name} url={url} description={description} />
+				<FeaturedItem name={name} url={url} description={description} imageUrl={imageUrl} />
 			</TouchableOpacity>
 		);
 	};
