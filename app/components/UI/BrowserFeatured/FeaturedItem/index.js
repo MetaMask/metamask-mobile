@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Text, StyleSheet, View } from 'react-native';
+import { Text, StyleSheet, View, PixelRatio } from 'react-native';
 import WebsiteIcon from '../../WebsiteIcon';
 import { colors, fontStyles } from '../../../../styles/common';
 
@@ -11,8 +11,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	icon: {
-		height: 35,
-		width: 35
+		height: PixelRatio.getPixelSizeForLayoutSize(15),
+		width: PixelRatio.getPixelSizeForLayoutSize(15)
 	},
 	iconWrapper: {
 		borderRadius: 8,
