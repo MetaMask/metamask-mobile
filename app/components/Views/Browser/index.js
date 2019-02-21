@@ -642,18 +642,27 @@ export class Browser extends Component {
 		}
 	};
 
+	stopLoading = () => {
+		if (Platform.OS === 'android') {
+			this.setState({ url: '' });
+		} else {
+			const { current } = this.webview;
+			current.stopLoading();
+		}
+	};
+
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		const data = { canGoBack, canGoForward };
 		const urlObj = new URL(url);
 		const { PhishingController } = Engine.context;
 		if (!this.props.whitelist.includes(urlObj.hostname) && PhishingController.test(urlObj.hostname)) {
-			const { current } = this.webview;
-			current.stopLoading();
+			this.stopLoading();
+			this.blockedUrl = url;
 			setTimeout(() => {
 				this.setState({
 					showPhishingModal: true,
 					fullHostname: urlObj.hostname,
-					canGoBack: !this.isFirstWebsite,
+					canGoBack: Platform.OS === 'android' ? canGoBack : !this.isFirstWebsite,
 					canGoForward
 				});
 			}, 400);
@@ -1028,11 +1037,11 @@ export class Browser extends Component {
 	};
 
 	continueToPhishingSite = () => {
-		const url2Go = this.state.inputValue;
+		const url2Go = this.blockedUrl;
 		this.props.addToWhitelist(this.state.fullHostname);
 		this.setState({ showPhishingModal: false, url: '' });
 		setTimeout(() => {
-			this.setState({ url: url2Go });
+			this.setState({ url: url2Go, inputValue: url2Go });
 		}, 10);
 	};
 
@@ -1049,8 +1058,17 @@ export class Browser extends Component {
 	goBackToSafety = () => {
 		if (this.state.canGoBack) {
 			this.mounted && this.setState({ showPhishingModal: false });
-			const { current } = this.webview;
-			current && current.reload();
+
+			if (Platform.OS === 'android') {
+				// Because android has no way of stop the load
+				// We have to load an empty url to interrupt it
+				// This is why we're forced to call goBack() twice
+				this.goBack();
+				this.goBack();
+			} else {
+				const { current } = this.webview;
+				current && current.reload();
+			}
 		} else {
 			this.close();
 		}
