@@ -89,6 +89,18 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		letterSpacing: 0.5,
 		...fontStyles.bold
+	},
+	error: {
+		backgroundColor: colors.lightRed,
+		color: colors.error,
+		marginTop: 5,
+		paddingVertical: 8,
+		paddingHorizontal: 5,
+		textAlign: 'center',
+		fontSize: 12,
+		letterSpacing: 0.5,
+		marginHorizontal: 14,
+		...fontStyles.normal
 	}
 });
 
@@ -126,29 +138,29 @@ class TransactionReview extends Component {
 		 */
 		transaction: PropTypes.object,
 		/**
-		 * Callback to validate amount in transaction in parent state
+		 * Callback to validate transaction in parent state
 		 */
-		validateAmount: PropTypes.func
+		validate: PropTypes.func
 	};
 
 	state = {
 		toFocused: false,
-		amountError: '',
 		actionKey: strings('transactions.tx_review_confirm'),
-		showHexData: false
+		showHexData: false,
+		error: undefined
 	};
 
 	componentDidMount = async () => {
 		const {
-			validateAmount,
+			validate,
 			transaction,
 			transaction: { data }
 		} = this.props;
 		let { showHexData } = this.props;
 		showHexData = showHexData || data;
-		const amountError = validateAmount && (await validateAmount());
+		const error = validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction);
-		this.setState({ amountError, actionKey, showHexData });
+		this.setState({ error, actionKey, showHexData });
 	};
 
 	edit = () => {
@@ -217,7 +229,7 @@ class TransactionReview extends Component {
 
 	render = () => {
 		const { transactionConfirmed } = this.props;
-		const { actionKey } = this.state;
+		const { actionKey, error } = this.state;
 		return (
 			<View style={styles.root}>
 				{this.renderTransactionDirection()}
@@ -227,9 +239,11 @@ class TransactionReview extends Component {
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}
 					confirmed={transactionConfirmed}
+					confirmDisabled={error !== undefined}
 				>
 					<TransactionReviewSummary edit={this.edit} actionKey={actionKey} />
 					<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
+					{error && <Text style={styles.error}>{error}</Text>}
 				</ActionView>
 			</View>
 		);
