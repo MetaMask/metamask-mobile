@@ -4,12 +4,7 @@ import PhishingModal from './';
 
 describe('PhishingModal', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(
-			<PhishingModal
-				currentPageInformation={{ title: 'title', url: 'url' }}
-				messageParams={{ data: 'message' }}
-			/>
-		);
+		const wrapper = shallow(<PhishingModal />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

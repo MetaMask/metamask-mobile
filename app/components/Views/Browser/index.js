@@ -1028,11 +1028,12 @@ export class Browser extends Component {
 	};
 
 	continueToPhishingSite = () => {
+		const url2Go = this.state.inputValue;
 		this.props.addToWhitelist(this.state.fullHostname);
-		this.setState({ showPhishingModal: false });
+		this.setState({ showPhishingModal: false, url: '' });
 		setTimeout(() => {
-			this.reload();
-		}, 1000);
+			this.setState({ url: url2Go });
+		}, 10);
 	};
 
 	goToEtherscam = () => {
