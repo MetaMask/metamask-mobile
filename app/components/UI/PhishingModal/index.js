@@ -78,11 +78,29 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
 
 export default class PhishingModal extends Component {
 	static propTypes = {
+		/**
+		 * name of the blacklisted host
+		 */
 		fullHostname: PropTypes.string,
+		/**
+		 * called when tapping on "Ethereum Phishing Detector"
+		 */
 		goToETHPhishingDetector: PropTypes.func,
+		/**
+		 * Called to the user decides to proceed to the phishing site
+		 */
 		continueToPhishingSite: PropTypes.func,
+		/**
+		 * Called when the user decides to go to etherscam db website
+		 */
 		goToEtherscam: PropTypes.func,
+		/**
+		 * Called to the user decides to report an issue
+		 */
 		goToFilePhishingIssue: PropTypes.func,
+		/**
+		 * Called when the user takes the recommended action
+		 */
 		goBackToSafety: PropTypes.func
 	};
 
