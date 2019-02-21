@@ -326,23 +326,31 @@
 		"backup_alert_title": "Protect your funds",
 		"backup_alert_message": "Tap to save your seed phrase",
 		"bookmarks": "Bookmarks",
-		"no_bookmarks": "Your bookmarks will show up here",
-		"remove_bookmark_title": "Do you want to remove this bookmark?"
+		"no_bookmarks": "You have no favorites Dapps yet",
+		"remove_bookmark_title": "Do you want to remove this site from your favorites?"
 	},
 	"browser": {
 		"reload": "Reload",
 		"share": "Share",
 		"bookmark": "Bookmark",
+		"add_to_favorites": "Add to Favorites",
 		"error": "Ooops!",
 		"bookmark_already_exists": "You already bookmarked this url",
 		"cancel": "Cancel",
 		"go_back": "Go Back",
 		"go_forward": "Go Forward",
 		"close": "Close",
-		"open_in_browser": "Open in Browser"
+		"open_in_browser": "Open in Browser",
+		"dapp_browser": "DAPP BROWSER",
+		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
+		"featured_dapps": "FEATURED DAPPS",
+		"my_favorites": "MY FAVORITES",
+		"search": "SEARCH",
+		"welcome": "Welcome!",
+		"remove": "Remove"
 	},
-	"add_bookmark": {
-		"title": "Add Bookmark",
+	"add_favorite": {
+		"title": "Add Favorite",
 		"title_label": "Name",
 		"url_label": "Url",
 		"add_button": "Add",
