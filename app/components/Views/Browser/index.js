@@ -23,6 +23,7 @@ import { connect } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
+import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
@@ -39,7 +40,7 @@ import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import AccountApproval from '../../UI/AccountApproval';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
-import { addToHistory } from '../../../actions/browser';
+import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
@@ -195,6 +196,9 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
+	},
+	fullScreenModal: {
+		flex: 1
 	}
 });
 
@@ -238,6 +242,10 @@ export class Browser extends Component {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		 * whitelisted url to bypass the phishing detection
+		 */
+		whitelist: PropTypes.array,
+		/**
 		 * Url coming from an external source
 		 * For ex. deeplinks
 		 */
@@ -261,7 +269,11 @@ export class Browser extends Component {
 		/**
 		 * Function to store the a page in the browser history
 		 */
-		addToBrowserHistory: PropTypes.func
+		addToBrowserHistory: PropTypes.func,
+		/**
+		 * Function to store the a website in the browser whitelist
+		 */
+		addToWhitelist: PropTypes.func
 	};
 
 	state = {
@@ -283,6 +295,7 @@ export class Browser extends Component {
 		ipfsWebsite: false,
 		loading: true,
 		showApprovalDialog: false,
+		showPhishingModal: false,
 		signMessage: false,
 		signMessageParams: { data: '' },
 		signType: '',
@@ -453,6 +466,7 @@ export class Browser extends Component {
 		}
 
 		const urlToGo = ipfsContent || sanitizedURL;
+
 		this.setState({
 			url: urlToGo,
 			progress: 0,
@@ -629,28 +643,35 @@ export class Browser extends Component {
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		const data = { canGoBack, canGoForward };
 		const urlObj = new URL(url);
-		data.fullHostname = urlObj.hostname;
-		if (!this.state.ipfsWebsite) {
-			data.inputValue = url;
-		} else if (url.search('mm_override=false') === -1) {
-			data.inputValue = url.replace(
-				`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
-				`https://${this.state.currentEnsName}/`
-			);
-		} else if (this.isENSUrl(url)) {
-			this.go(url);
-			return;
+		const { PhishingController } = Engine.context;
+		if (!this.props.whitelist.includes(urlObj.hostname) && PhishingController.test(urlObj.hostname)) {
+			const { current } = this.webview;
+			current.stopLoading();
+			this.setState({ showPhishingModal: true, fullHostname: urlObj.hostname });
 		} else {
-			data.inputValue = url;
-			data.hostname = this.formatHostname(urlObj.hostname);
-		}
+			data.fullHostname = urlObj.hostname;
+			if (!this.state.ipfsWebsite) {
+				data.inputValue = url;
+			} else if (url.search('mm_override=false') === -1) {
+				data.inputValue = url.replace(
+					`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
+					`https://${this.state.currentEnsName}/`
+				);
+			} else if (this.isENSUrl(url)) {
+				this.go(url);
+				return;
+			} else {
+				data.inputValue = url;
+				data.hostname = this.formatHostname(urlObj.hostname);
+			}
 
-		const { fullHostname, inputValue, hostname } = data;
-		if (fullHostname !== this.state.fullHostname) {
-			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
-		}
+			const { fullHostname, inputValue, hostname } = data;
+			if (fullHostname !== this.state.fullHostname) {
+				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
+			}
 
-		this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
+			this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
+		}
 	};
 
 	formatHostname(hostname) {
@@ -885,6 +906,7 @@ export class Browser extends Component {
 				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
+				useNativeDriver
 			>
 				<View style={styles.urlModalContent}>
 					<TextInput
@@ -933,6 +955,7 @@ export class Browser extends Component {
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onSignAction}
+				useNativeDriver
 			>
 				{signType === 'personal' && (
 					<PersonalSign
@@ -978,6 +1001,7 @@ export class Browser extends Component {
 				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
+				useNativeDriver
 			>
 				<AccountApproval
 					onCancel={this.onAccountsReject}
@@ -987,6 +1011,66 @@ export class Browser extends Component {
 			</Modal>
 		);
 	};
+
+	goToETHPhishingDetector = () => {
+		this.setState({ showPhishingModal: false });
+		this.go(`https://github.com/metamask/eth-phishing-detect`);
+	};
+
+	continueToPhishingSite = () => {
+		this.props.addToWhitelist(this.state.fullHostname);
+		this.setState({ showPhishingModal: false });
+		setTimeout(() => {
+			this.reload();
+		}, 1000);
+	};
+
+	goToEtherscam = () => {
+		this.setState({ showPhishingModal: false });
+		this.go(`https://etherscamdb.info/domain/meta-mask.com`);
+	};
+
+	goToFilePhishingIssue = () => {
+		this.setState({ showPhishingModal: false });
+		this.go(`https://github.com/metamask/eth-phishing-detect/issues/new`);
+	};
+
+	goBackToSafety = () => {
+		this.mounted && this.setState({ showPhishingModal: false });
+
+		if (this.state.canGoBack) {
+			const { current } = this.webview;
+			current && current.goBack();
+		} else {
+			this.close();
+		}
+	};
+
+	renderPhishingModal() {
+		const { showPhishingModal } = this.state;
+		return (
+			<Modal
+				isVisible={showPhishingModal}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.fullScreenModal}
+				backdropOpacity={1}
+				backdropColor={colors.warningRed}
+				animationInTiming={600}
+				animationOutTiming={600}
+				useNativeDriver
+			>
+				<PhishingModal
+					fullHostname={this.state.fullHostname}
+					goToETHPhishingDetector={this.fullHostname}
+					continueToPhishingSite={this.continueToPhishingSite}
+					goToEtherscam={this.goToEtherscam}
+					goToFilePhishingIssue={this.goToFilePhishingIssue}
+					goBackToSafety={this.goBackToSafety}
+				/>
+			</Modal>
+		);
+	}
 
 	getUserAgent() {
 		if (Platform.OS === 'android') {
@@ -999,7 +1083,7 @@ export class Browser extends Component {
 		this.backgroundBridge.disableAccounts();
 	};
 
-	render = () => {
+	render() {
 		const { canGoBack, canGoForward, entryScriptWeb3, url } = this.state;
 
 		return (
@@ -1034,11 +1118,12 @@ export class Browser extends Component {
 				{this.renderUrlModal()}
 				{this.renderSigningModal()}
 				{this.renderApprovalModal()}
+				{this.renderPhishingModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
 			</SafeAreaView>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
@@ -1047,13 +1132,15 @@ const mapStateToProps = state => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	privacyMode: state.privacy.privacyMode,
-	searchEngine: state.settings.searchEngine
+	searchEngine: state.settings.searchEngine,
+	whitelist: state.browser.whitelist
 });
 
 const mapDispatchToProps = dispatch => ({
 	approveHost: hostname => dispatch(approveHost(hostname)),
 	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
+	addToWhitelist: url => dispatch(addToWhitelist(url)),
 	setTransactionObject: asset => dispatch(setTransactionObject(asset))
 });
 
