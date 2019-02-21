@@ -3,7 +3,7 @@ import './shim.js';
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 import { AppRegistry, YellowBox } from 'react-native';
-import Root from './app/components/Root';
+import Root from './app/components/Views/Root';
 import { name } from './app.json';
 // eslint-disable-next-line import/no-unresolved
 import { useScreens } from 'react-native-screens';
@@ -11,6 +11,9 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'this.web3.eth',
+	'collectibles.map',
+	'AssetsDectionController._callee',
 	'Accessing view manager configs directly off',
 	'Function components cannot be given refs.',
 	'Task orphaned for request',

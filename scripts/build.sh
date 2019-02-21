@@ -96,11 +96,21 @@ prebuild(){
 	# Concat InpageBridge + Web3 + setProvider
 	./node_modules/.bin/concat-cli -f app/core/InpageBridge.js node_modules/web3/dist/web3.min.js app/util/setProvider.js -o app/core/InpageBridgeWeb3.js
 	# Load JS specific env variables
-	source .js.env
+	if [ "$PRE_RELEASE" = false ] ; then
+		if [ -e .js.env ]
+		then
+			source .js.env
+		fi
+	fi
 }
 
 prebuild_ios(){
 	prebuild
+	# Generate xcconfig files for CircleCI
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "" > ios/debug.xcconfig
+		echo "" > ios/release.xcconfig
+	fi
 }
 
 prebuild_android(){
@@ -111,13 +121,18 @@ prebuild_android(){
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
-	source .android.env
-
+	if [ "$PRE_RELEASE" = false ] ; then
+		if [ -e .js.env ]
+		then
+			source .android.env
+		fi
+	fi
 }
 
 buildAndroid(){
 	prebuild_android
 	react-native run-android
+	git checkout android/app/fabric.properties
 }
 
 buildIosSimulator(){
@@ -135,12 +150,9 @@ buildIosRelease(){
 
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
-		TARGET="ios/release.xcconfig"
-		sed -i'' -e "s/MM_FOX_CODE = XXX/MM_FOX_CODE = $MM_FOX_CODE/" $TARGET;
-		sed -i'' -e "s/MM_FABRIC_API_KEY = XXX/MM_FABRIC_API_KEY = $MM_FABRIC_API_KEY/" $TARGET;
-		sed -i'' -e "s/MM_BRANCH_KEY_TEST = XXX/MM_BRANCH_KEY_TEST = $MM_BRANCH_KEY_TEST/" $TARGET;
-		sed -i'' -e "s/MM_BRANCH_KEY_LIVE = XXX/MM_BRANCH_KEY_LIVE = $MM_BRANCH_KEY_LIVE/" $TARGET;
-
+		echo "Setting up env vars...";
+		echo $IOS_ENV | tr "|" "\n" > .ios.env
+		echo "Build started..."
 		cd ios && bundle install && bundle exec fastlane prerelease
 	else
 		react-native run-ios  --configuration Release

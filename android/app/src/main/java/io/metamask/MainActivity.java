@@ -25,7 +25,9 @@ public class MainActivity extends ReactFragmentActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		RNBranchModule.initSession(getIntent().getData(), this);
+		if(!BuildConfig.DEBUG){
+			RNBranchModule.initSession(getIntent().getData(), this);
+		}
 	}
 
 	@Override
@@ -45,7 +47,11 @@ public class MainActivity extends ReactFragmentActivity {
             @Override
             protected Bundle getLaunchOptions() {
                 Bundle bundle = new Bundle();
-                bundle.putString("foxCode", BuildConfig.foxCode);
+                if(BuildConfig.foxCode != null){
+                	bundle.putString("foxCode", BuildConfig.foxCode);
+                } else {
+                	bundle.putString("foxCode", "debug");
+                }
                 return bundle;
             }
             @Override

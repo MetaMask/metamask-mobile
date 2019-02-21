@@ -19,15 +19,24 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
 
-  [Fabric with:@[[Crashlytics class]]];
-
-  [RNBranch useTestInstance];
-  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
-
+  # if DEBUG == 0
+      [Fabric with:@[[Crashlytics class]]];
+      [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
+  # endif
+  
+  NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
+  NSString *foxCode;
+  
+  if(foxCodeFromBundle != nil){
+    foxCode = foxCodeFromBundle;
+  } else {
+    foxCode = @"debug";
+  }
+  
+  
   NSURL *jsCodeLocation;
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
 
-  NSString* foxCode = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"MetaMask"
