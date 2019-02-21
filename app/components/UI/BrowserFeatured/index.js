@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Favourites
+ * Browser features dapps
  */
 export default class BrowserFeatured extends Component {
 	static propTypes = {

@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Favorites
+ * Favorite item to be rendered
  */
 export default class FavoriteItem extends Component {
 	static propTypes = {
