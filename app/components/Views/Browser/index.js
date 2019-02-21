@@ -308,9 +308,11 @@ export class Browser extends Component {
 	scrollY = new Animated.Value(0);
 	timeoutHandler = null;
 	prevScrollOffset = 0;
+	isFirstWebsite = true;
 	approvalRequest;
 
 	async componentDidMount() {
+		this.mounted = true;
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 			eth_requestAccounts: ({ hostname, params }) => {
 				const { approvedHosts, privacyMode, selectedAddress } = this.props;
@@ -647,7 +649,14 @@ export class Browser extends Component {
 		if (!this.props.whitelist.includes(urlObj.hostname) && PhishingController.test(urlObj.hostname)) {
 			const { current } = this.webview;
 			current.stopLoading();
-			this.setState({ showPhishingModal: true, fullHostname: urlObj.hostname });
+			setTimeout(() => {
+				this.setState({
+					showPhishingModal: true,
+					fullHostname: urlObj.hostname,
+					canGoBack: !this.isFirstWebsite,
+					canGoForward
+				});
+			}, 400);
 		} else {
 			data.fullHostname = urlObj.hostname;
 			if (!this.state.ipfsWebsite) {
@@ -691,6 +700,7 @@ export class Browser extends Component {
 	};
 
 	onLoadEnd = () => {
+		this.isFirstWebsite = false;
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
 			this.backgroundBridge.enableAccounts();
@@ -904,8 +914,8 @@ export class Browser extends Component {
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
 				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
+				animationInTiming={300}
+				animationOutTiming={300}
 				useNativeDriver
 			>
 				<View style={styles.urlModalContent}>
@@ -1036,11 +1046,10 @@ export class Browser extends Component {
 	};
 
 	goBackToSafety = () => {
-		this.mounted && this.setState({ showPhishingModal: false });
-
 		if (this.state.canGoBack) {
+			this.mounted && this.setState({ showPhishingModal: false });
 			const { current } = this.webview;
-			current && current.goBack();
+			current && current.reload();
 		} else {
 			this.close();
 		}
@@ -1056,8 +1065,8 @@ export class Browser extends Component {
 				style={styles.fullScreenModal}
 				backdropOpacity={1}
 				backdropColor={colors.warningRed}
-				animationInTiming={600}
-				animationOutTiming={600}
+				animationInTiming={300}
+				animationOutTiming={300}
 				useNativeDriver
 			>
 				<PhishingModal
