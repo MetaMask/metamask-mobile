@@ -273,8 +273,8 @@ exports[`Browser should render correctly 1`] = `
   >
     <PhishingModal
       continueToPhishingSite={[Function]}
-      fullHostname=""
       goBackToSafety={[Function]}
+      goToETHPhishingDetector={[Function]}
       goToEtherscam={[Function]}
       goToFilePhishingIssue={[Function]}
     />

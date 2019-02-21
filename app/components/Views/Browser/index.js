@@ -276,32 +276,45 @@ export class Browser extends Component {
 		addToWhitelist: PropTypes.func
 	};
 
-	state = {
-		appState: 'active',
-		approvedOrigin: false,
-		canGoBack: false,
-		canGoForward: false,
-		currentEnsName: null,
-		currentPageTitle: '',
-		currentPageUrl: '',
-		currentPageIcon: undefined,
-		editMode: false,
-		entryScriptWeb3: null,
-		fullHostname: '',
-		hostname: '',
-		inputValue: '',
-		ipfsGateway: 'https://ipfs.io/ipfs/',
-		ipfsHash: null,
-		ipfsWebsite: false,
-		loading: true,
-		showApprovalDialog: false,
-		showPhishingModal: false,
-		signMessage: false,
-		signMessageParams: { data: '' },
-		signType: '',
-		timeout: false,
-		url: this.props.url || ''
-	};
+	constructor(props) {
+		super(props);
+
+		let url = '';
+		if (props.url) {
+			if (this.isAllowedUrl(props.url)) {
+				url = props.url;
+			} else {
+				setTimeout(() => this.handleNotAllowedUrl(props.url), 100);
+			}
+		}
+
+		this.state = {
+			appState: 'active',
+			approvedOrigin: false,
+			canGoBack: false,
+			canGoForward: false,
+			currentEnsName: null,
+			currentPageTitle: '',
+			currentPageUrl: '',
+			currentPageIcon: undefined,
+			editMode: false,
+			entryScriptWeb3: null,
+			fullHostname: '',
+			hostname: '',
+			inputValue: '',
+			ipfsGateway: 'https://ipfs.io/ipfs/',
+			ipfsHash: null,
+			ipfsWebsite: false,
+			loading: true,
+			showApprovalDialog: false,
+			showPhishingModal: false,
+			signMessage: false,
+			signMessageParams: { data: '' },
+			signType: '',
+			timeout: false,
+			url
+		};
+	}
 
 	webview = React.createRef();
 	inputRef = React.createRef();
@@ -444,6 +457,27 @@ export class Browser extends Component {
 		return false;
 	}
 
+	isAllowedUrl = url => {
+		const urlObj = new URL(url);
+		const { PhishingController } = Engine.context;
+		return (
+			(this.props.whitelist && this.props.whitelist.includes(urlObj.hostname)) ||
+			(PhishingController && !PhishingController.test(urlObj.hostname))
+		);
+	};
+
+	handleNotAllowedUrl = (urlToGo, hostname) => {
+		let host = hostname;
+		if (!host) {
+			const urlObj = new URL(urlToGo);
+			host = urlObj.hostname;
+		}
+		this.blockedUrl = urlToGo;
+		setTimeout(() => {
+			this.setState({ showPhishingModal: true });
+		}, 500);
+	};
+
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
@@ -466,25 +500,28 @@ export class Browser extends Component {
 					.shift();
 			}
 		}
-
 		const urlToGo = ipfsContent || sanitizedURL;
 
-		this.setState({
-			url: urlToGo,
-			progress: 0,
-			ipfsWebsite: !!ipfsContent,
-			inputValue: sanitizedURL,
-			currentEnsName,
-			ipfsHash,
-			hostname: this.formatHostname(hostname)
-		});
+		if (this.isAllowedUrl(urlToGo)) {
+			this.setState({
+				url: urlToGo,
+				progress: 0,
+				ipfsWebsite: !!ipfsContent,
+				inputValue: sanitizedURL,
+				currentEnsName,
+				ipfsHash,
+				hostname: this.formatHostname(hostname)
+			});
 
-		this.timeoutHandler && clearTimeout(this.timeoutHandler);
-		this.timeoutHandler = setTimeout(() => {
-			this.urlTimedOut(urlToGo);
-		}, 60000);
+			this.timeoutHandler && clearTimeout(this.timeoutHandler);
+			this.timeoutHandler = setTimeout(() => {
+				this.urlTimedOut(urlToGo);
+			}, 60000);
 
-		return sanitizedURL;
+			return sanitizedURL;
+		}
+		this.handleNotAllowedUrl(urlToGo, hostname);
+		return null;
 	};
 
 	urlTimedOut(url) {
@@ -642,54 +679,32 @@ export class Browser extends Component {
 		}
 	};
 
-	stopLoading = () => {
-		if (Platform.OS === 'android') {
-			this.setState({ url: '' });
-		} else {
-			const { current } = this.webview;
-			current.stopLoading();
-		}
-	};
-
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
 		const data = { canGoBack, canGoForward };
 		const urlObj = new URL(url);
-		const { PhishingController } = Engine.context;
-		if (!this.props.whitelist.includes(urlObj.hostname) && PhishingController.test(urlObj.hostname)) {
-			this.stopLoading();
-			this.blockedUrl = url;
-			setTimeout(() => {
-				this.setState({
-					showPhishingModal: true,
-					fullHostname: urlObj.hostname,
-					canGoBack: Platform.OS === 'android' ? canGoBack : !this.isFirstWebsite,
-					canGoForward
-				});
-			}, 400);
+
+		data.fullHostname = urlObj.hostname;
+		if (!this.state.ipfsWebsite) {
+			data.inputValue = url;
+		} else if (url.search('mm_override=false') === -1) {
+			data.inputValue = url.replace(
+				`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
+				`https://${this.state.currentEnsName}/`
+			);
+		} else if (this.isENSUrl(url)) {
+			this.go(url);
+			return;
 		} else {
-			data.fullHostname = urlObj.hostname;
-			if (!this.state.ipfsWebsite) {
-				data.inputValue = url;
-			} else if (url.search('mm_override=false') === -1) {
-				data.inputValue = url.replace(
-					`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
-					`https://${this.state.currentEnsName}/`
-				);
-			} else if (this.isENSUrl(url)) {
-				this.go(url);
-				return;
-			} else {
-				data.inputValue = url;
-				data.hostname = this.formatHostname(urlObj.hostname);
-			}
-
-			const { fullHostname, inputValue, hostname } = data;
-			if (fullHostname !== this.state.fullHostname) {
-				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
-			}
-
-			this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
+			data.inputValue = url;
+			data.hostname = this.formatHostname(urlObj.hostname);
 		}
+
+		const { fullHostname, inputValue, hostname } = data;
+		if (fullHostname !== this.state.fullHostname) {
+			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
+		}
+
+		this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
 	};
 
 	formatHostname(hostname) {
@@ -1037,12 +1052,12 @@ export class Browser extends Component {
 	};
 
 	continueToPhishingSite = () => {
-		const url2Go = this.blockedUrl;
-		this.props.addToWhitelist(this.state.fullHostname);
-		this.setState({ showPhishingModal: false, url: '' });
+		const urlObj = new URL(this.blockedUrl);
+		this.props.addToWhitelist(urlObj.hostname);
+		this.setState({ showPhishingModal: false });
 		setTimeout(() => {
-			this.setState({ url: url2Go, inputValue: url2Go });
-		}, 10);
+			this.go(this.blockedUrl);
+		}, 1000);
 	};
 
 	goToEtherscam = () => {
@@ -1058,17 +1073,6 @@ export class Browser extends Component {
 	goBackToSafety = () => {
 		if (this.state.canGoBack) {
 			this.mounted && this.setState({ showPhishingModal: false });
-
-			if (Platform.OS === 'android') {
-				// Because android has no way of stop the load
-				// We have to load an empty url to interrupt it
-				// This is why we're forced to call goBack() twice
-				this.goBack();
-				this.goBack();
-			} else {
-				const { current } = this.webview;
-				current && current.reload();
-			}
 		} else {
 			this.close();
 		}
@@ -1089,8 +1093,8 @@ export class Browser extends Component {
 				useNativeDriver
 			>
 				<PhishingModal
-					fullHostname={this.state.fullHostname}
-					goToETHPhishingDetector={this.fullHostname}
+					fullUrl={this.blockedUrl}
+					goToETHPhishingDetector={this.goToETHPhishingDetector}
 					continueToPhishingSite={this.continueToPhishingSite}
 					goToEtherscam={this.goToEtherscam}
 					goToFilePhishingIssue={this.goToFilePhishingIssue}

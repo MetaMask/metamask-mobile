@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	warningIcon: {
@@ -79,9 +80,9 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
 export default class PhishingModal extends Component {
 	static propTypes = {
 		/**
-		 * name of the blacklisted host
+		 * name of the blacklisted url
 		 */
-		fullHostname: PropTypes.string,
+		fullUrl: PropTypes.string,
 		/**
 		 * called when tapping on "Ethereum Phishing Detector"
 		 */
@@ -105,6 +106,9 @@ export default class PhishingModal extends Component {
 	};
 
 	render() {
+		const urlObj = new URL(this.props.fullUrl);
+		const host = urlObj.hostname;
+
 		return (
 			<View style={styles.phishingModalWrapper}>
 				<Image source={foxImage} style={styles.foxImage} resizeMethod={'auto'} />
@@ -118,7 +122,7 @@ export default class PhishingModal extends Component {
 						contentContainerStyle={styles.phishingModalInfoContent}
 					>
 						<Text style={styles.phishingText}>
-							<Text style={styles.bold}>{this.props.fullHostname}</Text>
+							<Text style={styles.bold}>{host}</Text>
 							{strings('phishing.intro')}
 						</Text>
 						<Text style={styles.phishingText}>
