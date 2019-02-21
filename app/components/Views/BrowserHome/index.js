@@ -104,11 +104,7 @@ class BrowserHome extends Component {
 	};
 
 	render = () => (
-		<HomePage
-			onBookmarkTapped={this.go}
-			onInitialUrlSubmit={this.onInitialUrlSubmit}
-			navigation={this.props.navigation}
-		/>
+		<HomePage goTo={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} navigation={this.props.navigation} />
 	);
 }
 

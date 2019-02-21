@@ -32,6 +32,7 @@ export function renderShortAddress(address, chars = 4) {
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
+	address = toChecksumAddress(address);
 	if (identities && address && address in identities) {
 		return identities[address].name;
 	}
