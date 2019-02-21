@@ -70,15 +70,17 @@ const styles = StyleSheet.create({
 	},
 	searchWrapper: {
 		flexDirection: 'row',
-		marginVertical: 20
+		marginVertical: Platform.OS === 'ios' ? 20 : 10
 	},
 	searchInput: {
-		backgroundColor: colors.white,
 		marginHorizontal: 10,
-		width: '100%',
+		backgroundColor: colors.white,
 		fontSize: 14,
 		flex: 1,
 		...fontStyles.normal
+	},
+	searchIcon: {
+		textAlignVertical: 'center'
 	},
 	backupAlert: {
 		position: 'absolute',
@@ -228,7 +230,7 @@ class HomePage extends Component {
 			<View style={styles.flex}>
 				<View style={styles.homePageContent}>
 					<View style={styles.searchWrapper}>
-						<Icon name="search" size={18} color={colors.asphalt} />
+						<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
 						<TextInput
 							style={styles.searchInput}
 							autoCapitalize="none"
@@ -284,9 +286,9 @@ class HomePage extends Component {
 						</TouchableOpacity>
 					)}
 				{this.state.searchInputValue.length > 1 && (
-					<ElevatedView elevation={10} style={styles.urlAutocomplete}>
+					<View style={styles.urlAutocomplete}>
 						<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
-					</ElevatedView>
+					</View>
 				)}
 			</View>
 		);

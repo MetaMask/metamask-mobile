@@ -114,7 +114,6 @@ class UrlAutocomplete extends Component {
 					<TouchableOpacity
 						containerStyle={styles.item}
 						onPress={() => this.props.onSubmit(this.props.input)} // eslint-disable-line
-						key={name}
 					>
 						<View style={styles.itemWrapper}>
 							<View style={styles.textContent}>
