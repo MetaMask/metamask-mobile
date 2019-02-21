@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Favorite item to be rendered
+ * Featured item to be rendered
  */
-export default class FavoriteItem extends Component {
+export default class FeaturedItem extends Component {
 	static propTypes = {
 		/**
 		 * Dapp description

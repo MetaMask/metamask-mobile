@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import dappList from '../../../util/featured-dapp-list';
-import FavoriteItem from './FavoriteItem';
+import FeaturedItem from './FeaturedItem';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, FlatList, StyleSheet, View } from 'react-native';
 
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 export default class BrowserFeatured extends Component {
 	static propTypes = {
 		/*
-		 * Function to be called when tapping on a bookmark item
+		 * Function to be called when tapping on a favorite item
 		 */
 		goTo: PropTypes.any
 	};
@@ -30,7 +30,7 @@ export default class BrowserFeatured extends Component {
 				key={url}
 				onPress={() => this.props.goTo(url)} // eslint-disable-line react/jsx-no-bind
 			>
-				<FavoriteItem name={name} url={url} description={description} />
+				<FeaturedItem name={name} url={url} description={description} />
 			</TouchableOpacity>
 		);
 	};
