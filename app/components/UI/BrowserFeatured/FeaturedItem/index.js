@@ -25,7 +25,8 @@ const styles = StyleSheet.create({
 		shadowOffset: {
 			width: 0,
 			height: 0
-		}
+		},
+		elevation: 5
 	},
 	contentWrapper: {
 		flex: 1,

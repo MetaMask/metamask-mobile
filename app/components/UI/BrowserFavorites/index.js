@@ -36,14 +36,20 @@ const styles = StyleSheet.create({
 		borderRadius: 13
 	},
 	noBookmarks: {
+		fontSize: 16,
 		color: colors.fontSecondary,
-		...fontStyles.normal
+		textAlign: 'center',
+		...fontStyles.bold
 	},
 	fallbackTextStyle: {
 		fontSize: 12
 	},
 	wrapper: {
 		flex: 1
+	},
+	noBookmarksWrapper: {
+		marginTop: 120,
+		paddingHorizontal: 20
 	}
 });
 
@@ -116,7 +122,11 @@ class BrowserFavorites extends Component {
 		if (bookmarks.length) {
 			content = <FlatList data={bookmarks} keyExtractor={this.keyExtractor} renderItem={this.renderItem} />;
 		} else {
-			content = <Text style={styles.noBookmarks}>{strings('home_page.no_bookmarks')}</Text>;
+			content = (
+				<View style={styles.noBookmarksWrapper}>
+					<Text style={styles.noBookmarks}>{strings('home_page.no_bookmarks')}</Text>
+				</View>
+			);
 		}
 		return (
 			<View style={styles.bookmarksWrapper}>

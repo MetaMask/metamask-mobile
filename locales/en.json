@@ -326,7 +326,7 @@
 		"backup_alert_title": "Protect your funds",
 		"backup_alert_message": "Tap to save your seed phrase",
 		"bookmarks": "Bookmarks",
-		"no_bookmarks": "Your bookmarks will show up here",
+		"no_bookmarks": "You have no favorites Dapps yet",
 		"remove_bookmark_title": "Do you want to remove this site from your favorites?"
 	},
 	"browser": {
