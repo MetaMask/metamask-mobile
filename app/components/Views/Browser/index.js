@@ -265,7 +265,7 @@ export class Browser extends Component {
 		/**
 		 * Action that sets a transaction
 		 */
-		setTransactionObject: PropTypes.func.isRequired,
+		setTransactionObject: PropTypes.func,
 		/**
 		 * Function to store the a page in the browser history
 		 */
