@@ -747,7 +747,7 @@ export class Browser extends Component {
 							</Button>
 							<Button onPress={this.bookmark} style={styles.option}>
 								<Icon name="star" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>{strings('browser.bookmark')}</Text>
+								<Text style={styles.optionText}>{strings('browser.add_to_favorites')}</Text>
 							</Button>
 							<Button onPress={this.share} style={styles.option}>
 								<Icon name="share" size={15} style={styles.optionIcon} />
