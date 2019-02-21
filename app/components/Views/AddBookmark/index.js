@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
  * Copmonent that provides ability to add a bookmark
  */
 export default class AddBookmark extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('add_bookmark.title'));
+	static navigationOptions = () => getNavigationOptionsTitle(strings('add_favorite.title'));
 
 	state = {
 		title: '',
@@ -88,13 +88,13 @@ export default class AddBookmark extends Component {
 			<ActionView
 				cancelTestID={'add-bookmark-cancel-button'}
 				confirmTestID={'add-bookmark-confirm-button'}
-				cancelText={strings('add_bookmark.cancel_button')}
-				confirmText={strings('add_bookmark.add_button')}
+				cancelText={strings('add_favorite.cancel_button')}
+				confirmText={strings('add_favorite.add_button')}
 				onCancelPress={this.cancelAddBookmark}
 				onConfirmPress={this.addBookmark}
 			>
 				<View style={styles.rowWrapper}>
-					<Text style={fontStyles.normal}>{strings('add_bookmark.title_label')}</Text>
+					<Text style={fontStyles.normal}>{strings('add_favorite.title_label')}</Text>
 					<TextInput
 						style={styles.textInput}
 						placeholder={''}
@@ -107,7 +107,7 @@ export default class AddBookmark extends Component {
 					<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 				</View>
 				<View style={styles.rowWrapper}>
-					<Text style={fontStyles.normal}>{strings('add_bookmark.url_label')}</Text>
+					<Text style={fontStyles.normal}>{strings('add_favorite.url_label')}</Text>
 					<TextInput
 						style={styles.textInput}
 						placeholder={''}
