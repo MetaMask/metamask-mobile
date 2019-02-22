@@ -10,6 +10,11 @@ exports[`ImportPrivateKey should render correctly 1`] = `
   }
 >
   <KeyboardAwareScrollView
+    contentContainerStyle={
+      Object {
+        "flex": 1,
+      }
+    }
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -190,7 +195,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
               "borderRadius": 4,
               "borderWidth": 0.5,
               "fontFamily": "Roboto",
-              "fontSize": 16,
+              "fontSize": 15,
               "fontWeight": "400",
               "height": 120,
               "marginBottom": 10,
