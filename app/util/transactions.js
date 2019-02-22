@@ -16,6 +16,7 @@ export const APPROVE_ACTION_KEY = 'approve';
 export const SEND_TOKEN_ACTION_KEY = 'sentTokens';
 export const TRANSFER_FROM_ACTION_KEY = 'transferFrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
+export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 
 export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
@@ -186,7 +187,7 @@ export async function getTransactionActionKey(transaction) {
 		const toSmartContract = !ret && (await isSmartContractAddress(to));
 
 		if (!ret && toSmartContract) {
-			ret = SEND_ETHER_ACTION_KEY;
+			ret = SMART_CONTRACT_INTERACTION_ACTION_KEY;
 		} else if (!ret) {
 			ret = UNKNOWN_FUNCTION_KEY;
 		}
@@ -220,6 +221,8 @@ export async function getActionKey(tx, selectedAddress) {
 				: strings('transactions.sent_ether');
 		case DEPLOY_CONTRACT_ACTION_KEY:
 			return strings('transactions.contract_deploy');
+		case SMART_CONTRACT_INTERACTION_ACTION_KEY:
+			return strings('transactions.smart_contract_interaction');
 		default:
 			return strings('transactions.smart_contract_interaction');
 	}
@@ -242,7 +245,8 @@ export async function getTransactionReviewActionKey(transaction) {
 			return strings('transactions.tx_review_contract_deployment');
 		case TRANSFER_FROM_ACTION_KEY:
 			return strings('transactions.tx_review_transfer_from');
-
+		case SMART_CONTRACT_INTERACTION_ACTION_KEY:
+			return strings('transactions.tx_review_confirm');
 		default:
 			return strings('transactions.tx_review_unknown');
 	}
