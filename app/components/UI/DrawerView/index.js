@@ -35,7 +35,6 @@ import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
@@ -460,7 +459,10 @@ class DrawerView extends Component {
 	};
 
 	goToFeedback = () => {
-		this.goToBrowserUrl(AppConstants.FEEDBACK_URL);
+		const formId = '1FAIpQLSdYsD50E11vEjfVicOeTCCEh9kzj_JKHB0d3TW1PjmHvabEmg';
+		const fieldId = '1358481630';
+		const OSVersion = 'iOS+12.9+MM+0.0.1';
+		this.goToBrowserUrl(`https://docs.google.com/forms/d/e/${formId}/viewform?entry.${fieldId}=${OSVersion}`);
 		this.setState({ submitFeedback: false });
 	};
 
