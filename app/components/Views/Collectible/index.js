@@ -104,7 +104,11 @@ class Collectible extends Component {
 						</View>
 					</View>
 				</ScrollView>
-				<Modal isVisible={collectibleContractModalVisible} onBackdropPress={this.hideCollectibleContractModal}>
+				<Modal
+					isVisible={collectibleContractModalVisible}
+					onBackdropPress={this.hideCollectibleContractModal}
+					useNativeDriver
+				>
 					<CollectibleContractInformation
 						navigation={navigation}
 						onClose={this.hideCollectibleContractModal}

@@ -33,6 +33,7 @@ export const colors = {
 	primaryFox: '#f7861ce6',
 	red: '#f00',
 	darkRed: '#C63636',
+	warningRed: '#d95846',
 	slate: '#dfe4ea',
 	subtleGray: '#8c8e94',
 	tar: '#2f3542',

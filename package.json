@@ -92,7 +92,7 @@
     "react-native-keyboard-aware-scroll-view": "^0.7.2",
     "react-native-keychain": "github:brunobar79/react-native-keychain#5210c22c94a4d66c2e0231604601b3636bfc41bc",
     "react-native-linear-gradient": "^2.4.0",
-    "react-native-modal": "^7.0.0",
+    "react-native-modal": "github:brunobar79/react-native-modal#07697901a8e16323e40a378de6740038964b6a82",
     "react-native-os": "^1.2.1",
     "react-native-progress": "^3.5.0",
     "react-native-qrcode-svg": "^5.1.1",
