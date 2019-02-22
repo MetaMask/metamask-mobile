@@ -34,8 +34,8 @@ jobs:
 
   lint:
     <<: *defaults
-    docker: # run the steps with Docker
-      - image: circleci/node:8.15.0
+    macos:
+      xcode: 10.1.0
     steps:
       - checkout
       - attach_workspace:
@@ -44,8 +44,8 @@ jobs:
 
   test-unit:
     <<: *defaults
-    docker: # run the steps with Docker
-      - image: circleci/node:8.15.0
+    macos:
+      xcode: 10.1.0
     steps:
       - checkout
       - attach_workspace:
