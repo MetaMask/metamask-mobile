@@ -34,10 +34,6 @@ class Approval extends Component {
 		 */
 		newTransaction: PropTypes.func.isRequired,
 		/**
-		 * Action that sets transaction attributes from object to a transaction
-		 */
-		setTransactionObject: PropTypes.func.isRequired,
-		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired
@@ -45,12 +41,6 @@ class Approval extends Component {
 
 	state = {
 		mode: 'review'
-	};
-
-	componentDidMount = () => {
-		let { transaction } = this.props;
-		transaction = this.sanitizeTransaction(transaction);
-		this.props.setTransactionObject(transaction);
 	};
 
 	componentWillUnmount = () => {
