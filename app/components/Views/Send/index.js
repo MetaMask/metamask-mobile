@@ -7,7 +7,7 @@ import TransactionEditor from '../../UI/TransactionEditor';
 import { toBN, BNToHex, hexToBN } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
-import { getClosableNavigationOptions } from '../../UI/Navbar';
+import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
  */
 class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getClosableNavigationOptions(strings('send.title'), strings('navigation.cancel'), navigation);
+		getTransactionOptionsTitle(strings('send.title'), strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**
