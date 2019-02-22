@@ -259,7 +259,7 @@ class TransactionEditor extends Component {
 	 *
 	 * @returns {string} - Whether the transaction is valid or not, if not it returns error message
 	 */
-	validate = async () => (await this.validateAmount(false)) || this.validateGas() || this.validateToAddress();
+	validate = async () => this.validateGas() || this.validateToAddress() || (await this.validateAmount(false));
 
 	/**
 	 * Validates amount
@@ -313,15 +313,17 @@ class TransactionEditor extends Component {
 			} = this.props;
 			const checksummedFrom = from ? toChecksumAddress(from) : '';
 			const fromAccount = this.props.accounts[checksummedFrom];
-			(!value || !gas || !gasPrice || !from) && (error = strings('transaction.invalid_amount'));
-			value && !isBN(value) && (error = strings('transaction.invalid_amount'));
-			value &&
+			if (!value || !gas || !gasPrice || !from) return strings('transaction.invalid_amount');
+			if (value && !isBN(value)) return strings('transaction.invalid_amount');
+			if (
+				value &&
 				fromAccount &&
 				isBN(gas) &&
 				isBN(gasPrice) &&
 				isBN(value) &&
-				hexToBN(fromAccount.balance).lt(value.add(gas.mul(gasPrice))) &&
-				(error = strings('transaction.insufficient'));
+				hexToBN(fromAccount.balance).lt(value.add(gas.mul(gasPrice)))
+			)
+				return strings('transaction.insufficient');
 		}
 		return error;
 	};
@@ -345,15 +347,17 @@ class TransactionEditor extends Component {
 				return strings('transaction.invalid_amount');
 			}
 			const contractBalanceForAddress = hexToBN(contractBalances[selectedAsset.address].toString(16));
-			value && !isBN(value) && (error = strings('transaction.invalid_amount'));
+			if (value && !isBN(value)) return strings('transaction.invalid_amount');
 			const validateAssetAmount = contractBalanceForAddress.lt(value);
 			const ethTotalAmount = gas.mul(gasPrice);
-			value &&
+			if (
+				value &&
 				fromAccount &&
 				isBN(gas) &&
 				isBN(gasPrice) &&
-				(validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount)) &&
-				(error = strings('transaction.insufficient'));
+				(validateAssetAmount || hexToBN(fromAccount.balance).lt(ethTotalAmount))
+			)
+				return strings('transaction.insufficient');
 		}
 		return error;
 	};
@@ -368,19 +372,16 @@ class TransactionEditor extends Component {
 		const {
 			transaction: { gas, gasPrice, from }
 		} = this.props;
-		!gas && (error = strings('transaction.invalid_gas'));
-		gas && !isBN(gas) && (error = strings('transaction.invalid_gas'));
-		!gasPrice && (error = strings('transaction.invalid_gas_price'));
-		gasPrice && !isBN(gasPrice) && (error = strings('transaction.invalid_gas_price'));
-		(gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) && (error = strings('custom_gas.warning_gas_limit'));
+		if (!gas) return strings('transaction.invalid_gas');
+		if (gas && !isBN(gas)) return strings('transaction.invalid_gas');
+		if (!gasPrice) return strings('transaction.invalid_gas_price');
+		if (gasPrice && !isBN(gasPrice)) return strings('transaction.invalid_gas_price');
+		if (gas.lt(new BN(21000)) || gas.gt(new BN(7920028))) return strings('custom_gas.warning_gas_limit');
 
 		const checksummedFrom = from ? toChecksumAddress(from) : '';
 		const fromAccount = this.props.accounts[checksummedFrom];
-		fromAccount &&
-			isBN(gas) &&
-			isBN(gasPrice) &&
-			hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)) &&
-			(error = strings('transaction.insufficient'));
+		if (fromAccount && isBN(gas) && isBN(gasPrice) && hexToBN(fromAccount.balance).lt(gas.mul(gasPrice)))
+			return strings('transaction.insufficient');
 		return error;
 	};
 
