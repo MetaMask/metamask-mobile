@@ -108,7 +108,22 @@ class UrlAutocomplete extends Component {
 
 	render() {
 		if (this.props.input.length < 2) return null;
-		if (this.state.results.length === 0) return null;
+		if (this.state.results.length === 0) {
+			return (
+				<View style={styles.wrapper}>
+					<TouchableOpacity
+						containerStyle={styles.item}
+						onPress={() => this.props.onSubmit(this.props.input)} // eslint-disable-line
+					>
+						<View style={styles.itemWrapper}>
+							<View style={styles.textContent}>
+								<Text style={styles.name}>{this.props.input}</Text>
+							</View>
+						</View>
+					</TouchableOpacity>
+				</View>
+			);
+		}
 		return (
 			<View style={styles.wrapper}>
 				{this.state.results.slice(0, 3).map(r => {
