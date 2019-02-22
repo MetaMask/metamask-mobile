@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, Platform, Text, View, ScrollView, StyleSheet, Image } from 'react-native';
+import { AsyncStorage, Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
 
 import { colors, fontStyles } from '../../../styles/common';
@@ -110,11 +110,35 @@ export default class Onboarding extends Component {
 	};
 
 	onPressCreate = () => {
-		this.props.navigation.push('CreateWallet');
+		const { existingUser } = this.state;
+		const action = () => this.props.navigation.push('CreateWallet');
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
 	};
 
 	onPressImport = () => {
-		this.props.navigation.push('ImportWallet');
+		const { existingUser } = this.state;
+		const action = () => this.props.navigation.push('ImportWallet');
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	alertExistingUser = callback => {
+		Alert.alert(
+			strings('sync_with_extension.warning_title'),
+			strings('sync_with_extension.warning_message'),
+			[
+				{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false, style: 'cancel' },
+				{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => callback() }
+			],
+			{ cancelable: false }
+		);
 	};
 
 	render() {

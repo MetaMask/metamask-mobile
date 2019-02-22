@@ -138,7 +138,11 @@ class SyncWithExtension extends Component {
 				strings('sync_with_extension.warning_title'),
 				strings('sync_with_extension.warning_message'),
 				[
-					{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false },
+					{
+						text: strings('sync_with_extension.warning_cancel_button'),
+						onPress: () => false,
+						style: 'cancel'
+					},
 					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
 				],
 				{ cancelable: false }
