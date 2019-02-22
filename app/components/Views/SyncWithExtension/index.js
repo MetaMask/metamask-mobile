@@ -124,7 +124,7 @@ class SyncWithExtension extends Component {
 	}
 
 	scanCode = () => {
-		if (!PUB_KEY || PUB_KEY === 'KEY') {
+		if (!PUB_KEY) {
 			// Dev message
 			Alert.alert(
 				'This feature has been disabled',
