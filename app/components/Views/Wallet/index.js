@@ -185,6 +185,7 @@ class Wallet extends Component {
 				animationOutTiming={600}
 				onBackdropPress={this.onHideCollectible}
 				onBackButtonPress={this.onHideCollectible}
+				useNativeDriver
 			>
 				<Collectible collectible={collectible} onHide={this.onHideCollectible} />
 			</Modal>

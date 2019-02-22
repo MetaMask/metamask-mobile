@@ -154,11 +154,11 @@ export default class TransactionElement extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired,
+		showAlert: PropTypes.func,
 		/**
 		 * Action that shows the global alert
 		 */
-		viewOnEtherscan: PropTypes.func.isRequired
+		viewOnEtherscan: PropTypes.func
 	};
 
 	state = {

@@ -96,7 +96,13 @@ class GlobalAlert extends Component {
 		const { content, isVisible } = this.props;
 
 		return (
-			<Modal style={styles.modal} isVisible={isVisible} onBackdropPress={this.onClose} backdropOpacity={0}>
+			<Modal
+				style={styles.modal}
+				isVisible={isVisible}
+				onBackdropPress={this.onClose}
+				backdropOpacity={0}
+				useNativeDriver
+			>
 				{this.getComponent(content)}
 			</Modal>
 		);

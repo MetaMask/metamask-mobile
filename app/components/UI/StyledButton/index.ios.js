@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ViewPropTypes } from 'react-native';
+import { ViewPropTypes, Text } from 'react-native';
 import Button from 'react-native-button';
 import getStyles from './styledButtonStyles';
 
@@ -24,11 +24,11 @@ export default class StyledButton extends Component {
 		/**
 		 * Styles to be applied to the Button Text
 		 */
-		style: ViewPropTypes.style,
+		style: Text.propTypes.style,
 		/**
 		 * Styles to be applied to the Button disabled state text
 		 */
-		styleDisabled: ViewPropTypes.style,
+		styleDisabled: Text.propTypes.style,
 		/**
 		 * Styles to be applied to the Button disabled container
 		 */

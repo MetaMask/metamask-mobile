@@ -21,3 +21,15 @@ export function clearHistory() {
 		type: 'CLEAR_BROWSER_HISTORY'
 	};
 }
+
+/**
+ * Adds a new entry to the whitelist
+ *
+ * @param {string} url - The website's url
+ */
+export function addToWhitelist(url) {
+	return {
+		type: 'ADD_TO_BROWSER_WHITELIST',
+		url
+	};
+}
