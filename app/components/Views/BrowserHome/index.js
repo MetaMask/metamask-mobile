@@ -13,7 +13,7 @@ import Logger from '../../../util/Logger';
 import { PendingTransactionNotification } from '../../UI/PendingTransactionNotification';
 // eslint-disable-next-line import/no-unresolved
 import LockManager from '../../../core/LockManager';
-import FlashMessage, { showMessage } from "react-native-flash-message";
+import FlashMessage, { showMessage } from 'react-native-flash-message';
 import { baseStyles } from '../../../styles/common';
 
 /**
@@ -69,13 +69,12 @@ class BrowserHome extends Component {
 			}
 		});
 
-		setTimeout( () => {
+		setTimeout(() => {
 			showMessage({
-				message: "Simple message",
-				type: "info",
+				message: 'Simple message',
+				type: 'info'
 			});
 		}, 3000);
-
 	}
 
 	componentDidUpdate(prevProps) {
@@ -118,7 +117,7 @@ class BrowserHome extends Component {
 	render = () => (
 		<View style={baseStyles.flexGrow}>
 			<HomePage goTo={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} navigation={this.props.navigation} />
-			<FlashMessage duration={5000} position="bottom" MessageComponent={PendingTransactionNotification}/>
+			<FlashMessage duration={5000} position="bottom" MessageComponent={PendingTransactionNotification} />
 		</View>
 	);
 }
