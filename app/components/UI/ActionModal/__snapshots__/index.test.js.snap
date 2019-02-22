@@ -13,12 +13,15 @@ exports[`ActionModal should render correctly 1`] = `
   backdropTransitionOutTiming={300}
   deviceHeight={null}
   deviceWidth={null}
+  hasBackdrop={true}
   hideModalContentWhileAnimating={false}
   isVisible={false}
   onBackButtonPress={[Function]}
   onBackdropPress={[Function]}
   onModalHide={[Function]}
   onModalShow={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
   scrollOffset={0}
   scrollOffsetMax={0}
   scrollTo={null}
@@ -35,7 +38,7 @@ exports[`ActionModal should render correctly 1`] = `
     ]
   }
   swipeThreshold={100}
-  useNativeDriver={false}
+  useNativeDriver={true}
 >
   <View
     style={
