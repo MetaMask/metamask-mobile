@@ -116,7 +116,12 @@ export default class SelectComponent extends Component {
 					<Icon name={'arrow-drop-down'} size={24} color={colors.fontPrimary} style={styles.iconDropdown} />
 				</View>
 			</TouchableOpacity>
-			<Modal isVisible={this.state.pickerVisible} style={styles.bottomModal} onBackdropPress={this.hidePicker}>
+			<Modal
+				isVisible={this.state.pickerVisible}
+				style={styles.bottomModal}
+				onBackdropPress={this.hidePicker}
+				useNativeDriver
+			>
 				<View style={styles.modalContent}>
 					<View style={styles.accesoryBar}>
 						<Text style={styles.label}>{this.props.label}</Text>

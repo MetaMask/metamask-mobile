@@ -38,9 +38,9 @@ exports[`Browser should render correctly 1`] = `
   </View>
   <ReactNativeModal
     animationIn="slideInDown"
-    animationInTiming={600}
+    animationInTiming={300}
     animationOut="slideOutUp"
-    animationOutTiming={600}
+    animationOutTiming={300}
     avoidKeyboard={false}
     backdropColor="black"
     backdropOpacity={0.7}
@@ -48,12 +48,15 @@ exports[`Browser should render correctly 1`] = `
     backdropTransitionOutTiming={300}
     deviceHeight={null}
     deviceWidth={null}
+    hasBackdrop={true}
     hideModalContentWhileAnimating={false}
     isVisible={false}
     onBackButtonPress={[Function]}
     onBackdropPress={[Function]}
     onModalHide={[Function]}
     onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -70,7 +73,7 @@ exports[`Browser should render correctly 1`] = `
       ]
     }
     swipeThreshold={100}
-    useNativeDriver={false}
+    useNativeDriver={true}
   >
     <View
       style={
@@ -152,12 +155,15 @@ exports[`Browser should render correctly 1`] = `
     backdropTransitionOutTiming={300}
     deviceHeight={null}
     deviceWidth={null}
+    hasBackdrop={true}
     hideModalContentWhileAnimating={false}
     isVisible={false}
     onBackButtonPress={[Function]}
     onBackdropPress={[Function]}
     onModalHide={[Function]}
     onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -174,7 +180,7 @@ exports[`Browser should render correctly 1`] = `
       ]
     }
     swipeThreshold={100}
-    useNativeDriver={false}
+    useNativeDriver={true}
   />
   <ReactNativeModal
     animationIn="slideInUp"
@@ -188,12 +194,15 @@ exports[`Browser should render correctly 1`] = `
     backdropTransitionOutTiming={300}
     deviceHeight={null}
     deviceWidth={null}
+    hasBackdrop={true}
     hideModalContentWhileAnimating={false}
     isVisible={false}
     onBackButtonPress={[Function]}
     onBackdropPress={[Function]}
     onModalHide={[Function]}
     onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -210,7 +219,7 @@ exports[`Browser should render correctly 1`] = `
       ]
     }
     swipeThreshold={100}
-    useNativeDriver={false}
+    useNativeDriver={true}
   >
     <Connect(AccountApproval)
       currentPageInformation={
@@ -222,6 +231,52 @@ exports[`Browser should render correctly 1`] = `
       }
       onCancel={[Function]}
       onConfirm={[Function]}
+    />
+  </ReactNativeModal>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={300}
+    animationOut="slideOutDown"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="#d95846"
+    backdropOpacity={1}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    useNativeDriver={true}
+  >
+    <PhishingModal
+      continueToPhishingSite={[Function]}
+      goBackToSafety={[Function]}
+      goToETHPhishingDetector={[Function]}
+      goToEtherscam={[Function]}
+      goToFilePhishingIssue={[Function]}
     />
   </ReactNativeModal>
   <AnimatedComponent
