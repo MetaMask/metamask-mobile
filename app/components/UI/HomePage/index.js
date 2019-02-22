@@ -236,9 +236,14 @@ class HomePage extends Component {
 		});
 	};
 
+	dismissKeyboardAndClear = () => {
+		this.setState({ searchInputValue: '' });
+		Keyboard.dismiss();
+	};
+
 	render() {
 		return (
-			<TouchableWithoutFeedback style={styles.flex} onPress={Keyboard.dismiss} accesible={false}>
+			<TouchableWithoutFeedback style={styles.flex} onPress={this.dismissKeyboardAndClear} accesible={false}>
 				<View style={styles.flex}>
 					<View style={styles.homePageContent}>
 						<View style={styles.searchWrapper}>
