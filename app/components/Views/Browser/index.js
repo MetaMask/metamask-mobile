@@ -42,6 +42,7 @@ import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
+import { hexToBN } from '../../../util/number';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -398,6 +399,12 @@ export class Browser extends Component {
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
+			const {
+				transaction: { value, gas, gasPrice }
+			} = transactionMeta;
+			transactionMeta.transaction.value = hexToBN(value);
+			transactionMeta.transaction.gas = hexToBN(gas);
+			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 			this.props.setTransactionObject({
 				...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
 				...transactionMeta.transaction

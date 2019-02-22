@@ -34,10 +34,6 @@ class Approval extends Component {
 		 */
 		newTransaction: PropTypes.func.isRequired,
 		/**
-		 * Action that sets transaction attributes from object to a transaction
-		 */
-		setTransactionObject: PropTypes.func.isRequired,
-		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired
@@ -45,12 +41,6 @@ class Approval extends Component {
 
 	state = {
 		mode: 'review'
-	};
-
-	componentDidMount = () => {
-		let { transaction } = this.props;
-		transaction = this.sanitizeTransaction(transaction);
-		this.props.setTransactionObject(transaction);
 	};
 
 	componentWillUnmount = () => {
@@ -75,24 +65,18 @@ class Approval extends Component {
 	 */
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
-		const {
-			transaction: { assetType }
-		} = this.props;
 		let { transaction } = this.props;
 		try {
-			if (assetType === 'ETH') {
-				transaction = this.prepareTransaction(transaction);
-			}
+			transaction = this.prepareTransaction(transaction);
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					const hash = transactionMeta.transactionHash;
 					this.props.navigation.push('TransactionSubmitted', { hash });
-					this.clear();
 				} else {
 					throw transactionMeta.error;
 				}
 			});
-			await TransactionController.updateTransaction({ transaction });
+			await TransactionController.updateTransaction({ id: transaction.id, transaction });
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
