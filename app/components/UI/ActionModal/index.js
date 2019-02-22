@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that renders an ERC-20 Token list element
+ * View that renders an action modal
  */
 export default function ActionModal({
 	cancelTestID,
