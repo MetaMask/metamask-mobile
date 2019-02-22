@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import { connect } from 'react-redux';
@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
  * Component that manages transaction approval from the dapp browser
  */
 class Approval extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('approval.title'));
+	static navigationOptions = ({ navigation }) =>
+		getTransactionOptionsTitle(strings('approval.title'), strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**

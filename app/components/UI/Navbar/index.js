@@ -106,6 +106,32 @@ export function getNavigationOptionsTitle(title) {
 		headerTintColor: colors.primary
 	};
 }
+
+/**
+ * Function that returns the navigation options
+ * This is used by views that confirms transactions, showing current network
+ *
+ * @param {string} title - Title in string format
+ * @param {string} backButtonText - Back text in string format
+ * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
+ */
+export function getTransactionOptionsTitle(title, backButtonText, navigation) {
+	return {
+		headerTitle: <NavbarTitle title={title} />,
+		headerLeft:
+			Platform.OS === 'ios' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<Text style={styles.closeButtonText}>{backButtonText}</Text>
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			)
+	};
+}
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
