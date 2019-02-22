@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, ActivityIndicator, TouchableOpacity, TextInput, Text, View, StyleSheet } from 'react-native';
+import { Platform, Alert, ActivityIndicator, TouchableOpacity, TextInput, Text, View, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -15,6 +15,9 @@ const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.lightBlue,
 		flex: 1
+	},
+	wrapper: {
+		flex: Platform.OS === 'android' ? 0 : 1
 	},
 	content: {
 		alignItems: 'flex-start'
@@ -73,7 +76,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 20,
 		paddingLeft: 20,
 		paddingRight: 20,
-		fontSize: 16,
+		fontSize: 15,
 		borderRadius: 4,
 		height: 120,
 		borderWidth: StyleSheet.hairlineWidth,
