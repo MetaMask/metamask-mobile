@@ -73,7 +73,7 @@ class Transactions extends PureComponent {
 		/**
 		 * String representing the selected the selected network
 		 */
-		networkType: PropTypes.string.isRequired,
+		networkType: PropTypes.string,
 		/**
 		 * ETH to current currency conversion rate
 		 */
@@ -85,7 +85,7 @@ class Transactions extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired,
+		showAlert: PropTypes.func,
 		/**
 		 * Callback to adjust the scroll position
 		 */

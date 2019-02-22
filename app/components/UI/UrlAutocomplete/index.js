@@ -117,7 +117,9 @@ class UrlAutocomplete extends Component {
 					>
 						<View style={styles.itemWrapper}>
 							<View style={styles.textContent}>
-								<Text style={styles.name}>{this.props.input}</Text>
+								<Text style={styles.name} numberOfLines={1}>
+									{this.props.input}
+								</Text>
 							</View>
 						</View>
 					</TouchableOpacity>
@@ -142,8 +144,12 @@ class UrlAutocomplete extends Component {
 									textStyle={styles.fallbackTextStyle}
 								/>
 								<View style={styles.textContent}>
-									<Text style={styles.name}>{name || getHost(url)}</Text>
-									<Text style={styles.url}>{url}</Text>
+									<Text style={styles.name} numberOfLines={1}>
+										{name || getHost(url)}
+									</Text>
+									<Text style={styles.url} numberOfLines={1}>
+										{url}
+									</Text>
 								</View>
 							</View>
 						</TouchableOpacity>

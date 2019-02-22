@@ -90,11 +90,11 @@ export default class TransactionDetails extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired,
+		showAlert: PropTypes.func,
 		/**
 		 * Action that shows the global alert
 		 */
-		viewOnEtherscan: PropTypes.func.isRequired,
+		viewOnEtherscan: PropTypes.func,
 		/**
 		 * Object with information to render
 		 */

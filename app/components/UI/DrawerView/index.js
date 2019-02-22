@@ -661,13 +661,22 @@ class DrawerView extends Component {
 						))}
 					</View>
 				</ScrollView>
-				<Modal isVisible={this.props.networkModalVisible} onBackdropPress={this.hideNetworksModal}>
+				<Modal
+					isVisible={this.props.networkModalVisible}
+					onBackdropPress={this.hideNetworksModal}
+					onSwipeComplete={this.hideNetworksModal}
+					swipeDirection={'down'}
+					useNativeDriver
+				>
 					<NetworkList onClose={this.onNetworksModalClose} />
 				</Modal>
 				<Modal
 					isVisible={this.state.accountsModalVisible}
 					style={styles.bottomModal}
 					onBackdropPress={this.hideAccountsModal}
+					onSwipeComplete={this.hideAccountsModal}
+					swipeDirection={'down'}
+					useNativeDriver
 				>
 					<AccountList
 						accounts={accounts}
