@@ -9,6 +9,7 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import { connect } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,8 +45,6 @@ class Approval extends Component {
 	};
 
 	componentWillUnmount = () => {
-		const { transaction } = this.props;
-		Engine.context.TransactionController.cancelTransaction(transaction.id);
 		this.clear();
 	};
 
@@ -57,6 +56,8 @@ class Approval extends Component {
 	};
 
 	onCancel = () => {
+		const { transaction } = this.props;
+		Engine.context.TransactionController.cancelTransaction(transaction.id);
 		this.props.navigation.goBack();
 	};
 
@@ -65,18 +66,21 @@ class Approval extends Component {
 	 */
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
+		const { transactions } = this.props;
 		let { transaction } = this.props;
 		try {
 			transaction = this.prepareTransaction(transaction);
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
-					const hash = transactionMeta.transactionHash;
-					this.props.navigation.push('TransactionSubmitted', { hash });
+					this.props.navigation.goBack();
 				} else {
 					throw transactionMeta.error;
 				}
 			});
-			await TransactionController.updateTransaction({ id: transaction.id, transaction });
+
+			const fullTx = transactions.find(({ id }) => id === transaction.id);
+			const updatedTx = { ...fullTx, transaction };
+			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
@@ -97,7 +101,8 @@ class Approval extends Component {
 		...transaction,
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice),
-		value: BNToHex(transaction.value)
+		value: BNToHex(transaction.value),
+		to: toChecksumAddress(transaction.to)
 	});
 
 	/**
@@ -140,7 +145,8 @@ class Approval extends Component {
 }
 
 const mapStateToProps = state => ({
-	transaction: state.transaction
+	transaction: state.transaction,
+	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
 const mapDispatchToProps = dispatch => ({
