@@ -41,10 +41,16 @@ class Approval extends Component {
 	};
 
 	state = {
-		mode: 'review'
+		mode: 'review',
+		transactionConfirmed: false
 	};
 
 	componentWillUnmount = () => {
+		const { transactionConfirmed } = this.state;
+		const { transaction } = this.props;
+		if (!transactionConfirmed) {
+			Engine.context.TransactionController.cancelTransaction(transaction.id);
+		}
 		this.clear();
 	};
 
@@ -72,6 +78,7 @@ class Approval extends Component {
 			transaction = this.prepareTransaction(transaction);
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
+					this.setState({ transactionConfirmed: true });
 					this.props.navigation.goBack();
 				} else {
 					throw transactionMeta.error;
