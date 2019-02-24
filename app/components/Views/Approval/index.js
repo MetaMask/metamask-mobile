@@ -62,9 +62,6 @@ class Approval extends Component {
 	};
 
 	onCancel = () => {
-		const { transaction } = this.props;
-		Engine.context.TransactionController.cancelTransaction(transaction.id);
-		this.setState({ transactionHandled: true });
 		this.props.navigation.goBack();
 	};
 
