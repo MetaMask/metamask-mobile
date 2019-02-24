@@ -17,6 +17,13 @@ describe('Approval', () => {
 				to: '0x2',
 				selectedAsset: undefined,
 				assetType: undefined
+			},
+			engine: {
+				backgroundState: {
+					TransactionController: {
+						transactions: []
+					}
+				}
 			}
 		};
 
