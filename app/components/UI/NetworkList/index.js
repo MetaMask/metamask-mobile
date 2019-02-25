@@ -168,7 +168,7 @@ export class NetworkList extends Component {
 		const { NetworkController, AccountTrackerController } = Engine.context;
 		NetworkController.setRpcTarget(rpcTarget);
 		AccountTrackerController.refresh();
-		this.closeModal();
+		this.props.onClose(false);
 	};
 
 	removeRpcTarget = rpcTarget => {
