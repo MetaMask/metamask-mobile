@@ -376,8 +376,8 @@ export class Browser extends Component {
 		const updatedentryScriptWeb3 = entryScriptWeb3.replace(
 			'undefined; // INITIAL_NETWORK',
 			this.props.networkType === 'rpc'
-				? `'${this.props.network.toString()}'`
-				: `'${Networks[this.props.networkType].networkId.toString()}'`
+				? `'${this.props.network}'`
+				: `'${Networks[this.props.networkType].networkId}'`
 		);
 
 		const SPA_urlChangeListener = `(function () {

@@ -165,8 +165,9 @@ export class NetworkList extends Component {
 	};
 
 	onSetRpcTarget = async rpcTarget => {
-		const { NetworkController } = Engine.context;
+		const { NetworkController, AccountTrackerController } = Engine.context;
 		NetworkController.setRpcTarget(rpcTarget);
+		await AccountTrackerController.refresh();
 		this.closeModal();
 	};
 
