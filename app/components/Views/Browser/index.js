@@ -231,9 +231,13 @@ export class Browser extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * A string representing the network name
+		 * A string representing the network type
 		 */
 		networkType: PropTypes.string,
+		/**
+		 * A string representing the network id
+		 */
+		network: PropTypes.string,
 		/**
 		 * Indicates whether privacy mode is enabled
 		 */
@@ -371,7 +375,9 @@ export class Browser extends Component {
 
 		const updatedentryScriptWeb3 = entryScriptWeb3.replace(
 			'undefined; // INITIAL_NETWORK',
-			`'${Networks[this.props.networkType].networkId.toString()}'`
+			this.props.networkType === 'rpc'
+				? `'${this.props.network}'`
+				: `'${Networks[this.props.networkType].networkId}'`
 		);
 
 		const SPA_urlChangeListener = `(function () {
@@ -1169,6 +1175,7 @@ const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
