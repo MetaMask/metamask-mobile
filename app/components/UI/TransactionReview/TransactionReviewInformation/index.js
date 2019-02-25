@@ -192,7 +192,6 @@ class TransactionReviewInformation extends Component {
 			currentCurrency,
 			conversionRate
 		} = this.props;
-
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();

@@ -9,6 +9,7 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import { connect } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -34,28 +35,22 @@ class Approval extends Component {
 		 */
 		newTransaction: PropTypes.func.isRequired,
 		/**
-		 * Action that sets transaction attributes from object to a transaction
-		 */
-		setTransactionObject: PropTypes.func.isRequired,
-		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired
 	};
 
 	state = {
-		mode: 'review'
-	};
-
-	componentDidMount = () => {
-		let { transaction } = this.props;
-		transaction = this.sanitizeTransaction(transaction);
-		this.props.setTransactionObject(transaction);
+		mode: 'review',
+		transactionHandled: false
 	};
 
 	componentWillUnmount = () => {
+		const { transactionHandled } = this.state;
 		const { transaction } = this.props;
-		Engine.context.TransactionController.cancelTransaction(transaction.id);
+		if (!transactionHandled) {
+			Engine.context.TransactionController.cancelTransaction(transaction.id);
+		}
 		this.clear();
 	};
 
@@ -75,28 +70,26 @@ class Approval extends Component {
 	 */
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
-		const {
-			transaction: { assetType }
-		} = this.props;
+		const { transactions } = this.props;
 		let { transaction } = this.props;
 		try {
-			if (assetType === 'ETH') {
-				transaction = this.prepareTransaction(transaction);
-			}
+			transaction = this.prepareTransaction(transaction);
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
-					const hash = transactionMeta.transactionHash;
-					this.props.navigation.push('TransactionSubmitted', { hash });
-					this.clear();
+					this.setState({ transactionHandled: true });
+					this.props.navigation.goBack();
 				} else {
 					throw transactionMeta.error;
 				}
 			});
-			await TransactionController.updateTransaction({ transaction });
+
+			const fullTx = transactions.find(({ id }) => id === transaction.id);
+			const updatedTx = { ...fullTx, transaction };
+			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
-			this.setState({ transactionConfirmed: false });
+			this.setState({ transactionHandled: false });
 		}
 	};
 
@@ -113,7 +106,8 @@ class Approval extends Component {
 		...transaction,
 		gas: BNToHex(transaction.gas),
 		gasPrice: BNToHex(transaction.gasPrice),
-		value: BNToHex(transaction.value)
+		value: BNToHex(transaction.value),
+		to: toChecksumAddress(transaction.to)
 	});
 
 	/**
@@ -156,7 +150,8 @@ class Approval extends Component {
 }
 
 const mapStateToProps = state => ({
-	transaction: state.transaction
+	transaction: state.transaction,
+	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -19,11 +19,11 @@ exports[`Approval should render correctly 1`] = `
         "assetType": undefined,
         "data": "",
         "from": "0x1",
-        "gas": "0",
-        "gasPrice": "0",
+        "gas": "",
+        "gasPrice": "",
         "selectedAsset": undefined,
         "to": "0x2",
-        "value": "0",
+        "value": "",
       }
     }
   />
