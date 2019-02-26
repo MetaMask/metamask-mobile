@@ -38,7 +38,7 @@ exports[`ActionModal should render correctly 1`] = `
     ]
   }
   swipeThreshold={100}
-  useNativeDriver={true}
+  useNativeDriver={false}
 >
   <View
     style={
