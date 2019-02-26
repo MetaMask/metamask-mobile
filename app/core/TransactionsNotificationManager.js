@@ -11,6 +11,7 @@ class TransactionsNotificationManager {
 			this._transactionsToView = [];
 			TransactionsNotificationManager.instance = this;
 		}
+
 		return TransactionsNotificationManager.instance;
 	}
 

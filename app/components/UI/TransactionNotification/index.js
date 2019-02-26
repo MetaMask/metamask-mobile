@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DeviceSize from '../../../util/DeviceSize';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { hideMessage } from 'react-native-flash-message';
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	flashIcon: {
-		marginRight: 20
+		marginRight: 15
 	}
 });
 
@@ -62,7 +63,14 @@ export const TransactionNotification = props => {
 			case 'received':
 				return <Icon color={colors.success} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'error':
-				return null;
+				return (
+					<MaterialIcon
+						color={colors.darkRed}
+						size={36}
+						name="alert-circle-outline"
+						style={styles.checkIcon}
+					/>
+				);
 		}
 	};
 
