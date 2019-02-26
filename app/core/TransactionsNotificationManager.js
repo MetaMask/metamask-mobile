@@ -13,7 +13,7 @@ class TransactionsNotificationManager {
 		}
 
 		showMessage({
-			type: 'error',
+			type: 'pending',
 			autoHide: false,
 			message: {
 				transaction: { nonce: 1 }

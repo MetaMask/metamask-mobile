@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
+import { Platform, View, Animated, Easing, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	view: {
 		position: 'relative',
-		height: 40,
-		width: 40,
-		top: -5,
-		left: -5
+		height: Platform.OS === 'android' ? 41.5 : 40,
+		width: Platform.OS === 'android' ? 41.5 : 40,
+		top: Platform.OS === 'android' ? -6 : -5.5,
+		left: Platform.OS === 'android' ? -6 : -5.5
 	},
 	static: {
 		borderWidth: 3.5,
