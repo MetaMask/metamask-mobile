@@ -42,6 +42,7 @@ import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
+import { hexToBN } from '../../../util/number';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
 const SCROLL_THRESHOLD = 100;
@@ -230,9 +231,13 @@ export class Browser extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * A string representing the network name
+		 * A string representing the network type
 		 */
 		networkType: PropTypes.string,
+		/**
+		 * A string representing the network id
+		 */
+		network: PropTypes.string,
 		/**
 		 * Indicates whether privacy mode is enabled
 		 */
@@ -370,7 +375,9 @@ export class Browser extends Component {
 
 		const updatedentryScriptWeb3 = entryScriptWeb3.replace(
 			'undefined; // INITIAL_NETWORK',
-			`'${Networks[this.props.networkType].networkId.toString()}'`
+			this.props.networkType === 'rpc'
+				? `'${this.props.network}'`
+				: `'${Networks[this.props.networkType].networkId}'`
 		);
 
 		const SPA_urlChangeListener = `(function () {
@@ -398,6 +405,12 @@ export class Browser extends Component {
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
+			const {
+				transaction: { value, gas, gasPrice }
+			} = transactionMeta;
+			transactionMeta.transaction.value = hexToBN(value);
+			transactionMeta.transaction.gas = hexToBN(gas);
+			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 			this.props.setTransactionObject({
 				...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
 				...transactionMeta.transaction
@@ -1162,6 +1175,7 @@ const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,

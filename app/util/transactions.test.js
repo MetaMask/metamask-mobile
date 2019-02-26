@@ -11,7 +11,8 @@ import {
 	SEND_TOKEN_ACTION_KEY,
 	UNKNOWN_FUNCTION_KEY,
 	TOKEN_METHOD_TRANSFER_FROM,
-	TRANSFER_FROM_ACTION_KEY
+	TRANSFER_FROM_ACTION_KEY,
+	SMART_CONTRACT_INTERACTION_ACTION_KEY
 } from './transactions';
 import Engine from '../core/Engine';
 
@@ -139,6 +140,14 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 		const get = await getTransactionActionKey({
 			transactionHash: '0x4',
 			transaction: { data: randomData, to: '0x1' }
+		});
+		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
+	});
+
+	it('getTransactionActionKey send ether to address', async () => {
+		const get = await getTransactionActionKey({
+			transactionHash: '0x4',
+			transaction: { to: '0x1' }
 		});
 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
 	});

@@ -472,7 +472,9 @@ class DrawerView extends Component {
 	goToFeedback = formId => {
 		const appVersion = DeviceInfo.getVersion();
 		const buildNumber = DeviceInfo.getBuildNumber();
-		this.goToBrowserUrl(`https://docs.google.com/forms/d/e/${formId}/viewform?entry.${appVersion}=${buildNumber}`);
+		this.goToBrowserUrl(
+			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=+MM+${buildNumber}+(${appVersion})`
+		);
 		this.setState({ submitFeedback: false });
 	};
 
