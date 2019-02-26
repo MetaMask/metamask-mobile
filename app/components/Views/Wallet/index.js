@@ -9,11 +9,9 @@ import { colors, fontStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import Transactions from '../../UI/Transactions';
-import Modal from 'react-native-modal';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
-import Collectible from '../Collectible';
 import Engine from '../../../core/Engine';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
@@ -41,10 +39,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0
 	}
 });
 
@@ -172,26 +166,6 @@ class Wallet extends Component {
 		this.setState({ showCollectible: false });
 	};
 
-	renderAssetModal = () => {
-		const { showCollectible, collectible } = this.state;
-		return (
-			<Modal
-				isVisible={showCollectible}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.onHideCollectible}
-				onBackButtonPress={this.onHideCollectible}
-				useNativeDriver
-			>
-				<Collectible collectible={collectible} onHide={this.onHideCollectible} />
-			</Modal>
-		);
-	};
-
 	normalizeTransactions() {
 		const { selectedAddress, networkType, transactions } = this.props;
 		const networkId = Networks[networkType].networkId;
@@ -282,7 +256,6 @@ class Wallet extends Component {
 						loading={!this.state.transactionsUpdated}
 					/>
 				</ScrollableTabView>
-				{this.renderAssetModal()}
 			</View>
 		);
 	}
