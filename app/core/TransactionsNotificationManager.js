@@ -12,6 +12,14 @@ class TransactionsNotificationManager {
 			TransactionsNotificationManager.instance = this;
 		}
 
+		showMessage({
+			type: 'error',
+			autoHide: false,
+			message: {
+				transaction: { nonce: 1 }
+			}
+		});
+
 		return TransactionsNotificationManager.instance;
 	}
 

@@ -14,11 +14,11 @@ import { hideMessage } from 'react-native-flash-message';
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
 		backgroundColor: colors.normalAlert,
-		padding: 20,
+		padding: 15,
 		marginTop: 10,
 		marginLeft: 0,
 		marginRight: 0,
-		height: DeviceSize.isIphoneX() ? 100 : 80,
+		height: DeviceSize.isIphoneX() ? 90 : 70,
 		flexDirection: 'row'
 	},
 	flashLabel: {
