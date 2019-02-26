@@ -472,8 +472,10 @@ class DrawerView extends Component {
 	goToFeedback = formId => {
 		const appVersion = DeviceInfo.getVersion();
 		const buildNumber = DeviceInfo.getBuildNumber();
+		const systemName = DeviceInfo.getSystemName();
+		const systemVersion = systemName === 'Android' ? DeviceInfo.getAPILevel() : DeviceInfo.getSystemVersion();
 		this.goToBrowserUrl(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=+MM+${buildNumber}+(${appVersion})`
+			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
 		);
 		this.setState({ submitFeedback: false });
 	};
