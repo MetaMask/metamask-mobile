@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { createStackNavigator } from 'react-navigation';
+import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 import GlobalAlert from '../../UI/GlobalAlert';
+import FlashMessage, { showMessage } from 'react-native-flash-message';
 
 import Browser from '../../Views/Browser';
 import BrowserHome from '../../Views/BrowserHome';
@@ -32,6 +33,7 @@ import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import { PendingTransactionNotification } from '../../UI/PendingTransactionNotification';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -46,32 +48,43 @@ const styles = StyleSheet.create({
 const MainNavigator = createStackNavigator(
 	{
 		Home: {
-			screen: createStackNavigator({
-				BrowserHome: {
-					screen: BrowserHome
+			screen: createBottomTabNavigator(
+				{
+					BrowserHome: createStackNavigator({
+						BrowserHome: {
+							screen: BrowserHome
+						}
+					}),
+					WalletHome: createStackNavigator({
+						WalletView: {
+							screen: Wallet
+						},
+						Asset: {
+							screen: Asset
+						},
+						AddAsset: {
+							screen: AddAsset
+						},
+						AccountDetails: {
+							screen: AccountDetails
+						},
+						Collectible: {
+							screen: Collectible
+						},
+						CollectibleView: {
+							screen: CollectibleView
+						},
+						RevealPrivateCredentialView: {
+							screen: RevealPrivateCredential
+						}
+					})
 				},
-				WalletView: {
-					screen: Wallet
-				},
-				Asset: {
-					screen: Asset
-				},
-				AddAsset: {
-					screen: AddAsset
-				},
-				AccountDetails: {
-					screen: AccountDetails
-				},
-				Collectible: {
-					screen: Collectible
-				},
-				CollectibleView: {
-					screen: CollectibleView
-				},
-				RevealPrivateCredentialView: {
-					screen: RevealPrivateCredential
+				{
+					defaultNavigationOptions: () => ({
+						tabBarVisible: false
+					})
 				}
-			})
+			)
 		},
 		BrowserView: {
 			screen: createStackNavigator(
@@ -190,10 +203,20 @@ export default class Main extends Component {
 		navigation: PropTypes.object
 	};
 
+	componentDidMount() {
+		setTimeout(() => {
+			showMessage({
+				message: 'Simple message',
+				type: 'info'
+			});
+		}, 3000);
+	}
+
 	render = () => (
 		<View style={styles.flex}>
 			<MainNavigator navigation={this.props.navigation} />
 			<GlobalAlert />
+			<FlashMessage duration={5000} position="bottom" MessageComponent={PendingTransactionNotification} />
 		</View>
 	);
 }

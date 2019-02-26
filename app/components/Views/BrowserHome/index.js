@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import getNavbarOptions from '../../UI/Navbar';
@@ -10,11 +9,8 @@ import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
-import { PendingTransactionNotification } from '../../UI/PendingTransactionNotification';
 // eslint-disable-next-line import/no-unresolved
 import LockManager from '../../../core/LockManager';
-import FlashMessage, { showMessage } from 'react-native-flash-message';
-import { baseStyles } from '../../../styles/common';
 
 /**
  * Complete Web browser component with URL entry and history management
@@ -68,13 +64,6 @@ class BrowserHome extends Component {
 				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
 			}
 		});
-
-		setTimeout(() => {
-			showMessage({
-				message: 'Simple message',
-				type: 'info'
-			});
-		}, 3000);
 	}
 
 	componentDidUpdate(prevProps) {
@@ -115,10 +104,7 @@ class BrowserHome extends Component {
 	};
 
 	render = () => (
-		<View style={baseStyles.flexGrow}>
-			<HomePage goTo={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} navigation={this.props.navigation} />
-			<FlashMessage duration={5000} position="bottom" MessageComponent={PendingTransactionNotification} />
-		</View>
+		<HomePage goTo={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} navigation={this.props.navigation} />
 	);
 }
 
