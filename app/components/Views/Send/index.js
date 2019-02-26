@@ -10,6 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -241,6 +242,7 @@ class Send extends Component {
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
+			TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });

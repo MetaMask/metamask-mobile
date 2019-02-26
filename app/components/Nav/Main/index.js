@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 import GlobalAlert from '../../UI/GlobalAlert';
-import FlashMessage, { showMessage } from 'react-native-flash-message';
+import FlashMessage from 'react-native-flash-message';
 
 import Browser from '../../Views/Browser';
 import BrowserHome from '../../Views/BrowserHome';
@@ -33,7 +33,8 @@ import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
-import { PendingTransactionNotification } from '../../UI/PendingTransactionNotification';
+import { TransactionNotification } from '../../UI/TransactionNotification';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -204,19 +205,14 @@ export default class Main extends Component {
 	};
 
 	componentDidMount() {
-		setTimeout(() => {
-			showMessage({
-				message: 'Simple message',
-				type: 'info'
-			});
-		}, 3000);
+		TransactionsNotificationManager.init(this.props.navigation);
 	}
 
 	render = () => (
 		<View style={styles.flex}>
 			<MainNavigator navigation={this.props.navigation} />
 			<GlobalAlert />
-			<FlashMessage duration={5000} position="bottom" MessageComponent={PendingTransactionNotification} />
+			<FlashMessage position="bottom" MessageComponent={TransactionNotification} />
 		</View>
 	);
 }

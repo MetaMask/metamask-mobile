@@ -50,11 +50,13 @@ export const colors = {
 	transparent: 'transparent',
 	overlay: 'rgba(0,0,0,.5)',
 	darkAlert: 'rgba(0,0,0,.75)',
+	normalAlert: 'rgba(55,55,55,.97)',
 	androidStatusbar: '#EBEBED',
 	switchOnColor: '#4CD964',
 	switchOffColor: '#B3B3B3',
 	pager: '#DADADA',
-	modalDragGrey: '#C4C4C4'
+	modalDragGrey: '#C4C4C4',
+	spinnerColor: '#F758AC'
 };
 
 /**
