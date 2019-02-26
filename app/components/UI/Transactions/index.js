@@ -19,6 +19,7 @@ import { hasBlockExplorer, getNetworkTypeById } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanTransactionUrl } from '../../../util/etherscan';
 import Logger from '../../../util/Logger';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -108,7 +109,19 @@ class Transactions extends PureComponent {
 		this.mounted = true;
 		InteractionManager.runAfterInteractions(() => {
 			this.mounted && this.setState({ ready: true });
+			this.init();
 		});
+	}
+
+	init() {
+		this.mounted && this.setState({ ready: true });
+		const txToView = TransactionsNotificationManager.getTransactionToView();
+		if (txToView) {
+			const index = this.props.transactions.findIndex(tx => txToView === tx.id);
+			setTimeout(() => {
+				this.toggleDetailsView(txToView, index);
+			}, 300);
+		}
 	}
 
 	componentWillUnmount() {

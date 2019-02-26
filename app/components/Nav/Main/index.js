@@ -212,7 +212,7 @@ export default class Main extends Component {
 		<View style={styles.flex}>
 			<MainNavigator navigation={this.props.navigation} />
 			<GlobalAlert />
-			<FlashMessage position="bottom" MessageComponent={TransactionNotification} />
+			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 		</View>
 	);
 }

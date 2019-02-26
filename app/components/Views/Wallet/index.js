@@ -112,20 +112,24 @@ class Wallet extends Component {
 	mounted = false;
 	scrollableTabViewRef = React.createRef();
 
-	componentDidMount() {
-		InteractionManager.runAfterInteractions(async () => {
-			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-			AssetsDetectionController.detectAssets();
-			AccountTrackerController.refresh();
-			try {
-				await Engine.refreshTransactionHistory();
-				this.setState({ transactionsUpdated: true });
-			} catch (e) {
-				this.setState({ transactionsUpdated: true });
-			}
-		});
+	async init() {
+		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
+		AssetsDetectionController.detectAssets();
+		AccountTrackerController.refresh();
+		try {
+			await Engine.refreshTransactionHistory();
+			this.setState({ transactionsUpdated: true });
+		} catch (e) {
+			this.setState({ transactionsUpdated: true });
+		}
 		this.mounted = true;
 		this.normalizeTransactions();
+	}
+
+	componentDidMount() {
+		InteractionManager.runAfterInteractions(async () => {
+			this.init();
+		});
 	}
 
 	componentDidUpdate(prevProps) {

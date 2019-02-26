@@ -2,21 +2,35 @@
 
 import { showMessage, hideMessage } from 'react-native-flash-message';
 import Engine from './Engine';
+import { hexToBN } from '../util/number';
 
 class TransactionsNotificationManager {
 	constructor(_navigation) {
 		if (!TransactionsNotificationManager.instance) {
-			this.navigation = _navigation;
+			this._navigation = _navigation;
+			this._transactionsToView = [];
 			TransactionsNotificationManager.instance = this;
 		}
 		return TransactionsNotificationManager.instance;
 	}
 
-	_viewTransaction = () => {
-		this.navigation.navigate('WalletView', { page: 0 });
+	_viewTransaction = id => {
+		this._transactionsToView.push(id);
+		this._navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
-			this.navigation.navigate('WalletView', { page: 2 });
+			this._navigation.navigate('WalletView', { page: 2 });
 		}, 300);
+	};
+
+	_removeListeners = transactionId => {
+		const { TransactionController } = Engine.context;
+		TransactionController.hub.removeAllListeners(`${transactionId}:confirmed`);
+		TransactionController.hub.removeAllListeners(`${transactionId}:finished`);
+	};
+
+	getTransactionToView = () => {
+		const ret = this._transactionsToView.pop();
+		return ret;
 	};
 
 	watchSubmittedTransaction(transaction) {
@@ -25,11 +39,12 @@ class TransactionsNotificationManager {
 		// First we show the pending tx notification
 		showMessage({
 			type: 'pending',
-			autoHide: false
+			autoHide: false,
+			message: {}
 		});
 
 		// We wait for confirmation
-		this.confirmedHandler = TransactionController.hub.once(`${transaction.id}:confirmed`, transactionMeta => {
+		TransactionController.hub.once(`${transaction.id}:confirmed`, transactionMeta => {
 			// Once it's confirmed we hide the pending tx notification
 			hideMessage();
 			setTimeout(() => {
@@ -37,19 +52,20 @@ class TransactionsNotificationManager {
 				showMessage({
 					type: 'success',
 					message: {
-						transaction: transactionMeta,
-						callback: () => this._viewTransaction
+						transaction: {
+							nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
+						},
+						callback: () => this._viewTransaction(transactionMeta.id)
 					},
 					autoHide: true,
-					duration: 2000
+					duration: 3000
 				});
-
-				// Clean up the other listener
-				TransactionController.hub.removeListener(`${transaction.id}:finished`, this.errorHandler);
-			}, 1000);
+				// Clean up
+				this._removeListeners(transactionMeta.id);
+			}, 500);
 		});
 
-		this.errorHandler = TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+		TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 			// If it fails we hide the pending tx notification
 			hideMessage();
 			setTimeout(() => {
@@ -59,13 +75,13 @@ class TransactionsNotificationManager {
 					autoHide: true,
 					message: {
 						transaction: transactionMeta,
-						callback: () => this._viewTransaction
+						callback: () => this._viewTransaction(transactionMeta.id)
 					},
-					duration: 2000
+					duration: 3000
 				});
-				// Clean up the other listener
-				TransactionController.hub.removeListener(`${transaction.id}:confirmed`, this.confirmedHandler);
-			}, 1000);
+				// Clean up
+				this._removeListeners(transactionMeta.id);
+			}, 500);
 		});
 	}
 }
@@ -80,5 +96,8 @@ export default {
 	},
 	watchSubmittedTransaction(transaction) {
 		return instance.watchSubmittedTransaction(transaction);
+	},
+	getTransactionToView() {
+		return instance.getTransactionToView();
 	}
 };

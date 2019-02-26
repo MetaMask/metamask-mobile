@@ -28,7 +28,12 @@ export default class AnimatedSpinner extends Component {
 	};
 
 	componentDidMount() {
+		this.mounted = true;
 		this.spin();
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
 	}
 
 	spin = () => {
@@ -51,8 +56,10 @@ export default class AnimatedSpinner extends Component {
 			easing: Easing.linear,
 			useNativeDriver: true
 		}).start(() => {
-			if (this.state.spinning) {
+			if (this.state.spinning && this.mounted) {
 				this.animation();
+			} else {
+				this.mounted && this.setState({ spinning: false });
 			}
 		});
 	};
