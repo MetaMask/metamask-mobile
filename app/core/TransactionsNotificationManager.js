@@ -12,14 +12,6 @@ class TransactionsNotificationManager {
 			TransactionsNotificationManager.instance = this;
 		}
 
-		showMessage({
-			type: 'pending',
-			autoHide: false,
-			message: {
-				transaction: { nonce: 1 }
-			}
-		});
-
 		return TransactionsNotificationManager.instance;
 	}
 
