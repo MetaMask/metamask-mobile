@@ -38,6 +38,7 @@ import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
+import DeviceInfo from 'react-native-device-info';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -458,11 +459,20 @@ class DrawerView extends Component {
 		this.setState({ submitFeedback: false });
 	};
 
-	goToFeedback = () => {
-		const formId = '1FAIpQLSdYsD50E11vEjfVicOeTCCEh9kzj_JKHB0d3TW1PjmHvabEmg';
-		const fieldId = '1358481630';
-		const OSVersion = 'iOS+12.9+MM+0.0.1';
-		this.goToBrowserUrl(`https://docs.google.com/forms/d/e/${formId}/viewform?entry.${fieldId}=${OSVersion}`);
+	goToBugFeedback = () => {
+		const formId = '1FAIpQLSdjImKlZCFP2U5GifkNHEmbBrKHxDKl2DpU7rvLxyMdvZ4QLg';
+		this.goToFeedback(formId);
+	};
+
+	goToGeneralFeedback = () => {
+		const formId = '1FAIpQLSecHcnnn84-m01guIbv7Nh93mCj_G8IVdDn96dKFcXgNx0fKg';
+		this.goToFeedback(formId);
+	};
+
+	goToFeedback = formId => {
+		const appVersion = DeviceInfo.getVersion();
+		const buildNumber = DeviceInfo.getBuildNumber();
+		this.goToBrowserUrl(`https://docs.google.com/forms/d/e/${formId}/viewform?entry.${appVersion}=${buildNumber}`);
 		this.setState({ submitFeedback: false });
 	};
 
@@ -721,9 +731,9 @@ class DrawerView extends Component {
 					modalVisible={this.state.submitFeedback}
 					confirmText={strings('drawer.submit_bug')}
 					cancelText={strings('drawer.submit_general_feedback')}
-					onCancelPress={this.goToFeedback}
+					onCancelPress={this.goToGeneralFeedback}
 					onRequestClose={this.closeSubmitFeedback}
-					onConfirmPress={this.goToFeedback}
+					onConfirmPress={this.goToBugFeedback}
 				>
 					<View style={styles.modalView}>
 						<Text style={styles.modalTitle}>{strings('drawer.submit_feedback')}</Text>

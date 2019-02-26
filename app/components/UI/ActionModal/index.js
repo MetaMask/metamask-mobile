@@ -58,7 +58,7 @@ export default function ActionModal({
 	modalVisible
 }) {
 	return (
-		<Modal isVisible={modalVisible} style={styles.modal} onBackdropPress={onRequestClose} useNativeDriver>
+		<Modal isVisible={modalVisible} style={styles.modal} onBackdropPress={onRequestClose}>
 			<View style={styles.modalView}>
 				<View style={styles.modalText}>
 					<View style={baseStyles.flexGrow}>{children}</View>
