@@ -72,6 +72,7 @@ exports[`TransactionElement should render correctly 1`] = `
           }
         >
           <Text
+            numberOfLines={1}
             style={
               Object {
                 "color": "#000000",

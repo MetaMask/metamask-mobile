@@ -23,6 +23,8 @@ import { getActionKey, decodeTransferData } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 import { renderFullAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
+import TokenImage from '../TokenImage';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	row: {
@@ -96,6 +98,11 @@ const styles = StyleSheet.create({
 	ethLogo: {
 		width: 24,
 		height: 24
+	},
+	tokenImageStyle: {
+		width: 24,
+		height: 24,
+		borderRadius: 12
 	}
 });
 
@@ -229,6 +236,12 @@ export default class TransactionElement extends PureComponent {
 			tx: { status }
 		} = this.props;
 		const { addressTo, actionKey, value, fiatValue, contractDeployment = false } = transactionElement;
+		const checksumAddress = toChecksumAddress(addressTo);
+		let symbol, logo;
+		if (checksumAddress in contractMap) {
+			symbol = contractMap[checksumAddress].symbol;
+			logo = contractMap[checksumAddress].logo;
+		}
 		return (
 			<View style={styles.rowOnly}>
 				{this.renderTxTime()}
@@ -237,11 +250,20 @@ export default class TransactionElement extends PureComponent {
 						<FadeIn>
 							<Image source={ethLogo} style={styles.ethLogo} />
 						</FadeIn>
+					) : actionKey === strings('transactions.smart_contract_interaction') ? (
+						<TokenImage
+							asset={{ address: addressTo, logo }}
+							containerStyle={styles.tokenImageStyle}
+							iconStyle={styles.tokenImageStyle}
+							logoDefined
+						/>
 					) : (
 						<Identicon address={addressTo} diameter={24} />
 					)}
 					<View style={styles.info}>
-						<Text style={styles.address}>{actionKey}</Text>
+						<Text numberOfLines={1} style={styles.address}>
+							{symbol ? symbol + ' ' + actionKey : actionKey}
+						</Text>
 						<Text style={[styles.status, this.getStatusStyle(status)]}>{status.toUpperCase()}</Text>
 					</View>
 					<View style={styles.amounts}>
