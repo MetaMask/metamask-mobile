@@ -117,7 +117,6 @@ class Wallet extends Component {
 		AssetsDetectionController.detectAssets();
 		AccountTrackerController.refresh();
 		try {
-			await Engine.refreshTransactionHistory();
 			this.setState({ transactionsUpdated: true });
 		} catch (e) {
 			this.setState({ transactionsUpdated: true });

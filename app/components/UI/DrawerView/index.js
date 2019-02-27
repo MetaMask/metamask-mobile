@@ -354,6 +354,7 @@ class DrawerView extends Component {
 	};
 
 	showAccountDetails = () => {
+		this.props.navigation.navigate('WalletTabHome');
 		this.props.navigation.navigate('WalletView', { page: 0 });
 		this.props.navigation.navigate('AccountDetails');
 		this.hideDrawer();
@@ -370,17 +371,19 @@ class DrawerView extends Component {
 	};
 
 	async goToWalletTab(tabIndex) {
-		this.props.navigation.navigate('WalletView', { page: 0 });
+		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
 		if (tabIndex !== 0) {
 			setTimeout(() => {
+				this.props.navigation.navigate('WalletView', { page: 0 });
+				this.props.navigation.navigate('WalletView', { page: tabIndex });
 				this.props.navigation.navigate('WalletView', { page: tabIndex });
 			}, 300);
 		}
 	}
 
 	goToBrowser = () => {
-		this.props.navigation.navigate('BrowserHome');
+		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
 	};
 
@@ -441,6 +444,7 @@ class DrawerView extends Component {
 	};
 
 	goToBrowserUrl(url) {
+		this.props.navigation.navigate('BrowserTabHome');
 		this.props.navigation.navigate('BrowserView', {
 			url
 		});

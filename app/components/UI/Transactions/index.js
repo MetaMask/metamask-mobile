@@ -118,9 +118,11 @@ class Transactions extends PureComponent {
 		const txToView = TransactionsNotificationManager.getTransactionToView();
 		if (txToView) {
 			const index = this.props.transactions.findIndex(tx => txToView === tx.id);
-			setTimeout(() => {
-				this.toggleDetailsView(txToView, index);
-			}, 300);
+			if (index >= 0) {
+				setTimeout(() => {
+					this.toggleDetailsView(txToView, index);
+				}, 1000);
+			}
 		}
 	}
 

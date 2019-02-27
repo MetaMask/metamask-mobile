@@ -35,6 +35,7 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -51,12 +52,12 @@ const MainNavigator = createStackNavigator(
 		Home: {
 			screen: createBottomTabNavigator(
 				{
-					BrowserHome: createStackNavigator({
+					BrowserTabHome: createStackNavigator({
 						BrowserHome: {
 							screen: BrowserHome
 						}
 					}),
-					WalletHome: createStackNavigator({
+					WalletTabHome: createStackNavigator({
 						WalletView: {
 							screen: Wallet
 						},
@@ -204,8 +205,16 @@ export default class Main extends Component {
 		navigation: PropTypes.object
 	};
 
+	pollForIncomingTransactions = async () => {
+		await Engine.refreshTransactionHistory();
+		setTimeout(() => {
+			this.pollForIncomingTransactions();
+		}, 6000);
+	};
+
 	componentDidMount() {
 		TransactionsNotificationManager.init(this.props.navigation);
+		this.pollForIncomingTransactions();
 	}
 
 	render = () => (
