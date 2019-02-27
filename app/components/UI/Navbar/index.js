@@ -9,6 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import URL from 'url-parse';
 import NavbarCollectibleContractInformation from '../NavbarCollectibleContractInformation';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -208,7 +209,8 @@ export function getOnboardingNavbarOptions() {
 			<View style={styles.metamaskNameWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
-		)
+		),
+		headerBackTitle: strings('navigation.back')
 	};
 }
 
