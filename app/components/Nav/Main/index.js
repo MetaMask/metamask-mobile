@@ -36,6 +36,7 @@ import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Engine from '../../../core/Engine';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -209,7 +210,7 @@ export default class Main extends Component {
 		await Engine.refreshTransactionHistory();
 		setTimeout(() => {
 			this.pollForIncomingTransactions();
-		}, 6000);
+		}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
 	};
 
 	componentDidMount() {
