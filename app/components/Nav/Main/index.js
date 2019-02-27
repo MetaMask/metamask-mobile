@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
+// eslint-disable-next-line react-native/split-platform-components
+import { StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 import GlobalAlert from '../../UI/GlobalAlert';
 import FlashMessage from 'react-native-flash-message';
-
+import BackgroundTimer from 'react-native-background-timer';
 import Browser from '../../Views/Browser';
 import BrowserHome from '../../Views/BrowserHome';
 import AddBookmark from '../../Views/AddBookmark';
@@ -37,6 +38,7 @@ import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
+import PushNotification from 'react-native-push-notification';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -215,7 +217,29 @@ export default class Main extends Component {
 
 	componentDidMount() {
 		TransactionsNotificationManager.init(this.props.navigation);
-		this.pollForIncomingTransactions();
+
+		PushNotification.configure({
+			requestPermissions: true,
+			onNotification: notification => {
+				this.props.navigation.navigate('WalletTabHome');
+				this.props.navigation.navigate('WalletView', { page: 0 });
+				setTimeout(() => {
+					this.props.navigation.navigate('WalletView', { page: 2 });
+				}, 300);
+
+				if (Platform.OS === 'ios') {
+					notification.finish(PushNotificationIOS.FetchResult.NoData);
+				}
+			}
+		});
+
+		BackgroundTimer.runBackgroundTimer(() => {
+			this.pollForIncomingTransactions();
+		}, 3000);
+	}
+
+	componentWillUnmount() {
+		BackgroundTimer.stopBackgroundTimer();
 	}
 
 	render = () => (

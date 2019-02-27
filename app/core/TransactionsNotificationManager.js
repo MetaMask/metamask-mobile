@@ -1,6 +1,7 @@
 'use strict';
 
 import { showMessage, hideMessage } from 'react-native-flash-message';
+import PushNotification from 'react-native-push-notification';
 import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -12,7 +13,7 @@ class TransactionsNotificationManager {
 	constructor(_navigation) {
 		if (!TransactionsNotificationManager.instance) {
 			this._navigation = _navigation;
-			this._transactionToView = null;
+			this._transactionToView = [];
 			this._backgroundMode = false;
 			TransactionsNotificationManager.instance = this;
 			AppState.addEventListener('change', this._handleAppStateChange);
@@ -26,7 +27,8 @@ class TransactionsNotificationManager {
 	};
 
 	_viewTransaction = id => {
-		this._transactionToView = id;
+		this._transactionToView.push(id);
+		this._navigation.navigate('WalletTabHome');
 		this._navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
 			this._navigation.navigate('WalletView', { page: 2 });
@@ -41,15 +43,37 @@ class TransactionsNotificationManager {
 
 	_showNotification(data) {
 		if (this._backgroundMode) {
-			//console.log('We in background', data);
+			let title = '';
+			let message = '';
+			switch (data.type) {
+				case 'pending':
+					title = 'Waiting for confirmation...';
+					message = 'Your transaction is in progress';
+					break;
+				case 'success':
+					title = `Transaction #${data.message.transaction.nonce} Complete!`;
+					message = 'Tap to view this transaction';
+					break;
+				case 'error':
+					title = 'Oops, something went wrong :/';
+					message = 'Tap to view this transaction';
+					break;
+				case 'received':
+					title = `You received ${data.message.transaction.amount} ${data.message.transaction.assetType}!`;
+					message = 'Tap to view this transaction';
+					break;
+			}
+			PushNotification.localNotification({
+				title,
+				message
+			});
 		} else {
 			showMessage(data);
 		}
 	}
 
 	getTransactionToView = () => {
-		const ret = this._transactionToView;
-		this._transactionToView = null;
+		const ret = this._transactionToView.pop();
 		return ret;
 	};
 
@@ -78,7 +102,7 @@ class TransactionsNotificationManager {
 						callback: () => this._viewTransaction(transactionMeta.id)
 					},
 					autoHide: true,
-					duration: 3000
+					duration: 5000
 				});
 				// Clean up
 				this._removeListeners(transactionMeta.id);
@@ -97,7 +121,7 @@ class TransactionsNotificationManager {
 						transaction: transactionMeta,
 						callback: () => this._viewTransaction(transactionMeta.id)
 					},
-					duration: 3000
+					duration: 5000
 				});
 				// Clean up
 				this._removeListeners(transactionMeta.id);
@@ -138,8 +162,8 @@ class TransactionsNotificationManager {
 						},
 						callback: () => this._viewTransaction(txs[0].id)
 					},
-					autoHide: false,
-					duration: 3000
+					autoHide: true,
+					duration: 5000
 				});
 			}
 		}
