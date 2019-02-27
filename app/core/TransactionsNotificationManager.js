@@ -6,20 +6,27 @@ import Networks, { isKnownNetwork } from '../util/networks';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, renderFromWei } from '../util/number';
 import { strings } from '../../locales/i18n';
+import { AppState } from 'react-native';
 
 class TransactionsNotificationManager {
 	constructor(_navigation) {
 		if (!TransactionsNotificationManager.instance) {
 			this._navigation = _navigation;
-			this._transactionsToView = [];
+			this._transactionToView = null;
+			this._backgroundMode = false;
 			TransactionsNotificationManager.instance = this;
+			AppState.addEventListener('change', this._handleAppStateChange);
 		}
 
 		return TransactionsNotificationManager.instance;
 	}
 
+	_handleAppStateChange = appState => {
+		this._backgroundMode = appState === 'background';
+	};
+
 	_viewTransaction = id => {
-		this._transactionsToView.push(id);
+		this._transactionToView = id;
 		this._navigation.navigate('WalletView', { page: 0 });
 		setTimeout(() => {
 			this._navigation.navigate('WalletView', { page: 2 });
@@ -32,8 +39,17 @@ class TransactionsNotificationManager {
 		TransactionController.hub.removeAllListeners(`${transactionId}:finished`);
 	};
 
+	_showNotification(data) {
+		if (this._backgroundMode) {
+			//console.log('We in background', data);
+		} else {
+			showMessage(data);
+		}
+	}
+
 	getTransactionToView = () => {
-		const ret = this._transactionsToView.pop();
+		const ret = this._transactionToView;
+		this._transactionToView = null;
 		return ret;
 	};
 
@@ -41,7 +57,7 @@ class TransactionsNotificationManager {
 		const { TransactionController } = Engine.context;
 
 		// First we show the pending tx notification
-		showMessage({
+		this._showNotification({
 			type: 'pending',
 			autoHide: false,
 			message: {}
@@ -53,7 +69,7 @@ class TransactionsNotificationManager {
 			hideMessage();
 			setTimeout(() => {
 				// Then we show the success notification
-				showMessage({
+				this._showNotification({
 					type: 'success',
 					message: {
 						transaction: {
@@ -74,7 +90,7 @@ class TransactionsNotificationManager {
 			hideMessage();
 			setTimeout(() => {
 				// Then we show the error notification
-				showMessage({
+				this._showNotification({
 					type: 'error',
 					autoHide: true,
 					message: {
@@ -112,7 +128,7 @@ class TransactionsNotificationManager {
 						lastBlock <= parseInt(tx.blockNumber, 10)
 				);
 			if (txs.length > 0) {
-				showMessage({
+				this._showNotification({
 					type: 'received',
 					message: {
 						transaction: {
@@ -135,7 +151,6 @@ let instance;
 export default {
 	init(_navigation) {
 		instance = new TransactionsNotificationManager(_navigation);
-		Object.freeze(instance);
 		return instance;
 	},
 	watchSubmittedTransaction(transaction) {
