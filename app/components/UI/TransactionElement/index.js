@@ -237,9 +237,10 @@ export default class TransactionElement extends PureComponent {
 		} = this.props;
 		const { addressTo, actionKey, value, fiatValue, contractDeployment = false } = transactionElement;
 		const checksumAddress = toChecksumAddress(addressTo);
-		let symbol;
+		let symbol, logo;
 		if (checksumAddress in contractMap) {
 			symbol = contractMap[checksumAddress].symbol;
+			logo = contractMap[checksumAddress].logo;
 		}
 		return (
 			<View style={styles.rowOnly}>
@@ -251,9 +252,10 @@ export default class TransactionElement extends PureComponent {
 						</FadeIn>
 					) : actionKey === strings('transactions.smart_contract_interaction') ? (
 						<TokenImage
-							asset={{ address: addressTo }}
+							asset={{ address: addressTo, logo }}
 							containerStyle={styles.tokenImageStyle}
 							iconStyle={styles.tokenImageStyle}
+							logoDefined
 						/>
 					) : (
 						<Identicon address={addressTo} diameter={24} />

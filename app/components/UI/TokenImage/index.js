@@ -31,7 +31,11 @@ export default class TokenElement extends Component {
 		/**
 		 * Style to apply to image
 		 */
-		iconStyle: PropTypes.object
+		iconStyle: PropTypes.object,
+		/**
+		 * Whether logo is defined in asset, logo could be undefined
+		 */
+		logoDefined: PropTypes.bool
 	};
 
 	shouldComponentUpdate(nextProps) {
@@ -39,10 +43,12 @@ export default class TokenElement extends Component {
 	}
 
 	render = () => {
-		const { asset, containerStyle, iconStyle } = this.props;
-		const checksumAddress = toChecksumAddress(asset.address);
-		if (checksumAddress in contractMap) {
-			asset.logo = contractMap[checksumAddress].logo;
+		const { asset, containerStyle, iconStyle, logoDefined } = this.props;
+		if (!logoDefined && !asset.logo) {
+			const checksumAddress = toChecksumAddress(asset.address);
+			if (checksumAddress in contractMap) {
+				asset.logo = contractMap[checksumAddress].logo;
+			}
 		}
 
 		return (
