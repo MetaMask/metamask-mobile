@@ -9,7 +9,6 @@ import {
 	SEND_ETHER_ACTION_KEY,
 	DEPLOY_CONTRACT_ACTION_KEY,
 	SEND_TOKEN_ACTION_KEY,
-	UNKNOWN_FUNCTION_KEY,
 	TOKEN_METHOD_TRANSFER_FROM,
 	TRANSFER_FROM_ACTION_KEY,
 	SMART_CONTRACT_INTERACTION_ACTION_KEY
@@ -21,7 +20,7 @@ const MOCK_ENGINE = {
 		TransactionController: {
 			query(get, [address]) {
 				if (address === '0x0') {
-					return '';
+					return '0x';
 				} else if (address === '0x1') {
 					return '0x1';
 				}
@@ -146,17 +145,17 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 
 	it('getTransactionActionKey send ether to address', async () => {
 		const get = await getTransactionActionKey({
-			transactionHash: '0x4',
-			transaction: { to: '0x1' }
+			transactionHash: '0x5',
+			transaction: { to: '0x0' }
 		});
 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
 	});
 
 	it('getTransactionActionKey unknown interaction with smart contract', async () => {
 		const get = await getTransactionActionKey({
-			transactionHash: '0x5',
-			transaction: { data: randomData, to: '0x0' }
+			transactionHash: '0x7',
+			transaction: { data: randomData, to: '0x1' }
 		});
-		expect(get).toEqual(UNKNOWN_FUNCTION_KEY);
+		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
 	});
 });

@@ -159,14 +159,13 @@ export async function isSmartContractAddress(address) {
  */
 export async function getTransactionActionKey(transaction) {
 	const { transactionHash, transaction: { data, to } = {} } = transaction;
+	const cache = ActionKeys.cache[transactionHash];
+	if (transactionHash && cache) {
+		return Promise.resolve(cache);
+	}
+	let ret;
+	// if data in transaction try to get method data
 	if (data && data !== '0x') {
-		const cache = ActionKeys.cache[transactionHash];
-		if (transactionHash && cache) {
-			return Promise.resolve(cache);
-		}
-
-		let ret;
-
 		const methodData = getMethodData(data);
 		const { name } = methodData;
 		const methodName = name && name.toLowerCase();
@@ -184,17 +183,21 @@ export async function getTransactionActionKey(transaction) {
 				ret = DEPLOY_CONTRACT_ACTION_KEY;
 				break;
 		}
-		const toSmartContract = !ret && (await isSmartContractAddress(to));
-
-		if (!ret && toSmartContract) {
-			ret = SMART_CONTRACT_INTERACTION_ACTION_KEY;
-		} else if (!ret) {
-			ret = UNKNOWN_FUNCTION_KEY;
+		if (ret) {
+			ActionKeys.cache[transactionHash] = ret;
+			return ret;
 		}
-		ActionKeys.cache[transactionHash] = ret;
-		return ret;
 	}
-	return SEND_ETHER_ACTION_KEY;
+	const toSmartContract = await isSmartContractAddress(to);
+	if (toSmartContract) {
+		// There is no data or unknown method data, if is smart contract
+		ret = SMART_CONTRACT_INTERACTION_ACTION_KEY;
+	} else {
+		// If there is no data and no smart contract interaction
+		ret = SEND_ETHER_ACTION_KEY;
+	}
+	ActionKeys.cache[transactionHash] = ret;
+	return ret;
 }
 
 /**
