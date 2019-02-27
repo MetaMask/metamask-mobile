@@ -97,8 +97,8 @@ class CollectibleContractOverview extends Component {
 				</View>
 
 				<AssetActionButtons
-					leftText={strings('asset_overview.send_button').toUpperCase()}
-					rightText={strings('asset_overview.add_collectible_button').toUpperCase()}
+					leftText={strings('asset_overview.send_button')}
+					rightText={strings('asset_overview.add_collectible_button')}
 					onRightPress={this.onAdd}
 					onLeftPress={this.onSend}
 				/>

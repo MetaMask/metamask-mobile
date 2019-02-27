@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
-import { getCollectibleNavbarOptions } from '../../UI/Navbar';
+import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
@@ -50,7 +50,7 @@ class CollectibleView extends Component {
 	};
 
 	static navigationOptions = ({ navigation }) =>
-		getCollectibleNavbarOptions(navigation.getParam('name', ''), navigation);
+		getNetworkNavbarOptions(navigation.getParam('contractName', ''), navigation);
 
 	onSend = async () => {
 		const {

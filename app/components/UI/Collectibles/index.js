@@ -62,6 +62,10 @@ export default class Collectibles extends Component {
 		 */
 		collectibles: PropTypes.array,
 		/**
+		 * Collectible contract object
+		 */
+		collectibleContract: PropTypes.object,
+		/**
 		 * Callback triggered when collectible pressed from collectibles list
 		 */
 		onPress: PropTypes.func
@@ -84,7 +88,10 @@ export default class Collectibles extends Component {
 	);
 
 	onItemPress = collectible => {
-		this.props.navigation.push('CollectibleView', { ...collectible });
+		this.props.navigation.push('CollectibleView', {
+			...collectible,
+			contractName: this.props.collectibleContract.name
+		});
 	};
 
 	handleOnPress = collectible => {
