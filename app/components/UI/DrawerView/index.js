@@ -35,9 +35,10 @@ import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
-import AppConstants from '../../../core/AppConstants';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
+import ActionModal from '../ActionModal';
+import DeviceInfo from 'react-native-device-info';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -230,6 +231,23 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		textAlign: 'center',
 		...fontStyles.bold
+	},
+	modalView: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: 20,
+		flexDirection: 'column'
+	},
+	modalText: {
+		fontSize: 18,
+		textAlign: 'center',
+		...fontStyles.normal
+	},
+	modalTitle: {
+		fontSize: 22,
+		textAlign: 'center',
+		...fontStyles.bold
 	}
 });
 
@@ -301,7 +319,8 @@ class DrawerView extends Component {
 	};
 
 	state = {
-		accountsModalVisible: false
+		accountsModalVisible: false,
+		submitFeedback: false
 	};
 
 	currentBalance = null;
@@ -432,8 +451,33 @@ class DrawerView extends Component {
 		this.goToBrowserUrl(url);
 	};
 
-	goToFeedback = () => {
-		this.goToBrowserUrl(AppConstants.FEEDBACK_URL);
+	submitFeedback = () => {
+		this.setState({ submitFeedback: true });
+	};
+
+	closeSubmitFeedback = () => {
+		this.setState({ submitFeedback: false });
+	};
+
+	goToBugFeedback = () => {
+		const formId = '1FAIpQLSdjImKlZCFP2U5GifkNHEmbBrKHxDKl2DpU7rvLxyMdvZ4QLg';
+		this.goToFeedback(formId);
+	};
+
+	goToGeneralFeedback = () => {
+		const formId = '1FAIpQLSecHcnnn84-m01guIbv7Nh93mCj_G8IVdDn96dKFcXgNx0fKg';
+		this.goToFeedback(formId);
+	};
+
+	goToFeedback = formId => {
+		const appVersion = DeviceInfo.getVersion();
+		const buildNumber = DeviceInfo.getBuildNumber();
+		const systemName = DeviceInfo.getSystemName();
+		const systemVersion = systemName === 'Android' ? DeviceInfo.getAPILevel() : DeviceInfo.getSystemVersion();
+		this.goToBrowserUrl(
+			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
+		);
+		this.setState({ submitFeedback: false });
 	};
 
 	showHelp = () => {
@@ -524,7 +568,7 @@ class DrawerView extends Component {
 			},
 			{
 				name: strings('drawer.submit_feedback'),
-				action: this.goToFeedback
+				action: this.submitFeedback
 			},
 			{
 				name: strings('drawer.logout'),
@@ -533,7 +577,7 @@ class DrawerView extends Component {
 		]
 	];
 
-	render = () => {
+	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
@@ -687,9 +731,22 @@ class DrawerView extends Component {
 						onImportAccount={this.onImportAccount}
 					/>
 				</Modal>
+				<ActionModal
+					modalVisible={this.state.submitFeedback}
+					confirmText={strings('drawer.submit_bug')}
+					cancelText={strings('drawer.submit_general_feedback')}
+					onCancelPress={this.goToGeneralFeedback}
+					onRequestClose={this.closeSubmitFeedback}
+					onConfirmPress={this.goToBugFeedback}
+				>
+					<View style={styles.modalView}>
+						<Text style={styles.modalTitle}>{strings('drawer.submit_feedback')}</Text>
+						<Text style={styles.modalText}>{strings('drawer.submit_feedback_message')}</Text>
+					</View>
+				</ActionModal>
 			</SafeAreaView>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
