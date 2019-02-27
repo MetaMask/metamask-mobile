@@ -19,14 +19,12 @@ const styles = StyleSheet.create({
 		paddingBottom: 30
 	},
 	assetLogo: {
-		marginTop: 20,
-		marginBottom: 10
+		marginTop: 20
 	},
 	information: {
 		flex: 1,
 		flexDirection: 'row',
-		marginTop: 10,
-		marginBottom: 10
+		marginTop: 10
 	},
 	name: {
 		fontSize: 30,

@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
 	buttons: {
 		flex: 1,
 		flexDirection: 'row',
-		marginTop: 10,
+		marginTop: 20,
 		width: '50%',
 		alignContent: 'center',
 		alignItems: 'center'
