@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { renderShortAddress } from '../../../util/address';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -44,9 +43,12 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		fontSize: 16,
-		color: colors.fontPrimary,
+		color: colors.gray,
 		paddingTop: 10,
 		...fontStyles.normal
+	},
+	address: {
+		fontSize: 12
 	},
 	row: {
 		marginVertical: 10
@@ -75,6 +77,7 @@ const styles = StyleSheet.create({
 		fontSize: 8,
 		textAlignVertical: 'center',
 		paddingRight: 5,
+		marginTop: 5,
 		color: colors.fontSecondary,
 		...fontStyles.light
 	},
@@ -167,7 +170,7 @@ class CollectibleContractInformation extends Component {
 					)}
 					<View style={styles.row}>
 						<Text style={styles.label}>{strings('asset_overview.address')}</Text>
-						<Text style={styles.content}>{renderShortAddress(address)}</Text>
+						<Text style={[styles.content, styles.address]}>{address}</Text>
 					</View>
 					{isMainnet && (
 						<View style={styles.creditsView}>

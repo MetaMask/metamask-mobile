@@ -88,7 +88,7 @@ class CollectibleContractOverview extends Component {
 			ownerOf
 		} = this.props;
 		return (
-			<View colors={[colors.slate, colors.white]} style={styles.wrapper}>
+			<View style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.information}>
 					<Text style={styles.name}>

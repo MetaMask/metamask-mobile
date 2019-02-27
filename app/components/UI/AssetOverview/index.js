@@ -101,7 +101,7 @@ class AssetOverview extends Component {
 			asset: { symbol, balance, balanceFiat }
 		} = this.props;
 		return (
-			<View colors={[colors.slate, colors.white]} style={styles.wrapper}>
+			<View style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
 					<Text style={styles.amount}>
