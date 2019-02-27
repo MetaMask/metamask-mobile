@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
 import contractMap from 'eth-contract-metadata';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	itemLogoWrapper: {
@@ -39,8 +40,9 @@ export default class TokenElement extends Component {
 
 	render = () => {
 		const { asset, containerStyle, iconStyle } = this.props;
-		if (asset.address in contractMap) {
-			asset.logo = contractMap[asset.address].logo;
+		const checksumAddress = toChecksumAddress(asset.address);
+		if (checksumAddress in contractMap) {
+			asset.logo = contractMap[checksumAddress].logo;
 		}
 
 		return (
