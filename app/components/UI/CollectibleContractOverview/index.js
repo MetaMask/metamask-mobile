@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
-import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
@@ -12,32 +11,27 @@ import { connect } from 'react-redux';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		padding: 20,
+		paddingHorizontal: 20,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor
-	},
-	assetLogo: {
+		borderBottomColor: colors.borderColor,
 		alignContent: 'center',
 		alignItems: 'center',
-		marginTop: 15,
+		paddingBottom: 30
+	},
+	assetLogo: {
+		marginTop: 20,
 		marginBottom: 10
 	},
 	information: {
 		flex: 1,
+		flexDirection: 'row',
 		marginTop: 10,
 		marginBottom: 10
 	},
 	name: {
 		fontSize: 30,
 		color: colors.fontPrimary,
-		textAlign: 'center',
 		...fontStyles.normal
-	},
-	symbol: {
-		fontSize: 18,
-		color: colors.fontSecondary,
-		textAlign: 'center',
-		...fontStyles.light
 	}
 });
 
@@ -90,18 +84,18 @@ class CollectibleContractOverview extends Component {
 		return <CollectibleImage collectible={{ address, image: logo }} />;
 	};
 
-	render = () => {
+	render() {
 		const {
-			collectibleContract: { name, symbol },
+			collectibleContract: { name },
 			ownerOf
 		} = this.props;
 		return (
-			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
+			<View colors={[colors.slate, colors.white]} style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.information}>
-					<Text style={styles.name}>{ownerOf}</Text>
-					<Text style={styles.name}>{name}</Text>
-					<Text style={styles.symbol}>{symbol}</Text>
+					<Text style={styles.name}>
+						{ownerOf} {name}
+					</Text>
 				</View>
 
 				<AssetActionButtons
@@ -110,9 +104,9 @@ class CollectibleContractOverview extends Component {
 					onRightPress={this.onAdd}
 					onLeftPress={this.onSend}
 				/>
-			</LinearGradient>
+			</View>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
