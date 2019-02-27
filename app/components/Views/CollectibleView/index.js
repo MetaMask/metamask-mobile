@@ -3,7 +3,7 @@ import { ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
 import CollectibleOverview from '../../UI/CollectibleOverview';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { getCollectibleNavbarOptions } from '../../UI/Navbar';
 import LinearGradient from 'react-native-linear-gradient';
 
 const styles = StyleSheet.create({
@@ -33,7 +33,8 @@ export default class CollectibleView extends Component {
 		navigation: PropTypes.object
 	};
 
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`${navigation.getParam('name', '')}`);
+	static navigationOptions = ({ navigation }) =>
+		getCollectibleNavbarOptions(navigation.getParam('name', ''), navigation);
 
 	render = () => {
 		const {

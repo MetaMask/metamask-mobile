@@ -302,3 +302,30 @@ export function getCollectibleContractNavbarOptions(title, navigation) {
 		headerRight: <NavbarCollectibleContractInformation />
 	};
 }
+
+/**
+ * Function that returns the navigation options for our collectible overview screen
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
+ */
+export function getCollectibleNavbarOptions(title, navigation) {
+	return {
+		headerTitle: (
+			<View style={styles.titleWrapper}>
+				<Text style={styles.title}>{title}</Text>
+			</View>
+		),
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerTruncatedBackTitle: strings('navigation.back'),
+		headerRight: <View />
+	};
+}
