@@ -54,6 +54,11 @@ exports[`Collectible should render correctly 1`] = `
         }
       >
         <Collectibles
+          collectibleContract={
+            Object {
+              "address": "0x1",
+            }
+          }
           collectibles={Array []}
           navigation={
             Object {
@@ -89,6 +94,7 @@ exports[`Collectible should render correctly 1`] = `
     onModalShow={[Function]}
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -98,8 +104,9 @@ exports[`Collectible should render correctly 1`] = `
         "landscape",
       ]
     }
+    swipeDirection="down"
     swipeThreshold={100}
-    useNativeDriver={true}
+    useNativeDriver={false}
   >
     <Connect(CollectibleContractInformation)
       collectibleContract={

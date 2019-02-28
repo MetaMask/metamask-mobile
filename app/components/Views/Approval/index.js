@@ -10,6 +10,7 @@ import { colors } from '../../../styles/common';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -74,10 +75,12 @@ class Approval extends Component {
 		let { transaction } = this.props;
 		try {
 			transaction = this.prepareTransaction(transaction);
+
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.goBack();
+					TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 				} else {
 					throw transactionMeta.error;
 				}

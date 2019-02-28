@@ -1,8 +1,8 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
+import TransactionsNotificationManager from '../core/TransactionsNotificationManager';
 import { NativeModules, View } from 'react-native';
-import I18nJs from 'i18n-js'; // eslint-disable-line import/no-extraneous-dependencies
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -55,6 +55,13 @@ jest.mock('react-native-fs', () => ({
 
 Date.now = jest.fn(() => 123);
 
+jest.mock('../core/TransactionsNotificationManager', () => ({
+	init: () => TransactionsNotificationManager.init({}),
+	getTransactionToView: () => null,
+	setTransactionToView: id => TransactionsNotificationManager.setTransactionToView(id),
+	gotIncomingTransaction: () => null
+}));
+
 jest.mock('../core/Engine', () => ({
 	init: () => Engine.init({}),
 	context: {
@@ -67,6 +74,9 @@ jest.mock('../core/Engine', () => ({
 				]
 			}
 		}
+	},
+	refreshTransactionHistory: () => {
+		Promise.resolve();
 	}
 }));
 
@@ -74,16 +84,10 @@ jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Prom
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-fabric', () => 'Fabric');
 jest.mock('react-native-branch', () => 'RNBranch');
+jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('react-native-camera', () => ({
 	RNCamera: View,
 	Aspect: true
-}));
-
-I18nJs.locale = 'en';
-jest.mock('react-native-i18n', () => ({
-	...I18nJs,
-	getLanguages: () => Promise.resolve(['en']),
-	currentLocale: () => 'en'
 }));
 
 NativeModules.RNGestureHandlerModule = {

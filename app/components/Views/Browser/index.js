@@ -1002,7 +1002,8 @@ export class Browser extends Component {
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onSignAction}
-				useNativeDriver
+				onSwipeComplete={this.onSignAction}
+				swipeDirection={'down'}
 			>
 				{signType === 'personal' && (
 					<PersonalSign
@@ -1048,7 +1049,8 @@ export class Browser extends Component {
 				backdropOpacity={0.7}
 				animationInTiming={600}
 				animationOutTiming={600}
-				useNativeDriver
+				onSwipeComplete={this.onSignAction}
+				swipeDirection={'down'}
 			>
 				<AccountApproval
 					onCancel={this.onAccountsReject}

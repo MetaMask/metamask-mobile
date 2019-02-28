@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -10,6 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -121,6 +122,7 @@ class Send extends Component {
 		if (!transactionSubmitted && !this.unmountHandled) {
 			transaction && (await this.onCancel(transaction.id));
 		}
+		this.clear();
 		this.mounted = false;
 	}
 
@@ -241,6 +243,9 @@ class Send extends Component {
 			this.props.navigation.push('TransactionSubmitted', { hash });
 			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
+			InteractionManager.runAfterInteractions(() => {
+				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
+			});
 		} catch (error) {
 			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });

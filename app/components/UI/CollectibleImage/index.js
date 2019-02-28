@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
 		overflow: 'hidden'
 	},
 	fullWrapper: {
-		width: 200,
-		height: 200,
+		width: 150,
+		height: 150,
 		overflow: 'hidden',
 		flex: 1,
 		alignItems: 'center',
@@ -25,8 +25,8 @@ const styles = StyleSheet.create({
 		height: 50
 	},
 	fullImage: {
-		width: 200,
-		height: 200
+		height: 150,
+		width: 150
 	}
 });
 
@@ -59,6 +59,7 @@ export default class CollectibleImage extends Component {
 				{image && image.length !== 0 ? (
 					<Image
 						fadeIn
+						resizeMode={'contain'}
 						placeholderStyle={{ backgroundColor: colors.white }}
 						source={{ uri: image }}
 						style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
