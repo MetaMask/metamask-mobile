@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
+// eslint-disable-next-line react-native/split-platform-components
+import { AppState, StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
 import PropTypes from 'prop-types';
-import { createStackNavigator } from 'react-navigation';
+import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 import GlobalAlert from '../../UI/GlobalAlert';
-
+import FlashMessage from 'react-native-flash-message';
+import BackgroundTimer from 'react-native-background-timer';
 import Browser from '../../Views/Browser';
 import BrowserHome from '../../Views/BrowserHome';
 import AddBookmark from '../../Views/AddBookmark';
@@ -32,6 +34,11 @@ import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import { TransactionNotification } from '../../UI/TransactionNotification';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import Engine from '../../../core/Engine';
+import AppConstants from '../../../core/AppConstants';
+import PushNotification from 'react-native-push-notification';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -46,32 +53,43 @@ const styles = StyleSheet.create({
 const MainNavigator = createStackNavigator(
 	{
 		Home: {
-			screen: createStackNavigator({
-				BrowserHome: {
-					screen: BrowserHome
+			screen: createBottomTabNavigator(
+				{
+					BrowserTabHome: createStackNavigator({
+						BrowserHome: {
+							screen: BrowserHome
+						}
+					}),
+					WalletTabHome: createStackNavigator({
+						WalletView: {
+							screen: Wallet
+						},
+						Asset: {
+							screen: Asset
+						},
+						AddAsset: {
+							screen: AddAsset
+						},
+						AccountDetails: {
+							screen: AccountDetails
+						},
+						Collectible: {
+							screen: Collectible
+						},
+						CollectibleView: {
+							screen: CollectibleView
+						},
+						RevealPrivateCredentialView: {
+							screen: RevealPrivateCredential
+						}
+					})
 				},
-				WalletView: {
-					screen: Wallet
-				},
-				Asset: {
-					screen: Asset
-				},
-				AddAsset: {
-					screen: AddAsset
-				},
-				AccountDetails: {
-					screen: AccountDetails
-				},
-				Collectible: {
-					screen: Collectible
-				},
-				CollectibleView: {
-					screen: CollectibleView
-				},
-				RevealPrivateCredentialView: {
-					screen: RevealPrivateCredential
+				{
+					defaultNavigationOptions: () => ({
+						tabBarVisible: false
+					})
 				}
-			})
+			)
 		},
 		BrowserView: {
 			screen: createStackNavigator(
@@ -190,10 +208,79 @@ export default class Main extends Component {
 		navigation: PropTypes.object
 	};
 
+	backgroundMode = false;
+
+	pollForIncomingTransactions = async () => {
+		await Engine.refreshTransactionHistory();
+		// Stop polling if the app is in the background
+		if (!this.backgroundMode) {
+			setTimeout(() => {
+				this.pollForIncomingTransactions();
+			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+		}
+	};
+
+	componentDidMount() {
+		TransactionsNotificationManager.init(this.props.navigation);
+		this.pollForIncomingTransactions();
+		AppState.addEventListener('change', this.handleAppStateChange);
+
+		PushNotification.configure({
+			requestPermissions: true,
+			onNotification: notification => {
+				let data = null;
+				if (Platform.OS === 'android') {
+					if (notification.tag) {
+						data = JSON.parse(notification.tag);
+					}
+				} else if (notification.data) {
+					data = notification.data;
+				}
+				if (data && data.action === 'tx') {
+					TransactionsNotificationManager.setTransactionToView(data.id);
+					this.props.navigation.navigate('WalletTabHome');
+					this.props.navigation.navigate('WalletView', { page: 0 });
+					setTimeout(() => {
+						this.props.navigation.navigate('WalletView', { page: 2 });
+					}, 300);
+				}
+
+				if (Platform.OS === 'ios') {
+					notification.finish(PushNotificationIOS.FetchResult.NoData);
+				}
+			}
+		});
+	}
+
+	handleAppStateChange = appState => {
+		const newModeIsBackground = appState === 'background';
+		// If it was in background and it's not anymore
+		// we need to stop the Background timer
+		if (this.backgroundMode && !newModeIsBackground) {
+			BackgroundTimer.stop();
+			this.pollForIncomingTransactions();
+		}
+
+		this.backgroundMode = newModeIsBackground;
+
+		// If the app is now in background, we need to start
+		// the background timer, which is less intense
+		if (this.backgroundMode) {
+			BackgroundTimer.runBackgroundTimer(async () => {
+				await Engine.refreshTransactionHistory();
+			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
+		}
+	};
+
+	componentWillUnmount() {
+		AppState.removeEventListener('change', this.handleAppStateChange);
+	}
+
 	render = () => (
 		<View style={styles.flex}>
 			<MainNavigator navigation={this.props.navigation} />
 			<GlobalAlert />
+			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 		</View>
 	);
 }

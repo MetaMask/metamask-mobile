@@ -582,5 +582,15 @@
 			"If you think this domain is incorrectly flagged or if a blocked legitimate website has resolved its security issues, ",
 		"file_an_issue": "please file an issue.",
 		"back_to_safety": "Back to safety"
+	},
+	"notifications": {
+		"pending_title": "Waiting for confirmation...",
+		"success_title": "Transaction #{{nonce}} Complete!",
+		"error_title": "Oops, something went wrong :/",
+		"received_title": "You received {{amount}} {{assetType}}!",
+		"pending_message": "Your transaction is in progress",
+		"error_message": "Tap to view this transaction",
+		"success_message": "Tap to view this transaction",
+		"received_message": "Tap to view this transaction"
 	}
 }

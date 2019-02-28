@@ -110,7 +110,8 @@ class Collectible extends Component {
 				<Modal
 					isVisible={collectibleContractModalVisible}
 					onBackdropPress={this.hideCollectibleContractModal}
-					useNativeDriver
+					onSwipeComplete={this.hideCollectibleContractModal}
+					swipeDirection={'down'}
 				>
 					<CollectibleContractInformation
 						navigation={navigation}

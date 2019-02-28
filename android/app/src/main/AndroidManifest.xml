@@ -60,6 +60,13 @@
 	  <meta-data android:name="io.branch.sdk.BranchKey" android:value="${MM_BRANCH_KEY_LIVE}" />
 	  <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="${MM_BRANCH_KEY_TEST}" />
 	  <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />
+	  <!-- PUSH NOTIFICATIONS -->
+	  <meta-data  android:name="com.dieam.reactnativepushnotification.notification_channel_name"
+		android:value="io.metamask"/>
+	  <meta-data  android:name="com.dieam.reactnativepushnotification.notification_channel_description"
+		android:value="io.metamask"/>
+	  <meta-data  android:name="com.dieam.reactnativepushnotification.notification_color"
+		android:resource="@color/lightgray"/>
 
 	  <!-- Branch install referrer tracking (optional) -->
 	  <receiver android:name="io.branch.referral.InstallListener" android:exported="true">

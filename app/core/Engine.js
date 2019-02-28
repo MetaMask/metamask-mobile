@@ -19,12 +19,15 @@ import {
 	TypedMessageManager
 } from 'gaba';
 
+import { AsyncStorage } from 'react-native';
+
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
+import TransactionsNotificationManager from './TransactionsNotificationManager';
 
 const encryptor = new Encryptor();
 
@@ -192,29 +195,41 @@ class Engine {
 		const { type: networkType } = NetworkController.state.provider;
 		const { networkId } = Networks[networkType];
 		try {
-			const allLastIncomingTxBlocks = this.lastIncomingTxBlockInfo || {};
+			const lastIncomingTxBlockInfoStr = await AsyncStorage.getItem('@MetaMask:lastIncomingTxBlockInfo');
+			const allLastIncomingTxBlocks =
+				(lastIncomingTxBlockInfoStr && JSON.parse(lastIncomingTxBlockInfoStr)) || {};
 			let blockNumber = null;
-			if (allLastIncomingTxBlocks[selectedAddress] && allLastIncomingTxBlocks[selectedAddress][`${networkId}`]) {
-				blockNumber = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].blockNumber;
+			if (
+				allLastIncomingTxBlocks[`${selectedAddress}`] &&
+				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`]
+			) {
+				blockNumber = allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`].blockNumber;
 				// Let's make sure we're not doing this too often...
-				const timeSinceLastCheck = allLastIncomingTxBlocks[selectedAddress][`${networkId}`].lastCheck;
+				const timeSinceLastCheck = allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`].lastCheck;
 				const delta = Date.now() - timeSinceLastCheck;
 				if (delta < AppConstants.TX_CHECK_MAX_FREQUENCY && !forceCheck) {
 					return false;
 				}
 			} else {
-				allLastIncomingTxBlocks[selectedAddress] = {};
+				allLastIncomingTxBlocks[`${selectedAddress}`] = {};
 			}
 			//Fetch txs and get the new lastIncomingTxBlock number
 			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, blockNumber);
 			// Store it so next time we ask for the newer txs only
 			if (newlastIncomingTxBlock && newlastIncomingTxBlock !== blockNumber) {
-				allLastIncomingTxBlocks[selectedAddress][`${networkId}`] = {
-					block: newlastIncomingTxBlock,
+				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
+					blockNumber: newlastIncomingTxBlock,
 					lastCheck: Date.now()
 				};
-				this.lastIncomingTxBlockInfo = allLastIncomingTxBlocks;
+
+				TransactionsNotificationManager.gotIncomingTransaction(newlastIncomingTxBlock);
+			} else {
+				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
+					...allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`],
+					lastCheck: Date.now()
+				};
 			}
+			await AsyncStorage.setItem('@MetaMask:lastIncomingTxBlockInfo', JSON.stringify(allLastIncomingTxBlocks));
 		} catch (e) {
 			console.log('Error while fetching all txs', e); // eslint-disable-line
 		}
