@@ -1,16 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import {
-	ScrollView,
-	ActivityIndicator,
-	InteractionManager,
-	RefreshControl,
-	StyleSheet,
-	Text,
-	View,
-	FlatList
-} from 'react-native';
+import { ScrollView, ActivityIndicator, RefreshControl, StyleSheet, Text, View, FlatList } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -19,6 +10,7 @@ import { hasBlockExplorer, getNetworkTypeById } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanTransactionUrl } from '../../../util/etherscan';
 import Logger from '../../../util/Logger';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -106,9 +98,23 @@ class Transactions extends PureComponent {
 
 	componentDidMount() {
 		this.mounted = true;
-		InteractionManager.runAfterInteractions(() => {
+		setTimeout(() => {
 			this.mounted && this.setState({ ready: true });
-		});
+			this.init();
+		}, 100);
+	}
+
+	init() {
+		this.mounted && this.setState({ ready: true });
+		const txToView = TransactionsNotificationManager.getTransactionToView();
+		if (txToView) {
+			setTimeout(() => {
+				const index = this.props.transactions.findIndex(tx => txToView === tx.id);
+				if (index >= 0) {
+					this.toggleDetailsView(txToView, index);
+				}
+			}, 1000);
+		}
 	}
 
 	componentWillUnmount() {

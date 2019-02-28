@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -9,16 +9,14 @@ import { colors, fontStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import Transactions from '../../UI/Transactions';
-import Modal from 'react-native-modal';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
-import Collectible from '../Collectible';
 import Engine from '../../../core/Engine';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import CollectibleContracts from '../../UI/CollectibleContracts';
-// eslint-disable-next-line import/no-unresolved
+
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -41,10 +39,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0
 	}
 });
 
@@ -115,23 +109,22 @@ class Wallet extends Component {
 	};
 
 	txs = [];
+	txsPending = [];
 	mounted = false;
 	scrollableTabViewRef = React.createRef();
 
-	componentDidMount() {
-		InteractionManager.runAfterInteractions(async () => {
-			const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-			AssetsDetectionController.detectAssets();
-			AccountTrackerController.refresh();
-			try {
-				await Engine.refreshTransactionHistory();
-				this.setState({ transactionsUpdated: true });
-			} catch (e) {
-				this.setState({ transactionsUpdated: true });
-			}
-		});
+	async init() {
+		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
+		AssetsDetectionController.detectAssets();
+		AccountTrackerController.refresh();
 		this.mounted = true;
 		this.normalizeTransactions();
+	}
+
+	componentDidMount() {
+		setTimeout(() => {
+			this.init();
+		}, 100);
 	}
 
 	componentDidUpdate(prevProps) {
@@ -172,25 +165,7 @@ class Wallet extends Component {
 		this.setState({ showCollectible: false });
 	};
 
-	renderAssetModal = () => {
-		const { showCollectible, collectible } = this.state;
-		return (
-			<Modal
-				isVisible={showCollectible}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.onHideCollectible}
-				onBackButtonPress={this.onHideCollectible}
-				useNativeDriver
-			>
-				<Collectible collectible={collectible} onHide={this.onHideCollectible} />
-			</Modal>
-		);
-	};
+	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
 
 	normalizeTransactions() {
 		const { selectedAddress, networkType, transactions } = this.props;
@@ -206,7 +181,14 @@ class Wallet extends Component {
 			);
 
 			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			this.txs = txs;
+			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
+			// To avoid extra re-renders we want to set the new txs only when
+			// there's a new tx in the history or the status of one of the existing txs changed
+			if (this.txs.length === 0 || this.txs.length !== txs.length || this.didTxStatusesChange(newPendingTxs)) {
+				this.txs = txs;
+				this.txsPending = newPendingTxs;
+				this.setState({ transactionsUpdated: true });
+			}
 		}
 	}
 
@@ -282,7 +264,6 @@ class Wallet extends Component {
 						loading={!this.state.transactionsUpdated}
 					/>
 				</ScrollableTabView>
-				{this.renderAssetModal()}
 			</View>
 		);
 	}

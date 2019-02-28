@@ -13,6 +13,7 @@ useScreens();
 YellowBox.ignoreWarnings([
 	'this.web3.eth',
 	'collectibles.map',
+	'Warning: bind(): You are binding a component method to the component',
 	'AssetsDectionController._callee',
 	'Accessing view manager configs directly off',
 	'Function components cannot be given refs.',

@@ -160,7 +160,9 @@ export default class AccountList extends Component {
 	componentDidMount() {
 		this.getInitialSelectedAccountIndex();
 		InteractionManager.runAfterInteractions(() => {
-			this.scrollToCurrentAccount();
+			if (this.getAccounts().length > 4) {
+				this.scrollToCurrentAccount();
+			}
 		});
 	}
 
