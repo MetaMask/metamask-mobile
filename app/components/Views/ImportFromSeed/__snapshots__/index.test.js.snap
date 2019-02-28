@@ -102,6 +102,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         </Text>
         <TextInput
           allowFontScaling={true}
+          autoCapitalize="none"
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
@@ -143,6 +144,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         </Text>
         <TextInput
           allowFontScaling={true}
+          autoCapitalize="none"
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
