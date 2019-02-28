@@ -58,7 +58,13 @@ export default function ActionModal({
 	modalVisible
 }) {
 	return (
-		<Modal isVisible={modalVisible} style={styles.modal} onBackdropPress={onRequestClose}>
+		<Modal
+			isVisible={modalVisible}
+			style={styles.modal}
+			onBackdropPress={onRequestClose}
+			onSwipeComplete={onRequestClose}
+			swipeDirection={'down'}
+		>
 			<View style={styles.modalView}>
 				<View style={styles.modalText}>
 					<View style={baseStyles.flexGrow}>{children}</View>
