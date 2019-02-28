@@ -7,7 +7,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleImage from '../CollectibleImage';
-import { renderShortAddress } from '../../../util/address';
 import AssetElement from '../AssetElement';
 
 const styles = StyleSheet.create({
@@ -44,22 +43,18 @@ const styles = StyleSheet.create({
 	},
 	rows: {
 		flex: 1,
-		marginLeft: 20
+		marginLeft: 20,
+		marginTop: 8
 	},
 	name: {
 		fontSize: 16,
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
-	tokenId: {
+	amount: {
 		fontSize: 12,
-		color: colors.fontPrimary,
+		color: colors.gray,
 		...fontStyles.normal
-	},
-	symbol: {
-		fontSize: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold
 	},
 	itemWrapper: {
 		flex: 1,
@@ -77,6 +72,10 @@ class CollectibleContracts extends Component {
 		 * Array of collectibleContract objects
 		 */
 		collectibleContracts: PropTypes.array,
+		/**
+		 * Array of collectibles objects
+		 */
+		collectibles: PropTypes.array,
 		/**
 		 * Navigation object required to push
 		 * the Asset detail view
@@ -116,14 +115,18 @@ class CollectibleContracts extends Component {
 
 	renderItem = ({ item }) => {
 		const { address, name, logo, symbol } = item;
+		const collectibleAmount = this.props.collectibles.filter(
+			collectible => collectible.address.toLowerCase() === address.toLowerCase()
+		).length;
 		return (
 			<AssetElement onPress={this.onItemPress} asset={item}>
 				<View style={styles.itemWrapper}>
 					<CollectibleImage collectible={{ address, name, image: logo }} />
 					<View style={styles.rows}>
 						<Text style={styles.name}>{name}</Text>
-						<Text style={styles.symbol}>{symbol}</Text>
-						<Text style={styles.tokenId}>{renderShortAddress(address)}</Text>
+						<Text style={styles.amount}>
+							{collectibleAmount} {symbol}
+						</Text>
 					</View>
 				</View>
 			</AssetElement>
@@ -170,7 +173,8 @@ class CollectibleContracts extends Component {
 }
 
 const mapStateToProps = state => ({
-	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts
+	collectibleContracts: state.engine.backgroundState.AssetsController.collectibleContracts,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles
 });
 
 export default connect(mapStateToProps)(CollectibleContracts);

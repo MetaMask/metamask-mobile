@@ -7,9 +7,9 @@ import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import NavbarCollectibleContractInformation from '../NavbarCollectibleContractInformation';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -83,7 +83,6 @@ export default function getNavbarOptions(title, navigation) {
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
-		headerTruncatedBackTitle: strings('navigation.back'),
 		headerRight: <View />
 	};
 }
@@ -261,7 +260,6 @@ export function getWalletNavbarOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerTruncatedBackTitle: strings('navigation.back'),
 		headerRight: (
 			<TouchableOpacity
 				style={styles.infoButton}
@@ -283,11 +281,7 @@ export function getWalletNavbarOptions(title, navigation) {
  */
 export function getCollectibleContractNavbarOptions(title, navigation) {
 	return {
-		headerTitle: (
-			<View style={styles.titleWrapper}>
-				<Text style={styles.title}>{title}</Text>
-			</View>
-		),
+		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
@@ -298,7 +292,28 @@ export function getCollectibleContractNavbarOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerTruncatedBackTitle: strings('navigation.back'),
 		headerRight: <NavbarCollectibleContractInformation />
+	};
+}
+
+/**
+ * Function that returns the navigation options containing title and network indicator
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
+ */
+export function getNetworkNavbarOptions(title, navigation) {
+	return {
+		headerTitle: <NavbarTitle title={title} />,
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight: <View />
 	};
 }

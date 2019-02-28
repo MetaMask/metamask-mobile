@@ -256,9 +256,9 @@
 		"unknown_error": "Couldn't unlock your account. Please try again."
 	},
 	"asset_overview": {
-		"send_button": "SEND",
+		"send_button": "Send",
 		"receive_button": "RECEIVE",
-		"add_collectible_button": "ADD",
+		"add_collectible_button": "Add",
 		"description": "Description",
 		"totalSupply": "Total Supply",
 		"address": "Address"
