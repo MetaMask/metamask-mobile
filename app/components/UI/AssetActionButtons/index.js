@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicon from 'react-native-vector-icons/Ionicons';
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	buttonIconWrapper: {
 		width: 36,
 		height: 36,
-		paddingTop: 4,
+		paddingTop: Platform.OS === 'android' ? 2 : 4,
 		paddingLeft: 1,
 		justifyContent: 'center',
 		alignContent: 'center',
