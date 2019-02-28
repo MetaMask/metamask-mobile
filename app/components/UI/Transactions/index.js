@@ -124,7 +124,7 @@ class Transactions extends PureComponent {
 				if (index >= 0) {
 					this.toggleDetailsView(txToView, index);
 				}
-			}, 500);
+			}, 1000);
 		}
 	}
 

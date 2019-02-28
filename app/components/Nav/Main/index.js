@@ -263,12 +263,12 @@ export default class Main extends Component {
 
 		this.backgroundMode = newModeIsBackground;
 
-		// If now it's on background, we need to start
-		// the background timer
+		// If the app is now in background, we need to start
+		// the background timer, which is less intense
 		if (this.backgroundMode) {
 			BackgroundTimer.runBackgroundTimer(async () => {
 				await Engine.refreshTransactionHistory();
-			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+			}, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
 		}
 	};
 
