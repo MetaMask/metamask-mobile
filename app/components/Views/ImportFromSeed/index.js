@@ -295,6 +295,9 @@ class ImportFromSeed extends Component {
 						blurOnSubmit
 						onSubmitEditing={this.jumpToPassword}
 						returnKeyType={'next'}
+						autoComplete="false"
+						keyboardType="visible-password"
+						autoCapitalize="none"
 					/>
 					<View style={styles.field}>
 						<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
