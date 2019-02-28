@@ -233,6 +233,13 @@ export default class Main extends Component {
 			}
 		});
 
+		PushNotification.localNotification({
+			title: 'title',
+			message: 'message',
+			largeIcon: 'ic_notification',
+			smallIcon: 'ic_notification_small'
+		});
+
 		BackgroundTimer.runBackgroundTimer(() => {
 			this.pollForIncomingTransactions();
 		}, 3000);
