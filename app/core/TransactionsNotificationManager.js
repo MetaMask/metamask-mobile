@@ -138,6 +138,9 @@ class TransactionsNotificationManager {
 		const { transactions } = TransactionController.state;
 		const { networkId } = Networks[networkType];
 
+		// If a TX has been confirmed more than 10 min ago, it's considered old
+		const oldestTimeAllowed = Date.getTime() - 1000 * 60 * 10;
+
 		if (transactions.length) {
 			const txs = transactions
 				.reverse()
@@ -149,7 +152,8 @@ class TransactionsNotificationManager {
 						((networkId && networkId.toString() === tx.networkID) ||
 							(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
 						tx.status === 'confirmed' &&
-						lastBlock <= parseInt(tx.blockNumber, 10)
+						lastBlock <= parseInt(tx.blockNumber, 10) &&
+						tx.time > oldestTimeAllowed
 				);
 			if (txs.length > 0) {
 				this._showNotification({

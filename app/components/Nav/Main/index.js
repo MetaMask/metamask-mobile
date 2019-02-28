@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 // eslint-disable-next-line react-native/split-platform-components
-import { StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
+import { AppState, StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 import GlobalAlert from '../../UI/GlobalAlert';
@@ -208,15 +208,22 @@ export default class Main extends Component {
 		navigation: PropTypes.object
 	};
 
+	backgroundMode = false;
+
 	pollForIncomingTransactions = async () => {
 		await Engine.refreshTransactionHistory();
-		setTimeout(() => {
-			this.pollForIncomingTransactions();
-		}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+		// Stop polling if the app is in the background
+		if (!this.backgroundMode) {
+			setTimeout(() => {
+				this.pollForIncomingTransactions();
+			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+		}
 	};
 
 	componentDidMount() {
 		TransactionsNotificationManager.init(this.props.navigation);
+		this.pollForIncomingTransactions();
+		AppState.addEventListener('change', this.handleAppStateChange);
 
 		PushNotification.configure({
 			requestPermissions: true,
@@ -232,21 +239,29 @@ export default class Main extends Component {
 				}
 			}
 		});
-
-		PushNotification.localNotification({
-			title: 'title',
-			message: 'message',
-			largeIcon: 'ic_notification',
-			smallIcon: 'ic_notification_small'
-		});
-
-		BackgroundTimer.runBackgroundTimer(() => {
-			this.pollForIncomingTransactions();
-		}, 3000);
 	}
 
+	handleAppStateChange = appState => {
+		const newModeIsBackground = appState === 'background';
+		// If it was in background and it's not anymore
+		// we need to stop the Background timer
+		if (this.backgroundMode && !newModeIsBackground) {
+			BackgroundTimer.stop();
+		}
+
+		this.backgroundMode = newModeIsBackground;
+
+		// If now it's on background, we need to start
+		// the background timer
+		if (this.backgroundMode) {
+			BackgroundTimer.runBackgroundTimer(async () => {
+				await Engine.refreshTransactionHistory();
+			}, AppConstants.TX_CHECK_NORMAL_FREQUENCY);
+		}
+	};
+
 	componentWillUnmount() {
-		BackgroundTimer.stopBackgroundTimer();
+		AppState.removeEventListener('change', this.handleAppStateChange);
 	}
 
 	render = () => (
