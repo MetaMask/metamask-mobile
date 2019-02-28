@@ -9,9 +9,7 @@ import DeviceSize from '../../../util/DeviceSize';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { hideMessage } from 'react-native-flash-message';
 import { strings } from '../../../../locales/i18n';
-/**
- * MessageComponent `minHeight` property used mainly in vertical transitions
- */
+
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
 		backgroundColor: colors.normalAlert,
@@ -44,6 +42,8 @@ const styles = StyleSheet.create({
 });
 
 /**
+ * TransactionNotification component used to render
+ * in-app notifications for the transctions
  */
 // eslint-disable-next-line import/prefer-default-export
 export const TransactionNotification = props => {

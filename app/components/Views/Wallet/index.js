@@ -16,7 +16,7 @@ import Engine from '../../../core/Engine';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import CollectibleContracts from '../../UI/CollectibleContracts';
-// eslint-disable-next-line import/no-unresolved
+
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -109,7 +109,7 @@ class Wallet extends Component {
 	};
 
 	txs = [];
-	txStatuses = [];
+	txsPending = [];
 	mounted = false;
 	scrollableTabViewRef = React.createRef();
 
@@ -170,16 +170,8 @@ class Wallet extends Component {
 		this.setState({ showCollectible: false });
 	};
 
-	didTxStatusesChange = newStatuses => {
-		let i = this.txStatuses.length;
-		// An old school while loop is the fastest way to compare!
-		while (i--) {
-			if (this.txStatuses[i] !== newStatuses[i]) {
-				return true;
-			}
-		}
-		return false;
-	};
+	didTxStatusesChange = newTxsPending => this.txStatuses.length !== newTxsPending.length;
+
 	normalizeTransactions() {
 		const { selectedAddress, networkType, transactions } = this.props;
 		const networkId = Networks[networkType].networkId;
@@ -194,12 +186,12 @@ class Wallet extends Component {
 			);
 
 			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			const newStatuses = txs.map(tx => tx.status);
+			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
-			if (this.txs.length !== txs.length || this.didTxStatusesChange(newStatuses)) {
+			if (this.txs.length !== txs.length || this.didTxStatusesChange(newPendingTxs)) {
 				this.txs = txs;
-				this.txStatuses = newStatuses;
+				this.txsPending = newPendingTxs;
 			}
 		}
 	}
