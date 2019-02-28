@@ -139,7 +139,7 @@ class TransactionsNotificationManager {
 		const { networkId } = Networks[networkType];
 
 		// If a TX has been confirmed more than 10 min ago, it's considered old
-		const oldestTimeAllowed = Date.getTime() - 1000 * 60 * 10;
+		const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
 
 		if (transactions.length) {
 			const txs = transactions
