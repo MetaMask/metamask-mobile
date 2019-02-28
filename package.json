@@ -72,7 +72,7 @@
     "prop-types": "^15.6.2",
     "pubnub": "^4.21.5",
     "react": "^16.6.3",
-    "react-native": "^0.58.4",
+    "react-native": "^0.58.6",
     "react-native-actionsheet": "^2.4.2",
     "react-native-aes-crypto": "github:brunobar79/react-native-aes#495bf43f119f6ee5998e7e42b9cb02bb39a5a524",
     "react-native-animated-fox": "github:brunobar79/react-native-animated-fox#6854027bc6262882a1348391c370f3e2a027122c",
