@@ -54,6 +54,11 @@ exports[`Collectible should render correctly 1`] = `
         }
       >
         <Collectibles
+          collectibleContract={
+            Object {
+              "address": "0x1",
+            }
+          }
           collectibles={Array []}
           navigation={
             Object {

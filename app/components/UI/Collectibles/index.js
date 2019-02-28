@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 	rows: {
 		flex: 1,
 		marginLeft: 20,
-		marginTop: 5
+		marginTop: 6
 	},
 	name: {
 		fontSize: 16,
@@ -40,7 +40,8 @@ const styles = StyleSheet.create({
 	},
 	tokenId: {
 		fontSize: 12,
-		color: colors.fontPrimary,
+		marginTop: 4,
+		color: colors.gray,
 		...fontStyles.normal
 	}
 });
@@ -60,6 +61,10 @@ export default class Collectibles extends Component {
 		 * Array of assets (in this case Collectibles)
 		 */
 		collectibles: PropTypes.array,
+		/**
+		 * Collectible contract object
+		 */
+		collectibleContract: PropTypes.object,
 		/**
 		 * Callback triggered when collectible pressed from collectibles list
 		 */
@@ -83,7 +88,10 @@ export default class Collectibles extends Component {
 	);
 
 	onItemPress = collectible => {
-		this.props.navigation.push('CollectibleView', { ...collectible });
+		this.props.navigation.push('CollectibleView', {
+			...collectible,
+			contractName: this.props.collectibleContract.name
+		});
 	};
 
 	handleOnPress = collectible => {
@@ -117,7 +125,8 @@ export default class Collectibles extends Component {
 				<View style={styles.rows}>
 					<Text style={styles.name}>{item.name}</Text>
 					<Text style={styles.tokenId}>
-						{strings('collectible.collectible_token_id')}: {item.tokenId}
+						{strings('unit.token_id')}
+						{item.tokenId}
 					</Text>
 				</View>
 			</View>
@@ -137,7 +146,7 @@ export default class Collectibles extends Component {
 		);
 	}
 
-	render = () => {
+	render() {
 		const { collectibles } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'collectibles'}>
@@ -153,5 +162,5 @@ export default class Collectibles extends Component {
 				/>
 			</View>
 		);
-	};
+	}
 }

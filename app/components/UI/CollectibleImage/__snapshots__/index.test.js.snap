@@ -21,6 +21,7 @@ exports[`CollectibleImage should render correctly 1`] = `
         "backgroundColor": "#FFFFFF",
       }
     }
+    resizeMode="contain"
     source={
       Object {
         "uri": "IMAGE",
