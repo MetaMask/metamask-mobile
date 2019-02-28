@@ -22,7 +22,7 @@ export default [
 			'Create a social profile for your Ethereum account to start building trust, connection, and community.'
 	},
 	{
-		url: 'https://uniswap.exchange/swap',
+		url: 'https://uniswap.exchange/',
 		name: 'Uniswap Exchange',
 		description: 'Uniswap is a protocol for automated token exchange on Ethereum.'
 	},
