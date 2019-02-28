@@ -1,16 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import {
-	ScrollView,
-	ActivityIndicator,
-	InteractionManager,
-	RefreshControl,
-	StyleSheet,
-	Text,
-	View,
-	FlatList
-} from 'react-native';
+import { ScrollView, ActivityIndicator, RefreshControl, StyleSheet, Text, View, FlatList } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -107,10 +98,10 @@ class Transactions extends PureComponent {
 
 	componentDidMount() {
 		this.mounted = true;
-		InteractionManager.runAfterInteractions(() => {
+		setTimeout(() => {
 			this.mounted && this.setState({ ready: true });
 			this.init();
-		});
+		}, 100);
 	}
 
 	init() {
