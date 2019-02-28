@@ -51,7 +51,10 @@ exports[`ImportFromSeed should render correctly 1`] = `
       </Text>
       <TextInput
         allowFontScaling={true}
+        autoCapitalize="none"
+        autoComplete="false"
         blurOnSubmit={true}
+        keyboardType="default"
         multiline={true}
         numberOfLines={3}
         onChangeText={[Function]}
