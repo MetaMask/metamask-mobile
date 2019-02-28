@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that renders an ERC-20 Token list element
+ * View that renders an action modal
  */
 export default function ActionModal({
 	cancelTestID,
@@ -58,7 +58,7 @@ export default function ActionModal({
 	modalVisible
 }) {
 	return (
-		<Modal isVisible={modalVisible} style={styles.modal} onBackdropPress={onRequestClose} useNativeDriver>
+		<Modal isVisible={modalVisible} style={styles.modal} onBackdropPress={onRequestClose}>
 			<View style={styles.modalView}>
 				<View style={styles.modalText}>
 					<View style={baseStyles.flexGrow}>{children}</View>

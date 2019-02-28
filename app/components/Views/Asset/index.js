@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
@@ -55,7 +55,8 @@ class Asset extends Component {
 		refreshing: false
 	};
 
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(navigation.getParam('symbol', ''));
+	static navigationOptions = ({ navigation }) =>
+		getNetworkNavbarOptions(navigation.getParam('symbol', ''), navigation);
 
 	scrollViewRef = React.createRef();
 

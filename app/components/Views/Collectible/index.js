@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
-import { getCollectibleContractNavbarOptions } from '../../UI/Navbar';
+import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import Collectibles from '../../UI/Collectibles';
 import CollectibleContractOverview from '../../UI/CollectibleContractOverview';
@@ -49,8 +49,7 @@ class Collectible extends Component {
 		collectibles: []
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getCollectibleContractNavbarOptions(navigation.getParam('name', ''), navigation);
+	static navigationOptions = ({ navigation }) => getNetworkNavbarOptions(navigation.getParam('name', ''), navigation);
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -100,7 +99,11 @@ class Collectible extends Component {
 							/>
 						</View>
 						<View style={styles.wrapper}>
-							<Collectibles navigation={navigation} collectibles={filteredCollectibles} />
+							<Collectibles
+								navigation={navigation}
+								collectibles={filteredCollectibles}
+								collectibleContract={collectibleContract}
+							/>
 						</View>
 					</View>
 				</ScrollView>

@@ -1,48 +1,52 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import FoundationIcon from 'react-native-vector-icons/Foundation';
-import StyledButton from '../StyledButton';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	buttons: {
 		flex: 1,
 		flexDirection: 'row',
-		marginTop: 30
+		marginTop: 20,
+		width: '50%',
+		alignContent: 'center',
+		alignItems: 'center'
 	},
 	button: {
 		flex: 1,
-		height: 50,
-		flexDirection: 'row'
+		justifyContent: 'center',
+		alignContent: 'center',
+		alignItems: 'center'
 	},
-	leftButton: {
-		marginRight: 10
-	},
-	rightButton: {
-		marginLeft: 10
-	},
-	buttonText: {
-		marginLeft: 8,
-		marginTop: Platform.OS === 'ios' ? 0 : -2,
-		fontSize: 15,
+	buttonIconWrapper: {
+		width: 36,
+		height: 36,
+		paddingTop: Platform.OS === 'android' ? 2 : 4,
+		paddingLeft: 1,
+		justifyContent: 'center',
+		alignContent: 'center',
 		color: colors.white,
-		...fontStyles.bold
-	},
-	buttonContent: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		justifyContent: 'center'
+		borderRadius: 18,
+		backgroundColor: colors.primary
 	},
 	buttonIcon: {
-		width: 15,
-		height: 15,
-		marginTop: 0
+		justifyContent: 'center',
+		alignContent: 'center',
+		textAlign: 'center',
+		color: colors.white
 	},
-	flexRow: {
-		flexDirection: 'row'
+	buttonText: {
+		marginTop: 12,
+		textAlign: 'center',
+		color: colors.primary,
+		fontSize: 11,
+		...fontStyles.normal
+	},
+	sendIcon: {
+		paddingTop: 0,
+		paddingLeft: 0
 	}
 });
 
@@ -69,31 +73,29 @@ export default class AssetActionButtons extends Component {
 		rightText: PropTypes.string
 	};
 
-	render = () => {
+	render() {
 		const { onLeftPress, onRightPress, leftText, rightText } = this.props;
 		return (
 			<View style={styles.buttons}>
-				<StyledButton
-					type={'confirm'}
-					onPress={onLeftPress}
-					containerStyle={[styles.button, styles.leftButton]}
-					style={styles.buttonContent}
-					childGroupStyle={styles.flexRow}
-				>
-					<MaterialIcon name={'send'} size={15} color={colors.white} style={styles.buttonIcon} />
+				<TouchableOpacity type={'normal'} onPress={onLeftPress} style={styles.button}>
+					<View style={styles.buttonIconWrapper}>
+						<MaterialCommunityIcon
+							name={'arrow-top-right'}
+							size={20}
+							color={colors.primary}
+							style={[styles.buttonIcon, styles.sendIcon]}
+						/>
+					</View>
 					<Text style={styles.buttonText}>{leftText}</Text>
-				</StyledButton>
-				<StyledButton
-					type={'confirm'}
-					onPress={onRightPress}
-					containerStyle={[styles.button, styles.rightButton]}
-					style={styles.buttonContent}
-					childGroupStyle={styles.flexRow}
-				>
-					<FoundationIcon name={'download'} size={20} color={colors.white} style={styles.buttonIcon} />
+				</TouchableOpacity>
+
+				<TouchableOpacity type={'normal'} onPress={onRightPress} style={styles.button}>
+					<View style={styles.buttonIconWrapper}>
+						<Ionicon name={'ios-add'} size={30} color={colors.white} style={styles.buttonIcon} />
+					</View>
 					<Text style={styles.buttonText}>{rightText}</Text>
-				</StyledButton>
+				</TouchableOpacity>
 			</View>
 		);
-	};
+	}
 }

@@ -3,7 +3,6 @@ import { Image, Alert, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
-import LinearGradient from 'react-native-linear-gradient';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
@@ -15,7 +14,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 20,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor
+		borderBottomColor: colors.borderColor,
+		alignContent: 'center',
+		alignItems: 'center',
+		paddingBottom: 30
 	},
 	assetLogo: {
 		marginTop: 15,
@@ -94,12 +96,12 @@ class AssetOverview extends Component {
 		return logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />;
 	};
 
-	render = () => {
+	render() {
 		const {
 			asset: { symbol, balance, balanceFiat }
 		} = this.props;
 		return (
-			<LinearGradient colors={[colors.slate, colors.white]} style={styles.wrapper}>
+			<View style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
 					<Text style={styles.amount}>
@@ -114,9 +116,9 @@ class AssetOverview extends Component {
 					onLeftPress={this.onSend}
 					onRightPress={this.onDeposit}
 				/>
-			</LinearGradient>
+			</View>
 		);
-	};
+	}
 }
 
 const mapDispatchToProps = dispatch => ({
