@@ -170,7 +170,7 @@ class Wallet extends Component {
 		this.setState({ showCollectible: false });
 	};
 
-	didTxStatusesChange = newTxsPending => this.txStatuses.length !== newTxsPending.length;
+	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
 
 	normalizeTransactions() {
 		const { selectedAddress, networkType, transactions } = this.props;
