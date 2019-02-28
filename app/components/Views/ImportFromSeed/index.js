@@ -295,6 +295,9 @@ class ImportFromSeed extends Component {
 						blurOnSubmit
 						onSubmitEditing={this.jumpToPassword}
 						returnKeyType={'next'}
+						autoComplete="false"
+						keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
+						autoCapitalize="none"
 					/>
 					<View style={styles.field}>
 						<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
@@ -309,6 +312,7 @@ class ImportFromSeed extends Component {
 							testID={'input-password'}
 							onSubmitEditing={this.jumpToConfirmPassword}
 							returnKeyType={'next'}
+							autoCapitalize="none"
 						/>
 					</View>
 					<View style={styles.field}>
@@ -324,6 +328,7 @@ class ImportFromSeed extends Component {
 							testID={'input-password-confirm'}
 							onSubmitEditing={this.onPressImport}
 							returnKeyType={'done'}
+							autoCapitalize="none"
 						/>
 					</View>
 

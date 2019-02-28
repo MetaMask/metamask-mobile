@@ -131,6 +131,7 @@ exports[`ChoosePassword should render correctly 1`] = `
           </AnimatedComponent>
           <TextInput
             allowFontScaling={true}
+            autoCapitalize="none"
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}
@@ -238,6 +239,7 @@ exports[`ChoosePassword should render correctly 1`] = `
           </AnimatedComponent>
           <TextInput
             allowFontScaling={true}
+            autoCapitalize="none"
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}

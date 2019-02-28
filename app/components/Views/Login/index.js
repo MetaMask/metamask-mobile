@@ -244,6 +244,7 @@ export default class Login extends Component {
 							underlineColorAndroid={colors.borderColor}
 							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}
+							autoCapitalize="none"
 						/>
 					</View>
 
