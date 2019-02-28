@@ -56,7 +56,8 @@ export const colors = {
 	switchOffColor: '#B3B3B3',
 	pager: '#DADADA',
 	modalDragGrey: '#C4C4C4',
-	spinnerColor: '#F758AC'
+	spinnerColor: '#F758AC',
+	spinnerBackground: `rgba(185, 156, 171, 0.396)`
 };
 
 /**

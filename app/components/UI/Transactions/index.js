@@ -103,8 +103,6 @@ class Transactions extends PureComponent {
 		refreshing: false
 	};
 
-	txToView = null;
-
 	flatList = React.createRef();
 
 	componentDidMount() {

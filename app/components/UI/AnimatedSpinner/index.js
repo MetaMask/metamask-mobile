@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 	},
 	static: {
 		borderWidth: 3.5,
-		borderColor: `rgba(185, 156, 171, 0.396)`,
+		borderColor: colors.spinnerBackground,
 		borderRadius: 64,
 		width: 36,
 		height: 36

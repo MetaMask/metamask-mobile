@@ -9,18 +9,25 @@ import { hexToBN, renderFromWei } from '../util/number';
 import { strings } from '../../locales/i18n';
 import { AppState, Platform } from 'react-native';
 
+/**
+ * Singleton class responsible for managing all the transaction
+ * related notifications, which could be in-app or push
+ * depending on the state of the app
+ */
 class TransactionsNotificationManager {
-	constructor(_navigation) {
-		if (!TransactionsNotificationManager.instance) {
-			this._navigation = _navigation;
-			this._transactionToView = [];
-			this._backgroundMode = false;
-			TransactionsNotificationManager.instance = this;
-			AppState.addEventListener('change', this._handleAppStateChange);
-		}
-
-		return TransactionsNotificationManager.instance;
-	}
+	/**
+	 * Navigation object from react-navigation
+	 */
+	_navigation;
+	/**
+	 * Array containing the id of the transaction that should be
+	 * displayed while interacting with a notification
+	 */
+	_transactionToView;
+	/**
+	 * Boolean based on the current state of the app
+	 */
+	_backgroundMode;
 
 	_handleAppStateChange = appState => {
 		this._backgroundMode = appState === 'background';
@@ -92,12 +99,40 @@ class TransactionsNotificationManager {
 		}
 	}
 
+	/**
+	 * Creates a TransactionsNotificationManager instance
+	 */
+	constructor(_navigation) {
+		if (!TransactionsNotificationManager.instance) {
+			this._navigation = _navigation;
+			this._transactionToView = [];
+			this._backgroundMode = false;
+			TransactionsNotificationManager.instance = this;
+			AppState.addEventListener('change', this._handleAppStateChange);
+		}
+
+		return TransactionsNotificationManager.instance;
+	}
+
+	/**
+	 * Returns the id of the transaction that should
+	 * be displayed and removes it from memory
+	 */
 	getTransactionToView = () => this._transactionToView.pop();
 
+	/**
+	 * Sets the id of the transaction that should
+	 * be displayed in memory
+	 */
 	setTransactionToView = id => {
 		this._transactionToView.push(id);
 	};
 
+	/**
+	 * Listen for events of a submitted transaction
+	 * and generates the corresponding notification
+	 * based on the status of the transaction (failed or confirmed)
+	 */
 	watchSubmittedTransaction(transaction) {
 		const { TransactionController } = Engine.context;
 
@@ -152,6 +187,9 @@ class TransactionsNotificationManager {
 		});
 	}
 
+	/**
+	 * Generates a notification for an incoming transaction
+	 */
 	gotIncomingTransaction = async lastBlock => {
 		const { TransactionController, PreferencesController, NetworkController } = Engine.context;
 		const { selectedAddress } = PreferencesController.state;
