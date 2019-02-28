@@ -65,7 +65,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#7c7e84",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",
@@ -98,7 +98,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#7c7e84",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",
@@ -130,16 +130,21 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
-            "color": "#000000",
-            "fontFamily": "Roboto",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "paddingTop": 10,
-          }
+          Array [
+            Object {
+              "color": "#7c7e84",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "paddingTop": 10,
+            },
+            Object {
+              "fontSize": 12,
+            },
+          ]
         }
       >
-        0x123...x123
+        0x123
       </Text>
     </View>
     <View
@@ -176,6 +181,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
                 "fontFamily": "Roboto",
                 "fontSize": 8,
                 "fontWeight": "300",
+                "marginTop": 5,
                 "paddingRight": 5,
                 "textAlignVertical": "center",
               }
