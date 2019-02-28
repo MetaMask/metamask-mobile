@@ -408,6 +408,7 @@ class ChoosePassword extends Component {
 									returnKeyType={'next'}
 									onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
 									onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
+									autoCapitalize="none"
 								/>
 								<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
 									<Text style={styles.passwordStrengthLabel}>
@@ -470,6 +471,7 @@ class ChoosePassword extends Component {
 									returnKeyType={'done'}
 									onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
 									onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
+									autoCapitalize="none"
 								/>
 								<View style={styles.showMatchingPasswords}>
 									{this.state.password !== '' &&

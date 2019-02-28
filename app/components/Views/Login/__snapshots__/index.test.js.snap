@@ -93,6 +93,7 @@ exports[`Login should render correctly 1`] = `
         </Text>
         <TextInput
           allowFontScaling={true}
+          autoCapitalize="none"
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
