@@ -312,6 +312,7 @@ class ImportFromSeed extends Component {
 							testID={'input-password'}
 							onSubmitEditing={this.jumpToConfirmPassword}
 							returnKeyType={'next'}
+							autoCapitalize="none"
 						/>
 					</View>
 					<View style={styles.field}>
@@ -327,6 +328,7 @@ class ImportFromSeed extends Component {
 							testID={'input-password-confirm'}
 							onSubmitEditing={this.onPressImport}
 							returnKeyType={'done'}
+							autoCapitalize="none"
 						/>
 					</View>
 
