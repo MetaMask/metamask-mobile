@@ -3,9 +3,9 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-		<item name="android:statusBarColor">@color/light_grey</item>
+		<item name="android:statusBarColor">@color/lightgray</item>
 		<item name="android:windowLightStatusBar">true</item>
-		<item name="android:navigationBarColor">@color/light_grey</item>
+		<item name="android:navigationBarColor">@color/lightgray</item>
 		<item name="android:windowLightNavigationBar">true</item>
     </style>
 
