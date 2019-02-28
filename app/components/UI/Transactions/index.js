@@ -103,6 +103,8 @@ class Transactions extends PureComponent {
 		refreshing: false
 	};
 
+	txToView = null;
+
 	flatList = React.createRef();
 
 	componentDidMount() {
@@ -117,12 +119,12 @@ class Transactions extends PureComponent {
 		this.mounted && this.setState({ ready: true });
 		const txToView = TransactionsNotificationManager.getTransactionToView();
 		if (txToView) {
-			const index = this.props.transactions.findIndex(tx => txToView === tx.id);
-			if (index >= 0) {
-				setTimeout(() => {
+			setTimeout(() => {
+				const index = this.props.transactions.findIndex(tx => txToView === tx.id);
+				if (index >= 0) {
 					this.toggleDetailsView(txToView, index);
-				}, 500);
-			}
+				}
+			}, 500);
 		}
 	}
 

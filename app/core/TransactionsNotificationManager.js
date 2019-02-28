@@ -7,7 +7,7 @@ import Networks, { isKnownNetwork } from '../util/networks';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, renderFromWei } from '../util/number';
 import { strings } from '../../locales/i18n';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 class TransactionsNotificationManager {
 	constructor(_navigation) {
@@ -47,34 +47,55 @@ class TransactionsNotificationManager {
 			let message = '';
 			switch (data.type) {
 				case 'pending':
-					title = 'Waiting for confirmation...';
-					message = 'Your transaction is in progress';
+					title = strings('notifications.pending_title');
+					message = strings('notifications.pending_message');
 					break;
 				case 'success':
-					title = `Transaction #${data.message.transaction.nonce} Complete!`;
-					message = 'Tap to view this transaction';
+					title = strings('notifications.success_title', { nonce: data.message.transaction.nonce });
+					message = strings('notifications.success_message');
 					break;
 				case 'error':
-					title = 'Oops, something went wrong :/';
-					message = 'Tap to view this transaction';
+					title = strings('notifications.error_title');
+					message = strings('notifications.error_message');
 					break;
 				case 'received':
-					title = `You received ${data.message.transaction.amount} ${data.message.transaction.assetType}!`;
-					message = 'Tap to view this transaction';
+					title = strings('notifications.received_title', {
+						amount: data.message.transaction.amount,
+						assetType: data.message.transaction.assetType
+					});
+					message = strings('notifications.received_message');
 					break;
 			}
-			PushNotification.localNotification({
+
+			const pushData = {
 				title,
-				message
-			});
+				message,
+				largeIcon: 'ic_notification',
+				smallIcon: 'ic_notification_small'
+			};
+
+			if (data.type !== 'pending') {
+				const extraData = { action: 'tx', id: data.message.transaction.id };
+				if (Platform.OS === 'android') {
+					pushData.tag = JSON.stringify(extraData);
+				} else {
+					pushData.userInfo = extraData;
+				}
+				PushNotification.localNotification(pushData);
+			}
+
+			if (data.type !== 'pending') {
+				this._transactionToView.push(data.message.transaction.id);
+			}
 		} else {
 			showMessage(data);
 		}
 	}
 
-	getTransactionToView = () => {
-		const ret = this._transactionToView.pop();
-		return ret;
+	getTransactionToView = () => this._transactionToView.pop();
+
+	setTransactionToView = id => {
+		this._transactionToView.push(id);
 	};
 
 	watchSubmittedTransaction(transaction) {
@@ -97,7 +118,8 @@ class TransactionsNotificationManager {
 					type: 'success',
 					message: {
 						transaction: {
-							nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`
+							nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
+							id: transactionMeta.id
 						},
 						callback: () => this._viewTransaction(transactionMeta.id)
 					},
@@ -119,6 +141,7 @@ class TransactionsNotificationManager {
 					autoHide: true,
 					message: {
 						transaction: transactionMeta,
+						id: transactionMeta.id,
 						callback: () => this._viewTransaction(transactionMeta.id)
 					},
 					duration: 5000
@@ -162,7 +185,8 @@ class TransactionsNotificationManager {
 						transaction: {
 							nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
 							amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
-							assetType: strings('unit.eth')
+							assetType: strings('unit.eth'),
+							id: txs[0].id
 						},
 						callback: () => this._viewTransaction(txs[0].id)
 					},
@@ -186,6 +210,9 @@ export default {
 	},
 	getTransactionToView() {
 		return instance.getTransactionToView();
+	},
+	setTransactionToView(id) {
+		return instance.setTransactionToView(id);
 	},
 	gotIncomingTransaction(lastBlock) {
 		return instance.gotIncomingTransaction(lastBlock);

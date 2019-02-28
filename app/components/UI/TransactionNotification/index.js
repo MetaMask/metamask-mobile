@@ -8,6 +8,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DeviceSize from '../../../util/DeviceSize';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { hideMessage } from 'react-native-flash-message';
+import { strings } from '../../../../locales/i18n';
 /**
  * MessageComponent `minHeight` property used mainly in vertical transitions
  */
@@ -78,29 +79,21 @@ export const TransactionNotification = props => {
 	_getTitle = () => {
 		switch (type) {
 			case 'pending':
-				return 'Waiting for confirmation...';
+				return strings('notifications.pending_title');
 			case 'success':
-				return `Transaction #${transaction.nonce} Complete!`;
+				return strings('notifications.success_title', { nonce: transaction.nonce });
 			case 'received':
-				return `You received ${transaction.amount} ${transaction.assetType}!`;
+				return strings('notifications.received_title', {
+					amount: transaction.amount,
+					assetType: transaction.assetType
+				});
 			case 'error':
-				return 'Oops, something went wrong :/';
+				return strings('notifications.error_title');
 		}
 	};
 
 	// eslint-disable-next-line no-undef
-	_getDescription = () => {
-		switch (type) {
-			case 'pending':
-				return 'Your transaction is in progress';
-			case 'success':
-				return 'Tap to view this transaction';
-			case 'received':
-				return 'Tap to view this transaction';
-			case 'error':
-				return 'Tap to view this transaction';
-		}
-	};
+	_getDescription = () => strings(`notifications.${type}_message`);
 
 	// eslint-disable-next-line
 	_getContent = () => (

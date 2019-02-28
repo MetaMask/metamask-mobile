@@ -228,11 +228,22 @@ export default class Main extends Component {
 		PushNotification.configure({
 			requestPermissions: true,
 			onNotification: notification => {
-				this.props.navigation.navigate('WalletTabHome');
-				this.props.navigation.navigate('WalletView', { page: 0 });
-				setTimeout(() => {
-					this.props.navigation.navigate('WalletView', { page: 2 });
-				}, 300);
+				let data = null;
+				if (Platform.OS === 'android') {
+					if (notification.tag) {
+						data = JSON.parse(notification.tag);
+					}
+				} else if (notification.data) {
+					data = notification.data;
+				}
+				if (data && data.action === 'tx') {
+					TransactionsNotificationManager.setTransactionToView(data.id);
+					this.props.navigation.navigate('WalletTabHome');
+					this.props.navigation.navigate('WalletView', { page: 0 });
+					setTimeout(() => {
+						this.props.navigation.navigate('WalletView', { page: 2 });
+					}, 300);
+				}
 
 				if (Platform.OS === 'ios') {
 					notification.finish(PushNotificationIOS.FetchResult.NoData);
@@ -247,6 +258,7 @@ export default class Main extends Component {
 		// we need to stop the Background timer
 		if (this.backgroundMode && !newModeIsBackground) {
 			BackgroundTimer.stop();
+			this.pollForIncomingTransactions();
 		}
 
 		this.backgroundMode = newModeIsBackground;
