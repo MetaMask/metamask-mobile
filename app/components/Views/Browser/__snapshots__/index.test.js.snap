@@ -164,6 +164,7 @@ exports[`Browser should render correctly 1`] = `
     onModalShow={[Function]}
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -179,8 +180,9 @@ exports[`Browser should render correctly 1`] = `
         "landscape",
       ]
     }
+    swipeDirection="down"
     swipeThreshold={100}
-    useNativeDriver={true}
+    useNativeDriver={false}
   />
   <ReactNativeModal
     animationIn="slideInUp"
@@ -203,6 +205,7 @@ exports[`Browser should render correctly 1`] = `
     onModalShow={[Function]}
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}
@@ -218,8 +221,9 @@ exports[`Browser should render correctly 1`] = `
         "landscape",
       ]
     }
+    swipeDirection="down"
     swipeThreshold={100}
-    useNativeDriver={true}
+    useNativeDriver={false}
   >
     <Connect(AccountApproval)
       currentPageInformation={

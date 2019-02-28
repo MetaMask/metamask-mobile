@@ -13,10 +13,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * UI Component that renders on the top left of the navbar
+ * UI Component that renders on the top right of the navbar
  * showing an identicon for the selectedAddress
  */
-class NavbarLeftButton extends Component {
+class NavbarRightButton extends Component {
 	static propTypes = {
 		/**
 		 * Selected address as string
@@ -39,4 +39,4 @@ class NavbarLeftButton extends Component {
 }
 
 const mapStateToProps = state => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
-export default connect(mapStateToProps)(NavbarLeftButton);
+export default connect(mapStateToProps)(NavbarRightButton);

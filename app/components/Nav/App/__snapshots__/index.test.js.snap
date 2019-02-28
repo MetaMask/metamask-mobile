@@ -37,14 +37,36 @@ exports[`App should render correctly 1`] = `
                   },
                   "Home": Object {
                     "childRouters": Object {
-                      "AccountDetails": null,
-                      "AddAsset": null,
-                      "Asset": null,
-                      "BrowserHome": null,
-                      "Collectible": null,
-                      "CollectibleView": null,
-                      "RevealPrivateCredentialView": null,
-                      "WalletView": null,
+                      "BrowserTabHome": Object {
+                        "childRouters": Object {
+                          "BrowserHome": null,
+                        },
+                        "getActionCreators": [Function],
+                        "getActionForPathAndParams": [Function],
+                        "getComponentForRouteName": [Function],
+                        "getComponentForState": [Function],
+                        "getPathAndParamsForState": [Function],
+                        "getScreenOptions": [Function],
+                        "getStateForAction": [Function],
+                      },
+                      "WalletTabHome": Object {
+                        "childRouters": Object {
+                          "AccountDetails": null,
+                          "AddAsset": null,
+                          "Asset": null,
+                          "Collectible": null,
+                          "CollectibleView": null,
+                          "RevealPrivateCredentialView": null,
+                          "WalletView": null,
+                        },
+                        "getActionCreators": [Function],
+                        "getActionForPathAndParams": [Function],
+                        "getComponentForRouteName": [Function],
+                        "getComponentForState": [Function],
+                        "getPathAndParamsForState": [Function],
+                        "getScreenOptions": [Function],
+                        "getStateForAction": [Function],
+                      },
                     },
                     "getActionCreators": [Function],
                     "getActionForPathAndParams": [Function],
@@ -206,12 +228,34 @@ exports[`App should render correctly 1`] = `
                   Object {
                     "index": 0,
                     "isTransitioning": false,
-                    "key": "id-123-1",
+                    "key": "id-123-2",
                     "routeName": "Home",
                     "routes": Array [
                       Object {
-                        "key": "id-123-0",
-                        "routeName": "BrowserHome",
+                        "index": 0,
+                        "isTransitioning": false,
+                        "key": "BrowserTabHome",
+                        "params": undefined,
+                        "routeName": "BrowserTabHome",
+                        "routes": Array [
+                          Object {
+                            "key": "id-123-0",
+                            "routeName": "BrowserHome",
+                          },
+                        ],
+                      },
+                      Object {
+                        "index": 0,
+                        "isTransitioning": false,
+                        "key": "WalletTabHome",
+                        "params": undefined,
+                        "routeName": "WalletTabHome",
+                        "routes": Array [
+                          Object {
+                            "key": "id-123-1",
+                            "routeName": "WalletView",
+                          },
+                        ],
                       },
                     ],
                   },
@@ -230,11 +274,11 @@ exports[`App should render correctly 1`] = `
               Object {
                 "index": 0,
                 "isTransitioning": false,
-                "key": "id-123-3",
+                "key": "id-123-4",
                 "routeName": "Onboarding",
                 "routes": Array [
                   Object {
-                    "key": "id-123-2",
+                    "key": "id-123-3",
                     "params": undefined,
                     "routeName": "Onboarding",
                   },
@@ -293,14 +337,36 @@ exports[`App should render correctly 1`] = `
                     },
                     "Home": Object {
                       "childRouters": Object {
-                        "AccountDetails": null,
-                        "AddAsset": null,
-                        "Asset": null,
-                        "BrowserHome": null,
-                        "Collectible": null,
-                        "CollectibleView": null,
-                        "RevealPrivateCredentialView": null,
-                        "WalletView": null,
+                        "BrowserTabHome": Object {
+                          "childRouters": Object {
+                            "BrowserHome": null,
+                          },
+                          "getActionCreators": [Function],
+                          "getActionForPathAndParams": [Function],
+                          "getComponentForRouteName": [Function],
+                          "getComponentForState": [Function],
+                          "getPathAndParamsForState": [Function],
+                          "getScreenOptions": [Function],
+                          "getStateForAction": [Function],
+                        },
+                        "WalletTabHome": Object {
+                          "childRouters": Object {
+                            "AccountDetails": null,
+                            "AddAsset": null,
+                            "Asset": null,
+                            "Collectible": null,
+                            "CollectibleView": null,
+                            "RevealPrivateCredentialView": null,
+                            "WalletView": null,
+                          },
+                          "getActionCreators": [Function],
+                          "getActionForPathAndParams": [Function],
+                          "getComponentForRouteName": [Function],
+                          "getComponentForState": [Function],
+                          "getPathAndParamsForState": [Function],
+                          "getScreenOptions": [Function],
+                          "getStateForAction": [Function],
+                        },
                       },
                       "getActionCreators": [Function],
                       "getActionForPathAndParams": [Function],
@@ -462,12 +528,34 @@ exports[`App should render correctly 1`] = `
                     Object {
                       "index": 0,
                       "isTransitioning": false,
-                      "key": "id-123-1",
+                      "key": "id-123-2",
                       "routeName": "Home",
                       "routes": Array [
                         Object {
-                          "key": "id-123-0",
-                          "routeName": "BrowserHome",
+                          "index": 0,
+                          "isTransitioning": false,
+                          "key": "BrowserTabHome",
+                          "params": undefined,
+                          "routeName": "BrowserTabHome",
+                          "routes": Array [
+                            Object {
+                              "key": "id-123-0",
+                              "routeName": "BrowserHome",
+                            },
+                          ],
+                        },
+                        Object {
+                          "index": 0,
+                          "isTransitioning": false,
+                          "key": "WalletTabHome",
+                          "params": undefined,
+                          "routeName": "WalletTabHome",
+                          "routes": Array [
+                            Object {
+                              "key": "id-123-1",
+                              "routeName": "WalletView",
+                            },
+                          ],
                         },
                       ],
                     },
@@ -486,11 +574,11 @@ exports[`App should render correctly 1`] = `
                 Object {
                   "index": 0,
                   "isTransitioning": false,
-                  "key": "id-123-3",
+                  "key": "id-123-4",
                   "routeName": "Onboarding",
                   "routes": Array [
                     Object {
-                      "key": "id-123-2",
+                      "key": "id-123-3",
                       "params": undefined,
                       "routeName": "Onboarding",
                     },
