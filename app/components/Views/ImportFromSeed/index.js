@@ -296,7 +296,7 @@ class ImportFromSeed extends Component {
 						onSubmitEditing={this.jumpToPassword}
 						returnKeyType={'next'}
 						autoComplete="false"
-						keyboardType="visible-password"
+						keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
 						autoCapitalize="none"
 					/>
 					<View style={styles.field}>
