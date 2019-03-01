@@ -1,14 +1,13 @@
 export default [
 	{
-		url: 'https://gitcoin.co/',
-		name: 'Gitcoin',
-		description: 'Gitcoin is the easiest way to leverage the open source community to incentivize or monetize work.'
+		url: 'https://uniswap.exchange/',
+		name: 'Uniswap Exchange',
+		description: 'Uniswap is a protocol for automated token exchange on Ethereum.'
 	},
 	{
-		url: 'cdp.makerdao.com',
-		name: 'MakerDAO',
-		description: 'Maker is comprised of a stablecoin, collateral loans, and decentralized governance.',
-		imageUrl: 'https://dai.makerdao.com/'
+		url: 'https://beta.cent.co/',
+		name: 'Cent',
+		description: 'The income-generating social network, earn money by sharing your wisdom and creativity.'
 	},
 	{
 		url: 'https://peepeth.com/',
@@ -16,15 +15,21 @@ export default [
 		description: 'A blockchain-powered social network for our best selves.'
 	},
 	{
+		url: 'https://compound.finance/',
+		name: 'Compound',
+		description: 'Supply assets to the Compound protocol and earn interest.'
+	},
+	{
+		url: 'cdp.makerdao.com',
+		name: 'MakerDAO CDP',
+		description: 'This is the place to generate DAI! Manage depositing of collateral and generation of DAI.',
+		imageUrl: 'https://dai.makerdao.com/'
+	},
+	{
 		url: 'https://3box.io/',
 		name: '3Box',
 		description:
 			'Create a social profile for your Ethereum account to start building trust, connection, and community.'
-	},
-	{
-		url: 'https://uniswap.exchange/',
-		name: 'Uniswap Exchange',
-		description: 'Uniswap is a protocol for automated token exchange on Ethereum.'
 	},
 	{
 		url: 'https://mainnet.aragon.org/',
