@@ -184,7 +184,11 @@ class Wallet extends Component {
 			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
-			if (this.txs.length === 0 || this.txs.length !== txs.length || this.didTxStatusesChange(newPendingTxs)) {
+			if (
+				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
+				this.txs.length !== txs.length ||
+				this.didTxStatusesChange(newPendingTxs)
+			) {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
 				this.setState({ transactionsUpdated: true });
