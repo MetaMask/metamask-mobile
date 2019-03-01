@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {
+	Dimensions,
 	Text,
 	ActivityIndicator,
 	Platform,
@@ -839,6 +840,10 @@ export class Browser extends Component {
 	};
 
 	handleScroll = e => {
+		if (e.contentSize.height < Dimensions.get('window').height) {
+			return;
+		}
+
 		if (this.state.progress < 1) {
 			return;
 		}
