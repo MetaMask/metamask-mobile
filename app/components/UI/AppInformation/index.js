@@ -14,7 +14,7 @@ import DeviceInfo from 'react-native-device-info';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../Navbar';
+import { getSettingsNavbarOptions } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -22,9 +22,9 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapperContent: {
-		paddingLeft: 20,
-		paddingRight: 20,
-		paddingVertical: 20
+		paddingLeft: 24,
+		paddingRight: 24,
+		paddingVertical: 24
 	},
 	title: {
 		fontSize: 18,

@@ -12,6 +12,10 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Approval from '../../Views/Approval';
 import Settings from '../../Views/Settings';
+import GeneralSettings from '../../Views/GeneralSettings';
+import AdvancedSettings from '../../Views/AdvancedSettings';
+import AppInformation from '../../UI/AppInformation';
+import SecuritySettings from '../../Views/SecuritySettings';
 import Wallet from '../../Views/Wallet';
 import SyncWithExtension from '../../Views/SyncWithExtension';
 import Asset from '../../Views/Asset';
@@ -114,6 +118,18 @@ const MainNavigator = createStackNavigator(
 			screen: createStackNavigator({
 				Settings: {
 					screen: Settings
+				},
+				GeneralSettings: {
+					screen: GeneralSettings
+				},
+				AdvancedSettings: {
+					screen: AdvancedSettings
+				},
+				SecuritySettings: {
+					screen: SecuritySettings
+				},
+				CompanySettings: {
+					screen: AppInformation
 				},
 				SyncWithExtensionView: {
 					screen: SyncWithExtension
