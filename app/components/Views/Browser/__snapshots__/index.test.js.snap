@@ -289,7 +289,7 @@ exports[`Browser should render correctly 1`] = `
         Object {
           "alignItems": "center",
           "flexDirection": "row",
-          "height": 44,
+          "height": 52,
           "paddingHorizontal": 10,
         },
         Object {
@@ -345,11 +345,33 @@ exports[`Browser should render correctly 1`] = `
     <View
       style={
         Object {
-          "alignContent": "flex-end",
-          "flex": 1,
+          "alignItems": "flex-end",
+          "flexDirection": "row",
         }
       }
     >
+      <Icon
+        allowFontScaling={false}
+        name="ios-search"
+        onPress={[Function]}
+        size={20}
+        style={
+          Array [
+            Object {
+              "alignSelf": "center",
+              "color": "#2f3542",
+              "height": 28,
+              "lineHeight": 28,
+              "textAlign": "center",
+              "width": 36,
+            },
+            Object {
+              "alignContent": "flex-end",
+              "alignSelf": "flex-end",
+            },
+          ]
+        }
+      />
       <Icon
         allowFontScaling={false}
         name="more-vert"
