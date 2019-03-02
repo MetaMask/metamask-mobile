@@ -17,6 +17,8 @@ import {
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import IonIcon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -107,7 +109,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.concrete,
 		flexDirection: 'row',
 		alignItems: 'flex-start',
-		justifyContent: 'flex-start'
+		justifyContent: 'flex-start',
+		marginTop: Platform.OS === 'android' ? 0 : -5
 	},
 	optionText: {
 		fontSize: 14,
@@ -128,10 +131,14 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
-		height: 44,
+		height: 52,
 		alignItems: 'center',
 		flexDirection: 'row',
 		paddingHorizontal: 10
+	},
+	iconSearch: {
+		alignSelf: 'flex-end',
+		alignContent: 'flex-end'
 	},
 	iconMore: {
 		alignSelf: 'flex-end',
@@ -143,8 +150,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	iconsRight: {
-		flex: 1,
-		alignContent: 'flex-end'
+		flexDirection: 'row',
+		alignItems: 'flex-end'
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -625,7 +632,7 @@ export class Browser extends Component {
 			return false;
 		}
 
-		this.props.navigation.push('AddBookmark', {
+		this.props.navigation.push('AddBookmarkView', {
 			title: this.state.currentPageTitle || '',
 			url: this.state.inputValue,
 			onAddBookmark: async ({ name, url }) => {
@@ -827,6 +834,12 @@ export class Browser extends Component {
 								<Text style={styles.optionText}>{strings('browser.open_in_browser')}</Text>
 							</Button>
 							{Platform.OS === 'android' ? (
+								<Button onPress={this.showUrlModal} style={styles.option}>
+									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
+									<Text style={styles.optionText}>{strings('browser.change_url')}</Text>
+								</Button>
+							) : null}
+							{Platform.OS === 'android' ? (
 								<Button onPress={this.close} style={styles.option}>
 									<Icon name="close" size={15} style={styles.optionIcon} />
 									<Text style={styles.optionText}>{strings('browser.close')}</Text>
@@ -905,6 +918,12 @@ export class Browser extends Component {
 					/>
 				</View>
 				<View style={styles.iconsRight}>
+					<IonIcon
+						name="ios-search"
+						onPress={this.showUrlModal}
+						size={20}
+						style={[styles.icon, styles.iconSearch]}
+					/>
 					<MaterialIcon
 						name="more-vert"
 						onPress={this.toggleOptions}
@@ -919,6 +938,10 @@ export class Browser extends Component {
 	isHttps() {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
 	}
+
+	showUrlModal = () => {
+		this.props.navigation.setParams({ url: this.state.url, showUrlModal: true });
+	};
 
 	hideUrlModal = url => {
 		const urlParam = typeof url === 'string' ? url : this.props.navigation.state.params.url;

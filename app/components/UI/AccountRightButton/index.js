@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import Identicon from '../Identicon';
+import { toggleAccountsModal } from '../../../actions/modals';
 
 const styles = StyleSheet.create({
 	leftButton: {
 		marginTop: 12,
-		marginLeft: 12,
+		marginRight: Platform.OS === 'android' ? 22 : 18,
 		marginBottom: 12
 	}
 });
@@ -16,22 +17,22 @@ const styles = StyleSheet.create({
  * UI Component that renders on the top right of the navbar
  * showing an identicon for the selectedAddress
  */
-class NavbarRightButton extends Component {
+class AccountRightButton extends Component {
 	static propTypes = {
 		/**
 		 * Selected address as string
 		 */
 		address: PropTypes.string,
 		/**
-		 * action to be fired on press
+		 * Action that toggles the account modal
 		 */
-		onPress: PropTypes.func
+		toggleAccountsModal: PropTypes.func
 	};
 
 	render = () => {
-		const { address, onPress } = this.props;
+		const { address, toggleAccountsModal } = this.props;
 		return (
-			<TouchableOpacity style={styles.leftButton} onPress={onPress} testID={'navbar-account-button'}>
+			<TouchableOpacity style={styles.leftButton} onPress={toggleAccountsModal} testID={'navbar-account-button'}>
 				<Identicon diameter={28} address={address} />
 			</TouchableOpacity>
 		);
@@ -39,4 +40,10 @@ class NavbarRightButton extends Component {
 }
 
 const mapStateToProps = state => ({ address: state.engine.backgroundState.PreferencesController.selectedAddress });
-export default connect(mapStateToProps)(NavbarRightButton);
+const mapDispatchToProps = dispatch => ({
+	toggleAccountsModal: () => dispatch(toggleAccountsModal())
+});
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(AccountRightButton);

@@ -30,7 +30,7 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { toggleNetworkModal } from '../../../actions/modals';
+import { toggleNetworkModal, toggleAccountsModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { renderShortAddress } from '../../../util/address';
@@ -299,7 +299,11 @@ class DrawerView extends Component {
 		/**
 		 * Action that toggles the network modal
 		 */
-		toggleNetworkModal: PropTypes.func.isRequired,
+		toggleNetworkModal: PropTypes.func,
+		/**
+		 * Action that toggles the accounts modal
+		 */
+		toggleAccountsModal: PropTypes.func,
 		/**
 		 * Action that shows the global alert
 		 */
@@ -308,6 +312,10 @@ class DrawerView extends Component {
 		 * Boolean that determines the status of the networks modal
 		 */
 		networkModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Boolean that determines the status of the networks modal
+		 */
+		accountsModalVisible: PropTypes.bool.isRequired,
 		/**
 		 * Action that sets a tokens type transaction
 		 */
@@ -319,7 +327,6 @@ class DrawerView extends Component {
 	};
 
 	state = {
-		accountsModalVisible: false,
 		submitFeedback: false
 	};
 
@@ -355,11 +362,11 @@ class DrawerView extends Component {
 	};
 
 	onAccountPress = () => {
-		this.setState({ accountsModalVisible: true });
+		this.props.toggleAccountsModal();
 	};
 
 	hideAccountsModal = () => {
-		this.setState({ accountsModalVisible: false });
+		this.props.toggleAccountsModal();
 	};
 
 	onNetworksModalClose = async manualClose => {
@@ -379,7 +386,7 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
-	onDeposit = () => {
+	onReceive = () => {
 		Alert.alert(strings('drawer.coming_soon'));
 	};
 
@@ -406,8 +413,8 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
-	showAssets = () => {
-		this.goToWalletTab(0);
+	showWallet = () => {
+		this.props.navigation.navigate('WalletTabHome');
 	};
 
 	copyAddressToClipboard = async () => {
@@ -451,7 +458,7 @@ class DrawerView extends Component {
 	viewInEtherscan = () => {
 		const { selectedAddress, network } = this.props;
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
-		this.goToBrowserUrl(url);
+		this.goToBrowserUrl(url, 'etherscan.io');
 	};
 
 	submitFeedback = () => {
@@ -478,19 +485,20 @@ class DrawerView extends Component {
 		const systemName = DeviceInfo.getSystemName();
 		const systemVersion = systemName === 'Android' ? DeviceInfo.getAPILevel() : DeviceInfo.getSystemVersion();
 		this.goToBrowserUrl(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
+			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`,
+			strings('drawer.feedback')
 		);
 		this.setState({ submitFeedback: false });
 	};
 
 	showHelp = () => {
-		this.goToBrowserUrl('https://support.metamask.io');
+		this.goToBrowserUrl('https://support.metamask.io', strings('drawer.metamask_support'));
 	};
 
-	goToBrowserUrl(url) {
-		this.props.navigation.navigate('BrowserTabHome');
-		this.props.navigation.navigate('BrowserView', {
-			url
+	goToBrowserUrl(url, title) {
+		this.props.navigation.navigate('Webview', {
+			url,
+			title
 		});
 		this.hideDrawer();
 	}
@@ -538,15 +546,15 @@ class DrawerView extends Component {
 	getSections = () => [
 		[
 			{
-				name: strings('drawer.assets'),
-				icon: this.getImageIcon('assets'),
-				action: this.showAssets,
-				label: this.getLabelForAssets()
-			},
-			{
-				name: strings('drawer.dapp_browser'),
+				name: strings('drawer.browser'),
 				icon: this.getIcon('globe'),
 				action: this.goToBrowser
+			},
+			{
+				name: strings('drawer.wallet'),
+				icon: this.getImageIcon('assets'),
+				action: this.showWallet,
+				label: this.getLabelForAssets()
 			}
 		],
 		[
@@ -665,7 +673,7 @@ class DrawerView extends Component {
 						</StyledButton>
 						<StyledButton
 							type={'normal'}
-							onPress={this.onDeposit}
+							onPress={this.onReceive}
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
 						>
@@ -675,7 +683,7 @@ class DrawerView extends Component {
 								color={colors.primary}
 								style={styles.buttonIcon}
 							/>
-							<Text style={styles.buttonText}>{strings('drawer.deposit_button')}</Text>
+							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>
@@ -718,7 +726,7 @@ class DrawerView extends Component {
 					<NetworkList onClose={this.onNetworksModalClose} />
 				</Modal>
 				<Modal
-					isVisible={this.state.accountsModalVisible}
+					isVisible={this.props.accountsModalVisible}
 					style={styles.bottomModal}
 					onBackdropPress={this.hideAccountsModal}
 					onSwipeComplete={this.hideAccountsModal}
@@ -759,12 +767,14 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,
+	accountsModalVisible: state.modals.accountsModalVisible,
 	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
 	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
+	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	showAlert: config => dispatch(showAlert(config)),
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });

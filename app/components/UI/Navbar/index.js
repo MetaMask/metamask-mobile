@@ -2,11 +2,11 @@ import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import NavbarLeftButton from '../NavbarLeftButton';
+import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import URL from 'url-parse';
 import NavbarCollectibleContractInformation from '../NavbarCollectibleContractInformation';
 import { strings } from '../../../../locales/i18n';
@@ -25,8 +25,8 @@ const styles = StyleSheet.create({
 		marginLeft: Platform.OS === 'android' ? 20 : 0
 	},
 	closeIcon: {
-		marginRight: 20,
-		marginTop: 5
+		paddingLeft: Platform.OS === 'android' ? 22 : 18,
+		color: colors.primary
 	},
 	backIcon: {
 		color: colors.primary
@@ -94,7 +94,7 @@ export default function getNavbarOptions(title, navigation) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getNavigationOptionsTitle(title) {
+export function getNavigationOptionsTitle(title, navigation) {
 	return {
 		title,
 		headerTitleStyle: {
@@ -102,7 +102,17 @@ export function getNavigationOptionsTitle(title) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerTintColor: colors.primary
+		headerTintColor: colors.primary,
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		)
 	};
 }
 
@@ -146,34 +156,18 @@ export function getBrowserViewNavbarOptions(navigation) {
 	const isHttps = url.toLowerCase().substr(0, 6) === 'https:';
 
 	return {
-		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
-		headerTitle: (
-			<TouchableOpacity
-				style={styles.flex}
-				// eslint-disable-next-line
-				onPress={() => {
-					navigation.navigate('Browser', { ...navigation.state.params, showUrlModal: true });
-				}}
-			>
-				<NavbarBrowserTitle hostname={hostname} https={isHttps} />
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
 			</TouchableOpacity>
 		),
-		headerRight:
-			Platform.OS === 'android' ? (
-				<TouchableOpacity
-					// eslint-disable-next-line
-					onPress={() => {
-						navigation.navigate('Browser', { ...navigation.state.params, showOptions: true });
-					}}
-				>
-					<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
-				</TouchableOpacity>
-			) : (
-				// eslint-disable-next-line
-				<TouchableOpacity onPress={() => navigation.pop()}>
-					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
-				</TouchableOpacity>
-			)
+		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
+		headerRight: <AccountRightButton />
 	};
 }
 
@@ -315,5 +309,29 @@ export function getNetworkNavbarOptions(title, navigation) {
 			</TouchableOpacity>
 		),
 		headerRight: <View />
+	};
+}
+
+/**
+ * Function that returns the navigation options containing title and network indicator
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
+ */
+export function getWebviewNavbar(navigation) {
+	const title = navigation.getParam('title', '');
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerLeft: <View />,
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+			</TouchableOpacity>
+		)
 	};
 }

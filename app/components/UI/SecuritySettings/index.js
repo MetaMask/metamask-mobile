@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
  * View that contains app settings
  */
 class SecuritySettings extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('app_settings.title'), navigation);
 
 	state = {
 		biometryChoice: null,
