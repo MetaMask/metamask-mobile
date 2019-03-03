@@ -54,7 +54,8 @@ export default class AnimatedSpinner extends Component {
 			toValue: 1,
 			duration: 1000,
 			easing: Easing.linear,
-			useNativeDriver: true
+			useNativeDriver: true,
+			isInteraction: false
 		}).start(() => {
 			if (this.state.spinning && this.mounted) {
 				this.animation();

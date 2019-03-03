@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 	},
 	backupAlert: {
 		position: 'absolute',
-		bottom: DeviceSize.isIphoneX() ? 50 : 30,
+		bottom: DeviceSize.isIphoneX() ? 50 : 20,
 		left: 16,
 		right: 16
 	},

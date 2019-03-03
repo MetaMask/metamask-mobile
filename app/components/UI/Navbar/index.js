@@ -1,7 +1,6 @@
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
-import NavbarLeftButton from '../NavbarLeftButton';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
@@ -82,8 +81,16 @@ const metamask_name = require('../../../images/metamask-name.png'); // eslint-di
 export default function getNavbarOptions(title, navigation) {
 	return {
 		headerTitle: <NavbarTitle title={title} />,
-		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
-		headerRight: <View />
+		headerLeft: (
+			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight: <AccountRightButton />
 	};
 }
 
@@ -246,9 +253,9 @@ export function getWalletNavbarOptions(title, navigation) {
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
-			<TouchableOpacity onPress={navigation.openDrawer} style={styles.backButton}>
+			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
 				<IonicIcon
-					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
 					style={styles.backIcon}
 				/>

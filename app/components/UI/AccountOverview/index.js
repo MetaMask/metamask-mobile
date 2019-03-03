@@ -4,8 +4,7 @@ import { Clipboard, Alert, StyleSheet, Text, View, TouchableOpacity } from 'reac
 import { colors, fontStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import FoundationIcon from 'react-native-vector-icons/Foundation';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
@@ -53,8 +52,8 @@ const styles = StyleSheet.create({
 	buttonIconWrapper: {
 		width: 36,
 		height: 36,
-		paddingTop: 10,
-		paddingLeft: 7,
+		paddingTop: 3,
+		alignItems: 'center',
 		justifyContent: 'center',
 		alignContent: 'center',
 		color: colors.white,
@@ -75,17 +74,6 @@ const styles = StyleSheet.create({
 		color: colors.primary,
 		fontSize: 11,
 		...fontStyles.normal
-	},
-	sendIcon: {
-		paddingTop: 0,
-		paddingLeft: 0
-	},
-	depositIcon: {
-		marginTop: -5,
-		marginLeft: -0.5
-	},
-	copyIcon: {
-		marginLeft: -1
 	}
 });
 
@@ -116,13 +104,16 @@ class AccountOverview extends Component {
 		*/
 		currentCurrency: PropTypes.string
 	};
+
 	onDeposit = () => {
 		Alert.alert(strings('drawer.coming_soon'));
 	};
+
 	onSend = () => {
 		this.props.setTokensTransaction({ symbol: 'ETH' });
 		this.props.navigation.navigate('SendView');
 	};
+
 	onCopy = async () => {
 		const {
 			account: { address }
@@ -140,7 +131,7 @@ class AccountOverview extends Component {
 		this.props.navigation.push('AccountDetails');
 	};
 
-	render = () => {
+	render() {
 		const {
 			account: { name, address },
 			currentCurrency
@@ -161,40 +152,35 @@ class AccountOverview extends Component {
 					<TouchableOpacity type={'normal'} onPress={this.onSend} style={styles.button}>
 						<View style={styles.buttonIconWrapper}>
 							<MaterialIcon
-								name={'send'}
-								size={15}
+								name={'arrow-top-right'}
+								size={22}
 								color={colors.primary}
-								style={[styles.buttonIcon, styles.sendIcon]}
+								style={styles.buttonIcon}
 							/>
 						</View>
 						<Text style={styles.buttonText}>{strings('wallet.send_button')}</Text>
 					</TouchableOpacity>
 					<TouchableOpacity type={'normal'} onPress={this.onDeposit} style={styles.button}>
 						<View style={styles.buttonIconWrapper}>
-							<FoundationIcon
-								name={'download'}
-								size={18}
+							<MaterialIcon
+								name={'arrow-collapse-down'}
+								size={20}
 								color={colors.primary}
-								style={[styles.buttonIcon, styles.depositIcon]}
+								style={styles.buttonIcon}
 							/>
 						</View>
 						<Text style={styles.buttonText}>{strings('wallet.deposit_button')}</Text>
 					</TouchableOpacity>
 					<TouchableOpacity type={'normal'} onPress={this.onCopy} style={styles.button}>
 						<View style={styles.buttonIconWrapper}>
-							<Icon
-								name={'copy'}
-								size={15}
-								color={colors.primary}
-								style={[styles.buttonIcon, styles.copyIcon]}
-							/>
+							<Icon name={'copy'} size={17} color={colors.primary} style={styles.buttonIcon} />
 						</View>
 						<Text style={styles.buttonText}>{strings('wallet.copy_address')}</Text>
 					</TouchableOpacity>
 				</View>
 			</View>
 		);
-	};
+	}
 }
 
 const mapDispatchToProps = dispatch => ({

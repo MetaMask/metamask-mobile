@@ -10,7 +10,6 @@ import {
 	TouchableWithoutFeedback,
 	Alert,
 	Animated,
-	SafeAreaView,
 	TouchableOpacity,
 	Linking
 } from 'react-native';
@@ -46,9 +45,10 @@ import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
 import { hexToBN } from '../../../util/number';
+import DeviceSize from '../../../util/DeviceSize';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth'];
-const SCROLL_THRESHOLD = 100;
+const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -131,7 +131,13 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
-		height: 52,
+		backgroundColor: colors.concrete,
+		position: 'absolute',
+		left: 0,
+		right: 0,
+		bottom: 0,
+		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 15 : 12,
+		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
 		alignItems: 'center',
 		flexDirection: 'row',
 		paddingHorizontal: 10
@@ -235,6 +241,10 @@ export class Browser extends Component {
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
+		 * Object containing the information for the current transaction
+		 */
+		transaction: PropTypes.object,
+		/**
 		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object,
@@ -301,6 +311,9 @@ export class Browser extends Component {
 			}
 		}
 
+		const scrollAnim = new Animated.Value(0);
+		const offsetAnim = new Animated.Value(0);
+
 		this.state = {
 			appState: 'active',
 			approvedOrigin: false,
@@ -325,17 +338,37 @@ export class Browser extends Component {
 			signMessageParams: { data: '' },
 			signType: '',
 			timeout: false,
-			url
+			url,
+			scrollAnim,
+			offsetAnim,
+			clampedScroll: Animated.diffClamp(
+				Animated.add(
+					scrollAnim.interpolate({
+						inputRange: [0, 1],
+						outputRange: [0, 1],
+						extrapolateLeft: 'clamp'
+					}),
+					offsetAnim
+				),
+				0,
+				BOTTOM_NAVBAR_HEIGHT
+			)
 		};
 	}
 
 	webview = React.createRef();
 	inputRef = React.createRef();
-	scrollY = new Animated.Value(0);
 	timeoutHandler = null;
 	prevScrollOffset = 0;
 	isFirstWebsite = true;
+	forwardHistoryStack = [];
+	backwardHistoryStack = [];
 	approvalRequest;
+
+	clampedScrollValue = 0;
+	offsetValue = 0;
+	scrollValue = 0;
+	scrollStopTimer = null;
 
 	async componentDidMount() {
 		this.mounted = true;
@@ -391,21 +424,38 @@ export class Browser extends Component {
 		const SPA_urlChangeListener = `(function () {
 			var __mmHistory = window.history;
 			var __mmPushState = __mmHistory.pushState;
+			var __mmReplaceState = __mmHistory.replaceState;
+			function __mm__updateUrl(){
+				const siteName = document.querySelector('head > meta[property="og:site_name"]');
+				const title = siteName || document.querySelector('head > meta[name="title"]') || document.title;
+				window.postMessageToNative(
+					{
+						type: 'NAV_CHANGE',
+						payload: {
+							url: location.href,
+							title: title,
+							state: __mmHistory.state
+						}
+					}
+				);
+			}
+
 			__mmHistory.pushState = function(state) {
 				setTimeout(function () {
-					const siteName = document.querySelector('head > meta[property="og:site_name"]');
-					const title = siteName || document.querySelector('head > meta[name="title"]');
-					window.postMessageToNative(
-						{
-							type: 'NAV_CHANGE',
-							payload: {
-								url: location.href,
-								title: title
-							}
-						}
-					);
+					__mm__updateUrl();
 				}, 100);
 				return __mmPushState.apply(history, arguments);
+			};
+
+			__mmHistory.replaceState = function(state) {
+				setTimeout(function () {
+					__mm__updateUrl();
+				}, 100);
+				return __mmReplaceState.apply(history, arguments);
+			};
+
+			window.onpopstate = function(event) {
+				__mm__updateUrl();
 			};
 		  })();
   		`;
@@ -413,6 +463,9 @@ export class Browser extends Component {
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
+			if (this.props.transaction.value || this.props.transaction.to) {
+				return;
+			}
 			const {
 				transaction: { value, gas, gasPrice }
 			} = transactionMeta;
@@ -432,6 +485,16 @@ export class Browser extends Component {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
 		});
 		this.loadUrl();
+
+		this.state.scrollAnim.addListener(({ value }) => {
+			const diff = value - this.scrollValue;
+			this.scrollValue = value;
+			this.clampedScrollValue = Math.min(Math.max(this.clampedScrollValue + diff, 0), BOTTOM_NAVBAR_HEIGHT);
+		});
+
+		this.state.offsetAnim.addListener(({ value }) => {
+			this.offsetValue = value;
+		});
 	}
 
 	async loadUrl() {
@@ -441,6 +504,7 @@ export class Browser extends Component {
 			const silent = navigation.getParam('silent', false);
 			if (url && !silent) {
 				await this.go(url);
+				this.initialUrl = url;
 				this.setState({ loading: false });
 			}
 		}
@@ -603,6 +667,8 @@ export class Browser extends Component {
 		this.toggleOptionsIfNeeded();
 		if (this.state.canGoBack) {
 			const { current } = this.webview;
+			this.backwardHistoryStack.pop();
+			this.forwardHistoryStack.push(this.state.url);
 			current && current.goBack();
 		}
 	};
@@ -616,6 +682,8 @@ export class Browser extends Component {
 		this.toggleOptionsIfNeeded();
 		const { current } = this.webview;
 		current && current.goForward();
+		this.backwardHistoryStack.push(this.state.url);
+		this.forwardHistoryStack.pop();
 	};
 
 	reload = () => {
@@ -701,6 +769,8 @@ export class Browser extends Component {
 	};
 
 	onPageChange = ({ canGoBack, canGoForward, url }) => {
+		this.backwardHistoryStack.push(url);
+		this.forwardHistoryStack = [];
 		const data = { canGoBack, canGoForward };
 		const urlObj = new URL(url);
 
@@ -745,6 +815,9 @@ export class Browser extends Component {
 	};
 
 	onLoadEnd = () => {
+		setTimeout(() => {
+			this.state.scrollAnim.setValue(0);
+		}, 100);
 		this.isFirstWebsite = false;
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
@@ -768,7 +841,7 @@ export class Browser extends Component {
 				const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
 
 				const siteName = document.querySelector('head > meta[property="og:site_name"]');
-				const title = siteName || document.querySelector('head > meta[name="title"]');
+				const title = siteName || document.querySelector('head > meta[name="title"]') || document.title;
 
 				window.postMessageToNative(
 					{
@@ -856,64 +929,66 @@ export class Browser extends Component {
 		if (e.contentSize.height < Dimensions.get('window').height) {
 			return;
 		}
-
 		if (this.state.progress < 1) {
 			return;
 		}
 
 		const newOffset = e.contentOffset.y;
 		// Avoid wrong position at the beginning
-		if (this.prevScrollOffset === 0 && newOffset > SCROLL_THRESHOLD) {
+		if (this.state.scrollAnim._value === 0 && newOffset > BOTTOM_NAVBAR_HEIGHT) {
 			return;
 		}
 
-		// In case they scroll past the top
-		if (newOffset <= 0) {
-			this.scrollY.setValue(0);
-			return;
-		}
+		this.state.scrollAnim.setValue(newOffset);
 
-		const diff = Math.abs(newOffset - this.prevScrollOffset);
-		let newAnimatedValue = Math.max(0, Math.min(SCROLL_THRESHOLD, diff) / SCROLL_THRESHOLD);
-		if (newOffset < this.prevScrollOffset) {
-			// moving down
-			newAnimatedValue = 1 - newAnimatedValue;
-		}
-		this.scrollY.setValue(newAnimatedValue);
+		this.scrollStopTimer = setTimeout(() => {
+			if (Math.abs(this.scrollValue - newOffset) > 1) {
+				this.onScrollStop();
+			}
+		}, 200);
 	};
 
-	onScrollEnd = e => {
-		this.prevScrollOffset = e.contentOffset.y;
+	onMomentumScrollBegin = () => {
+		clearTimeout(this.scrollStopTimer);
 	};
 
-	onScrollBeginDrag = e => {
-		setTimeout(() => {
-			this.prevScrollOffset = e.contentOffset.y;
-		}, 150);
+	onScrollStop = () => {
+		const toValue =
+			this.clampedScrollValue > BOTTOM_NAVBAR_HEIGHT / 2
+				? this.offsetValue + BOTTOM_NAVBAR_HEIGHT
+				: this.offsetValue - BOTTOM_NAVBAR_HEIGHT;
+
+		Animated.timing(this.state.offsetAnim, {
+			toValue,
+			duration: 300,
+			useNativeDriver: true
+		}).start();
 	};
 
 	renderBottomBar = (canGoBack, canGoForward) => {
-		const bottom = Platform.OS === 'ios' ? 0 : 10;
-		const distance = Platform.OS === 'ios' ? 100 : 200;
-		const bottomBarPosition = Animated.diffClamp(this.scrollY, 0, SCROLL_THRESHOLD).interpolate({
-			inputRange: [0, 1],
-			outputRange: [bottom, bottom - distance]
+		const { clampedScroll } = this.state;
+
+		const bottomBarPosition = clampedScroll.interpolate({
+			inputRange: [0, BOTTOM_NAVBAR_HEIGHT],
+			outputRange: [0, BOTTOM_NAVBAR_HEIGHT],
+			extrapolate: 'clamp'
 		});
+
 		return (
-			<Animated.View style={[styles.bottomBar, { marginBottom: bottomBarPosition }]}>
+			<Animated.View style={[styles.bottomBar, { transform: [{ translateY: bottomBarPosition }] }]}>
 				<View style={styles.iconsLeft}>
 					<Icon
 						name="angle-left"
 						disabled={!canGoBack}
 						onPress={this.goBack}
-						size={30}
+						size={40}
 						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
 					/>
 					<Icon
 						disabled={!canGoForward}
 						name="angle-right"
 						onPress={this.goForward}
-						size={30}
+						size={40}
 						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
 					/>
 				</View>
@@ -921,13 +996,13 @@ export class Browser extends Component {
 					<IonIcon
 						name="ios-search"
 						onPress={this.showUrlModal}
-						size={20}
+						size={30}
 						style={[styles.icon, styles.iconSearch]}
 					/>
 					<MaterialIcon
 						name="more-vert"
 						onPress={this.toggleOptions}
-						size={20}
+						size={32}
 						style={[styles.icon, styles.iconMore]}
 					/>
 				</View>
@@ -1162,7 +1237,7 @@ export class Browser extends Component {
 		const { canGoBack, canGoForward, entryScriptWeb3, url } = this.state;
 
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<View style={styles.wrapper}>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
@@ -1178,11 +1253,9 @@ export class Browser extends Component {
 						ref={this.webview}
 						source={{ uri: url }}
 						style={styles.webview}
-						scrollEventThrottle={16}
 						onScroll={this.handleScroll}
-						onScrollBeginDrag={this.onScrollBeginDrag}
-						onScrollEndDrag={this.onScrollEnd}
-						onMomentumScrollEnd={this.onScrollEnd}
+						onMomentumScrollBegin={this.onMomentumScrollBegin}
+						scrollEventThrottle={1}
 						userAgent={this.getUserAgent()}
 						sendCookies
 						javascriptEnabled
@@ -1196,7 +1269,7 @@ export class Browser extends Component {
 				{this.renderPhishingModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
-			</SafeAreaView>
+			</View>
 		);
 	}
 }
@@ -1209,7 +1282,8 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
-	whitelist: state.browser.whitelist
+	whitelist: state.browser.whitelist,
+	transaction: state.transaction
 });
 
 const mapDispatchToProps = dispatch => ({

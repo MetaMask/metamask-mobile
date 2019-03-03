@@ -44,7 +44,8 @@ export default class FadeView extends Component {
 		Animated.timing(this.visibility, {
 			toValue: this.props.visible ? 1 : 0,
 			duration: 300,
-			useNativeDriver: true
+			useNativeDriver: true,
+			isInteraction: false
 		}).start(() => {
 			if (this.props.visible !== this.state.visible) {
 				setTimeout(() => {
