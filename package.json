@@ -54,6 +54,7 @@
     "base-64": "^0.1.0",
     "bignumber.js": "^7.2.1",
     "buffer": "^4.9.1",
+    "connext": "^3.0.13",
     "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#e307359ca9ea6be4ded6ac58ac7e16f192ae4e2a",
     "eth-ens-namehash": "^2.0.8",
     "eth-url-parser": "^1.0.2",

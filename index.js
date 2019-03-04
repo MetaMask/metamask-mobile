@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'StateUpdateController',
 	'this.web3.eth',
 	'collectibles.map',
 	'Warning: bind(): You are binding a component method to the component',

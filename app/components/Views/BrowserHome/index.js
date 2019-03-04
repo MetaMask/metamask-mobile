@@ -58,6 +58,7 @@ class BrowserHome extends Component {
 			Branch.subscribe(this.handleDeeplinks);
 		}
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
+		this.props.navigation.navigate('PaymentChannelView');
 	}
 
 	componentDidUpdate(prevProps) {

@@ -79,7 +79,7 @@ class Approval extends Component {
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
-					this.props.navigation.goBack();
+					this.props.navigation.pop();
 					TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 				} else {
 					throw transactionMeta.error;

@@ -34,6 +34,7 @@ import AccountBackupStep4 from '../../Views/AccountBackupStep4';
 import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
+import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
@@ -103,6 +104,18 @@ const MainNavigator = createStackNavigator(
 				{
 					SimpleWebview: {
 						screen: SimpleWebview
+					}
+				},
+				{
+					mode: 'modal'
+				}
+			)
+		},
+		PaymentChannelView: {
+			screen: createStackNavigator(
+				{
+					PaymentChannel: {
+						screen: PaymentChannel
 					}
 				},
 				{
