@@ -111,7 +111,8 @@ class RevealPrivateCredential extends Component {
 
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(
-			strings(`reveal_credential.${navigation.getParam('privateCredentialName', '')}_title`)
+			strings(`reveal_credential.${navigation.getParam('privateCredentialName', '')}_title`),
+			navigation
 		);
 
 	static propTypes = {

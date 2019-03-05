@@ -5,7 +5,6 @@ import {
 	Keyboard,
 	TouchableWithoutFeedback,
 	Image,
-	InteractionManager,
 	TouchableOpacity,
 	Text,
 	Platform,
@@ -95,7 +94,7 @@ const styles = StyleSheet.create({
 	},
 	backupAlert: {
 		position: 'absolute',
-		bottom: DeviceSize.isIphoneX() ? 50 : 30,
+		bottom: DeviceSize.isIphoneX() ? 50 : 20,
 		left: 16,
 		right: 16
 	},
@@ -191,15 +190,23 @@ class HomePage extends Component {
 
 	bookmarkIndexToRemove = null;
 
+	componentDidMount() {
+		if (Platform.OS === 'android') {
+			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
+		}
+	}
+
+	componentWillUnmount() {
+		Platform.OS === 'android' && this.keyboardDidHideListener.remove();
+	}
+
 	onInitialUrlChange = searchInputValue => {
 		this.setState({ searchInputValue });
 	};
 
 	onInitialUrlSubmit = () => {
 		this.props.onInitialUrlSubmit(this.state.searchInputValue);
-		InteractionManager.runAfterInteractions(() => {
-			this.setState({ searchInputValue: '' });
-		});
+		this.setState({ searchInputValue: '' });
 	};
 
 	backupAlertPress = () => {
@@ -231,7 +238,7 @@ class HomePage extends Component {
 	};
 
 	onAutocomplete = link => {
-		this.setState({ inputValue: link }, () => {
+		this.setState({ inputValue: link, searchInputValue: '' }, () => {
 			this.onUrlInputSubmit(link);
 		});
 	};
@@ -239,6 +246,10 @@ class HomePage extends Component {
 	dismissKeyboardAndClear = () => {
 		this.setState({ searchInputValue: '' });
 		Keyboard.dismiss();
+	};
+
+	keyboardDidHide = () => {
+		this.setState({ searchInputValue: '' });
 	};
 
 	render() {

@@ -176,8 +176,9 @@ class Transactions extends PureComponent {
 		try {
 			const network = getNetworkTypeById(networkID);
 			const url = getEtherscanTransactionUrl(network, transactionHash);
-			this.props.navigation.push('BrowserView', {
-				url
+			this.props.navigation.push('Webview', {
+				url,
+				title: 'etherscan.io'
 			});
 		} catch (e) {
 			// eslint-disable-next-line no-console

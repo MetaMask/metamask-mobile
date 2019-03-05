@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
  * Copmonent that provides ability to add a bookmark
  */
 export default class AddBookmark extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('add_favorite.title'));
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('add_favorite.title'), navigation);
 
 	state = {
 		title: '',
@@ -61,11 +61,11 @@ export default class AddBookmark extends Component {
 		const { title, url } = this.state;
 		if (title === '' || url === '') return false;
 		this.props.navigation.state.params.onAddBookmark({ name: title, url });
-		this.props.navigation.goBack();
+		this.props.navigation.pop();
 	};
 
 	cancelAddBookmark = () => {
-		this.props.navigation.goBack();
+		this.props.navigation.pop();
 	};
 
 	onTitleChange = title => {

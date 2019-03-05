@@ -42,6 +42,7 @@ exports[`CollectibleView should render correctly 1`] = `
       Object {
         "flex": 0.1,
         "height": 4,
+        "paddingVertical": 15,
       }
     }
   >

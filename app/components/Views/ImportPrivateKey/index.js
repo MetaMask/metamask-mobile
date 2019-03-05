@@ -133,8 +133,9 @@ export default class ImportPrivateKey extends Component {
 	};
 
 	learnMore = () =>
-		this.props.navigation.navigate('BrowserView', {
-			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015289932-What-are-imported-accounts-'
+		this.props.navigation.navigate('Webview', {
+			url: 'https://metamask.zendesk.com/hc/en-us/articles/360015289932-What-are-imported-accounts-',
+			title: strings('drawer.metamask_support')
 		});
 
 	onInputChange = value => {
