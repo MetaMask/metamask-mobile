@@ -1,31 +1,17 @@
-import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { colors, fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
-import AppSettings from '../../UI/AppSettings';
-import SecuritySettings from '../../UI/SecuritySettings';
-import AppInformation from '../../UI/AppInformation';
+import React, { Component } from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
+
+import SettingsDrawer from '../../UI/SettingsDrawer';
+import { colors } from '../../../styles/common';
 import { getClosableNavigationOptions } from '../../UI/Navbar';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
+		backgroundColor: colors.white,
 		flex: 1,
-		backgroundColor: colors.slate
-	},
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.primary
-	},
-	tabStyle: {
-		paddingBottom: 0
-	},
-	textStyle: {
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...fontStyles.bold
+		paddingLeft: 18
 	}
 });
 
@@ -43,39 +29,41 @@ export default class Settings extends Component {
 		navigation: PropTypes.object
 	};
 
-	state = {
-		locked: false,
-		appState: 'active'
-	};
-
-	scrollableTabViewRef = React.createRef();
-
-	renderTabBar() {
-		return (
-			<DefaultTabBar
-				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.primary}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
-				tabStyle={styles.tabStyle}
-				textStyle={styles.textStyle}
-			/>
-		);
-	}
-
 	render = () => {
+		/* eslint-disable */
+		/* prettier-ignore */
 		const { navigation } = this.props;
 		return (
-			<View style={styles.wrapper}>
-				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-					<AppSettings navigation={navigation} tabLabel={strings('app_configurations.settings_title')} />
-					<SecuritySettings navigation={navigation} tabLabel={strings('app_configurations.security_title')} />
-					<AppInformation
-						navigation={navigation}
-						tabLabel={strings('app_configurations.information_title')}
-					/>
-				</ScrollableTabView>
-			</View>
+			<ScrollView style={styles.wrapper}>
+				<SettingsDrawer
+					description={strings('app_settings.general_desc')}
+					onPress={() => {
+						navigation.push('GeneralSettings');
+					}}
+					title={strings('app_settings.general_title')}
+				/>
+				<SettingsDrawer
+					description={strings('app_settings.advanced_desc')}
+					onPress={() => {
+						navigation.push('AdvancedSettings');
+					}}
+					title={strings('app_settings.advanced_title')}
+				/>
+				<SettingsDrawer
+					description={strings('app_settings.security_desc')}
+					onPress={() => {
+						navigation.push('SecuritySettings');
+					}}
+					title={strings('app_settings.security_title')}
+				/>
+				<SettingsDrawer
+					title={strings('app_settings.info_title')}
+					onPress={() => {
+						navigation.push('CompanySettings');
+					}}
+				/>
+				<SettingsDrawer title={strings('app_settings.legal_title')} noBorder />
+			</ScrollView>
 		);
 	};
 }
