@@ -261,7 +261,8 @@ class ChoosePassword extends Component {
 		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
 			toValue: 1,
 			duration: 200,
-			useNativeDriver: true
+			useNativeDriver: true,
+			isInteraction: false
 		}).start();
 	};
 
@@ -269,7 +270,8 @@ class ChoosePassword extends Component {
 		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
 			toValue: 0.66,
 			duration: 200,
-			useNativeDriver: true
+			useNativeDriver: true,
+			isInteraction: false
 		}).start();
 	};
 

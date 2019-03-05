@@ -1,4 +1,7 @@
 {
+	"autocomplete": {
+		"placeholder": "Enter website address"
+	},
 	"navigation": {
 		"back": "Back",
 		"close": "Close",
@@ -74,22 +77,24 @@
 	},
 	"drawer": {
 		"send_button": "Send",
-		"deposit_button": "Deposit",
+		"receive_button": "Receive",
 		"coming_soon": "Coming soon...",
-		"assets": "Your Assets",
-		"submit_feedback": "Submit Feedback",
+		"wallet": "Wallet",
+		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",
 		"submit_bug": "BUG",
 		"submit_general_feedback": "GENERAL",
 		"copy_address": "Copy my Public Address",
 		"view_in_etherscan": "View on Etherscan",
-		"dapp_browser": "Explore ÐApps",
+		"browser": "Browser",
 		"settings": "Settings",
-		"help": "Get Help",
+		"help": "Get help",
 		"logout": "Log Out",
 		"logout_title": "Do you really want to log out?",
 		"logout_ok": "YES",
-		"logout_cancel": "NO"
+		"logout_cancel": "NO",
+		"feedback": "Feedback",
+		"metamask_support": "MetaMask Support"
 	},
 	"send": {
 		"title": "Send"
@@ -98,7 +103,7 @@
 		"title": "Receive"
 	},
 	"wallet": {
-		"title": "Your Assets",
+		"title": "Wallet",
 		"tokens": "TOKENS",
 		"collectible": "Collectible",
 		"collectibles": "COLLECTIBLES",
@@ -259,6 +264,7 @@
 		"send_button": "Send",
 		"receive_button": "RECEIVE",
 		"add_collectible_button": "Add",
+		"info": "Info",
 		"description": "Description",
 		"totalSupply": "Total Supply",
 		"address": "Address"
@@ -333,6 +339,7 @@
 		"remove_bookmark_title": "Do you want to remove this site from your favorites?"
 	},
 	"browser": {
+		"title": "Browser",
 		"reload": "Reload",
 		"share": "Share",
 		"bookmark": "Bookmark",
@@ -340,10 +347,11 @@
 		"error": "Ooops!",
 		"bookmark_already_exists": "You already bookmarked this url",
 		"cancel": "Cancel",
-		"go_back": "Go Back",
-		"go_forward": "Go Forward",
+		"go_back": "Go back",
+		"go_forward": "Go forward",
 		"close": "Close",
-		"open_in_browser": "Open in Browser",
+		"open_in_browser": "Open in browser",
+		"change_url": "Change url",
 		"dapp_browser": "DAPP BROWSER",
 		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
 		"featured_dapps": "FEATURED DAPPS",

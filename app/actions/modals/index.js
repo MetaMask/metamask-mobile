@@ -5,6 +5,12 @@ export function toggleNetworkModal() {
 	};
 }
 
+export function toggleAccountsModal() {
+	return {
+		type: 'TOGGLE_ACCOUNT_MODAL'
+	};
+}
+
 export function toggleCollectibleContractModal() {
 	return {
 		type: 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL'

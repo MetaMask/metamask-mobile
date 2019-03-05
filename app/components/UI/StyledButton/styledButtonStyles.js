@@ -30,6 +30,15 @@ const styles = StyleSheet.create({
 	confirmText: {
 		color: colors.white
 	},
+	roundedNormal: {
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.primary,
+		padding: 8
+	},
+	roundedNormalText: {
+		color: colors.primary
+	},
 	normal: {
 		backgroundColor: colors.white,
 		borderWidth: 2,
@@ -87,6 +96,10 @@ function getStyles(type) {
 		case 'normal':
 			fontStyle = styles.normalText;
 			containerStyle = styles.normal;
+			break;
+		case 'rounded-normal':
+			fontStyle = styles.roundedNormalText;
+			containerStyle = styles.roundedNormal;
 			break;
 		case 'cancel':
 			fontStyle = styles.cancelText;

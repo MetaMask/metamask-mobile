@@ -9,6 +9,7 @@ import BackgroundTimer from 'react-native-background-timer';
 import Browser from '../../Views/Browser';
 import BrowserHome from '../../Views/BrowserHome';
 import AddBookmark from '../../Views/AddBookmark';
+import SimpleWebview from '../../Views/SimpleWebview';
 import Approval from '../../Views/Approval';
 import Settings from '../../Views/Settings';
 import Wallet from '../../Views/Wallet';
@@ -58,6 +59,12 @@ const MainNavigator = createStackNavigator(
 					BrowserTabHome: createStackNavigator({
 						BrowserHome: {
 							screen: BrowserHome
+						},
+						BrowserView: {
+							screen: Browser,
+							navigationOptions: {
+								gesturesEnabled: false
+							}
 						}
 					}),
 					WalletTabHome: createStackNavigator({
@@ -91,17 +98,11 @@ const MainNavigator = createStackNavigator(
 				}
 			)
 		},
-		BrowserView: {
+		Webview: {
 			screen: createStackNavigator(
 				{
-					Browser: {
-						screen: Browser
-					},
-					ApprovalView: {
-						screen: Approval
-					},
-					AddBookmark: {
-						screen: AddBookmark
+					SimpleWebview: {
+						screen: SimpleWebview
 					}
 				},
 				{
@@ -141,6 +142,20 @@ const MainNavigator = createStackNavigator(
 			screen: createStackNavigator({
 				Send: {
 					screen: Send
+				}
+			})
+		},
+		ApprovalView: {
+			screen: createStackNavigator({
+				Approval: {
+					screen: Approval
+				}
+			})
+		},
+		AddBookmarkView: {
+			screen: createStackNavigator({
+				AddBookmark: {
+					screen: AddBookmark
 				}
 			})
 		},

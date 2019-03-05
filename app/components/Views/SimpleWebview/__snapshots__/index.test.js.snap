@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SimpleWebview should render correctly 1`] = `
+<WebView
+  originWhitelist={
+    Array [
+      "http://*",
+      "https://*",
+    ]
+  }
+  source={
+    Object {
+      "uri": Object {
+        "title": "etherscan",
+        "url": "https://etherscan.io",
+      },
+    }
+  }
+/>
+`;

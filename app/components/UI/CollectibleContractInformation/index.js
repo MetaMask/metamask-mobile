@@ -135,8 +135,9 @@ class CollectibleContractInformation extends Component {
 		const openSeaUrl = 'https://opensea.io/';
 		InteractionManager.runAfterInteractions(() => {
 			this.closeModal();
-			this.props.navigation.push('BrowserView', {
-				url: openSeaUrl
+			this.props.navigation.push('Webview', {
+				url: openSeaUrl,
+				title: 'OpenSea'
 			});
 		});
 	};

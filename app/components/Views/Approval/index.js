@@ -63,7 +63,7 @@ class Approval extends Component {
 	};
 
 	onCancel = () => {
-		this.props.navigation.goBack();
+		this.props.navigation.pop();
 	};
 
 	/**

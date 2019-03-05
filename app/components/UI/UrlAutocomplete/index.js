@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
 		marginBottom: 20
 	},
 	textContent: {
+		flex: 1,
 		marginLeft: 10
 	}
 });

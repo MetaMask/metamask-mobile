@@ -112,9 +112,9 @@ class AssetOverview extends Component {
 
 				<AssetActionButtons
 					leftText={strings('asset_overview.send_button').toUpperCase()}
-					rightText={strings('asset_overview.receive_button').toUpperCase()}
+					middleText={strings('asset_overview.receive_button').toUpperCase()}
 					onLeftPress={this.onSend}
-					onRightPress={this.onDeposit}
+					onMiddlePress={this.onDeposit}
 				/>
 			</View>
 		);

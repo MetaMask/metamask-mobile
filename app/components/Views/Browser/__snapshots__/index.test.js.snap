@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Browser should render correctly 1`] = `
-<SafeAreaView
+<View
   style={
     Object {
       "backgroundColor": "#f1f2f6",
@@ -288,12 +288,22 @@ exports[`Browser should render correctly 1`] = `
       Array [
         Object {
           "alignItems": "center",
+          "backgroundColor": "#f1f2f6",
+          "bottom": 0,
           "flexDirection": "row",
-          "height": 44,
+          "left": 0,
+          "paddingBottom": 32,
           "paddingHorizontal": 10,
+          "paddingTop": 15,
+          "position": "absolute",
+          "right": 0,
         },
         Object {
-          "marginBottom": 0,
+          "transform": Array [
+            Object {
+              "translateY": 0,
+            },
+          ],
         },
       ]
     }
@@ -312,7 +322,7 @@ exports[`Browser should render correctly 1`] = `
         disabled={true}
         name="angle-left"
         onPress={[Function]}
-        size={30}
+        size={40}
         style={
           Object {
             "alignSelf": "center",
@@ -329,7 +339,7 @@ exports[`Browser should render correctly 1`] = `
         disabled={true}
         name="angle-right"
         onPress={[Function]}
-        size={30}
+        size={40}
         style={
           Object {
             "alignSelf": "center",
@@ -345,16 +355,38 @@ exports[`Browser should render correctly 1`] = `
     <View
       style={
         Object {
-          "alignContent": "flex-end",
-          "flex": 1,
+          "alignItems": "flex-end",
+          "flexDirection": "row",
         }
       }
     >
       <Icon
         allowFontScaling={false}
+        name="ios-search"
+        onPress={[Function]}
+        size={30}
+        style={
+          Array [
+            Object {
+              "alignSelf": "center",
+              "color": "#2f3542",
+              "height": 28,
+              "lineHeight": 28,
+              "textAlign": "center",
+              "width": 36,
+            },
+            Object {
+              "alignContent": "flex-end",
+              "alignSelf": "flex-end",
+            },
+          ]
+        }
+      />
+      <Icon
+        allowFontScaling={false}
         name="more-vert"
         onPress={[Function]}
-        size={20}
+        size={32}
         style={
           Array [
             Object {
@@ -374,5 +406,5 @@ exports[`Browser should render correctly 1`] = `
       />
     </View>
   </AnimatedComponent>
-</SafeAreaView>
+</View>
 `;

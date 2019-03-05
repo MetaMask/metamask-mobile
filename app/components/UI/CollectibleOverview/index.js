@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 	},
 	basicsWrapper: {
 		flex: 1,
-		padding: 20,
+		padding: 25,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},

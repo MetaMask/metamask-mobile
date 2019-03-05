@@ -6620,10 +6620,6 @@ export default [
 		name: 'GrandRoulette'
 	},
 	{
-		url: 'https://ponzitrust.com/',
-		name: 'Ponzi Trust Game'
-	},
-	{
 		url: 'http://nekotoken.xyz/index2.html',
 		name: 'Neko Token'
 	},
@@ -6792,24 +6788,12 @@ export default [
 		name: 'Browser-Solidity'
 	},
 	{
-		url: 'https://ponzi-unlimited.herokuapp.com/',
-		name: 'Ponzi Unlimited'
-	},
-	{
-		url: 'http://www.ethponzi.com/',
-		name: 'ETHPonzi'
-	},
-	{
 		url: 'http://axic.github.io/shapeshiftbot/',
 		name: 'Shapeshift Bot'
 	},
 	{
 		url: 'http://debris.gitbooks.io/ethchange/content/',
 		name: 'Smart-Exchange'
-	},
-	{
-		url: 'https://ponzico.win/',
-		name: 'PonzICO'
 	},
 	{
 		url: 'https://faucet.ropsten.be/',
