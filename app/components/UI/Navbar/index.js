@@ -3,11 +3,11 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import URL from 'url-parse';
-import NavbarCollectibleContractInformation from '../NavbarCollectibleContractInformation';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -65,6 +65,16 @@ const styles = StyleSheet.create({
 	titleWrapper: {
 		alignItems: 'center',
 		flex: 1
+	},
+	browserRigthButtonAndroid: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	browserRigthButton: {
+		flex: 1
+	},
+	browserMoreIconAndroid: {
+		paddingTop: 10
 	}
 });
 
@@ -174,7 +184,22 @@ export function getBrowserViewNavbarOptions(navigation) {
 			</TouchableOpacity>
 		),
 		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
-		headerRight: <AccountRightButton />
+		headerRight: (
+			<View style={Platform.OS === 'android' ? styles.browserRigthButtonAndroid : styles.browserRigthButton}>
+				<AccountRightButton />
+				{Platform.OS === 'android' ? (
+					<TouchableOpacity
+						// eslint-disable-next-line
+						onPress={() => {
+							navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+						}}
+						style={styles.browserMoreIconAndroid}
+					>
+						<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
+					</TouchableOpacity>
+				) : null}
+			</View>
+		)
 	};
 }
 
@@ -276,28 +301,6 @@ export function getWalletNavbarOptions(title, navigation) {
 }
 
 /**
- * Function that returns the navigation options for our collectible contract overview screen
- *
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
- */
-export function getCollectibleContractNavbarOptions(title, navigation) {
-	return {
-		headerTitle: <NavbarTitle title={title} />,
-		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon
-					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
-					size={Platform.OS === 'android' ? 24 : 28}
-					style={styles.backIcon}
-				/>
-			</TouchableOpacity>
-		),
-		headerRight: <NavbarCollectibleContractInformation />
-	};
-}
-
-/**
  * Function that returns the navigation options containing title and network indicator
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
@@ -333,12 +336,23 @@ export function getWebviewNavbar(navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerLeft: <View />,
-		headerRight: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
-			</TouchableOpacity>
-		)
+		headerLeft:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				<View />
+			),
+		headerRight:
+			Platform.OS === 'ios' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }

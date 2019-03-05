@@ -6,6 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetActionButtons from '../AssetActionButtons';
 import { setCollectibleContractTransaction } from '../../../actions/transaction';
+import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -59,7 +60,11 @@ class CollectibleContractOverview extends Component {
 		/**
 		 * Action that sets a collectible contract type transaction
 		 */
-		setCollectibleContractTransaction: PropTypes.func.isRequired
+		setCollectibleContractTransaction: PropTypes.func.isRequired,
+		/**
+		 * Action that sets a collectible contract type transaction
+		 */
+		toggleCollectibleContractModal: PropTypes.func.isRequired
 	};
 
 	onAdd = () => {
@@ -74,6 +79,8 @@ class CollectibleContractOverview extends Component {
 		this.props.setCollectibleContractTransaction(collectible);
 		this.props.navigation.navigate('SendView');
 	};
+
+	onInfo = () => this.props.toggleCollectibleContractModal();
 
 	renderLogo = () => {
 		const {
@@ -98,9 +105,11 @@ class CollectibleContractOverview extends Component {
 
 				<AssetActionButtons
 					leftText={strings('asset_overview.send_button')}
-					rightText={strings('asset_overview.add_collectible_button')}
-					onRightPress={this.onAdd}
+					middleText={strings('asset_overview.add_collectible_button')}
+					rightText={strings('asset_overview.info')}
 					onLeftPress={this.onSend}
+					onMiddlePress={this.onAdd}
+					onRightPress={this.onInfo}
 				/>
 			</View>
 		);
@@ -112,7 +121,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible))
+	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible)),
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal())
 });
 
 export default connect(

@@ -61,11 +61,11 @@ export default class AddBookmark extends Component {
 		const { title, url } = this.state;
 		if (title === '' || url === '') return false;
 		this.props.navigation.state.params.onAddBookmark({ name: title, url });
-		this.props.navigation.goBack();
+		this.props.navigation.pop();
 	};
 
 	cancelAddBookmark = () => {
-		this.props.navigation.goBack();
+		this.props.navigation.pop();
 	};
 
 	onTitleChange = title => {

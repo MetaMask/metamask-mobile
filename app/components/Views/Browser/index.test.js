@@ -17,7 +17,7 @@ describe('Browser', () => {
 		const wrapper = shallow(<Browser url="https://metamask.io" />);
 		expect(wrapper.find('[name="angle-right"]').length).toBe(1);
 		expect(wrapper.find('[name="angle-right"]').prop('disabled')).toBe(true);
-		wrapper.setState({ canGoForward: true });
+		wrapper.setState({ forwardEnabled: true });
 		expect(wrapper.find('[name="angle-right"]').prop('disabled')).toBe(false);
 	});
 
@@ -25,7 +25,8 @@ describe('Browser', () => {
 		const MockWebView = { goBack() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'goBack');
 		const wrapper = shallow(<Browser url="https://metamask.io" />);
-		wrapper.setState({ entryScriptWeb3: 'let inject=true;', canGoBack: true });
+		wrapper.instance().initialUrl = 'https://metamask.io';
+		wrapper.setState({ entryScriptWeb3: 'let inject=true;', inputValue: 'https://consensys.net' });
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="angle-left"]').simulate('press');
 		expect(stub).toBeCalled();
@@ -35,7 +36,7 @@ describe('Browser', () => {
 		const MockWebView = { goForward() {} }; // eslint-disable-line no-empty-function
 		const stub = spyOn(MockWebView, 'goForward');
 		const wrapper = shallow(<Browser url="https://metamask.io" />);
-		wrapper.setState({ canGoForward: true });
+		wrapper.setState({ forwardEnabled: true });
 		wrapper.instance().webview = { current: MockWebView };
 		wrapper.find('[name="angle-right"]').simulate('press');
 		expect(stub).toBeCalled();

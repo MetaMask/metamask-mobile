@@ -145,7 +145,8 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		marginLeft: Platform.OS === 'ios' ? 8 : 28,
-		marginTop: Platform.OS === 'ios' ? 0 : -17,
+		marginTop: Platform.OS === 'ios' ? 0 : -23,
+		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
 		fontSize: 15,
 		color: colors.primary,
 		...fontStyles.normal

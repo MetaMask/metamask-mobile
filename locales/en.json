@@ -1,4 +1,7 @@
 {
+	"autocomplete": {
+		"placeholder": "Enter website address"
+	},
 	"navigation": {
 		"back": "Back",
 		"close": "Close",
@@ -261,6 +264,7 @@
 		"send_button": "Send",
 		"receive_button": "RECEIVE",
 		"add_collectible_button": "Add",
+		"info": "Info",
 		"description": "Description",
 		"totalSupply": "Total Supply",
 		"address": "Address"
