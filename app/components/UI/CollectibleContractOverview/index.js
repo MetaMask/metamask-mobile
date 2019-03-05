@@ -80,9 +80,7 @@ class CollectibleContractOverview extends Component {
 		this.props.navigation.navigate('SendView');
 	};
 
-	onInfo = () => {
-		this.props.toggleCollectibleContractModal();
-	};
+	onInfo = () => this.props.toggleCollectibleContractModal();
 
 	renderLogo = () => {
 		const {
@@ -124,7 +122,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible)),
-	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal)
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal())
 });
 
 export default connect(
