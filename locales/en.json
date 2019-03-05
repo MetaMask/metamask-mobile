@@ -264,6 +264,7 @@
 		"send_button": "Send",
 		"receive_button": "RECEIVE",
 		"add_collectible_button": "Add",
+		"info": "Info",
 		"description": "Description",
 		"totalSupply": "Total Supply",
 		"address": "Address"
