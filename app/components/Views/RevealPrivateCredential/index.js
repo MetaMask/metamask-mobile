@@ -16,7 +16,7 @@ import ActionView from '../../UI/ActionView';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
-import { getSettingsNavbarOptions } from '../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { showAlert } from '../../../actions/alert';
 
