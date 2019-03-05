@@ -73,7 +73,8 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
  * View that contains app information
  */
 export default class AppInformation extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.info_title'));
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.info_title'), navigation);
 
 	static propTypes = {
 		/**

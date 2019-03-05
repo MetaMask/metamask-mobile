@@ -116,7 +116,8 @@ class Settings extends Component {
 		setShowHexData: PropTypes.func
 	};
 
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.advanced_title'));
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.advanced_title'), navigation);
 
 	state = {
 		resetModalVisible: false,

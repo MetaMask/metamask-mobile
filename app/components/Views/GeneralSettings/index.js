@@ -80,7 +80,8 @@ class Settings extends Component {
 		searchEngine: PropTypes.string
 	};
 
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.general_title'));
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.general_title'), navigation);
 
 	state = {
 		currentLanguage: I18n.locale,

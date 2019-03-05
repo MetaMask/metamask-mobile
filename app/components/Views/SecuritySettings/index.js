@@ -123,7 +123,8 @@ class Settings extends Component {
 		lockTime: PropTypes.number
 	};
 
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.security_title'));
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.security_title'), navigation);
 
 	state = {
 		approvalModalVisible: false,
