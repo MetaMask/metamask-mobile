@@ -131,9 +131,6 @@ const styles = StyleSheet.create({
 	webview: {
 		...baseStyles.flexGrow
 	},
-	staticBottomNavbar: {
-		marginBottom: BOTTOM_NAVBAR_HEIGHT - 20
-	},
 	bottomBar: {
 		backgroundColor: colors.concrete,
 		position: 'absolute',
@@ -1052,13 +1049,6 @@ export class Browser extends Component {
 		}).start();
 	}
 
-	isBottomNavbarStatic() {
-		if (Platform.OS === 'ios') {
-			return this.state.contentHeight < Dimensions.get('window').height;
-		}
-		return false;
-	}
-
 	renderBottomBar = (canGoBack, canGoForward) => {
 		const { clampedScroll } = this.state;
 
@@ -1351,7 +1341,7 @@ export class Browser extends Component {
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}
 						source={{ uri: url }}
-						style={[styles.webview, this.isBottomNavbarStatic() ? styles.staticBottomNavbar : null]}
+						style={styles.webview}
 						onScroll={this.handleScroll}
 						onMomentumScrollBegin={this.onMomentumScrollBegin}
 						scrollEventThrottle={1}
