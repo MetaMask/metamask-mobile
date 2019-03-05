@@ -131,6 +131,9 @@ const styles = StyleSheet.create({
 	webview: {
 		...baseStyles.flexGrow
 	},
+	staticBottomNavbar: {
+		marginBottom: BOTTOM_NAVBAR_HEIGHT - 20
+	},
 	bottomBar: {
 		backgroundColor: colors.concrete,
 		position: 'absolute',
@@ -333,8 +336,6 @@ export class Browser extends Component {
 		this.state = {
 			appState: 'active',
 			approvedOrigin: false,
-			canGoBack: false,
-			canGoForward: false,
 			currentEnsName: null,
 			currentPageTitle: '',
 			currentPageUrl: '',
@@ -357,7 +358,9 @@ export class Browser extends Component {
 			url,
 			scrollAnim,
 			offsetAnim,
-			clampedScroll
+			clampedScroll,
+			contentHeight: 0,
+			forwardEnabled: false
 		};
 	}
 
@@ -367,7 +370,6 @@ export class Browser extends Component {
 	prevScrollOffset = 0;
 	isFirstWebsite = true;
 	forwardHistoryStack = [];
-	backwardHistoryStack = [];
 	approvalRequest;
 
 	clampedScrollValue = 0;
@@ -433,16 +435,28 @@ export class Browser extends Component {
 			function __mm__updateUrl(){
 				const siteName = document.querySelector('head > meta[property="og:site_name"]');
 				const title = siteName || document.querySelector('head > meta[name="title"]') || document.title;
+				const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
+
 				window.postMessageToNative(
 					{
 						type: 'NAV_CHANGE',
 						payload: {
 							url: location.href,
 							title: title,
-							state: __mmHistory.state
 						}
 					}
 				);
+
+				setTimeout(() => {
+					const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
+					window.postMessageToNative(
+					{
+						type: 'GET_HEIGHT',
+						payload: {
+							height: height
+						}
+					})
+				}, 500);
 			}
 
 			__mmHistory.pushState = function(state) {
@@ -513,7 +527,6 @@ export class Browser extends Component {
 			const silent = navigation.getParam('silent', false);
 			if (url && !silent) {
 				await this.go(url);
-				this.initialUrl = url;
 				this.setState({ loading: false });
 			}
 		}
@@ -687,11 +700,12 @@ export class Browser extends Component {
 
 	goBack = () => {
 		this.toggleOptionsIfNeeded();
-		if (this.state.canGoBack) {
+		if (this.canGoBack()) {
 			const { current } = this.webview;
-			this.backwardHistoryStack.pop();
-			this.forwardHistoryStack.push(this.state.url);
 			current && current.goBack();
+			setTimeout(() => {
+				this.setState({ forwardEnabled: true });
+			}, 100);
 		}
 	};
 
@@ -701,11 +715,12 @@ export class Browser extends Component {
 	};
 
 	goForward = () => {
-		this.toggleOptionsIfNeeded();
-		const { current } = this.webview;
-		current && current.goForward();
-		this.backwardHistoryStack.push(this.state.url);
-		this.forwardHistoryStack.pop();
+		if (this.canGoForward()) {
+			this.toggleOptionsIfNeeded();
+			const { current } = this.webview;
+			this.setState({ forwardEnabled: false });
+			current && current.goForward();
+		}
 	};
 
 	reload = () => {
@@ -773,10 +788,22 @@ export class Browser extends Component {
 				return;
 			}
 			switch (data.type) {
-				case 'NAV_CHANGE':
-					this.setState({ inputValue: data.payload.url, currentPageTitle: data.payload.title });
+				case 'GET_HEIGHT':
+					this.setState({ contentHeight: data.payload.height });
+					// Reset the navbar every time we change the page
+					if (Platform.OS === 'ios') {
+						setTimeout(() => {
+							this.state.scrollAnim.setValue(0);
+							this.state.offsetAnim.setValue(0);
+						}, 100);
+					}
+					break;
+				case 'NAV_CHANGE': {
+					const { url, title } = data.payload;
+					this.setState({ inputValue: url, currentPageTitle: title, forwardEnabled: false });
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
 					break;
+				}
 				case 'INPAGE_REQUEST':
 					this.backgroundBridge.onMessage(data);
 					break;
@@ -795,10 +822,14 @@ export class Browser extends Component {
 		}
 	};
 
-	onPageChange = ({ canGoBack, canGoForward, url }) => {
-		this.backwardHistoryStack.push(url);
+	onPageChange = ({ url }) => {
+		// Reset the navbar every time we change the page
+		if (Platform.OS === 'ios') {
+			this.state.offsetAnim.setValue(0);
+		}
+
 		this.forwardHistoryStack = [];
-		const data = { canGoBack, canGoForward };
+		const data = {};
 		const urlObj = new URL(url);
 
 		data.fullHostname = urlObj.hostname;
@@ -822,7 +853,7 @@ export class Browser extends Component {
 			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 		}
 
-		this.setState({ canGoBack, canGoForward, fullHostname, inputValue, hostname });
+		this.setState({ fullHostname, inputValue, hostname });
 	};
 
 	formatHostname(hostname) {
@@ -856,14 +887,17 @@ export class Browser extends Component {
 
 		// Wait for the title, then store the visit
 		setTimeout(() => {
-			// Check if it's already in the
 			this.props.addToBrowserHistory({
 				name: this.state.currentPageTitle,
 				url: this.state.inputValue
 			});
+
+			if (!this.initialUrl) {
+				this.initialUrl = this.state.inputValue;
+			}
 		}, 1000);
 
-		// We need to get the title of the page first
+		// We need to get the title of the page and the height
 		const { current } = this.webview;
 		const js = `
 			(function () {
@@ -877,13 +911,22 @@ export class Browser extends Component {
 					{
 						type: 'GET_TITLE_FOR_BOOKMARK',
 						payload: {
-							__mmID: 1,
 							title: title ? title.content : document.title,
 							url: location.href,
 							icon: icon && icon.href
 						}
 					}
 				)
+				setTimeout(() => {
+					const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
+					window.postMessageToNative(
+					{
+						type: 'GET_HEIGHT',
+						payload: {
+							height: height
+						}
+					})
+				}, 500);
 			})();
 		`;
 		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
@@ -908,13 +951,13 @@ export class Browser extends Component {
 								Platform.OS === 'android' ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
 							]}
 						>
-							{Platform.OS === 'android' && this.state.canGoBack ? (
+							{Platform.OS === 'android' && this.canGoBack() ? (
 								<Button onPress={this.goBack} style={styles.option}>
 									<Icon name="arrow-left" size={15} style={styles.optionIcon} />
 									<Text style={styles.optionText}>{strings('browser.go_back')}</Text>
 								</Button>
 							) : null}
-							{Platform.OS === 'android' && this.state.canGoForward ? (
+							{Platform.OS === 'android' && this.canGoForward() ? (
 								<Button onPress={this.goForward} style={styles.option}>
 									<Icon name="arrow-right" size={15} style={styles.optionIcon} />
 									<Text style={styles.optionText}>{strings('browser.go_forward')}</Text>
@@ -961,13 +1004,19 @@ export class Browser extends Component {
 		if (e.contentSize.height < Dimensions.get('window').height) {
 			return;
 		}
+
 		if (this.state.progress < 1) {
 			return;
 		}
 
 		const newOffset = e.contentOffset.y;
+
 		// Avoid wrong position at the beginning
-		if (this.state.scrollAnim._value === 0 && newOffset > BOTTOM_NAVBAR_HEIGHT) {
+		if ((this.state.scrollAnim._value === 0 && newOffset > BOTTOM_NAVBAR_HEIGHT) || newOffset <= 0) {
+			return;
+		}
+
+		if (newOffset > this.state.contentHeight - BOTTOM_NAVBAR_HEIGHT) {
 			return;
 		}
 
@@ -992,12 +1041,23 @@ export class Browser extends Component {
 				? this.offsetValue + BOTTOM_NAVBAR_HEIGHT
 				: this.offsetValue - BOTTOM_NAVBAR_HEIGHT;
 
+		this.animateBottomNavbar(toValue);
+	};
+
+	animateBottomNavbar(toValue) {
 		Animated.timing(this.state.offsetAnim, {
 			toValue,
 			duration: 300,
 			useNativeDriver: true
 		}).start();
-	};
+	}
+
+	isBottomNavbarStatic() {
+		if (Platform.OS === 'ios') {
+			return this.state.contentHeight < Dimensions.get('window').height;
+		}
+		return false;
+	}
 
 	renderBottomBar = (canGoBack, canGoForward) => {
 		const { clampedScroll } = this.state;
@@ -1223,7 +1283,7 @@ export class Browser extends Component {
 	};
 
 	goBackToSafety = () => {
-		if (this.state.canGoBack) {
+		if (this.canGoBack()) {
 			this.mounted && this.setState({ showPhishingModal: false });
 		} else {
 			this.close();
@@ -1267,9 +1327,14 @@ export class Browser extends Component {
 		this.backgroundBridge.disableAccounts();
 	};
 
-	render() {
-		const { canGoBack, canGoForward, entryScriptWeb3, url } = this.state;
+	canGoBack = () => this.initialUrl && this.state.inputValue !== this.initialUrl;
 
+	canGoForward = () => this.state.forwardEnabled;
+
+	render() {
+		const { entryScriptWeb3, url } = this.state;
+		const canGoBack = this.canGoBack();
+		const canGoForward = this.canGoForward();
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.progressBarWrapper}>
@@ -1286,7 +1351,7 @@ export class Browser extends Component {
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}
 						source={{ uri: url }}
-						style={styles.webview}
+						style={[styles.webview, this.isBottomNavbarStatic() ? styles.staticBottomNavbar : null]}
 						onScroll={this.handleScroll}
 						onMomentumScrollBegin={this.onMomentumScrollBegin}
 						scrollEventThrottle={1}
