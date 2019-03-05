@@ -104,12 +104,14 @@ export default class AssetActionButtons extends Component {
 					<Text style={styles.buttonText}>{middleText}</Text>
 				</TouchableOpacity>
 
-				<TouchableOpacity type={'normal'} onPress={onRightPress} style={styles.button}>
-					<View style={styles.buttonIconWrapper}>
-						<Ionicon name={'md-information'} size={30} color={colors.white} style={styles.buttonIcon} />
-					</View>
-					<Text style={styles.buttonText}>{rightText}</Text>
-				</TouchableOpacity>
+				{rightText && (
+					<TouchableOpacity type={'normal'} onPress={onRightPress} style={styles.button}>
+						<View style={styles.buttonIconWrapper}>
+							<Ionicon name={'md-information'} size={30} color={colors.white} style={styles.buttonIcon} />
+						</View>
+						<Text style={styles.buttonText}>{rightText}</Text>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	}

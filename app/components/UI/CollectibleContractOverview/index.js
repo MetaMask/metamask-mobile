@@ -6,6 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import CollectibleImage from '../CollectibleImage';
 import AssetActionButtons from '../AssetActionButtons';
 import { setCollectibleContractTransaction } from '../../../actions/transaction';
+import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -108,9 +109,9 @@ class CollectibleContractOverview extends Component {
 					leftText={strings('asset_overview.send_button')}
 					middleText={strings('asset_overview.add_collectible_button')}
 					rightText={strings('asset_overview.info')}
-					onRightPress={this.onAdd}
-					onMiddlePress={this.onAdd}
 					onLeftPress={this.onSend}
+					onMiddlePress={this.onAdd}
+					onRightPress={this.onInfo}
 				/>
 			</View>
 		);
@@ -122,7 +123,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible))
+	setCollectibleContractTransaction: collectible => dispatch(setCollectibleContractTransaction(collectible)),
+	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal)
 });
 
 export default connect(

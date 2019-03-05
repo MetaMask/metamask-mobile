@@ -129,6 +129,61 @@ exports[`AssetActionButtons should render correctly 1`] = `
           "textAlign": "center",
         }
       }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    style={
+      Object {
+        "alignContent": "center",
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+    type="normal"
+  >
+    <View
+      style={
+        Object {
+          "alignContent": "center",
+          "backgroundColor": "#008edf",
+          "borderRadius": 18,
+          "color": "#FFFFFF",
+          "height": 36,
+          "justifyContent": "center",
+          "paddingLeft": 1,
+          "paddingTop": 4,
+          "width": 36,
+        }
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#FFFFFF"
+        name="md-information"
+        size={30}
+        style={
+          Object {
+            "alignContent": "center",
+            "color": "#FFFFFF",
+            "justifyContent": "center",
+            "textAlign": "center",
+          }
+        }
+      />
+    </View>
+    <Text
+      style={
+        Object {
+          "color": "#008edf",
+          "fontFamily": "Roboto",
+          "fontSize": 11,
+          "fontWeight": "400",
+          "marginTop": 12,
+          "textAlign": "center",
+        }
+      }
     >
       rightText
     </Text>
