@@ -13,9 +13,8 @@ const styles = StyleSheet.create({
 		overflow: 'hidden'
 	},
 	fullWrapper: {
-		width: 150,
-		height: 150,
-		overflow: 'hidden',
+		width: 260,
+		height: 260,
 		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -25,8 +24,8 @@ const styles = StyleSheet.create({
 		height: 50
 	},
 	fullImage: {
-		height: 150,
-		width: 150
+		height: 260,
+		width: 260
 	}
 });
 
