@@ -4,7 +4,7 @@ import { StyleSheet, ScrollView } from 'react-native';
 
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { colors } from '../../../styles/common';
-import { getSettingsNavbarOptions } from '../../UI/Navbar';
+import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -19,7 +19,8 @@ const styles = StyleSheet.create({
  * Main view for app configurations
  */
 export default class Settings extends Component {
-	static navigationOptions = ({ navigation }) => getSettingsNavbarOptions(navigation, strings('app_settings.title'));
+	static navigationOptions = ({ navigation }) =>
+		getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation);
 
 	static propTypes = {
 		/**

@@ -8,7 +8,7 @@ import ActionModal from '../../UI/ActionModal';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles } from '../../../styles/common';
-import { getSettingsNavbarOptions } from '../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setShowHexData } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	resetConfirm: {
 		marginTop: 18
 	},
-	switch: {
+	switchElement: {
 		marginTop: 18
 	},
 	warningText: {
@@ -116,8 +116,7 @@ class Settings extends Component {
 		setShowHexData: PropTypes.func
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getSettingsNavbarOptions(navigation, strings('app_settings.advanced_title'), true);
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.advanced_title'));
 
 	state = {
 		resetModalVisible: false,
@@ -133,7 +132,7 @@ class Settings extends Component {
 		const { TransactionController } = Engine.context;
 		const { navigation } = this.props;
 		TransactionController.wipeTransactions(true);
-		navigation.navigate('Wallet');
+		navigation.navigate('WalletView');
 	};
 
 	cancelResetAccount = () => {
@@ -147,7 +146,7 @@ class Settings extends Component {
 		if (this.validateRpcUrl()) {
 			PreferencesController.addToFrequentRpcList(rpcUrl);
 			NetworkController.setRpcTarget(rpcUrl);
-			navigation.navigate('Wallet');
+			navigation.navigate('WalletView');
 		}
 	};
 
@@ -240,7 +239,7 @@ class Settings extends Component {
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('app_settings.show_hex_data')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>
-						<View style={styles.switch}>
+						<View style={styles.switchElement}>
 							<Switch
 								value={showHexData}
 								onValueChange={this.toggleShowHexData}

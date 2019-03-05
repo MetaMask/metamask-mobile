@@ -14,7 +14,7 @@ import DeviceInfo from 'react-native-device-info';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import { getSettingsNavbarOptions } from '../Navbar';
+import { getNavigationOptionsTitle } from '../Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -73,7 +73,7 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
  * View that contains app information
  */
 export default class AppInformation extends Component {
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('app_settings.title'), navigation);
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.info_title'));
 
 	static propTypes = {
 		/**

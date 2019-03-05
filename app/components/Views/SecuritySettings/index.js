@@ -10,7 +10,7 @@ import StyledButton from '../../UI/StyledButton';
 import { clearHistory } from '../../../actions/browser';
 import { clearHosts, setPrivacyMode } from '../../../actions/privacy';
 import { colors, fontStyles } from '../../../styles/common';
-import { getSettingsNavbarOptions } from '../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 		marginTop: 12
 	},
-	switch: {
+	switchElement: {
 		marginTop: 18
 	},
 	setting: {
@@ -123,8 +123,7 @@ class Settings extends Component {
 		lockTime: PropTypes.number
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getSettingsNavbarOptions(navigation, strings('app_settings.security_title'), true);
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.security_title'));
 
 	state = {
 		approvalModalVisible: false,
@@ -255,7 +254,7 @@ class Settings extends Component {
 					<View style={[styles.setting, styles.firstSetting]}>
 						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
-						<View style={styles.switch}>
+						<View style={styles.switchElement}>
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}

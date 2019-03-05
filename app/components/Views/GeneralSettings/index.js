@@ -8,7 +8,7 @@ import I18n, { strings, getLanguages, setLocale } from '../../../../locales/i18n
 import SelectComponent from '../../UI/SelectComponent';
 import infuraCurrencies from '../../../util/infura-conversion.json';
 import { colors, fontStyles } from '../../../styles/common';
-import { getSettingsNavbarOptions } from '../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setSearchEngine } from '../../../actions/settings';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
@@ -80,8 +80,7 @@ class Settings extends Component {
 		searchEngine: PropTypes.string
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getSettingsNavbarOptions(navigation, strings('app_settings.general_title'), true);
+	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.general_title'));
 
 	state = {
 		currentLanguage: I18n.locale,
