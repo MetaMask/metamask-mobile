@@ -69,7 +69,8 @@ export default class SyncWithExtensionSuccess extends Component {
 		Animated.spring(this.iconSpringVal, {
 			toValue: 1,
 			friction: 2,
-			useNativeDriver: true
+			useNativeDriver: true,
+			isInteraction: false
 		}).start();
 	}
 

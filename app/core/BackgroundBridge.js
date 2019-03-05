@@ -8,7 +8,7 @@ export class BackgroundBridge {
 	_accounts;
 
 	_onInpageRequest(payload) {
-		const { current } = this._webview;
+		const current = this._webview.current;
 		const { provider } = this._engine.context.NetworkController;
 		const override = this._rpcOverrides && this._rpcOverrides[payload.method];
 		const done = (error, response) => {
@@ -66,7 +66,7 @@ export class BackgroundBridge {
 	 * Sends updated state to the InpageBridge provider
 	 */
 	sendStateUpdate = () => {
-		const { current } = this._webview;
+		const current = this._webview.current;
 		const { network, selectedAddress } = this._engine.datamodel.flatState;
 		const payload = { network };
 		if (this._accounts) {

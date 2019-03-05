@@ -193,6 +193,8 @@ class Wallet extends Component {
 				this.txsPending = newPendingTxs;
 				this.setState({ transactionsUpdated: true });
 			}
+		} else if (!this.state.transactionsUpdated) {
+			this.setState({ transactionsUpdated: true });
 		}
 	}
 

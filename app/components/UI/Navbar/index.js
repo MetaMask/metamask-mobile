@@ -1,9 +1,9 @@
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
-import NavbarLeftButton from '../NavbarLeftButton';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -66,6 +66,16 @@ const styles = StyleSheet.create({
 	titleWrapper: {
 		alignItems: 'center',
 		flex: 1
+	},
+	browserRigthButtonAndroid: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	browserRigthButton: {
+		flex: 1
+	},
+	browserMoreIconAndroid: {
+		paddingTop: 10
 	}
 });
 
@@ -82,8 +92,16 @@ const metamask_name = require('../../../images/metamask-name.png'); // eslint-di
 export default function getNavbarOptions(title, navigation) {
 	return {
 		headerTitle: <NavbarTitle title={title} />,
-		headerLeft: <NavbarLeftButton onPress={navigation.openDrawer} />,
-		headerRight: <View />
+		headerLeft: (
+			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight: <AccountRightButton />
 	};
 }
 
@@ -167,7 +185,22 @@ export function getBrowserViewNavbarOptions(navigation) {
 			</TouchableOpacity>
 		),
 		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
-		headerRight: <AccountRightButton />
+		headerRight: (
+			<View style={Platform.OS === 'android' ? styles.browserRigthButtonAndroid : styles.browserRigthButton}>
+				<AccountRightButton />
+				{Platform.OS === 'android' ? (
+					<TouchableOpacity
+						// eslint-disable-next-line
+						onPress={() => {
+							navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+						}}
+						style={styles.browserMoreIconAndroid}
+					>
+						<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
+					</TouchableOpacity>
+				) : null}
+			</View>
+		)
 	};
 }
 
@@ -246,9 +279,9 @@ export function getWalletNavbarOptions(title, navigation) {
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
-			<TouchableOpacity onPress={navigation.openDrawer} style={styles.backButton}>
+			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
 				<IonicIcon
-					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
 					style={styles.backIcon}
 				/>
@@ -326,12 +359,23 @@ export function getWebviewNavbar(navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerLeft: <View />,
-		headerRight: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-				<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
-			</TouchableOpacity>
-		)
+		headerLeft:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				<View />
+			),
+		headerRight:
+			Platform.OS === 'ios' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+				</TouchableOpacity>
+			) : (
+				<View />
+			)
 	};
 }
