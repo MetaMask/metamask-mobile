@@ -15,11 +15,11 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import FeatherIcon from 'react-native-vector-icons/Feather';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import FoundationIcon from 'react-native-vector-icons/Foundation';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import Networks, { hasBlockExplorer } from '../../../util/networks';
+import { hasBlockExplorer } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -30,7 +30,7 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { toggleNetworkModal } from '../../../actions/modals';
+import { toggleNetworkModal, toggleAccountsModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { renderShortAddress } from '../../../util/address';
@@ -46,56 +46,36 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
-		height: 40,
+		height: 50,
 		flexDirection: 'column',
-		paddingBottom: 10
+		paddingBottom: 0
 	},
-	network: {
-		paddingVertical: Platform.OS === 'android' ? 5 : 7,
+	settings: {
 		paddingHorizontal: 12,
-		flexDirection: 'row',
 		alignSelf: 'flex-end',
-		marginRight: 10,
-		marginTop: Platform.OS === 'android' ? -3 : -5,
-		borderRadius: 15,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.fontSecondary
+		alignItems: 'center',
+		marginRight: 3,
+		marginTop: Platform.OS === 'android' ? -3 : -10
 	},
-	networkName: {
-		textAlign: 'right',
-		fontSize: 10,
-		color: colors.fontSecondary,
-		...fontStyles.normal
-	},
-	networkIcon: {
-		width: 5,
-		height: 5,
-		borderRadius: 100,
-		marginRight: 5,
-		marginTop: Platform.OS === 'android' ? 5 : 3
-	},
-	caretDownNetwork: {
-		marginLeft: 7,
-		marginTop: 0,
-		fontSize: 12,
-		color: colors.fontSecondary
+	settingsIcon: {
+		marginBottom: 12
 	},
 	metamaskLogo: {
 		flexDirection: 'row',
 		flex: 1,
-		marginTop: Platform.OS === 'android' ? 0 : 10,
-		marginLeft: 17,
+		marginTop: Platform.OS === 'android' ? 0 : 12,
+		marginLeft: 15,
 		paddingTop: Platform.OS === 'android' ? 10 : 0
 	},
 	metamaskFox: {
-		height: 22,
-		width: 22,
-		marginRight: 3
+		height: 27,
+		width: 27,
+		marginRight: 15
 	},
 	metamaskName: {
-		marginTop: 5,
-		width: 78,
-		height: 10
+		marginTop: 4,
+		width: 90,
+		height: 18
 	},
 	account: {
 		backgroundColor: colors.white
@@ -149,13 +129,13 @@ const styles = StyleSheet.create({
 	},
 	buttons: {
 		flexDirection: 'row',
-		padding: 17
+		padding: 15
 	},
 	button: {
 		flex: 1,
 		flexDirection: 'row',
 		borderRadius: 30,
-		borderWidth: 1
+		borderWidth: 1.5
 	},
 	leftButton: {
 		marginRight: 5
@@ -165,20 +145,18 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		marginLeft: Platform.OS === 'ios' ? 8 : 28,
-		marginTop: Platform.OS === 'ios' ? 0 : -17,
+		marginTop: Platform.OS === 'ios' ? 0 : -23,
+		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
 		fontSize: 15,
 		color: colors.primary,
 		...fontStyles.normal
 	},
 	buttonContent: {
-		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		justifyContent: 'center'
 	},
 	buttonIcon: {
-		width: 15,
-		height: 15,
 		marginTop: 0
 	},
 	menu: {
@@ -187,7 +165,7 @@ const styles = StyleSheet.create({
 	menuSection: {
 		borderTopWidth: 1,
 		borderColor: colors.borderColor,
-		paddingVertical: 12
+		paddingVertical: 5
 	},
 	menuItem: {
 		flex: 1,
@@ -196,7 +174,7 @@ const styles = StyleSheet.create({
 	},
 	menuItemName: {
 		flex: 1,
-		paddingLeft: 10,
+		paddingLeft: 15,
 		paddingTop: 2,
 		fontSize: 16,
 		color: colors.gray,
@@ -212,11 +190,6 @@ const styles = StyleSheet.create({
 	bottomModal: {
 		justifyContent: 'flex-end',
 		margin: 0
-	},
-	otherNetworkIcon: {
-		backgroundColor: colors.transparent,
-		borderColor: colors.borderColor,
-		borderWidth: 1
 	},
 	itemLabel: {
 		marginRight: 15,
@@ -254,7 +227,7 @@ const styles = StyleSheet.create({
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
-	assets: require('../../../images/tokens-icon.png')
+	assets: require('../../../images/wallet-icon.png')
 };
 const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
 
@@ -299,7 +272,11 @@ class DrawerView extends Component {
 		/**
 		 * Action that toggles the network modal
 		 */
-		toggleNetworkModal: PropTypes.func.isRequired,
+		toggleNetworkModal: PropTypes.func,
+		/**
+		 * Action that toggles the accounts modal
+		 */
+		toggleAccountsModal: PropTypes.func,
 		/**
 		 * Action that shows the global alert
 		 */
@@ -308,6 +285,10 @@ class DrawerView extends Component {
 		 * Boolean that determines the status of the networks modal
 		 */
 		networkModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Boolean that determines the status of the networks modal
+		 */
+		accountsModalVisible: PropTypes.bool.isRequired,
 		/**
 		 * Action that sets a tokens type transaction
 		 */
@@ -319,7 +300,6 @@ class DrawerView extends Component {
 	};
 
 	state = {
-		accountsModalVisible: false,
 		submitFeedback: false
 	};
 
@@ -350,16 +330,12 @@ class DrawerView extends Component {
 		}, 1000);
 	}
 
-	onNetworkPress = () => {
-		this.props.toggleNetworkModal();
-	};
-
 	onAccountPress = () => {
-		this.setState({ accountsModalVisible: true });
+		this.props.toggleAccountsModal();
 	};
 
 	hideAccountsModal = () => {
-		this.setState({ accountsModalVisible: false });
+		this.props.toggleAccountsModal();
 	};
 
 	onNetworksModalClose = async manualClose => {
@@ -379,7 +355,7 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
-	onDeposit = () => {
+	onReceive = () => {
 		Alert.alert(strings('drawer.coming_soon'));
 	};
 
@@ -406,8 +382,8 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
-	showAssets = () => {
-		this.goToWalletTab(0);
+	showWallet = () => {
+		this.props.navigation.navigate('WalletTabHome');
 	};
 
 	copyAddressToClipboard = async () => {
@@ -451,7 +427,7 @@ class DrawerView extends Component {
 	viewInEtherscan = () => {
 		const { selectedAddress, network } = this.props;
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
-		this.goToBrowserUrl(url);
+		this.goToBrowserUrl(url, 'etherscan.io');
 	};
 
 	submitFeedback = () => {
@@ -478,19 +454,20 @@ class DrawerView extends Component {
 		const systemName = DeviceInfo.getSystemName();
 		const systemVersion = systemName === 'Android' ? DeviceInfo.getAPILevel() : DeviceInfo.getSystemVersion();
 		this.goToBrowserUrl(
-			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`
+			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`,
+			strings('drawer.feedback')
 		);
 		this.setState({ submitFeedback: false });
 	};
 
 	showHelp = () => {
-		this.goToBrowserUrl('https://support.metamask.io');
+		this.goToBrowserUrl('https://support.metamask.io', strings('drawer.metamask_support'));
 	};
 
-	goToBrowserUrl(url) {
-		this.props.navigation.navigate('BrowserTabHome');
-		this.props.navigation.navigate('BrowserView', {
-			url
+	goToBrowserUrl(url, title) {
+		this.props.navigation.navigate('Webview', {
+			url,
+			title
 		});
 		this.hideDrawer();
 	}
@@ -538,15 +515,15 @@ class DrawerView extends Component {
 	getSections = () => [
 		[
 			{
-				name: strings('drawer.assets'),
-				icon: this.getImageIcon('assets'),
-				action: this.showAssets,
-				label: this.getLabelForAssets()
-			},
-			{
-				name: strings('drawer.dapp_browser'),
+				name: strings('drawer.browser'),
 				icon: this.getIcon('globe'),
 				action: this.goToBrowser
+			},
+			{
+				name: strings('drawer.wallet'),
+				icon: this.getImageIcon('assets'),
+				action: this.showWallet,
+				label: this.getLabelForAssets()
 			}
 		],
 		[
@@ -562,10 +539,6 @@ class DrawerView extends Component {
 			}
 		],
 		[
-			{
-				name: strings('drawer.settings'),
-				action: this.showSettings
-			},
 			{
 				name: strings('drawer.help'),
 				action: this.showHelp
@@ -585,7 +558,6 @@ class DrawerView extends Component {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
-		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
 		if (fiatBalance !== this.previousBalance) {
 			this.previousBalance = this.currentBalance;
@@ -601,17 +573,8 @@ class DrawerView extends Component {
 							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
 							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 						</View>
-						<TouchableOpacity style={styles.network} onPress={this.onNetworkPress}>
-							<View
-								style={[
-									styles.networkIcon,
-									color ? { backgroundColor: color } : styles.otherNetworkIcon
-								]}
-							/>
-							<Text style={styles.networkName} testID={'navbar-title-network'}>
-								{name}
-							</Text>
-							<Icon name="caret-down" size={10} style={styles.caretDownNetwork} />
+						<TouchableOpacity style={styles.settings} onPress={this.showSettings}>
+							<FeatherIcon name="settings" size={22} style={styles.settingsIcon} />
 						</TouchableOpacity>
 					</View>
 					<View style={styles.account}>
@@ -655,27 +618,32 @@ class DrawerView extends Component {
 					</View>
 					<View style={styles.buttons}>
 						<StyledButton
-							type={'normal'}
+							type={'rounded-normal'}
 							onPress={this.onSend}
 							containerStyle={[styles.button, styles.leftButton]}
 							style={styles.buttonContent}
 						>
-							<MaterialIcon name={'send'} size={15} color={colors.primary} style={styles.buttonIcon} />
-							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
-						</StyledButton>
-						<StyledButton
-							type={'normal'}
-							onPress={this.onDeposit}
-							containerStyle={[styles.button, styles.rightButton]}
-							style={styles.buttonContent}
-						>
-							<FoundationIcon
-								name={'download'}
-								size={20}
+							<MaterialIcon
+								name={'arrow-top-right'}
+								size={22}
 								color={colors.primary}
 								style={styles.buttonIcon}
 							/>
-							<Text style={styles.buttonText}>{strings('drawer.deposit_button')}</Text>
+							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
+						</StyledButton>
+						<StyledButton
+							type={'rounded-normal'}
+							onPress={this.onReceive}
+							containerStyle={[styles.button, styles.rightButton]}
+							style={styles.buttonContent}
+						>
+							<MaterialIcon
+								name={'arrow-collapse-down'}
+								size={22}
+								color={colors.primary}
+								style={styles.buttonIcon}
+							/>
+							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>
@@ -718,7 +686,7 @@ class DrawerView extends Component {
 					<NetworkList onClose={this.onNetworksModalClose} />
 				</Modal>
 				<Modal
-					isVisible={this.state.accountsModalVisible}
+					isVisible={this.props.accountsModalVisible}
 					style={styles.bottomModal}
 					onBackdropPress={this.hideAccountsModal}
 					onSwipeComplete={this.hideAccountsModal}
@@ -759,12 +727,14 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,
+	accountsModalVisible: state.modals.accountsModalVisible,
 	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
 	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
+	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	showAlert: config => dispatch(showAlert(config)),
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });

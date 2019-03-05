@@ -73,7 +73,7 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
  * View that contains app information
  */
 export default class AppInformation extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('app_settings.title'));
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('app_settings.title'), navigation);
 
 	static propTypes = {
 		/**
@@ -82,38 +82,38 @@ export default class AppInformation extends Component {
 		navigation: PropTypes.object
 	};
 
-	goTo = url => {
-		this.props.navigation.pop();
+	goTo = (url, title) => {
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('BrowserView', {
-				url
+			this.props.navigation.navigate('Webview', {
+				url,
+				title
 			});
 		});
 	};
 
 	onPrivacyPolicy = () => {
 		const url = 'https://metamask.io/privacy.html';
-		this.goTo(url);
+		this.goTo(url, strings('app_information.privacy_policy'));
 	};
 
 	onTermsOfUse = () => {
 		const url = 'https://metamask.io/terms.html';
-		this.goTo(url);
+		this.goTo(url, strings('app_information.terms_of_use'));
 	};
 
 	onAttributions = () => {
 		const url = 'https://metamask.io/attributions.html';
-		this.goTo(url);
+		this.goTo(url, strings('app_information.attributions'));
 	};
 
 	onSupportCenter = () => {
 		const url = 'https://metamask.zendesk.com/hc/en-us';
-		this.goTo(url);
+		this.goTo(url, strings('drawer.metamask_support'));
 	};
 
 	onWebSite = () => {
 		const url = 'https://metamask.io/';
-		this.goTo(url);
+		this.goTo(url, 'metamask.io');
 	};
 
 	onEmailUs = () => {

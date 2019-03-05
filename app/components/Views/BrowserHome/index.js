@@ -4,19 +4,18 @@ import { connect } from 'react-redux';
 import getNavbarOptions from '../../UI/Navbar';
 import HomePage from '../../UI/HomePage';
 import onUrlSubmit from '../../../util/browser';
-import Feedback from '../../../core/Feedback';
-import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
 // eslint-disable-next-line import/no-unresolved
 import LockManager from '../../../core/LockManager';
+import { strings } from '../../../../locales/i18n';
 
 /**
  * Complete Web browser component with URL entry and history management
  */
 class BrowserHome extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('ÐApp Browser', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('browser.title'), navigation);
 
 	static defaultProps = {
 		defaultProtocol: 'https://'
@@ -59,11 +58,6 @@ class BrowserHome extends Component {
 			Branch.subscribe(this.handleDeeplinks);
 		}
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-		this.feedback = new Feedback({
-			action: () => {
-				this.props.navigation.push('BrowserView', { url: AppConstants.FEEDBACK_URL });
-			}
-		});
 	}
 
 	componentDidUpdate(prevProps) {
@@ -74,7 +68,6 @@ class BrowserHome extends Component {
 
 	componentWillUnmount() {
 		this.mounted = false;
-		this.feedback.stopListening();
 		this.lockManager.stopListening();
 	}
 

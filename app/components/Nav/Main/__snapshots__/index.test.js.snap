@@ -29,11 +29,21 @@ exports[`Main should render correctly 1`] = `
       "reset": [Function],
       "router": Object {
         "childRouters": Object {
-          "BrowserView": Object {
+          "AddBookmarkView": Object {
             "childRouters": Object {
               "AddBookmark": null,
-              "ApprovalView": null,
-              "Browser": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
+          "ApprovalView": Object {
+            "childRouters": Object {
+              "Approval": null,
             },
             "getActionCreators": [Function],
             "getActionForPathAndParams": [Function],
@@ -48,6 +58,7 @@ exports[`Main should render correctly 1`] = `
               "BrowserTabHome": Object {
                 "childRouters": Object {
                   "BrowserHome": null,
+                  "BrowserView": null,
                 },
                 "getActionCreators": [Function],
                 "getActionForPathAndParams": [Function],
@@ -146,6 +157,18 @@ exports[`Main should render correctly 1`] = `
             "getStateForAction": [Function],
           },
           "TransactionSubmitted": null,
+          "Webview": Object {
+            "childRouters": Object {
+              "SimpleWebview": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
         },
         "getActionCreators": [Function],
         "getActionForPathAndParams": [Function],
@@ -228,11 +251,21 @@ exports[`Main should render correctly 1`] = `
         "reset": [Function],
         "router": Object {
           "childRouters": Object {
-            "BrowserView": Object {
+            "AddBookmarkView": Object {
               "childRouters": Object {
                 "AddBookmark": null,
-                "ApprovalView": null,
-                "Browser": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
+            "ApprovalView": Object {
+              "childRouters": Object {
+                "Approval": null,
               },
               "getActionCreators": [Function],
               "getActionForPathAndParams": [Function],
@@ -247,6 +280,7 @@ exports[`Main should render correctly 1`] = `
                 "BrowserTabHome": Object {
                   "childRouters": Object {
                     "BrowserHome": null,
+                    "BrowserView": null,
                   },
                   "getActionCreators": [Function],
                   "getActionForPathAndParams": [Function],
@@ -345,6 +379,18 @@ exports[`Main should render correctly 1`] = `
               "getStateForAction": [Function],
             },
             "TransactionSubmitted": null,
+            "Webview": Object {
+              "childRouters": Object {
+                "SimpleWebview": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
           },
           "getActionCreators": [Function],
           "getActionForPathAndParams": [Function],

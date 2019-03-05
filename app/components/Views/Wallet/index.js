@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -122,9 +122,9 @@ class Wallet extends Component {
 	}
 
 	componentDidMount() {
-		setTimeout(() => {
+		InteractionManager.runAfterInteractions(() => {
 			this.init();
-		}, 100);
+		});
 	}
 
 	componentDidUpdate(prevProps) {
@@ -193,6 +193,8 @@ class Wallet extends Component {
 				this.txsPending = newPendingTxs;
 				this.setState({ transactionsUpdated: true });
 			}
+		} else if (!this.state.transactionsUpdated) {
+			this.setState({ transactionsUpdated: true });
 		}
 	}
 

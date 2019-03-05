@@ -64,9 +64,17 @@ export default class AssetActionButtons extends Component {
 		 */
 		onLeftPress: PropTypes.func,
 		/**
+		 * Callback triggered on middle button press
+		 */
+		onMiddlePress: PropTypes.func,
+		/**
 		 * Callback triggered on right button press
 		 */
 		onRightPress: PropTypes.func,
+		/**
+		 * String to display on middle button
+		 */
+		middleText: PropTypes.string,
 		/**
 		 * String to display on left button
 		 */
@@ -74,7 +82,7 @@ export default class AssetActionButtons extends Component {
 	};
 
 	render() {
-		const { onLeftPress, onRightPress, leftText, rightText } = this.props;
+		const { onLeftPress, onMiddlePress, onRightPress, leftText, middleText, rightText } = this.props;
 		return (
 			<View style={styles.buttons}>
 				<TouchableOpacity type={'normal'} onPress={onLeftPress} style={styles.button}>
@@ -89,12 +97,21 @@ export default class AssetActionButtons extends Component {
 					<Text style={styles.buttonText}>{leftText}</Text>
 				</TouchableOpacity>
 
-				<TouchableOpacity type={'normal'} onPress={onRightPress} style={styles.button}>
+				<TouchableOpacity type={'normal'} onPress={onMiddlePress} style={styles.button}>
 					<View style={styles.buttonIconWrapper}>
 						<Ionicon name={'ios-add'} size={30} color={colors.white} style={styles.buttonIcon} />
 					</View>
-					<Text style={styles.buttonText}>{rightText}</Text>
+					<Text style={styles.buttonText}>{middleText}</Text>
 				</TouchableOpacity>
+
+				{rightText && (
+					<TouchableOpacity type={'normal'} onPress={onRightPress} style={styles.button}>
+						<View style={styles.buttonIconWrapper}>
+							<Ionicon name={'md-information'} size={30} color={colors.white} style={styles.buttonIcon} />
+						</View>
+						<Text style={styles.buttonText}>{rightText}</Text>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	}

@@ -19,7 +19,6 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { getEtherscanTransactionUrl } from '../../../util/etherscan';
 import { hasBlockExplorer } from '../../../util/networks';
@@ -72,8 +71,6 @@ const styles = StyleSheet.create({
  * Component that provides ability to render transaction submitted view
  */
 class TransactionSubmitted extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('transaction_submitted.title'));
-
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -117,7 +114,8 @@ class TransactionSubmitted extends Component {
 		Animated.spring(this.iconSpringVal, {
 			toValue: 1,
 			friction: 2,
-			useNativeDriver: true
+			useNativeDriver: true,
+			isInteraction: false
 		}).start();
 	}
 
@@ -127,7 +125,8 @@ class TransactionSubmitted extends Component {
 		const url = getEtherscanTransactionUrl(network, hash);
 		InteractionManager.runAfterInteractions(() => {
 			this.props.navigation.push('BrowserView', {
-				url
+				url,
+				title: 'etherscan.io'
 			});
 		});
 	};

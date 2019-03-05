@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
 		flex: 0.9
 	},
 	buttons: {
+		paddingVertical: 15,
 		flex: 0.1,
 		height: 4
 	},

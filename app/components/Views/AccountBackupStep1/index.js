@@ -130,8 +130,9 @@ export default class AccountBackupStep1 extends Component {
 	};
 
 	learnMore = () =>
-		this.props.navigation.navigate('BrowserView', {
-			url: 'https://support.metamask.io'
+		this.props.navigation.navigate('Webview', {
+			url: 'https://support.metamask.io',
+			title: strings('drawer.metamask_support')
 		});
 
 	render() {

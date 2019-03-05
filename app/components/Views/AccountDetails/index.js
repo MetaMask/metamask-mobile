@@ -115,7 +115,8 @@ const styles = StyleSheet.create({
  * View that contains details about the selected Address
  */
 class AccountDetails extends Component {
-	static navigationOptions = () => getNavigationOptionsTitle(strings('account_details.title'));
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('account_details.title'), navigation);
 
 	state = {
 		ready: false,
@@ -172,8 +173,9 @@ class AccountDetails extends Component {
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 		this.props.navigation.pop();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.push('BrowserView', {
-				url
+			this.props.navigation.push('Webview', {
+				url,
+				title: 'etherscan.io'
 			});
 		});
 	};
