@@ -24,6 +24,9 @@ const styles = StyleSheet.create({
 	orangeText: {
 		color: colors.white
 	},
+	infoText: {
+		color: colors.primaryFox
+	},
 	confirm: {
 		backgroundColor: colors.primary
 	},
@@ -65,6 +68,11 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderColor: colors.red
 	},
+	info: {
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.primaryFox
+	},
 	warningText: {
 		color: colors.red
 	},
@@ -75,6 +83,11 @@ const styles = StyleSheet.create({
 	},
 	neutralText: {
 		color: colors.lightGray
+	},
+	danger: {
+		backgroundColor: colors.red,
+		borderColor: colors.red,
+		borderWidth: 2
 	}
 });
 
@@ -113,9 +126,17 @@ function getStyles(type) {
 			fontStyle = styles.warningText;
 			containerStyle = styles.warning;
 			break;
+		case 'info':
+			fontStyle = styles.infoText;
+			containerStyle = styles.info;
+			break;
 		case 'neutral':
 			fontStyle = styles.neutralText;
 			containerStyle = styles.neutral;
+			break;
+		case 'danger':
+			fontStyle = styles.confirmText;
+			containerStyle = styles.danger;
 			break;
 		default:
 			throw new Error('Unknown button type');
