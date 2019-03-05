@@ -136,7 +136,11 @@ exports[`App should render correctly 1`] = `
                   },
                   "SettingsView": Object {
                     "childRouters": Object {
+                      "AdvancedSettings": null,
+                      "CompanySettings": null,
+                      "GeneralSettings": null,
                       "RevealPrivateCredentialView": null,
+                      "SecuritySettings": null,
                       "Settings": null,
                       "SyncWithExtensionView": null,
                     },
@@ -459,7 +463,11 @@ exports[`App should render correctly 1`] = `
                     },
                     "SettingsView": Object {
                       "childRouters": Object {
+                        "AdvancedSettings": null,
+                        "CompanySettings": null,
+                        "GeneralSettings": null,
                         "RevealPrivateCredentialView": null,
+                        "SecuritySettings": null,
                         "Settings": null,
                         "SyncWithExtensionView": null,
                       },

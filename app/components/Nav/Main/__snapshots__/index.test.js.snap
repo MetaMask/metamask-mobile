@@ -144,7 +144,11 @@ exports[`Main should render correctly 1`] = `
           },
           "SettingsView": Object {
             "childRouters": Object {
+              "AdvancedSettings": null,
+              "CompanySettings": null,
+              "GeneralSettings": null,
               "RevealPrivateCredentialView": null,
+              "SecuritySettings": null,
               "Settings": null,
               "SyncWithExtensionView": null,
             },
@@ -366,7 +370,11 @@ exports[`Main should render correctly 1`] = `
             },
             "SettingsView": Object {
               "childRouters": Object {
+                "AdvancedSettings": null,
+                "CompanySettings": null,
+                "GeneralSettings": null,
                 "RevealPrivateCredentialView": null,
+                "SecuritySettings": null,
                 "Settings": null,
                 "SyncWithExtensionView": null,
               },
