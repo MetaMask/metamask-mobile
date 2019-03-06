@@ -204,7 +204,7 @@ class RevealPrivateCredential extends Component {
 		await Clipboard.setString(privateCredential);
 		this.props.showAlert({
 			isVisible: true,
-			autodismiss: 2000,
+			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: { msg: strings(`reveal_credential.${privateCredentialName}_copied`) }
 		});

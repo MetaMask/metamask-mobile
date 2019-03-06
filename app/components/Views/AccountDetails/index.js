@@ -162,7 +162,7 @@ class AccountDetails extends Component {
 		await Clipboard.setString(selectedAddress);
 		this.props.showAlert({
 			isVisible: true,
-			autodismiss: 2000,
+			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: { msg: strings('account_details.account_copied_to_clipboard') }
 		});

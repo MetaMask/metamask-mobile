@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import dappList from '../../../util/featured-dapp-list';
 import FeaturedItem from './FeaturedItem';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, FlatList, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -21,9 +21,7 @@ export default class BrowserFeatured extends Component {
 		goTo: PropTypes.any
 	};
 
-	keyExtractor = item => item.name;
-
-	renderItem = ({ item }) => {
+	renderItem = item => {
 		const { name, description, url, imageUrl } = item;
 		return (
 			<TouchableOpacity
@@ -35,10 +33,6 @@ export default class BrowserFeatured extends Component {
 		);
 	};
 	render() {
-		return (
-			<View style={styles.wrapper}>
-				<FlatList data={dappList} keyExtractor={this.keyExtractor} renderItem={this.renderItem} />
-			</View>
-		);
+		return <View style={styles.wrapper}>{dappList.map(item => this.renderItem(item))}</View>;
 	}
 }

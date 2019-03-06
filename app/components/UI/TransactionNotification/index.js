@@ -118,13 +118,9 @@ export const TransactionNotification = props => {
 
 	return (
 		<ElevatedView elevation={10} style={baseStyles.flex}>
-			{type === 'pending' ? (
-				<View style={[styles.defaultFlash, styles.defaultFlashFloating]}>{this._getContent()}</View>
-			) : (
-				<TouchableOpacity style={[styles.defaultFlash, styles.defaultFlashFloating]} onPress={this._onPress}>
-					{this._getContent()}
-				</TouchableOpacity>
-			)}
+			<TouchableOpacity style={[styles.defaultFlash, styles.defaultFlashFloating]} onPress={this._onPress}>
+				{this._getContent()}
+			</TouchableOpacity>
 		</ElevatedView>
 	);
 };
