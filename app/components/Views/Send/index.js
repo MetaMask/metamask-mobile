@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
  */
 class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle(strings('send.title'), strings('navigation.cancel'), navigation);
+		getTransactionOptionsTitle('send.title', strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**

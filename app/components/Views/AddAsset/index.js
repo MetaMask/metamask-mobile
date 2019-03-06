@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
  * Component that provides ability to add assets.
  */
 export default class AddAsset extends Component {
-	static navigationOptions = ({ navigation }) => getNetworkNavbarOptions(strings('add_asset.title'), navigation);
+	static navigationOptions = ({ navigation }) => getNetworkNavbarOptions('add_asset.title', true, navigation);
 
 	state = {
 		address: '',

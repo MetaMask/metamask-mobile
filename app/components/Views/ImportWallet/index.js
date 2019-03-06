@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	fox: {
-		marginTop: Platform.OS === 'android' ? 20 : 70,
+		marginTop: Platform.OS === 'android' ? 20 : 50,
 		width: 156,
 		height: 97
 	},
