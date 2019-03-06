@@ -155,7 +155,8 @@ export function getTransactionOptionsTitle(title, backButtonText, navigation) {
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
-			)
+			),
+		headerRight: <View />
 	};
 }
 /**
