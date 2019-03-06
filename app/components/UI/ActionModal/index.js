@@ -11,11 +11,9 @@ const styles = StyleSheet.create({
 		width: '100%'
 	},
 	modalView: {
-		flex: 1,
 		flexDirection: 'column',
 		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: colors.dimmed
+		alignItems: 'center'
 	},
 	modalText: {
 		width: 350,
@@ -121,7 +119,7 @@ ActionModal.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral']),
+	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm']),
 	/**
 	 * Type of button to show as the confirm button
 	 */
