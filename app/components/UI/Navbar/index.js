@@ -303,6 +303,9 @@ export function getWalletNavbarOptions(title, navigation) {
 /**
  * Function that returns the navigation options containing title and network indicator
  *
+ * @param {string} title - Title in string format
+ * @param {string} translate - Boolean that specifies if the title needs translation
+ * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
 export function getNetworkNavbarOptions(title, translate, navigation) {
