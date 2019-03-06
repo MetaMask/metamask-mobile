@@ -194,9 +194,9 @@ export default class ImportPrivateKey extends Component {
 								blurOnSubmit
 								onSubmitEditing={this.goNext}
 								returnKeyType={'next'}
-								autoComplete="false"
 								placeholder={strings('import_private_key.example')}
-								autoCapitalize="none"
+								autoCapitalize={'none'}
+								autoComplete={'off'}
 							/>
 						</View>
 					</View>
