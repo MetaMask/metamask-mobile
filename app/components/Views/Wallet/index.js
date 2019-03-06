@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
  * Main view for the wallet
  */
 class Wallet extends Component {
-	static navigationOptions = ({ navigation }) => getWalletNavbarOptions(strings('wallet.title'), navigation);
+	static navigationOptions = ({ navigation }) => getWalletNavbarOptions('wallet.title', navigation);
 
 	static propTypes = {
 		/**

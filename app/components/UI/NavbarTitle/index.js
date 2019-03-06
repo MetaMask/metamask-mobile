@@ -5,6 +5,7 @@ import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -54,7 +55,15 @@ class NavbarTitle extends Component {
 		/**
 		 * Action that toggles the network modal
 		 */
-		toggleNetworkModal: PropTypes.func
+		toggleNetworkModal: PropTypes.func,
+		/**
+		 * Boolean that specifies if the title needs translation
+		 */
+		translate: PropTypes.bool
+	};
+
+	static defaultProps = {
+		translate: true
 	};
 
 	openNetworkList = () => {
@@ -62,12 +71,13 @@ class NavbarTitle extends Component {
 	};
 
 	render = () => {
-		const { network, title } = this.props;
+		const { network, title, translate } = this.props;
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
+		const realTitle = translate ? strings(title) : title;
 
 		return (
 			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
-				{title ? <Text style={styles.title}>{title}</Text> : null}
+				{title ? <Text style={styles.title}>{realTitle}</Text> : null}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
@@ -79,7 +89,9 @@ class NavbarTitle extends Component {
 	};
 }
 
-const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController });
+const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController
+});
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal())
 });
