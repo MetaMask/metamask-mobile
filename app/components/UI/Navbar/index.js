@@ -305,9 +305,9 @@ export function getWalletNavbarOptions(title, navigation) {
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getNetworkNavbarOptions(title, navigation) {
+export function getNetworkNavbarOptions(title, translate, navigation) {
 	return {
-		headerTitle: <NavbarTitle title={title} />,
+		headerTitle: <NavbarTitle title={title} translate={translate} />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>

@@ -18,3 +18,10 @@ export function setLockTime(lockTime) {
 		lockTime
 	};
 }
+
+export function setLanguage(language) {
+	return {
+		type: 'SET_LANGUAGE',
+		language
+	};
+}
