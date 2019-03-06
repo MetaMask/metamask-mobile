@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
 		paddingRight: 20,
 		fontSize: 20,
 		borderRadius: 10,
-		height: 110,
+		minHeight: 110,
+		height: 'auto',
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		...fontStyles.normal
@@ -130,7 +131,8 @@ class ImportFromSeed extends Component {
 		rememberMe: false,
 		biometryChoice: false,
 		loading: false,
-		error: null
+		error: null,
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
 
 	mounted = true;
@@ -143,6 +145,11 @@ class ImportFromSeed extends Component {
 		if (biometryType) {
 			this.setState({ biometryType, biometryChoice: true });
 		}
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.setState({ inputWidth: '100%' });
+			}, 100);
 	}
 
 	componentWillUnmount() {
@@ -288,7 +295,7 @@ class ImportFromSeed extends Component {
 						value={this.state.seedWords}
 						numberOfLines={3}
 						multiline
-						style={styles.seedPhrase}
+						style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 						placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 						onChangeText={this.onSeedWordsChange}
 						testID={'input-seed-phrase'}

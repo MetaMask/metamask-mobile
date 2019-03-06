@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
+import { Platform, Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -36,7 +36,8 @@ const styles = StyleSheet.create({
 class AddCustomCollectible extends Component {
 	state = {
 		address: '',
-		tokenId: ''
+		tokenId: '',
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
 
 	static propTypes = {
@@ -48,6 +49,14 @@ class AddCustomCollectible extends Component {
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string
+	};
+
+	componentDidMount = () => {
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.setState({ inputWidth: '100%' });
+			}, 100);
 	};
 
 	addCollectible = async () => {
@@ -149,7 +158,7 @@ class AddCustomCollectible extends Component {
 				<View style={styles.rowWrapper}>
 					<Text style={fontStyles.normal}>{strings('collectible.collectible_address')}</Text>
 					<TextInput
-						style={styles.textInput}
+						style={[styles.textInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 						placeholder={'0x...'}
 						value={this.state.address}
 						onChangeText={this.onAddressChange}
@@ -162,7 +171,7 @@ class AddCustomCollectible extends Component {
 				<View style={styles.rowWrapper}>
 					<Text style={fontStyles.normal}>{strings('collectible.collectible_token_id')}</Text>
 					<TextInput
-						style={styles.textInput}
+						style={[styles.textInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 						value={this.state.tokenId}
 						keyboardType="numeric"
 						placeholder={''}

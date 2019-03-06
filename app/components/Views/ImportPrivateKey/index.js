@@ -109,7 +109,16 @@ export default class ImportPrivateKey extends Component {
 
 	state = {
 		privateKey: '',
-		loading: false
+		loading: false,
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+	};
+
+	componentDidMount = () => {
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.setState({ inputWidth: '100%' });
+			}, 100);
 	};
 
 	goNext = async () => {
@@ -179,13 +188,15 @@ export default class ImportPrivateKey extends Component {
 								value={this.state.privateKey}
 								numberOfLines={3}
 								multiline
-								style={styles.input}
+								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 								onChangeText={this.onInputChange}
 								testID={'input-private-key'}
 								blurOnSubmit
 								onSubmitEditing={this.goNext}
 								returnKeyType={'next'}
+								autoComplete="false"
 								placeholder={strings('import_private_key.example')}
+								autoCapitalize="none"
 							/>
 						</View>
 					</View>

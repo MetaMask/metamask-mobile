@@ -122,7 +122,16 @@ class Settings extends Component {
 	state = {
 		resetModalVisible: false,
 		rpcUrl: undefined,
-		warningRpcUrl: ''
+		warningRpcUrl: '',
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+	};
+
+	componentDidMount = () => {
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.setState({ inputWidth: '100%' });
+			}, 100);
 	};
 
 	displayResetAccountModal = () => {
@@ -222,7 +231,7 @@ class Settings extends Component {
 						<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
 						<TextInput
-							style={styles.input}
+							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							value={this.state.rpcUrl}
 							onSubmitEditing={this.addRpcUrl}
 							onChangeText={this.onRpcUrlChange}
