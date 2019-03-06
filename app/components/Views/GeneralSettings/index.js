@@ -97,7 +97,8 @@ class Settings extends Component {
 		const { navigation } = this.props;
 		setLocale(language);
 		this.setState({ currentLanguage: language });
-		navigation.navigate('Entry');
+		navigation.navigate('HomeNav');
+		navigation.setParams({ refresh: true });
 	};
 
 	selectSearchEngine = searchEngine => {
