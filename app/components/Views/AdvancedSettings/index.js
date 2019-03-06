@@ -226,6 +226,8 @@ class Settings extends Component {
 						<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
 						<TextInput
+							autoCapitalize={'none'}
+							autoCorrect={false}
 							style={styles.input}
 							value={this.state.rpcUrl}
 							onSubmitEditing={this.addRpcUrl}
@@ -233,7 +235,6 @@ class Settings extends Component {
 							onChangeText={this.onRpcUrlChange}
 							placeholder={strings('app_settings.new_RPC_URL')}
 							inputAccessoryViewID={'rpc_url_accesory_view'}
-							autoCorrect={false}
 						/>
 						<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
 							<View style={styles.inputAccessoryView} backgroundColor={colors.lighterGray}>
