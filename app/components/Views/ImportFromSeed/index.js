@@ -135,8 +135,6 @@ class ImportFromSeed extends Component {
 		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
 
-	mounted = true;
-
 	passwordInput = React.createRef();
 	confirmPasswordInput = React.createRef();
 
@@ -145,16 +143,17 @@ class ImportFromSeed extends Component {
 		if (biometryType) {
 			this.setState({ biometryType, biometryChoice: true });
 		}
+		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		this.state.inputWidth &&
 			setTimeout(() => {
-				this.setState({ inputWidth: '100%' });
+				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
 	}
 
-	componentWillUnmount() {
+	componentWillUnmount = () => {
 		this.mounted = false;
-	}
+	};
 
 	onPressImport = async () => {
 		if (this.state.loading) return;

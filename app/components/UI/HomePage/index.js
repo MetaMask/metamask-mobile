@@ -194,15 +194,17 @@ class HomePage extends Component {
 		if (Platform.OS === 'android') {
 			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
 		}
+		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		this.state.inputWidth &&
 			setTimeout(() => {
-				this.setState({ inputWidth: '100%' });
+				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
 	};
 
 	componentWillUnmount() {
 		Platform.OS === 'android' && this.keyboardDidHideListener.remove();
+		this.mounted = false;
 	}
 
 	onInitialUrlChange = searchInputValue => {

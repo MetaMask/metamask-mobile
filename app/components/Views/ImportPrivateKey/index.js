@@ -114,11 +114,16 @@ export default class ImportPrivateKey extends Component {
 	};
 
 	componentDidMount = () => {
+		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		this.state.inputWidth &&
 			setTimeout(() => {
-				this.setState({ inputWidth: '100%' });
+				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
+	};
+
+	componentWillUnmount = () => {
+		this.mounted = false;
 	};
 
 	goNext = async () => {
