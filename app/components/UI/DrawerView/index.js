@@ -682,6 +682,7 @@ class DrawerView extends Component {
 					onBackdropPress={this.hideNetworksModal}
 					onSwipeComplete={this.hideNetworksModal}
 					swipeDirection={'down'}
+					propagateSwipe
 				>
 					<NetworkList onClose={this.onNetworksModalClose} />
 				</Modal>
@@ -691,6 +692,7 @@ class DrawerView extends Component {
 					onBackdropPress={this.hideAccountsModal}
 					onSwipeComplete={this.hideAccountsModal}
 					swipeDirection={'down'}
+					propagateSwipe
 				>
 					<AccountList
 						accounts={accounts}
