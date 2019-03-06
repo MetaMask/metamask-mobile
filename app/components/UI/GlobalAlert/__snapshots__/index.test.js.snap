@@ -2,9 +2,9 @@
 
 exports[`GlobalAlert should render correctly 1`] = `
 <ReactNativeModal
-  animationIn="slideInUp"
+  animationIn="fadeIn"
   animationInTiming={300}
-  animationOut="slideOutDown"
+  animationOut="fadeOut"
   animationOutTiming={300}
   avoidKeyboard={false}
   backdropColor="black"

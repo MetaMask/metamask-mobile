@@ -101,6 +101,8 @@ class GlobalAlert extends Component {
 				isVisible={isVisible}
 				onBackdropPress={this.onClose}
 				backdropOpacity={0}
+				animationIn={'fadeIn'}
+				animationOut={'fadeOut'}
 				useNativeDriver
 			>
 				{this.getComponent(content)}
