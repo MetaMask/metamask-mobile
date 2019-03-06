@@ -12,12 +12,12 @@ exports[`Settings should render correctly 1`] = `
 >
   <View>
     <SettingsDrawer
-      description="Currency conversion, primary currency, language, blockies identicon"
+      description="Currency conversion, primary currency, language"
       onPress={[Function]}
       title="General"
     />
     <SettingsDrawer
-      description="Access developer features, download State Logs, Reset Account, setup testnets and custom RPC"
+      description="Access developer features, Reset Account, setup testnets and custom RPC"
       onPress={[Function]}
       title="Advanced"
     />
@@ -28,7 +28,7 @@ exports[`Settings should render correctly 1`] = `
     />
     <SettingsDrawer
       onPress={[Function]}
-      title="Company Info"
+      title="About MetaMask"
     />
     <SettingsDrawer
       noBorder={true}

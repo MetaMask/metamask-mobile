@@ -209,18 +209,18 @@
 		"show_hex_data": "Show Hex Data",
 		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
 		"general_title": "General",
-		"general_desc": "Currency conversion, primary currency, language, blockies identicon",
+		"general_desc": "Currency conversion, primary currency, language",
 		"advanced_title": "Advanced",
-		"advanced_desc": "Access developer features, download State Logs, Reset Account, setup testnets and custom RPC",
+		"advanced_desc": "Access developer features, Reset Account, setup testnets and custom RPC",
 		"security_title": "Security & Privacy",
 		"security_desc": "Privacy settings and wallet seed phrase",
-		"info_title": "Company Info",
+		"info_title": "About MetaMask",
 		"legal_title": "Legal",
 		"conversion_title": "Currency conversion",
 		"conversion_desc": "Display fiat values in using a specific currency throughout the application.",
 		"language_desc": "Translate the application to a different supported language.",
 		"engine_desc": "Change the default search engine used when entering search terms in the URL bar.",
-		"reset_desc": "This action will clear your transaction history. This data is not retrievable.",
+		"reset_desc": "This action will clear your transaction history. This data might not be retrievable.",
 		"rpc_desc": "Use a custom RPC-capable network via URL instead of one of the provided networks.",
 		"hex_desc": "Select this to show the hex data field on the send screen.",
 		"clear_privacy_title": "Clear privacy data",
@@ -237,28 +237,6 @@
 		"support_center": "Visit our Support Center",
 		"web_site": "Visit our Website",
 		"email_us": "Email Us!"
-	},
-	"app_configurations": {
-		"information_title": "INFO",
-		"security_title": "SECURITY",
-		"settings_title": "GENERAL"
-	},
-	"settings": {
-		"title": "Settings",
-		"network": "Network",
-		"network_status": "Network status",
-		"seed_words": "Seed Words",
-		"sync_with_extension": "Sync with MetaMask Extension",
-		"face_id": "Enable FaceID",
-		"logout": "Logout"
-	},
-	"network": {
-		"title": "Network",
-		"selected": "selected"
-	},
-	"seed_words": {
-		"title": "Seed Words",
-		"label": "These are your seed words, make sure you keep them safe!"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Reveal Seed Phrase",
@@ -281,7 +259,7 @@
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
 		"seed_warning":
-			"This is your wallets 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE."
+			"This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE."
 	},
 	"asset_overview": {
 		"send_button": "Send",
@@ -547,7 +525,7 @@
 		"cancel_backup_no": "No, back up Seed Phrase",
 		"title": "Grab a pen and paper",
 		"info_text_1":
-			"You're going to need to write your seed phrase down. You will be asked to re-enter it in the other it's presented to you.",
+			"You're going to need to write your seed phrase down. You will be asked to re-enter it in the order it's presented to you.",
 		"security_tips": "Security Tips",
 		"tip_1": "Write it down on paper and keep it somewhere safe!",
 		"tip_2": "Save it to a password manager",
@@ -581,7 +559,7 @@
 			"The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
 		"back": "Back",
 		"title": "Confirm seed phrase",
-		"info_text": "Insert each phrase in the order it was presented to you on the previous screen.",
+		"info_text": "Insert each word in the order it was presented to you on the previous screen.",
 		"cta_text": "CONFIRM PHRASE"
 	},
 	"account_backup_step_6": {
