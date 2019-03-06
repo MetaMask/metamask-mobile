@@ -16,7 +16,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { hasBlockExplorer } from '../../../util/networks';
@@ -118,14 +117,6 @@ const styles = StyleSheet.create({
 		lineHeight: 16,
 		color: colors.white,
 		...fontStyles.normal
-	},
-	qrCodeWrapper: {
-		position: 'absolute',
-		right: 17,
-		top: 17
-	},
-	infoIcon: {
-		color: colors.white
 	},
 	buttons: {
 		flexDirection: 'row',
@@ -602,18 +593,6 @@ class DrawerView extends Component {
 									<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
 								</TouchableOpacity>
 							</View>
-							<TouchableOpacity
-								style={styles.qrCodeWrapper}
-								onPress={this.onAccountPress}
-								testID={'navbar-account-button'}
-							>
-								<IonicIcon
-									name="ios-information-circle-outline"
-									onPress={this.showAccountDetails}
-									size={24}
-									style={styles.infoIcon}
-								/>
-							</TouchableOpacity>
 						</ImageBackground>
 					</View>
 					<View style={styles.buttons}>
