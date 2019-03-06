@@ -46,14 +46,17 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="0x..."
         style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
-          }
+          Array [
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 16,
+            },
+            Object {},
+          ]
         }
         testID="input-collectible-address"
         underlineColorAndroid="transparent"
@@ -95,14 +98,17 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         placeholder=""
         returnKeyType="done"
         style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
-          }
+          Array [
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 16,
+            },
+            Object {},
+          ]
         }
         testID="input-token-decimals"
         underlineColorAndroid="transparent"

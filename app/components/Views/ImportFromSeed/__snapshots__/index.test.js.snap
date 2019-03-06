@@ -52,7 +52,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
       <TextInput
         allowFontScaling={true}
         autoCapitalize="none"
-        autoComplete="false"
+        autoComplete="off"
         blurOnSubmit={true}
         keyboardType="default"
         multiline={true}
@@ -62,22 +62,26 @@ exports[`ImportFromSeed should render correctly 1`] = `
         placeholder="Enter your seed phrase here"
         returnKeyType="next"
         style={
-          Object {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#CCCCCC",
-            "borderRadius": 10,
-            "borderWidth": 0.5,
-            "fontFamily": "Roboto",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "height": 110,
-            "marginBottom": 10,
-            "marginTop": 10,
-            "paddingBottom": 20,
-            "paddingLeft": 20,
-            "paddingRight": 20,
-            "paddingTop": 20,
-          }
+          Array [
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#CCCCCC",
+              "borderRadius": 10,
+              "borderWidth": 0.5,
+              "fontFamily": "Roboto",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "height": "auto",
+              "marginBottom": 10,
+              "marginTop": 10,
+              "minHeight": 110,
+              "paddingBottom": 20,
+              "paddingLeft": 20,
+              "paddingRight": 20,
+              "paddingTop": 20,
+            },
+            Object {},
+          ]
         }
         testID="input-seed-phrase"
         underlineColorAndroid="transparent"
