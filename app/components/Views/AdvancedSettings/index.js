@@ -230,17 +230,18 @@ class Settings extends Component {
 							autoCorrect={false}
 							style={styles.input}
 							value={this.state.rpcUrl}
-							onSubmitEditing={this.addRpcUrl}
 							onBlur={this.addRpcUrl}
 							onChangeText={this.onRpcUrlChange}
 							placeholder={strings('app_settings.new_RPC_URL')}
 							inputAccessoryViewID={'rpc_url_accesory_view'}
 						/>
-						<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
-							<View style={styles.inputAccessoryView} backgroundColor={colors.lighterGray}>
-								<Button onPress={this.addRpcUrl} title="Done" />
-							</View>
-						</InputAccessoryView>
+						{Platform.OS === 'ios' && (
+							<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
+								<View style={styles.inputAccessoryView} backgroundColor={colors.lighterGray}>
+									<Button onPress={this.addRpcUrl} title="Done" />
+								</View>
+							</InputAccessoryView>
+						)}
 						<View style={styles.rpcConfirmContainer}>
 							<View style={styles.warningContainer}>
 								<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
