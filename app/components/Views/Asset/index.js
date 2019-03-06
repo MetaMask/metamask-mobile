@@ -56,7 +56,7 @@ class Asset extends Component {
 	};
 
 	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('symbol', ''), navigation);
+		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
 
 	scrollViewRef = React.createRef();
 

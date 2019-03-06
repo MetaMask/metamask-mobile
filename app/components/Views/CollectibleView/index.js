@@ -51,7 +51,7 @@ class CollectibleView extends Component {
 	};
 
 	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('contractName', ''), navigation);
+		getNetworkNavbarOptions(navigation.getParam('contractName', ''), false, navigation);
 
 	onSend = async () => {
 		const {

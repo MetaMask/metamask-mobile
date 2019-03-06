@@ -118,7 +118,7 @@ exports[`AccountBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            You're going to need to write your seed phrase down. You will be asked to re-enter it in the other it's presented to you.
+            You're going to need to write your seed phrase down. You will be asked to re-enter it in the order it's presented to you.
           </Text>
         </View>
         <View
