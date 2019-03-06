@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	componentContainer: {
 		position: 'relative',
-		maxHeight: 200,
+		maxHeight: 220,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1
@@ -164,7 +164,7 @@ class AccountInput extends Component {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
 			<ElevatedView elevation={10} style={styles.root}>
-				<ScrollView style={styles.componentContainer}>
+				<ScrollView style={styles.componentContainer} showsVerticalScrollIndicator>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
 							this.renderOption(visibleOptions[address], () => {
