@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Exception was previously raised by watchStore',
 	'StateUpdateController',
 	'this.web3.eth',
 	'collectibles.map',

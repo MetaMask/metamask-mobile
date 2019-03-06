@@ -382,6 +382,11 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
+	goToPaymentChannel = () => {
+		this.props.navigation.navigate('PaymentChannelView');
+		this.hideDrawer();
+	};
+
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
 	};
@@ -524,6 +529,11 @@ class DrawerView extends Component {
 				icon: this.getImageIcon('assets'),
 				action: this.showWallet,
 				label: this.getLabelForAssets()
+			},
+			{
+				name: strings('drawer.payment_channel'),
+				icon: this.getIcon('dollar'),
+				action: this.goToPaymentChannel
 			}
 		],
 		[

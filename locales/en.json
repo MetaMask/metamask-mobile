@@ -76,6 +76,7 @@
 		"transfer": "Transfer"
 	},
 	"drawer": {
+		"payment_channel": "Payment Channel",
 		"send_button": "Send",
 		"receive_button": "Receive",
 		"coming_soon": "Coming soon...",

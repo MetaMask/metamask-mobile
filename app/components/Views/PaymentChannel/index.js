@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { getConnextClient } from 'connext/dist/Connext';
@@ -23,6 +23,7 @@ import { connect } from 'react-redux';
 import { hexToBN, renderFromWei, toWei, toBN } from '../../../util/number';
 import { setTransactionObject } from '../../../actions/transaction';
 import Logger from '../../../util/Logger';
+import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -34,7 +35,6 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingTop: 20,
 		paddingBottom: 0
 	},
 	subtitle: {
@@ -47,21 +47,29 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		marginBottom: 20
+		marginBottom: 10
+	},
+	balance: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	balanceText: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		flex: 1,
+		marginTop: DeviceSize.isIphoneX() ? 60 : 30,
+		fontSize: 80,
+		...fontStyles.normal
 	},
 	info: {
-		padding: 20
-	},
-	auth: {
-		marginLeft: 20,
-		marginBottom: 20,
-		justifyContent: 'center',
-		color: colors.success,
-		...fontStyles.normal
+		paddingVertical: 15,
+		paddingRight: 20
 	},
 	data: {
 		flex: 1,
-		height: 400
+		marginTop: 10,
+		height: 200
 	},
 	buttonWrapper: {
 		padding: 20,
@@ -98,7 +106,7 @@ const styles = StyleSheet.create({
 	loader: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 300,
+		minHeight: 200,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
@@ -154,9 +162,11 @@ class PaymentChannel extends Component {
 		transaction: PropTypes.object
 	};
 
+	awaitingDeposit = false;
+
 	state = {
 		web3: new Web3(Engine.context.NetworkController.provider),
-		hubUrl: `https://hub.connext.network/hub`,
+		hubUrl: `https://daicard.io/api/rinkeby/hub`,
 		connext: null,
 		tokenAddress: null,
 		channelManagerAddress: null,
@@ -167,7 +177,7 @@ class PaymentChannel extends Component {
 		channelState: null,
 		connextState: null,
 		persistent: null,
-		runtime: null,
+		runtime: { canBuy: false, canDeposit: false, canWithdraw: false },
 		exchangeRate: 0,
 		sendAmount: '',
 		sendRecipient: '',
@@ -319,7 +329,13 @@ class PaymentChannel extends Component {
 			await this.initClient();
 			this.pollConnextState();
 		});
+		this.mounted = true;
 	};
+
+	componentWillUnmount() {
+		Engine.context.TransactionController.hub.removeAllListeners();
+		this.mounted && this.state.connext.stop();
+	}
 
 	async pollConnextState() {
 		// Get connext object
@@ -327,6 +343,15 @@ class PaymentChannel extends Component {
 
 		// Register listeners
 		connext.on('onStateChange', state => {
+			if (
+				this.awaitingDeposit &&
+				this.state.channelState.balanceWeiUser === '0' &&
+				state.persistent.channel.balanceWeiUser !== '0'
+			) {
+				this.awaitingDeposit = false;
+				this.swapToDAI(state.persistent.channel.balanceWeiUser);
+			}
+
 			Logger.log('Connext state changed:', state);
 			this.setState({
 				channelState: state.persistent.channel,
@@ -341,6 +366,9 @@ class PaymentChannel extends Component {
 		try {
 			await connext.start(fetch);
 			Logger.log('Polling started correctly');
+			Logger.log('Requesting collateral!');
+			await connext.requestCollateral();
+			Logger.log('Collateral requested succesfully!');
 		} catch (e) {
 			Logger.log('polling error', e);
 		}
@@ -366,7 +394,9 @@ class PaymentChannel extends Component {
 			};
 			Logger.log('About to deposit', params);
 			await connext.deposit(params);
+			this.setState({ depositAmount: '' });
 			Logger.log('Deposit succesful');
+			this.awaitingDeposit = true;
 		} catch (e) {
 			Logger.log('Deposit error', e);
 		}
@@ -414,11 +444,11 @@ class PaymentChannel extends Component {
 		}
 	};
 
-	swapToDAI = async () => {
+	swapToDAI = async amount => {
 		try {
 			const connext = this.state.connext;
 			Logger.log('swapping eth to dai');
-			await connext.exchange(this.state.channelState.balanceWeiUser, 'wei');
+			await connext.exchange(amount, 'wei');
 			Logger.log('Swap to DAI succesful');
 		} catch (e) {
 			Logger.log('buy error error', e);
@@ -476,18 +506,17 @@ class PaymentChannel extends Component {
 		if (this.state.channelState) {
 			return (
 				<View style={styles.info}>
-					<View style={styles.row}>
+					{/* <View style={styles.row}>
 						<Text style={styles.subtitle}>
 							STATUS: {this.state.authorized ? <Text style={styles.auth}>Authorized</Text> : null}{' '}
 						</Text>
-					</View>
+					</View> */}
 					<View style={styles.row}>
 						<Text style={styles.subtitle}>ONCHAIN TX: {this.state.channelState.txCountChain}</Text>
-					</View>
-					<View style={styles.row}>
 						<Text style={styles.subtitle}>GLOBAL TX: {this.state.channelState.txCountGlobal}</Text>
 					</View>
-					<View style={styles.row}>
+
+					{/* <View style={styles.row}>
 						<Text style={styles.subtitle}>
 							ETH BALANCE: {renderFromWei(this.state.channelState.balanceWeiUser, 18)} ETH
 						</Text>
@@ -495,6 +524,11 @@ class PaymentChannel extends Component {
 					<View style={styles.row}>
 						<Text style={styles.subtitle}>
 							TOKEN BALANCE: {renderFromWei(this.state.channelState.balanceTokenUser, 18)} DAI
+						</Text>
+					</View> */}
+					<View style={styles.balance}>
+						<Text style={styles.balanceText}>
+							$ {this.renderBalance(this.state.channelState.balanceTokenUser)}
 						</Text>
 					</View>
 				</View>
@@ -508,6 +542,14 @@ class PaymentChannel extends Component {
 		);
 	}
 
+	renderBalance(amount) {
+		const ret = renderFromWei(amount, 18);
+		if (ret === 0) {
+			return '0.00';
+		}
+		return ret.toFixed(2).toString();
+	}
+
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -517,16 +559,14 @@ class PaymentChannel extends Component {
 					testID={'account-backup-step-1-screen'}
 				>
 					<View style={styles.wrapper} testID={'test'}>
-						<View style={baseStyles.flexGrow}>
-							<View style={styles.data}>
-								<ScrollableTabView>
-									<ScrollView tabLabel={'INFO'}>{this.renderInfo()}</ScrollView>
-									<ScrollView tabLabel={'PERSISTENT'}>
-										{this.renderData(this.state.persistent)}
-									</ScrollView>
-									<ScrollView tabLabel={'RUNTIME'}>{this.renderData(this.state.runtime)}</ScrollView>
-								</ScrollableTabView>
-							</View>
+						<View style={styles.data}>
+							<ScrollableTabView>
+								<ScrollView tabLabel={'INFO'}>{this.renderInfo()}</ScrollView>
+								<ScrollView tabLabel={'PERSISTENT'}>
+									{this.renderData(this.state.persistent)}
+								</ScrollView>
+								<ScrollView tabLabel={'RUNTIME'}>{this.renderData(this.state.runtime)}</ScrollView>
+							</ScrollableTabView>
 						</View>
 
 						<View style={styles.panel}>
@@ -551,6 +591,7 @@ class PaymentChannel extends Component {
 									type={'confirm'}
 									onPress={this.deposit}
 									testID={'submit-button'}
+									disabled={!this.state.runtime.canDeposit}
 								>
 									DEPOSIT
 								</StyledButton>
@@ -587,31 +628,9 @@ class PaymentChannel extends Component {
 									type={'confirm'}
 									onPress={this.sendDAI}
 									testID={'submit-button'}
+									disabled={!this.state.runtime.canBuy}
 								>
 									SEND DAI
-								</StyledButton>
-							</View>
-							<View style={styles.sectionTitleWrapper}>
-								<Text style={styles.sectionTitleText}>SWAP</Text>
-							</View>
-							<View style={styles.buttonWrapper}>
-								<StyledButton
-									containerStyle={styles.button}
-									style={styles.buttonText}
-									type={'confirm'}
-									onPress={this.swapToDAI}
-									testID={'submit-button'}
-								>
-									{`SWAP ETH => DAI`}
-								</StyledButton>
-								<StyledButton
-									containerStyle={styles.button}
-									style={styles.buttonText}
-									type={'confirm'}
-									onPress={this.swapToETH}
-									testID={'submit-button'}
-								>
-									{`SWAP DAI => ETH`}
 								</StyledButton>
 							</View>
 							<StyledButton
@@ -620,6 +639,7 @@ class PaymentChannel extends Component {
 								type={'confirm'}
 								onPress={this.withdraw}
 								testID={'submit-button'}
+								disabled={!this.state.runtime.canWithdraw}
 							>
 								CASH OUT
 							</StyledButton>
