@@ -121,7 +121,7 @@ export default class TransactionDetails extends PureComponent {
 		await Clipboard.setString(this.props.transactionDetails.transactionHash);
 		this.props.showAlert({
 			isVisible: true,
-			autodismiss: 2000,
+			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.hash_copied_to_clipboard') }
 		});
