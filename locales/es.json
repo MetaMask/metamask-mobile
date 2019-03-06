@@ -25,7 +25,7 @@
 		"sync_help": "Sincroniza tu billetera con la extension",
 		"sync_help_step_one": "1. Ingresa a la extension",
 		"sync_help_step_two": "2. Ve a ajustes",
-		"sync_help_step_three": "3. Haz click en \"Syncronizar con mi móvil\"",
+		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",
 		"sync_from_browser_extension_button": "Comenzar Sincronización",
 		"or": "o",
@@ -36,7 +36,7 @@
 		"password": "Contraseña",
 		"login_button": "INGRESAR",
 		"go_back": "Atrás",
-		"invalid_password": "Password incorrecto"
+		"invalid_password": "Contraseña incorrecta"
 	},
 	"choose_password": {
 		"title": "Elige la contraseña",
@@ -46,7 +46,7 @@
 		"create_button": "Siguiente",
 		"import_with_seed_phrase": "Importar con frase semilla",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
-		"password_dont_match": "Los passwords no coinciden",
+		"password_dont_match": "Las contraseñas no coinciden",
 		"password_strength": "Fortaleza de la contraseña:",
 		"strength_weak": "Débil",
 		"strength_good": "Buena",
@@ -67,7 +67,7 @@
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
-		"password_dont_match": "Los passwords no coinciden",
+		"password_dont_match": "Las contraseñas no coinciden",
 		"seed_word_count_error": "La frase debe contener 12 palabras"
 	},
 	"bottom_tab_bar": {
@@ -81,10 +81,10 @@
 		"coming_soon": "Disponible muy pronto...",
 		"wallet": "Billetera",
 		"submit_feedback": "Enviar Feedback",
-		"submit_feedback_message": "Elige of feedback que deseas enviar.",
+		"submit_feedback_message": "Elige el tipo de feedback que deseas enviar.",
 		"submit_bug": "PROBLEMA",
 		"submit_general_feedback": "GENERAL",
-		"copy_address": "Copiar mi direccion pública",
+		"copy_address": "Copiar mi dirección pública",
 		"view_in_etherscan": "Ver en Etherscan",
 		"browser": "Navegador",
 		"settings": "Ajustes",
@@ -108,12 +108,12 @@
 		"collectible": "Collecionable",
 		"collectibles": "COLECCIONABLES",
 		"transactions": "TRANSACCIONES",
-		"no_collectibles": "No tienes ningun coleccionable",
+		"no_collectibles": "No tienes coleccionables",
 		"add_tokens": "AGREGAR TOKENS",
-		"no_tokens": "No tienes ningun token",
+		"no_tokens": "No tienes tokens",
 		"add_collectibles": "AGREGAR COLECCIONABLE",
-		"no_transactions": "No tienes ninguna transacción!",
-		"send_button": "Evniar",
+		"no_transactions": "No tienes transacciones",
+		"send_button": "Enviar",
 		"deposit_button": "Depositar",
 		"copy_address": "Copiar",
 		"remove_token_title": "Deseas eliminar este token?",
@@ -193,7 +193,7 @@
 		"autolock_immediately": "Inmediatamente",
 		"autolock_never": "Nunca",
 		"autolock_after": "Luego de {{time}} segundos",
-		"clear_approvals_modal_title": "Borrar sitios aprovados?",
+		"clear_approvals_modal_title": "Borrar sitios aprobados?",
 		"clear_approvals_modal_message":
 			"Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_browser_history_modal_title": "Borrar historial del navegador?",
@@ -259,7 +259,7 @@
 		"enter_password": "Ingresa tu contraseña para continuar",
 		"seed_phrase_copied": "Frase semilla copiada en el portapapeles",
 		"private_key_copied": "Dirección privada copiada en el portapapeles",
-		"warning_incorrect_password": "Incorrect password",
+		"warning_incorrect_password": "Contraseña incorrecta",
 		"unknown_error": "No pudimos acceder a tu cuenta. Inténtalo nuevamente.",
 		"seed_warning": "Esta es la frase semilla de tu billetera. Es muy sensitiva. NO LA COMPARTAS CON NADIE."
 	},
@@ -408,7 +408,7 @@
 	"sync_with_extension": {
 		"title": "Sincronizar datos con la extensión",
 		"label":
-			"Abre la extensión de MetaMask en tu computador, luego ve a ajustes, haz click en \"Sincronizar con el Móvil\" y luego ingresa tu password para ver el código QR",
+			"Abre la extensión de MetaMask en tu computador, luego ve a ajustes, haz click en \"Sincronizar con el Móvil\" y luego ingresa tu contraseña para ver el código QR",
 		"button_continue": "Continuar",
 		"please_wait": "Por favor espera mientras sincronizamos tus datos...",
 		"error_title": "Bummer!",
@@ -455,12 +455,12 @@
 	"biometrics": {
 		"enable_touchid": "Ingresar con Touch ID?",
 		"enable_faceid": "Ingresar con Face ID?",
-		"enable_fingerprint": "Ingresar con Huella digital?"
+		"enable_fingerprint": "Ingresar con Huella Digital?"
 	},
 	"authentication": {
-		"auth_prompt_title": "Authenticación requerida",
-		"auth_prompt_desc": "Por favor autenticate para utilizar MetaMask",
-		"fingerprint_prompt_title": "Authenticación requerida",
+		"auth_prompt_title": "Autenticación requerida",
+		"auth_prompt_desc": "Debes autenticarte para utilizar MetaMask",
+		"fingerprint_prompt_title": "Autenticación requerida",
 		"fingerprint_prompt_desc": "Usa tu huella digital para acceder a MetaMask",
 		"fingerprint_prompt_cancel": "Cancelar"
 	},
@@ -516,7 +516,7 @@
 		"info_text_2":
 			"No comportas esto con nadie! Es crucial que la guardes en un lugar seguro en el cual solamente tu tienes acceso.",
 		"info_text_3":
-			"Tu password no puede ser utilizado para recuperar tu billetera! Solo la frase semilla puede recuperar tu billetera y todos sus fondos!",
+			"Tu contraseña no puede ser utilizado para recuperar tu billetera! Solo la frase semilla puede recuperar tu billetera y todos sus fondos!",
 		"cta_text": "SI, RESPALDAR",
 		"learn_more": "Leer más"
 	},
@@ -529,8 +529,8 @@
 		"info_text_1":
 			"Vas a necesitar escribir tu frase semilla. Luego te pediremos que la reeingreses en el mismo ordén.",
 		"security_tips": "Tips de seguridad",
-		"tip_1": "Escríbela en papel y guardala en un lugar seguro!",
-		"tip_2": "Guardala en un administrador de passwords",
+		"tip_1": "Escríbela en papel y guárdala en un lugar seguro!",
+		"tip_2": "Guárdala en un administrador de passwords",
 		"tip_3": "Nunca la compartas con nadie!",
 		"cta_text": "OK"
 	},
@@ -565,8 +565,8 @@
 		"cta_text": "CONFIRMAR FRASE"
 	},
 	"account_backup_step_6": {
-		"title": "Fellicitaciones!",
-		"info_text": "Haz pasado la prueba! Manitene tu frase semilla segura, es tu responsabilidad!",
+		"title": "Felicitaciones!",
+		"info_text": "Has pasado la prueba! Mantiene tu frase semilla segura, es tu responsabilidad!",
 		"tips": "Tips sobre como mantenerla segura ",
 		"tip_1": "Guarda una copia en diferentes lugares",
 		"tip_2": "Nunca le digas a nadie",
@@ -579,9 +579,9 @@
 		"ethereum_phishing_detection": "Detección de Phising de Ethereum",
 		"ethereum_phishing_detector": "Detector de Phising de Ethereum",
 		"intro":
-			" esta en la lista de MetaMask de dominios maliciosos. Esto significa que, basado en la información que hemos recibido, MetaMask cree que este dominio puede comprometer tu seguridad y, como medida de seguridad, MetaMask ha restringido el acceso a este sitio. Para evitar esto, continua leyendo el resto de las instrucciones de esta alerta sobre como continuar bajo tu propio riesgo.",
+			" esta en la lista de MetaMask de dominios maliciosos. Esto significa que, basado en la información que hemos recibido, MetaMask cree que este dominio puede comprometer tu seguridad y, como medida de seguridad, MetaMask ha restringido el acceso a este sitio. Para evitar esto, continúa leyendo el resto de las instrucciones de esta alerta sobre como continuar bajo tu propio riesgo.",
 		"reasons":
-			"Hay muchas razones por las cuales un sitio puede aparecer en nuestra lista de sitios maliciosis, y nuestra lista es compilada desde otras listas reconocidas en la industria. Las razones pueden ser cometer fraude o riesgos de seguridad, o que hayan resultado positivo en el test de ",
+			"Hay muchas razones por las cuales un sitio puede aparecer en nuestra lista de sitios maliciosos, y nuestra lista es compilada desde otras listas reconocidas en la industria. Las razones pueden ser cometer fraude o riesgos de seguridad, o que hayan resultado positivo en el test de ",
 		"list_content":
 			"Dominios en estas listas incluyten incluyen sitios maliciosos y también sitios legítimos que han sido comprometidos por un actor malicioso.",
 		"to_read_more": "Para leer mas acerca de este sitio ",
