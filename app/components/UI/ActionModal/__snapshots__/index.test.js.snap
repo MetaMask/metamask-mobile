@@ -45,8 +45,6 @@ exports[`ActionModal should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
-        "backgroundColor": "#00000080",
-        "flex": 1,
         "flexDirection": "column",
         "justifyContent": "center",
       }
