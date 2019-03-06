@@ -55,11 +55,6 @@ const styles = StyleSheet.create({
 	firstSetting: {
 		marginTop: 0
 	},
-	rpcConfirm: {
-		flexGrow: 0,
-		flexShrink: 0,
-		width: 118
-	},
 	rpcConfirmContainer: {
 		marginTop: 12,
 		flexDirection: 'row'
@@ -246,9 +241,6 @@ class Settings extends Component {
 							<View style={styles.warningContainer}>
 								<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
 							</View>
-							<StyledButton type="normal" onPress={this.addRpcUrl} containerStyle={styles.rpcConfirm}>
-								{strings('app_settings.save_rpc_url')}
-							</StyledButton>
 						</View>
 					</View>
 					<View style={styles.setting}>
