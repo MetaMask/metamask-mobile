@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Switch, TextInput, Text, ScrollView, Platform, View } from 'react-native';
+import { InputAccessoryView, Button, StyleSheet, Switch, TextInput, Text, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { isWebUri } from 'valid-url';
-
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ActionModal from '../../UI/ActionModal';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
@@ -55,11 +55,6 @@ const styles = StyleSheet.create({
 	firstSetting: {
 		marginTop: 0
 	},
-	rpcConfirm: {
-		flexGrow: 0,
-		flexShrink: 0,
-		width: 118
-	},
 	rpcConfirmContainer: {
 		marginTop: 12,
 		flexDirection: 'row'
@@ -94,6 +89,10 @@ const styles = StyleSheet.create({
 	},
 	syncConfirm: {
 		marginTop: 18
+	},
+	inputAccessoryView: {
+		alignItems: 'flex-end',
+		paddingRight: 10
 	}
 });
 
@@ -181,7 +180,7 @@ class Settings extends Component {
 		const { showHexData } = this.props;
 		const { resetModalVisible } = this.state;
 		return (
-			<ScrollView style={styles.wrapper}>
+			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 				<View style={styles.inner}>
 					<ActionModal
 						modalVisible={resetModalVisible}
@@ -222,19 +221,26 @@ class Settings extends Component {
 						<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
 						<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
 						<TextInput
+							autoCapitalize={'none'}
+							autoCorrect={false}
 							style={styles.input}
 							value={this.state.rpcUrl}
-							onSubmitEditing={this.addRpcUrl}
+							onBlur={this.addRpcUrl}
 							onChangeText={this.onRpcUrlChange}
 							placeholder={strings('app_settings.new_RPC_URL')}
+							inputAccessoryViewID={'rpc_url_accesory_view'}
 						/>
+						{Platform.OS === 'ios' && (
+							<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
+								<View style={styles.inputAccessoryView} backgroundColor={colors.lighterGray}>
+									<Button onPress={this.addRpcUrl} title="Done" />
+								</View>
+							</InputAccessoryView>
+						)}
 						<View style={styles.rpcConfirmContainer}>
 							<View style={styles.warningContainer}>
 								<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
 							</View>
-							<StyledButton type="normal" onPress={this.addRpcUrl} containerStyle={styles.rpcConfirm}>
-								{strings('app_settings.save_rpc_url')}
-							</StyledButton>
 						</View>
 					</View>
 					<View style={styles.setting}>
@@ -252,7 +258,7 @@ class Settings extends Component {
 						</View>
 					</View>
 				</View>
-			</ScrollView>
+			</KeyboardAwareScrollView>
 		);
 	};
 }
