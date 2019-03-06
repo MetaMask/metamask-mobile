@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
 		paddingRight: 20,
 		fontSize: 20,
 		borderRadius: 10,
-		height: 110,
+		minHeight: 110,
+		height: 'auto',
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		...fontStyles.normal
@@ -130,10 +131,9 @@ class ImportFromSeed extends Component {
 		rememberMe: false,
 		biometryChoice: false,
 		loading: false,
-		error: null
+		error: null,
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
-
-	mounted = true;
 
 	passwordInput = React.createRef();
 	confirmPasswordInput = React.createRef();
@@ -143,11 +143,17 @@ class ImportFromSeed extends Component {
 		if (biometryType) {
 			this.setState({ biometryType, biometryChoice: true });
 		}
+		this.mounted = true;
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.mounted && this.setState({ inputWidth: '100%' });
+			}, 100);
 	}
 
-	componentWillUnmount() {
+	componentWillUnmount = () => {
 		this.mounted = false;
-	}
+	};
 
 	onPressImport = async () => {
 		if (this.state.loading) return;
@@ -288,15 +294,15 @@ class ImportFromSeed extends Component {
 						value={this.state.seedWords}
 						numberOfLines={3}
 						multiline
-						style={styles.seedPhrase}
+						style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 						placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 						onChangeText={this.onSeedWordsChange}
 						testID={'input-seed-phrase'}
 						blurOnSubmit
 						onSubmitEditing={this.jumpToPassword}
 						returnKeyType={'next'}
-						autoComplete="false"
-						keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
+						autoComplete={'off'}
+						keyboardType={Platform.OS === 'android' ? 'email-address' : 'default'}
 						autoCapitalize="none"
 					/>
 					<View style={styles.field}>
