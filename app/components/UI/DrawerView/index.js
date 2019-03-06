@@ -16,7 +16,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { hasBlockExplorer } from '../../../util/networks';
@@ -391,7 +390,7 @@ class DrawerView extends Component {
 		await Clipboard.setString(selectedAddress);
 		this.props.showAlert({
 			isVisible: true,
-			autodismiss: 2000,
+			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: { msg: strings('account_details.account_copied_to_clipboard') }
 		});
@@ -607,8 +606,8 @@ class DrawerView extends Component {
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<IonicIcon
-									name="ios-information-circle-outline"
+								<Icon
+									name="qrcode"
 									onPress={this.showAccountDetails}
 									size={24}
 									style={styles.infoIcon}
