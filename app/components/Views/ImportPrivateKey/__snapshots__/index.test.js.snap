@@ -182,7 +182,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <TextInput
           allowFontScaling={true}
           autoCapitalize="none"
-          autoComplete="false"
+          autoComplete="off"
           blurOnSubmit={true}
           multiline={true}
           numberOfLines={3}
