@@ -22,9 +22,9 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapperContent: {
-		paddingLeft: 20,
-		paddingRight: 20,
-		paddingVertical: 20
+		paddingLeft: 24,
+		paddingRight: 24,
+		paddingVertical: 24
 	},
 	title: {
 		fontSize: 18,
@@ -73,7 +73,8 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
  * View that contains app information
  */
 export default class AppInformation extends Component {
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('app_settings.title'), navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.info_title'), navigation);
 
 	static propTypes = {
 		/**
