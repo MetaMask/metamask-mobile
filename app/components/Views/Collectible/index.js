@@ -49,7 +49,8 @@ class Collectible extends Component {
 		collectibles: []
 	};
 
-	static navigationOptions = ({ navigation }) => getNetworkNavbarOptions(navigation.getParam('name', ''), navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNetworkNavbarOptions(navigation.getParam('name', ''), false, navigation);
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
