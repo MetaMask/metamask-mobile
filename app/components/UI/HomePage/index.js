@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
 		marginHorizontal: 10,
 		backgroundColor: colors.white,
 		fontSize: 14,
-		flex: 1,
 		...fontStyles.normal
 	},
 	searchIcon: {
@@ -183,21 +182,29 @@ class HomePage extends Component {
 
 	state = {
 		searchInputValue: '',
-		inputValue: ''
+		inputValue: '',
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
 
 	actionSheet = null;
 
 	bookmarkIndexToRemove = null;
 
-	componentDidMount() {
+	componentDidMount = () => {
 		if (Platform.OS === 'android') {
 			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
 		}
-	}
+		this.mounted = true;
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.mounted && this.setState({ inputWidth: '100%' });
+			}, 100);
+	};
 
 	componentWillUnmount() {
 		Platform.OS === 'android' && this.keyboardDidHideListener.remove();
+		this.mounted = false;
 	}
 
 	onInitialUrlChange = searchInputValue => {
@@ -260,7 +267,10 @@ class HomePage extends Component {
 						<View style={styles.searchWrapper}>
 							<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
 							<TextInput
-								style={styles.searchInput}
+								style={[
+									styles.searchInput,
+									this.state.inputWidth ? { width: this.state.inputWidth } : {}
+								]}
 								autoCapitalize="none"
 								autoCorrect={false}
 								clearButtonMode="while-editing"
