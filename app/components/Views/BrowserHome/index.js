@@ -9,13 +9,12 @@ import Branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
 // eslint-disable-next-line import/no-unresolved
 import LockManager from '../../../core/LockManager';
-import { strings } from '../../../../locales/i18n';
 
 /**
  * Complete Web browser component with URL entry and history management
  */
 class BrowserHome extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions(strings('browser.title'), navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions('browser.title', navigation);
 
 	static defaultProps = {
 		defaultProtocol: 'https://'

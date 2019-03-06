@@ -100,7 +100,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               }
             }
           >
-            Insert each phrase in the order it was presented to you on the previous screen.
+            Insert each word in the order it was presented to you on the previous screen.
           </Text>
         </View>
         <View

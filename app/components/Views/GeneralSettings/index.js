@@ -77,7 +77,11 @@ class Settings extends Component {
 		/**
 		 * Active search engine
 		 */
-		searchEngine: PropTypes.string
+		searchEngine: PropTypes.string,
+		/**
+		 * Active network
+		 */
+		networkType: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -94,10 +98,12 @@ class Settings extends Component {
 	};
 
 	selectLanguage = language => {
-		const { navigation } = this.props;
 		setLocale(language);
 		this.setState({ currentLanguage: language });
-		navigation.navigate('Entry');
+		setTimeout(() => this.props.navigation.navigate('Home'), 100);
+		// This is the only hack that will make the navbar to re-render
+		const { NetworkController } = Engine.context;
+		NetworkController.setProviderType(this.props.networkType);
 	};
 
 	selectSearchEngine = searchEngine => {
@@ -167,6 +173,7 @@ class Settings extends Component {
 
 const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	searchEngine: state.settings.searchEngine
 });
 

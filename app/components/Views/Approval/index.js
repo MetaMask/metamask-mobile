@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
  */
 class Approval extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle(strings('approval.title'), strings('navigation.cancel'), navigation);
+		getTransactionOptionsTitle('approval.title', strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**
