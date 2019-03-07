@@ -27,7 +27,6 @@ import Send from '../../Views/Send';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
-import TransactionSubmitted from '../../Views/TransactionSubmitted';
 import FirstIncomingTransaction from '../../Views/FirstIncomingTransaction';
 import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -181,9 +180,6 @@ const MainNavigator = createStackNavigator(
 		},
 		LockScreen: {
 			screen: LockScreen
-		},
-		TransactionSubmitted: {
-			screen: TransactionSubmitted
 		},
 		SetPasswordFlow: {
 			screen: createStackNavigator(

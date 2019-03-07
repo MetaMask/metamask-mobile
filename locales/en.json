@@ -593,11 +593,11 @@
 		"back_to_safety": "Back to safety"
 	},
 	"notifications": {
-		"pending_title": "Waiting for confirmation...",
+		"pending_title": "Transaction submitted!",
 		"success_title": "Transaction #{{nonce}} Complete!",
 		"error_title": "Oops, something went wrong :/",
 		"received_title": "You received {{amount}} {{assetType}}!",
-		"pending_message": "Your transaction is in progress",
+		"pending_message": "Waiting for confirmation...",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
 		"received_message": "Tap to view this transaction"
