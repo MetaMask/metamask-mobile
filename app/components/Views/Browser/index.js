@@ -1180,35 +1180,37 @@ export class Browser extends Component {
 	renderSigningModal = () => {
 		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
 		return (
-			<Modal
-				isVisible={signMessage}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.onSignAction}
-				onSwipeComplete={this.onSignAction}
-				swipeDirection={'down'}
-			>
-				{signType === 'personal' && (
-					<PersonalSign
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-					/>
-				)}
-				{signType === 'typed' && (
-					<TypedSign
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-					/>
-				)}
-			</Modal>
+			signMessage && (
+				<Modal
+					isVisible={signMessage}
+					animationIn="slideInUp"
+					animationOut="slideOutDown"
+					style={styles.bottomModal}
+					backdropOpacity={0.7}
+					animationInTiming={600}
+					animationOutTiming={600}
+					onBackdropPress={this.onSignAction}
+					onSwipeComplete={this.onSignAction}
+					swipeDirection={'down'}
+				>
+					{signType === 'personal' && (
+						<PersonalSign
+							messageParams={signMessageParams}
+							onCancel={this.onSignAction}
+							onConfirm={this.onSignAction}
+							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+						/>
+					)}
+					{signType === 'typed' && (
+						<TypedSign
+							messageParams={signMessageParams}
+							onCancel={this.onSignAction}
+							onConfirm={this.onSignAction}
+							currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+						/>
+					)}
+				</Modal>
+			)
 		);
 	};
 
