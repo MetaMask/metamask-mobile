@@ -89,7 +89,6 @@ const styles = StyleSheet.create({
 		marginHorizontal: 10,
 		backgroundColor: colors.beige,
 		fontSize: 14,
-		flex: 1,
 		...fontStyles.normal
 	},
 	searchIcon: {
