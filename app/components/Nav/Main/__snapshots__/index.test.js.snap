@@ -160,7 +160,6 @@ exports[`Main should render correctly 1`] = `
             "getScreenOptions": [Function],
             "getStateForAction": [Function],
           },
-          "TransactionSubmitted": null,
           "Webview": Object {
             "childRouters": Object {
               "SimpleWebview": null,
@@ -386,7 +385,6 @@ exports[`Main should render correctly 1`] = `
               "getScreenOptions": [Function],
               "getStateForAction": [Function],
             },
-            "TransactionSubmitted": null,
             "Webview": Object {
               "childRouters": Object {
                 "SimpleWebview": null,
