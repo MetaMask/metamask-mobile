@@ -157,15 +157,17 @@ export async function isSmartContractAddress(address) {
 	return !codeIsEmpty;
 }
 
+/**
+ * Returns wether the given address is an ERC721 contract
+ *
+ * @param {string} address - Ethereum address
+ * @param {string} tokenId - A possible collectible id
+ * @returns {boolean} - Wether the given address is an ERC721 contract
+ */
 export async function isCollectibleAddress(address, tokenId) {
 	const cache = CollectibleAddresses.cache[address];
 	if (cache) {
 		return Promise.resolve(cache);
-	}
-	// 'contractMap' only should only have ERC20 tokens
-	if (contractMap[address]) {
-		CollectibleAddresses.cache[address] = false;
-		return Promise.resolve(false);
 	}
 	const { AssetsContractController } = Engine.context;
 	// Hack to know if the address is a collectible smart contract
