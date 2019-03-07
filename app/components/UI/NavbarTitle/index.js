@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 	},
 	networkName: {
 		fontSize: 11,
-		color: colors.fontSecondary,
+		color: colors.gray,
 		...fontStyles.normal
 	},
 	networkIcon: {
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 100,
 		marginRight: 5,
-		marginTop: 5
+		marginTop: Platform.OS === 'ios' ? 4 : 5
 	},
 	title: {
 		fontSize: 18,

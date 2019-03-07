@@ -239,10 +239,10 @@ class Send extends Component {
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 			await TransactionController.approveTransaction(transactionMeta.id);
-			const hash = await result;
-			this.props.navigation.push('TransactionSubmitted', { hash });
+			await result;
 			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
+			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
 				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 			});
