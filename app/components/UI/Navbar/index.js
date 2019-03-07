@@ -287,17 +287,7 @@ export function getWalletNavbarOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: (
-			<TouchableOpacity
-				style={styles.infoButton}
-				// eslint-disable-next-line
-				onPress={() => {
-					navigation.navigate('AccountDetails');
-				}}
-			>
-				<IonicIcon name="ios-information-circle-outline" size={28} style={styles.infoIcon} />
-			</TouchableOpacity>
-		)
+		headerRight: <View />
 	};
 }
 

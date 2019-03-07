@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { StyleSheet, Switch, AsyncStorage, Text, ScrollView, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
-
+import { toChecksumAddress } from 'ethereumjs-util';
 import ActionModal from '../../UI/ActionModal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import SelectComponent from '../../UI/SelectComponent';
@@ -120,7 +120,19 @@ class Settings extends Component {
 		/**
 		 * Active search engine
 		 */
-		lockTime: PropTypes.number
+		lockTime: PropTypes.number,
+		/**
+		 * Selected address as string
+		 */
+		selectedAddress: PropTypes.string,
+		/**
+		 * List of accounts from the AccountTrackerController
+		 */
+		accounts: PropTypes.object,
+		/**
+		 * List of accounts from the PreferencesController
+		 */
+		identities: PropTypes.object
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -242,6 +254,10 @@ class Settings extends Component {
 		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
 	};
 
+	goToExportPrivateKey = () => {
+		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'private_key' });
+	};
+
 	selectLockTime = lockTime => {
 		this.props.setLockTime(parseInt(lockTime, 10));
 	};
@@ -249,6 +265,9 @@ class Settings extends Component {
 	render = () => {
 		const { approvedHosts, browserHistory, privacyMode } = this.props;
 		const { approvalModalVisible, biometryType, browserHistoryModalVisible } = this.state;
+		const { accounts, identities, selectedAddress } = this.props;
+		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -309,7 +328,7 @@ class Settings extends Component {
 							<Text style={styles.title}>
 								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
 							</Text>
-							<View style={styles.switch}>
+							<View style={styles.switchElement}>
 								<Switch
 									onValueChange={biometryChoice => this.onBiometryChange(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 									value={this.state.biometryChoice}
@@ -321,6 +340,21 @@ class Settings extends Component {
 							</View>
 						</View>
 					)}
+					<View style={styles.setting}>
+						<Text style={styles.title}>
+							{strings('reveal_credential.private_key_title_for_account', { accountName: account.name })}
+						</Text>
+						<Text style={[styles.desc, styles.red]}>
+							{strings('reveal_credential.private_key_warning', { accountName: account.name })}
+						</Text>
+						<StyledButton
+							type="danger"
+							onPress={this.goToExportPrivateKey}
+							containerStyle={styles.clearHistoryConfirm}
+						>
+							{strings('reveal_credential.show_private_key').toUpperCase()}
+						</StyledButton>
+					</View>
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('reveal_credential.seed_phrase_title')}</Text>
 						<Text style={[styles.desc, styles.red]}>{strings('reveal_credential.seed_warning')}</Text>
@@ -374,7 +408,10 @@ const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	browserHistory: state.browser.history,
 	lockTime: state.settings.lockTime,
-	privacyMode: state.privacy.privacyMode
+	privacyMode: state.privacy.privacyMode,
+	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
 const mapDispatchToProps = dispatch => ({
