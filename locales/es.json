@@ -595,7 +595,7 @@
 		"back_to_safety": "Volver al area segura"
 	},
 	"notifications": {
-		"pending_title": "Esperando confirmación...",
+		"pending_title": "Transacción enviada!",
 		"success_title": "Transacción #{{nonce}} Completa!",
 		"error_title": "Oops, algo ha salido mal :/",
 		"received_title": "Has recibido {{amount}} {{assetType}}!",

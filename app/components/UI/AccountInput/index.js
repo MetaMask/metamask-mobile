@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	componentContainer: {
 		position: 'relative',
-		maxHeight: 220,
+		maxHeight: Platform.OS === 'android' ? 175 : 200,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1
