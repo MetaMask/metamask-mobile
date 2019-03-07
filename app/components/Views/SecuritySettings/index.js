@@ -242,6 +242,10 @@ class Settings extends Component {
 		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
 	};
 
+	goToExportPrivateKey = () => {
+		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'private_key' });
+	};
+
 	selectLockTime = lockTime => {
 		this.props.setLockTime(parseInt(lockTime, 10));
 	};
@@ -321,6 +325,21 @@ class Settings extends Component {
 							</View>
 						</View>
 					)}
+					<View style={styles.setting}>
+						<Text style={styles.title}>
+							{strings('reveal_credential.show_private_key', { accountName: 'ACCOUNT_GOES_HERE' })}
+						</Text>
+						<Text style={[styles.desc, styles.red]}>
+							{strings('reveal_credential.private_key_warning')}
+						</Text>
+						<StyledButton
+							type="danger"
+							onPress={this.goToExportPrivateKey}
+							containerStyle={styles.clearHistoryConfirm}
+						>
+							{strings('reveal_credential.show_private_key').toUpperCase()}
+						</StyledButton>
+					</View>
 					<View style={styles.setting}>
 						<Text style={styles.title}>{strings('reveal_credential.seed_phrase_title')}</Text>
 						<Text style={[styles.desc, styles.red]}>{strings('reveal_credential.seed_warning')}</Text>

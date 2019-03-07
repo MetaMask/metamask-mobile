@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
 		marginVertical: Platform.OS === 'ios' ? 20 : 10
 	},
 	searchInput: {
+		flex: 1,
 		marginHorizontal: 10,
 		backgroundColor: colors.beige,
 		fontSize: 14,
