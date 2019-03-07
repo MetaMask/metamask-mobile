@@ -4,19 +4,7 @@ import { TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
-import {
-	renderFromWei,
-	weiToFiat,
-	hexToBN,
-	renderFromTokenMinimalUnit,
-	fromTokenMinimalUnit,
-	balanceToFiat,
-	toBN,
-	isBN,
-	balanceToFiatNumber,
-	renderToGwei,
-	weiToFiatNumber
-} from '../../../util/number';
+import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { getActionKey, decodeTransferData } from '../../../util/transactions';
@@ -25,6 +13,7 @@ import { renderFullAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
 import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
+import TransferElement from './TransferElement';
 
 const styles = StyleSheet.create({
 	row: {
@@ -275,78 +264,6 @@ export default class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTransferElement = async () => {
-		const {
-			tx: {
-				transaction: { gas, gasPrice, to, data, from },
-				transactionHash
-			},
-			conversionRate,
-			currentCurrency,
-			tokens,
-			contractExchangeRates
-		} = this.props;
-		const { actionKey } = this.state;
-		const [addressTo, encodedAmount] = decodeTransferData('transfer', data);
-		const amount = toBN(encodedAmount);
-		// 'transfer' method could be used for ERC20 and erc721
-		// const isCollectible = await isCollectibleAddress(to, encodedAmount);
-
-		const userHasToken = toChecksumAddress(to) in tokens;
-		const token = userHasToken ? tokens[toChecksumAddress(to)] : null;
-		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;
-		const renderTokenAmount = token
-			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
-			: undefined;
-		const exchangeRate = token ? contractExchangeRates[token.address] : undefined;
-		let renderTokenFiatAmount, renderTokenFiatNumber;
-		if (exchangeRate) {
-			renderTokenFiatAmount =
-				'- ' +
-				balanceToFiat(
-					fromTokenMinimalUnit(amount, token.decimals) || 0,
-					conversionRate,
-					exchangeRate,
-					currentCurrency
-				).toUpperCase();
-			renderTokenFiatNumber = balanceToFiatNumber(
-				fromTokenMinimalUnit(amount, token.decimals) || 0,
-				conversionRate,
-				exchangeRate
-			);
-		}
-		const gasBN = hexToBN(gas);
-		const gasPriceBN = hexToBN(gasPrice);
-		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
-		const renderToken = token
-			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol
-			: strings('transaction.value_not_available');
-		const totalFiatNumber = renderTokenFiatNumber
-			? weiToFiatNumber(totalGas, conversionRate) + renderTokenFiatNumber
-			: undefined;
-
-		const transactionDetails = {
-			renderFrom: renderFullAddress(from),
-			renderTo: renderFullAddress(addressTo),
-			transactionHash,
-			renderValue: renderToken,
-			renderGas: parseInt(gas, 16).toString(),
-			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue:
-				renderToken + ' ' + strings('unit.divisor') + ' ' + renderFromWei(totalGas) + ' ' + strings('unit.eth'),
-			renderTotalValueFiat: totalFiatNumber ? totalFiatNumber + ' ' + currentCurrency.toUpperCase() : undefined
-		};
-
-		const transactionElement = {
-			addressTo,
-			actionKey: renderActionKey,
-			value: !renderTokenAmount ? strings('transaction.value_not_available') : renderTokenAmount,
-			fiatValue: renderTokenFiatAmount
-		};
-
-		return [transactionElement, transactionDetails];
-	};
-
 	renderTransferFromElement = () => {
 		const {
 			tx: {
@@ -493,8 +410,22 @@ export default class TransactionElement extends PureComponent {
 		let transactionElement, transactionDetails;
 		switch (actionKey) {
 			case strings('transactions.sent_tokens'):
-				[transactionElement, transactionDetails] = this.renderTransferElement(totalGas);
-				break;
+				return (
+					<TransferElement
+						renderTxElement={this.renderTxElement}
+						renderTxDetails={this.renderTxDetails}
+						tx={this.props.tx}
+						contractExchangeRates={this.props.contractExchangeRates}
+						conversionRate={this.props.conversionRate}
+						currentCurrency={this.props.currentCurrency}
+						selected={this.props.selected}
+						selectedAddress={this.props.selectedAddress}
+						i={this.props.i}
+						onPressItem={this.props.onPressItem}
+						tokens={this.props.tokens}
+						collectibleContracts={this.props.collectibleContracts}
+					/>
+				);
 			case strings('transactions.sent_collectible'):
 				[transactionElement, transactionDetails] = this.renderTransferFromElement(totalGas);
 				break;
