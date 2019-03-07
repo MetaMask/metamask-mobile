@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	address: {
-		fontSize: 14,
+		fontSize: 16,
 		paddingVertical: 10,
 		color: colors.gray,
 		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
