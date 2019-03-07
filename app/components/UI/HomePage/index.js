@@ -242,7 +242,7 @@ class HomePage extends Component {
 		} else {
 			this.onInitialUrlSubmit(input);
 		}
-		this.setState({ inputValue: '' });
+		this.mounted && this.setState({ inputValue: '' });
 	};
 
 	onAutocomplete = link => {
@@ -252,12 +252,12 @@ class HomePage extends Component {
 	};
 
 	dismissKeyboardAndClear = () => {
-		this.setState({ searchInputValue: '' });
+		this.mounted && this.setState({ searchInputValue: '' });
 		Keyboard.dismiss();
 	};
 
 	keyboardDidHide = () => {
-		this.setState({ searchInputValue: '' });
+		this.mounted && this.setState({ searchInputValue: '' });
 	};
 
 	render() {
