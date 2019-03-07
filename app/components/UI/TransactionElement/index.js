@@ -395,7 +395,7 @@ export default class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
-	render = () => {
+	render() {
 		const {
 			tx: {
 				transaction: { gas, gasPrice }
@@ -408,24 +408,25 @@ export default class TransactionElement extends PureComponent {
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 		let transactionElement, transactionDetails;
+		if (actionKey === strings('transactions.sent_tokens')) {
+			return (
+				<TransferElement
+					renderTxElement={this.renderTxElement}
+					renderTxDetails={this.renderTxDetails}
+					tx={this.props.tx}
+					contractExchangeRates={this.props.contractExchangeRates}
+					conversionRate={this.props.conversionRate}
+					currentCurrency={this.props.currentCurrency}
+					selected={this.props.selected}
+					selectedAddress={this.props.selectedAddress}
+					i={this.props.i}
+					onPressItem={this.props.onPressItem}
+					tokens={this.props.tokens}
+					collectibleContracts={this.props.collectibleContracts}
+				/>
+			);
+		}
 		switch (actionKey) {
-			case strings('transactions.sent_tokens'):
-				return (
-					<TransferElement
-						renderTxElement={this.renderTxElement}
-						renderTxDetails={this.renderTxDetails}
-						tx={this.props.tx}
-						contractExchangeRates={this.props.contractExchangeRates}
-						conversionRate={this.props.conversionRate}
-						currentCurrency={this.props.currentCurrency}
-						selected={this.props.selected}
-						selectedAddress={this.props.selectedAddress}
-						i={this.props.i}
-						onPressItem={this.props.onPressItem}
-						tokens={this.props.tokens}
-						collectibleContracts={this.props.collectibleContracts}
-					/>
-				);
 			case strings('transactions.sent_collectible'):
 				[transactionElement, transactionDetails] = this.renderTransferFromElement(totalGas);
 				break;
@@ -446,5 +447,5 @@ export default class TransactionElement extends PureComponent {
 				</View>
 			</TouchableOpacity>
 		);
-	};
+	}
 }
