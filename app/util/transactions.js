@@ -37,14 +37,18 @@ class SmartContractAddresses {
 	static cache = {};
 }
 
+/**
+ * Utility class with the single responsibility
+ * of caching CollectibleAddresses
+ */
 class CollectibleAddresses {
 	static cache = {};
 }
 
 /**
- * Generates transfer data for specified asset type
+ * Generates transfer data for specified method
  *
- * @param {String} type - Asset type (ERC20)
+ * @param {String} type - Method to use to generate data
  * @param {Object} opts - Optional asset parameters
  * @returns {String} - String containing the generated transfer data
  */
@@ -82,14 +86,14 @@ export function generateTransferData(type, opts) {
 }
 
 /**
- * Decode transfer data for specified asset type
+ * Decode transfer data for specified method data
  *
- * @param {String} assetType - Asset type (ERC20)
+ * @param {String} type - Method to use to generate data
  * @param {String} data - Data to decode
  * @returns {Object} - Object containing the decoded transfer data
  */
-export function decodeTransferData(assetType, data) {
-	switch (assetType) {
+export function decodeTransferData(type, data) {
+	switch (type) {
 		case 'transfer': {
 			const encodedAddress = data.substr(10, 64);
 			const encodedAmount = data.substr(74, 138);
