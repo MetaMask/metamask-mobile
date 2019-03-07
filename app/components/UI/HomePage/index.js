@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 10,
 		backgroundColor: colors.beige,
 		fontSize: 14,
+		flex: 1,
 		...fontStyles.normal
 	},
 	searchIcon: {
@@ -241,7 +242,7 @@ class HomePage extends Component {
 		} else {
 			this.onInitialUrlSubmit(input);
 		}
-		this.setState({ inputValue: '' });
+		this.mounted && this.setState({ inputValue: '' });
 	};
 
 	onAutocomplete = link => {
@@ -251,87 +252,99 @@ class HomePage extends Component {
 	};
 
 	dismissKeyboardAndClear = () => {
-		this.setState({ searchInputValue: '' });
+		this.mounted && this.setState({ searchInputValue: '' });
 		Keyboard.dismiss();
 	};
 
 	keyboardDidHide = () => {
-		this.setState({ searchInputValue: '' });
+		this.mounted && this.setState({ searchInputValue: '' });
 	};
 
 	render() {
 		return (
-			<ScrollView style={styles.flex}>
-				<TouchableWithoutFeedback style={styles.flex} onPress={this.dismissKeyboardAndClear} accesible={false}>
-					<View style={styles.flex}>
-						<View style={styles.homePageContent}>
-							<View style={styles.searchWrapper}>
-								<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
-								<TextInput
-									style={[
-										styles.searchInput,
-										this.state.inputWidth ? { width: this.state.inputWidth } : {}
-									]}
-									autoCapitalize="none"
-									autoCorrect={false}
-									clearButtonMode="while-editing"
-									onChangeText={this.onInitialUrlChange}
-									onSubmitEditing={this.onInitialUrlSubmit}
-									placeholder={strings('browser.search')}
-									placeholderTextColor={colors.asphalt}
-									returnKeyType="go"
-									value={this.state.searchInputValue}
-								/>
-							</View>
-							<View style={styles.topBarWrapper}>
-								<View style={styles.foxWrapper}>
-									<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+			<View style={styles.flex}>
+				<ScrollView style={styles.flex}>
+					<TouchableWithoutFeedback
+						style={styles.flex}
+						onPress={this.dismissKeyboardAndClear}
+						accesible={false}
+					>
+						<View style={styles.flex}>
+							<View style={styles.homePageContent}>
+								<View style={styles.searchWrapper}>
+									<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
+									<TextInput
+										style={[
+											styles.searchInput,
+											this.state.inputWidth ? { width: this.state.inputWidth } : {}
+										]}
+										autoCapitalize="none"
+										autoCorrect={false}
+										clearButtonMode="while-editing"
+										onChangeText={this.onInitialUrlChange}
+										onSubmitEditing={this.onInitialUrlSubmit}
+										placeholder={strings('browser.search')}
+										placeholderTextColor={colors.asphalt}
+										returnKeyType="go"
+										value={this.state.searchInputValue}
+									/>
 								</View>
-								<View style={styles.titleWrapper}>
-									<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+								<View style={styles.topBarWrapper}>
+									<View style={styles.foxWrapper}>
+										<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+									</View>
+									<View style={styles.titleWrapper}>
+										<Image
+											source={metamask_name}
+											style={styles.metamaskName}
+											resizeMethod={'auto'}
+										/>
 
-									<Text style={styles.separator}> | </Text>
-									<Text style={styles.title}>{strings('browser.dapp_browser')}</Text>
+										<Text style={styles.separator}> | </Text>
+										<Text style={styles.title}>{strings('browser.dapp_browser')}</Text>
+									</View>
+								</View>
+
+								<View style={styles.startPageContent}>
+									<Text style={styles.startPageTitle}>{strings('browser.welcome')}</Text>
+									<Text style={styles.startPageSubtitle}>
+										{strings('browser.dapp_browser_message')}
+									</Text>
 								</View>
 							</View>
 
-							<View style={styles.startPageContent}>
-								<Text style={styles.startPageTitle}>{strings('browser.welcome')}</Text>
-								<Text style={styles.startPageSubtitle}>{strings('browser.dapp_browser_message')}</Text>
-							</View>
+							<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
+								<BrowserFeatured tabLabel={strings('browser.featured_dapps')} goTo={this.props.goTo} />
+								<BrowserFavorites tabLabel={strings('browser.my_favorites')} goTo={this.props.goTo} />
+							</ScrollableTabView>
+
+							{this.props.passwordSet &&
+								!this.props.seedphraseBackedUp && (
+									<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
+										<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
+											<View style={styles.backupAlertIconWrapper}>
+												<Icon name="info-outline" style={styles.backupAlertIcon} />
+											</View>
+											<View>
+												<Text style={styles.backupAlertTitle}>
+													{strings('home_page.backup_alert_title')}
+												</Text>
+												<Text style={styles.backupAlertMessage}>
+													{strings('home_page.backup_alert_message')}
+												</Text>
+											</View>
+										</ElevatedView>
+									</TouchableOpacity>
+								)}
 						</View>
-
-						<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-							<BrowserFeatured tabLabel={strings('browser.featured_dapps')} goTo={this.props.goTo} />
-							<BrowserFavorites tabLabel={strings('browser.my_favorites')} goTo={this.props.goTo} />
-						</ScrollableTabView>
-
-						{this.props.passwordSet &&
-							!this.props.seedphraseBackedUp && (
-								<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
-									<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
-										<View style={styles.backupAlertIconWrapper}>
-											<Icon name="info-outline" style={styles.backupAlertIcon} />
-										</View>
-										<View>
-											<Text style={styles.backupAlertTitle}>
-												{strings('home_page.backup_alert_title')}
-											</Text>
-											<Text style={styles.backupAlertMessage}>
-												{strings('home_page.backup_alert_message')}
-											</Text>
-										</View>
-									</ElevatedView>
-								</TouchableOpacity>
-							)}
-						{this.state.searchInputValue.length > 1 && (
-							<View style={styles.urlAutocomplete}>
-								<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
-							</View>
-						)}
+					</TouchableWithoutFeedback>
+				</ScrollView>
+				{this.state.searchInputValue.length > 1 && (
+					<View style={styles.urlAutocomplete}>
+						<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
 					</View>
-				</TouchableWithoutFeedback>
-			</ScrollView>
+				)}
+			</View>
 		);
 	}
 }
