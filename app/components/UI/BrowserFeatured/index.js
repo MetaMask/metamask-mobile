@@ -3,10 +3,12 @@ import dappList from '../../../util/featured-dapp-list';
 import FeaturedItem from './FeaturedItem';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1
+		flex: 1,
+		backgroundColor: colors.white
 	}
 });
 
@@ -21,6 +23,12 @@ export default class BrowserFeatured extends Component {
 		goTo: PropTypes.any
 	};
 
+	self = React.createRef();
+
+	measureMyself(cb) {
+		this.self && this.self.current && this.self.current.measure(cb);
+	}
+
 	renderItem = item => {
 		const { name, description, url, imageUrl } = item;
 		return (
@@ -33,6 +41,10 @@ export default class BrowserFeatured extends Component {
 		);
 	};
 	render() {
-		return <View style={styles.wrapper}>{dappList.map(item => this.renderItem(item))}</View>;
+		return (
+			<View ref={this.self} style={styles.wrapper}>
+				{dappList.map(item => this.renderItem(item))}
+			</View>
+		);
 	}
 }

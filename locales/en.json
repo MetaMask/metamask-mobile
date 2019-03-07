@@ -84,7 +84,7 @@
 		"submit_feedback_message": "Choose the type of feedback to send.",
 		"submit_bug": "BUG",
 		"submit_general_feedback": "GENERAL",
-		"copy_address": "Copy my Public Address",
+		"share_address": "Share my Public Address",
 		"view_in_etherscan": "View on Etherscan",
 		"browser": "Browser",
 		"settings": "Settings",
@@ -177,6 +177,8 @@
 		"state_logs": "State Logs",
 		"auto_lock": "Auto-lock",
 		"auto_lock_desc": "Choose the amount of time before the application automatically locks.",
+		"state_logs_desc":
+			"This will help MetaMask debug any issue you might encounter. Please send it via email to mobile@metamask.io",
 		"autolock_immediately": "Immediately",
 		"autolock_never": "Never",
 		"autolock_after": "After {{time}} seconds",
@@ -213,7 +215,7 @@
 		"advanced_title": "Advanced",
 		"advanced_desc": "Access developer features, Reset Account, setup testnets and custom RPC",
 		"security_title": "Security & Privacy",
-		"security_desc": "Privacy settings and wallet seed phrase",
+		"security_desc": "Privacy settings, private key and wallet seed phrase",
 		"info_title": "About MetaMask",
 		"legal_title": "Legal",
 		"conversion_title": "Currency conversion",
@@ -241,11 +243,15 @@
 	"reveal_credential": {
 		"seed_phrase_title": "Reveal Seed Phrase",
 		"private_key_title": "Show Private Key",
+		"show_private_key": "Show Private Key",
+		"private_key_title_for_account": "Show Private Key for {{accountName}}",
 		"cancel": "Cancel",
 		"confirm": "Next",
 		"seed_phrase_explanation":
 			"If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
 		"private_key_explanation": "Save it somewhere safe and secret.",
+		"private_key_warning":
+			"This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
 		"seed_phrase_warning_explanation":
 			"DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
 		"private_key_warning_explanation":

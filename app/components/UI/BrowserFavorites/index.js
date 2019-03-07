@@ -1,15 +1,18 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { Dimensions, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import WebsiteIcon from '../WebsiteIcon';
 import { colors, fontStyles } from '../../../styles/common';
 import ActionSheet from 'react-native-actionsheet';
-import { removeBookmark } from '../../../actions/bookmarks';
 
+const TABBAR_HEIGHT = 50;
+const MIN_HEIGHT = Dimensions.get('window').height / 2 + TABBAR_HEIGHT;
 const styles = StyleSheet.create({
+	wrapper: {
+		minHeight: MIN_HEIGHT,
+		backgroundColor: colors.white
+	},
 	bookmarksWrapper: {
 		backgroundColor: colors.white,
 		flex: 1
@@ -45,9 +48,6 @@ const styles = StyleSheet.create({
 	fallbackTextStyle: {
 		fontSize: 12
 	},
-	wrapper: {
-		flex: 1
-	},
 	noBookmarksWrapper: {
 		marginTop: 120,
 		paddingHorizontal: 20
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 /**
  * Browser favorite sites
  */
-class BrowserFavorites extends Component {
+export default class BrowserFavorites extends Component {
 	static propTypes = {
 		/**
 		 * Array containing all the bookmark items
@@ -74,6 +74,7 @@ class BrowserFavorites extends Component {
 	};
 
 	actionSheet = null;
+	self = React.createRef();
 
 	keyExtractor = item => item.url;
 
@@ -117,10 +118,14 @@ class BrowserFavorites extends Component {
 		);
 	};
 
+	measureMyself(cb) {
+		this.self && this.self.current && this.self.current.measure(cb);
+	}
+
 	renderBookmarks() {
 		const { bookmarks } = this.props;
 		let content = null;
-		if (bookmarks.length) {
+		if (bookmarks && bookmarks.length) {
 			content = bookmarks.map(item => this.renderItem(item));
 		} else {
 			content = (
@@ -146,19 +151,11 @@ class BrowserFavorites extends Component {
 	}
 
 	render() {
-		return <View style={styles.wrapper}>{this.renderBookmarks()}</View>;
+		const allItemsHeight = (this.props.bookmarks && this.props.bookmarks.length * 40) || MIN_HEIGHT;
+		return (
+			<View ref={this.self} style={[styles.wrapper, { height: Math.max(MIN_HEIGHT, allItemsHeight) }]}>
+				{this.renderBookmarks()}
+			</View>
+		);
 	}
 }
-
-const mapStateToProps = state => ({
-	bookmarks: state.bookmarks
-});
-
-const mapDispatchToProps = dispatch => ({
-	removeBookmark: bookmark => dispatch(removeBookmark(bookmark))
-});
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(BrowserFavorites));

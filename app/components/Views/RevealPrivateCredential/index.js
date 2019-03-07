@@ -93,6 +93,9 @@ const styles = StyleSheet.create({
 		marginLeft: 10,
 		marginRight: 40,
 		...fontStyles.normal
+	},
+	enterPassword: {
+		marginBottom: 15
 	}
 });
 
@@ -268,7 +271,7 @@ class RevealPrivateCredential extends Component {
 							</View>
 						) : (
 							<View>
-								<Text>{strings('reveal_credential.enter_password')}</Text>
+								<Text style={styles.enterPassword}>{strings('reveal_credential.enter_password')}</Text>
 								<TextInput
 									style={styles.input}
 									placeholder={'Password'}

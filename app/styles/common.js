@@ -54,6 +54,7 @@ export const colors = {
 	androidStatusbar: '#EBEBED',
 	switchOnColor: '#4CD964',
 	switchOffColor: '#B3B3B3',
+	blueishGrey: '#e9eff5',
 	pager: '#DADADA',
 	modalDragGrey: '#C4C4C4',
 	spinnerColor: '#F758AC',
