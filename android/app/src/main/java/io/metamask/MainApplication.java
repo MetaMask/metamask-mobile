@@ -29,7 +29,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
-
+import cl.json.ShareApplication;
 import io.fabric.sdk.android.Fabric;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.List;
 import android.support.multidex.MultiDexApplication;
 
 
-public class MainApplication extends MultiDexApplication implements ReactApplication {
+public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
 
 	private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
 		@Override
@@ -92,4 +92,9 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 		}
 		SoLoader.init(this, /* native exopackage */ false);
 	}
+
+	 @Override
+     public String getFileProviderAuthority() {
+            return BuildConfig.APPLICATION_ID + ".provider";
+     }
 }

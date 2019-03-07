@@ -16,3 +16,9 @@ export function toggleCollectibleContractModal() {
 		type: 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL'
 	};
 }
+
+export function toggleReceiveModal() {
+	return {
+		type: 'TOGGLE_RECEIVE_MODAL'
+	};
+}

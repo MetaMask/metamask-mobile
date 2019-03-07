@@ -19,7 +19,6 @@ import SecuritySettings from '../../Views/SecuritySettings';
 import Wallet from '../../Views/Wallet';
 import SyncWithExtension from '../../Views/SyncWithExtension';
 import Asset from '../../Views/Asset';
-import AccountDetails from '../../Views/AccountDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import CollectibleView from '../../Views/CollectibleView';
@@ -79,9 +78,6 @@ const MainNavigator = createStackNavigator(
 						},
 						AddAsset: {
 							screen: AddAsset
-						},
-						AccountDetails: {
-							screen: AccountDetails
 						},
 						Collectible: {
 							screen: Collectible
