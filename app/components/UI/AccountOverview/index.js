@@ -10,13 +10,14 @@ import { renderFiat } from '../../../util/number';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
+import { toggleAccountsModal } from '../../../actions/modals';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		maxHeight: 170
+		maxHeight: Platform.OS === 'ios' ? 210 : 220
 	},
 	wrapper: {
-		maxHeight: 170,
+		maxHeight: Platform.OS === 'ios' ? 210 : 220,
 		paddingTop: 20,
 		paddingHorizontal: 20,
 		paddingBottom: 0,
@@ -24,25 +25,45 @@ const styles = StyleSheet.create({
 	},
 	info: {
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		textAlign: 'center'
+	},
+	data: {
+		textAlign: 'center'
 	},
 	label: {
 		paddingTop: 7,
 		fontSize: 24,
+		textAlign: 'center',
 		...fontStyles.normal
 	},
+	labelInput: {
+		marginBottom: Platform.OS === 'android' ? -10 : 0
+	},
+	addressWrapper: {
+		backgroundColor: colors.blueishGrey,
+		borderRadius: 20,
+		marginTop: 20,
+		paddingVertical: 7,
+		paddingHorizontal: 15
+	},
 	address: {
-		fontSize: 16,
-		paddingVertical: 10,
+		fontSize: 12,
 		color: colors.gray,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-		letterSpacing: 1.5
+		...fontStyles.normal,
+		letterSpacing: 0.8
 	},
 	amountFiat: {
 		fontSize: 12,
 		paddingTop: 5,
 		color: colors.fontSecondary,
 		...fontStyles.normal
+	},
+	identiconBorder: {
+		borderRadius: 80,
+		borderWidth: 2,
+		padding: 2,
+		borderColor: colors.primary
 	}
 });
 
@@ -71,11 +92,15 @@ class AccountOverview extends Component {
 		/**
 		/* Triggers global alert
 		*/
-		showAlert: PropTypes.func
+		showAlert: PropTypes.func,
+		/**
+		 * Action that toggles the accounts modal
+		 */
+		toggleAccountsModal: PropTypes.func
 	};
 
 	state = {
-		accountLabelEditable: false,
+		accountLabelEditable: true,
 		accountLabel: '',
 		originalAccountLabel: ''
 	};
@@ -130,7 +155,7 @@ class AccountOverview extends Component {
 			currentCurrency
 		} = this.props;
 
-		const fiatBalance = renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency);
+		const fiatBalance = `$ ${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel } = this.state;
@@ -144,11 +169,13 @@ class AccountOverview extends Component {
 				testID={'account-overview'}
 			>
 				<View style={styles.info}>
-					<Identicon address={address} size="38" />
-					<View>
+					<TouchableOpacity style={styles.identiconBorder} onPress={this.props.toggleAccountsModal}>
+						<Identicon address={address} size="38" />
+					</TouchableOpacity>
+					<View style={styles.data}>
 						{accountLabelEditable ? (
 							<TextInput
-								style={styles.label}
+								style={[styles.label, styles.labelInput]}
 								editable={accountLabelEditable}
 								onChangeText={this.onAccountLabelChange}
 								onSubmitEditing={this.setAccountLabel}
@@ -161,17 +188,20 @@ class AccountOverview extends Component {
 								autoCapitalize={'none'}
 								autoComplete={'off'}
 								autoCorrect={false}
+								numberOfLines={1}
 							/>
 						) : (
 							<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-								<Text style={styles.label}>{name}</Text>
+								<Text style={styles.label} numberOfLines={1}>
+									{name}
+								</Text>
 							</TouchableOpacity>
 						)}
 					</View>
-					<TouchableOpacity onPress={this.copyAccountToClipboard}>
+					<Text style={styles.amountFiat}>{fiatBalance}</Text>
+					<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 						<Text style={styles.address}>{renderShortAddress(address)}</Text>
 					</TouchableOpacity>
-					<Text style={styles.amountFiat}>{fiatBalance}</Text>
 				</View>
 			</ScrollView>
 		);
@@ -185,7 +215,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
-	showAlert: config => dispatch(showAlert(config))
+	showAlert: config => dispatch(showAlert(config)),
+	toggleAccountsModal: () => dispatch(toggleAccountsModal())
 });
 
 export default connect(
