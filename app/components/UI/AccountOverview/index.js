@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 	},
 	addressWrapper: {
 		backgroundColor: colors.blueishGrey,
-		borderRadius: 20,
+		borderRadius: 40,
 		marginTop: 20,
 		paddingVertical: 7,
 		paddingHorizontal: 15

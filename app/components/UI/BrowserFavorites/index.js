@@ -7,9 +7,10 @@ import { colors, fontStyles } from '../../../styles/common';
 import ActionSheet from 'react-native-actionsheet';
 
 const TABBAR_HEIGHT = 50;
+const MIN_HEIGHT = Dimensions.get('window').height / 2 + TABBAR_HEIGHT;
 const styles = StyleSheet.create({
 	wrapper: {
-		minHeight: Dimensions.get('window').height / 2 + TABBAR_HEIGHT,
+		minHeight: MIN_HEIGHT,
 		backgroundColor: colors.white
 	},
 	bookmarksWrapper: {
@@ -124,7 +125,7 @@ export default class BrowserFavorites extends Component {
 	renderBookmarks() {
 		const { bookmarks } = this.props;
 		let content = null;
-		if (bookmarks.length) {
+		if (bookmarks && bookmarks.length) {
 			content = bookmarks.map(item => this.renderItem(item));
 		} else {
 			content = (
@@ -150,8 +151,9 @@ export default class BrowserFavorites extends Component {
 	}
 
 	render() {
+		const allItemsHeight = (this.props.bookmarks && this.props.bookmarks.length * 40) || MIN_HEIGHT;
 		return (
-			<View ref={this.self} style={[styles.wrapper, { height: this.props.bookmarks.length * 40 }]}>
+			<View ref={this.self} style={[styles.wrapper, { height: Math.max(MIN_HEIGHT, allItemsHeight) }]}>
 				{this.renderBookmarks()}
 			</View>
 		);
