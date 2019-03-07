@@ -10,10 +10,14 @@ import {
 	Image,
 	StyleSheet,
 	Text,
-	ScrollView
+	ScrollView,
+	Dimensions,
+	InteractionManager
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import QRCode from 'react-native-qrcode-svg';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -29,7 +33,7 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { toggleNetworkModal, toggleAccountsModal } from '../../../actions/modals';
+import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';
 import { renderShortAddress } from '../../../util/address';
@@ -38,6 +42,7 @@ import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import DeviceInfo from 'react-native-device-info';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -220,6 +225,40 @@ const styles = StyleSheet.create({
 		fontSize: 22,
 		textAlign: 'center',
 		...fontStyles.bold
+	},
+	detailsWrapper: {
+		padding: 10,
+		alignItems: 'center'
+	},
+	qrCode: {
+		marginVertical: 15,
+		alignItems: 'center',
+		justifyContent: 'center',
+		padding: 40,
+		backgroundColor: colors.concrete,
+		borderRadius: 8
+	},
+	addressWrapper: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 15,
+		paddingVertical: 10,
+		marginTop: 10,
+		marginBottom: 20,
+		marginRight: 10,
+		marginLeft: 10,
+		borderRadius: 5,
+		backgroundColor: colors.concrete
+	},
+	addressTitle: {
+		fontSize: 16,
+		marginBottom: 10,
+		...fontStyles.normal
+	},
+	address: {
+		fontSize: 17,
+		letterSpacing: 2,
+		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
 	}
 });
 
@@ -277,6 +316,10 @@ class DrawerView extends Component {
 		 */
 		toggleAccountsModal: PropTypes.func,
 		/**
+		 * Action that toggles the receive modal
+		 */
+		toggleReceiveModal: PropTypes.func,
+		/**
 		 * Action that shows the global alert
 		 */
 		showAlert: PropTypes.func.isRequired,
@@ -284,6 +327,10 @@ class DrawerView extends Component {
 		 * Boolean that determines the status of the networks modal
 		 */
 		networkModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Boolean that determines the status of the receive modal
+		 */
+		receiveModalVisible: PropTypes.bool.isRequired,
 		/**
 		 * Boolean that determines the status of the networks modal
 		 */
@@ -337,6 +384,10 @@ class DrawerView extends Component {
 		this.props.toggleAccountsModal();
 	};
 
+	hideReceiveModal = () => {
+		this.props.toggleReceiveModal();
+	};
+
 	onNetworksModalClose = async manualClose => {
 		this.hideNetworksModal();
 		if (!manualClose) {
@@ -347,15 +398,12 @@ class DrawerView extends Component {
 		this.props.toggleNetworkModal();
 	};
 
-	showAccountDetails = () => {
-		this.props.navigation.navigate('WalletTabHome');
-		this.props.navigation.navigate('WalletView', { page: 0 });
-		this.props.navigation.navigate('AccountDetails');
-		this.hideDrawer();
+	showReceiveModal = () => {
+		this.props.toggleReceiveModal();
 	};
 
 	onReceive = () => {
-		Alert.alert(strings('drawer.coming_soon'));
+		this.props.toggleReceiveModal();
 	};
 
 	onSend = async () => {
@@ -383,17 +431,6 @@ class DrawerView extends Component {
 
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
-	};
-
-	copyAddressToClipboard = async () => {
-		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
-		});
 	};
 
 	showSettings = async () => {
@@ -497,6 +534,10 @@ class DrawerView extends Component {
 		return <Icon name={name} size={size || 24} color={colors.gray} />;
 	}
 
+	getMaterialIcon(name, size) {
+		return <MaterialIcon name={name} size={size || 24} color={colors.gray} />;
+	}
+
 	getImageIcon(name) {
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
@@ -527,9 +568,9 @@ class DrawerView extends Component {
 		],
 		[
 			{
-				name: strings('drawer.copy_address'),
-				icon: this.getIcon('copy'),
-				action: this.copyAddressToClipboard
+				name: strings('drawer.share_address'),
+				icon: this.getMaterialIcon('share-variant'),
+				action: this.onShare
 			},
 			{
 				name: strings('drawer.view_in_etherscan'),
@@ -552,6 +593,29 @@ class DrawerView extends Component {
 			}
 		]
 	];
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
+		this.hideReceiveModal();
+		InteractionManager.runAfterInteractions(() => {
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 1500,
+				content: 'clipboard-alert',
+				data: { msg: strings('account_details.account_copied_to_clipboard') }
+			});
+		});
+	};
+
+	onShare = () => {
+		const { selectedAddress } = this.props;
+		Share.open({
+			message: `ethereum:${selectedAddress}`
+		}).catch(err => {
+			Logger.log('Error while trying to share address', err);
+		});
+	};
 
 	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
@@ -606,12 +670,7 @@ class DrawerView extends Component {
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<Icon
-									name="qrcode"
-									onPress={this.showAccountDetails}
-									size={24}
-									style={styles.infoIcon}
-								/>
+								<Icon name="qrcode" onPress={this.showReceiveModal} size={24} style={styles.infoIcon} />
 							</TouchableOpacity>
 						</ImageBackground>
 					</View>
@@ -717,6 +776,27 @@ class DrawerView extends Component {
 						<Text style={styles.modalText}>{strings('drawer.submit_feedback_message')}</Text>
 					</View>
 				</ActionModal>
+				<Modal
+					isVisible={this.props.receiveModalVisible}
+					onBackdropPress={this.hideReceiveModal}
+					onSwipeComplete={this.hideReceiveModal}
+					swipeDirection={'down'}
+					propagateSwipe
+				>
+					<View style={styles.detailsWrapper}>
+						<View style={styles.qrCode}>
+							<QRCode value={`ethereum:${selectedAddress}`} size={Dimensions.get('window').width - 160} />
+						</View>
+						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+							<Text style={styles.addressTitle} testID={'public-address-text'}>
+								Public Address
+							</Text>
+							<Text style={styles.address} testID={'public-address-text'}>
+								{selectedAddress}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</Modal>
 			</SafeAreaView>
 		);
 	}
@@ -731,6 +811,7 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
+	receiveModalVisible: state.modals.receiveModalVisible,
 	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
 	passwordSet: state.user.passwordSet
 });
@@ -738,6 +819,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });
