@@ -96,7 +96,13 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
       }
     >
       <View>
-        <Text>
+        <Text
+          style={
+            Object {
+              "marginBottom": 15,
+            }
+          }
+        >
           Enter password to continue
         </Text>
         <TextInput

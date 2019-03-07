@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Clipboard, Platform, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
 import Engine from '../../../core/Engine';
@@ -8,6 +8,8 @@ import { setTokensTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import { renderFiat } from '../../../util/number';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { showAlert } from '../../../actions/alert';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -65,7 +67,11 @@ class AccountOverview extends Component {
 		/**
 		/* Selected currency
 		*/
-		currentCurrency: PropTypes.string
+		currentCurrency: PropTypes.string,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -105,6 +111,17 @@ class AccountOverview extends Component {
 		const { identities, selectedAddress } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabelEditable: false, accountLabel });
+	};
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
 	};
 
 	render() {
@@ -151,7 +168,9 @@ class AccountOverview extends Component {
 							</TouchableOpacity>
 						)}
 					</View>
-					<Text style={styles.address}>{renderShortAddress(address)}</Text>
+					<TouchableOpacity onPress={this.copyAccountToClipboard}>
+						<Text style={styles.address}>{renderShortAddress(address)}</Text>
+					</TouchableOpacity>
 					<Text style={styles.amountFiat}>{fiatBalance}</Text>
 				</View>
 			</ScrollView>
@@ -165,7 +184,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(

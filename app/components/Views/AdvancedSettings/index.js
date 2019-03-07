@@ -132,7 +132,7 @@ class Settings extends Component {
 		/**
 		 * Entire redux state used to generate state logs
 		 */
-		fullState: PropTypes.obj
+		fullState: PropTypes.object
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -342,7 +342,7 @@ class Settings extends Component {
 								onPress={this.downloadStateLogs}
 								containerStyle={styles.syncConfirm}
 							>
-								DOWNLOAD STATE LOGS
+								{strings('app_settings.state_logs_button')}
 							</StyledButton>
 						</View>
 					</View>
