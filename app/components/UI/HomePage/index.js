@@ -10,7 +10,8 @@ import {
 	Platform,
 	StyleSheet,
 	TextInput,
-	View
+	View,
+	ScrollView
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -24,7 +25,6 @@ import BrowserFeatured from '../BrowserFeatured';
 import BrowserFavorites from '../BrowserFavorites';
 import UrlAutocomplete from '../UrlAutocomplete';
 import onUrlSubmit from '../../../util/browser';
-import { ScrollView } from 'react-native-gesture-handler';
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
