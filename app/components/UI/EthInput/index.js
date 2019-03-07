@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		flexDirection: 'row',
-		paddingRight: 40,
+		paddingRight: 10,
 		paddingVertical: 10,
 		paddingLeft: 14,
 		position: 'relative',
@@ -44,11 +44,11 @@ const styles = StyleSheet.create({
 		paddingRight: 0,
 		paddingLeft: 0,
 		paddingTop: 0,
-		position: 'relative'
+		maxWidth: '80%'
 	},
 	eth: {
 		...fontStyles.bold,
-		flex: 0,
+		marginRight: 30,
 		fontSize: 16,
 		paddingTop: Platform.OS === 'android' ? 3 : 0,
 		paddingLeft: 10
@@ -58,13 +58,13 @@ const styles = StyleSheet.create({
 		fontSize: 12
 	},
 	split: {
-		flex: 0,
-		flexDirection: 'row',
-		marginRight: 100
+		flex: 1,
+		flexDirection: 'row'
 	},
 	ethContainer: {
+		flex: 1,
 		paddingLeft: 6,
-		paddingRight: 30
+		paddingRight: 10
 	},
 	icon: {
 		paddingBottom: 4,
