@@ -275,7 +275,7 @@ export default class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTransferElement = () => {
+	renderTransferElement = async () => {
 		const {
 			tx: {
 				transaction: { gas, gasPrice, to, data, from },
@@ -287,7 +287,11 @@ export default class TransactionElement extends PureComponent {
 			contractExchangeRates
 		} = this.props;
 		const { actionKey } = this.state;
-		const [addressTo, amount] = decodeTransferData('ERC20', data);
+		const [addressTo, encodedAmount] = decodeTransferData('transfer', data);
+		const amount = toBN(encodedAmount);
+		// 'transfer' method could be used for ERC20 and erc721
+		// const isCollectible = await isCollectibleAddress(to, encodedAmount);
+
 		const userHasToken = toChecksumAddress(to) in tokens;
 		const token = userHasToken ? tokens[toChecksumAddress(to)] : null;
 		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;
@@ -352,7 +356,7 @@ export default class TransactionElement extends PureComponent {
 			collectibleContracts
 		} = this.props;
 		let { actionKey } = this.state;
-		const [addressFrom, addressTo, tokenId] = decodeTransferData('ERC721', data);
+		const [addressFrom, addressTo, tokenId] = decodeTransferData('transferFrom', data);
 		const collectible = collectibleContracts.find(
 			collectible => collectible.address.toLowerCase() === to.toLowerCase()
 		);

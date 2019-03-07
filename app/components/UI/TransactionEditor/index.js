@@ -238,12 +238,12 @@ class TransactionEditor extends Component {
 			ERC20: () => {
 				const tokenAmountToSend = selectedAsset && value && value.toString(16);
 				return to && tokenAmountToSend
-					? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+					? generateTransferData('transfer', { toAddress: to, amount: tokenAmountToSend })
 					: undefined;
 			},
 			ERC721: () =>
 				to &&
-				generateTransferData('ERC721', {
+				generateTransferData('transferFrom', {
 					fromAddress: from,
 					toAddress: to,
 					tokenId: selectedAsset.tokenId
