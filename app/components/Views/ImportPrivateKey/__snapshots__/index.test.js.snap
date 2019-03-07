@@ -181,6 +181,8 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         </View>
         <TextInput
           allowFontScaling={true}
+          autoCapitalize="none"
+          autoComplete="off"
           blurOnSubmit={true}
           multiline={true}
           numberOfLines={3}
@@ -189,22 +191,25 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
           returnKeyType="next"
           style={
-            Object {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#CCCCCC",
-              "borderRadius": 4,
-              "borderWidth": 0.5,
-              "fontFamily": "Roboto",
-              "fontSize": 15,
-              "fontWeight": "400",
-              "height": 120,
-              "marginBottom": 10,
-              "marginTop": 20,
-              "paddingBottom": 20,
-              "paddingLeft": 20,
-              "paddingRight": 20,
-              "paddingTop": 20,
-            }
+            Array [
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#CCCCCC",
+                "borderRadius": 4,
+                "borderWidth": 0.5,
+                "fontFamily": "Roboto",
+                "fontSize": 15,
+                "fontWeight": "400",
+                "height": 120,
+                "marginBottom": 10,
+                "marginTop": 20,
+                "paddingBottom": 20,
+                "paddingLeft": 20,
+                "paddingRight": 20,
+                "paddingTop": 20,
+              },
+              Object {},
+            ]
           }
           testID="input-private-key"
           underlineColorAndroid="transparent"

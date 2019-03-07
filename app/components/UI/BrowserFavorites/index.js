@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
-import { TouchableOpacity, Text, StyleSheet, View, FlatList } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import WebsiteIcon from '../WebsiteIcon';
 import { colors, fontStyles } from '../../../styles/common';
 import ActionSheet from 'react-native-actionsheet';
@@ -11,6 +11,7 @@ import { removeBookmark } from '../../../actions/bookmarks';
 
 const styles = StyleSheet.create({
 	bookmarksWrapper: {
+		backgroundColor: colors.white,
 		flex: 1
 	},
 	bookmarkItem: {
@@ -92,7 +93,7 @@ class BrowserFavorites extends Component {
 		this.actionSheet = ref;
 	};
 
-	renderItem = ({ item }) => {
+	renderItem = item => {
 		const { url, name } = item;
 		return (
 			<View key={item.url} style={styles.bookmarkItem}>
@@ -120,7 +121,7 @@ class BrowserFavorites extends Component {
 		const { bookmarks } = this.props;
 		let content = null;
 		if (bookmarks.length) {
-			content = <FlatList data={bookmarks} keyExtractor={this.keyExtractor} renderItem={this.renderItem} />;
+			content = bookmarks.map(item => this.renderItem(item));
 		} else {
 			content = (
 				<View style={styles.noBookmarksWrapper}>
