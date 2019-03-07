@@ -164,7 +164,7 @@ class AccountInput extends Component {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
 			<ElevatedView elevation={10} style={styles.root}>
-				<ScrollView style={styles.componentContainer} showsVerticalScrollIndicator>
+				<ScrollView style={styles.componentContainer}>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
 							this.renderOption(visibleOptions[address], () => {
