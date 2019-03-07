@@ -104,7 +104,6 @@ class CollectibleContractOverview extends Component {
 				</View>
 
 				<AssetActionButtons
-					leftText={strings('asset_overview.send_button')}
 					middleText={strings('asset_overview.add_collectible_button')}
 					rightText={strings('asset_overview.info')}
 					onLeftPress={this.onSend}
