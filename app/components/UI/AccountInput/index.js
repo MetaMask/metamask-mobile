@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, PixelRatio } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../util/address';
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	componentContainer: {
 		position: 'relative',
-		maxHeight: PixelRatio.getPixelSizeForLayoutSize(65),
+		maxHeight: 220,
 		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
 		borderWidth: 1
