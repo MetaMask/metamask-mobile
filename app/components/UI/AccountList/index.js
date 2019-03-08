@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	footer: {
-		height: DeviceSize.isIphoneX() ? 120 : 100,
+		height: DeviceSize.isIphoneX() ? 140 : 110,
 		paddingBottom: DeviceSize.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 	},
 	footerButton: {
 		width: '100%',
-		height: 43,
+		height: 55,
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
