@@ -70,7 +70,6 @@ exports[`Main should render correctly 1`] = `
               },
               "WalletTabHome": Object {
                 "childRouters": Object {
-                  "AccountDetails": null,
                   "AddAsset": null,
                   "Asset": null,
                   "Collectible": null,
@@ -295,7 +294,6 @@ exports[`Main should render correctly 1`] = `
                 },
                 "WalletTabHome": Object {
                   "childRouters": Object {
-                    "AccountDetails": null,
                     "AddAsset": null,
                     "Asset": null,
                     "Collectible": null,

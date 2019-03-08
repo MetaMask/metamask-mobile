@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
 	ActivityIndicator,
-	Dimensions,
 	StyleSheet,
-	Text,
 	View,
 	Clipboard,
 	InteractionManager,
@@ -14,11 +12,9 @@ import {
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
 import Identicon from '../../UI/Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -57,39 +53,6 @@ const styles = StyleSheet.create({
 	},
 	labelActionIcons: {
 		alignItems: 'center'
-	},
-	detailsWrapper: {
-		padding: 10,
-		alignItems: 'center'
-	},
-	qrCode: {
-		marginVertical: 15,
-		alignItems: 'center',
-		justifyContent: 'center',
-		width: Dimensions.get('window').width - 120,
-		height: Dimensions.get('window').width - 120
-	},
-	addressWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		marginTop: 10,
-		marginBottom: 20,
-		marginRight: 10,
-		marginLeft: 10,
-		borderRadius: 5,
-		backgroundColor: colors.concrete
-	},
-	address: {
-		fontSize: 12,
-		...fontStyles.normal
-	},
-	icon: {
-		marginLeft: 10,
-		color: colors.gray
 	},
 	iconEdit: {
 		padding: 10,
@@ -246,25 +209,6 @@ class AccountDetails extends Component {
 								/>
 							)}
 						</View>
-					</View>
-				</View>
-
-				<View style={styles.detailsWrapper}>
-					<View style={styles.qrCode}>
-						<QRCode value={`ethereum:${selectedAddress}`} size={Dimensions.get('window').width - 120} />
-					</View>
-					<View style={styles.addressWrapper}>
-						<Text style={styles.address} testID={'public-address-text'}>
-							{selectedAddress}
-						</Text>
-						<Icon
-							style={styles.icon}
-							name="copy"
-							size={22}
-							color={colors.gray}
-							onPress={this.copyAccountToClipboard}
-							testID={'copy-public-address-icon'}
-						/>
 					</View>
 				</View>
 

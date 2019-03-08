@@ -1,20 +1,23 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Clipboard, Alert, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Clipboard, Platform, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import { renderFiat } from '../../../util/number';
+import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { showAlert } from '../../../actions/alert';
+import { strings } from '../../../../locales/i18n';
+import { toggleAccountsModal } from '../../../actions/modals';
 
 const styles = StyleSheet.create({
+	scrollView: {
+		maxHeight: Platform.OS === 'ios' ? 210 : 220
+	},
 	wrapper: {
-		backgroundColor: colors.white,
-		height: 210,
+		maxHeight: Platform.OS === 'ios' ? 210 : 220,
 		paddingTop: 20,
 		paddingHorizontal: 20,
 		paddingBottom: 0,
@@ -22,12 +25,33 @@ const styles = StyleSheet.create({
 	},
 	info: {
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		textAlign: 'center'
+	},
+	data: {
+		textAlign: 'center'
 	},
 	label: {
 		paddingTop: 7,
 		fontSize: 24,
+		textAlign: 'center',
 		...fontStyles.normal
+	},
+	labelInput: {
+		marginBottom: Platform.OS === 'android' ? -10 : 0
+	},
+	addressWrapper: {
+		backgroundColor: colors.blueishGrey,
+		borderRadius: 40,
+		marginTop: 20,
+		paddingVertical: 7,
+		paddingHorizontal: 15
+	},
+	address: {
+		fontSize: 12,
+		color: colors.gray,
+		...fontStyles.normal,
+		letterSpacing: 0.8
 	},
 	amountFiat: {
 		fontSize: 12,
@@ -35,45 +59,11 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
-	actions: {
-		flexDirection: 'row',
-		marginTop: 20,
-		maxWidth: 220,
-		alignContent: 'center',
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	button: {
-		flex: 1,
-		justifyContent: 'center',
-		alignContent: 'center',
-		alignItems: 'center'
-	},
-	buttonIconWrapper: {
-		width: 36,
-		height: 36,
-		paddingTop: 3,
-		alignItems: 'center',
-		justifyContent: 'center',
-		alignContent: 'center',
-		color: colors.white,
-		borderRadius: 18,
-		backgroundColor: colors.primary
-	},
-	buttonIcon: {
-		width: 24,
-		height: 24,
-		justifyContent: 'center',
-		alignContent: 'center',
-		textAlign: 'center',
-		color: colors.white
-	},
-	buttonText: {
-		marginTop: 5,
-		textAlign: 'center',
-		color: colors.primary,
-		fontSize: 11,
-		...fontStyles.normal
+	identiconBorder: {
+		borderRadius: 80,
+		borderWidth: 2,
+		padding: 2,
+		borderColor: colors.primary
 	}
 });
 
@@ -84,41 +74,73 @@ const styles = StyleSheet.create({
 class AccountOverview extends Component {
 	static propTypes = {
 		/**
+		 * String that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object,
+		/**
 		 * Object that represents the selected account
 		 */
 		account: PropTypes.object,
 		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func.isRequired,
-		/**
-		 * Action that sets a tokens type transaction
-		 */
-		setTokensTransaction: PropTypes.func.isRequired,
-		/**
 		/* Selected currency
 		*/
-		currentCurrency: PropTypes.string
+		currentCurrency: PropTypes.string,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func,
+		/**
+		 * Action that toggles the accounts modal
+		 */
+		toggleAccountsModal: PropTypes.func
 	};
 
-	onDeposit = () => {
-		Alert.alert(strings('drawer.coming_soon'));
+	state = {
+		accountLabelEditable: true,
+		accountLabel: '',
+		originalAccountLabel: ''
 	};
 
-	onSend = () => {
-		this.props.setTokensTransaction({ symbol: 'ETH' });
-		this.props.navigation.navigate('SendView');
+	input = React.createRef();
+
+	componentDidMount = () => {
+		const { identities, selectedAddress } = this.props;
+		const accountLabel = renderAccountName(selectedAddress, identities);
+		this.setState({ accountLabel });
 	};
 
-	onCopy = async () => {
-		const {
-			account: { address }
-		} = this.props;
-		await Clipboard.setString(address);
+	setAccountLabel = () => {
+		const { PreferencesController } = Engine.context;
+		const { selectedAddress } = this.props;
+		const { accountLabel } = this.state;
+		PreferencesController.setAccountLabel(selectedAddress, accountLabel);
+		this.setState({ accountLabelEditable: false });
+	};
+
+	onAccountLabelChange = accountLabel => {
+		this.setState({ accountLabel });
+	};
+
+	setAccountLabelEditable = () => {
+		this.setState({ accountLabelEditable: true });
+		setTimeout(() => {
+			this.input && this.input.current && this.input.current.focus();
+		}, 100);
+	};
+
+	cancelAccountLabelEdition = () => {
+		const { identities, selectedAddress } = this.props;
+		const accountLabel = renderAccountName(selectedAddress, identities);
+		this.setState({ accountLabelEditable: false, accountLabel });
+	};
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
@@ -127,67 +149,77 @@ class AccountOverview extends Component {
 		});
 	};
 
-	goToAccountDetails = () => {
-		this.props.navigation.push('AccountDetails');
-	};
-
 	render() {
 		const {
 			account: { name, address },
 			currentCurrency
 		} = this.props;
 
-		const fiatBalance = renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency);
+		const fiatBalance = `$ ${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
+		const { accountLabelEditable, accountLabel } = this.state;
 
 		return (
-			<View style={styles.wrapper} testID={'account-overview'}>
-				<TouchableOpacity style={styles.info} onPress={this.goToAccountDetails}>
-					<Identicon address={address} size="38" />
-					<Text style={styles.label}>{name}</Text>
+			<ScrollView
+				bounces={false}
+				keyboardShouldPersistTaps={'never'}
+				style={styles.scrollView}
+				contentContainerStyle={styles.wrapper}
+				testID={'account-overview'}
+			>
+				<View style={styles.info}>
+					<TouchableOpacity style={styles.identiconBorder} onPress={this.props.toggleAccountsModal}>
+						<Identicon address={address} size="38" />
+					</TouchableOpacity>
+					<View style={styles.data}>
+						{accountLabelEditable ? (
+							<TextInput
+								style={[styles.label, styles.labelInput]}
+								editable={accountLabelEditable}
+								onChangeText={this.onAccountLabelChange}
+								onSubmitEditing={this.setAccountLabel}
+								onBlur={this.setAccountLabel}
+								testID={'account-label-text-input'}
+								value={accountLabel}
+								selectTextOnFocus
+								ref={this.input}
+								returnKeyType={'done'}
+								autoCapitalize={'none'}
+								autoComplete={'off'}
+								autoCorrect={false}
+								numberOfLines={1}
+							/>
+						) : (
+							<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
+								<Text style={styles.label} numberOfLines={1}>
+									{name}
+								</Text>
+							</TouchableOpacity>
+						)}
+					</View>
 					<Text style={styles.amountFiat}>{fiatBalance}</Text>
-				</TouchableOpacity>
-				<View style={styles.actions}>
-					<TouchableOpacity type={'normal'} onPress={this.onSend} style={styles.button}>
-						<View style={styles.buttonIconWrapper}>
-							<MaterialIcon
-								name={'arrow-top-right'}
-								size={22}
-								color={colors.primary}
-								style={styles.buttonIcon}
-							/>
-						</View>
-						<Text style={styles.buttonText}>{strings('wallet.send_button')}</Text>
-					</TouchableOpacity>
-					<TouchableOpacity type={'normal'} onPress={this.onDeposit} style={styles.button}>
-						<View style={styles.buttonIconWrapper}>
-							<MaterialIcon
-								name={'arrow-collapse-down'}
-								size={20}
-								color={colors.primary}
-								style={styles.buttonIcon}
-							/>
-						</View>
-						<Text style={styles.buttonText}>{strings('wallet.deposit_button')}</Text>
-					</TouchableOpacity>
-					<TouchableOpacity type={'normal'} onPress={this.onCopy} style={styles.button}>
-						<View style={styles.buttonIconWrapper}>
-							<Icon name={'copy'} size={17} color={colors.primary} style={styles.buttonIcon} />
-						</View>
-						<Text style={styles.buttonText}>{strings('wallet.copy_address')}</Text>
+					<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+						<Text style={styles.address}>{renderShortAddress(address)}</Text>
 					</TouchableOpacity>
 				</View>
-			</View>
+			</ScrollView>
 		);
 	}
 }
 
+const mapStateToProps = state => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	identities: state.engine.backgroundState.PreferencesController.identities
+});
+
 const mapDispatchToProps = dispatch => ({
-	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
+	showAlert: config => dispatch(showAlert(config)),
+	toggleAccountsModal: () => dispatch(toggleAccountsModal())
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(AccountOverview);

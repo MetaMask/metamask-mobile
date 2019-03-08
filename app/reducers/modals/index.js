@@ -1,7 +1,8 @@
 const initialState = {
 	networkModalVisible: false,
 	accountsModalVisible: false,
-	collectibleContractModalVisible: false
+	collectibleContractModalVisible: false,
+	receiveModalVisible: false
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -10,6 +11,11 @@ const modalsReducer = (state = initialState, action) => {
 			return {
 				...state,
 				networkModalVisible: !state.networkModalVisible
+			};
+		case 'TOGGLE_RECEIVE_MODAL':
+			return {
+				...state,
+				receiveModalVisible: !state.receiveModalVisible
 			};
 		case 'TOGGLE_ACCOUNT_MODAL':
 			return {

@@ -18,15 +18,16 @@ import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DeviceSize from '../../../util/DeviceSize';
-import { withNavigation } from 'react-navigation';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import BrowserFeatured from '../BrowserFeatured';
 import BrowserFavorites from '../BrowserFavorites';
 import UrlAutocomplete from '../UrlAutocomplete';
 import onUrlSubmit from '../../../util/browser';
+import { removeBookmark } from '../../../actions/bookmarks';
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
+const NAVBAR_HEIGHT = 50;
 
 const styles = StyleSheet.create({
 	flex: {
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
 	startPageTitle: {
 		fontSize: Platform.OS === 'android' ? 30 : 35,
 		marginTop: 20,
-		marginBottom: 20,
+		marginBottom: 8,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
@@ -85,6 +86,7 @@ const styles = StyleSheet.create({
 		marginVertical: Platform.OS === 'ios' ? 20 : 10
 	},
 	searchInput: {
+		flex: 1,
 		marginHorizontal: 10,
 		backgroundColor: colors.beige,
 		fontSize: 14,
@@ -178,16 +180,37 @@ class HomePage extends Component {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * Array containing all the bookmark items
+		 */
+		bookmarks: PropTypes.array,
+		/**
+		 * function that removes a bookmark
+		 */
+		removeBookmark: PropTypes.func
 	};
 
 	state = {
 		searchInputValue: '',
 		inputValue: '',
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
+		tabViewStyle: null
 	};
 
 	actionSheet = null;
+
+	handleTabHeight(obj) {
+		const refName = obj.ref.ref;
+		setTimeout(() => {
+			// eslint-disable-next-line
+			this.refs[refName].measureMyself((x, y, w, h, l, t) => {
+				if (h !== 0) {
+					this.setState({ tabViewStyle: { height: h + NAVBAR_HEIGHT } });
+				}
+			});
+		}, 100);
+	}
 
 	bookmarkIndexToRemove = null;
 
@@ -241,7 +264,7 @@ class HomePage extends Component {
 		} else {
 			this.onInitialUrlSubmit(input);
 		}
-		this.setState({ inputValue: '' });
+		this.mounted && this.setState({ inputValue: '' });
 	};
 
 	onAutocomplete = link => {
@@ -251,94 +274,133 @@ class HomePage extends Component {
 	};
 
 	dismissKeyboardAndClear = () => {
-		this.setState({ searchInputValue: '' });
+		this.mounted && this.setState({ searchInputValue: '' });
 		Keyboard.dismiss();
 	};
 
 	keyboardDidHide = () => {
-		this.setState({ searchInputValue: '' });
+		this.mounted && this.setState({ searchInputValue: '' });
 	};
 
 	render() {
 		return (
-			<ScrollView style={styles.flex}>
-				<TouchableWithoutFeedback style={styles.flex} onPress={this.dismissKeyboardAndClear} accesible={false}>
-					<View style={styles.flex}>
-						<View style={styles.homePageContent}>
-							<View style={styles.searchWrapper}>
-								<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
-								<TextInput
-									style={[
-										styles.searchInput,
-										this.state.inputWidth ? { width: this.state.inputWidth } : {}
-									]}
-									autoCapitalize="none"
-									autoCorrect={false}
-									clearButtonMode="while-editing"
-									onChangeText={this.onInitialUrlChange}
-									onSubmitEditing={this.onInitialUrlSubmit}
-									placeholder={strings('browser.search')}
-									placeholderTextColor={colors.asphalt}
-									returnKeyType="go"
-									value={this.state.searchInputValue}
+			<View style={styles.flex}>
+				<ScrollView style={styles.flex}>
+					<TouchableWithoutFeedback
+						style={styles.flex}
+						onPress={this.dismissKeyboardAndClear}
+						accesible={false}
+					>
+						<View style={styles.flex}>
+							<View style={styles.homePageContent}>
+								<View style={styles.searchWrapper}>
+									<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
+									<TextInput
+										style={[
+											styles.searchInput,
+											this.state.inputWidth ? { width: this.state.inputWidth } : {}
+										]}
+										autoCapitalize="none"
+										autoCorrect={false}
+										clearButtonMode="while-editing"
+										onChangeText={this.onInitialUrlChange}
+										onSubmitEditing={this.onInitialUrlSubmit}
+										placeholder={strings('browser.search')}
+										placeholderTextColor={colors.asphalt}
+										returnKeyType="go"
+										value={this.state.searchInputValue}
+									/>
+								</View>
+								<View style={styles.topBarWrapper}>
+									<View style={styles.foxWrapper}>
+										<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+									</View>
+									<View style={styles.titleWrapper}>
+										<Image
+											source={metamask_name}
+											style={styles.metamaskName}
+											resizeMethod={'auto'}
+										/>
+
+										<Text style={styles.separator}> | </Text>
+										<Text style={styles.title}>{strings('browser.dapp_browser')}</Text>
+									</View>
+								</View>
+
+								<View style={styles.startPageContent}>
+									<Text style={styles.startPageTitle}>{strings('browser.welcome')}</Text>
+									<Text style={styles.startPageSubtitle}>
+										{strings('browser.dapp_browser_message')}
+									</Text>
+								</View>
+							</View>
+
+							<ScrollableTabView
+								ref={this.scrollableTabViewRef}
+								renderTabBar={this.renderTabBar}
+								// eslint-disable-next-line react/jsx-no-bind
+								onChangeTab={obj => this.handleTabHeight(obj)}
+								style={this.state.tabViewStyle}
+							>
+								<BrowserFeatured
+									tabLabel={strings('browser.featured_dapps')}
+									goTo={this.props.goTo}
+									// eslint-disable-next-line react/no-string-refs
+									ref={'featuredTab'}
 								/>
-							</View>
-							<View style={styles.topBarWrapper}>
-								<View style={styles.foxWrapper}>
-									<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
-								</View>
-								<View style={styles.titleWrapper}>
-									<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+								<BrowserFavorites
+									tabLabel={strings('browser.my_favorites')}
+									goTo={this.props.goTo}
+									// eslint-disable-next-line react/no-string-refs
+									ref={'favoritesTab'}
+									navigation={this.props.navigation}
+									removeBookmark={this.props.removeBookmark}
+									bookmarks={this.props.bookmarks}
+								/>
+							</ScrollableTabView>
 
-									<Text style={styles.separator}> | </Text>
-									<Text style={styles.title}>{strings('browser.dapp_browser')}</Text>
-								</View>
-							</View>
-
-							<View style={styles.startPageContent}>
-								<Text style={styles.startPageTitle}>{strings('browser.welcome')}</Text>
-								<Text style={styles.startPageSubtitle}>{strings('browser.dapp_browser_message')}</Text>
-							</View>
+							{this.props.passwordSet &&
+								!this.props.seedphraseBackedUp && (
+									<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
+										<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
+											<View style={styles.backupAlertIconWrapper}>
+												<Icon name="info-outline" style={styles.backupAlertIcon} />
+											</View>
+											<View>
+												<Text style={styles.backupAlertTitle}>
+													{strings('home_page.backup_alert_title')}
+												</Text>
+												<Text style={styles.backupAlertMessage}>
+													{strings('home_page.backup_alert_message')}
+												</Text>
+											</View>
+										</ElevatedView>
+									</TouchableOpacity>
+								)}
 						</View>
-
-						<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-							<BrowserFeatured tabLabel={strings('browser.featured_dapps')} goTo={this.props.goTo} />
-							<BrowserFavorites tabLabel={strings('browser.my_favorites')} goTo={this.props.goTo} />
-						</ScrollableTabView>
-
-						{this.props.passwordSet &&
-							!this.props.seedphraseBackedUp && (
-								<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
-									<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
-										<View style={styles.backupAlertIconWrapper}>
-											<Icon name="info-outline" style={styles.backupAlertIcon} />
-										</View>
-										<View>
-											<Text style={styles.backupAlertTitle}>
-												{strings('home_page.backup_alert_title')}
-											</Text>
-											<Text style={styles.backupAlertMessage}>
-												{strings('home_page.backup_alert_message')}
-											</Text>
-										</View>
-									</ElevatedView>
-								</TouchableOpacity>
-							)}
-						{this.state.searchInputValue.length > 1 && (
-							<View style={styles.urlAutocomplete}>
-								<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
-							</View>
-						)}
+					</TouchableWithoutFeedback>
+				</ScrollView>
+				{this.state.searchInputValue.length > 1 && (
+					<View style={styles.urlAutocomplete}>
+						<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
 					</View>
-				</TouchableWithoutFeedback>
-			</ScrollView>
+				)}
+			</View>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	bookmarks: state.bookmarks
 });
 
-export default connect(mapStateToProps)(withNavigation(HomePage));
+const mapDispatchToProps = dispatch => ({
+	removeBookmark: bookmark => dispatch(removeBookmark(bookmark))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(HomePage);

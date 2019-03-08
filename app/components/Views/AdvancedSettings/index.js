@@ -1,16 +1,32 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { InputAccessoryView, Button, StyleSheet, Switch, TextInput, Text, Platform, View } from 'react-native';
+import {
+	SafeAreaView,
+	InputAccessoryView,
+	Button,
+	StyleSheet,
+	Switch,
+	TextInput,
+	Text,
+	Platform,
+	View
+} from 'react-native';
 import { connect } from 'react-redux';
 import { isWebUri } from 'valid-url';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ActionModal from '../../UI/ActionModal';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setShowHexData } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
+import DeviceInfo from 'react-native-device-info';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
+import RNFS from 'react-native-fs';
+// eslint-disable-next-line import/no-nodejs-modules
+import { Buffer } from 'buffer';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -112,7 +128,11 @@ class Settings extends Component {
 		/**
 		 * Called to toggle show hex data
 		 */
-		setShowHexData: PropTypes.func
+		setShowHexData: PropTypes.func,
+		/**
+		 * Entire redux state used to generate state logs
+		 */
+		fullState: PropTypes.object
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -190,96 +210,151 @@ class Settings extends Component {
 		this.props.navigation.push('SyncWithExtensionView', { existingUser: true });
 	};
 
+	downloadStateLogs = async () => {
+		const appName = DeviceInfo.getApplicationName();
+		const appVersion = DeviceInfo.getVersion();
+		const buildNumber = DeviceInfo.getBuildNumber();
+		const path = RNFS.DocumentDirectoryPath + `/state-logs-v${appVersion}-(${buildNumber}).json`;
+		// A not so great way to copy objects by value
+		const fullState = JSON.parse(JSON.stringify(this.props.fullState));
+
+		// Remove stuff we don't want to sync
+		delete fullState.engine.backgroundState.AssetsController;
+		delete fullState.engine.backgroundState.AssetsContractController;
+		delete fullState.engine.backgroundState.AssetsDetectionController;
+		delete fullState.engine.backgroundState.PhishingController;
+		delete fullState.engine.backgroundState.AssetsContractController;
+
+		// Add extra stuff
+		fullState.engine.backgroundState.KeyringController.keyrings = Engine.context.KeyringController.state.keyrings;
+		try {
+			const data = JSON.stringify(fullState);
+
+			let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
+			// // Android accepts attachements as BASE64
+			if (Platform.OS === 'ios') {
+				await RNFS.writeFile(path, data, 'utf8');
+				url = path;
+			}
+
+			await Share.open({
+				subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
+				title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
+				url
+			});
+		} catch (err) {
+			Logger.error('State log error', err);
+		}
+	};
+
 	render = () => {
 		const { showHexData } = this.props;
 		const { resetModalVisible } = this.state;
 		return (
-			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-				<View style={styles.inner}>
-					<ActionModal
-						modalVisible={resetModalVisible}
-						confirmText={strings('app_settings.reset_account_confirm_button')}
-						cancelText={strings('app_settings.reset_account_cancel_button')}
-						onCancelPress={this.cancelResetAccount}
-						onRequestClose={this.cancelResetAccount}
-						onConfirmPress={this.resetAccount}
-					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('app_settings.reset_account_modal_title')}</Text>
-							<Text style={styles.modalText}>{strings('app_settings.reset_account_modal_message')}</Text>
+			<SafeAreaView style={baseStyles.flexGrow}>
+				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+					<View style={styles.inner}>
+						<ActionModal
+							modalVisible={resetModalVisible}
+							confirmText={strings('app_settings.reset_account_confirm_button')}
+							cancelText={strings('app_settings.reset_account_cancel_button')}
+							onCancelPress={this.cancelResetAccount}
+							onRequestClose={this.cancelResetAccount}
+							onConfirmPress={this.resetAccount}
+						>
+							<View style={styles.modalView}>
+								<Text style={styles.modalTitle}>
+									{strings('app_settings.reset_account_modal_title')}
+								</Text>
+								<Text style={styles.modalText}>
+									{strings('app_settings.reset_account_modal_message')}
+								</Text>
+							</View>
+						</ActionModal>
+						<View style={[styles.setting, styles.firstSetting]}>
+							<Text style={styles.title}>{strings('app_settings.reset_account')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.reset_desc')}</Text>
+							<StyledButton
+								type="info"
+								onPress={this.displayResetAccountModal}
+								containerStyle={styles.resetConfirm}
+							>
+								{strings('app_settings.reset_account_button')}
+							</StyledButton>
 						</View>
-					</ActionModal>
-					<View style={[styles.setting, styles.firstSetting]}>
-						<Text style={styles.title}>{strings('app_settings.reset_account')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.reset_desc')}</Text>
-						<StyledButton
-							type="info"
-							onPress={this.displayResetAccountModal}
-							containerStyle={styles.resetConfirm}
-						>
-							{strings('app_settings.reset_account_button')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.sync_with_extension')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.sync_with_extension_desc')}</Text>
-						<StyledButton
-							type="info"
-							onPress={this.goToSyncWithExtension}
-							containerStyle={styles.syncConfirm}
-						>
-							{strings('app_settings.sync')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
-						<TextInput
-							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-							autoCapitalize={'none'}
-							autoComplete={'off'}
-							autoCorrect={false}
-							value={this.state.rpcUrl}
-							onBlur={this.addRpcUrl}
-							onChangeText={this.onRpcUrlChange}
-							placeholder={strings('app_settings.new_RPC_URL')}
-							inputAccessoryViewID={'rpc_url_accesory_view'}
-						/>
-						{Platform.OS === 'ios' && (
-							<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
-								<View style={styles.inputAccessoryView} backgroundColor={colors.lighterGray}>
-									<Button onPress={this.addRpcUrl} title="Done" />
+						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.sync_with_extension')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.sync_with_extension_desc')}</Text>
+							<StyledButton
+								type="info"
+								onPress={this.goToSyncWithExtension}
+								containerStyle={styles.syncConfirm}
+							>
+								{strings('app_settings.sync')}
+							</StyledButton>
+						</View>
+						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
+							<TextInput
+								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+								autoCapitalize={'none'}
+								autoComplete={'off'}
+								autoCorrect={false}
+								value={this.state.rpcUrl}
+								onBlur={this.addRpcUrl}
+								onChangeText={this.onRpcUrlChange}
+								placeholder={strings('app_settings.new_RPC_URL')}
+								inputAccessoryViewID={'rpc_url_accesory_view'}
+							/>
+							{Platform.OS === 'ios' && (
+								<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
+									<View style={styles.inputAccessoryView} backgroundColor={colors.lighterGray}>
+										<Button onPress={this.addRpcUrl} title="Done" />
+									</View>
+								</InputAccessoryView>
+							)}
+							<View style={styles.rpcConfirmContainer}>
+								<View style={styles.warningContainer}>
+									<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
 								</View>
-							</InputAccessoryView>
-						)}
-						<View style={styles.rpcConfirmContainer}>
-							<View style={styles.warningContainer}>
-								<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
 							</View>
 						</View>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.show_hex_data')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={showHexData}
-								onValueChange={this.toggleShowHexData}
-								trackColor={
-									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
-								}
-								ios_backgroundColor={colors.slate}
-							/>
+						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.show_hex_data')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>
+							<View style={styles.switchElement}>
+								<Switch
+									value={showHexData}
+									onValueChange={this.toggleShowHexData}
+									trackColor={
+										Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+									}
+									ios_backgroundColor={colors.slate}
+								/>
+							</View>
+						</View>
+						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.state_logs')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.state_logs_desc')}</Text>
+							<StyledButton
+								type="info"
+								onPress={this.downloadStateLogs}
+								containerStyle={styles.syncConfirm}
+							>
+								{strings('app_settings.state_logs_button')}
+							</StyledButton>
 						</View>
 					</View>
-				</View>
-			</KeyboardAwareScrollView>
+				</KeyboardAwareScrollView>
+			</SafeAreaView>
 		);
 	};
 }
 
 const mapStateToProps = state => ({
-	showHexData: state.settings.showHexData
+	showHexData: state.settings.showHexData,
+	fullState: state
 });
 
 const mapDispatchToProps = dispatch => ({
