@@ -8,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import { setIndividualCollectibleTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
+import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 
 const styles = StyleSheet.create({
 	root: {
@@ -71,6 +72,12 @@ class CollectibleView extends Component {
 			navigation
 		} = this.props;
 		const collectible = params;
+		const lowerAddress = collectible.address.toLowerCase();
+		const tradable =
+			lowerAddress in collectiblesTransferInformation
+				? collectiblesTransferInformation[lowerAddress].tradable
+				: true;
+
 		return (
 			<SafeAreaView style={styles.root}>
 				<ScrollView style={styles.wrapper} ref={this.scrollViewRef}>
@@ -78,17 +85,19 @@ class CollectibleView extends Component {
 						<CollectibleOverview navigation={navigation} collectible={collectible} />
 					</View>
 				</ScrollView>
-				<View style={styles.buttons}>
-					<StyledButton
-						type={'confirm'}
-						onPress={this.onSend}
-						containerStyle={styles.button}
-						style={styles.buttonContent}
-						childGroupStyle={styles.flexRow}
-					>
-						<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
-					</StyledButton>
-				</View>
+				{tradable && (
+					<View style={styles.buttons}>
+						<StyledButton
+							type={'confirm'}
+							onPress={this.onSend}
+							containerStyle={styles.button}
+							style={styles.buttonContent}
+							childGroupStyle={styles.flexRow}
+						>
+							<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
+						</StyledButton>
+					</View>
+				)}
 			</SafeAreaView>
 		);
 	}
