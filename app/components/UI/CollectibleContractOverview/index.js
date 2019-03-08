@@ -8,6 +8,7 @@ import AssetActionButtons from '../AssetActionButtons';
 import { setCollectibleContractTransaction } from '../../../actions/transaction';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
+import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -91,9 +92,14 @@ class CollectibleContractOverview extends Component {
 
 	render() {
 		const {
-			collectibleContract: { name },
+			collectibleContract: { name, address },
 			ownerOf
 		} = this.props;
+		const lowerAddress = address.toLowerCase();
+		const leftActionButtonText =
+			lowerAddress in collectiblesTransferInformation
+				? collectiblesTransferInformation[lowerAddress].tradable && strings('asset_overview.send_button')
+				: strings('asset_overview.send_button');
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
@@ -104,7 +110,7 @@ class CollectibleContractOverview extends Component {
 				</View>
 
 				<AssetActionButtons
-					leftText={strings('asset_overview.send_button')}
+					leftText={leftActionButtonText}
 					middleText={strings('asset_overview.add_collectible_button')}
 					rightText={strings('asset_overview.info')}
 					onLeftPress={this.onSend}
