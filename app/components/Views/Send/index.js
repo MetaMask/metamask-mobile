@@ -142,13 +142,13 @@ class Send extends Component {
 		}
 	}
 
-	handleNewTxMeta = ({
+	handleNewTxMeta = async ({
 		target_address,
 		chain_id = null, // eslint-disable-line no-unused-vars
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
-		const newTxMeta = { ...this.state.transaction };
+		const newTxMeta = { symbol: 'ETH', assetType: 'ETH' };
 		newTxMeta.to = toChecksumAddress(target_address);
 
 		if (parameters) {
@@ -166,7 +166,18 @@ class Send extends Component {
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
-		this.mounted && this.setState({ transaction: newTxMeta });
+		if (!newTxMeta.gas || !newTxMeta.gasPrice) {
+			const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(this.props.transaction);
+			newTxMeta.gas = gas;
+			newTxMeta.gasPrice = gasPrice;
+		}
+
+		if (!newTxMeta.value) {
+			newTxMeta.value = toBN(0);
+		}
+
+		this.props.setTransactionObject(newTxMeta);
+		this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
 	};
 
 	/**
