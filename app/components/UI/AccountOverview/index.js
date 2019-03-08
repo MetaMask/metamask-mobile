@@ -126,7 +126,9 @@ class AccountOverview extends Component {
 	};
 
 	setAccountLabelEditable = () => {
-		this.setState({ accountLabelEditable: true });
+		const { identities, selectedAddress } = this.props;
+		const accountLabel = renderAccountName(selectedAddress, identities);
+		this.setState({ accountLabelEditable: true, accountLabel });
 		setTimeout(() => {
 			this.input && this.input.current && this.input.current.focus();
 		}, 100);
