@@ -278,7 +278,9 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
  */
 export function getWalletNavbarOptions(title, navigation) {
 	const onScanSuccess = data => {
-		navigation.navigate('SendView', { txMeta: { target_address: data.target_address } });
+		if (data.target_address) {
+			navigation.navigate('SendView', { txMeta: data });
+		}
 	};
 
 	return {
@@ -298,8 +300,7 @@ export function getWalletNavbarOptions(title, navigation) {
 				// eslint-disable-next-line
 				onPress={() => {
 					navigation.navigate('QRScanner', {
-						onScanSuccess,
-						addressOnly: true
+						onScanSuccess
 					});
 				}}
 			>
