@@ -7,6 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 
@@ -276,6 +277,10 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getWalletNavbarOptions(title, navigation) {
+	const onScanSuccess = data => {
+		navigation.navigate('SendView', { txMeta: { target_address: data.target_address } });
+	};
+
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
@@ -287,7 +292,20 @@ export function getWalletNavbarOptions(title, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: <View />
+		headerRight: (
+			<TouchableOpacity
+				style={styles.infoButton}
+				// eslint-disable-next-line
+				onPress={() => {
+					navigation.navigate('QRScanner', {
+						onScanSuccess,
+						addressOnly: true
+					});
+				}}
+			>
+				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
+			</TouchableOpacity>
+		)
 	};
 }
 

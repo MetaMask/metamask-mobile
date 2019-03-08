@@ -155,7 +155,7 @@ class AccountOverview extends Component {
 			currentCurrency
 		} = this.props;
 
-		const fiatBalance = `$ ${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
+		const fiatBalance = `$${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel } = this.state;
