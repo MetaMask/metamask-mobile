@@ -130,14 +130,20 @@ class RevealPrivateCredential extends Component {
 		/**
 		 * String that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	async componentDidMount() {
 		// Try to use biometrics to unloc
 		// (if available)
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
+		if (!this.props.passwordSet) {
+			this.tryUnlockWithPassword('');
+		} else if (biometryType) {
 			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
 				const credentials = await SecureKeychain.getGenericPassword();
@@ -291,7 +297,8 @@ class RevealPrivateCredential extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({

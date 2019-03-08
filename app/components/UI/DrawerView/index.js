@@ -829,8 +829,7 @@ const mapStateToProps = state => ({
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
 	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
-	passwordSet: state.user.passwordSet,
-	user: state.user
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
