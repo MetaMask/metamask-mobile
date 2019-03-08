@@ -85,17 +85,19 @@ export default class AssetActionButtons extends Component {
 		const { onLeftPress, onMiddlePress, onRightPress, leftText, middleText, rightText } = this.props;
 		return (
 			<View style={styles.buttons}>
-				<TouchableOpacity type={'normal'} onPress={onLeftPress} style={styles.button}>
-					<View style={styles.buttonIconWrapper}>
-						<MaterialCommunityIcon
-							name={'arrow-top-right'}
-							size={20}
-							color={colors.primary}
-							style={[styles.buttonIcon, styles.sendIcon]}
-						/>
-					</View>
-					<Text style={styles.buttonText}>{leftText}</Text>
-				</TouchableOpacity>
+				{leftText && (
+					<TouchableOpacity type={'normal'} onPress={onLeftPress} style={styles.button}>
+						<View style={styles.buttonIconWrapper}>
+							<MaterialCommunityIcon
+								name={'arrow-top-right'}
+								size={20}
+								color={colors.primary}
+								style={[styles.buttonIcon, styles.sendIcon]}
+							/>
+						</View>
+						<Text style={styles.buttonText}>{leftText}</Text>
+					</TouchableOpacity>
+				)}
 
 				<TouchableOpacity type={'normal'} onPress={onMiddlePress} style={styles.button}>
 					<View style={styles.buttonIconWrapper}>
