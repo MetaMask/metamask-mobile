@@ -96,7 +96,8 @@ const styles = StyleSheet.create({
 		marginBottom: 12
 	},
 	accountNameWrapper: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		paddingRight: 17
 	},
 	accountName: {
 		fontSize: 20,
