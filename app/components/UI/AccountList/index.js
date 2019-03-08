@@ -55,7 +55,8 @@ const styles = StyleSheet.create({
 		height: 80
 	},
 	accountInfo: {
-		marginHorizontal: 15,
+		marginLeft: 15,
+		marginRight: 0,
 		flex: 1,
 		flexDirection: 'row'
 	},
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	importedWrapper: {
-		width: Platform.OS === 'android' ? 73 : 70,
+		width: 73,
 		paddingHorizontal: 10,
 		paddingVertical: 3,
 		borderRadius: 10,

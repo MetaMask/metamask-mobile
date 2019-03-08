@@ -215,8 +215,13 @@ class Engine {
 			}
 			//Fetch txs and get the new lastIncomingTxBlock number
 			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, blockNumber);
-			// Store it so next time we ask for the newer txs only
-			if (newlastIncomingTxBlock && newlastIncomingTxBlock !== blockNumber) {
+			// Check if it's a newer block and store it so next time we ask for the newer txs only
+			if (
+				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] &&
+				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`].blockNumber !== newlastIncomingTxBlock &&
+				newlastIncomingTxBlock &&
+				newlastIncomingTxBlock !== blockNumber
+			) {
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
 					blockNumber: newlastIncomingTxBlock,
 					lastCheck: Date.now()

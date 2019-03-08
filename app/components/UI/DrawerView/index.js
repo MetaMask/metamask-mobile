@@ -354,19 +354,34 @@ class DrawerView extends Component {
 	previousBalance = null;
 	processedNewBalance = false;
 
+	isCurrentAccountImported() {
+		let ret = false;
+		const { keyrings, selectedAddress } = this.props;
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(selectedAddress)) {
+				ret = keyring.type !== 'HD Key Tree';
+				break;
+			}
+		}
+
+		return ret;
+	}
+
 	componentDidUpdate() {
 		setTimeout(async () => {
 			if (
+				!this.isCurrentAccountImported() &&
 				!this.props.passwordSet &&
 				!this.processedNewBalance &&
 				this.currentBalance >= this.previousBalance &&
 				this.currentBalance > 0
 			) {
-				this.processedNewBalance = true;
 				const { selectedAddress, network, identities } = this.props;
 
 				const incomingTransaction = await findFirstIncomingTransaction(network.provider.type, selectedAddress);
 				if (incomingTransaction) {
+					this.processedNewBalance = true;
 					this.props.navigation.navigate('FirstIncomingTransaction', {
 						incomingTransaction,
 						selectedAddress,
@@ -814,7 +829,8 @@ const mapStateToProps = state => ({
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
 	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	user: state.user
 });
 
 const mapDispatchToProps = dispatch => ({
