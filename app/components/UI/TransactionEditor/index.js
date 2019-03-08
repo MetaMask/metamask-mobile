@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN } from '../../../util/number';
+import { isBN, hexToBN, toBN, fromWei } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -147,6 +147,14 @@ class TransactionEditor extends Component {
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data });
 		}
 	};
+
+	componentDidUpdate(prevProps) {
+		if (this.props.transaction.value !== prevProps.transaction.value) {
+			if (isBN(this.props.transaction.value)) {
+				this.handleUpdateReadableValue(fromWei(this.props.transaction.value.toString()));
+			}
+		}
+	}
 
 	/**
 	 * Updates readableValue in state

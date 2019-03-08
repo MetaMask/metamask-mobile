@@ -5,6 +5,7 @@
 	};
 	objectVersion = 46;
 	objects = {
+
 /* Begin PBXBuildFile section */
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
@@ -31,6 +32,7 @@
 		158B0638211A727500DF3C74 /* libRCTAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E9157331DD0AC6500FF2AA8 /* libRCTAnimation.a */; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		158B063C211A72F500DF3C74 /* InpageBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B063A211A72F500DF3C74 /* InpageBridge.js */; };
+		159878462231DF67001748EC /* AntDesign.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 159878012231DF67001748EC /* AntDesign.ttf */; };
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15B418E7222663D500CA8239 /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 15B418E4222663AC00CA8239 /* libRCTPushNotification.a */; };
@@ -583,6 +585,7 @@
 		153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
 		158B063A211A72F500DF3C74 /* InpageBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridge.js; path = ../app/core/InpageBridge.js; sourceTree = "<group>"; };
+		159878012231DF67001748EC /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		15B418DE222663AC00CA8239 /* RCTPushNotification.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTPushNotification.xcodeproj; path = "../node_modules/react-native/Libraries/PushNotificationIOS/RCTPushNotification.xcodeproj"; sourceTree = "<group>"; };
 		15D158EC210BD8C8006982B5 /* Metamask.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Metamask.ttf; path = ../app/fonts/Metamask.ttf; sourceTree = "<group>"; };
 		15FDD82721B7642B006B7C35 /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = debug.xcconfig; sourceTree = "<group>"; };
@@ -1033,6 +1036,7 @@
 		4A27949D046C4516B9653BBB /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				159878012231DF67001748EC /* AntDesign.ttf */,
 				15D158EC210BD8C8006982B5 /* Metamask.ttf */,
 				A498EA4CD2F8488DB666B94C /* Entypo.ttf */,
 				BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */,
@@ -1851,6 +1855,7 @@
 				123752B9768C469A85058888 /* Feather.ttf in Resources */,
 				C5AD5D88262D40E8AD14096C /* FontAwesome.ttf in Resources */,
 				F719B7ED64E3484FB94EE77B /* Foundation.ttf in Resources */,
+				159878462231DF67001748EC /* AntDesign.ttf in Resources */,
 				4EC316415D2D4557B2DFB781 /* Ionicons.ttf in Resources */,
 				3EA7CE27B8AB49009E49CFE6 /* MaterialCommunityIcons.ttf in Resources */,
 				158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */,
@@ -1993,9 +1998,7 @@
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -2048,9 +2051,7 @@
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

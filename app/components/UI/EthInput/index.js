@@ -176,7 +176,7 @@ class EthInput extends Component {
 
 	componentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
-		if (fillMax) {
+		if (fillMax || readableValue !== this.state.readableValue) {
 			this.setState({ readableValue });
 		}
 		this.props.updateFillMax(false);
