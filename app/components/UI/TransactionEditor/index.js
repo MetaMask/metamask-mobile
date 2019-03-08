@@ -10,8 +10,8 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { generateTransferData } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
-
 import Engine from '../../../core/Engine';
+import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 
 const styles = StyleSheet.create({
 	root: {
@@ -238,16 +238,35 @@ class TransactionEditor extends Component {
 			ERC20: () => {
 				const tokenAmountToSend = selectedAsset && value && value.toString(16);
 				return to && tokenAmountToSend
-					? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+					? generateTransferData('transfer', { toAddress: to, amount: tokenAmountToSend })
 					: undefined;
 			},
-			ERC721: () =>
-				to &&
-				generateTransferData('ERC721', {
-					fromAddress: from,
-					toAddress: to,
-					tokenId: selectedAsset.tokenId
-				})
+			ERC721: () => {
+				const address = selectedAsset.address.toLowerCase();
+				const collectibleTransferInformation =
+					address in collectiblesTransferInformation && collectiblesTransferInformation[address];
+				if (!to) return;
+				// If not in list, default to transferFrom
+				if (
+					!collectibleTransferInformation ||
+					(collectibleTransferInformation.tradable &&
+						collectibleTransferInformation.method === 'transferFrom')
+				) {
+					return generateTransferData('transferFrom', {
+						fromAddress: from,
+						toAddress: to,
+						tokenId: selectedAsset.tokenId
+					});
+				} else if (
+					collectibleTransferInformation.tradable &&
+					collectibleTransferInformation.method === 'transfer'
+				) {
+					return generateTransferData('transfer', {
+						toAddress: to,
+						amount: selectedAsset.tokenId.toString(16)
+					});
+				}
+			}
 		};
 		const data = generateData[assetType]();
 		const { gas } = await this.estimateGas({ data, to: selectedAsset.address });

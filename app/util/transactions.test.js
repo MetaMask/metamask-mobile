@@ -32,15 +32,15 @@ const MOCK_ENGINE = {
 describe('Transactions utils :: generateTransferData', () => {
 	it('generateTransferData should throw if undefined values', () => {
 		expect(() => generateTransferData()).toThrow();
-		expect(() => generateTransferData('ERC20')).toThrow();
-		expect(() => generateTransferData('ERC20', { toAddress: '0x0' })).toThrow();
-		expect(() => generateTransferData('ERC20', { amount: 1 })).toThrow();
-		expect(() => generateTransferData('ERC20', { toAddress: '0x0', amount: 1 })).not.toThrow();
+		expect(() => generateTransferData('transfer')).toThrow();
+		expect(() => generateTransferData('transfer', { toAddress: '0x0' })).toThrow();
+		expect(() => generateTransferData('transfer', { amount: 1 })).toThrow();
+		expect(() => generateTransferData('transfer', { toAddress: '0x0', amount: 1 })).not.toThrow();
 	});
 
 	it('generateTransferData generates data correctly', () => {
 		expect(
-			generateTransferData('ERC20', { toAddress: '0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0', amount: 1 })
+			generateTransferData('transfer', { toAddress: '0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0', amount: 1 })
 		).toEqual(
 			'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001'
 		);
@@ -48,18 +48,18 @@ describe('Transactions utils :: generateTransferData', () => {
 });
 
 describe('Transactions utils :: decodeTransferData', () => {
-	it('decodeTransferData ERC20', () => {
+	it('decodeTransferData transfer', () => {
 		const [address, amount] = decodeTransferData(
-			'ERC20',
+			'transfer',
 			'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001'
 		);
 		expect(address).toEqual('0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0');
-		expect(amount.toNumber()).toEqual(1);
+		expect(amount).toEqual('1');
 	});
 
 	it('decodeTransferData ERC721', () => {
 		const [fromAddress, toAddress, tokenId] = decodeTransferData(
-			'ERC721',
+			'transferFrom',
 			'0x23b872dd00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589c900000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589b400000000000000000000000000000000000000000000000000000000000004f1'
 		);
 		expect(fromAddress).toEqual('0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589c9');
