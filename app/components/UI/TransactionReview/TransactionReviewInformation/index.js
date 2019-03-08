@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 		color: colors.gray,
 		flex: 1,
 		fontSize: 12,
-		minWidth: 50
+		minWidth: 30
 	},
 	overviewFiat: {
 		...fontStyles.bold,
@@ -82,6 +82,17 @@ const styles = StyleSheet.create({
 	overviewAction: {
 		...fontStyles.nold,
 		color: colors.primary
+	},
+	assetName: {
+		maxWidth: 200
+	},
+	totalValue: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'flex-end'
+	},
+	collectibleName: {
+		maxWidth: '30%'
 	}
 });
 
@@ -145,7 +156,12 @@ class TransactionReviewInformation extends Component {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
-				const totalValue = renderFromWei(totalEth).toString() + ' ' + strings('unit.eth');
+				const totalValue = (
+					<Text style={styles.overviewEth}>
+						{' '}
+						{renderFromWei(totalEth).toString() + ' ' + strings('unit.eth')}{' '}
+					</Text>
+				);
 				return [totalFiat, totalValue];
 			},
 			ERC20: () => {
@@ -159,26 +175,33 @@ class TransactionReviewInformation extends Component {
 					currentCurrency,
 					amountToken
 				);
-				const totalValue =
-					amountToken +
-					' ' +
-					selectedAsset.symbol +
-					' + ' +
-					renderFromWei(totalGas).toString() +
-					' ' +
-					strings('unit.eth');
+				const totalValue = (
+					<View style={styles.totalValue}>
+						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
+							{amountToken + ' ' + selectedAsset.symbol}
+						</Text>
+						<Text style={styles.overviewEth}>
+							{' + ' + renderFromWei(totalGas).toString() + ' ' + strings('unit.eth')}
+						</Text>
+					</View>
+				);
 				return [totalFiat, totalValue];
 			},
 			ERC721: () => {
 				const totalFiat = totalGasFiat;
-				const totalValue =
-					selectedAsset.name +
-					' (#' +
-					selectedAsset.tokenId +
-					') + ' +
-					renderFromWei(totalGas).toString() +
-					' ' +
-					strings('unit.eth');
+				const totalValue = (
+					<View style={styles.totalValue}>
+						<Text numberOfLines={1} style={[styles.overviewEth, styles.collectibleName]}>
+							{selectedAsset.name}
+						</Text>
+						<Text numberOfLines={1} style={styles.overviewEth}>
+							{' (#' + selectedAsset.tokenId + ')'}
+						</Text>
+						<Text style={styles.overviewEth}>
+							{' + ' + renderFromWei(totalGas).toString() + ' ' + strings('unit.eth')}
+						</Text>
+					</View>
+				);
 				return [totalFiat, totalValue];
 			},
 			default: () => [undefined, undefined]
@@ -186,7 +209,7 @@ class TransactionReviewInformation extends Component {
 		return totals[assetType] || totals.default;
 	};
 
-	render = () => {
+	render() {
 		const {
 			transaction: { gas, gasPrice },
 			currentCurrency,
@@ -222,7 +245,7 @@ class TransactionReviewInformation extends Component {
 							{strings('transaction.gas_fee').toUpperCase()}
 						</Text>
 						<Text style={[styles.overviewFiat, styles.overviewAccent]}>{totalFiat}</Text>
-						<Text style={styles.overviewEth}>{totalValue}</Text>
+						{totalValue}
 					</View>
 				</View>
 
@@ -236,7 +259,7 @@ class TransactionReviewInformation extends Component {
 				) : null}
 			</View>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
