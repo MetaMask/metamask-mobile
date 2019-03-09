@@ -63,23 +63,19 @@ class SyncWithExtension extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * An string that represents the selected address
-		 */
-		selectedAddress: PropTypes.string,
-		/**
-		 * Map of accounts to information objects including balances
-		 */
-		accounts: PropTypes.object,
-		/**
 		 * The action to update the password set flag
 		 * in the redux store
 		 */
-		passwordSet: PropTypes.func,
+		passwordHasBeenSet: PropTypes.func,
 		/**
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	seedwords = null;
@@ -97,25 +93,6 @@ class SyncWithExtension extends Component {
 
 	componentDidMount() {
 		this.mounted = true;
-	}
-
-	componentDidUpdate() {
-		// We need to wait until the sync completes and the engine is ready
-		// To do that we make sure the # of accounts in redux === the # accounts we imported
-		// and also make sure the selected address matches
-		if (
-			this.dataToSync &&
-			this.dataToSync.accounts &&
-			this.dataToSync.accounts.hd &&
-			Object.keys(this.props.accounts).length === this.dataToSync.accounts.hd.length &&
-			this.props.selectedAddress === this.dataToSync.preferences.selectedAddress &&
-			!this.done
-		) {
-			this.done = true;
-
-			this.dataToSync = null;
-			this.props.navigation.push('SyncWithExtensionSuccess');
-		}
 	}
 
 	componentWillUnmount() {
@@ -264,10 +241,16 @@ class SyncWithExtension extends Component {
 
 		let password;
 		try {
-			// This could also come from the previous step if it's a first time user
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (credentials) {
-				password = credentials.password;
+			// If there's a password set, let's keep it
+			if (this.props.passwordSet) {
+				// This could also come from the previous step if it's a first time user
+				const credentials = await SecureKeychain.getGenericPassword();
+				if (credentials) {
+					password = credentials.password;
+				} else {
+					password = this.password;
+				}
+				// Otherwise use the password from the extension
 			} else {
 				password = this.password;
 			}
@@ -297,15 +280,19 @@ class SyncWithExtension extends Component {
 		}
 
 		try {
-			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			this.props.passwordHasBeenSet();
+			this.props.seedphraseBackedUp();
+			this.done = true;
+			this.dataToSync = null;
+			this.props.navigation.push('SyncWithExtensionSuccess');
 		} catch (e) {
 			Logger.error('Sync failed', e);
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 			this.setState({ loading: false });
+			this.props.navigation.goBack();
 		}
-		await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
-		this.props.passwordSet();
-		this.props.seedphraseBackedUp();
 	}
 
 	goBack = () => {
@@ -351,11 +338,12 @@ class SyncWithExtension extends Component {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
-	passwordSet: () => dispatch(passwordSet()),
+	passwordHasBeenSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });
 

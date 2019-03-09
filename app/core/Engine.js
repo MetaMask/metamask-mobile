@@ -300,9 +300,13 @@ class Engine {
 			}
 		});
 		await PreferencesController.update(updatedPref);
-		await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
+		if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
+			await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
+		} else {
+			await PreferencesController.update({ selectedAddress: toChecksumAddress(accounts.hd[0]) });
+		}
 
-		TransactionController.update({
+		await TransactionController.update({
 			transactions: transactions.map(tx => ({
 				id: tx.id,
 				networkID: tx.metamaskNetworkId,
@@ -323,7 +327,8 @@ class Engine {
 		});
 
 		// Select same network ?
-		NetworkController.setProviderType(network.provider.type);
+		await NetworkController.setProviderType(network.provider.type);
+		return true;
 	};
 }
 

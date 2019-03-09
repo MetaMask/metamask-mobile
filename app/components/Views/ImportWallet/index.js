@@ -12,6 +12,7 @@ import {
 	StyleSheet
 } from 'react-native';
 import { connect } from 'react-redux';
+import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import PubNub from 'pubnub';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		paddingTop: 10,
-		paddingHorizontal: 40,
+		paddingHorizontal: 30,
 		paddingBottom: 30
 	},
 	logoWrapper: {
@@ -83,7 +84,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.transparent
 	},
 	loader: {
-		marginTop: 40
+		marginTop: 40,
+		justifyContent: 'center',
+		textAlign: 'center'
 	},
 	loadingText: {
 		marginTop: 30,
@@ -109,13 +112,19 @@ class ImportWallet extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
-		 * An string that represents the selected address
+		 * The action to update the password set flag
+		 * in the redux store
 		 */
-		selectedAddress: PropTypes.string,
+		passwordHasBeenSet: PropTypes.func,
 		/**
-		 * Map of accounts to information objects including balances
+		 * The action to update the seedphrase backed up flag
+		 * in the redux store
 		 */
-		accounts: PropTypes.object
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	seedwords = null;
@@ -133,25 +142,6 @@ class ImportWallet extends Component {
 
 	componentDidMount() {
 		this.mounted = true;
-	}
-
-	componentDidUpdate() {
-		// We need to wait until the sync completes and the engine is ready
-		// To do that we make sure the # of accounts in redux === the # accounts we imported
-		// and also make sure the selected address matches
-		if (
-			this.dataToSync &&
-			this.dataToSync.accounts &&
-			this.dataToSync.accounts.hd &&
-			Object.keys(this.props.accounts).length === this.dataToSync.accounts.hd.length &&
-			this.props.selectedAddress === this.dataToSync.preferences.selectedAddress &&
-			!this.done
-		) {
-			this.done = true;
-
-			this.dataToSync = null;
-			this.props.navigation.push('SyncWithExtensionSuccess');
-		}
 	}
 
 	componentWillUnmount() {
@@ -295,10 +285,16 @@ class ImportWallet extends Component {
 
 		let password;
 		try {
-			// This could also come from the previous step if it's a first time user
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (credentials) {
-				password = credentials.password;
+			// If there's a password set, let's keep it
+			if (this.props.passwordSet) {
+				// This could also come from the previous step if it's a first time user
+				const credentials = await SecureKeychain.getGenericPassword();
+				if (credentials) {
+					password = credentials.password;
+				} else {
+					password = this.password;
+				}
+				// Otherwise use the password from the extension
 			} else {
 				password = this.password;
 			}
@@ -321,13 +317,19 @@ class ImportWallet extends Component {
 		}
 
 		try {
-			Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			this.props.passwordHasBeenSet();
+			this.props.seedphraseBackedUp();
+			this.done = true;
+			this.dataToSync = null;
+			this.props.navigation.push('SyncWithExtensionSuccess');
 		} catch (e) {
 			Logger.error('Sync failed', e);
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 			this.setState({ loading: false });
+			this.props.navigation.goBack();
 		}
-		await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 	}
 
 	onPressImport = () => {
@@ -431,7 +433,16 @@ class ImportWallet extends Component {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	passwordSet: state.user.passwordSet
 });
 
-export default connect(mapStateToProps)(ImportWallet);
+const mapDispatchToProps = dispatch => ({
+	passwordHasBeenSet: () => dispatch(passwordSet()),
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(ImportWallet);
