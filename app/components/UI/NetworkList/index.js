@@ -144,20 +144,11 @@ export class NetworkList extends Component {
 	getOtherNetworks = () => this.getAllNetworks().slice(1);
 
 	onNetworkChange = async type => {
-		const { NetworkController } = Engine.context;
-		NetworkController.setProviderType(type);
-		setTimeout(() => {
-			this.props.onClose(false);
-			InteractionManager.runAfterInteractions(() => {
-				const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-				const actions = [
-					AssetsDetectionController.detectAssets(),
-					AccountTrackerController.refresh(),
-					Engine.refreshTransactionHistory()
-				];
-				Promise.all(actions);
-			});
-		}, 300);
+		this.props.onClose(false);
+		InteractionManager.runAfterInteractions(() => {
+			const { NetworkController } = Engine.context;
+			NetworkController.setProviderType(type);
+		});
 	};
 
 	closeModal = () => {
@@ -165,9 +156,8 @@ export class NetworkList extends Component {
 	};
 
 	onSetRpcTarget = async rpcTarget => {
-		const { NetworkController, AccountTrackerController } = Engine.context;
+		const { NetworkController } = Engine.context;
 		NetworkController.setRpcTarget(rpcTarget);
-		AccountTrackerController.refresh();
 		this.props.onClose(false);
 	};
 

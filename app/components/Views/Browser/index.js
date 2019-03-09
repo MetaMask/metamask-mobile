@@ -517,7 +517,18 @@ export class Browser extends Component {
 		}
 
 		// Listen to network changes
-		Engine.context.TransactionController.hub.on('networkChange', this.reload);
+		Engine.context.TransactionController.hub.on('networkChange', () => {
+			if (Platform.OS === 'ios') {
+				this.reload();
+			} else {
+				// Force unmount the webview to avoid caching problems
+				this.setState({ loading: true }, () => {
+					this.setState({ loading: false }, () => {
+						this.go(this.state.inputValue);
+					});
+				});
+			}
+		});
 	}
 
 	async loadUrl() {

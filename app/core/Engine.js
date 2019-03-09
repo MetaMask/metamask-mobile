@@ -30,7 +30,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 
 const encryptor = new Encryptor();
-
+let refreshing = false;
 /**
  * Core controller responsible for composing other GABA controllers together
  * and exposing convenience methods for common wallet operations.
@@ -166,28 +166,44 @@ class Engine {
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
-			this.refreshNetwork();
+			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
 		}
 		return Engine.instance;
+	}
+
+	configureControllersOnNetworkChange() {
+		const {
+			AccountTrackerController,
+			AssetsContractController,
+			AssetsDetectionController,
+			NetworkController: { provider },
+			TransactionController
+		} = this.datamodel.context;
+
+		provider.sendAsync = provider.sendAsync.bind(provider);
+		AccountTrackerController.configure({ provider });
+		AccountTrackerController.refresh();
+		AssetsContractController.configure({ provider });
+		AssetsDetectionController.detectAssets();
+		TransactionController.configure({ provider });
+		TransactionController.hub.emit('networkChange');
+		setTimeout(() => {
+			this.refreshTransactionHistory();
+		}, 1000);
 	}
 
 	/**
 	 * Refreshes all controllers that depend on the network
 	 */
 	refreshNetwork = () => {
-		const {
-			AccountTrackerController,
-			AssetsContractController,
-			NetworkController: { provider },
-			TransactionController
-		} = this.datamodel.context;
-
-		provider.sendAsync = provider.sendAsync.bind(provider);
-		AssetsContractController.configure({ provider });
-		AccountTrackerController.configure({ provider });
-		TransactionController.configure({ provider });
-		TransactionController.hub.emit('networkChange');
+		if (!refreshing) {
+			refreshing = true;
+			setTimeout(() => {
+				this.configureControllersOnNetworkChange();
+				refreshing = false;
+			}, 1200);
+		}
 	};
 
 	refreshTransactionHistory = async forceCheck => {

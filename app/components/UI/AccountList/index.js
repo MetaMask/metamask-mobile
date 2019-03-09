@@ -197,11 +197,13 @@ export default class AccountList extends Component {
 
 			this.props.onAccountChange();
 
-			InteractionManager.runAfterInteractions(() => {
-				Engine.refreshTransactionHistory();
-				const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-				AssetsDetectionController.detectAssets();
-				AccountTrackerController.refresh();
+			InteractionManager.runAfterInteractions(async () => {
+				const { AssetsDetectionController } = Engine.context;
+				const actions = [AssetsDetectionController.detectAssets()];
+				await Promise.all(actions);
+				setTimeout(() => {
+					Engine.refreshTransactionHistory();
+				}, 1000);
 			});
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
