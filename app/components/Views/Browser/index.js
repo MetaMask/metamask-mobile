@@ -914,7 +914,9 @@ export class Browser extends Component {
 						}
 					}
 				)
-				setTimeout(() => {
+				${
+					Platform.OS === 'ios'
+						? `setTimeout(() => {
 					const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
 					window.postMessageToNative(
 					{
@@ -923,7 +925,9 @@ export class Browser extends Component {
 							height: height
 						}
 					})
-				}, 500);
+				}, 500)`
+						: ''
+				}
 			})();
 		`;
 		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
