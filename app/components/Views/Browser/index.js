@@ -515,6 +515,9 @@ export class Browser extends Component {
 		} else {
 			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
 		}
+
+		// Listen to network changes
+		Engine.context.TransactionController.hub.on('networkChange', this.reload);
 	}
 
 	async loadUrl() {
@@ -549,6 +552,7 @@ export class Browser extends Component {
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
+		Engine.context.NetworkController.provider.removeListener('networkChange', this.reload);
 		if (Platform.OS === 'ios') {
 			this.state.scrollAnim.removeAllListeners();
 			this.state.offsetAnim.removeAllListeners();

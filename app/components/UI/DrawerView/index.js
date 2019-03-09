@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
 	},
 	modalTitle: {
 		fontSize: 22,
+		marginBottom: 15,
 		textAlign: 'center',
 		...fontStyles.bold
 	},

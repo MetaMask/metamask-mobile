@@ -187,6 +187,7 @@ class Engine {
 		AssetsContractController.configure({ provider });
 		AccountTrackerController.configure({ provider });
 		TransactionController.configure({ provider });
+		TransactionController.hub.emit('networkChange');
 	};
 
 	refreshTransactionHistory = async forceCheck => {

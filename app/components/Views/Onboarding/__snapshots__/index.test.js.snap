@@ -36,25 +36,15 @@ exports[`Onboarding should render correctly 1`] = `
         <View
           style={
             Object {
-              "alignItems": "flex-start",
-              "justifyContent": "flex-start",
+              "height": 100,
+              "marginBottom": 0,
+              "marginTop": 30,
+              "width": 100,
             }
           }
         >
-          <Component
-            resizeMethod="auto"
-            source={
-              Object {
-                "testUri": "../../../app/images/fox.png",
-              }
-            }
-            style={
-              Object {
-                "height": 63,
-                "marginTop": 45,
-                "width": 66,
-              }
-            }
+          <AnimatedFox
+            bgColor="white"
           />
         </View>
         <Text
@@ -62,7 +52,7 @@ exports[`Onboarding should render correctly 1`] = `
             Object {
               "color": "#000000",
               "fontFamily": "Roboto",
-              "fontSize": 32,
+              "fontSize": 28,
               "fontWeight": "600",
               "justifyContent": "flex-start",
               "marginBottom": 10,
@@ -87,15 +77,15 @@ exports[`Onboarding should render correctly 1`] = `
             }
           }
         >
-          A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.
+          A browser that connects you to applications on the decentralized web
         </Text>
       </View>
       <View
         style={
           Object {
-            "height": 210,
+            "height": 190,
             "justifyContent": "flex-end",
-            "paddingBottom": 50,
+            "paddingBottom": 40,
           }
         }
       >
@@ -122,7 +112,7 @@ exports[`Onboarding should render correctly 1`] = `
             testID="onboarding-new-button"
             type="blue"
           >
-            Start exploring now
+            Start exploring
           </StyledButton>
         </View>
         <View

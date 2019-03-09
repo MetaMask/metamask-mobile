@@ -15,7 +15,6 @@ export default class Screen extends Component {
 
 	componentDidMount() {
 		StatusBar.setBarStyle('dark-content', true);
-		StatusBar.animated(true);
 		StatusBar.setBackgroundColor(Platform.OS === 'android' ? colors.androidStatusbar : colors.white);
 	}
 

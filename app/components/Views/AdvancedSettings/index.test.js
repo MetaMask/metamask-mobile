@@ -7,7 +7,9 @@ describe('AdvancedSettings', () => {
 	const mockStore = configureMockStore();
 
 	it('should render correctly', () => {
-		const initialState = {};
+		const initialState = {
+			settings: { showHexData: true }
+		};
 
 		const wrapper = shallow(
 			<AdvancedSettings
