@@ -24,8 +24,8 @@ const styles = StyleSheet.create({
 	},
 	ctas: {
 		justifyContent: 'flex-end',
-		height: 210,
-		paddingBottom: 50
+		height: 190,
+		paddingBottom: 40
 	},
 	logoWrapper: {
 		justifyContent: 'flex-start',
@@ -33,11 +33,11 @@ const styles = StyleSheet.create({
 	},
 	fox: {
 		marginTop: Platform.OS === 'android' ? 25 : 45,
-		width: 66,
-		height: 63
+		width: 56,
+		height: 53
 	},
 	title: {
-		fontSize: 32,
+		fontSize: 28,
 		marginTop: 20,
 		marginBottom: 10,
 		color: colors.fontPrimary,

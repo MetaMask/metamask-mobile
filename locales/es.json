@@ -9,16 +9,16 @@
 		"info": "Información"
 	},
 	"onboarding": {
-		"title": "Bienvenidos a MetaMask",
-		"subtitle":
-			"Un nuevo tipo de navegador web para un internet mas seguro. Explora la web decentralizada del mañana, ahora.",
+		"title": "Bienvenido a MetaMask",
+		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
 		"import_wallet_button": "Importar billetera",
-		"start_exploring_now": "Explorar ahora",
+		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar"
 	},
 	"create_wallet": {
-		"title": "Espera, estamos creando esto mientras volamos.",
-		"subtitle": "- El Blockchain"
+		"title": "Creando tu nueva billetera",
+		"subtitle":
+			"Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
 	},
 	"import_wallet": {
 		"title": "Importar Billetera",
