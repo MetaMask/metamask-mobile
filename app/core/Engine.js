@@ -143,7 +143,7 @@ class Engine {
 								}
 							}
 						},
-						{ network: '3', provider: { type: 'ropsten' } }
+						{ network: '1', provider: { type: 'mainnet' } }
 					),
 					new NetworkStatusController(),
 					new PhishingController(),
@@ -188,9 +188,6 @@ class Engine {
 		AssetsDetectionController.detectAssets();
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
-		setTimeout(() => {
-			this.refreshTransactionHistory();
-		}, 1000);
 	}
 
 	/**
