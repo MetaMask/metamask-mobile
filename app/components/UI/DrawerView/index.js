@@ -432,6 +432,7 @@ class DrawerView extends Component {
 
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
+		this.hideDrawer();
 	};
 
 	showSettings = async () => {
