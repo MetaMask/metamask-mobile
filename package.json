@@ -24,7 +24,11 @@
     "test:e2e": "npm run test:e2e:ios && npm run test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
-    "postinstall": "./scripts/postinstall.sh"
+    "postinstall": "./scripts/postinstall.sh",
+    "sourcemaps:android": "react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
+    "sourcemaps:ios": "react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
+    "stacktrace:android": "stack-beautifier sourcemaps/android.js.map -t trace.txt",
+    "stacktrace:ios": "stack-beautifier sourcemaps/ios.js.map -t trace.txt"
   },
   "prettier": {
     "printWidth": 120,
@@ -147,6 +151,7 @@
     "regenerator-runtime": "^0.13.1",
     "request-promise": "4.2.2",
     "rn-nodeify": "github:tradle/rn-nodeify#6b850e6a0837fa5ff2e5c4acf5b5cf79f396e56e",
+    "stack-beautifier": "1.0.2",
     "web3": "^0.20.7"
   },
   "eslintConfig": {

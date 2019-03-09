@@ -154,6 +154,8 @@ buildIosRelease(){
 		echo $IOS_ENV | tr "|" "\n" > .ios.env
 		echo "Build started..."
 		cd ios && bundle install && bundle exec fastlane prerelease
+		# Generate sourcemaps
+		npm run sourcemaps:ios
 	else
 		react-native run-ios  --configuration Release
 	fi
@@ -174,6 +176,12 @@ buildAndroidRelease(){
 
 	cd android &&
 	./gradlew assembleRelease
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate sourcemaps
+		npm run sourcemaps:android
+	fi
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb install app/build/outputs/apk/release/app-release.apk
 	fi
