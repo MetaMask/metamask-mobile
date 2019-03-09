@@ -10,15 +10,15 @@
 	},
 	"onboarding": {
 		"title": "Welcome to MetaMask",
-		"subtitle":
-			"A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.",
+		"subtitle": "A browser that connects you to applications on the decentralized web",
 		"import_wallet_button": "Import a wallet",
-		"start_exploring_now": "Start exploring now",
+		"start_exploring_now": "Start exploring",
 		"login": "Login"
 	},
 	"create_wallet": {
-		"title": "Hang tight, we're building this thing while it's flying.",
-		"subtitle": "- The Blockchain"
+		"title": "Creating your new wallet",
+		"subtitle":
+			"Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
 	},
 	"import_wallet": {
 		"title": "Import Wallet",
