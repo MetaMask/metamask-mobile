@@ -523,9 +523,13 @@ export class Browser extends Component {
 			} else {
 				// Force unmount the webview to avoid caching problems
 				this.setState({ loading: true }, () => {
-					this.setState({ loading: false }, () => {
-						this.go(this.state.inputValue);
-					});
+					setTimeout(() => {
+						this.setState({ loading: false }, () => {
+							setTimeout(() => {
+								this.go(this.state.inputValue);
+							}, 300);
+						});
+					}, 300);
 				});
 			}
 		});
