@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { AsyncStorage, Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
-
+import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
@@ -27,14 +27,16 @@ const styles = StyleSheet.create({
 		height: 190,
 		paddingBottom: 40
 	},
-	logoWrapper: {
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start'
+	foxWrapper: {
+		width: Platform.OS === 'ios' ? 100 : 66,
+		height: Platform.OS === 'ios' ? 100 : 66,
+		marginTop: 30,
+		marginBottom: 0
 	},
-	fox: {
-		marginTop: Platform.OS === 'android' ? 25 : 45,
-		width: 56,
-		height: 53
+	image: {
+		alignSelf: 'center',
+		width: Platform.OS === 'ios' ? 100 : 66,
+		height: Platform.OS === 'ios' ? 10 : 66
 	},
 	title: {
 		fontSize: 28,
@@ -147,12 +149,16 @@ export default class Onboarding extends Component {
 				<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
 					<View style={styles.wrapper}>
 						<View style={styles.content}>
-							<View style={styles.logoWrapper}>
-								<Image
-									source={require('../../../images/fox.png')}
-									style={styles.fox}
-									resizeMethod={'auto'}
-								/>
+							<View style={styles.foxWrapper}>
+								{Platform.OS === 'android' ? (
+									<Image
+										source={require('../../../images/fox.png')}
+										style={styles.image}
+										resizeMethod={'auto'}
+									/>
+								) : (
+									<AnimatedFox />
+								)}
 							</View>
 							<Text style={styles.title}>{strings('onboarding.title')}</Text>
 							<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
