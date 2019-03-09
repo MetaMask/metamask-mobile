@@ -72,16 +72,12 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	separator: {
-		marginTop: 25,
-		marginBottom: -10,
+		marginTop: 7,
+		marginBottom: -7,
 		textAlign: 'center'
 	},
 	ctaWrapper: {
 		marginTop: 10
-	},
-	importFromSeedBtn: {
-		borderWidth: 0,
-		backgroundColor: colors.transparent
 	},
 	loader: {
 		marginTop: 40,
@@ -397,8 +393,7 @@ class ImportWallet extends Component {
 					<StyledButton
 						type={'normal'}
 						onPress={this.onPressImport}
-						testID={'onboarding-new-button'}
-						containerStyle={styles.importFromSeedBtn}
+						testID={'import-wallet-import-from-seed-button'}
 					>
 						{strings('import_wallet.import_from_seed_button')}
 					</StyledButton>
@@ -412,23 +407,25 @@ class ImportWallet extends Component {
 		return this.renderInitialView();
 	}
 
-	render = () => (
-		<OnboardingScreenWithBg>
-			<ScrollView style={styles.flex} testID={'import-wallet-screen'}>
-				<View style={styles.wrapper}>
-					<View style={styles.logoWrapper}>
-						<Image
-							source={require('../../../images/sync-icon.png')}
-							style={styles.fox}
-							resizeMethod={'auto'}
-						/>
+	render() {
+		return (
+			<OnboardingScreenWithBg>
+				<ScrollView style={styles.flex} testID={'import-wallet-screen'}>
+					<View style={styles.wrapper}>
+						<View style={styles.logoWrapper}>
+							<Image
+								source={require('../../../images/sync-icon.png')}
+								style={styles.fox}
+								resizeMethod={'auto'}
+							/>
+						</View>
+						<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+						{this.renderContent()}
 					</View>
-					<Text style={styles.title}>{strings('import_wallet.title')}</Text>
-					{this.renderContent()}
-				</View>
-			</ScrollView>
-		</OnboardingScreenWithBg>
-	);
+				</ScrollView>
+			</OnboardingScreenWithBg>
+		);
+	}
 }
 
 const mapStateToProps = state => ({
