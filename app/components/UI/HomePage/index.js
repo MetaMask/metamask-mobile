@@ -17,6 +17,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import FeatherIcon from 'react-native-vector-icons/Feather';
 import DeviceSize from '../../../util/DeviceSize';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -82,12 +83,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	searchWrapper: {
-		height: 40
+		height: 50,
+		marginBottom: 15
 	},
 	searchInput: {
 		paddingVertical: 10,
 		paddingHorizontal: 10,
-		paddingLeft: 40,
+		paddingLeft: 45,
 		flex: 1,
 		marginHorizontal: 0,
 		backgroundColor: colors.beige,
@@ -97,7 +99,7 @@ const styles = StyleSheet.create({
 	searchIcon: {
 		position: 'absolute',
 		textAlignVertical: 'center',
-		marginTop: 10,
+		marginTop: 14,
 		marginLeft: 18
 	},
 	backupAlert: {
@@ -203,6 +205,8 @@ class HomePage extends Component {
 		tabViewStyle: null
 	};
 
+	searchInput = React.createRef();
+
 	actionSheet = null;
 
 	handleTabHeight(obj) {
@@ -287,6 +291,10 @@ class HomePage extends Component {
 		this.mounted && this.setState({ searchInputValue: '' });
 	};
 
+	focusInput = () => {
+		this.searchInput && this.searchInput.current && this.searchInput.current.focus();
+	};
+
 	render() {
 		return (
 			<View style={styles.flex}>
@@ -299,6 +307,7 @@ class HomePage extends Component {
 						<View style={styles.flex}>
 							<View style={styles.searchWrapper}>
 								<TextInput
+									ref={this.searchInput}
 									style={[
 										styles.searchInput,
 										this.state.inputWidth ? { width: this.state.inputWidth } : {}
@@ -313,7 +322,13 @@ class HomePage extends Component {
 									returnKeyType="go"
 									value={this.state.searchInputValue}
 								/>
-								<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
+								<FeatherIcon
+									onPress={this.focusInput}
+									name="search"
+									size={18}
+									color={colors.asphalt}
+									style={styles.searchIcon}
+								/>
 							</View>
 							<View style={styles.homePageContent}>
 								<View style={styles.topBarWrapper}>
