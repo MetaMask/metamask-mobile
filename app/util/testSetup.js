@@ -103,3 +103,5 @@ NativeModules.RNGestureHandlerModule = {
 NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };
+
+jest.mock('NativeAnimatedHelper');

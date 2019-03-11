@@ -13,7 +13,7 @@ exports[`StyledButton should render correctly on Android the button with type ca
         Object {
           "backgroundColor": "#FFFFFF",
           "borderColor": "#9b9b9b",
-          "borderWidth": 2,
+          "borderWidth": 1,
         },
         null,
         undefined,
@@ -57,7 +57,7 @@ exports[`StyledButton should render correctly on Android the button with type no
         Object {
           "backgroundColor": "#FFFFFF",
           "borderColor": "#008edf",
-          "borderWidth": 2,
+          "borderWidth": 1,
         },
         null,
         undefined,
@@ -100,7 +100,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
       Object {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#9b9b9b",
-        "borderWidth": 2,
+        "borderWidth": 1,
       },
       undefined,
     ]
@@ -109,9 +109,8 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   style={
     Array [
       Object {
-        "fontFamily": "Roboto",
-        "fontSize": 18,
-        "fontWeight": "600",
+        "fontSize": 14,
+        "fontWeight": "bold",
         "textAlign": "center",
       },
       Object {
@@ -143,9 +142,8 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   style={
     Array [
       Object {
-        "fontFamily": "Roboto",
-        "fontSize": 18,
-        "fontWeight": "600",
+        "fontSize": 14,
+        "fontWeight": "bold",
         "textAlign": "center",
       },
       Object {
@@ -170,7 +168,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
       Object {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#008edf",
-        "borderWidth": 2,
+        "borderWidth": 1,
       },
       undefined,
     ]
@@ -179,9 +177,8 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   style={
     Array [
       Object {
-        "fontFamily": "Roboto",
-        "fontSize": 18,
-        "fontWeight": "600",
+        "fontSize": 14,
+        "fontWeight": "bold",
         "textAlign": "center",
       },
       Object {
@@ -213,9 +210,8 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   style={
     Array [
       Object {
-        "fontFamily": "Roboto",
-        "fontSize": 18,
-        "fontWeight": "600",
+        "fontSize": 14,
+        "fontWeight": "bold",
         "textAlign": "center",
       },
       Object {

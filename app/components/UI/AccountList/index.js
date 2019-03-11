@@ -55,7 +55,8 @@ const styles = StyleSheet.create({
 		height: 80
 	},
 	accountInfo: {
-		marginHorizontal: 15,
+		marginLeft: 15,
+		marginRight: 0,
 		flex: 1,
 		flexDirection: 'row'
 	},
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	importedWrapper: {
-		width: Platform.OS === 'android' ? 73 : 70,
+		width: 73,
 		paddingHorizontal: 10,
 		paddingVertical: 3,
 		borderRadius: 10,
@@ -196,11 +197,10 @@ export default class AccountList extends Component {
 
 			this.props.onAccountChange();
 
-			InteractionManager.runAfterInteractions(() => {
-				Engine.refreshTransactionHistory();
-				const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-				AssetsDetectionController.detectAssets();
-				AccountTrackerController.refresh();
+			InteractionManager.runAfterInteractions(async () => {
+				setTimeout(() => {
+					Engine.refreshTransactionHistory();
+				}, 1000);
 			});
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong

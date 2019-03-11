@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import {
 	ActivityIndicator,
 	ScrollView,
-	Alert,
 	Text,
 	TouchableOpacity,
 	View,
@@ -37,8 +36,8 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 32,
-		marginTop: 20,
-		marginBottom: 20,
+		marginTop: 10,
+		marginBottom: 10,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'left',
@@ -80,6 +79,7 @@ const styles = StyleSheet.create({
 	},
 	colLeft: {
 		paddingVertical: 20,
+		paddingBottom: 10,
 		flex: 1,
 		alignItems: 'center',
 		borderColor: colors.borderColor,
@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
 	},
 	colRight: {
 		paddingVertical: 20,
+		paddingBottom: 10,
 		flex: 1,
 		alignItems: 'center'
 	},
@@ -147,25 +148,7 @@ export default class AccountBackupStep4 extends Component {
 	}
 
 	dismiss = () => {
-		Alert.alert(
-			strings('account_backup_step_4.cancel_backup_title'),
-			strings('account_backup_step_4.cancel_backup_message'),
-			[
-				{
-					text: strings('account_backup_step_4.cancel_backup_ok'),
-					onPress: () => {
-						this.props.navigation.popToTop();
-						this.props.navigation.goBack(null);
-					}
-				},
-				{
-					text: strings('account_backup_step_4.cancel_backup_no'),
-					onPress: () => null,
-					style: 'cancel'
-				}
-			],
-			{ cancelable: false }
-		);
+		this.props.navigation.goBack();
 	};
 
 	goNext = () => {
@@ -220,7 +203,7 @@ export default class AccountBackupStep4 extends Component {
 							</View>
 
 							<View style={styles.text}>
-								<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
+								<Text style={styles.label}>{strings('account_backup_step_4.info_text_2')}</Text>
 							</View>
 						</View>
 						<View style={styles.buttonWrapper}>

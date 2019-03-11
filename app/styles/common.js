@@ -34,6 +34,7 @@ export const colors = {
 	red: '#f00',
 	darkRed: '#C63636',
 	warningRed: '#d95846',
+	headerModalRed: '#DA4453',
 	slate: '#dfe4ea',
 	subtleGray: '#8c8e94',
 	tar: '#2f3542',

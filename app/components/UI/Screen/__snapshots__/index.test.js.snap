@@ -8,25 +8,6 @@ exports[`Screen should render correctly 1`] = `
     }
   }
 >
-  <View
-    style={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "height": 1334,
-        "left": 0,
-        "position": "absolute",
-        "top": 0,
-        "width": 750,
-      }
-    }
-  >
-    <StatusBar
-      animated={true}
-      backgroundColor="#FFFFFF"
-      barStyle="dark-content"
-      showHideTransition="fade"
-    />
-  </View>
   <SafeAreaView
     style={
       Object {
