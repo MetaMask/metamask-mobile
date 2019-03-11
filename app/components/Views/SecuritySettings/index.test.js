@@ -8,13 +8,13 @@ describe('SecuritySettings', () => {
 
 	it('should render correctly', () => {
 		const initialState = {
-			privacy: { approvedHosts: [], privacyMode: true },
+			privacy: { approvedHosts: {}, privacyMode: true },
 			browser: { history: [] },
 			settings: { lockTime: 1000 },
 			engine: {
 				backgroundState: {
 					PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
-					AccountTrackerController: { accounts: [] }
+					AccountTrackerController: { accounts: {} }
 				}
 			}
 		};
