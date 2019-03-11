@@ -148,6 +148,9 @@ export class NetworkList extends Component {
 		InteractionManager.runAfterInteractions(() => {
 			const { NetworkController } = Engine.context;
 			NetworkController.setProviderType(type);
+			setTimeout(() => {
+				Engine.refreshTransactionHistory();
+			}, 1000);
 		});
 	};
 

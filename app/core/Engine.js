@@ -185,9 +185,9 @@ class Engine {
 		AccountTrackerController.configure({ provider });
 		AccountTrackerController.refresh();
 		AssetsContractController.configure({ provider });
-		AssetsDetectionController.detectAssets();
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
+		AssetsDetectionController.detectAssets();
 	}
 
 	/**
@@ -199,7 +199,7 @@ class Engine {
 			setTimeout(() => {
 				this.configureControllersOnNetworkChange();
 				refreshing = false;
-			}, 1200);
+			}, 500);
 		}
 	};
 
