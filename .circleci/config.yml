@@ -189,9 +189,9 @@ workflows:
             - lint
             - test-unit
             # - test-e2e-ios
-      - upload-coverage:
-          requires:
-            - test-unit
+    #   - upload-coverage:
+    #       requires:
+    #         - test-unit
       - publish-pre-release-ios:
           requires:
             - prep-deps
