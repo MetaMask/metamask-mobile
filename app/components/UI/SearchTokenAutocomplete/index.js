@@ -61,12 +61,14 @@ export default class SearchTokenAutocomplete extends Component {
 					onCancelPress={this.cancelAddToken}
 					onConfirmPress={this.addToken}
 				>
-					<AssetSearch onSearch={this.handleSearch} />
-					<AssetList
-						searchResults={searchResults}
-						handleSelectAsset={this.handleSelectAsset}
-						selectedAsset={selectedAsset}
-					/>
+					<View>
+						<AssetSearch onSearch={this.handleSearch} />
+						<AssetList
+							searchResults={searchResults}
+							handleSelectAsset={this.handleSelectAsset}
+							selectedAsset={selectedAsset}
+						/>
+					</View>
 				</ActionView>
 			</View>
 		);
