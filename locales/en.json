@@ -10,15 +10,15 @@
 	},
 	"onboarding": {
 		"title": "Welcome to MetaMask",
-		"subtitle":
-			"A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.",
+		"subtitle": "A browser that connects you to applications on the decentralized web",
 		"import_wallet_button": "Import a wallet",
-		"start_exploring_now": "Start exploring now",
+		"start_exploring_now": "Start exploring",
 		"login": "Login"
 	},
 	"create_wallet": {
-		"title": "Hang tight, we're building this thing while it's flying.",
-		"subtitle": "- The Blockchain"
+		"title": "Creating your new wallet",
+		"subtitle":
+			"Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
 	},
 	"import_wallet": {
 		"title": "Import Wallet",
@@ -39,7 +39,7 @@
 		"invalid_password": "Invalid password"
 	},
 	"choose_password": {
-		"title": "Choose a password",
+		"title": "Create password",
 		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
@@ -82,7 +82,7 @@
 		"wallet": "Wallet",
 		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",
-		"submit_bug": "BUG",
+		"submit_bug": "BUG REPORT",
 		"submit_general_feedback": "GENERAL",
 		"share_address": "Share my Public Address",
 		"view_in_etherscan": "View on Etherscan",
@@ -500,10 +500,15 @@
 		"from": "From:",
 		"cta_text": "OK"
 	},
-	"protect_your_account": {
-		"title": "Protect your Account",
-		"info_text":
-			"Now that your account has stored value, let's create a password in order to protect your account.",
+	"secure_your_wallet": {
+		"title": "Secure your wallet",
+		"step_1": "Step 1:",
+		"step_1_description": "Create password",
+		"step_2": "Step 2:",
+		"step_2_description": "Save wallet seed phrase",
+		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
+		"info_text_2":
+			"This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
 		"cta_text": "CREATE PASSWORD"
 	},
 	"account_backup_step_1": {
@@ -513,14 +518,16 @@
 		"cancel_backup_no": "No, back up Seed Phrase",
 		"skip": "Skip",
 		"important": "IMPORTANT!",
-		"title": "Save your wallet's seed phrase?",
+		"title": "Save your wallet's seed phrase",
 		"highly_recommended": "HIGHLY RECOMMENDED",
-		"info_text_1":
-			"The seed phrase is a unique twelve word phrase used to recover your wallet should you ever loose your device.",
-		"info_text_2":
-			"Do not share this with anyone! It’s crucial to save this phrase in a secure place only you have access to.",
-		"info_text_3":
-			"Your password cannot be used to recover your wallet! Only the seed phrase can be used to recover your wallet and all of it’s funds!",
+		"info_text_1": "Your wallet's seed phrase is:",
+		"info_text_2_1": "A ",
+		"info_text_2_2": "secret",
+		"info_text_2_3": " code that you do NOT share with anyone.",
+		"info_text_3_1": "used to ",
+		"info_text_3_2": "recover your wallet",
+		"info_text_3_3":
+			" in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.",
 		"cta_text": "YEAH, LET'S SAVE IT",
 		"learn_more": "Learn More"
 	},
@@ -530,12 +537,10 @@
 		"cancel_backup_ok": "Yes, I'll take the risk",
 		"cancel_backup_no": "No, back up Seed Phrase",
 		"title": "Grab a pen and paper",
-		"info_text_1":
-			"You're going to need to write your seed phrase down. You will be asked to re-enter it in the order it's presented to you.",
-		"security_tips": "Security Tips",
-		"tip_1": "Write it down on paper and keep it somewhere safe!",
-		"tip_2": "Save it to a password manager",
-		"tip_3": "Never share this phrase with anyone!",
+		"info": "Next step is to write your seed phrase down.",
+		"info_2_1": "You will be asked to ",
+		"info_2_2": "re-enter",
+		"info_2_3": " it for confirmation",
 		"cta_text": "OK"
 	},
 	"account_backup_step_3": {
@@ -557,7 +562,7 @@
 		"title": "Your seed phrase",
 		"info_text_1": "Carefully write down these words on paper. Their order matters.",
 		"info_text_2": "You'll be asked to re-enter it on the next screen",
-		"cta_text": "I'VE WRITTEN IT DOWN"
+		"cta_text": "I'VE COPIED THE PHRASE"
 	},
 	"account_backup_step_5": {
 		"error_title": "Oops!",
@@ -566,18 +571,23 @@
 		"back": "Back",
 		"title": "Confirm seed phrase",
 		"info_text": "Insert each word in the order it was presented to you on the previous screen.",
-		"cta_text": "CONFIRM PHRASE"
+		"cta_text": "CONFIRM PHRASE",
+		"modal_title": "Seed phrase confirmed!",
+		"modal_text": "This was to ensure you follow this security measure",
+		"modal_button": "NEXT"
 	},
 	"account_backup_step_6": {
-		"title": "Congratulations!",
-		"info_text": "You passed the test. Keep your seed phrase safe, it's your responsibility!",
-		"tips": "Tips on storing it safely",
-		"tip_1": "Save a backup in multiple places",
-		"tip_2": "Never tell anyone",
-		"tip_3": "If you need to back it up again, you can find them in Settings => Security.",
-		"disclaimer": "*MetaMask cannot recover your seedphrase",
-		"learn_more": "Learn More",
-		"cta_text": "ALL DONE"
+		"title": "Security Tips",
+		"info_text": "MetaMask cannot recover your seed phrase if you lose it",
+		"tip_1": "Keep multiple backups of your seed phrase",
+		"tip_2": "Store the phrase in a trusted password manager and paper backups in a safe place",
+		"tip_3": "Never share this phrase with anyone",
+		"disclaimer": "* You can find your seedphrase if you go to ",
+		"disclaimer_bold": "Settings > Security & Privacy",
+		"cta_text": "GOT IT!",
+		"modal_title": "Congratulations!",
+		"modal_text": "You are all backed up and ready to go!",
+		"modal_button": "DONE"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
@@ -607,5 +617,11 @@
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
 		"received_message": "Tap to view this transaction"
+	},
+	"secure_your_wallet_modal": {
+		"title": "Secure your wallet",
+		"body": "Now that you have valuables in your wallet, create password & save your wallet's seed phrase ",
+		"required": "(required)",
+		"button": "PROCEED NOW"
 	}
 }

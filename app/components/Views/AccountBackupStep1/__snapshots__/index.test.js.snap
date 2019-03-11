@@ -56,7 +56,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           "flex": 1,
           "padding": 20,
           "paddingBottom": 0,
-          "paddingTop": 20,
+          "paddingTop": 0,
         }
       }
       testID="protect-your-account-screen"
@@ -76,15 +76,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               "fontSize": 32,
               "fontWeight": "400",
               "justifyContent": "center",
-              "marginBottom": 20,
-              "marginLeft": 20,
-              "marginTop": 20,
+              "marginBottom": 25,
+              "marginLeft": 10,
+              "marginTop": 0,
               "textAlign": "left",
-              "width": 260,
             }
           }
         >
-          Save your wallet's seed phrase?
+          Save your wallet's seed phrase
         </Text>
         <View
           style={
@@ -92,7 +91,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               "alignSelf": "center",
               "backgroundColor": "#F8D66D",
               "borderRadius": 8,
-              "marginBottom": 25,
+              "marginBottom": 35,
               "paddingHorizontal": 17,
               "paddingVertical": 9,
             }
@@ -116,7 +115,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             Object {
               "justifyContent": "center",
               "marginBottom": 10,
-              "marginLeft": 20,
+              "marginLeft": 10,
               "marginRight": 20,
             }
           }
@@ -134,49 +133,98 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               }
             }
           >
-            The seed phrase is a unique twelve word phrase used to recover your wallet should you ever loose your device.
+            Your wallet's seed phrase is:
           </Text>
-          <Text
+          <View
             style={
               Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 23,
-                "marginBottom": 20,
-                "textAlign": "left",
+                "flexDirection": "row",
+                "marginBottom": 15,
               }
             }
           >
-            Do not share this with anyone! It’s crucial to save this phrase in a secure place only you have access to.
-          </Text>
-          <Text
+            <Text
+              style={
+                Object {
+                  "marginRight": 5,
+                }
+              }
+            >
+              •
+            </Text>
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 23,
+                  "marginBottom": 20,
+                  "textAlign": "left",
+                }
+              }
+            >
+              A 
+              <Text
+                style={
+                  Object {
+                    "fontFamily": "Roboto",
+                    "fontWeight": "600",
+                    "lineHeight": 25,
+                  }
+                }
+              >
+                secret
+              </Text>
+               code that you do NOT share with anyone.
+            </Text>
+          </View>
+          <View
             style={
               Object {
-                "fontFamily": "Roboto",
-                "fontWeight": "600",
-                "lineHeight": 25,
+                "flexDirection": "row",
+                "marginBottom": 15,
               }
             }
           >
-            IMPORTANT!
-          </Text>
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 23,
-                "marginBottom": 20,
-                "textAlign": "left",
+            <Text
+              style={
+                Object {
+                  "marginRight": 5,
+                }
               }
-            }
-          >
-            Your password cannot be used to recover your wallet! Only the seed phrase can be used to recover your wallet and all of it’s funds!
-          </Text>
+            >
+              •
+            </Text>
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 23,
+                  "marginBottom": 20,
+                  "textAlign": "left",
+                }
+              }
+            >
+              used to 
+              <Text
+                style={
+                  Object {
+                    "fontFamily": "Roboto",
+                    "fontWeight": "600",
+                    "lineHeight": 25,
+                  }
+                }
+              >
+                recover your wallet
+              </Text>
+               in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.
+            </Text>
+          </View>
         </View>
       </View>
       <View

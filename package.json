@@ -19,8 +19,8 @@
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "jest ./app/ --forceExit",
-    "test:unit:update": "time jest -u ./app/ --forceExit",
+    "test:unit": "jest ./app/",
+    "test:unit:update": "time jest -u ./app/",
     "test:e2e": "npm run test:e2e:ios && npm run test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
@@ -68,7 +68,7 @@
     "ethjs-unit": "^0.1.6",
     "events": "^3.0.0",
     "fuse.js": "^3.2.0",
-    "gaba": "1.0.0-beta.62",
+    "gaba": "1.0.0-beta.63",
     "https-browserify": "0.0.1",
     "jsc-android": "^236355.1.1",
     "multihashes": "^0.4.14",
@@ -95,7 +95,7 @@
     "react-native-fs": "^2.10.14",
     "react-native-gesture-handler": "^1.0.15",
     "react-native-i18n": "^2.0.15",
-    "react-native-keyboard-aware-scroll-view": "^0.7.2",
+    "react-native-keyboard-aware-scroll-view": "^0.8.0",
     "react-native-keychain": "github:brunobar79/react-native-keychain#5210c22c94a4d66c2e0231604601b3636bfc41bc",
     "react-native-linear-gradient": "^2.4.0",
     "react-native-modal": "github:brunobar79/react-native-modal#07697901a8e16323e40a378de6740038964b6a82",
@@ -231,7 +231,7 @@
     "snapshotSerializers": [
       "enzyme-to-json/serializer"
     ],
-    "collectCoverage": true,
+    "collectCoverage": false,
     "collectCoverageFrom": [
       "<rootDir>/app/**/*.{js,jsx}",
       "!<rootDir>/node_modules/",

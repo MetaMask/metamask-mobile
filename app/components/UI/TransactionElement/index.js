@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { Platform, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 	},
 	rowOnly: {
 		padding: 15,
-		height: 90
+		height: Platform.OS === 'ios' ? 95 : 100
 	},
 	date: {
 		color: colors.fontSecondary,
