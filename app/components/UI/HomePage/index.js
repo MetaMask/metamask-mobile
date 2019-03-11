@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
 	},
 	urlAutocomplete: {
 		position: 'absolute',
-		marginTop: 60,
+		marginTop: 50,
 		backgroundColor: colors.white,
 		width: '100%',
 		height: '100%'
