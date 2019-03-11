@@ -97,33 +97,6 @@ exports[`AccountBackupStep2 should render correctly 1`] = `
         <View
           style={
             Object {
-              "marginBottom": 20,
-            }
-          }
-        >
-          <Text
-            style={
-              Array [
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "Roboto",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "textAlign": "left",
-                },
-                Object {
-                  "color": "#C63636",
-                  "lineHeight": 22,
-                },
-              ]
-            }
-          >
-            You're going to need to write your seed phrase down. You will be asked to re-enter it in the order it's presented to you.
-          </Text>
-        </View>
-        <View
-          style={
-            Object {
               "justifyContent": "center",
               "marginBottom": 10,
             }
@@ -145,7 +118,7 @@ exports[`AccountBackupStep2 should render correctly 1`] = `
               ]
             }
           >
-            Security Tips
+            Next step is to write your seed phrase down.
           </Text>
         </View>
         <View
@@ -156,99 +129,30 @@ exports[`AccountBackupStep2 should render correctly 1`] = `
             }
           }
         >
-          <View
+          <Text
             style={
               Object {
-                "flexDirection": "row",
-                "marginBottom": 15,
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "textAlign": "left",
               }
             }
           >
+            You will be asked to 
             <Text
               style={
                 Object {
-                  "marginRight": 5,
-                }
-              }
-            >
-              •
-            </Text>
-            <Text
-              style={
-                Object {
-                  "color": "#000000",
                   "fontFamily": "Roboto",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "textAlign": "left",
+                  "fontWeight": "600",
                 }
               }
             >
-              Write it down on paper and keep it somewhere safe!
+              re-enter
             </Text>
-          </View>
-          <View
-            style={
-              Object {
-                "flexDirection": "row",
-                "marginBottom": 15,
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "marginRight": 5,
-                }
-              }
-            >
-              •
-            </Text>
-            <Text
-              style={
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "Roboto",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "textAlign": "left",
-                }
-              }
-            >
-              Save it to a password manager
-            </Text>
-          </View>
-          <View
-            style={
-              Object {
-                "flexDirection": "row",
-                "marginBottom": 15,
-              }
-            }
-          >
-            <Text
-              style={
-                Object {
-                  "marginRight": 5,
-                }
-              }
-            >
-              •
-            </Text>
-            <Text
-              style={
-                Object {
-                  "color": "#000000",
-                  "fontFamily": "Roboto",
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "textAlign": "left",
-                }
-              }
-            >
-              Never share this phrase with anyone!
-            </Text>
-          </View>
+             it for confirmation
+          </Text>
         </View>
       </View>
       <View

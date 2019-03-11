@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -18,25 +18,24 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		padding: 20,
-		paddingTop: Platform.OS === 'android' ? 0 : 20,
+		paddingTop: 0,
 		paddingBottom: 0
 	},
 	content: {
 		alignItems: 'flex-start'
 	},
 	title: {
-		width: 260,
 		fontSize: 32,
-		marginLeft: 20,
-		marginTop: Platform.OS === 'android' ? 0 : 20,
-		marginBottom: 20,
+		marginLeft: 10,
+		marginTop: 0,
+		marginBottom: 25,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'left',
 		...fontStyles.normal
 	},
 	text: {
-		marginLeft: 20,
+		marginLeft: 10,
 		marginRight: 20,
 		marginBottom: 10,
 		justifyContent: 'center'
@@ -68,7 +67,7 @@ const styles = StyleSheet.create({
 	},
 	recommended: {
 		alignSelf: 'center',
-		marginBottom: 25,
+		marginBottom: 35,
 		paddingHorizontal: 17,
 		paddingVertical: 9,
 		backgroundColor: colors.yellow,
@@ -88,6 +87,13 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		color: colors.primary,
 		...fontStyles.normal
+	},
+	bullet: {
+		marginRight: 5
+	},
+	bulletPoint: {
+		flexDirection: 'row',
+		marginBottom: 15
 	}
 });
 
@@ -157,9 +163,26 @@ export default class AccountBackupStep1 extends Component {
 							</View>
 							<View style={styles.text}>
 								<Text style={styles.label}>{strings('account_backup_step_1.info_text_1')}</Text>
-								<Text style={styles.label}>{strings('account_backup_step_1.info_text_2')}</Text>
-								<Text style={styles.bold}>{strings('account_backup_step_1.important')}</Text>
-								<Text style={styles.label}>{strings('account_backup_step_1.info_text_3')}</Text>
+								<View style={styles.bulletPoint}>
+									<Text style={styles.bullet}>{'\u2022'}</Text>
+									<Text style={styles.label}>
+										{strings('account_backup_step_1.info_text_2_1')}
+										<Text style={styles.bold}>
+											{strings('account_backup_step_1.info_text_2_2')}
+										</Text>
+										{strings('account_backup_step_1.info_text_2_3')}
+									</Text>
+								</View>
+								<View style={styles.bulletPoint}>
+									<Text style={styles.bullet}>{'\u2022'}</Text>
+									<Text style={styles.label}>
+										{strings('account_backup_step_1.info_text_3_1')}
+										<Text style={styles.bold}>
+											{strings('account_backup_step_1.info_text_3_2')}
+										</Text>
+										{strings('account_backup_step_1.info_text_3_3')}
+									</Text>
+								</View>
 							</View>
 						</View>
 						<View style={styles.buttonWrapper}>

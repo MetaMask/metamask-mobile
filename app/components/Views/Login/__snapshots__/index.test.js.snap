@@ -26,6 +26,7 @@ exports[`Login should render correctly 1`] = `
       Object {
         "flex": 1,
         "paddingHorizontal": 20,
+        "paddingTop": 100,
       }
     }
     viewIsInsideTabBar={false}
@@ -36,25 +37,15 @@ exports[`Login should render correctly 1`] = `
       <View
         style={
           Object {
-            "alignItems": "center",
+            "alignSelf": "center",
+            "height": 130,
             "justifyContent": "center",
-            "marginTop": 100,
+            "width": 130,
           }
         }
       >
-        <Component
-          resizeMethod="auto"
-          source={
-            Object {
-              "testUri": "../../../app/images/fox.png",
-            }
-          }
-          style={
-            Object {
-              "height": 100,
-              "width": 100,
-            }
-          }
+        <AnimatedFox
+          bgColor="white"
         />
       </View>
       <Text

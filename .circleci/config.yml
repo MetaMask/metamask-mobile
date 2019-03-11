@@ -8,6 +8,14 @@ aliases:
     key: v1.0.2-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
+  - &restore-node-cache
+    keys:
+      - v1.0.2-node-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.2-node-{{ .Branch }}
+  - &save-node-cache
+    key: v1.0.2-node-{{ .Branch }}-{{ checksum "package.json" }}
+    paths:
+      - node_modules
 
   - &install-node-dependencies
       |
@@ -31,11 +39,24 @@ jobs:
           paths:
           - node_modules
       - save_cache: *save-cache
+  prep-node-deps:
+    <<: *defaults
+    docker:
+      - image: circleci/node:8
+    steps:
+      - checkout
+      - restore_cache: *restore-node-cache
+      - run: *install-node-dependencies
+      - persist_to_workspace:
+          root: .
+          paths:
+          - node_modules
+      - save_cache: *save-node-cache
 
   lint:
     <<: *defaults
-    macos:
-      xcode: 10.1.0
+    docker:
+      - image: circleci/node:8
     steps:
       - checkout
       - attach_workspace:
@@ -44,17 +65,17 @@ jobs:
 
   test-unit:
     <<: *defaults
-    macos:
-      xcode: 10.1.0
+    docker:
+      - image: circleci/node:8
     steps:
       - checkout
       - attach_workspace:
           at: .
       - run: npm run test:unit -- -w 3
-      - persist_to_workspace:
-          root: .
-          paths:
-            - coverage
+    #   - persist_to_workspace:
+    #       root: .
+    #       paths:
+    #         - coverage
 
   test-e2e-ios:
     <<: *defaults
@@ -77,19 +98,19 @@ jobs:
       - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
   upload-coverage:
     <<: *defaults
-    macos:
-      xcode: 10.1.0
+    docker:
+      - image: circleci/node:8
     steps:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm install -g codecov
-      - run: codecov
+      - run: npm install codecov
+      - run: ./node_modules/bin/codecov
 
   all-tests-pass:
     <<: *defaults
-    macos:
-      xcode: 10.1.0
+    docker:
+      - image: circleci/node:8
     steps:
       - run:
           name:  All Tests Passed
@@ -142,19 +163,24 @@ workflows:
   version: 2
   full_test:
     jobs:
-      - prep-deps
+      - prep-deps:
+          filters:
+            branches:
+              only:
+                - master
+                - develop
+      - prep-node-deps:
+          filters:
+            branches:
+              ignore:
+                - master
+                - develop
       - lint:
           requires:
-            - prep-deps
-          filters:
-            branches:
-              ignore: master
+            - prep-node-deps
       - test-unit:
           requires:
-            - prep-deps
-          filters:
-            branches:
-              ignore: master
+            - prep-node-deps
     #   - test-e2e-ios:
     #       requires:
     #         - test-unit
@@ -163,22 +189,12 @@ workflows:
             - lint
             - test-unit
             # - test-e2e-ios
-      - upload-coverage:
-          requires:
-            - test-unit
+    #   - upload-coverage:
+    #       requires:
+    #         - test-unit
       - publish-pre-release-ios:
           requires:
             - prep-deps
-          filters:
-            branches:
-              only:
-                - master
-                - develop
       - publish-pre-release-android:
           requires:
             - publish-pre-release-ios
-          filters:
-            branches:
-              only:
-                - master
-                - develop

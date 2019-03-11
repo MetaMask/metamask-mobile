@@ -30,7 +30,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 
 const encryptor = new Encryptor();
-
+let refreshing = false;
 /**
  * Core controller responsible for composing other GABA controllers together
  * and exposing convenience methods for common wallet operations.
@@ -143,7 +143,7 @@ class Engine {
 								}
 							}
 						},
-						{ network: '3', provider: { type: 'ropsten' } }
+						{ network: '1', provider: { type: 'mainnet' } }
 					),
 					new NetworkStatusController(),
 					new PhishingController(),
@@ -166,27 +166,41 @@ class Engine {
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
-			this.refreshNetwork();
+			this.configureControllersOnNetworkChange();
 			Engine.instance = this;
 		}
 		return Engine.instance;
+	}
+
+	configureControllersOnNetworkChange() {
+		const {
+			AccountTrackerController,
+			AssetsContractController,
+			AssetsDetectionController,
+			NetworkController: { provider },
+			TransactionController
+		} = this.datamodel.context;
+
+		provider.sendAsync = provider.sendAsync.bind(provider);
+		AccountTrackerController.configure({ provider });
+		AccountTrackerController.refresh();
+		AssetsContractController.configure({ provider });
+		TransactionController.configure({ provider });
+		TransactionController.hub.emit('networkChange');
+		AssetsDetectionController.detectAssets();
 	}
 
 	/**
 	 * Refreshes all controllers that depend on the network
 	 */
 	refreshNetwork = () => {
-		const {
-			AccountTrackerController,
-			AssetsContractController,
-			NetworkController: { provider },
-			TransactionController
-		} = this.datamodel.context;
-
-		provider.sendAsync = provider.sendAsync.bind(provider);
-		AssetsContractController.configure({ provider });
-		AccountTrackerController.configure({ provider });
-		TransactionController.configure({ provider });
+		if (!refreshing) {
+			refreshing = true;
+			setTimeout(() => {
+				this.configureControllersOnNetworkChange();
+				refreshing = false;
+			}, 500);
+		}
 	};
 
 	refreshTransactionHistory = async forceCheck => {
@@ -215,8 +229,13 @@ class Engine {
 			}
 			//Fetch txs and get the new lastIncomingTxBlock number
 			const newlastIncomingTxBlock = await TransactionController.fetchAll(selectedAddress, blockNumber);
-			// Store it so next time we ask for the newer txs only
-			if (newlastIncomingTxBlock && newlastIncomingTxBlock !== blockNumber) {
+			// Check if it's a newer block and store it so next time we ask for the newer txs only
+			if (
+				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] &&
+				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`].blockNumber !== newlastIncomingTxBlock &&
+				newlastIncomingTxBlock &&
+				newlastIncomingTxBlock !== blockNumber
+			) {
 				allLastIncomingTxBlocks[`${selectedAddress}`][`${networkId}`] = {
 					blockNumber: newlastIncomingTxBlock,
 					lastCheck: Date.now()
@@ -295,9 +314,13 @@ class Engine {
 			}
 		});
 		await PreferencesController.update(updatedPref);
-		await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
+		if (accounts.hd.includes(toChecksumAddress(updatedPref.selectedAddress))) {
+			await PreferencesController.update({ selectedAddress: toChecksumAddress(updatedPref.selectedAddress) });
+		} else {
+			await PreferencesController.update({ selectedAddress: toChecksumAddress(accounts.hd[0]) });
+		}
 
-		TransactionController.update({
+		await TransactionController.update({
 			transactions: transactions.map(tx => ({
 				id: tx.id,
 				networkID: tx.metamaskNetworkId,
@@ -318,7 +341,8 @@ class Engine {
 		});
 
 		// Select same network ?
-		NetworkController.setProviderType(network.provider.type);
+		await NetworkController.setProviderType(network.provider.type);
+		return true;
 	};
 }
 

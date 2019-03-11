@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start'
 	},
 	title: {
-		width: 200,
 		fontSize: 32,
 		marginTop: 20,
 		marginBottom: 20,

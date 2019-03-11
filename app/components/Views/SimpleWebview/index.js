@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { WebView } from 'react-native';
+import Web3Webview from 'react-native-web3-webview';
 import { getWebviewNavbar } from '../../UI/Navbar';
 
 export default class SimpleWebview extends Component {
@@ -15,6 +15,6 @@ export default class SimpleWebview extends Component {
 
 	render() {
 		const uri = this.props.navigation.getParam('url', 'about:blank');
-		return <WebView source={{ uri }} />;
+		return <Web3Webview source={{ uri }} />;
 	}
 }
