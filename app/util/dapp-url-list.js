@@ -16,7 +16,7 @@ export default [
 		name: 'IDEX'
 	},
 	{
-		url: 'http://status.im/',
+		url: 'https://status.im/',
 		name: 'Status'
 	},
 	{
@@ -28,16 +28,16 @@ export default [
 		name: 'FriendsFingers'
 	},
 	{
-		url: 'http://lordless.games',
-		name: 'LORDLESS'
-	},
-	{
 		url: 'https://www.0xproject.com/portal',
 		name: '0x'
 	},
 	{
 		url: 'https://market.decentraland.org/',
 		name: 'Decentraland'
+	},
+	{
+		url: 'https://www.cryptokitties.co',
+		name: 'CryptoKitties'
 	},
 	{
 		url: 'https://kyber.network/',
@@ -52,20 +52,20 @@ export default [
 		name: 'Bancor'
 	},
 	{
+		url: 'https://blockapps.net/',
+		name: 'BlockApps'
+	},
+	{
+		url: 'https://walletconnect.org/',
+		name: 'WalletConnect'
+	},
+	{
 		url: 'https://dev.augur.net/',
 		name: 'Augur'
 	},
 	{
 		url: 'https://livepeer.org/',
 		name: 'Livepeer'
-	},
-	{
-		url: 'http://hyperdragons.alfakingdom.com/home/marketplace',
-		name: 'HyperDragons'
-	},
-	{
-		url: 'http://www.cryptokitties.co',
-		name: 'CryptoKitties'
 	},
 	{
 		url: 'https://lescovex.com/download',
@@ -128,16 +128,8 @@ export default [
 		name: 'Chibi Fighters'
 	},
 	{
-		url: 'http://www.cryptorome.io',
-		name: 'CryptoRome'
-	},
-	{
 		url: 'https://chain.link',
 		name: 'Chainlink'
-	},
-	{
-		url: 'http://trustless.ethfinex.com',
-		name: 'Ethfinex Trustless'
 	},
 	{
 		url: 'https://ens.domains/',
@@ -176,10 +168,6 @@ export default [
 		name: 'VeADIR'
 	},
 	{
-		url: 'http://primas.io/product',
-		name: 'Primas'
-	},
-	{
 		url: 'https://compound.finance/',
 		name: 'Compound'
 	},
@@ -194,6 +182,10 @@ export default [
 	{
 		url: 'https://beta.cent.co',
 		name: 'Cent'
+	},
+	{
+		url: 'https://etherscan.io/',
+		name: 'EtherScan'
 	},
 	{
 		url: 'https://cryptominingwar.github.io/',
@@ -212,7 +204,7 @@ export default [
 		name: 'Saturn Network'
 	},
 	{
-		url: 'http://raiden.network/',
+		url: 'https://raiden.network/',
 		name: 'Raiden Network'
 	},
 	{
@@ -256,7 +248,7 @@ export default [
 		name: 'Dether'
 	},
 	{
-		url: 'http://mlbcryptobaseball.com',
+		url: 'https://mlbcryptobaseball.com',
 		name: 'MLB Crypto Baseball'
 	},
 	{
@@ -284,10 +276,6 @@ export default [
 		name: 'Kleros'
 	},
 	{
-		url: 'http://www.zed.run',
-		name: 'ZED'
-	},
-	{
 		url: 'https://resolver.portal.network',
 		name: 'ENS Manager'
 	},
@@ -312,7 +300,7 @@ export default [
 		name: 'Paxos Standard'
 	},
 	{
-		url: 'http://gnosis.pm',
+		url: 'https://gnosis.pm',
 		name: 'Gnosis'
 	},
 	{
@@ -428,10 +416,6 @@ export default [
 		name: 'district0x'
 	},
 	{
-		url: 'http://fck.com',
-		name: 'FCK'
-	},
-	{
 		url: 'https://testnet.ren.exchange/',
 		name: 'Republic Protocol'
 	},
@@ -456,8 +440,8 @@ export default [
 		name: 'MetaMorph'
 	},
 	{
-		url: 'http://www.rotohive.com',
-		name: 'RotoHive'
+		url: 'https://micro.raiden.network',
+		name: 'µRaiden'
 	},
 	{
 		url: 'https://sirinlabs.com/',
@@ -488,10 +472,6 @@ export default [
 		name: 'Lords of the Snails'
 	},
 	{
-		url: 'http://knownorigin.io/',
-		name: 'KnownOrigin Marketplace'
-	},
-	{
 		url: 'https://www.vechain.org/',
 		name: 'VeChain'
 	},
@@ -502,10 +482,6 @@ export default [
 	{
 		url: 'https://www.sapien.network/',
 		name: 'Sapien Network'
-	},
-	{
-		url: 'http://www.sentinelgroup.io',
-		name: 'Sentinel dVPN'
 	},
 	{
 		url: 'https://plex.dharma.io/',
@@ -540,20 +516,12 @@ export default [
 		name: 'adChain'
 	},
 	{
-		url: 'http://www.EtherMium.com/t',
-		name: 'EtherMium'
-	},
-	{
 		url: 'https://www.havven.io/',
 		name: 'Havven'
 	},
 	{
 		url: 'https://wibson.org/',
 		name: 'Wibson'
-	},
-	{
-		url: 'http://spring.wetrust.io',
-		name: 'WeTrust Spring'
 	},
 	{
 		url: 'https://www.rate3.network/',
@@ -656,7 +624,7 @@ export default [
 		name: 'ETH TOWN'
 	},
 	{
-		url: 'http://www.etherdice.io',
+		url: 'https://www.etherdice.io',
 		name: 'EtherDice'
 	},
 	{
@@ -688,10 +656,6 @@ export default [
 		name: 'LikeCoin'
 	},
 	{
-		url: 'http://www.lunchmoney.io',
-		name: 'Restaurant Private I'
-	},
-	{
 		url: 'https://www.bethereum.com/',
 		name: 'Bethereum'
 	},
@@ -704,16 +668,12 @@ export default [
 		name: 'AlphaWallet'
 	},
 	{
-		url: 'http://www.larvalabs.com/cryptopunks',
+		url: 'https://www.larvalabs.com/cryptopunks',
 		name: 'Cryptopunks'
 	},
 	{
 		url: 'https://eth2.io/',
 		name: 'Eth2'
-	},
-	{
-		url: 'http://play.moon.game',
-		name: 'MoonCryptoPolis'
 	},
 	{
 		url: 'https://appcoins.io/',
@@ -752,10 +712,6 @@ export default [
 		name: 'Odem'
 	},
 	{
-		url: 'http://hdx20.io',
-		name: 'HDX20'
-	},
-	{
 		url: 'https://numer.ai/',
 		name: 'Numerai'
 	},
@@ -770,10 +726,6 @@ export default [
 	{
 		url: 'https://www.everex.io/',
 		name: 'Everex Transfer'
-	},
-	{
-		url: 'http://auctus.org',
-		name: 'Auctus'
 	},
 	{
 		url: 'https://horizonstate.com',
@@ -820,10 +772,6 @@ export default [
 		name: 'DAV'
 	},
 	{
-		url: 'http://accelerator.network',
-		name: 'Accelerator'
-	},
-	{
 		url: 'https://tokengen.io',
 		name: 'TokenGen'
 	},
@@ -854,10 +802,6 @@ export default [
 	{
 		url: 'https://aion.ethpantheon.com/aionapp.html',
 		name: 'Aion Scheduling System'
-	},
-	{
-		url: 'http://catallax.info/',
-		name: 'Catallax'
 	},
 	{
 		url: 'https://cryptographics.app/',
@@ -920,14 +864,6 @@ export default [
 		name: 'Fair City'
 	},
 	{
-		url: 'http://0xbitcoin.org',
-		name: '0xBitcoin'
-	},
-	{
-		url: 'http://platform.dnn.media/alpha',
-		name: 'Decentralized News Network'
-	},
-	{
 		url: 'https://joyso.io/trade/en/markets',
 		name: 'Joyso'
 	},
@@ -938,10 +874,6 @@ export default [
 	{
 		url: 'https://bigbom.com/',
 		name: 'Bigbom'
-	},
-	{
-		url: 'http://www.microversegame.com',
-		name: 'Microverse'
 	},
 	{
 		url: 'https://templeofeth.io',
@@ -1012,14 +944,6 @@ export default [
 		name: 'CryptoCities'
 	},
 	{
-		url: 'http://www.cansend.io',
-		name: 'CanSend'
-	},
-	{
-		url: 'http://colony.io/',
-		name: 'Colony'
-	},
-	{
 		url: 'https://1crworld.us',
 		name: '1CRWORLD'
 	},
@@ -1056,10 +980,6 @@ export default [
 		name: 'CryptoZombies'
 	},
 	{
-		url: 'http://tokntalk.club/',
-		name: "Tok'n'talk"
-	},
-	{
 		url: 'https://app.veil.co/',
 		name: 'Veil'
 	},
@@ -1074,10 +994,6 @@ export default [
 	{
 		url: 'https://minerone.io/',
 		name: 'Miner One'
-	},
-	{
-		url: 'http://ethergoo.io',
-		name: 'Ether Goo'
 	},
 	{
 		url: 'https://worldsmostexpensiveartwork.com/',
@@ -1128,14 +1044,6 @@ export default [
 		name: 'Guardian Gold'
 	},
 	{
-		url: 'http://pepedapp.com',
-		name: 'Pepedapp'
-	},
-	{
-		url: 'http://www.etherisc.com/',
-		name: 'Etherisc Flight Delay Insurance'
-	},
-	{
 		url: 'https://www.clashhash.com',
 		name: 'Clash Hash'
 	},
@@ -1144,16 +1052,8 @@ export default [
 		name: 'Ethereum Tree'
 	},
 	{
-		url: 'http://cryptotoons.io',
-		name: 'CryptoToons'
-	},
-	{
 		url: 'https://digitalartchain.com/',
 		name: 'Digital Art Chain'
-	},
-	{
-		url: 'http://etheroll.com/',
-		name: 'Etheroll'
 	},
 	{
 		url: 'https://platform.brickblock.io/',
@@ -1176,20 +1076,8 @@ export default [
 		name: 'FinneyVote'
 	},
 	{
-		url: 'http://www.globalmiles.com/',
-		name: 'GlobalMiles'
-	},
-	{
 		url: 'https://www.aidcoin.co/',
 		name: 'AidChain'
-	},
-	{
-		url: 'http://cryptominerals.co/marketplace',
-		name: 'CryptoMinerals'
-	},
-	{
-		url: 'http://www.cryptopets.co',
-		name: 'CryptoPets'
 	},
 	{
 		url: 'https://3box.io',
@@ -1202,10 +1090,6 @@ export default [
 	{
 		url: 'https://www.cubego.io/',
 		name: 'Cubego'
-	},
-	{
-		url: 'http://www.hodl.st',
-		name: 'HODL St.'
 	},
 	{
 		url: 'https://mannotaur.tokenville.tv/market',
@@ -1224,10 +1108,6 @@ export default [
 		name: 'Nitrogen Lending Network'
 	},
 	{
-		url: 'http://www.cryptospin.co/',
-		name: 'CryptoSpin'
-	},
-	{
 		url: 'https://bionic-coin.io/',
 		name: 'Bionic'
 	},
@@ -1240,20 +1120,12 @@ export default [
 		name: 'Glitch Goons'
 	},
 	{
-		url: 'http://enclaves.io/gitf',
-		name: 'Enclaves DEX'
-	},
-	{
 		url: 'https://cbc.ilink.network',
 		name: 'iLINK CBC'
 	},
 	{
 		url: 'https://poc.polyalpha.io',
 		name: 'PolyAlpha POC'
-	},
-	{
-		url: 'http://asterisma.org',
-		name: 'Asterisma'
 	},
 	{
 		url: 'https://arektdev.github.io/sniped/sniped2/',
@@ -1300,10 +1172,6 @@ export default [
 		name: 'Dicether'
 	},
 	{
-		url: 'http://www.mythereum.io',
-		name: 'Mythereum'
-	},
-	{
 		url: 'https://jibrel.network/',
 		name: 'Jibrel Network'
 	},
@@ -1322,14 +1190,6 @@ export default [
 	{
 		url: 'https://namebazaar.io/',
 		name: 'Name Bazaar'
-	},
-	{
-		url: 'http://www.cryptotask.org/platform/index.html',
-		name: 'CryptoTask'
-	},
-	{
-		url: 'http://inkdrop.tech',
-		name: 'InkDrop'
 	},
 	{
 		url: 'https://betoken.fund/portal',
@@ -1392,10 +1252,6 @@ export default [
 		name: 'Chainbreakers'
 	},
 	{
-		url: 'http://www.johnorionyoung.com',
-		name: 'John Orion Young'
-	},
-	{
 		url: 'https://viola.ai/',
 		name: 'Viola'
 	},
@@ -1428,24 +1284,12 @@ export default [
 		name: 'TheBigCoin'
 	},
 	{
-		url: 'http://unblockme.io/',
-		name: 'UnblockMe'
-	},
-	{
 		url: 'https://cryptobarons.io/',
 		name: 'Crypto Barons'
 	},
 	{
 		url: 'https://starbase.co',
 		name: 'Starbase'
-	},
-	{
-		url: 'http://www.cryptostrikers.com',
-		name: 'CryptoStrikers'
-	},
-	{
-		url: 'http://cryptochars.com',
-		name: 'CryptoChars'
 	},
 	{
 		url: 'https://jerusalemchain.com/profile/reserve',
@@ -1488,32 +1332,8 @@ export default [
 		name: 'Cryptocup'
 	},
 	{
-		url: 'http://virtuallander.com',
-		name: 'Virtual Lander'
-	},
-	{
-		url: 'http://6friends.club',
-		name: '6 friends'
-	},
-	{
-		url: 'http://dolomite.io',
-		name: 'Dolomite'
-	},
-	{
-		url: 'http://www.urna.net.br',
-		name: 'B3-BlockChain Ballot Box'
-	},
-	{
-		url: 'http://lumiwallet.com/collect',
-		name: 'Lumi Collect'
-	},
-	{
 		url: 'https://market.start.solar/',
 		name: 'Start Solar'
-	},
-	{
-		url: 'http://hodl.earth/game',
-		name: 'HODL Earth'
 	},
 	{
 		url: 'https://pixelcons.io/',
@@ -1540,10 +1360,6 @@ export default [
 		name: 'SolidStamp'
 	},
 	{
-		url: 'http://tokentycoon.io',
-		name: 'Token Tycoon: Lucky Wheel'
-	},
-	{
 		url: 'https://dapp.cryptokaiju.io/',
 		name: 'CryptoKaiju'
 	},
@@ -1568,10 +1384,6 @@ export default [
 		name: 'Imbrex'
 	},
 	{
-		url: 'http://www.thekiwi.online/',
-		name: 'KIWI'
-	},
-	{
 		url: 'https://etherc.io/#EET-ETH',
 		name: 'ETHERC'
 	},
@@ -1582,10 +1394,6 @@ export default [
 	{
 		url: 'https://hellofetch.co/download',
 		name: 'Fetch'
-	},
-	{
-		url: 'http://app.shap3.org',
-		name: 'Shape'
 	},
 	{
 		url: 'https://520.GeekGit.com',
@@ -1612,10 +1420,6 @@ export default [
 		name: 'CDP Auction'
 	},
 	{
-		url: 'http://janponwar.xyz',
-		name: 'Jan Pon War'
-	},
-	{
 		url: 'https://eth-kudos.com/',
 		name: 'EthKudos'
 	},
@@ -1626,18 +1430,6 @@ export default [
 	{
 		url: 'https://cryptoserval.io/marketplace',
 		name: 'CryptoServal'
-	},
-	{
-		url: 'http://www.sandbox.game',
-		name: 'The Sandbox'
-	},
-	{
-		url: 'http://cryptogirl.game/index',
-		name: 'Cryptogirl'
-	},
-	{
-		url: 'http://joincivil.com',
-		name: 'Civil'
 	},
 	{
 		url: 'https://tlc.wetrust.io/',
@@ -1668,16 +1460,8 @@ export default [
 		name: 'Publica'
 	},
 	{
-		url: 'http://lifebook.club',
-		name: 'Life Book'
-	},
-	{
 		url: 'https://ninja.org/pex',
 		name: 'Ninja Prediction'
-	},
-	{
-		url: 'http://c2068824.000webhostapp.com',
-		name: 'CryptoPennies'
 	},
 	{
 		url: 'https://cryptodogz.co/',
@@ -1716,16 +1500,8 @@ export default [
 		name: 'ZenArt'
 	},
 	{
-		url: 'http://ethxeth.ml',
-		name: 'EthXEth'
-	},
-	{
 		url: 'https://app.ledgerdex.com/',
 		name: 'LedgerDex'
-	},
-	{
-		url: 'http://verity.site/',
-		name: 'Verity'
 	},
 	{
 		url: 'https://cryptobots.me/',
@@ -1736,16 +1512,8 @@ export default [
 		name: 'EtherMage'
 	},
 	{
-		url: 'http://ixtus.io/',
-		name: 'IXTUS'
-	},
-	{
 		url: 'https://cryptovgames.com',
 		name: 'CryptoVideoGames'
-	},
-	{
-		url: 'http://example.walletconnect.org/',
-		name: 'WalletConnect'
 	},
 	{
 		url: 'https://otonomos.com/',
@@ -1756,16 +1524,8 @@ export default [
 		name: 'Token transfer Dapp'
 	},
 	{
-		url: 'http://bikedeed.io/',
-		name: 'BikeDeed'
-	},
-	{
 		url: 'https://github.com/AnalogLabs/fleetfox',
 		name: 'Fleet Fox'
-	},
-	{
-		url: 'http://spacewar.etherfun.net/',
-		name: 'SpaceWar'
 	},
 	{
 		url: 'https://flairdrop.net/dapp.html',
@@ -1816,16 +1576,8 @@ export default [
 		name: 'documentary'
 	},
 	{
-		url: 'http://shd101wyy.github.io/ribbit/',
-		name: 'ribbit'
-	},
-	{
 		url: 'https://www.qwoyn.io/document',
 		name: 'Document'
-	},
-	{
-		url: 'http://www.electchain.io',
-		name: 'Electchain'
 	},
 	{
 		url: 'https://cryptotitties.fun/',
@@ -1856,16 +1608,8 @@ export default [
 		name: 'Trippki'
 	},
 	{
-		url: 'http://buntoy.oss-cn-shanghai.aliyuncs.com/official-BunToy_v2.0.5.apk',
-		name: 'Buntoy Wallet'
-	},
-	{
 		url: 'https://marketplace.mythwars.io/',
 		name: 'MythWars'
-	},
-	{
-		url: 'http://portal.b0x.network',
-		name: 'b0x'
 	},
 	{
 		url: 'https://dappster.space',
@@ -1924,20 +1668,12 @@ export default [
 		name: 'ARAW Token'
 	},
 	{
-		url: 'http://app.wowmart.io',
-		name: 'Wowmart'
-	},
-	{
 		url: 'https://demo.rocketdao.io/',
 		name: 'Rocket DAO'
 	},
 	{
 		url: 'https://fundrequest.io/',
 		name: 'FundRequest'
-	},
-	{
-		url: 'http://orbs.com',
-		name: 'Orbs'
 	},
 	{
 		url: 'https://site.opetfoundation.com',
@@ -1952,10 +1688,6 @@ export default [
 		name: 'SuperWorld AR Real Estate'
 	},
 	{
-		url: 'http://www.iconemy.io/listing',
-		name: 'Iconemy'
-	},
-	{
 		url: 'https://vertex.market/',
 		name: 'Vertex'
 	},
@@ -1968,10 +1700,6 @@ export default [
 		name: 'Cryptogol'
 	},
 	{
-		url: 'http://bunnycoin.co',
-		name: 'Bunny is game'
-	},
-	{
 		url: 'https://ethermes.io',
 		name: 'Ethermes'
 	},
@@ -1982,10 +1710,6 @@ export default [
 	{
 		url: 'https://ether.dm/',
 		name: 'Crypto DM'
-	},
-	{
-		url: 'http://www.batchsender.com/',
-		name: 'BatchSender'
 	},
 	{
 		url: 'https://biteye.market/#/market/KIN_ETH',
@@ -2024,10 +1748,6 @@ export default [
 		name: 'Bloqboard'
 	},
 	{
-		url: 'http://dapp.blockscores.com/',
-		name: 'BlockScores'
-	},
-	{
 		url: 'https://2key.network',
 		name: '2key'
 	},
@@ -2056,10 +1776,6 @@ export default [
 		name: 'OMPx'
 	},
 	{
-		url: 'http://marketplace.storeplex.io',
-		name: 'Storeplex Marketplace'
-	},
-	{
 		url: 'https://earlyaccess.bitpainting.com',
 		name: 'BitPainting'
 	},
@@ -2084,32 +1800,12 @@ export default [
 		name: 'ThisOrThat'
 	},
 	{
-		url: 'http://www.TheContractFactory.io',
-		name: 'The Contract Factory'
-	},
-	{
-		url: 'http://tokenary.io',
-		name: 'Tokenary'
-	},
-	{
-		url: 'http://blockchain.tranzworldbiz.com/asset3/index.html',
-		name: 'asset3'
-	},
-	{
 		url: 'https://safe.gnosis.io/',
 		name: 'Gnosis Safe'
 	},
 	{
-		url: 'http://enzypt.io',
-		name: 'Enzypt'
-	},
-	{
 		url: 'https://ether.online/',
 		name: 'EtherOnline: Jackpot'
-	},
-	{
-		url: 'http://cryptower.io/game/tower',
-		name: 'cryptower'
 	},
 	{
 		url: 'https://plinc.io/#/',
@@ -2152,18 +1848,6 @@ export default [
 		name: 'Etheroulette'
 	},
 	{
-		url: 'http://EtherShare.org',
-		name: 'EtherShare'
-	},
-	{
-		url: 'http://slow.trade',
-		name: 'slow trade'
-	},
-	{
-		url: 'http://bitponies.com',
-		name: 'BitPonies'
-	},
-	{
 		url: 'https://rigwars.io',
 		name: 'RigWars Idle Game'
 	},
@@ -2196,10 +1880,6 @@ export default [
 		name: 'Proxeus'
 	},
 	{
-		url: 'http://www.pepefarm.club',
-		name: 'Pepe Farm'
-	},
-	{
 		url: 'https://cryptocup.online/',
 		name: 'Crypto Cup'
 	},
@@ -2216,10 +1896,6 @@ export default [
 		name: 'Ethereum Capital Token'
 	},
 	{
-		url: 'http://www.colors.gg/',
-		name: 'colors'
-	},
-	{
 		url: 'https://ethgrid.io/',
 		name: 'EthGrid'
 	},
@@ -2232,20 +1908,12 @@ export default [
 		name: 'Ether Dungeon: Age of Myth'
 	},
 	{
-		url: 'http://coindaddy.co',
-		name: 'CoinDaddy'
-	},
-	{
 		url: 'https://tokenvote.io',
 		name: 'Tokenvote'
 	},
 	{
 		url: 'https://www.tablow.club/',
 		name: 'tablow Club'
-	},
-	{
-		url: 'http://etherlife.online/#opengames',
-		name: 'EtherLife Online'
 	},
 	{
 		url: 'https://silverlink.io/',
@@ -2260,10 +1928,6 @@ export default [
 		name: 'Seedom'
 	},
 	{
-		url: 'http://www.mtonomy.com',
-		name: 'MTonomy'
-	},
-	{
 		url: 'https://www.etherpornstars.com/',
 		name: 'Ether PornStars'
 	},
@@ -2272,20 +1936,8 @@ export default [
 		name: 'IDCard'
 	},
 	{
-		url: 'http://www.ethmarket.hashbase.io',
-		name: 'eth_market_dapp'
-	},
-	{
-		url: 'http://pinata.cloud',
-		name: 'Pinata'
-	},
-	{
 		url: 'https://cryptotruelove.com',
 		name: 'cryptotruelove'
-	},
-	{
-		url: 'https://ethwebservices.firebaseapp.com',
-		name: 'Ethereum Web Services'
 	},
 	{
 		url: 'https://pipot.io/',
@@ -2304,10 +1956,6 @@ export default [
 		name: 'Voice of Coins'
 	},
 	{
-		url: 'http://platform.nrm.world',
-		name: 'Neuromachine'
-	},
-	{
 		url: 'https://smart.thomascrown.art/',
 		name: 'Thomas Crown Art "smART"'
 	},
@@ -2318,10 +1966,6 @@ export default [
 	{
 		url: 'https://hut34.io/',
 		name: 'Hut34 Platform'
-	},
-	{
-		url: 'http://pickflix.co',
-		name: 'PickFlix'
 	},
 	{
 		url: 'https://ercdex.com/',
@@ -2336,14 +1980,6 @@ export default [
 		name: 'Coinbase Wallet'
 	},
 	{
-		url: 'http://blockchain.tranzworldbiz.com/agree3/index.html',
-		name: 'agree3'
-	},
-	{
-		url: 'http://dcup.io/',
-		name: 'DCup'
-	},
-	{
 		url: 'https://www.rentcontrol.tk/',
 		name: 'Rent Control'
 	},
@@ -2354,10 +1990,6 @@ export default [
 	{
 		url: 'https://beta.akasha.world/',
 		name: 'AKASHA'
-	},
-	{
-		url: 'http://avocadoclassic.org',
-		name: 'Avocado Classic Inc'
 	},
 	{
 		url: 'https://www.crypticconjure.com/game',
@@ -2376,16 +2008,8 @@ export default [
 		name: 'Carbon Fiat Gateway'
 	},
 	{
-		url: 'http://majiangbi.net',
-		name: '麻将币-Mahjongcoin'
-	},
-	{
 		url: 'https://cryptofights.io/',
 		name: 'CryptoFights'
-	},
-	{
-		url: 'http://etherloot.moonshadowgames.com/',
-		name: 'EtherLoot'
 	},
 	{
 		url: 'https://github.com/chronologic/chronos',
@@ -2406,10 +2030,6 @@ export default [
 	{
 		url: 'https://tokensubscription.com/',
 		name: 'Token Subscription'
-	},
-	{
-		url: 'http://dapp.saverasheed.com',
-		name: 'Save Rasheed'
 	},
 	{
 		url: 'https://mentat.org',
@@ -2456,16 +2076,8 @@ export default [
 		name: 'SafeBlocks Firewall'
 	},
 	{
-		url: 'http://bitsoccer.io',
-		name: 'BitSoccer'
-	},
-	{
 		url: 'https://zaynix.com/exchange',
 		name: 'Zaynix'
-	},
-	{
-		url: 'http://www.miniwager.com/',
-		name: 'MiniWager'
 	},
 	{
 		url: 'https://cryptotubers.co',
@@ -2476,20 +2088,8 @@ export default [
 		name: 'Matchpool'
 	},
 	{
-		url: 'http://smarturl.it/cryptopop',
-		name: 'Cryptopop'
-	},
-	{
-		url: 'http://iex.ec/',
-		name: 'iExec'
-	},
-	{
 		url: 'https://basil.zeppelin.solutions/',
 		name: 'Basil'
-	},
-	{
-		url: 'http://onehundredetherwall.moddix.io/',
-		name: 'One Hundred Ethereum Wall'
 	},
 	{
 		url: 'https://ethereumbillboard.net/main.html',
@@ -2520,10 +2120,6 @@ export default [
 		name: 'Forevermore'
 	},
 	{
-		url: 'http://blockpaperscissors.net',
-		name: 'Block, Paper, Scissors'
-	},
-	{
 		url: 'https://www.cryptomilitary.io/marketplace',
 		name: 'CryptoMilitary'
 	},
@@ -2536,20 +2132,12 @@ export default [
 		name: 'DEXY Exchange'
 	},
 	{
-		url: 'http://www.desertdash.fun',
-		name: 'Desert Dash'
-	},
-	{
 		url: 'https://ludos.one/',
 		name: 'Ludos Protocol'
 	},
 	{
 		url: 'https://www.etherchicks.com/store',
 		name: 'Etherchicks'
-	},
-	{
-		url: 'http://exitscam.me/play',
-		name: 'Fomo3D'
 	},
 	{
 		url: 'https://solethium.com/app/#/Marketplace',
@@ -2564,20 +2152,12 @@ export default [
 		name: 'LimeEyes'
 	},
 	{
-		url: 'http://www.protea.io',
-		name: 'Protea'
-	},
-	{
 		url: 'https://www.cryptosketches.com',
 		name: 'CryptoSketches'
 	},
 	{
 		url: 'https://statuspage.papers.ch/',
 		name: 'Token Status Page'
-	},
-	{
-		url: 'http://www.pledgeth.com/',
-		name: 'PledgETH'
 	},
 	{
 		url: 'https://www.balanc3.net/demo/',
@@ -2600,24 +2180,12 @@ export default [
 		name: 'CryptoGems'
 	},
 	{
-		url: 'http://www.cryptohorse.ch',
-		name: 'cryptohorse'
-	},
-	{
 		url: 'https://realms-of-ether.github.io/',
 		name: 'Realms of Ether'
 	},
 	{
 		url: 'https://copax.co',
 		name: 'COPA 2018'
-	},
-	{
-		url: 'http://www.bitwich.com',
-		name: 'BITWICH'
-	},
-	{
-		url: 'http://www.cryptogeeks.berlin',
-		name: 'Cryptogeeks'
 	},
 	{
 		url: 'https://crypto-rps.online',
@@ -2632,10 +2200,6 @@ export default [
 		name: 'Nexus Mutual'
 	},
 	{
-		url: 'http://www.ethWHOIS.com',
-		name: 'WHOIS'
-	},
-	{
 		url: 'https://www.ourplace.io/',
 		name: 'ourPlace'
 	},
@@ -2644,24 +2208,12 @@ export default [
 		name: 'Play2Win'
 	},
 	{
-		url: 'http://powerofwarpigs.com/',
-		name: "Franklin's Library"
-	},
-	{
 		url: 'https://hussy.io',
 		name: 'HUSSY'
 	},
 	{
-		url: 'http://blockchain.tranzworldbiz.com/idea3/index.html',
-		name: 'idea3'
-	},
-	{
 		url: 'https://admin.ethless.v4x.co/',
 		name: 'Ethless'
-	},
-	{
-		url: 'http://1Address.io',
-		name: '1Address'
 	},
 	{
 		url: 'https://marriageunblocked.com/',
@@ -2688,14 +2240,6 @@ export default [
 		name: 'AGROLOT'
 	},
 	{
-		url: 'http://blockapps.net/',
-		name: 'BlockApps'
-	},
-	{
-		url: 'http://frenzy.emontalliance.com/',
-		name: 'Emont'
-	},
-	{
 		url: 'https://mycryptons.com/marketplace',
 		name: 'MyCryptons'
 	},
@@ -2714,10 +2258,6 @@ export default [
 	{
 		url: 'https://quickblocks.io/',
 		name: 'Quickblocks'
-	},
-	{
-		url: 'http://alpha.openavn.org',
-		name: 'OpenAVN'
 	},
 	{
 		url: 'https://cdxproject.com/',
@@ -2740,10 +2280,6 @@ export default [
 		name: 'EthLikes'
 	},
 	{
-		url: 'http://theblockjournal.itsarnavb.me',
-		name: 'theblockjournal'
-	},
-	{
 		url: 'https://www.rumblelegends.com',
 		name: 'Unicorns vs Dinosaurs'
 	},
@@ -2758,10 +2294,6 @@ export default [
 	{
 		url: 'https://bbiller.com/',
 		name: 'Bbiller'
-	},
-	{
-		url: 'http://cryptofootie.com',
-		name: 'CryptoFootie'
 	},
 	{
 		url: 'https://www.epocum.com/',
@@ -2780,10 +2312,6 @@ export default [
 		name: 'CoinMirror'
 	},
 	{
-		url: 'http://coinhub.diadata.org',
-		name: 'DIA data'
-	},
-	{
 		url: 'https://silverwire.io',
 		name: 'SilverWire'
 	},
@@ -2794,10 +2322,6 @@ export default [
 	{
 		url: 'https://etherempire.io/#/marketplace',
 		name: 'EtherEmpire'
-	},
-	{
-		url: 'http://tweed.social',
-		name: 'Tweed(dot)social'
 	},
 	{
 		url: 'https://monsterbit.io/marketplace',
@@ -2824,36 +2348,12 @@ export default [
 		name: 'MyCryptoChamp'
 	},
 	{
-		url: 'http://etherwall.com',
-		name: 'EtherWall'
-	},
-	{
-		url: 'http://tokensale.gizer.io',
-		name: 'Gizer'
-	},
-	{
-		url: 'http://cryptocollab.co',
-		name: 'CryptoCollab'
-	},
-	{
 		url: 'https://thelastword.io',
 		name: 'The Last Word'
 	},
 	{
-		url: 'http://www.stixex.io',
-		name: 'STIXEX'
-	},
-	{
-		url: 'http://CryptoAgainstHumanity.io',
-		name: 'Crypto Against Humanity'
-	},
-	{
 		url: 'https://alias.ulu.sg/',
 		name: 'Address Alias Service'
-	},
-	{
-		url: 'http://www.etherkun.com/',
-		name: 'EtherKUN'
 	},
 	{
 		url: 'https://www.ethernalmessage.com',
@@ -2866,18 +2366,6 @@ export default [
 	{
 		url: 'https://snailking.github.io/snailfarm2/',
 		name: 'SnailFarm 2'
-	},
-	{
-		url: 'http://bulleon.io/',
-		name: 'bulleon'
-	},
-	{
-		url: 'http://www.insightchain.io/',
-		name: 'Insight Chain'
-	},
-	{
-		url: 'http://www.ekickcoin.xyz/',
-		name: 'Kickcoin'
 	},
 	{
 		url: 'https://mygallery6.com',
@@ -2896,20 +2384,12 @@ export default [
 		name: 'PEACE'
 	},
 	{
-		url: 'http://www.dbcweb.net/blog.html',
-		name: 'Digital Business'
-	},
-	{
 		url: 'https://ethername.co/',
 		name: 'Ethername'
 	},
 	{
 		url: 'https://virtuallands.github.io',
 		name: 'Shangri-La'
-	},
-	{
-		url: 'http://evo1exchange.net/index.html',
-		name: 'Evolution1'
 	},
 	{
 		url: 'https://cinder.cloud',
@@ -2920,10 +2400,6 @@ export default [
 		name: 'Rare Bits'
 	},
 	{
-		url: 'http://www.ethereummiddleman.com/',
-		name: 'The Ethereum Middleman'
-	},
-	{
 		url: 'https://crafty.zeppelin.solutions/',
 		name: 'Crafty'
 	},
@@ -2932,40 +2408,20 @@ export default [
 		name: 'ETH Watch/ Merkle Ventures'
 	},
 	{
-		url: 'http://www.thorswap.com',
-		name: 'Thor Swap'
-	},
-	{
 		url: 'https://tradepass.exchange/',
 		name: 'TradePass'
-	},
-	{
-		url: 'http://www.centrifuge.io/',
-		name: 'Centrifuge'
 	},
 	{
 		url: 'https://wbaumann.github.io/TheEtherButton/',
 		name: 'The Ether Button'
 	},
 	{
-		url: 'http://www.neufund.org',
-		name: 'Neufund'
-	},
-	{
 		url: 'https://musicoin.org/',
 		name: 'Musicoin'
 	},
 	{
-		url: 'http://www.etherlambos.io',
-		name: 'Etherlambos'
-	},
-	{
 		url: 'https://expand.land',
 		name: 'ExpandLand'
-	},
-	{
-		url: 'http://www.rentalcurrency.com',
-		name: 'Car Sharing Platform'
 	},
 	{
 		url: 'https://provoco.me/en/prototype',
@@ -2976,20 +2432,8 @@ export default [
 		name: 'Ether Music Project'
 	},
 	{
-		url: 'http://randao.org',
-		name: 'RANDAO'
-	},
-	{
 		url: 'https://www.omnisparx.io/',
 		name: 'OmniSparx'
-	},
-	{
-		url: 'http://pumpanddump.online/dapp.html',
-		name: 'Pump and Dump'
-	},
-	{
-		url: 'http://www.reidao.io/',
-		name: 'REIDAO'
 	},
 	{
 		url: 'https://clash-dev.goat.cash/game#',
@@ -3002,10 +2446,6 @@ export default [
 	{
 		url: 'https://piggybanketh.io/',
 		name: 'PiggyBank ETH'
-	},
-	{
-		url: 'http://azelo.org/',
-		name: 'Azelo'
 	},
 	{
 		url: 'https://gdpr.cash',
@@ -3036,10 +2476,6 @@ export default [
 		name: 'Etherchain'
 	},
 	{
-		url: 'http://dapp.ddacoop.org/',
-		name: 'Decentralized Derivatives'
-	},
-	{
 		url: 'https://www.dslot.io/',
 		name: 'DSlot'
 	},
@@ -3050,10 +2486,6 @@ export default [
 	{
 		url: 'https://twicoin.xyz/',
 		name: 'Twicoin'
-	},
-	{
-		url: 'http://ethereumbillboard.net',
-		name: 'The Ethereum Billboard 2'
 	},
 	{
 		url: 'https://easwap.com/',
@@ -3068,14 +2500,6 @@ export default [
 		name: 'OTC Coindex'
 	},
 	{
-		url: 'http://www.cryptostrippers.net/',
-		name: 'Crypto Strippers'
-	},
-	{
-		url: 'http://ethershrimpfarm.com/',
-		name: 'Ether Shrimp Farm'
-	},
-	{
 		url: 'https://www.ethtalks.com',
 		name: 'ETHTalks'
 	},
@@ -3086,22 +2510,6 @@ export default [
 	{
 		url: 'https://skrilla.com/lobby',
 		name: 'Skrilla'
-	},
-	{
-		url: 'http://cryptocongress.info',
-		name: 'CryptoCongress'
-	},
-	{
-		url: 'http://hodl.lexer.club',
-		name: 'ERC20 HODL'
-	},
-	{
-		url: 'http://etherspermbank.com/',
-		name: 'EtherSpermBank'
-	},
-	{
-		url: 'http://micro.raiden.network',
-		name: 'µRaiden'
 	},
 	{
 		url: 'https://cryptosoccr.com',
@@ -3120,10 +2528,6 @@ export default [
 		name: 'ETH Sports Betting'
 	},
 	{
-		url: 'http://Meerkatmining.com',
-		name: 'Meerkat Mining'
-	},
-	{
 		url: 'https://etharea.co',
 		name: 'Etharea'
 	},
@@ -3136,10 +2540,6 @@ export default [
 		name: 'POMDA'
 	},
 	{
-		url: 'http://fanex.io/',
-		name: 'Fanex'
-	},
-	{
 		url: 'https://www.ethgame.live/',
 		name: 'Democratic Luck'
 	},
@@ -3150,10 +2550,6 @@ export default [
 	{
 		url: 'https://multi.today/en/',
 		name: 'Russian Roulette'
-	},
-	{
-		url: 'http://fishcoin.co/',
-		name: 'Fishcoin'
 	},
 	{
 		url: 'https://swag.cryptogoods.com/',
@@ -3184,14 +2580,6 @@ export default [
 		name: 'TxHash Network'
 	},
 	{
-		url: 'http://sweetbetdapp.com',
-		name: 'Sweet Bet'
-	},
-	{
-		url: 'http://www.mastercloud.io',
-		name: 'MasterCloud'
-	},
-	{
 		url: 'https://etherstars.io',
 		name: 'EtherStars'
 	},
@@ -3212,14 +2600,6 @@ export default [
 		name: 'TheNextBlock'
 	},
 	{
-		url: 'http://www.eductx.org/',
-		name: 'EduCTX'
-	},
-	{
-		url: 'http://onetoken.eu',
-		name: 'OneToken'
-	},
-	{
 		url: 'https://cryptocountries.io',
 		name: 'CryptoCountries'
 	},
@@ -3230,10 +2610,6 @@ export default [
 	{
 		url: 'https://vezt.co/',
 		name: 'Vezt'
-	},
-	{
-		url: 'http://www.cryptoflipcars.site',
-		name: 'CryptoFlip Cars'
 	},
 	{
 		url: 'https://swissalpsmining.io/',
@@ -3252,36 +2628,12 @@ export default [
 		name: 'Blocknet'
 	},
 	{
-		url: 'http://holocron.foundation/library/',
-		name: 'The Library'
-	},
-	{
-		url: 'http://www.growuptoken.com',
-		name: 'GrowUp Token'
-	},
-	{
-		url: 'http://etherstone.org',
-		name: 'EtherStone'
-	},
-	{
-		url: 'https://ksystems.io/DApps/KSYS1_IPFS/',
-		name: 'KSYS1 IPFS DSE'
-	},
-	{
 		url: 'https://notechain.github.io/',
 		name: 'NoteChain'
 	},
 	{
 		url: 'https://dada.nyc/',
 		name: 'DADA'
-	},
-	{
-		url: 'http://ethjackpot.co',
-		name: 'ETHjackpot'
-	},
-	{
-		url: 'http://www.cryptoanime.net/marketplace',
-		name: 'Crypto Anime'
 	},
 	{
 		url: 'https://ethereums.com/dappcertificates/',
@@ -3308,20 +2660,8 @@ export default [
 		name: 'Fugue Foundation'
 	},
 	{
-		url: 'http://www.swipecrypto.com/',
-		name: 'SWIPE'
-	},
-	{
-		url: 'http://beta.addresswars.io/',
-		name: 'AddressWars - Public Beta'
-	},
-	{
 		url: 'https://polyn8.io/pulse-dapp/',
 		name: 'Pulse'
-	},
-	{
-		url: 'http://pixura.io',
-		name: 'Pixura'
 	},
 	{
 		url: 'https://acedice.bet/',
@@ -3368,10 +2708,6 @@ export default [
 		name: 'Lovecoin'
 	},
 	{
-		url: 'http://www.herosphere.gg',
-		name: 'HEROcoin'
-	},
-	{
 		url: 'https://tokenize.cx',
 		name: 'Tokenize'
 	},
@@ -3404,10 +2740,6 @@ export default [
 		name: 'Squirrel Forest Idle'
 	},
 	{
-		url: 'http://www.angelbattles.com/',
-		name: 'Angel Battles'
-	},
-	{
 		url: 'https://www.hubii.com/',
 		name: 'Hubii'
 	},
@@ -3418,10 +2750,6 @@ export default [
 	{
 		url: 'https://www.myluckyrabbit.com',
 		name: 'MyLuckyRabbit'
-	},
-	{
-		url: 'http://streambridge.net/treasurehunt/',
-		name: 'Treasurehunt'
 	},
 	{
 		url: 'https://etherich.sillysmartcontracts.xyz/',
@@ -3444,20 +2772,8 @@ export default [
 		name: 'CryptoElements'
 	},
 	{
-		url: 'http://www.profeth.org/',
-		name: 'PROFΞTH'
-	},
-	{
 		url: 'https://etheroes.co/',
 		name: 'Heroes Of Ethereum'
-	},
-	{
-		url: 'http://cryptosim.surge.sh/',
-		name: 'Crypto Sim'
-	},
-	{
-		url: 'http://cryptosanta.epizy.com/',
-		name: 'CryptoSanta'
 	},
 	{
 		url: 'https://www.owntheday.io/calendar',
@@ -3488,20 +2804,8 @@ export default [
 		name: 'CryptoCultures'
 	},
 	{
-		url: 'http://dirtrex.com',
-		name: 'DirTrex'
-	},
-	{
 		url: 'https://simulation.devoleum.com/',
 		name: 'Devoleum'
-	},
-	{
-		url: 'http://crypto-twitch.tv',
-		name: 'Crypto-twitch'
-	},
-	{
-		url: 'http://etherstrike.io/universe.html',
-		name: 'EtherStrike'
 	},
 	{
 		url: 'https://etherfactory.biz/',
@@ -3510,10 +2814,6 @@ export default [
 	{
 		url: 'https://idlekings.github.io/BullishGame/',
 		name: 'Bullish - The Game'
-	},
-	{
-		url: 'http://win777.io',
-		name: 'win777'
 	},
 	{
 		url: 'https://www.cryptohorse.ch/csdMarket.html',
@@ -3532,10 +2832,6 @@ export default [
 		name: 'PRISM'
 	},
 	{
-		url: 'http://luck100win.jdevcloud.com/',
-		name: 'Luck100'
-	},
-	{
 		url: 'https://locuspuzzle.github.io/locusone/',
 		name: 'Locus'
 	},
@@ -3544,32 +2840,12 @@ export default [
 		name: 'Revolution1'
 	},
 	{
-		url: 'http://www.cryptoleaders.io',
-		name: 'Cryptoleaders'
-	},
-	{
-		url: 'http://paintblox.com/',
-		name: 'PaintBlox'
-	},
-	{
-		url: 'http://ebmarket.co/market.html',
-		name: 'EB Market'
-	},
-	{
 		url: 'https://www.SportCrypt.com/trade/',
 		name: 'SportCrypt'
 	},
 	{
 		url: 'https://plan-a-health.net/digon/',
 		name: 'Digon'
-	},
-	{
-		url: 'http://www.unifiedbet.com',
-		name: 'Unified Bet'
-	},
-	{
-		url: 'http://sweeteternal.com',
-		name: 'Sweet Eternal'
 	},
 	{
 		url: 'https://socialx.network/',
@@ -3588,10 +2864,6 @@ export default [
 		name: 'Ether Voxel Space'
 	},
 	{
-		url: 'http://stream41.com',
-		name: 'Stream41'
-	},
-	{
 		url: 'https://gandhiji.io/ind/',
 		name: 'Gandhiji'
 	},
@@ -3604,20 +2876,8 @@ export default [
 		name: 'Factbar'
 	},
 	{
-		url: 'http://spiderfarm.surge.sh/',
-		name: 'Spider Farm'
-	},
-	{
 		url: 'https://www.libertax.it/',
 		name: 'Libertax Wallet'
-	},
-	{
-		url: 'http://nethereum.com/',
-		name: 'Nethereum'
-	},
-	{
-		url: 'http://adstxt.plus',
-		name: 'Adstxt Plus'
 	},
 	{
 		url: 'https://www.smarthongbao.com/',
@@ -3628,24 +2888,8 @@ export default [
 		name: 'Hypernet'
 	},
 	{
-		url: 'http://linksethereum.com/',
-		name: 'Links and Magnet Explorer'
-	},
-	{
 		url: 'https://cryptogs.io',
 		name: 'Cryptogs'
-	},
-	{
-		url: 'http://doma.city/#introductory-animation',
-		name: 'Doma'
-	},
-	{
-		url: 'http://ethertrumpfarm.surge.sh/',
-		name: 'Ether Trump Farm'
-	},
-	{
-		url: 'http://persians.network',
-		name: 'Battle of Thermopylae'
 	},
 	{
 		url: 'https://www.cryptoracing.club',
@@ -3654,10 +2898,6 @@ export default [
 	{
 		url: 'https://akropolis.io/',
 		name: 'Akropolis'
-	},
-	{
-		url: 'http://glodcoin.org',
-		name: 'Glodcoin'
 	},
 	{
 		url: 'https://erc725.originprotocol.com/',
@@ -3684,10 +2924,6 @@ export default [
 		name: 'Taylor'
 	},
 	{
-		url: 'http://www.mysay.xyz/',
-		name: 'Mysay'
-	},
-	{
 		url: 'https://voting-dapp-ropsten.herokuapp.com',
 		name: 'Voting on ropsten'
 	},
@@ -3712,28 +2948,12 @@ export default [
 		name: 'Wyvern Exchange'
 	},
 	{
-		url: 'http://www.beether.net',
-		name: 'Beether Pro'
-	},
-	{
-		url: 'http://Cryptowager.co',
-		name: 'Cryptowager'
-	},
-	{
 		url: 'https://app.builtbycoder.com/feature/needs',
 		name: 'Coder'
 	},
 	{
 		url: 'https://ETHimals.com',
 		name: 'ETHimals'
-	},
-	{
-		url: 'http://www.newagecrypto.com/DApps/Magic-Ether-Ball-Metamask/index.html',
-		name: 'MagicEtherBall'
-	},
-	{
-		url: 'http://www.chatwei.com',
-		name: 'Chatwei'
 	},
 	{
 		url: 'https://fgames.io/eng/game_intuition',
@@ -3764,36 +2984,16 @@ export default [
 		name: 'Lambo Lotto'
 	},
 	{
-		url: 'http://gamecard.co/',
-		name: 'GameCard'
-	},
-	{
 		url: 'https://opporty.com/ico/',
 		name: 'Opporty ICO'
-	},
-	{
-		url: 'http://ballandblockchain.io',
-		name: 'Ball and Blockchain'
 	},
 	{
 		url: 'https://hedgely.net',
 		name: 'Hedgely'
 	},
 	{
-		url: 'http://powc.io/',
-		name: 'EtherUP'
-	},
-	{
 		url: 'https://www.ylyb.org/',
 		name: 'YLYB'
-	},
-	{
-		url: 'http://www.wealthmap.io',
-		name: 'My Wealth Map'
-	},
-	{
-		url: 'http://gridsingularity.com/',
-		name: 'Grid Singularity'
 	},
 	{
 		url: 'https://www.lovelock-online.com/',
@@ -3806,14 +3006,6 @@ export default [
 	{
 		url: 'https://www.inzhoop.com/',
 		name: 'LETH'
-	},
-	{
-		url: 'http://flukyether.co:6001',
-		name: 'fluky'
-	},
-	{
-		url: 'http://cryptospacex.com',
-		name: 'CryptoSpaceX'
 	},
 	{
 		url: 'https://poker.blockgames.win',
@@ -3832,32 +3024,16 @@ export default [
 		name: 'Fireblock'
 	},
 	{
-		url: 'http://PixoArena.com',
-		name: 'PixoArena'
-	},
-	{
 		url: 'https://exchange.powh.io/purchase-tokens',
 		name: 'PoWH 3D'
-	},
-	{
-		url: 'http://ethergit.io/',
-		name: 'EtherGit'
 	},
 	{
 		url: 'https://play.blockwars.live/',
 		name: 'Block Wars'
 	},
 	{
-		url: 'http://www.ethpledge.com',
-		name: 'EthPledge'
-	},
-	{
 		url: 'https://ethergarden.io',
 		name: 'Ethergarden'
-	},
-	{
-		url: 'http://cryptoempirez.io/',
-		name: 'CryptoEmpirez'
 	},
 	{
 		url: 'https://dappsolute.com/eth-dapps/rushhour/',
@@ -3884,28 +3060,12 @@ export default [
 		name: 'Galleass.io'
 	},
 	{
-		url: 'http://www.tokenfunder.io/',
-		name: 'TokenFunder'
-	},
-	{
 		url: 'https://www.ethernalbridge.net/',
 		name: 'Ethernal Bridge'
 	},
 	{
-		url: 'http://www.cryptosocialmedia.net/',
-		name: 'Crypto Social Media Shop'
-	},
-	{
-		url: 'http://talao.io',
-		name: 'Talao'
-	},
-	{
 		url: 'https://witnet.io/',
 		name: 'Witnet'
-	},
-	{
-		url: 'http://www.cryptococktailbar.com/',
-		name: 'CryptoCocktailBar'
 	},
 	{
 		url: 'https://www.indicoin.org.in/',
@@ -3938,18 +3098,6 @@ export default [
 	{
 		url: 'https://hotlot.win/',
 		name: 'HotLot'
-	},
-	{
-		url: 'http://deip.world/',
-		name: 'DEIP'
-	},
-	{
-		url: 'http://pixereum.io',
-		name: 'Pixereum'
-	},
-	{
-		url: 'http://wikipediapp.com/',
-		name: 'WikipeDiApp'
 	},
 	{
 		url: 'https://www.onhexel.com',
@@ -4008,20 +3156,12 @@ export default [
 		name: 'XAYA'
 	},
 	{
-		url: 'http://www.osn.global/',
-		name: 'Open Science Network'
-	},
-	{
 		url: 'https://millionpixelsforcoins.com/',
 		name: 'Millionpixelsforcoins'
 	},
 	{
 		url: 'https://upsweep.net/dapp.html',
 		name: 'Upsweep Network'
-	},
-	{
-		url: 'http://www.cryptojackpot.co',
-		name: 'CryptoJackpot'
 	},
 	{
 		url: 'https://landsecrets.io',
@@ -4048,30 +3188,6 @@ export default [
 		name: 'PROPS Project'
 	},
 	{
-		url: 'http://votede.yolasite.com',
-		name: 'MyVOTE'
-	},
-	{
-		url: 'http://www.brainlegit.com',
-		name: 'BrainLegit'
-	},
-	{
-		url: 'http://artemine.org/icofactory/',
-		name: 'Artemine ICO Factory'
-	},
-	{
-		url: 'http://www.cryptophoenixes.fun',
-		name: 'CryptoPhoenixes'
-	},
-	{
-		url: 'http://whatthetrump.io/',
-		name: 'What The Trump'
-	},
-	{
-		url: 'http://walletpet.com',
-		name: 'WalletPet'
-	},
-	{
 		url: 'https://spineth.github.io/',
 		name: 'Spineth'
 	},
@@ -4080,16 +3196,8 @@ export default [
 		name: 'xEther'
 	},
 	{
-		url: 'http://www.hashheroes.com',
-		name: 'Hash Heroes'
-	},
-	{
 		url: 'https://gitcoin.co',
 		name: 'Gitcoin'
-	},
-	{
-		url: 'http://crypto-lambos.com/',
-		name: 'Crypto Lambos'
 	},
 	{
 		url: 'https://www.cryptocribs.com/',
@@ -4108,32 +3216,12 @@ export default [
 		name: 'ID Blockchain PoC'
 	},
 	{
-		url: 'http://www.dappbox.io',
-		name: 'dAppbox'
-	},
-	{
 		url: 'https://arbenis.com/exchange',
 		name: 'Arbenis'
 	},
 	{
 		url: 'https://keep.network/',
 		name: 'Keep Network'
-	},
-	{
-		url: 'http://play.orbit.bet',
-		name: 'Orbit'
-	},
-	{
-		url: 'http://tenzorum.io',
-		name: 'Tenzorum'
-	},
-	{
-		url: 'http://iamsamy.com/dashboard',
-		name: 'SAMY'
-	},
-	{
-		url: 'http://app.calledit.io/',
-		name: 'Called It'
 	},
 	{
 		url: 'https://kinglovin.com',
@@ -4156,52 +3244,12 @@ export default [
 		name: 'Crypto BidChain'
 	},
 	{
-		url: 'http://www.uppstart.io',
-		name: 'UppstArt'
-	},
-	{
 		url: 'https://mymillions.io/',
 		name: 'MyMillions'
 	},
 	{
-		url: 'http://ethereum-airdrop.jdevcloud.com',
-		name: 'FreeEThereum'
-	},
-	{
-		url: 'http://0xBabylon.com/#/Exchange',
-		name: 'PyrConnect'
-	},
-	{
-		url: 'http://securify.ch/',
-		name: 'Securify'
-	},
-	{
 		url: 'https://www.cryptohighscore.co/',
 		name: 'Crypto High Score'
-	},
-	{
-		url: 'http://amadeusrelay.org',
-		name: 'Amadeus Relay'
-	},
-	{
-		url: 'http://www.etherads.co',
-		name: 'EtherAds'
-	},
-	{
-		url: 'http://cryptogamez.io',
-		name: 'Coin Wars'
-	},
-	{
-		url: 'http://world.youcollect.co',
-		name: 'World-youCollect'
-	},
-	{
-		url: 'http://cryptolotto.cc',
-		name: 'Cryptolotto Official'
-	},
-	{
-		url: 'http://www.saveunicoins.com',
-		name: 'Unicoin'
 	},
 	{
 		url: 'https://www.cryptomayor.io/cities',
@@ -4210,14 +3258,6 @@ export default [
 	{
 		url: 'https://ethdice.github.io/ethdice/',
 		name: 'Eth Dice'
-	},
-	{
-		url: 'http://www.cesirae.io',
-		name: 'Diary'
-	},
-	{
-		url: 'http://hot-potato.surge.sh/',
-		name: 'Hot Potato'
 	},
 	{
 		url: 'https://kauri.io/',
@@ -4236,40 +3276,20 @@ export default [
 		name: 'SnailThrone'
 	},
 	{
-		url: 'http://crypto-waifus.com',
-		name: 'Crypto Waifus'
-	},
-	{
 		url: 'https://a21.app/blackjack',
 		name: 'A21'
-	},
-	{
-		url: 'http://staticoin.com/dapp/',
-		name: 'Staticoin'
 	},
 	{
 		url: 'https://ddx.optimum.network',
 		name: 'Optimum'
 	},
 	{
-		url: 'http://www.MyMedBlock.com',
-		name: 'MyMedBlock'
-	},
-	{
 		url: 'https://xpot.kimex.io',
 		name: 'XPOT'
 	},
 	{
-		url: 'http://doublecoinio.jdevcloud.com/index.html',
-		name: 'DoubleCoin'
-	},
-	{
 		url: 'https://putyourfuckingtextonthefuckingblockchain.com/',
 		name: 'Message in the Blockchain'
-	},
-	{
-		url: 'http://crypto.youcollect.co',
-		name: 'crypto-youCollect'
 	},
 	{
 		url: 'https://www.etherflyer.com/',
@@ -4280,32 +3300,8 @@ export default [
 		name: 'BitDegree'
 	},
 	{
-		url: 'http://bcc-codewarriors.com/Ethereum/INF239/Som/about.html',
-		name: 'Rock Paper Scissor'
-	},
-	{
-		url: 'http://win-bet.net',
-		name: 'Win-Bet'
-	},
-	{
-		url: 'http://decentraverse.io',
-		name: 'Decentraverse'
-	},
-	{
-		url: 'http://etherdate.co',
-		name: 'etherdate'
-	},
-	{
 		url: 'https://parsecfrontiers.com',
 		name: 'Parsec Frontiers'
-	},
-	{
-		url: 'http://www.app.splitcoin.io',
-		name: 'SplitCoin'
-	},
-	{
-		url: 'http://www.powerether.co',
-		name: 'PowerEther'
 	},
 	{
 		url: 'https://exorbux.com/exchange',
@@ -4330,10 +3326,6 @@ export default [
 	{
 		url: 'https://meta.quazr.io/market',
 		name: 'MetaGame'
-	},
-	{
-		url: 'http://hash.game',
-		name: 'BCGAME'
 	},
 	{
 		url: 'https://www.oakeninnovations.com/',
@@ -4372,10 +3364,6 @@ export default [
 		name: 'SnailTree'
 	},
 	{
-		url: 'http://www.cryptopoop.net',
-		name: 'Crypto Poop Game'
-	},
-	{
 		url: 'https://www.CryptoSprites.com',
 		name: 'Crypto Sprites'
 	},
@@ -4388,24 +3376,12 @@ export default [
 		name: 'Artemine Genesis Trading'
 	},
 	{
-		url: 'http://www.gameofblocks.io/map',
-		name: 'Game of Blocks'
-	},
-	{
-		url: 'http://bigfish.one/',
-		name: 'BigFish Roll'
-	},
-	{
 		url: 'https://wallstreetmarket.tk',
 		name: 'Wall Street Market'
 	},
 	{
 		url: 'https://gitcoin.co/',
 		name: 'Gitcoin iOS Explorer'
-	},
-	{
-		url: 'http://ethychat.io',
-		name: 'Ethychat'
 	},
 	{
 		url: 'https://bonfireeth.github.io/Bonfire-15-I/',
@@ -4416,24 +3392,8 @@ export default [
 		name: 'SkillChain'
 	},
 	{
-		url: 'http://holocron.foundation/reincarnati.online/',
-		name: 'reincarnationline'
-	},
-	{
-		url: 'http://Eth-Watch.io',
-		name: 'Eth-Watch'
-	},
-	{
-		url: 'http://blocklord.co',
-		name: 'Blocklord'
-	},
-	{
 		url: 'https://blackmooncrypto.com/',
 		name: 'Blackmoon'
-	},
-	{
-		url: 'http://www.prolet.pro/',
-		name: 'Prolet'
 	},
 	{
 		url: 'https://sacrific3d.stronghand.me/',
@@ -4452,10 +3412,6 @@ export default [
 		name: 'CryptoPizza'
 	},
 	{
-		url: 'http://cryptobeauty.dapp-collect.io/',
-		name: 'CryptoBeauty'
-	},
-	{
 		url: 'https://acxnetwork.com/',
 		name: 'Access Network'
 	},
@@ -4470,14 +3426,6 @@ export default [
 	{
 		url: 'https://cellarius.network/',
 		name: 'Cellarius'
-	},
-	{
-		url: 'https://ether-gift.firebaseapp.com/',
-		name: 'お祝イーサー Ether Gift'
-	},
-	{
-		url: 'http://project-entropy.com',
-		name: 'Project Entropy'
 	},
 	{
 		url: 'https://etherspace.co/',
@@ -4502,10 +3450,6 @@ export default [
 	{
 		url: 'https://dapp-smart-contract.herokuapp.com/',
 		name: 'Smart Contract Template'
-	},
-	{
-		url: 'http://otcexchange.info/',
-		name: 'OTC Exchange'
 	},
 	{
 		url: 'https://app.photochain.network/',
@@ -4536,16 +3480,8 @@ export default [
 		name: 'EthNotary'
 	},
 	{
-		url: 'http://monsters.jeshka.io',
-		name: 'Monsters'
-	},
-	{
 		url: 'https://aco.ai/',
 		name: 'Acorn Collective'
-	},
-	{
-		url: 'http://lucky9.io',
-		name: 'lucky9 lottery'
 	},
 	{
 		url: 'https://xiwatt.io/',
@@ -4560,14 +3496,6 @@ export default [
 		name: 'FortunePandas'
 	},
 	{
-		url: 'http://chainprison.com',
-		name: 'ChainPrison'
-	},
-	{
-		url: 'http://ethlance.com/',
-		name: 'Ethlance'
-	},
-	{
 		url: 'https://staketree.com',
 		name: 'StakeTree'
 	},
@@ -4576,20 +3504,8 @@ export default [
 		name: 'TossCoin'
 	},
 	{
-		url: 'http://weicards.io',
-		name: 'WeiCards'
-	},
-	{
-		url: 'http://adaptk.it/',
-		name: 'ADAPT'
-	},
-	{
 		url: 'https://cryptodragonball.wixsite.com/home',
 		name: 'Crypto Dragon Balls'
-	},
-	{
-		url: 'http://itoldyouso.fun/',
-		name: 'I Told You So'
 	},
 	{
 		url: 'https://www.coinsprize.com/',
@@ -4628,10 +3544,6 @@ export default [
 		name: 'The 30 days'
 	},
 	{
-		url: 'http://chanceth.github.io',
-		name: 'Chanceeth'
-	},
-	{
 		url: 'https://www.dopameme.io/',
 		name: 'Dopameme'
 	},
@@ -4660,10 +3572,6 @@ export default [
 		name: 'Token Splitter'
 	},
 	{
-		url: 'http://dapp.happta.com/',
-		name: 'happta'
-	},
-	{
 		url: 'https://luckyyou.io/',
 		name: 'Lucky You!'
 	},
@@ -4678,14 +3586,6 @@ export default [
 	{
 		url: 'https://www.kryptowar.com/',
 		name: 'KryptoWar'
-	},
-	{
-		url: 'http://curio.cards',
-		name: 'Curio Cards'
-	},
-	{
-		url: 'http://www.luckyminer.me',
-		name: 'Lucky Miner'
 	},
 	{
 		url: 'https://playstargate.com/',
@@ -4720,10 +3620,6 @@ export default [
 		name: 'Bettown'
 	},
 	{
-		url: 'http://stors.dappstar.io',
-		name: 'stors'
-	},
-	{
 		url: 'https://coinvoting.github.io',
 		name: 'coinvoting'
 	},
@@ -4732,40 +3628,12 @@ export default [
 		name: 'Gimbl'
 	},
 	{
-		url: 'http://jeremyquentin.fr/TenMinus/Construct2',
-		name: 'PlusTen'
-	},
-	{
 		url: 'https://postman.0trust.us',
 		name: 'Postman'
 	},
 	{
-		url: 'https://ethertrack.firebaseapp.com/',
-		name: 'EtherTrack'
-	},
-	{
 		url: 'https://1twin.me',
 		name: '1TWin'
-	},
-	{
-		url: 'http://dapp.gainmers.io/betting/',
-		name: 'Gainmers'
-	},
-	{
-		url: 'http://www.carbon.money/',
-		name: 'Carbon'
-	},
-	{
-		url: 'http://www.etherrock.com',
-		name: 'Ether Rock'
-	},
-	{
-		url: 'http://ether-profiles.tanakas.org/',
-		name: 'Ether Profiles'
-	},
-	{
-		url: 'http://blockchainpi.co',
-		name: 'Blockchain Pi Experiment'
 	},
 	{
 		url: 'https://www.tokenbrowser.com/',
@@ -4792,10 +3660,6 @@ export default [
 		name: 'FiveMedium'
 	},
 	{
-		url: 'http://www.etheroji.com',
-		name: 'Etheroji'
-	},
-	{
 		url: 'https://julianduque.github.io/simple-vote/',
 		name: 'Simple Vote'
 	},
@@ -4804,24 +3668,8 @@ export default [
 		name: 'Decentralized Science'
 	},
 	{
-		url: 'http://cryptodrome.co',
-		name: 'Cryptodrome'
-	},
-	{
-		url: 'http://www.whotheeth.com',
-		name: 'Who The ETH are you?'
-	},
-	{
 		url: 'https://quixxi.com/',
 		name: 'Quixxi'
-	},
-	{
-		url: 'http://www.allfor1.io',
-		name: 'All For 1'
-	},
-	{
-		url: 'http://fragmented.world/',
-		name: 'Fragmented'
 	},
 	{
 		url: 'https://etherlottery.xyz',
@@ -4844,24 +3692,8 @@ export default [
 		name: 'IOE'
 	},
 	{
-		url: 'https://stone-dapp.firebaseapp.com/',
-		name: 'Stone Dapp'
-	},
-	{
-		url: 'http://bitcoinereum.com',
-		name: 'Bitcoinereum'
-	},
-	{
-		url: 'http://www.etherions.com/',
-		name: 'Etherions'
-	},
-	{
 		url: 'https://hirematch.io/',
 		name: 'HireMatch'
-	},
-	{
-		url: 'http://grafiti.online',
-		name: 'Grafiti'
 	},
 	{
 		url: 'https://www.b1x.io/',
@@ -4876,10 +3708,6 @@ export default [
 		name: 'Marketplace'
 	},
 	{
-		url: 'http://chather.io',
-		name: 'Chather'
-	},
-	{
 		url: 'https://ethparadise.site123.me/',
 		name: 'Paradise'
 	},
@@ -4888,32 +3716,8 @@ export default [
 		name: 'Crypto Wars'
 	},
 	{
-		url: 'http://eth.sillicoin.com/',
-		name: 'Ether Map'
-	},
-	{
 		url: 'https://ethercraft.io/',
 		name: 'Ethercraft'
-	},
-	{
-		url: 'http://www.cryptorank.vip',
-		name: 'Cryptorank'
-	},
-	{
-		url: 'http://ettagames.io/',
-		name: 'ETTA Games'
-	},
-	{
-		url: 'http://qchain.co/',
-		name: 'Qchain'
-	},
-	{
-		url: 'http://icocompiler.com',
-		name: 'ICO Compiler'
-	},
-	{
-		url: 'http://kyc-chain.com/',
-		name: 'KYC-chain'
 	},
 	{
 		url: 'https://fortisgames.com/#/Exchange',
@@ -4924,24 +3728,12 @@ export default [
 		name: 'ClickMine'
 	},
 	{
-		url: 'http://bitlifeandtrust.com/',
-		name: 'Bit Life and Trust Project'
-	},
-	{
 		url: 'https://prosperiprop.com',
 		name: 'PROPX NanoChain'
 	},
 	{
-		url: 'http://blockaction.io/',
-		name: 'Blockaction.io'
-	},
-	{
 		url: 'https://findether.com/',
 		name: 'Find Ether'
-	},
-	{
-		url: 'http://www.restartenergy.io/',
-		name: 'Restart Energy'
 	},
 	{
 		url: 'https://vsergeev.github.io/evolve110/',
@@ -4976,16 +3768,8 @@ export default [
 		name: 'Next Craft Beer'
 	},
 	{
-		url: 'http://Mavro.org',
-		name: 'MAVRO'
-	},
-	{
 		url: 'https://winnerwinneretherdinner.com/',
 		name: 'WinnerWinnerEtherDinner'
-	},
-	{
-		url: 'http://www.kapowchain.com/',
-		name: 'KapowChain'
 	},
 	{
 		url: 'https://www.roll100.club',
@@ -5012,20 +3796,12 @@ export default [
 		name: 'GuessEther'
 	},
 	{
-		url: 'http://www.twitterhunt.com',
-		name: 'TwitterHunt'
-	},
-	{
 		url: 'https://decenterapps.github.io/EthPixel/#/',
 		name: 'EthPixel'
 	},
 	{
 		url: 'https://nedodn.github.io/ethcrow/',
 		name: 'EthCrow'
-	},
-	{
-		url: 'http://www.coinslot.com',
-		name: 'Coinslot'
 	},
 	{
 		url: 'https://www.etherdrop.app',
@@ -5052,48 +3828,16 @@ export default [
 		name: 'GORGONA'
 	},
 	{
-		url: 'http://www.lightblueblockchain.com/',
-		name: 'Light Blue'
-	},
-	{
-		url: 'https://www.zastrin.com/decentralized-ebay-on-ethereum-and-ipfs.html',
-		name: 'Decentralized eBay'
-	},
-	{
-		url: 'http://www.toastycoin.com',
-		name: 'Toastycoin'
-	},
-	{
-		url: 'http://www.etherguess.com',
-		name: 'Ether Guess'
-	},
-	{
 		url: 'https://ico.selfpay.asia',
 		name: 'SelfPay'
-	},
-	{
-		url: 'http://www.po.et',
-		name: 'Proof of Existence 2.0 (Poet)'
-	},
-	{
-		url: 'http://www.peermountain.com/',
-		name: 'Peer Mountain'
 	},
 	{
 		url: 'https://www.ethgame.live/',
 		name: 'Quick Lotto'
 	},
 	{
-		url: 'http://ann-sol.com/',
-		name: 'AnnSol'
-	},
-	{
 		url: 'https://disten.se',
 		name: 'Distense'
-	},
-	{
-		url: 'http://www.zero.exchange/',
-		name: 'ZeroExchange'
 	},
 	{
 		url: 'https://deurovision.eu/',
@@ -5112,20 +3856,12 @@ export default [
 		name: 'XYZethr'
 	},
 	{
-		url: 'http://www.muneida.com',
-		name: 'Muneida'
-	},
-	{
 		url: 'https://paywithink.com/',
 		name: 'Ink'
 	},
 	{
 		url: 'https://ethcrodapp.0trust.us',
 		name: 'Ethcro'
-	},
-	{
-		url: 'http://www.freecell.xyz',
-		name: 'FREECELL'
 	},
 	{
 		url: 'https://openzeppelin.org/',
@@ -5136,10 +3872,6 @@ export default [
 		name: 'PeerName'
 	},
 	{
-		url: 'http://8stakes.sesokaj.com',
-		name: '8 Stakes'
-	},
-	{
 		url: 'https://numberboard73.github.io',
 		name: 'Number Board'
 	},
@@ -5148,24 +3880,12 @@ export default [
 		name: 'BullToken'
 	},
 	{
-		url: 'http://artsmesh.com',
-		name: 'Artsmesh'
-	},
-	{
 		url: 'https://bitcoinnew.org/eth-lotto/0001/',
 		name: 'Ethereum Lottery'
 	},
 	{
-		url: 'http://kript.io',
-		name: 'Kript'
-	},
-	{
 		url: 'https://flytothemoon.io/',
 		name: 'Fly ToThe Moon'
-	},
-	{
-		url: 'http://www.ethermetal.com',
-		name: 'EtherMetal'
 	},
 	{
 		url: 'https://ethbutton.io/',
@@ -5176,16 +3896,8 @@ export default [
 		name: 'YOLotto'
 	},
 	{
-		url: 'http://da0.io/#Aboutpage',
-		name: 'AiDAO'
-	},
-	{
 		url: 'https://www.ankorus.org/',
 		name: 'Ankorus'
-	},
-	{
-		url: 'http://balanceof.me',
-		name: 'balanceof'
 	},
 	{
 		url: 'https://www.mizhen.io/',
@@ -5204,28 +3916,8 @@ export default [
 		name: 'Status Open Bounty'
 	},
 	{
-		url: 'http://duke-of-ether.com/duke_of_ether.htm',
-		name: 'Duke of Ether'
-	},
-	{
-		url: 'http://www.burstbet.win',
-		name: 'Burstbet'
-	},
-	{
-		url: 'http://escrowmyether.com/',
-		name: 'EscrowMyEther'
-	},
-	{
 		url: 'https://proddemo.youractiveworld.com/',
 		name: 'Active World Bits'
-	},
-	{
-		url: 'http://www.feedes.it/',
-		name: 'Feedes'
-	},
-	{
-		url: 'http://variabl.io/',
-		name: 'VariabL'
 	},
 	{
 		url: 'https://www.mercuryprotocol.com/about',
@@ -5244,22 +3936,6 @@ export default [
 		name: 'ShelterCoin'
 	},
 	{
-		url: 'http://ethgiving.com',
-		name: 'EthGiving'
-	},
-	{
-		url: 'http://www.bether.me',
-		name: 'Bether.me'
-	},
-	{
-		url: 'http://paratii.video/',
-		name: 'Paratii'
-	},
-	{
-		url: 'http://www.corl.io',
-		name: 'Corl'
-	},
-	{
 		url: 'https://www.ethnite.com/',
 		name: 'Ethnite'
 	},
@@ -5268,40 +3944,8 @@ export default [
 		name: 'Confideal'
 	},
 	{
-		url: 'http://ownanumber.github.io',
-		name: 'Own A Number'
-	},
-	{
-		url: 'http://www.etherpoker.cc/',
-		name: 'EtherPoker'
-	},
-	{
 		url: 'https://www.allbet.io',
 		name: 'ALLBET'
-	},
-	{
-		url: 'http://www.trekmiles.com',
-		name: 'TrekMiles'
-	},
-	{
-		url: 'http://rblotto.com',
-		name: 'Rainbow Lottery'
-	},
-	{
-		url: 'http://game.fund',
-		name: 'GameFUND Game Community'
-	},
-	{
-		url: 'http://www.vrenar.io',
-		name: 'The VRENAR Project'
-	},
-	{
-		url: 'http://www.martinofriends.com',
-		name: 'MArtinoFriends'
-	},
-	{
-		url: 'http://tokenservice.minereum.com/',
-		name: 'Token Creation Service (ERC20)'
 	},
 	{
 		url: 'https://0xfair.com',
@@ -5312,20 +3956,12 @@ export default [
 		name: 'MyEtherWallet'
 	},
 	{
-		url: 'http://ethgasstation.info/',
-		name: 'ETH Gas Station'
-	},
-	{
 		url: 'https://infura.io/',
 		name: 'Infura'
 	},
 	{
 		url: 'https://coinflip.4dapp.io/',
 		name: 'CoinFlip'
-	},
-	{
-		url: 'http://plus-coin.com/en/',
-		name: 'PlusCoin'
 	},
 	{
 		url: 'https://nottar.io',
@@ -5336,28 +3972,12 @@ export default [
 		name: 'Trust Game'
 	},
 	{
-		url: 'http://tugofwar.io',
-		name: 'Tug Of War'
-	},
-	{
-		url: 'https://ipfs.io/ipfs/QmSGEQHmfCj5x9gWoAEeeUvuCSYdqeAiEkzurKvACCKoU9/',
-		name: 'Juncture'
-	},
-	{
 		url: 'https://xcontract.herokuapp.com/',
 		name: 'xcontract'
 	},
 	{
-		url: 'http://0xchange.me',
-		name: '0xchange.me'
-	},
-	{
 		url: 'https://dogracing.io',
 		name: 'DogRacing'
-	},
-	{
-		url: 'http://www.galaecenter.com/',
-		name: 'GALA Center'
 	},
 	{
 		url: 'https://orchid.com/',
@@ -5366,10 +3986,6 @@ export default [
 	{
 		url: 'https://coinshilling.club',
 		name: 'CoinShilling Club'
-	},
-	{
-		url: 'https://ethcapsule.firebaseapp.com/',
-		name: 'Eth Capsule'
 	},
 	{
 		url: 'https://ubitok.io',
@@ -5392,24 +4008,12 @@ export default [
 		name: 'Beyond The Void'
 	},
 	{
-		url: 'http://demo.rouge.network/',
-		name: 'Rouge'
-	},
-	{
 		url: 'https://infodicoet.wixsite.com/promptkicker',
 		name: 'Prompt Kicker'
 	},
 	{
-		url: 'http://www.trakti.com',
-		name: 'Trakti'
-	},
-	{
 		url: 'https://wallie.me/en.html',
 		name: 'Wallie DApp'
-	},
-	{
-		url: 'http://www.cryptocrawl.io/',
-		name: 'Crypto Crawl'
 	},
 	{
 		url: 'https://betdemocracy.org/',
@@ -5428,10 +4032,6 @@ export default [
 		name: 'EtherButton'
 	},
 	{
-		url: 'http://ezether.com',
-		name: 'Ezether'
-	},
-	{
 		url: 'https://tibreth.io/Tibrix/competition.jsp',
 		name: 'TIBRIX'
 	},
@@ -5444,16 +4044,8 @@ export default [
 		name: 'WRIO Internet OS'
 	},
 	{
-		url: 'http://www.zola.fun/',
-		name: 'Zola'
-	},
-	{
 		url: 'https://www.ethhodler.org/',
 		name: 'Eth Hodler'
-	},
-	{
-		url: 'https://wolfdaohowl.firebaseapp.com/#/',
-		name: 'Howl'
 	},
 	{
 		url: 'https://quiknode.io',
@@ -5464,16 +4056,8 @@ export default [
 		name: 'Dice For Slice'
 	},
 	{
-		url: 'http://dfcg.host',
-		name: 'Fortunes'
-	},
-	{
 		url: 'https://moonraffle.com',
 		name: 'Moon Raffle'
-	},
-	{
-		url: 'http://weifund.io/',
-		name: 'WeiFund'
 	},
 	{
 		url: 'https://ipfs.io/docs/getting-started/',
@@ -5504,18 +4088,6 @@ export default [
 		name: 'Mummy3D'
 	},
 	{
-		url: 'http://www.timberchain.org',
-		name: 'Timberchain'
-	},
-	{
-		url: 'http://idice-slot.rf.gd/',
-		name: 'Idice'
-	},
-	{
-		url: 'http://www.mediasifter.co/',
-		name: 'Media Sifter'
-	},
-	{
 		url: 'https://cooloud.com/dapp/rock-paper-scissors',
 		name: 'Rock Paper Scissors'
 	},
@@ -5532,10 +4104,6 @@ export default [
 		name: 'Blockphase'
 	},
 	{
-		url: 'http://etherbillboard.com/',
-		name: 'The Ether billboard'
-	},
-	{
 		url: 'https://arcade.city/',
 		name: 'Arcade City'
 	},
@@ -5550,10 +4118,6 @@ export default [
 	{
 		url: 'https://eth-world-cup.herokuapp.com/',
 		name: 'World Cup 2018 Lottery'
-	},
-	{
-		url: 'http://slaughter3d.com/',
-		name: 'Slaughter3d'
 	},
 	{
 		url: 'https://10finiti.com/',
@@ -5584,10 +4148,6 @@ export default [
 		name: 'Radar'
 	},
 	{
-		url: 'http://spl.yt',
-		name: 'Splyt'
-	},
-	{
 		url: 'https://wheelofether.io/',
 		name: 'WHEEL of ETHER'
 	},
@@ -5612,16 +4172,8 @@ export default [
 		name: 'Coin2Fun Lottery'
 	},
 	{
-		url: 'http://www.loftvr.io/',
-		name: 'LoftVR'
-	},
-	{
 		url: 'https://www.bcdc.online/recycletocoin',
 		name: 'RecycleToCoin'
-	},
-	{
-		url: 'http://embraceclarity.com',
-		name: 'Embrace Clarity'
 	},
 	{
 		url: 'https://tipeth.com',
@@ -5632,20 +4184,8 @@ export default [
 		name: 'Pocket by GoNetwork'
 	},
 	{
-		url: 'http://ejercitodelexito.com',
-		name: 'EthTicket'
-	},
-	{
-		url: 'http://quantmd.ai',
-		name: 'QuantMD.ai'
-	},
-	{
 		url: 'https://8thereum.io/',
 		name: '8thereum'
-	},
-	{
-		url: 'http://pay2play.io/',
-		name: 'Pay2Play'
 	},
 	{
 		url: 'https://easyinvest10.app/#invest',
@@ -5656,36 +4196,8 @@ export default [
 		name: 'WTCOOO'
 	},
 	{
-		url: 'http://cryptofees.net',
-		name: 'CryptoFees'
-	},
-	{
-		url: 'http://notareth.herokuapp.com/',
-		name: 'NotarEth'
-	},
-	{
 		url: 'https://www.provenance.org/',
 		name: 'Provenance'
-	},
-	{
-		url: 'http://dankcoin.trade',
-		name: 'Dankcoin'
-	},
-	{
-		url: 'http://www.coinlottery.xyz/',
-		name: 'Coinlottery'
-	},
-	{
-		url: 'http://www.donatedirect.info',
-		name: 'DonateDirect'
-	},
-	{
-		url: 'http://ethervote.io/',
-		name: 'Ethervote'
-	},
-	{
-		url: 'http://www.CryptoSpeech.com',
-		name: 'Crypto Speech'
 	},
 	{
 		url: 'https://www.openanx.org',
@@ -5716,18 +4228,6 @@ export default [
 		name: 'Oraclize'
 	},
 	{
-		url: 'http://www.cashcowdapp.com/',
-		name: 'CashCow'
-	},
-	{
-		url: 'http://ura.market',
-		name: 'Ura market'
-	},
-	{
-		url: 'http://theethereumlottery.com/',
-		name: 'The Ethereum Lottery'
-	},
-	{
 		url: 'https://ibuildapp.io/',
 		name: 'iBuildApp'
 	},
@@ -5740,48 +4240,8 @@ export default [
 		name: 'Crypto Surprise'
 	},
 	{
-		url: 'http://focus26.com/repeasy',
-		name: 'Honesty Token'
-	},
-	{
 		url: 'https://fairgrounds.bet',
 		name: 'Fairgrounds'
-	},
-	{
-		url: 'http://truffleframework.com/',
-		name: 'Truffle'
-	},
-	{
-		url: 'http://d11e9.github.io/universal-dapp/',
-		name: 'Universal ÐApp'
-	},
-	{
-		url: 'http://www.wandx.co',
-		name: 'WandX'
-	},
-	{
-		url: 'http://hivecommons.org/',
-		name: 'Hive Commons'
-	},
-	{
-		url: 'http://555ether.online/',
-		name: 'X_555ETH'
-	},
-	{
-		url: 'http://etherscan.io/',
-		name: 'EtherScan'
-	},
-	{
-		url: 'http://needfeed.nomeware.com/',
-		name: 'Need Feed'
-	},
-	{
-		url: 'http://www.rocketpool.net',
-		name: 'Rocket Pool'
-	},
-	{
-		url: 'http://vuepay.co/home/#vuepay',
-		name: 'VuePay'
 	},
 	{
 		url: 'https://www.bitkeno.io/',
@@ -5790,18 +4250,6 @@ export default [
 	{
 		url: 'https://stromstunde.de/',
 		name: 'GrünStromJeton'
-	},
-	{
-		url: 'http://play.letsbet.io',
-		name: 'LetsBet'
-	},
-	{
-		url: 'http://hodl-games.com/',
-		name: 'The War of Etherea'
-	},
-	{
-		url: 'http://cryptoworldcup.io',
-		name: 'CryptoWorldCup'
 	},
 	{
 		url: 'https://ethcrystal.com/',
@@ -5824,28 +4272,8 @@ export default [
 		name: 'UppCoin'
 	},
 	{
-		url: 'http://buidl.today',
-		name: 'Buidl Today'
-	},
-	{
-		url: 'http://www.benefactory.cc/',
-		name: 'Benefactory'
-	},
-	{
-		url: 'http://www.lostethereum.com/',
-		name: 'Lost Ethereum'
-	},
-	{
 		url: 'https://github.com/mickaelvalmier',
 		name: 'eth-iban-validator'
-	},
-	{
-		url: 'http://boardroom.to/',
-		name: 'BoardRoom'
-	},
-	{
-		url: 'http://crystalball.mx/',
-		name: 'Crystal Ball MEX'
 	},
 	{
 		url: 'https://bet.ethorse.com/',
@@ -5880,14 +4308,6 @@ export default [
 		name: 'one-eight'
 	},
 	{
-		url: 'http://altheamesh.com/',
-		name: 'Althea'
-	},
-	{
-		url: 'http://www.ethsoccer.com/en/cardstore.html',
-		name: 'ethsoccer'
-	},
-	{
 		url: 'https://ethereum-grove.readthedocs.org/',
 		name: 'Grove'
 	},
@@ -5908,10 +4328,6 @@ export default [
 		name: 'EthBadge'
 	},
 	{
-		url: 'http://dappresearch.blogspot.in/2017/08/the-idea.html',
-		name: 'Research Publishing'
-	},
-	{
 		url: 'https://tokenfactory.surge.sh/',
 		name: 'Token Factory'
 	},
@@ -5922,10 +4338,6 @@ export default [
 	{
 		url: 'https://ethfortnite.com/fortnite.html',
 		name: 'ETH FORTNITE'
-	},
-	{
-		url: 'http://www.aquarights.com',
-		name: 'AQUA Rights'
 	},
 	{
 		url: 'https://www.ethbowl.com',
@@ -5944,24 +4356,8 @@ export default [
 		name: 'Pass DAO'
 	},
 	{
-		url: 'http://roshambo.io/',
-		name: 'Roshambo'
-	},
-	{
-		url: 'http://etherstatic.com/',
-		name: 'Etherstatic'
-	},
-	{
-		url: 'http://cryptobowl.co',
-		name: 'CryptoBowl'
-	},
-	{
 		url: 'https://gcteth.codetract.io',
 		name: 'Gold Auction'
-	},
-	{
-		url: 'http://ethwordchain.com',
-		name: 'Eth World Chain'
 	},
 	{
 		url: 'https://monkey.game/',
@@ -5970,10 +4366,6 @@ export default [
 	{
 		url: 'https://dmixer.github.io/',
 		name: 'Decentralized Ether Mixer'
-	},
-	{
-		url: 'http://dapp.lemon.email',
-		name: 'Lemon Email DApp'
 	},
 	{
 		url: 'https://dapple.readthedocs.io/',
@@ -5996,16 +4388,8 @@ export default [
 		name: 'P3C.io'
 	},
 	{
-		url: 'http://www.vevue.com/',
-		name: 'Vevue'
-	},
-	{
 		url: 'https://lottopi.online/en/',
 		name: 'LottoPI Daily 6%'
-	},
-	{
-		url: 'http://www.nitro888.com/',
-		name: 'ETHEREUM CASINO'
 	},
 	{
 		url: 'https://minertoken.cloud',
@@ -6014,10 +4398,6 @@ export default [
 	{
 		url: 'https://www.owlting.com/owlchain/',
 		name: 'OwlChain'
-	},
-	{
-		url: 'http://ethembedded.com/',
-		name: 'EthEmbedded'
 	},
 	{
 		url: 'https://lifelottery.github.io/',
@@ -6040,40 +4420,16 @@ export default [
 		name: 'EatMyBet'
 	},
 	{
-		url: 'http://1protocol.com/',
-		name: '1protocol'
-	},
-	{
-		url: 'http://www.fomojp.com/login',
-		name: 'FomoJP'
-	},
-	{
 		url: 'https://slotthereum.github.io',
 		name: 'Slotthereum'
-	},
-	{
-		url: 'http://7xxx.club',
-		name: '7xxx Lottery'
-	},
-	{
-		url: 'http://ethlasvegas.surge.sh',
-		name: 'Ether Las Vegas'
 	},
 	{
 		url: 'https://climatecolab.org/contests/2015/shifting-attitudes--behavior/c/proposal/1313601',
 		name: 'ClimateCoin'
 	},
 	{
-		url: 'http://blocklog.xyz',
-		name: 'BLOCKLOG.xyz'
-	},
-	{
 		url: 'https://www.zonafide.net/',
 		name: 'Zonafide'
-	},
-	{
-		url: 'http://fundamenta.me',
-		name: 'Fundamenta'
 	},
 	{
 		url: 'https://dappsys.readthedocs.io/',
@@ -6084,24 +4440,12 @@ export default [
 		name: 'cyber•Fund'
 	},
 	{
-		url: 'http://5eth.io',
-		name: '5ETH'
-	},
-	{
 		url: 'https://ither.pro/index.html#eight',
 		name: 'ither pro'
 	},
 	{
-		url: 'http://SkillDuel.net',
-		name: 'Fantasy Sports'
-	},
-	{
 		url: 'https://sports3d.net/home/',
 		name: 'Sports3d'
-	},
-	{
-		url: 'http://eth-wager.surge.sh/#',
-		name: 'Ether Wager'
 	},
 	{
 		url: 'https://guts.tickets/',
@@ -6120,28 +4464,12 @@ export default [
 		name: 'FourPercentDaily'
 	},
 	{
-		url: 'http://Wardogs1.net/teris',
-		name: 'Teris'
-	},
-	{
-		url: 'http://ipci.io',
-		name: 'DAO IPCI'
-	},
-	{
 		url: 'https://bitbucket.org/nshou/sheth',
 		name: 'sheth'
 	},
 	{
 		url: 'https://www.brave3d.com/',
 		name: 'Brave3D'
-	},
-	{
-		url: 'http://eif.life',
-		name: 'Easy Invest Forever'
-	},
-	{
-		url: 'http://lottoken.org',
-		name: 'Lottoken'
 	},
 	{
 		url: 'https://superfomo.net/indexen.html',
@@ -6152,28 +4480,8 @@ export default [
 		name: 'Populus'
 	},
 	{
-		url: 'http://fomofive.me/official',
-		name: 'FOMOFive v2'
-	},
-	{
 		url: 'https://cryptolotto.live',
 		name: 'CryptoLotto'
-	},
-	{
-		url: 'http://www.smartraffle.co/',
-		name: 'SmartRaffle'
-	},
-	{
-		url: 'http://super6.io/',
-		name: 'Super6'
-	},
-	{
-		url: 'http://luckybuddy.vip',
-		name: 'Luckybuddy'
-	},
-	{
-		url: 'http://doubleprofit.io',
-		name: 'Double Profit'
 	},
 	{
 		url: 'https://www.webaccep.com/p3d/raffle3d/play',
@@ -6186,10 +4494,6 @@ export default [
 	{
 		url: 'https://redalertgame.ga/',
 		name: 'Red Alert'
-	},
-	{
-		url: 'http://cryptosportz.com/',
-		name: 'Crypto Sportz'
 	},
 	{
 		url: 'https://king.exorbux.com/',
@@ -6208,24 +4512,8 @@ export default [
 		name: 'CMT Concept'
 	},
 	{
-		url: 'http://themillionetherhomepage.com/',
-		name: 'The Million Ether Homepage'
-	},
-	{
-		url: 'http://www.sikoba.com/',
-		name: 'Sikoba'
-	},
-	{
-		url: 'http://etherparty.io/',
-		name: 'Etherparty'
-	},
-	{
 		url: 'https://kotch.dvx.me/#/',
 		name: 'King of the Crypto Hill'
-	},
-	{
-		url: 'http://tokencard.io/',
-		name: 'TokenCard'
 	},
 	{
 		url: 'https://govhack.etherisc.com/',
@@ -6238,10 +4526,6 @@ export default [
 	{
 		url: 'https://freeblock.luxe',
 		name: 'seashells'
-	},
-	{
-		url: 'http://dapps.oraclize.it/youtube-escrow/',
-		name: 'Youtube contract'
 	},
 	{
 		url: 'https://www.our-roulette.com/invest.html',
@@ -6268,14 +4552,6 @@ export default [
 		name: 'Samurai Quest'
 	},
 	{
-		url: 'http://www.zerowasteadvocacy.com/',
-		name: 'Zero Waste Advocacy'
-	},
-	{
-		url: 'http://auctionhouse.dappbench.com',
-		name: 'AuctionHouse'
-	},
-	{
 		url: 'https://contractum.cc',
 		name: 'The Contractum Project'
 	},
@@ -6284,24 +4560,8 @@ export default [
 		name: 'High-Stakes SmartRoulette'
 	},
 	{
-		url: 'http://thot.blocklog.xyz',
-		name: 'THOT'
-	},
-	{
-		url: 'http://projectlive.mundopm.com.br/download-app/',
-		name: 'ProjectLIVE'
-	},
-	{
 		url: 'https://ethersmart.io/',
 		name: 'Ethersmart'
-	},
-	{
-		url: 'http://dapps.oraclize.it/stackexchange-v2/#/stackexchange-v2/',
-		name: 'StackExchange Bounty'
-	},
-	{
-		url: 'http://eth.csgobets.org/',
-		name: 'ESports Bets'
 	},
 	{
 		url: 'https://5inv.site/',
@@ -6312,32 +4572,8 @@ export default [
 		name: "Miner Token's 200%"
 	},
 	{
-		url: 'http://vega.fund',
-		name: 'Vega Fund'
-	},
-	{
 		url: 'https://www.gaincrypto.com/',
 		name: 'GainCrypto'
-	},
-	{
-		url: 'http://efirica.io',
-		name: 'Efirica'
-	},
-	{
-		url: 'http://chainclouding.com',
-		name: 'ChainClouding'
-	},
-	{
-		url: 'http://guess.theethereumlottery.com',
-		name: 'Guess the Block'
-	},
-	{
-		url: 'http://dapps.oraclize.it/proof-of-identity/',
-		name: 'Proof of Identity'
-	},
-	{
-		url: 'http://www.ethslurp.com/',
-		name: 'EthSlurp'
 	},
 	{
 		url: 'https://www.ether.li/',
@@ -6348,76 +4584,28 @@ export default [
 		name: 'Whales'
 	},
 	{
-		url: 'http://kittyjackpot.xyz/',
-		name: 'KittyJackpot'
-	},
-	{
-		url: 'http://3dayprofits.info/',
-		name: '3DayProfits'
-	},
-	{
-		url: 'http://donationsapp.alice.si/',
-		name: 'Alice'
-	},
-	{
 		url: 'https://lotthereum.github.io',
 		name: 'Lottereum'
-	},
-	{
-		url: 'http://www.investandhodl.com',
-		name: 'Free Investment'
-	},
-	{
-		url: 'http://poweth.org',
-		name: 'PoWEth'
-	},
-	{
-		url: 'http://ethrps.com',
-		name: 'EthRPS'
 	},
 	{
 		url: 'https://winether.online',
 		name: 'Pick 3'
 	},
 	{
-		url: 'http://ethdfs.io',
-		name: 'ETHDFS'
-	},
-	{
 		url: 'https://worstperson.ga/',
 		name: 'Worst Person in the World'
-	},
-	{
-		url: 'http://www.ethereum-alarm-clock.com/',
-		name: 'Ethereum Alarm Clock'
-	},
-	{
-		url: 'http://blockcapsule.com',
-		name: 'BlockCapsule'
 	},
 	{
 		url: 'https://retroblock.io/',
 		name: 'Retro Block: Rob The Bank'
 	},
 	{
-		url: 'http://smartpool.io/',
-		name: 'SmartPool'
-	},
-	{
 		url: 'https://patrykkalinowski.com/blog/2016/03/26/blockchain-as-a-decentralized-watchdog.html',
 		name: 'Watchdog'
 	},
 	{
-		url: 'http://www.the-pitts-circus.com/Ethereum',
-		name: 'The-Pitts-Circus-Family-Movie'
-	},
-	{
 		url: 'https://diceybit.com/en/web/liveslot_dice/',
 		name: 'DiceyBit'
-	},
-	{
-		url: 'http://p3daily.stronghand.me/',
-		name: 'P3Daily'
 	},
 	{
 		url: 'https://acereturns.github.io/50PercentDaily/',
@@ -6440,20 +4628,8 @@ export default [
 		name: 'Proof of No Dump'
 	},
 	{
-		url: 'http://www.mintchalk.com/',
-		name: 'MintChalk'
-	},
-	{
 		url: 'https://mooty.me/',
 		name: 'Mooty'
-	},
-	{
-		url: 'http://eth4.club/',
-		name: 'Eth4Club'
-	},
-	{
-		url: 'http://etherplay.io/',
-		name: 'Etherplay'
 	},
 	{
 		url: 'https://zarixcoin.com/',
@@ -6466,10 +4642,6 @@ export default [
 	{
 		url: 'https://getrichfaster.github.io/Invest/',
 		name: 'GetRichFaster'
-	},
-	{
-		url: 'http://www.microtick.com/',
-		name: 'Microtick'
 	},
 	{
 		url: 'https://0xmultiply.com/',
@@ -6504,28 +4676,8 @@ export default [
 		name: 'FOMO lightning'
 	},
 	{
-		url: 'http://www.fomo777.com/',
-		name: 'Fomo777'
-	},
-	{
-		url: 'http://www.disshacker.com/',
-		name: 'Diss Hacker'
-	},
-	{
-		url: 'http://www.voteholder.org/',
-		name: 'voteholder'
-	},
-	{
 		url: 'https://bigbank.me/',
 		name: 'Big Bank'
-	},
-	{
-		url: 'http://www.slotnslot.com/',
-		name: 'SlotNSlot'
-	},
-	{
-		url: 'http://obok.me/index.html',
-		name: 'OBOK'
 	},
 	{
 		url: 'https://boosto.io/dapp/investment_pool/prelaunch',
@@ -6560,24 +4712,8 @@ export default [
 		name: 'Eth2x'
 	},
 	{
-		url: 'http://freshroi.club/',
-		name: 'FRESHROI'
-	},
-	{
-		url: 'http://everydayroi.surge.sh',
-		name: 'EveryDayROI'
-	},
-	{
-		url: 'http://cillionaire.win/',
-		name: 'Cillionaire'
-	},
-	{
 		url: 'https://12daily.club',
 		name: '12Daily'
-	},
-	{
-		url: 'http://gradual.pro',
-		name: 'Gradual Pro'
 	},
 	{
 		url: 'https://12hourauction.github.io/',
@@ -6588,16 +4724,8 @@ export default [
 		name: 'Regis'
 	},
 	{
-		url: 'http://infinitimoney.com',
-		name: 'Infiniti Money'
-	},
-	{
 		url: 'https://poripple.com/',
 		name: 'Proof of Ripple'
-	},
-	{
-		url: 'http://poj.surge.sh/',
-		name: 'Proof Of Japanese'
 	},
 	{
 		url: 'https://blockmml.com/en/',
@@ -6620,16 +4748,8 @@ export default [
 		name: 'GrandRoulette'
 	},
 	{
-		url: 'http://nekotoken.xyz/index2.html',
-		name: 'Neko Token'
-	},
-	{
 		url: 'https://kingdometh.com/bank.html',
 		name: 'KingdomETH Bank Game'
-	},
-	{
-		url: 'http://fiveshort.me/game',
-		name: 'fiveshort'
 	},
 	{
 		url: 'https://theilluminati.io',
@@ -6640,32 +4760,12 @@ export default [
 		name: '12HourToken'
 	},
 	{
-		url: 'http://digital-fortunes.co/pyramid.html',
-		name: 'PYRAMID-MKII'
-	},
-	{
-		url: 'http://flashether.com/',
-		name: 'CoinFlash'
-	},
-	{
-		url: 'http://walleth.org/',
-		name: 'WALLΞTH'
-	},
-	{
-		url: 'http://www.lavamovement.com/',
-		name: 'LAVA'
-	},
-	{
 		url: 'https://fomo2d.io/',
 		name: 'Fomo2D'
 	},
 	{
 		url: 'https://thetrainthatneverstops.blogspot.com/',
 		name: 'The Train'
-	},
-	{
-		url: 'http://pyrgressive.com',
-		name: 'PyrGressive'
 	},
 	{
 		url: 'https://github.com/DeviateFish/Lotto',
@@ -6676,84 +4776,28 @@ export default [
 		name: 'SilverMoon'
 	},
 	{
-		url: 'http://www.exitedscam.me/',
-		name: 'Dream of the West Journey'
-	},
-	{
 		url: 'https://ethcash.online/',
 		name: 'ETHCashOnline'
-	},
-	{
-		url: 'http://coliga.nl/st4ck/index.html',
-		name: 'ST4CK'
-	},
-	{
-		url: 'http://www.multigames.mobi/crypto',
-		name: 'MultiGames'
-	},
-	{
-		url: 'http://onesinglecoin.com/',
-		name: 'OneSingleCoin'
-	},
-	{
-		url: 'http://eth-survivor-pool-classic-app.herokuapp.com/',
-		name: 'SurvivalPool-Classic'
 	},
 	{
 		url: 'https://ethereumlottery.io/',
 		name: 'Ethereum Lottery .io'
 	},
 	{
-		url: 'http://www.hodlmybeer.net',
-		name: 'HODL My Beer'
-	},
-	{
-		url: 'http://www.ironhands.site',
-		name: 'Iron Hands Coin'
-	},
-	{
 		url: 'https://horoscope.claims',
 		name: 'Horoscope'
-	},
-	{
-		url: 'http://slock.it/',
-		name: 'Slock It'
-	},
-	{
-		url: 'http://wry-cake.surge.sh/',
-		name: 'Integrity Warriors'
-	},
-	{
-		url: 'http://pog.surge.sh/',
-		name: 'POG'
 	},
 	{
 		url: 'https://buy.powtf.com/',
 		name: 'POWTF'
 	},
 	{
-		url: 'http://www.keepguess.io/',
-		name: 'KeepGuess'
-	},
-	{
 		url: 'https://ethopolis.io/po24.html',
 		name: 'PO24'
 	},
 	{
-		url: 'http://kickthecoin.com/?network=eth',
-		name: 'KickTheCoin'
-	},
-	{
-		url: 'http://safemarket.github.io/',
-		name: 'SafeMarket'
-	},
-	{
 		url: 'https://tranquil-lake-59361.herokuapp.com/',
 		name: 'GiveDirectly Lottery'
-	},
-	{
-		url: 'http://btcrelay.org/',
-		name: 'btcrelay'
 	},
 	{
 		url: 'https://www.howeycoin.net/',
@@ -6772,28 +4816,8 @@ export default [
 		name: 'PoHD'
 	},
 	{
-		url: 'http://iudex.github.io',
-		name: 'iudex'
-	},
-	{
 		url: 'https://www.etherbattleground.com/',
 		name: 'Ether Battleground'
-	},
-	{
-		url: 'http://etherapis.io/',
-		name: 'EtherAPIs'
-	},
-	{
-		url: 'http://ethereum.github.io/browser-solidity/',
-		name: 'Browser-Solidity'
-	},
-	{
-		url: 'http://axic.github.io/shapeshiftbot/',
-		name: 'Shapeshift Bot'
-	},
-	{
-		url: 'http://debris.gitbooks.io/ethchange/content/',
-		name: 'Smart-Exchange'
 	},
 	{
 		url: 'https://faucet.ropsten.be/',
