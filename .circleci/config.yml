@@ -69,7 +69,6 @@ jobs:
       - image: circleci/node:8
     steps:
       - checkout
-      - run: *install-node-dependencies
       - attach_workspace:
           at: .
       - run: npm run test:unit -- -w 3
@@ -105,8 +104,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm install -g codecov
-      - run: codecov
+      - run: npm install codecov
+      - run: ./node_modules/bin/codecov
 
   all-tests-pass:
     <<: *defaults
