@@ -35,8 +35,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.beige
 	},
 	homePageContent: {
-		paddingHorizontal: 18,
-		marginBottom: 43
+		marginBottom: 43,
+		paddingHorizontal: 18
 	},
 	foxWrapper: {
 		height: 20
@@ -82,18 +82,23 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	searchWrapper: {
-		flexDirection: 'row',
-		marginVertical: Platform.OS === 'ios' ? 20 : 10
+		height: 40
 	},
 	searchInput: {
+		paddingVertical: 10,
+		paddingHorizontal: 10,
+		paddingLeft: 40,
 		flex: 1,
-		marginHorizontal: 10,
+		marginHorizontal: 0,
 		backgroundColor: colors.beige,
 		fontSize: 14,
 		...fontStyles.normal
 	},
 	searchIcon: {
-		textAlignVertical: 'center'
+		position: 'absolute',
+		textAlignVertical: 'center',
+		marginTop: 10,
+		marginLeft: 18
 	},
 	backupAlert: {
 		position: 'absolute',
@@ -292,25 +297,25 @@ class HomePage extends Component {
 						accesible={false}
 					>
 						<View style={styles.flex}>
+							<View style={styles.searchWrapper}>
+								<TextInput
+									style={[
+										styles.searchInput,
+										this.state.inputWidth ? { width: this.state.inputWidth } : {}
+									]}
+									autoCapitalize="none"
+									autoCorrect={false}
+									clearButtonMode="while-editing"
+									onChangeText={this.onInitialUrlChange}
+									onSubmitEditing={this.onInitialUrlSubmit}
+									placeholder={strings('browser.search')}
+									placeholderTextColor={colors.asphalt}
+									returnKeyType="go"
+									value={this.state.searchInputValue}
+								/>
+								<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
+							</View>
 							<View style={styles.homePageContent}>
-								<View style={styles.searchWrapper}>
-									<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
-									<TextInput
-										style={[
-											styles.searchInput,
-											this.state.inputWidth ? { width: this.state.inputWidth } : {}
-										]}
-										autoCapitalize="none"
-										autoCorrect={false}
-										clearButtonMode="while-editing"
-										onChangeText={this.onInitialUrlChange}
-										onSubmitEditing={this.onInitialUrlSubmit}
-										placeholder={strings('browser.search')}
-										placeholderTextColor={colors.asphalt}
-										returnKeyType="go"
-										value={this.state.searchInputValue}
-									/>
-								</View>
 								<View style={styles.topBarWrapper}>
 									<View style={styles.foxWrapper}>
 										<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
