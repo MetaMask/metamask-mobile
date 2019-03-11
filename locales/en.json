@@ -508,7 +508,7 @@
 		"step_2_description": "Save wallet seed phrase",
 		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
 		"info_text_2":
-			"This will ensure only you can access your funds, and will let you recover your wallet if you lose your device",
+			"This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
 		"cta_text": "CREATE PASSWORD"
 	},
 	"account_backup_step_1": {
@@ -527,7 +527,7 @@
 		"info_text_3_1": "used to ",
 		"info_text_3_2": "recover your wallet",
 		"info_text_3_3":
-			" in case you lose your device, forget your password, have to re-install the MetaMask app, or want to access your wallet on another device.",
+			" in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.",
 		"cta_text": "YEAH, LET'S SAVE IT",
 		"learn_more": "Learn More"
 	},

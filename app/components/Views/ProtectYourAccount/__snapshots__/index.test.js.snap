@@ -216,7 +216,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
             }
           }
         >
-          This will ensure only you can access your funds, and will let you recover your wallet if you lose your device
+          This will ensure only you can access your funds and will let you recover your wallet if you lose your device
         </Text>
       </View>
     </View>

@@ -222,7 +222,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               >
                 recover your wallet
               </Text>
-               in case you lose your device, forget your password, have to re-install the MetaMask app, or want to access your wallet on another device.
+               in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.
             </Text>
           </View>
         </View>

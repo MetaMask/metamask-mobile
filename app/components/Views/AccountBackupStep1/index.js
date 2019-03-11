@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		padding: 20,
-		paddingTop: Platform.OS === 'android' ? 0 : 0,
+		paddingTop: 0,
 		paddingBottom: 0
 	},
 	content: {
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 32,
 		marginLeft: 10,
-		marginTop: Platform.OS === 'android' ? 0 : 0,
+		marginTop: 0,
 		marginBottom: 25,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
