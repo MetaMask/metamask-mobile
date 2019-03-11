@@ -72,8 +72,8 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               "fontSize": 32,
               "fontWeight": "400",
               "justifyContent": "center",
-              "marginBottom": 20,
-              "marginTop": 20,
+              "marginBottom": 10,
+              "marginTop": 0,
               "textAlign": "left",
             }
           }
@@ -95,7 +95,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "lineHeight": 23,
+                "lineHeight": 20,
                 "textAlign": "left",
               }
             }
@@ -111,7 +111,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               "borderRadius": 10,
               "borderWidth": 1,
               "flexDirection": "row",
-              "marginBottom": 22,
+              "marginBottom": 20,
             }
           }
         >
@@ -122,6 +122,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                 "borderColor": "#CCCCCC",
                 "borderRightWidth": 1,
                 "flex": 1,
+                "paddingBottom": 10,
                 "paddingVertical": 20,
               }
             }
@@ -297,6 +298,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Object {
                 "alignItems": "center",
                 "flex": 1,
+                "paddingBottom": 10,
                 "paddingVertical": 20,
               }
             }
@@ -937,7 +939,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
           Object {
             "flex": 1,
             "justifyContent": "flex-end",
-            "marginTop": 30,
+            "marginTop": 10,
           }
         }
       >
@@ -961,6 +963,38 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
+    <CustomAlert
+      buttonText="NEXT"
+      headerContent={
+        <Icon
+          allowFontScaling={false}
+          color="#FFFFFF"
+          name="check"
+          size={100}
+        />
+      }
+      headerStyle={
+        Object {
+          "backgroundColor": "#5ea40c",
+        }
+      }
+      isVisible={false}
+      onPress={[Function]}
+      titleText="Seed phrase confirmed!"
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 13,
+            "fontWeight": "400",
+            "textAlign": "center",
+          }
+        }
+      >
+        This was to ensure you follow this security measure
+      </Text>
+    </CustomAlert>
   </ScrollView>
 </SafeAreaView>
 `;

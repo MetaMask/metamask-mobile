@@ -60,11 +60,10 @@ exports[`ChoosePassword should render correctly 1`] = `
                 "marginBottom": 20,
                 "marginTop": 20,
                 "textAlign": "left",
-                "width": 200,
               }
             }
           >
-            Choose a password
+            Create password
           </Text>
           <View
             style={
