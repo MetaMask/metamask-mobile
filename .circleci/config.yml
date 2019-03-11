@@ -72,10 +72,10 @@ jobs:
       - attach_workspace:
           at: .
       - run: npm run test:unit -- -w 3
-      - persist_to_workspace:
-          root: .
-          paths:
-            - coverage
+    #   - persist_to_workspace:
+    #       root: .
+    #       paths:
+    #         - coverage
 
   test-e2e-ios:
     <<: *defaults
