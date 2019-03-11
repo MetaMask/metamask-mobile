@@ -20,7 +20,6 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start'
 	},
 	title: {
-		width: 200,
 		fontSize: 32,
 		marginLeft: 20,
 		marginTop: 20,
@@ -51,6 +50,11 @@ const styles = StyleSheet.create({
 	buttonWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
+	},
+	step: {
+		marginBottom: 20,
+		fontSize: 23,
+		...fontStyles.bold
 	}
 });
 
@@ -80,9 +84,28 @@ export default class ProtectYourAccount extends Component {
 				>
 					<View style={styles.content}>
 						<Emoji name="closed_lock_with_key" style={styles.emoji} />
-						<Text style={styles.title}>{strings('protect_your_account.title')}</Text>
+						<Text style={styles.title}>{strings('secure_your_wallet.title')}</Text>
 						<View style={styles.text}>
-							<Text style={styles.label}>{strings('protect_your_account.info_text')}</Text>
+							<Text style={styles.label}>{strings('secure_your_wallet.step_1')}</Text>
+						</View>
+						<View style={styles.text}>
+							<Text style={[styles.label, styles.step]}>
+								{strings('secure_your_wallet.step_1_description')}
+							</Text>
+						</View>
+						<View style={styles.text}>
+							<Text style={styles.label}>{strings('secure_your_wallet.step_2')}</Text>
+						</View>
+						<View style={styles.text}>
+							<Text style={[styles.label, styles.step]}>
+								{strings('secure_your_wallet.step_2_description')}
+							</Text>
+						</View>
+						<View style={styles.text}>
+							<Text style={styles.label}>{strings('secure_your_wallet.info_text_1')}</Text>
+						</View>
+						<View style={styles.text}>
+							<Text style={styles.label}>{strings('secure_your_wallet.info_text_2')}</Text>
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
@@ -92,7 +115,7 @@ export default class ProtectYourAccount extends Component {
 							onPress={this.goNext}
 							testID={'submit-button'}
 						>
-							{strings('protect_your_account.cta_text')}
+							{strings('secure_your_wallet.cta_text')}
 						</StyledButton>
 					</View>
 				</ScrollView>

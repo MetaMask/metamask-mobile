@@ -36,13 +36,18 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
         }
       }
     >
-      <Emoji
-        name="tada"
+      <Component
+        resizeMethod="auto"
+        source={
+          Object {
+            "testUri": "../../../app/images/fox-badge.png",
+          }
+        }
         style={
           Object {
-            "fontSize": 75,
+            "height": 75,
             "marginTop": 40,
-            "textAlign": "left",
+            "width": 75,
           }
         }
       />
@@ -60,7 +65,7 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
           }
         }
       >
-        Congratulations!
+        Security Tips
       </Text>
       <View
         style={
@@ -82,20 +87,41 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
             }
           }
         >
-          You passed the test. Keep your seed phrase safe, it's your responsibility!
+          MetaMask cannot recover your seed phrase if you lose it
         </Text>
       </View>
       <View
         style={
-          Object {
-            "justifyContent": "center",
-            "marginBottom": 10,
-          }
+          Array [
+            Object {
+              "justifyContent": "center",
+              "marginBottom": 10,
+            },
+            Object {
+              "marginTop": 20,
+            },
+          ]
         }
       >
-        <Text
+        <View
           style={
-            Array [
+            Object {
+              "flexDirection": "row",
+              "marginBottom": 15,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "marginRight": 5,
+              }
+            }
+          >
+            •
+          </Text>
+          <Text
+            style={
               Object {
                 "color": "#000000",
                 "fontFamily": "Roboto",
@@ -103,175 +129,114 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
                 "fontWeight": "400",
                 "lineHeight": 23,
                 "textAlign": "left",
-              },
+              }
+            }
+          >
+            Keep multiple backups of your seed phrase
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "marginBottom": 15,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "marginRight": 5,
+              }
+            }
+          >
+            •
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 23,
+                "textAlign": "left",
+              }
+            }
+          >
+            Store the phrase in a trusted password manager and paper backups in a safe place
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+              "marginBottom": 15,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "marginRight": 5,
+              }
+            }
+          >
+            •
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 23,
+                "textAlign": "left",
+              }
+            }
+          >
+            Never share this phrase with anyone
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          Array [
+            Object {
+              "justifyContent": "center",
+              "marginBottom": 10,
+            },
+            Object {
+              "marginTop": 20,
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "lineHeight": 23,
+              "textAlign": "left",
+            }
+          }
+        >
+          * You can find your seedphrase if you go to 
+          <Text
+            style={
               Object {
                 "fontFamily": "Roboto",
                 "fontWeight": "600",
-                "marginBottom": 20,
-                "marginTop": 20,
-              },
-            ]
-          }
-        >
-          Tips on storing it safely
+              }
+            }
+          >
+            Settings &gt; Security & Privacy
+          </Text>
         </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "justifyContent": "center",
-            "marginBottom": 10,
-          }
-        }
-      >
-        <View
-          style={
-            Object {
-              "flexDirection": "row",
-              "marginBottom": 5,
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "marginRight": 5,
-              }
-            }
-          >
-            •
-          </Text>
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 23,
-                "textAlign": "left",
-              }
-            }
-          >
-            Save a backup in multiple places
-          </Text>
-        </View>
-        <View
-          style={
-            Object {
-              "flexDirection": "row",
-              "marginBottom": 5,
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "marginRight": 5,
-              }
-            }
-          >
-            •
-          </Text>
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 23,
-                "textAlign": "left",
-              }
-            }
-          >
-            Never tell anyone
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          Object {
-            "justifyContent": "center",
-            "marginBottom": 10,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "Roboto",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "lineHeight": 23,
-              "textAlign": "left",
-            }
-          }
-        >
-          If you need to back it up again, you can find them in Settings =&gt; Security.
-        </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "justifyContent": "center",
-            "marginBottom": 10,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "Roboto",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "lineHeight": 23,
-              "textAlign": "left",
-            }
-          }
-        >
-          *MetaMask cannot recover your seedphrase
-        </Text>
-        <TouchableOpacity
-          activeOpacity={0.2}
-          onPress={[Function]}
-          style={
-            Object {
-              "flexDirection": "row",
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#008edf",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 23,
-                "textAlign": "left",
-              }
-            }
-          >
-            Learn More
-          </Text>
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 23,
-                "textAlign": "left",
-              }
-            }
-          >
-            .
-          </Text>
-        </TouchableOpacity>
       </View>
     </View>
     <View
@@ -297,43 +262,44 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
         testID="submit-button"
         type="confirm"
       >
-        <View
-          style={
-            Object {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "center",
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="check"
-            size={15}
-            style={
-              Object {
-                "color": "#FFFFFF",
-                "fontSize": 20,
-                "marginRight": 10,
-              }
-            }
-          />
-          <Text
-            style={
-              Object {
-                "color": "#FFFFFF",
-                "fontFamily": "Roboto",
-                "fontSize": 18,
-                "fontWeight": "600",
-                "textAlign": "center",
-              }
-            }
-          >
-            ALL DONE
-          </Text>
-        </View>
+        GOT IT!
       </StyledButton>
     </View>
+    <CustomAlert
+      buttonText="DONE"
+      headerContent={
+        <Emoji
+          name="tada"
+          style={
+            Object {
+              "fontSize": 75,
+              "textAlign": "left",
+            }
+          }
+        />
+      }
+      headerStyle={
+        Object {
+          "backgroundColor": "#d2d8dd",
+        }
+      }
+      isVisible={false}
+      onPress={[Function]}
+      titleText="Congratulations!"
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 13,
+            "fontWeight": "400",
+            "textAlign": "center",
+          }
+        }
+      >
+        You are all backed up and ready to go!
+      </Text>
+    </CustomAlert>
   </ScrollView>
 </SafeAreaView>
 `;

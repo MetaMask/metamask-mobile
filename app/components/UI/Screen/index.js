@@ -1,17 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Dimensions, SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
+import { Platform, SafeAreaView, StatusBar, View } from 'react-native';
 import { colors, baseStyles } from '../../../styles/common';
-
-const styles = StyleSheet.create({
-	underlay: {
-		backgroundColor: colors.white,
-		left: 0,
-		position: 'absolute',
-		top: 0
-	}
-});
-
 /**
  * Base view component providing consistent styling meant to wrap other views
  */
@@ -23,20 +13,18 @@ export default class Screen extends Component {
 		children: PropTypes.node
 	};
 
-	render = () => {
-		const { height, width } = Dimensions.get('window');
+	componentDidMount() {
+		StatusBar.setBarStyle('dark-content', true);
+		if (Platform.OS === 'android') {
+			StatusBar.setBackgroundColor(colors.androidStatusbar);
+		}
+	}
 
+	render() {
 		return (
 			<View style={baseStyles.flexGrow}>
-				<View style={{ ...styles.underlay, ...{ width, height } }}>
-					<StatusBar
-						animated
-						backgroundColor={Platform.OS === 'android' ? colors.androidStatusbar : colors.white}
-						barStyle="dark-content"
-					/>
-				</View>
 				<SafeAreaView style={baseStyles.flexGrow}>{this.props.children}</SafeAreaView>
 			</View>
 		);
-	};
+	}
 }

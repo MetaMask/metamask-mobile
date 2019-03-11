@@ -11,6 +11,8 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'ListView is deprecated',
+	'WebView has been extracted from react-native core',
 	'this.web3.eth',
 	'collectibles.map',
 	'Warning: bind(): You are binding a component method to the component',

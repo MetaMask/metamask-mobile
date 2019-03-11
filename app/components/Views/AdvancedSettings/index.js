@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for app configurations
  */
-class Settings extends Component {
+class AdvancedSettings extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -364,4 +364,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(Settings);
+)(AdvancedSettings);
