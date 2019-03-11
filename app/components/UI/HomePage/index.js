@@ -358,25 +358,6 @@ class HomePage extends Component {
 									bookmarks={this.props.bookmarks}
 								/>
 							</ScrollableTabView>
-
-							{this.props.passwordSet &&
-								!this.props.seedphraseBackedUp && (
-									<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
-										<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
-											<View style={styles.backupAlertIconWrapper}>
-												<Icon name="info-outline" style={styles.backupAlertIcon} />
-											</View>
-											<View>
-												<Text style={styles.backupAlertTitle}>
-													{strings('home_page.backup_alert_title')}
-												</Text>
-												<Text style={styles.backupAlertMessage}>
-													{strings('home_page.backup_alert_message')}
-												</Text>
-											</View>
-										</ElevatedView>
-									</TouchableOpacity>
-								)}
 						</View>
 					</TouchableWithoutFeedback>
 				</ScrollView>
@@ -385,6 +366,24 @@ class HomePage extends Component {
 						<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
 					</View>
 				)}
+				{this.props.passwordSet &&
+					!this.props.seedphraseBackedUp && (
+						<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
+							<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
+								<View style={styles.backupAlertIconWrapper}>
+									<Icon name="info-outline" style={styles.backupAlertIcon} />
+								</View>
+								<View>
+									<Text style={styles.backupAlertTitle}>
+										{strings('home_page.backup_alert_title')}
+									</Text>
+									<Text style={styles.backupAlertMessage}>
+										{strings('home_page.backup_alert_message')}
+									</Text>
+								</View>
+							</ElevatedView>
+						</TouchableOpacity>
+					)}
 			</View>
 		);
 	}

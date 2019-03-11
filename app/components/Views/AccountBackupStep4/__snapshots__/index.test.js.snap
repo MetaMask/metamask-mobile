@@ -77,8 +77,8 @@ exports[`AccountBackupStep4 should render correctly 1`] = `
               "fontSize": 32,
               "fontWeight": "400",
               "justifyContent": "center",
-              "marginBottom": 20,
-              "marginTop": 20,
+              "marginBottom": 10,
+              "marginTop": 10,
               "textAlign": "left",
             }
           }
@@ -127,6 +127,7 @@ exports[`AccountBackupStep4 should render correctly 1`] = `
                 "borderColor": "#CCCCCC",
                 "borderRightWidth": 1,
                 "flex": 1,
+                "paddingBottom": 10,
                 "paddingVertical": 20,
               }
             }
@@ -263,6 +264,7 @@ exports[`AccountBackupStep4 should render correctly 1`] = `
               Object {
                 "alignItems": "center",
                 "flex": 1,
+                "paddingBottom": 10,
                 "paddingVertical": 20,
               }
             }
@@ -415,7 +417,7 @@ exports[`AccountBackupStep4 should render correctly 1`] = `
               }
             }
           >
-            Carefully write down these words on paper. Their order matters.
+            You'll be asked to re-enter it on the next screen
           </Text>
         </View>
       </View>
@@ -442,7 +444,7 @@ exports[`AccountBackupStep4 should render correctly 1`] = `
           testID="submit-button"
           type="confirm"
         >
-          I'VE WRITTEN IT DOWN
+          I'VE COPIED THE PHRASE
         </StyledButton>
       </View>
     </View>

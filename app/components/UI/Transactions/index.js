@@ -1,7 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { ScrollView, ActivityIndicator, RefreshControl, StyleSheet, Text, View, FlatList } from 'react-native';
+import {
+	Platform,
+	ScrollView,
+	ActivityIndicator,
+	RefreshControl,
+	StyleSheet,
+	Text,
+	View,
+	FlatList
+} from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
@@ -31,7 +40,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
+const ROW_HEIGHT = (Platform.OS === 'ios' ? 95 : 100) + StyleSheet.hairlineWidth;
 
 /**
  * View that renders a list of transactions for a specific asset

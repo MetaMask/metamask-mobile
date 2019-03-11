@@ -9,16 +9,16 @@
 		"info": "Información"
 	},
 	"onboarding": {
-		"title": "Bienvenidos a MetaMask",
-		"subtitle":
-			"Un nuevo tipo de navegador web para un internet mas seguro. Explora la web decentralizada del mañana, ahora.",
+		"title": "Bienvenido a MetaMask",
+		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
 		"import_wallet_button": "Importar billetera",
-		"start_exploring_now": "Explorar ahora",
+		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar"
 	},
 	"create_wallet": {
-		"title": "Espera, estamos creando esto mientras volamos.",
-		"subtitle": "- El Blockchain"
+		"title": "Creando tu nueva billetera",
+		"subtitle":
+			"Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
 	},
 	"import_wallet": {
 		"title": "Importar Billetera",
@@ -39,7 +39,7 @@
 		"invalid_password": "Contraseña incorrecta"
 	},
 	"choose_password": {
-		"title": "Elige la contraseña",
+		"title": "Crea tu contraseña",
 		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de MetaMask solamente en este dispositivo.",
 		"password": "Nueva Contraseña",
 		"confirm_password": "Confirmar Contraseña",
@@ -497,10 +497,16 @@
 		"from": "Desde:",
 		"cta_text": "OK"
 	},
-	"protect_your_account": {
-		"title": "Protege tu Cuenta",
-		"info_text": "Ahora que tienes valor, creemos una contraseña para proteger tu cuenta.",
-		"cta_text": "CREAR PASSWORD"
+	"secure_your_wallet": {
+		"title": "Protege tu billetera",
+		"step_1": "Paso 1:",
+		"step_1_description": "Crear contraseña",
+		"step_2": "Step 2:",
+		"step_2_description": "Guarda tu frase semilla",
+		"info_text_1": "Dedica un momento a finalizar la configuración de tu billetera MetaMask",
+		"info_text_2":
+			"Esto asegurará que solo tú puedas acceder a tus fondos y te permitirá recuperar tu billetera si pierdes tu dispotivo.",
+		"cta_text": "CREAR CONTRASEÑA"
 	},
 	"account_backup_step_1": {
 		"cancel_backup_title": "Cancelar Respaldo",
@@ -509,14 +515,16 @@
 		"cancel_backup_no": "No, respaldar mi frase semilla",
 		"skip": "Salir",
 		"important": "IMPORTANTE",
-		"title": "Deseas guardar tu frase semilla?",
+		"title": "Guarda tu frase semilla",
 		"highly_recommended": "ALTAMENTE RECOMENDADO",
-		"info_text_1":
-			"La frase semilla son 12 palabras utilizadas para recuperar tu billetera en caso de que pierdas tu dispositivo.",
-		"info_text_2":
-			"No comportas esto con nadie! Es crucial que la guardes en un lugar seguro en el cual solamente tu tienes acceso.",
-		"info_text_3":
-			"Tu contraseña no puede ser utilizado para recuperar tu billetera! Solo la frase semilla puede recuperar tu billetera y todos sus fondos!",
+		"info_text_1": "La frase semilla de tu billeta es:",
+		"info_text_2_1": "Una ",
+		"info_text_2_2": "código secreto",
+		"info_text_2_3": " que NO debes compartir con nadie.",
+		"info_text_3_1": "Necesaria para ",
+		"info_text_3_2": "recuperar tu billetera",
+		"info_text_3_3":
+			" en caso de que pierdas tu dispositivo, olvides tu contraseña, tengas que reinstalar la app de MetaMask o quieras acceder a tu billetera en otro dispositivo.",
 		"cta_text": "SI, RESPALDAR",
 		"learn_more": "Leer más"
 	},
@@ -526,12 +534,10 @@
 		"cancel_backup_ok": "Si, tomaré el riesgo",
 		"cancel_backup_no": "No, respaldar mi frase semilla",
 		"title": "Agarra lápiz y papel",
-		"info_text_1":
-			"Vas a necesitar escribir tu frase semilla. Luego te pediremos que la reeingreses en el mismo ordén.",
-		"security_tips": "Tips de seguridad",
-		"tip_1": "Escríbela en papel y guárdala en un lugar seguro!",
-		"tip_2": "Guárdala en un administrador de passwords",
-		"tip_3": "Nunca la compartas con nadie!",
+		"info": "El siguiente paso es que tómes nota de tu frase semilla.",
+		"info_2_1": "Te pediremos que la ",
+		"info_2_2": "reingreses",
+		"info_2_3": " para confirmarla",
 		"cta_text": "OK"
 	},
 	"account_backup_step_3": {
@@ -553,7 +559,7 @@
 		"title": "Tu frase semilla",
 		"info_text_1": "Escribe estas palabras en papel con mucho cuidado. El orden es importante.",
 		"info_text_2": "Te pediremos que la reingreses en la siguiente pantalla",
-		"cta_text": "LISTO"
+		"cta_text": "HE ANOTADO MI FRASE SEMILLA"
 	},
 	"account_backup_step_5": {
 		"error_title": "Oops!",
@@ -562,18 +568,23 @@
 		"back": "Atrás",
 		"title": "Confirmar frase semilla",
 		"info_text": "Inserta cada palabra en el orden que fue mostrado en la pantalla anterior.",
-		"cta_text": "CONFIRMAR FRASE"
+		"cta_text": "CONFIRMAR FRASE",
+		"modal_title": "Frase semilla confirmada!",
+		"modal_text": "Esto fue necesario para asegurarnos de que hayas seguido esta medida de seguridad",
+		"modal_button": "SIGUIENTE"
 	},
 	"account_backup_step_6": {
-		"title": "Felicitaciones!",
-		"info_text": "Has pasado la prueba! Mantiene tu frase semilla segura, es tu responsabilidad!",
-		"tips": "Tips sobre como mantenerla segura ",
-		"tip_1": "Guarda una copia en diferentes lugares",
-		"tip_2": "Nunca le digas a nadie",
-		"tip_3": "Si necesitas respaldarla nuevamente, puedes encontrarla en Ajustes => Seguridad",
-		"disclaimer": "*MetaMask no puede recuperar tu frase semilla",
-		"learn_more": "Leer más",
-		"cta_text": "LISTO"
+		"title": "Tips de Seguridad",
+		"info_text": "MetaMask no puede recuperar tu frase semilla si la pierdes",
+		"tip_1": "Haz varias copias de tu frase semilla",
+		"tip_2": "Guarda tu frase en un administrador de password y las copias de papel en un lugar seguro",
+		"tip_3": "Nunca la compartas con nadie",
+		"disclaimer": "* Puedes encontrar tu frase semilla si accediendo a ",
+		"disclaimer_bold": "Ajustes > Seguridad y Privacidad",
+		"cta_text": "ENTENDIDO!",
+		"modal_title": "Felicitaciones!",
+		"modal_text": "Ya haz completado tu resplado y estas listo para continuar!",
+		"modal_button": "LISTO"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Detección de Phising de Ethereum",
@@ -603,5 +614,11 @@
 		"error_message": "Presiona para ver esta transacción",
 		"success_message": "Presiona para ver esta transacción",
 		"received_message": "Presiona para ver esta transacción"
+	},
+	"secure_your_wallet_modal": {
+		"title": "Protege tu billetera",
+		"body": "Ahora que tienes valor en tu billetera, crea la contraseña y guarda la frase semilla de tu billetera ",
+		"required": "(requerido)",
+		"button": "CONTINUAR"
 	}
 }
