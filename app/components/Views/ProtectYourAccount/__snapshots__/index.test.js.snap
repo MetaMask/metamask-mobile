@@ -54,11 +54,10 @@ exports[`ProtectYourAccount should render correctly 1`] = `
             "marginLeft": 20,
             "marginTop": 20,
             "textAlign": "left",
-            "width": 200,
           }
         }
       >
-        Protect your Account
+        Secure your wallet
       </Text>
       <View
         style={
@@ -81,7 +80,143 @@ exports[`ProtectYourAccount should render correctly 1`] = `
             }
           }
         >
-          Now that your account has stored value, let's create a password in order to protect your account.
+          Step 1:
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginLeft": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 23,
+                "textAlign": "left",
+              },
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 23,
+                "fontWeight": "600",
+                "marginBottom": 20,
+              },
+            ]
+          }
+        >
+          Create password
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginLeft": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "lineHeight": 23,
+              "textAlign": "left",
+            }
+          }
+        >
+          Step 2:
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginLeft": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Array [
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 23,
+                "textAlign": "left",
+              },
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 23,
+                "fontWeight": "600",
+                "marginBottom": 20,
+              },
+            ]
+          }
+        >
+          Save wallet seed phrase
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginLeft": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "lineHeight": 23,
+              "textAlign": "left",
+            }
+          }
+        >
+          Take a few moments to finish setting up your MetaMask wallet.
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "marginLeft": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "lineHeight": 23,
+              "textAlign": "left",
+            }
+          }
+        >
+          This will ensure only you can access your funds and will let you recover your wallet if you lose your device
         </Text>
       </View>
     </View>

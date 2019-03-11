@@ -1,13 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SimpleWebview should render correctly 1`] = `
-<WebView
+<Web3Webview
+  javaScriptEnabled={true}
+  messagingEnabled={true}
+  openNewWindowInWebView={true}
   originWhitelist={
     Array [
       "http://*",
       "https://*",
     ]
   }
+  saveFormDataDisabled={false}
+  scalesPageToFit={true}
+  showDefaultLoader={false}
   source={
     Object {
       "uri": Object {
@@ -16,5 +22,6 @@ exports[`SimpleWebview should render correctly 1`] = `
       },
     }
   }
+  thirdPartyCookiesEnabled={true}
 />
 `;

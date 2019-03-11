@@ -1,12 +1,23 @@
 import React, { Component } from 'react';
-import { ScrollView, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
+import {
+	InteractionManager,
+	ScrollView,
+	Alert,
+	Text,
+	TouchableOpacity,
+	View,
+	SafeAreaView,
+	StyleSheet
+} from 'react-native';
 import PropTypes from 'prop-types';
+import Icon from 'react-native-vector-icons/Feather';
 import Pager from '../../UI/Pager';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
+import CustomAlert from '../../UI/CustomAlert';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -23,8 +34,8 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 32,
-		marginTop: 20,
-		marginBottom: 20,
+		marginTop: 0,
+		marginBottom: 10,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'left',
@@ -36,13 +47,13 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		fontSize: 16,
-		lineHeight: 23,
+		lineHeight: 20,
 		color: colors.fontPrimary,
 		textAlign: 'left',
 		...fontStyles.normal
 	},
 	buttonWrapper: {
-		marginTop: 30,
+		marginTop: 10,
 		flex: 1,
 		justifyContent: 'flex-end'
 	},
@@ -60,13 +71,14 @@ const styles = StyleSheet.create({
 	seedPhraseWrapper: {
 		backgroundColor: colors.lighterGray,
 		borderRadius: 10,
-		marginBottom: 22,
+		marginBottom: 20,
 		flexDirection: 'row',
 		borderColor: colors.borderColor,
 		borderWidth: 1
 	},
 	colLeft: {
 		paddingVertical: 20,
+		paddingBottom: 10,
 		flex: 1,
 		alignItems: 'center',
 		borderColor: colors.borderColor,
@@ -74,6 +86,7 @@ const styles = StyleSheet.create({
 	},
 	colRight: {
 		paddingVertical: 20,
+		paddingBottom: 10,
 		flex: 1,
 		alignItems: 'center'
 	},
@@ -125,6 +138,11 @@ const styles = StyleSheet.create({
 	currentWord: {
 		borderWidth: 1,
 		borderColor: colors.primary
+	},
+	succesModalText: {
+		textAlign: 'center',
+		fontSize: 13,
+		...fontStyles.normal
 	}
 });
 
@@ -157,7 +175,8 @@ class AccountBackupStep5 extends Component {
 
 	state = {
 		confirmedWords: Array(12).fill(),
-		currentIndex: 0
+		currentIndex: 0,
+		showSuccessModal: false
 	};
 
 	goBack = () => {
@@ -168,10 +187,17 @@ class AccountBackupStep5 extends Component {
 		const words = this.props.navigation.getParam('words', []);
 		if (words.join('') === this.state.confirmedWords.join('')) {
 			this.props.seedphraseBackedUp();
-			this.props.navigation.navigate('AccountBackupStep6');
+			this.setState({ showSuccessModal: true });
 		} else {
 			Alert.alert(strings('account_backup_step_5.error_title'), strings('account_backup_step_5.error_message'));
 		}
+	};
+
+	onSuccesModalAction = () => {
+		this.setState({ showSuccessModal: false });
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.navigate('AccountBackupStep6');
+		});
 	};
 
 	selectWord = (word, i) => {
@@ -287,6 +313,16 @@ class AccountBackupStep5 extends Component {
 							</StyledButton>
 						</View>
 					</View>
+					<CustomAlert
+						headerStyle={{ backgroundColor: colors.success }}
+						headerContent={<Icon color={colors.white} name={'check'} size={100} />}
+						titleText={strings('account_backup_step_5.modal_title')}
+						buttonText={strings('account_backup_step_5.modal_button')}
+						onPress={this.onSuccesModalAction}
+						isVisible={this.state.showSuccessModal}
+					>
+						<Text style={styles.succesModalText}>{strings('account_backup_step_5.modal_text')}</Text>
+					</CustomAlert>
 				</ScrollView>
 			</SafeAreaView>
 		);

@@ -27,6 +27,7 @@ import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
+import CustomAlert from '../CustomAlert';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
@@ -224,6 +225,7 @@ const styles = StyleSheet.create({
 	},
 	modalTitle: {
 		fontSize: 22,
+		marginBottom: 15,
 		textAlign: 'center',
 		...fontStyles.bold
 	},
@@ -260,6 +262,18 @@ const styles = StyleSheet.create({
 		fontSize: 17,
 		letterSpacing: 2,
 		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
+	},
+	secureModalText: {
+		textAlign: 'center',
+		fontSize: 13,
+		...fontStyles.normal
+	},
+	bold: {
+		...fontStyles.bold
+	},
+	secureModalImage: {
+		width: 100,
+		height: 100
 	}
 });
 
@@ -347,31 +361,47 @@ class DrawerView extends Component {
 	};
 
 	state = {
-		submitFeedback: false
+		submitFeedback: false,
+		showSecureWalletModal: false
 	};
 
 	currentBalance = null;
 	previousBalance = null;
 	processedNewBalance = false;
 
+	isCurrentAccountImported() {
+		let ret = false;
+		const { keyrings, selectedAddress } = this.props;
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(selectedAddress)) {
+				ret = keyring.type !== 'HD Key Tree';
+				break;
+			}
+		}
+
+		return ret;
+	}
+
 	componentDidUpdate() {
 		setTimeout(async () => {
 			if (
+				!this.isCurrentAccountImported() &&
 				!this.props.passwordSet &&
 				!this.processedNewBalance &&
 				this.currentBalance >= this.previousBalance &&
 				this.currentBalance > 0
 			) {
-				this.processedNewBalance = true;
-				const { selectedAddress, network, identities } = this.props;
+				const { selectedAddress, network } = this.props;
 
 				const incomingTransaction = await findFirstIncomingTransaction(network.provider.type, selectedAddress);
 				if (incomingTransaction) {
-					this.props.navigation.navigate('FirstIncomingTransaction', {
-						incomingTransaction,
-						selectedAddress,
-						accountName: identities[selectedAddress].name
-					});
+					this.processedNewBalance = true;
+					// We need to wait for the notification to dismiss
+					// before attempting to show the secure wallet modal
+					setTimeout(() => {
+						this.setState({ showSecureWalletModal: true });
+					}, 4000);
 				}
 			}
 		}, 1000);
@@ -619,6 +649,13 @@ class DrawerView extends Component {
 		});
 	};
 
+	onSecureWalletModalAction = () => {
+		this.setState({ showSecureWalletModal: false });
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.navigate('SetPasswordFlow');
+		});
+	};
+
 	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -799,6 +836,27 @@ class DrawerView extends Component {
 						</TouchableOpacity>
 					</View>
 				</Modal>
+				{!this.props.passwordSet && (
+					<CustomAlert
+						headerStyle={{ backgroundColor: colors.headerModalRed }}
+						headerContent={
+							<Image
+								source={require('../../../images/lock.png')}
+								style={styles.secureModalImage}
+								resizeMethod={'auto'}
+							/>
+						}
+						titleText={strings('secure_your_wallet_modal.title')}
+						buttonText={strings('secure_your_wallet_modal.button')}
+						onPress={this.onSecureWalletModalAction}
+						isVisible={this.state.showSecureWalletModal}
+					>
+						<Text style={styles.secureModalText}>
+							{strings('secure_your_wallet_modal.body')}
+							<Text style={styles.bold}>{strings('secure_your_wallet_modal.required')}</Text>
+						</Text>
+					</CustomAlert>
+				)}
 			</SafeAreaView>
 		);
 	}
