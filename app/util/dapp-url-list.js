@@ -36,6 +36,10 @@ export default [
 		name: 'Decentraland'
 	},
 	{
+		url: 'https://www.cryptokitties.co',
+		name: 'CryptoKitties'
+	},
+	{
 		url: 'https://kyber.network/',
 		name: 'KyberNetwork'
 	},
@@ -46,6 +50,14 @@ export default [
 	{
 		url: 'https://www.bancor.network/',
 		name: 'Bancor'
+	},
+	{
+		url: 'https://blockapps.net/',
+		name: 'BlockApps'
+	},
+	{
+		url: 'https://walletconnect.org/',
+		name: 'WalletConnect'
 	},
 	{
 		url: 'https://dev.augur.net/',
@@ -170,6 +182,10 @@ export default [
 	{
 		url: 'https://beta.cent.co',
 		name: 'Cent'
+	},
+	{
+		url: 'https://etherscan.io/',
+		name: 'EtherScan'
 	},
 	{
 		url: 'https://cryptominingwar.github.io/',
@@ -422,6 +438,10 @@ export default [
 	{
 		url: 'https://app.metamorph.pro',
 		name: 'MetaMorph'
+	},
+	{
+		url: 'https://micro.raiden.network',
+		name: 'µRaiden'
 	},
 	{
 		url: 'https://sirinlabs.com/',
@@ -1920,10 +1940,6 @@ export default [
 		name: 'cryptotruelove'
 	},
 	{
-		url: 'https://ethwebservices.firebaseapp.com',
-		name: 'Ethereum Web Services'
-	},
-	{
 		url: 'https://pipot.io/',
 		name: 'Pipot'
 	},
@@ -3412,10 +3428,6 @@ export default [
 		name: 'Cellarius'
 	},
 	{
-		url: 'https://ether-gift.firebaseapp.com/',
-		name: 'お祝イーサー Ether Gift'
-	},
-	{
 		url: 'https://etherspace.co/',
 		name: 'EtherSpace'
 	},
@@ -3620,10 +3632,6 @@ export default [
 		name: 'Postman'
 	},
 	{
-		url: 'https://ethertrack.firebaseapp.com/',
-		name: 'EtherTrack'
-	},
-	{
 		url: 'https://1twin.me',
 		name: '1TWin'
 	},
@@ -3682,10 +3690,6 @@ export default [
 	{
 		url: 'https://tx.ioelink.net/',
 		name: 'IOE'
-	},
-	{
-		url: 'https://stone-dapp.firebaseapp.com/',
-		name: 'Stone Dapp'
 	},
 	{
 		url: 'https://hirematch.io/',
@@ -3984,10 +3988,6 @@ export default [
 		name: 'CoinShilling Club'
 	},
 	{
-		url: 'https://ethcapsule.firebaseapp.com/',
-		name: 'Eth Capsule'
-	},
-	{
 		url: 'https://ubitok.io',
 		name: 'UbiTok.io'
 	},
@@ -4046,10 +4046,6 @@ export default [
 	{
 		url: 'https://www.ethhodler.org/',
 		name: 'Eth Hodler'
-	},
-	{
-		url: 'https://wolfdaohowl.firebaseapp.com/#/',
-		name: 'Howl'
 	},
 	{
 		url: 'https://quiknode.io',
