@@ -27,7 +27,6 @@ import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
 import Logger from '../../../util/Logger';
-import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -179,10 +178,8 @@ class AdvancedSettings extends Component {
 		const { rpcUrl } = this.state;
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
-			const url = new URL(rpcUrl);
-			url.set('protocol', 'https:');
-			PreferencesController.addToFrequentRpcList(url.href);
-			NetworkController.setRpcTarget(url.href);
+			PreferencesController.addToFrequentRpcList(rpcUrl);
+			NetworkController.setRpcTarget(rpcUrl);
 			navigation.navigate('WalletView');
 		}
 	};
