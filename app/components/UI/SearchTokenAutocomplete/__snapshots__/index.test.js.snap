@@ -22,14 +22,16 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <AssetSearch
-      onSearch={[Function]}
-    />
-    <AssetSearch
-      handleSelectAsset={[Function]}
-      searchResults={Array []}
-      selectedAsset={Object {}}
-    />
+    <View>
+      <AssetSearch
+        onSearch={[Function]}
+      />
+      <AssetSearch
+        handleSelectAsset={[Function]}
+        searchResults={Array []}
+        selectedAsset={Object {}}
+      />
+    </View>
   </ActionView>
 </View>
 `;

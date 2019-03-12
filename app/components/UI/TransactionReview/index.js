@@ -241,9 +241,11 @@ class TransactionReview extends Component {
 					confirmed={transactionConfirmed}
 					confirmDisabled={error !== undefined}
 				>
-					<TransactionReviewSummary edit={this.edit} actionKey={actionKey} />
-					<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
-					{error && <Text style={styles.error}>{error}</Text>}
+					<View>
+						<TransactionReviewSummary edit={this.edit} actionKey={actionKey} />
+						<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
+						{error && <Text style={styles.error}>{error}</Text>}
+					</View>
 				</ActionView>
 			</View>
 		);

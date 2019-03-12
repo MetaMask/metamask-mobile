@@ -93,32 +93,34 @@ export default class AddBookmark extends Component {
 				onCancelPress={this.cancelAddBookmark}
 				onConfirmPress={this.addBookmark}
 			>
-				<View style={styles.rowWrapper}>
-					<Text style={fontStyles.normal}>{strings('add_favorite.title_label')}</Text>
-					<TextInput
-						style={styles.textInput}
-						placeholder={''}
-						value={this.state.title}
-						onChangeText={this.onTitleChange}
-						testID={'add-bookmark-title'}
-						onSubmitEditing={this.jumpToUrl}
-						returnKeyType={'next'}
-					/>
-					<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
-				</View>
-				<View style={styles.rowWrapper}>
-					<Text style={fontStyles.normal}>{strings('add_favorite.url_label')}</Text>
-					<TextInput
-						style={styles.textInput}
-						placeholder={''}
-						value={this.state.url}
-						onChangeText={this.onUrlChange}
-						testID={'add-bookmark-url'}
-						ref={this.urlInput}
-						onSubmitEditing={this.addToken}
-						returnKeyType={'done'}
-					/>
-					<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+				<View>
+					<View style={styles.rowWrapper}>
+						<Text style={fontStyles.normal}>{strings('add_favorite.title_label')}</Text>
+						<TextInput
+							style={styles.textInput}
+							placeholder={''}
+							value={this.state.title}
+							onChangeText={this.onTitleChange}
+							testID={'add-bookmark-title'}
+							onSubmitEditing={this.jumpToUrl}
+							returnKeyType={'next'}
+						/>
+						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
+					</View>
+					<View style={styles.rowWrapper}>
+						<Text style={fontStyles.normal}>{strings('add_favorite.url_label')}</Text>
+						<TextInput
+							style={styles.textInput}
+							placeholder={''}
+							value={this.state.url}
+							onChangeText={this.onUrlChange}
+							testID={'add-bookmark-url'}
+							ref={this.urlInput}
+							onSubmitEditing={this.addToken}
+							returnKeyType={'done'}
+						/>
+						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+					</View>
 				</View>
 			</ActionView>
 		</SafeAreaView>
