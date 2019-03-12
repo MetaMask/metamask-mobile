@@ -174,13 +174,16 @@ class AdvancedSettings extends Component {
 		this.setState({ resetModalVisible: false });
 	};
 
+	isprivateConnection = hostname =>
+		/(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/.test(hostname);
+
 	addRpcUrl = () => {
 		const { PreferencesController, NetworkController } = Engine.context;
 		const { rpcUrl } = this.state;
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
-			url.set('protocol', 'https:');
+			!this.isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			PreferencesController.addToFrequentRpcList(url.href);
 			NetworkController.setRpcTarget(url.href);
 			navigation.navigate('WalletView');
@@ -199,7 +202,8 @@ class AdvancedSettings extends Component {
 			return false;
 		}
 		const url = new URL(rpcUrl);
-		if (url.protocol === 'http:') {
+		const privateConnection = this.isprivateConnection(url.hostname);
+		if (!privateConnection && url.protocol === 'http:') {
 			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
 			return false;
 		}
