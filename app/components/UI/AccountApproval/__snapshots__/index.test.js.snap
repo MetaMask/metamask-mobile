@@ -7,7 +7,7 @@ exports[`AccountApproval should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "height": 600,
+      "minHeight": "90%",
       "paddingBottom": 20,
     }
   }

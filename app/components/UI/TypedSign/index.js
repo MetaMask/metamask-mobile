@@ -10,7 +10,7 @@ import DeviceSize from '../../../util/DeviceSize';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: 600,
+		minHeight: '90%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0

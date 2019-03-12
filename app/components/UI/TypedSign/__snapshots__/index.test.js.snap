@@ -7,7 +7,7 @@ exports[`TypedSign should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": 600,
+      "minHeight": "90%",
       "paddingBottom": 20,
     }
   }

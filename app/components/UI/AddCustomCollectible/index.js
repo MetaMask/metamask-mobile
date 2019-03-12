@@ -160,34 +160,36 @@ class AddCustomCollectible extends Component {
 				onCancelPress={this.cancelAddCollectible}
 				onConfirmPress={this.addCollectible}
 			>
-				<View style={styles.rowWrapper}>
-					<Text style={fontStyles.normal}>{strings('collectible.collectible_address')}</Text>
-					<TextInput
-						style={[styles.textInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-						placeholder={'0x...'}
-						value={this.state.address}
-						onChangeText={this.onAddressChange}
-						onBlur={this.validateCustomCollectibleAddress}
-						testID={'input-collectible-address'}
-						onSubmitEditing={this.jumpToAssetTokenId}
-					/>
-					<Text style={styles.warningText}>{this.state.warningAddress}</Text>
-				</View>
-				<View style={styles.rowWrapper}>
-					<Text style={fontStyles.normal}>{strings('collectible.collectible_token_id')}</Text>
-					<TextInput
-						style={[styles.textInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-						value={this.state.tokenId}
-						keyboardType="numeric"
-						placeholder={''}
-						onChangeText={this.onTokenIdChange}
-						onBlur={this.validateCustomCollectibleTokenId}
-						testID={'input-token-decimals'}
-						ref={this.assetTokenIdInput}
-						onSubmitEditing={this.addCollectible}
-						returnKeyType={'done'}
-					/>
-					<Text style={styles.warningText}>{this.state.warningTokenId}</Text>
+				<View>
+					<View style={styles.rowWrapper}>
+						<Text style={fontStyles.normal}>{strings('collectible.collectible_address')}</Text>
+						<TextInput
+							style={[styles.textInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							placeholder={'0x...'}
+							value={this.state.address}
+							onChangeText={this.onAddressChange}
+							onBlur={this.validateCustomCollectibleAddress}
+							testID={'input-collectible-address'}
+							onSubmitEditing={this.jumpToAssetTokenId}
+						/>
+						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+					</View>
+					<View style={styles.rowWrapper}>
+						<Text style={fontStyles.normal}>{strings('collectible.collectible_token_id')}</Text>
+						<TextInput
+							style={[styles.textInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							value={this.state.tokenId}
+							keyboardType="numeric"
+							placeholder={''}
+							onChangeText={this.onTokenIdChange}
+							onBlur={this.validateCustomCollectibleTokenId}
+							testID={'input-token-decimals'}
+							ref={this.assetTokenIdInput}
+							onSubmitEditing={this.addCollectible}
+							returnKeyType={'done'}
+						/>
+						<Text style={styles.warningText}>{this.state.warningTokenId}</Text>
+					</View>
 				</View>
 			</ActionView>
 		</View>

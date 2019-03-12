@@ -22,151 +22,153 @@ exports[`AddCustomToken should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <View
-      style={
-        Object {
-          "padding": 20,
-        }
-      }
-    >
-      <Text
+    <View>
+      <View
         style={
           Object {
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+            "padding": 20,
           }
         }
       >
-        Token Address
-      </Text>
-      <TextInput
-        allowFontScaling={true}
-        onBlur={[Function]}
-        onChangeText={[Function]}
-        onSubmitEditing={[Function]}
-        placeholder="0x..."
-        returnKeyType="next"
-        style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
           }
-        }
-        testID="input-token-address"
-        underlineColorAndroid="transparent"
-        value=""
-      />
-      <Text
-        style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+        >
+          Token Address
+        </Text>
+        <TextInput
+          allowFontScaling={true}
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="0x..."
+          returnKeyType="next"
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 16,
+            }
           }
-        }
-      />
-    </View>
-    <View
-      style={
-        Object {
-          "padding": 20,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+          testID="input-token-address"
+          underlineColorAndroid="transparent"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#FF0000",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
           }
-        }
-      >
-        Token Symbol
-      </Text>
-      <TextInput
-        allowFontScaling={true}
-        onBlur={[Function]}
-        onChangeText={[Function]}
-        onSubmitEditing={[Function]}
-        placeholder="GNO"
-        returnKeyType="next"
+        />
+      </View>
+      <View
         style={
           Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
-          }
-        }
-        testID="input-token-symbol"
-        underlineColorAndroid="transparent"
-        value=""
-      />
-      <Text
-        style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-          }
-        }
-      />
-    </View>
-    <View
-      style={
-        Object {
-          "padding": 20,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+            "padding": 20,
           }
         }
       >
-        Token of Precision
-      </Text>
-      <TextInput
-        allowFontScaling={true}
-        keyboardType="numeric"
-        maxLength={2}
-        onBlur={[Function]}
-        onChangeText={[Function]}
-        onSubmitEditing={[Function]}
-        placeholder="18"
-        returnKeyType="done"
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Token Symbol
+        </Text>
+        <TextInput
+          allowFontScaling={true}
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="GNO"
+          returnKeyType="next"
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="input-token-symbol"
+          underlineColorAndroid="transparent"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#FF0000",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        />
+      </View>
+      <View
         style={
           Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
+            "padding": 20,
           }
         }
-        testID="input-token-decimals"
-        underlineColorAndroid="transparent"
-        value=""
-      />
-      <Text
-        style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
           }
-        }
-      />
+        >
+          Token of Precision
+        </Text>
+        <TextInput
+          allowFontScaling={true}
+          keyboardType="numeric"
+          maxLength={2}
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="18"
+          returnKeyType="done"
+          style={
+            Object {
+              "borderColor": "#CCCCCC",
+              "borderRadius": 4,
+              "borderWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 16,
+            }
+          }
+          testID="input-token-decimals"
+          underlineColorAndroid="transparent"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#FF0000",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
+          }
+        />
+      </View>
     </View>
   </ActionView>
 </View>

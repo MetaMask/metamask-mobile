@@ -160,20 +160,6 @@ exports[`SignatureRequest should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
-            "fontFamily": "Roboto",
-            "fontSize": 20,
-            "fontWeight": "400",
-            "padding": 10,
-            "textAlign": "center",
-          }
-        }
-      >
-        Your signature is being requested
-      </Text>
-      <Text
-        style={
-          Object {
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",

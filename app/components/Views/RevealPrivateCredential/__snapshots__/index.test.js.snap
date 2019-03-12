@@ -22,32 +22,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <View
-      style={
-        Array [
-          Object {
-            "padding": 20,
-          },
-          Object {
-            "borderBottomColor": "#9b9b9b",
-            "borderBottomWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-          },
-        ]
-      }
-    >
-      <Text>
-        Save it somewhere safe and secret.
-      </Text>
-    </View>
-    <View
-      style={
-        Object {
-          "backgroundColor": "#fff1f2",
-        }
-      }
-    >
+    <View>
       <View
         style={
           Array [
@@ -55,83 +30,110 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
               "padding": 20,
             },
             Object {
-              "alignContent": "center",
-              "alignItems": "center",
-              "flex": 1,
-              "flexDirection": "row",
+              "borderBottomColor": "#9b9b9b",
+              "borderBottomWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
             },
           ]
         }
       >
-        <Icon
-          allowFontScaling={false}
-          name="warning"
-          size={22}
-          style={
-            Object {
-              "color": "#f00",
-              "margin": 10,
-            }
-          }
-        />
-        <Text
-          style={
-            Object {
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-              "marginLeft": 10,
-              "marginRight": 40,
-            }
-          }
-        >
-          Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
+        <Text>
+          Save it somewhere safe and secret.
         </Text>
       </View>
-    </View>
-    <View
-      style={
-        Object {
-          "padding": 20,
+      <View
+        style={
+          Object {
+            "backgroundColor": "#fff1f2",
+          }
         }
-      }
-    >
-      <View>
-        <Text
+      >
+        <View
           style={
-            Object {
-              "marginBottom": 15,
-            }
+            Array [
+              Object {
+                "padding": 20,
+              },
+              Object {
+                "alignContent": "center",
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+              },
+            ]
           }
         >
-          Enter password to continue
-        </Text>
-        <TextInput
-          allowFontScaling={true}
-          onChangeText={[Function]}
-          onSubmitEditing={[Function]}
-          placeholder="Password"
-          secureTextEntry={true}
-          style={
-            Object {
-              "borderColor": "#f1f2f6",
-              "borderRadius": 5,
-              "borderWidth": 2,
-              "padding": 10,
+          <Icon
+            allowFontScaling={false}
+            name="warning"
+            size={22}
+            style={
+              Object {
+                "color": "#f00",
+                "margin": 10,
+              }
             }
-          }
-          testID="private-credential-password-text-input"
-          underlineColorAndroid="transparent"
-        />
-        <Text
-          style={
-            Object {
-              "color": "#FF0000",
-              "fontFamily": "Roboto",
-              "fontWeight": "400",
-              "marginTop": 10,
+          />
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontWeight": "400",
+                "marginLeft": 10,
+                "marginRight": 40,
+              }
             }
+          >
+            Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "padding": 20,
           }
-        />
+        }
+      >
+        <View>
+          <Text
+            style={
+              Object {
+                "marginBottom": 15,
+              }
+            }
+          >
+            Enter password to continue
+          </Text>
+          <TextInput
+            allowFontScaling={true}
+            onChangeText={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Password"
+            secureTextEntry={true}
+            style={
+              Object {
+                "borderColor": "#f1f2f6",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "padding": 10,
+              }
+            }
+            testID="private-credential-password-text-input"
+            underlineColorAndroid="transparent"
+          />
+          <Text
+            style={
+              Object {
+                "color": "#FF0000",
+                "fontFamily": "Roboto",
+                "fontWeight": "400",
+                "marginTop": 10,
+              }
+            }
+          />
+        </View>
       </View>
     </View>
   </ActionView>
