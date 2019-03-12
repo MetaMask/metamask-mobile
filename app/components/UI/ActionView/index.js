@@ -44,7 +44,7 @@ export default function ActionView({
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			<KeyboardAwareScrollView style={baseStyles.flexGrow}>
+			<KeyboardAwareScrollView style={baseStyles.flexGrow} resetScrollToCoords={{ x: 0, y: 0 }}>
 				<TouchableWithoutFeedback style={baseStyles.flexGrow}>{children}</TouchableWithoutFeedback>
 			</KeyboardAwareScrollView>
 			<View style={styles.actionContainer}>
