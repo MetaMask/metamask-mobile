@@ -640,6 +640,11 @@ export class Browser extends Component {
 					.split('/')
 					.shift();
 			}
+			// Needed for the navbar to mask the URL
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				currentEnsName: urlObj.hostname
+			});
 		}
 		const urlToGo = ipfsContent || sanitizedURL;
 

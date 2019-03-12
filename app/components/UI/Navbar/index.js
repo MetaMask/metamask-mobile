@@ -175,7 +175,13 @@ export function getTransactionOptionsTitle(title, backButtonText, navigation) {
 export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
 	const urlObj = new URL(url);
-	const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+	let hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+	if (hostname === 'ipfs.io') {
+		const ensUrl = navigation.getParam('currentEnsName', '');
+		if (ensUrl) {
+			hostname = ensUrl.toLowerCase().replace('www.', '');
+		}
+	}
 	const isHttps = url.toLowerCase().substr(0, 6) === 'https:';
 
 	return {
