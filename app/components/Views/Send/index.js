@@ -95,13 +95,9 @@ class Send extends Component {
 
 	checkForDeeplinks() {
 		const { navigation } = this.props;
-		if (navigation) {
-			const txMeta = navigation.getParam('txMeta', null);
-			if (txMeta) {
-				this.handleNewTxMeta(txMeta);
-			} else {
-				this.mounted && this.setState({ ready: true });
-			}
+		const txMeta = navigation && navigation.getParam('txMeta', null);
+		if (txMeta) {
+			this.handleNewTxMeta(txMeta);
 		} else {
 			this.mounted && this.setState({ ready: true });
 		}
