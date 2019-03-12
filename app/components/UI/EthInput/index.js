@@ -8,8 +8,7 @@ import {
 	balanceToFiat,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
-	renderFromWei,
-	fromWei
+	renderFromWei
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -176,7 +175,7 @@ class EthInput extends Component {
 
 	componentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
-		if (fillMax || readableValue !== this.state.readableValue) {
+		if (fillMax) {
 			this.setState({ readableValue });
 		}
 		this.props.updateFillMax(false);
@@ -184,7 +183,6 @@ class EthInput extends Component {
 
 	componentDidMount = () => {
 		const { transaction, collectibles } = this.props;
-		let { readableValue } = this.props;
 		switch (transaction.type) {
 			case 'TOKENS_TRANSACTION':
 				this.setState({
@@ -204,7 +202,8 @@ class EthInput extends Component {
 							name: 'Ether',
 							symbol: 'ETH'
 						}
-					]
+					],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'INDIVIDUAL_TOKEN_TRANSACTION':
@@ -227,10 +226,6 @@ class EthInput extends Component {
 				break;
 			}
 		}
-		// If value is set, do the same with readable value
-		readableValue =
-			(transaction.value && transaction.assetType === 'ETH' && fromWei(transaction.value)) || readableValue;
-		this.setState({ readableValue });
 	};
 
 	onFocus = () => {
