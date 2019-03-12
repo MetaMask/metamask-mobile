@@ -131,17 +131,11 @@ exports[`TransactionReview should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <Connect(TransactionReviewSummary)
-      actionKey="CONFIRM"
-      edit={[Function]}
-    />
-    <View
-      style={
-        Object {
-          "flex": 1,
-        }
-      }
-    >
+    <View>
+      <Connect(TransactionReviewSummary)
+        actionKey="CONFIRM"
+        edit={[Function]}
+      />
       <View
         style={
           Object {
@@ -149,9 +143,17 @@ exports[`TransactionReview should render correctly 1`] = `
           }
         }
       >
-        <Connect(TransactionReviewInformation)
-          edit={[Function]}
-        />
+        <View
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <Connect(TransactionReviewInformation)
+            edit={[Function]}
+          />
+        </View>
       </View>
     </View>
   </ActionView>

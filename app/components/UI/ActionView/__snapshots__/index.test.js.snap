@@ -27,7 +27,15 @@ exports[`ActionView should render correctly 1`] = `
       }
     }
     viewIsInsideTabBar={false}
-  />
+  >
+    <TouchableWithoutFeedback
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    />
+  </KeyboardAwareScrollView>
   <View
     style={
       Object {

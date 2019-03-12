@@ -1219,6 +1219,7 @@ export class Browser extends Component {
 				onBackdropPress={this.onSignAction}
 				onSwipeComplete={this.onSignAction}
 				swipeDirection={'down'}
+				propagateSwipe
 			>
 				{signType === 'personal' && (
 					<PersonalSign
