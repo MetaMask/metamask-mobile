@@ -4,7 +4,7 @@ import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
+import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -90,10 +90,14 @@ const metamask_name = require('../../../images/metamask-name.png'); // eslint-di
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
 export default function getNavbarOptions(title, navigation) {
+	const onPress = () => {
+		Keyboard.dismiss();
+		navigation.openDrawer();
+	};
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
-			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
+			<TouchableOpacity onPress={onPress} style={styles.backButton}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
