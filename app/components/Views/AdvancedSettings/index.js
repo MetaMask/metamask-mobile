@@ -198,6 +198,11 @@ class AdvancedSettings extends Component {
 			}
 			return false;
 		}
+		const url = new URL(rpcUrl);
+		if (url.protocol === 'http:') {
+			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
+			return false;
+		}
 		return true;
 	};
 

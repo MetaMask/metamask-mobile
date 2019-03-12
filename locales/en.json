@@ -196,7 +196,7 @@
 		"clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
 		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
 		"save_rpc_url": "SAVE",
-		"invalid_rpc_prefix": "URIs require the appropriate HTTP/HTTPS prefix",
+		"invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
 		"invalid_rpc_url": "Invalid RPC URL",
 		"sync_with_extension": "Sync with Metamask Extension",
 		"sync_with_extension_desc": "This will import all extension accounts to this device.",
