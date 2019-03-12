@@ -4,7 +4,7 @@ import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet,
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import TransactionEditor from '../../UI/TransactionEditor';
-import { toBN, BNToHex, hexToBN, toWei } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -153,8 +153,8 @@ class Send extends Component {
 		if (parameters) {
 			const { value, gas, gasPrice } = parameters;
 			if (value) {
-				newTxMeta.value = toWei(value);
-				newTxMeta.readableValue = value;
+				newTxMeta.value = toBN(value);
+				newTxMeta.readableValue = fromWei(newTxMeta.value);
 			}
 			if (gas) {
 				newTxMeta.gas = toBN(gas);
