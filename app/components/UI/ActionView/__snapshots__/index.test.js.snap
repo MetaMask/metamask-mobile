@@ -8,12 +8,19 @@ exports[`ActionView should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <KeyboardAwareScrollView
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
     style={
       Object {
         "flex": 1,
       }
     }
+    viewIsInsideTabBar={false}
   >
     <TouchableWithoutFeedback
       style={
@@ -22,7 +29,7 @@ exports[`ActionView should render correctly 1`] = `
         }
       }
     />
-  </ScrollView>
+  </KeyboardAwareScrollView>
   <View
     style={
       Object {
