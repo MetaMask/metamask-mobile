@@ -197,20 +197,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-	itemLabel: {
-		marginRight: 15,
-		alignContent: 'flex-end',
-		justifyContent: 'flex-end',
-		alignSelf: 'flex-end',
-		paddingHorizontal: 12,
-		paddingVertical: 3,
-		borderRadius: 15
-	},
-	itemLabelText: {
-		color: colors.white,
-		textAlign: 'center',
-		...fontStyles.bold
-	},
 	modalView: {
 		flex: 1,
 		justifyContent: 'center',
@@ -302,10 +288,6 @@ class DrawerView extends Component {
 		 * Selected address as string
 		 */
 		selectedAddress: PropTypes.string,
-		/**
-		 * Number of assets from the AssetsController
-		 */
-		tokensCount: PropTypes.number,
 		/**
 		 * List of accounts from the AccountTrackerController
 		 */
@@ -574,16 +556,6 @@ class DrawerView extends Component {
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
-	getLabelForAssets = () => {
-		if (this.props.tokensCount > 0) {
-			return {
-				text: this.props.tokensCount + 1,
-				color: colors.fontSecondary
-			};
-		}
-		return null;
-	};
-
 	getSections = () => [
 		[
 			{
@@ -594,8 +566,7 @@ class DrawerView extends Component {
 			{
 				name: strings('drawer.wallet'),
 				icon: this.getImageIcon('assets'),
-				action: this.showWallet,
-				label: this.getLabelForAssets()
+				action: this.showWallet
 			}
 		],
 		[
@@ -763,11 +734,6 @@ class DrawerView extends Component {
 											<Text style={[styles.menuItemName, !item.icon ? styles.noIcon : null]}>
 												{item.name}
 											</Text>
-											{item.label ? (
-												<View style={[styles.itemLabel, { backgroundColor: item.label.color }]}>
-													<Text style={styles.itemLabelText}>{item.label.text}</Text>
-												</View>
-											) : null}
 										</TouchableOpacity>
 									))}
 							</View>
@@ -872,7 +838,6 @@ const mapStateToProps = state => ({
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
-	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
 	passwordSet: state.user.passwordSet
 });
 
