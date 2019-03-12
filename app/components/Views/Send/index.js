@@ -4,7 +4,7 @@ import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet,
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import TransactionEditor from '../../UI/TransactionEditor';
-import { toBN, BNToHex, hexToBN } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -95,13 +95,12 @@ class Send extends Component {
 
 	checkForDeeplinks() {
 		const { navigation } = this.props;
-		if (navigation) {
-			const txMeta = navigation.getParam('txMeta', null);
-			if (txMeta) {
-				this.handleNewTxMeta(txMeta);
-			}
+		const txMeta = navigation && navigation.getParam('txMeta', null);
+		if (txMeta) {
+			this.handleNewTxMeta(txMeta);
+		} else {
+			this.mounted && this.setState({ ready: true });
 		}
-		this.mounted && this.setState({ ready: true });
 	}
 
 	/**
@@ -148,13 +147,14 @@ class Send extends Component {
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
-		const newTxMeta = { symbol: 'ETH', assetType: 'ETH' };
+		const newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
 		newTxMeta.to = toChecksumAddress(target_address);
 
 		if (parameters) {
 			const { value, gas, gasPrice } = parameters;
 			if (value) {
 				newTxMeta.value = toBN(value);
+				newTxMeta.readableValue = fromWei(newTxMeta.value);
 			}
 			if (gas) {
 				newTxMeta.gas = toBN(gas);
@@ -177,7 +177,7 @@ class Send extends Component {
 		}
 
 		this.props.setTransactionObject(newTxMeta);
-		this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
+		this.mounted && this.setState({ ready: true, mode: 'edit', transactionKey: Date.now() });
 	};
 
 	/**
