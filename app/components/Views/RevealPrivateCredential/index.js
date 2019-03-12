@@ -237,58 +237,62 @@ class RevealPrivateCredential extends Component {
 					onConfirmPress={this.tryUnlock}
 					showConfirmButton={!unlocked}
 				>
-					<View style={[styles.rowWrapper, styles.header]}>
-						<Text>{strings(`reveal_credential.${privateCredentialName}_explanation`)}</Text>
-					</View>
-					<View style={styles.warningWrapper}>
-						<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-							<Icon style={styles.icon} name="warning" size={22} />
-							<Text style={styles.warningMessageText}>
-								{strings(`reveal_credential.${privateCredentialName}_warning_explanation`)}
-							</Text>
+					<View>
+						<View style={[styles.rowWrapper, styles.header]}>
+							<Text>{strings(`reveal_credential.${privateCredentialName}_explanation`)}</Text>
 						</View>
-					</View>
+						<View style={styles.warningWrapper}>
+							<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
+								<Icon style={styles.icon} name="warning" size={22} />
+								<Text style={styles.warningMessageText}>
+									{strings(`reveal_credential.${privateCredentialName}_warning_explanation`)}
+								</Text>
+							</View>
+						</View>
 
-					<View style={styles.rowWrapper}>
-						{unlocked ? (
-							<View>
-								<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
-								<View style={styles.seedPhraseView}>
-									<TextInput
-										value={privateCredential}
-										numberOfLines={3}
-										multiline
-										selectTextOnFocus
-										style={styles.seedPhrase}
-										editable={false}
-										testID={'private-credential-text'}
-									/>
-									<TouchableOpacity
-										style={styles.privateCredentialAction}
-										onPress={this.copyPrivateCredentialToClipboard}
-										testID={'private-credential-touchable'}
-									>
-										<Icon style={styles.actionIcon} name="copy" size={18} />
-										<Text style={styles.actionText}>
-											{strings('reveal_credential.copy_to_clipboard')}
-										</Text>
-									</TouchableOpacity>
+						<View style={styles.rowWrapper}>
+							{unlocked ? (
+								<View>
+									<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
+									<View style={styles.seedPhraseView}>
+										<TextInput
+											value={privateCredential}
+											numberOfLines={3}
+											multiline
+											selectTextOnFocus
+											style={styles.seedPhrase}
+											editable={false}
+											testID={'private-credential-text'}
+										/>
+										<TouchableOpacity
+											style={styles.privateCredentialAction}
+											onPress={this.copyPrivateCredentialToClipboard}
+											testID={'private-credential-touchable'}
+										>
+											<Icon style={styles.actionIcon} name="copy" size={18} />
+											<Text style={styles.actionText}>
+												{strings('reveal_credential.copy_to_clipboard')}
+											</Text>
+										</TouchableOpacity>
+									</View>
 								</View>
-							</View>
-						) : (
-							<View>
-								<Text style={styles.enterPassword}>{strings('reveal_credential.enter_password')}</Text>
-								<TextInput
-									style={styles.input}
-									placeholder={'Password'}
-									onChangeText={this.onPasswordChange}
-									secureTextEntry
-									onSubmitEditing={this.tryUnlock}
-									testID={'private-credential-password-text-input'}
-								/>
-								<Text style={styles.warningText}>{this.state.warningIncorrectPassword}</Text>
-							</View>
-						)}
+							) : (
+								<View>
+									<Text style={styles.enterPassword}>
+										{strings('reveal_credential.enter_password')}
+									</Text>
+									<TextInput
+										style={styles.input}
+										placeholder={'Password'}
+										onChangeText={this.onPasswordChange}
+										secureTextEntry
+										onSubmitEditing={this.tryUnlock}
+										testID={'private-credential-password-text-input'}
+									/>
+									<Text style={styles.warningText}>{this.state.warningIncorrectPassword}</Text>
+								</View>
+							)}
+						</View>
 					</View>
 				</ActionView>
 			</SafeAreaView>

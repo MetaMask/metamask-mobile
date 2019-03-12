@@ -165,6 +165,7 @@ exports[`Browser should render correctly 1`] = `
     onModalWillHide={[Function]}
     onModalWillShow={[Function]}
     onSwipeComplete={[Function]}
+    propagateSwipe={true}
     scrollOffset={0}
     scrollOffsetMax={0}
     scrollTo={null}

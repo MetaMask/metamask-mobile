@@ -68,13 +68,6 @@ const styles = StyleSheet.create({
 		padding: 5,
 		color: colors.black
 	},
-	signatureText: {
-		...fontStyles.normal,
-		textAlign: 'center',
-		fontSize: 20,
-		padding: 10,
-		color: colors.black
-	},
 	children: {
 		flex: 1,
 		borderTopColor: colors.lightGray,
@@ -185,7 +178,6 @@ class SignatureRequest extends Component {
 					</View>
 					{this.renderPageInformation()}
 					<View style={styles.signingInformation}>
-						<Text style={styles.signatureText}>{strings('signature_request.sign_requested')}</Text>
 						{message ? (
 							<Text style={styles.warningText}>{message}</Text>
 						) : (
