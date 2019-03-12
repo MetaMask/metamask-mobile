@@ -56,19 +56,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'flex-end'
 	},
-	warning: {
-		marginBottom: 20
-	},
-	warningText: {
-		lineHeight: 22,
-		color: colors.darkRed
-	},
-	bullet: {
-		marginRight: 5
-	},
-	bulletPoint: {
-		flexDirection: 'row',
-		marginBottom: 15
+	bold: {
+		...fontStyles.bold
 	},
 	navbarRightButton: {
 		alignSelf: 'flex-end',
@@ -136,29 +125,17 @@ export default class AccountBackupStep2 extends Component {
 						<View style={styles.content}>
 							<Emoji name="writing_hand" style={styles.emoji} />
 							<Text style={styles.title}>{strings('account_backup_step_2.title')}</Text>
-							<View style={styles.warning}>
-								<Text style={[styles.label, styles.warningText]}>
-									{strings('account_backup_step_2.info_text_1')}
-								</Text>
-							</View>
 							<View style={styles.text}>
 								<Text style={[styles.label, styles.subtitle]}>
-									{strings('account_backup_step_2.security_tips')}
+									{strings('account_backup_step_2.info')}
 								</Text>
 							</View>
 							<View style={styles.text}>
-								<View style={styles.bulletPoint}>
-									<Text style={styles.bullet}>{'\u2022'}</Text>
-									<Text style={styles.label}>{strings('account_backup_step_2.tip_1')}</Text>
-								</View>
-								<View style={styles.bulletPoint}>
-									<Text style={styles.bullet}>{'\u2022'}</Text>
-									<Text style={styles.label}>{strings('account_backup_step_2.tip_2')}</Text>
-								</View>
-								<View style={styles.bulletPoint}>
-									<Text style={styles.bullet}>{'\u2022'}</Text>
-									<Text style={styles.label}>{strings('account_backup_step_2.tip_3')}</Text>
-								</View>
+								<Text style={styles.label}>
+									{strings('account_backup_step_2.info_2_1')}
+									<Text style={styles.bold}>{strings('account_backup_step_2.info_2_2')}</Text>
+									{strings('account_backup_step_2.info_2_3')}
+								</Text>
 							</View>
 						</View>
 						<View style={styles.buttonWrapper}>

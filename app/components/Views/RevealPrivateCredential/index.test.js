@@ -14,6 +14,9 @@ describe('RevealPrivateCredential', () => {
 						selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1'
 					}
 				}
+			},
+			user: {
+				passwordSet: false
 			}
 		};
 		const wrapper = shallow(

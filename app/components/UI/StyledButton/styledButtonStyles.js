@@ -8,9 +8,10 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	text: {
-		fontSize: 18,
+		fontSize: 14,
 		textAlign: 'center',
-		...fontStyles.bold
+		...fontStyles.bolder,
+		fontWeight: 'bold'
 	},
 	blue: {
 		backgroundColor: colors.primary
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
 	},
 	roundedNormal: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
+		borderWidth: 1,
 		borderColor: colors.primary,
 		padding: 8
 	},
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
 	},
 	normal: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
+		borderWidth: 1,
 		borderColor: colors.primary
 	},
 	normalText: {
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
 	},
 	cancel: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
+		borderWidth: 1,
 		borderColor: colors.accentGray
 	},
 	cancelText: {
@@ -65,12 +66,12 @@ const styles = StyleSheet.create({
 	},
 	warning: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
+		borderWidth: 1,
 		borderColor: colors.red
 	},
 	info: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
+		borderWidth: 1,
 		borderColor: colors.primaryFox
 	},
 	warningText: {
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
 	},
 	neutral: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
+		borderWidth: 1,
 		borderColor: colors.lightGray
 	},
 	neutralText: {
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
 	danger: {
 		backgroundColor: colors.red,
 		borderColor: colors.red,
-		borderWidth: 2
+		borderWidth: 1
 	}
 });
 

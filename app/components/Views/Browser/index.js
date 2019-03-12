@@ -478,22 +478,8 @@ export class Browser extends Component {
 
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
-			if (this.props.transaction.value || this.props.transaction.to) {
-				return;
-			}
-			const {
-				transaction: { value, gas, gasPrice }
-			} = transactionMeta;
-			transactionMeta.transaction.value = hexToBN(value);
-			transactionMeta.transaction.gas = hexToBN(gas);
-			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
-			this.props.setTransactionObject({
-				...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
-				...transactionMeta.transaction
-			});
-			this.props.navigation.push('ApprovalView');
-		});
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
 		});
@@ -515,7 +501,44 @@ export class Browser extends Component {
 		} else {
 			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
 		}
+
+		// Listen to network changes
+		Engine.context.TransactionController.hub.on('networkChange', this.onNetworkChange);
 	}
+
+	onUnapprovedTransaction = transactionMeta => {
+		if (this.props.transaction.value || this.props.transaction.to) {
+			return;
+		}
+		const {
+			transaction: { value, gas, gasPrice }
+		} = transactionMeta;
+		transactionMeta.transaction.value = hexToBN(value);
+		transactionMeta.transaction.gas = hexToBN(gas);
+		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
+		this.props.setTransactionObject({
+			...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
+			...transactionMeta.transaction
+		});
+		this.props.navigation.push('ApprovalView');
+	};
+
+	onNetworkChange = () => {
+		if (Platform.OS === 'ios') {
+			this.reload();
+		} else {
+			// Force unmount the webview to avoid caching problems
+			this.setState({ loading: true }, () => {
+				setTimeout(() => {
+					this.setState({ loading: false }, () => {
+						setTimeout(() => {
+							this.go(this.state.inputValue);
+						}, 300);
+					});
+				}, 300);
+			});
+		}
+	};
 
 	async loadUrl() {
 		const { navigation } = this.props;
@@ -546,9 +569,10 @@ export class Browser extends Component {
 	componentWillUnmount() {
 		this.mounted = false;
 		// Remove all Engine listeners
-		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
+		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
+		Engine.context.TransactionController.hub.removeListener('networkChange', this.onNetworkChange);
 		if (Platform.OS === 'ios') {
 			this.state.scrollAnim.removeAllListeners();
 			this.state.offsetAnim.removeAllListeners();
