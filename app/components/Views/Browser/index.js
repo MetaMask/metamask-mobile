@@ -756,7 +756,7 @@ export class Browser extends Component {
 					...this.props.navigation.state.params,
 					url: this.state.inputValue
 				});
-			});
+			}, 100);
 		}
 	};
 
