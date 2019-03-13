@@ -54,3 +54,10 @@ export function isKnownNetwork(id) {
 		.filter(id => id !== undefined);
 	return knownNetworks.includes(parseInt(id, 10));
 }
+
+export function isprivateConnection(hostname) {
+	return (
+		hostname === 'localhost' ||
+		/(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/.test(hostname)
+	);
+}
