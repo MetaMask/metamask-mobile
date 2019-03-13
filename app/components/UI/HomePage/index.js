@@ -195,7 +195,15 @@ class HomePage extends Component {
 		/**
 		 * function that removes a bookmark
 		 */
-		removeBookmark: PropTypes.func
+		removeBookmark: PropTypes.func,
+		/**
+		 * Default protocol of the browser, for ex. https
+		 */
+		defaultProtocol: PropTypes.string,
+		/**
+		 * Default search engine
+		 */
+		searchEngine: PropTypes.string
 	};
 
 	state = {
@@ -284,7 +292,6 @@ class HomePage extends Component {
 	};
 
 	dismissKeyboardAndClear = () => {
-		console.log('TAP');
 		this.mounted && this.setState({ searchInputValue: '' });
 		this.searchInput && this.searchInput.current && this.searchInput.current.blur();
 	};
