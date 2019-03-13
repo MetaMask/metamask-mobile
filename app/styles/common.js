@@ -6,6 +6,7 @@
  * Map of color names to HEX values
  */
 export const colors = {
+	drawerBg: '#F8F8F8',
 	accentGray: '#9b9b9b',
 	ash: '#ced6e0',
 	asphalt: '#747d8c',
