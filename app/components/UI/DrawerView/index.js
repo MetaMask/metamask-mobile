@@ -3,9 +3,7 @@ import {
 	Alert,
 	Clipboard,
 	Platform,
-	ImageBackground,
 	TouchableOpacity,
-	SafeAreaView,
 	View,
 	Image,
 	StyleSheet,
@@ -44,6 +42,7 @@ import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import DeviceInfo from 'react-native-device-info';
 import Logger from '../../../util/Logger';
+import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -51,7 +50,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
-		height: 50,
+		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
+		backgroundColor: colors.drawerBg,
+		height: DeviceSize.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
 	},
@@ -83,18 +84,24 @@ const styles = StyleSheet.create({
 		height: 18
 	},
 	account: {
-		backgroundColor: colors.white
-	},
-	accountBg: {
-		width: '100%',
-		height: 150
+		flex: 1,
+		backgroundColor: colors.drawerBg
 	},
 	accountBgOverlay: {
-		backgroundColor: colors.overlay,
+		borderBottomColor: colors.borderColor,
+		borderBottomWidth: 1,
 		padding: 17
 	},
 	identiconWrapper: {
-		marginBottom: 12
+		marginBottom: 12,
+		width: 56,
+		height: 56
+	},
+	identiconBorder: {
+		borderRadius: 96,
+		borderWidth: 2,
+		padding: 2,
+		borderColor: colors.primary
 	},
 	accountNameWrapper: {
 		flexDirection: 'row',
@@ -103,7 +110,8 @@ const styles = StyleSheet.create({
 	accountName: {
 		fontSize: 20,
 		lineHeight: 24,
-		color: colors.white,
+		marginBottom: 5,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
 	caretDown: {
@@ -111,18 +119,19 @@ const styles = StyleSheet.create({
 		marginLeft: 7,
 		marginTop: 3,
 		fontSize: 18,
-		color: colors.white
+		color: colors.fontPrimary
 	},
 	accountBalance: {
-		fontSize: 12,
-		lineHeight: 16,
-		color: colors.white,
+		fontSize: 14,
+		lineHeight: 17,
+		marginBottom: 5,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
 	accountAddress: {
 		fontSize: 12,
-		lineHeight: 16,
-		color: colors.white,
+		lineHeight: 17,
+		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
 	qrCodeWrapper: {
@@ -131,10 +140,12 @@ const styles = StyleSheet.create({
 		top: 17
 	},
 	infoIcon: {
-		color: colors.white
+		color: colors.primary
 	},
 	buttons: {
 		flexDirection: 'row',
+		borderBottomColor: colors.borderColor,
+		borderBottomWidth: 1,
 		padding: 15
 	},
 	button: {
@@ -168,6 +179,9 @@ const styles = StyleSheet.create({
 	menu: {
 		marginLeft: 17
 	},
+	noTopBorder: {
+		borderTopWidth: 0
+	},
 	menuSection: {
 		borderTopWidth: 1,
 		borderColor: colors.borderColor,
@@ -176,7 +190,7 @@ const styles = StyleSheet.create({
 	menuItem: {
 		flex: 1,
 		flexDirection: 'row',
-		paddingVertical: 12
+		paddingVertical: 9
 	},
 	menuItemName: {
 		flex: 1,
@@ -260,6 +274,20 @@ const styles = StyleSheet.create({
 	secureModalImage: {
 		width: 100,
 		height: 100
+	},
+	importedWrapper: {
+		marginTop: 10,
+		width: 73,
+		paddingHorizontal: 10,
+		paddingVertical: 3,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: colors.another50ShadesOfGrey
+	},
+	importedText: {
+		color: colors.another50ShadesOfGrey,
+		fontSize: 10,
+		...fontStyles.bold
 	}
 });
 
@@ -432,8 +460,7 @@ class DrawerView extends Component {
 			setTimeout(() => {
 				this.props.navigation.navigate('WalletView', { page: 0 });
 				this.props.navigation.navigate('WalletView', { page: tabIndex });
-				this.props.navigation.navigate('WalletView', { page: tabIndex });
-			}, 300);
+			}, 100);
 		}
 	}
 
@@ -445,6 +472,10 @@ class DrawerView extends Component {
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
+	};
+
+	goToTransactionHistory = () => {
+		this.goToWalletTab(2);
 	};
 
 	showSettings = async () => {
@@ -548,6 +579,10 @@ class DrawerView extends Component {
 		return <Icon name={name} size={size || 24} color={colors.gray} />;
 	}
 
+	getFeatherIcon(name, size) {
+		return <FeatherIcon name={name} size={size || 24} color={colors.gray} />;
+	}
+
 	getMaterialIcon(name, size) {
 		return <MaterialIcon name={name} size={size || 24} color={colors.gray} />;
 	}
@@ -567,6 +602,11 @@ class DrawerView extends Component {
 				name: strings('drawer.wallet'),
 				icon: this.getImageIcon('assets'),
 				action: this.showWallet
+			},
+			{
+				name: strings('drawer.transaction_history'),
+				icon: this.getFeatherIcon('list'),
+				action: this.goToTransactionHistory
 			}
 		],
 		[
@@ -639,7 +679,7 @@ class DrawerView extends Component {
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
+			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
 					<View style={styles.header}>
 						<View style={styles.metamaskLogo}>
@@ -651,38 +691,45 @@ class DrawerView extends Component {
 						</TouchableOpacity>
 					</View>
 					<View style={styles.account}>
-						<ImageBackground source={drawerBg} style={styles.accountBg} resizeMode={'cover'}>
-							<View style={styles.accountBgOverlay}>
-								<TouchableOpacity
-									style={styles.identiconWrapper}
-									onPress={this.onAccountPress}
-									testID={'navbar-account-identicon'}
-								>
-									<Identicon diameter={48} address={selectedAddress} />
-								</TouchableOpacity>
-								<TouchableOpacity
-									style={styles.accountInfo}
-									onPress={this.onAccountPress}
-									testID={'navbar-account-button'}
-								>
-									<View style={styles.accountNameWrapper}>
-										<Text style={styles.accountName} numberOfLines={1}>
-											{account.name}
-										</Text>
-										<Icon name="caret-down" size={24} style={styles.caretDown} />
-									</View>
-									<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
-									<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
-								</TouchableOpacity>
-							</View>
+						<View style={styles.accountBgOverlay}>
 							<TouchableOpacity
-								style={styles.qrCodeWrapper}
+								style={styles.identiconWrapper}
+								onPress={this.onAccountPress}
+								testID={'navbar-account-identicon'}
+							>
+								<View style={styles.identiconBorder}>
+									<Identicon diameter={48} address={selectedAddress} />
+								</View>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={styles.accountInfo}
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<Icon name="qrcode" onPress={this.showReceiveModal} size={24} style={styles.infoIcon} />
+								<View style={styles.accountNameWrapper}>
+									<Text style={styles.accountName} numberOfLines={1}>
+										{account.name}
+									</Text>
+									<Icon name="caret-down" size={24} style={styles.caretDown} />
+								</View>
+								<Text style={styles.accountBalance}>${fiatBalanceStr}</Text>
+								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
+								{this.isCurrentAccountImported() && (
+									<View style={styles.importedWrapper}>
+										<Text numberOfLines={1} style={styles.importedText}>
+											{strings('accounts.imported')}
+										</Text>
+									</View>
+								)}
 							</TouchableOpacity>
-						</ImageBackground>
+						</View>
+						<TouchableOpacity
+							style={styles.qrCodeWrapper}
+							onPress={this.onAccountPress}
+							testID={'navbar-account-button'}
+						>
+							<Icon name="qrcode" onPress={this.showReceiveModal} size={30} style={styles.infoIcon} />
+						</TouchableOpacity>
 					</View>
 					<View style={styles.buttons}>
 						<StyledButton
@@ -716,7 +763,10 @@ class DrawerView extends Component {
 					</View>
 					<View style={styles.menu}>
 						{this.getSections().map((section, i) => (
-							<View key={`section_${i}`} style={styles.menuSection}>
+							<View
+								key={`section_${i}`}
+								style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
+							>
 								{section
 									.filter(item => {
 										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
@@ -823,7 +873,7 @@ class DrawerView extends Component {
 						</Text>
 					</CustomAlert>
 				)}
-			</SafeAreaView>
+			</View>
 		);
 	}
 }
