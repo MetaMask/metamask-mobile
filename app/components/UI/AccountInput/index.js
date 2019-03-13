@@ -17,7 +17,10 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const styles = StyleSheet.create({
 	root: {
-		flex: 1
+		flex: 1,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1
 	},
 	arrow: {
 		color: colors.inputBorderColor,
@@ -34,16 +37,24 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.bold,
-		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
-		borderRadius: 4,
-		borderWidth: 1,
+		backgroundColor: colors.white
+	},
+	inputContainer: {
 		fontSize: 16,
-		paddingBottom: 16,
+		paddingBottom: 12,
 		paddingRight: 40,
 		paddingLeft: 52,
-		paddingTop: 16,
-		position: 'relative'
+		paddingTop: 12,
+		position: 'relative',
+		minHeight: 50,
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	inputContent: {
+		flex: 1,
+		flexDirection: 'column',
+		alignItems: 'flex-start'
 	},
 	option: {
 		flexDirection: 'row',
@@ -88,6 +99,9 @@ const styles = StyleSheet.create({
 		top: Platform.OS === 'android' ? 8 : 6,
 		paddingVertical: 8,
 		paddingHorizontal: 10
+	},
+	ensAddress: {
+		fontSize: 10
 	}
 });
 
@@ -124,7 +138,7 @@ class AccountInput extends Component {
 		/**
 		 * Value of this underlying input
 		 */
-		value: PropTypes.string,
+		address: PropTypes.string,
 		/**
 		 * Value of this underlying input
 		 */
@@ -139,16 +153,16 @@ class AccountInput extends Component {
 		updateToAddressError: PropTypes.func
 	};
 
-	state = { isOpen: false, value: undefined, ensRecipient: undefined };
+	state = { isOpen: false, address: undefined, ensRecipient: undefined, value: undefined };
 
 	componentDidMount = () => {
 		const { provider } = Engine.context.NetworkController;
 
-		const { value, network, ensRecipient } = this.props;
+		const { address, network, ensRecipient } = this.props;
 		if (ensRecipient) {
 			this.setState({ value: ensRecipient });
-		} else if (value) {
-			this.setState({ value });
+		} else if (address) {
+			this.setState({ value: address });
 		}
 		const networkHasEnsSupport = this.getNetworkEnsSupport();
 		if (networkHasEnsSupport) {
@@ -158,27 +172,25 @@ class AccountInput extends Component {
 
 	isEnsName = recipient => {
 		const rec = recipient.split('.');
-		if (rec.length === 1) {
+		if (rec.length === 1 || rec[rec.length - 1] !== 'eth') {
 			this.setState({ ensRecipient: undefined });
 			return false;
 		}
-		if (rec[rec.length - 1] === 'eth') return true;
-		this.setState({ ensRecipient: undefined });
-		return false;
+		return true;
 	};
 
 	lookupEnsName = async recipient => {
-		const { ensRecipient } = this.state;
+		const { address } = this.state;
 		try {
-			const address = await this.ens.lookup(recipient.trim());
-			if (address !== ZERO_ADDRESS && address !== ensRecipient) {
-				this.setState({ ensRecipient: address });
-				return address;
+			const resolvedAddress = await this.ens.lookup(recipient.trim());
+			if (address !== ZERO_ADDRESS && resolvedAddress !== address) {
+				this.setState({ address: resolvedAddress, ensRecipient: recipient });
+				return true;
 			}
 			throw new Error('No address for ENS name.');
 		} catch (error) {
 			this.props.updateToAddressError && this.props.updateToAddressError(error.message);
-			return undefined;
+			return false;
 		}
 	};
 
@@ -253,9 +265,9 @@ class AccountInput extends Component {
 		this.setState({
 			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
 		});
-		const address = this.isEnsName(value) && (await this.lookupEnsName(value));
-		if (address) {
-			onChange && onChange(address, value) && this.setState({ value });
+		const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
+		if (isEnsName) {
+			onChange && onChange(this.state.address, value) && this.setState({ value });
 		} else {
 			onChange && onChange(value) && this.setState({ value });
 		}
@@ -268,21 +280,25 @@ class AccountInput extends Component {
 	};
 
 	render = () => {
-		const { isOpen, value, ensRecipient } = this.state;
+		const { isOpen, value, ensRecipient, address } = this.state;
 		const { placeholder } = this.props;
 		return (
 			<View style={styles.root}>
-				<TextInput
-					autoCapitalize="none"
-					autoCorrect={false}
-					onChangeText={this.onChange}
-					placeholder={placeholder}
-					spellCheck={false}
-					style={styles.input}
-					value={value}
-					onBlur={this.onBlur}
-				/>
-				{ensRecipient && <Text>{value}</Text>}
+				<View style={styles.inputContainer}>
+					<View style={styles.inputContent}>
+						<TextInput
+							autoCapitalize="none"
+							autoCorrect={false}
+							onChangeText={this.onChange}
+							placeholder={placeholder}
+							spellCheck={false}
+							style={styles.input}
+							value={value}
+							onBlur={this.onBlur}
+						/>
+						{ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
+					</View>
+				</View>
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
 					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
 				</TouchableOpacity>
