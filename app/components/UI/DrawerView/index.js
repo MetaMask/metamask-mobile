@@ -274,6 +274,20 @@ const styles = StyleSheet.create({
 	secureModalImage: {
 		width: 100,
 		height: 100
+	},
+	importedWrapper: {
+		marginTop: 10,
+		width: 73,
+		paddingHorizontal: 10,
+		paddingVertical: 3,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: colors.another50ShadesOfGrey
+	},
+	importedText: {
+		color: colors.another50ShadesOfGrey,
+		fontSize: 10,
+		...fontStyles.bold
 	}
 });
 
@@ -700,6 +714,13 @@ class DrawerView extends Component {
 								</View>
 								<Text style={styles.accountBalance}>${fiatBalanceStr}</Text>
 								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
+								{this.isCurrentAccountImported() && (
+									<View style={styles.importedWrapper}>
+										<Text numberOfLines={1} style={styles.importedText}>
+											{strings('accounts.imported')}
+										</Text>
+									</View>
+								)}
 							</TouchableOpacity>
 						</View>
 						<TouchableOpacity
