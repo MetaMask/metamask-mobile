@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { TouchableWithoutFeedback, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
@@ -10,7 +10,6 @@ import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		paddingHorizontal: 15,
 		paddingVertical: 15,
 		flex: 1,
 		backgroundColor: colors.white
@@ -40,11 +39,15 @@ const styles = StyleSheet.create({
 	},
 	itemWrapper: {
 		flexDirection: 'row',
-		marginBottom: 20
+		marginBottom: 20,
+		paddingHorizontal: 15
 	},
 	textContent: {
 		flex: 1,
 		marginLeft: 10
+	},
+	bg: {
+		flex: 1
 	}
 });
 
@@ -63,6 +66,11 @@ class UrlAutocomplete extends Component {
 		 * choosing one of the autocomplete options
 		 */
 		onSubmit: PropTypes.func,
+		/**
+		 * Callback that is triggered while
+		 * tapping on the background
+		 */
+		onDismiss: PropTypes.func,
 		/**
 		 * An array of visited urls and names
 		 */
@@ -107,15 +115,14 @@ class UrlAutocomplete extends Component {
 		this.setState({ results });
 	}
 
+	onSubmitInput = () => this.props.onSubmit(this.props.input);
+
 	render() {
 		if (this.props.input.length < 2) return null;
 		if (this.state.results.length === 0) {
 			return (
 				<View style={styles.wrapper}>
-					<TouchableOpacity
-						containerStyle={styles.item}
-						onPress={() => this.props.onSubmit(this.props.input)} // eslint-disable-line
-					>
+					<TouchableOpacity containerStyle={styles.item} onPress={this.onSubmitInput}>
 						<View style={styles.itemWrapper}>
 							<View style={styles.textContent}>
 								<Text style={styles.name} numberOfLines={1}>
@@ -124,6 +131,9 @@ class UrlAutocomplete extends Component {
 							</View>
 						</View>
 					</TouchableOpacity>
+					<TouchableWithoutFeedback style={styles.bg} onPress={this.props.onDismiss}>
+						<View style={styles.bg} />
+					</TouchableWithoutFeedback>
 				</View>
 			);
 		}
@@ -131,12 +141,11 @@ class UrlAutocomplete extends Component {
 			<View style={styles.wrapper}>
 				{this.state.results.slice(0, 3).map(r => {
 					const { url, name } = r;
+					const onSubmit = () => {
+						this.props.onSubmit(url);
+					};
 					return (
-						<TouchableOpacity
-							containerStyle={styles.item}
-							onPress={() => this.props.onSubmit(url)} // eslint-disable-line
-							key={url}
-						>
+						<TouchableOpacity containerStyle={styles.item} onPress={onSubmit} key={url}>
 							<View style={styles.itemWrapper}>
 								<WebsiteIcon
 									style={styles.bookmarkIco}
@@ -156,6 +165,9 @@ class UrlAutocomplete extends Component {
 						</TouchableOpacity>
 					);
 				})}
+				<TouchableWithoutFeedback style={styles.bg} onPress={this.props.onDismiss}>
+					<View style={styles.bg} />
+				</TouchableWithoutFeedback>
 			</View>
 		);
 	}
