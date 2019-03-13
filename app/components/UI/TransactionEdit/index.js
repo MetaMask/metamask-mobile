@@ -277,6 +277,11 @@ class TransactionEdit extends Component {
 
 	updateToAddress = async (to, ensRecipient) => {
 		await this.props.handleUpdateToAddress(to, ensRecipient);
+		this.setState({ ensRecipient });
+	};
+
+	updateAndValidateToAddress = async (to, ensRecipient) => {
+		await this.props.handleUpdateToAddress(to, ensRecipient);
 		const toAddressError = this.props.validateToAddress();
 		this.setState({ toAddressError, ensRecipient });
 	};
@@ -355,7 +360,7 @@ class TransactionEdit extends Component {
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
-								onBlur={this.updateToAddress}
+								onBlur={this.updateAndValidateToAddress}
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScan}

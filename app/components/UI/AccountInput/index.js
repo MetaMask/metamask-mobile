@@ -173,7 +173,12 @@ class AccountInput extends Component {
 
 	isEnsName = recipient => {
 		const rec = recipient.split('.');
-		if (rec.length === 1 || rec[rec.length - 1] !== 'eth') {
+		if (
+			rec.length === 1 ||
+			rec[rec.length - 1] !== 'eth' ||
+			rec[rec.length - 1] !== 'xyz' ||
+			rec[rec.length - 1] !== 'test'
+		) {
 			this.setState({ ensRecipient: undefined });
 			return false;
 		}
