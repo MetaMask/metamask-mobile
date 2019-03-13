@@ -268,7 +268,7 @@ class AccountInput extends Component {
 	};
 
 	render = () => {
-		const { isOpen, value } = this.state;
+		const { isOpen, value, ensRecipient } = this.state;
 		const { placeholder } = this.props;
 		return (
 			<View style={styles.root}>
@@ -282,6 +282,7 @@ class AccountInput extends Component {
 					value={value}
 					onBlur={this.onBlur}
 				/>
+				{ensRecipient && <Text>{value}</Text>}
 				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
 					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
 				</TouchableOpacity>

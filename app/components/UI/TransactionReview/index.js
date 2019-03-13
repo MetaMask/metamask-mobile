@@ -170,12 +170,12 @@ class TransactionReview extends Component {
 
 	renderTransactionDirection = () => {
 		const {
-			transaction: { from, to, ensRecipient },
+			transaction: { from, to },
 			identities
 		} = this.props;
 		return (
 			<View style={styles.graphic}>
-				<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
+				<View style={[styles.addressGraphic, styles.fromGraphic]}>
 					<Identicon address={from} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
 						{renderAccountName(from, identities)}
@@ -187,7 +187,7 @@ class TransactionReview extends Component {
 				<View style={[styles.addressGraphic, styles.toGraphic]}>
 					<Identicon address={to} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
-						{ensRecipient || renderAccountName(to, identities)}
+						{renderAccountName(to, identities)}
 					</Text>
 				</View>
 			</View>

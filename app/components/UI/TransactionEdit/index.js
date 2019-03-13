@@ -157,10 +157,6 @@ class TransactionEdit extends Component {
 		 */
 		handleUpdateAsset: PropTypes.func,
 		/**
-		 * A string that represents the value un a readable format (decimal)
-		 */
-		readableValue: PropTypes.string,
-		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
 		validateAmount: PropTypes.func,
@@ -325,9 +321,8 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transaction: { value, gas, gasPrice, data, from, to, selectedAsset, ensRecipient },
-			showHexData,
-			readableValue
+			transaction: { value, gas, gasPrice, data, from, to, selectedAsset, readableValue, ensRecipient },
+			showHexData
 		} = this.props;
 		const { gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');

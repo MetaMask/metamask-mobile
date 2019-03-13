@@ -69,7 +69,6 @@ class TransactionEditor extends Component {
 
 	state = {
 		toFocused: false,
-		readableValue: undefined,
 		ensRecipient: undefined
 	};
 
@@ -155,7 +154,7 @@ class TransactionEditor extends Component {
 	 * @param {string} readableValue - String containing the readable value
 	 */
 	handleUpdateReadableValue = readableValue => {
-		this.setState({ readableValue });
+		this.props.setTransactionObject({ readableValue });
 	};
 
 	/**
@@ -452,7 +451,6 @@ class TransactionEditor extends Component {
 	};
 
 	render = () => {
-		const { readableValue } = this.state;
 		const { mode, transactionConfirmed } = this.props;
 		return (
 			<View style={styles.root}>
@@ -471,7 +469,6 @@ class TransactionEditor extends Component {
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
 						handleUpdateAsset={this.handleUpdateAsset}
-						readableValue={readableValue}
 						handleUpdateReadableValue={this.handleUpdateReadableValue}
 					/>
 				)}
