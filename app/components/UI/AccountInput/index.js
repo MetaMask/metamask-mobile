@@ -126,6 +126,10 @@ class AccountInput extends Component {
 		 */
 		value: PropTypes.string,
 		/**
+		 * Value of this underlying input
+		 */
+		ensRecipient: PropTypes.string,
+		/**
 		 * Network id
 		 */
 		network: PropTypes.string,
@@ -140,8 +144,12 @@ class AccountInput extends Component {
 	componentDidMount = () => {
 		const { provider } = Engine.context.NetworkController;
 
-		const { value, network } = this.props;
-		value && this.setState({ value });
+		const { value, network, ensRecipient } = this.props;
+		if (ensRecipient) {
+			this.setState({ value: ensRecipient });
+		} else if (value) {
+			this.setState({ value });
+		}
 		const networkHasEnsSupport = this.getNetworkEnsSupport();
 		if (networkHasEnsSupport) {
 			this.ens = new ENS({ provider, network });
@@ -185,7 +193,7 @@ class AccountInput extends Component {
 		const { value, ensRecipient } = this.state;
 		const { onBlur } = this.props;
 		if (ensRecipient) {
-			onBlur && onBlur(ensRecipient);
+			onBlur && onBlur(ensRecipient, value);
 		} else {
 			onBlur && onBlur(value);
 		}

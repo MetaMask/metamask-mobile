@@ -170,7 +170,7 @@ class TransactionReview extends Component {
 
 	renderTransactionDirection = () => {
 		const {
-			transaction: { from, to },
+			transaction: { from, to, ensRecipient },
 			identities
 		} = this.props;
 		return (
@@ -184,10 +184,10 @@ class TransactionReview extends Component {
 				<View style={styles.arrow}>
 					<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
 				</View>
-				<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
+				<View style={[styles.addressGraphic, styles.toGraphic]}>
 					<Identicon address={to} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
-						{renderAccountName(to, identities)}
+						{ensRecipient || renderAccountName(to, identities)}
 					</Text>
 				</View>
 			</View>

@@ -69,7 +69,8 @@ class TransactionEditor extends Component {
 
 	state = {
 		toFocused: false,
-		readableValue: undefined
+		readableValue: undefined,
+		ensRecipient: undefined
 	};
 
 	/**
@@ -181,20 +182,21 @@ class TransactionEditor extends Component {
 	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
 	 *
 	 * @param {string} to - String containing to address
+	 * @param {string} ensRecipient? - String containing ens name
 	 */
-	handleUpdateToAddress = async to => {
+	handleUpdateToAddress = async (to, ensRecipient) => {
 		const {
 			transaction: { data, assetType }
 		} = this.props;
 		// If ETH transaction, there is no need to generate new data
 		if (assetType === 'ETH') {
 			const { gas } = await this.estimateGas({ data, to });
-			this.props.setTransactionObject({ to, gas: hexToBN(gas) });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient });
 		}
 		// If selectedAsset defined, generates data
 		else {
 			const { data, gas } = await this.handleDataGeneration({ to });
-			this.props.setTransactionObject({ to, gas: hexToBN(gas), data });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient });
 		}
 	};
 

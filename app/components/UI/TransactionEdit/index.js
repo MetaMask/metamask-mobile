@@ -280,7 +280,7 @@ class TransactionEdit extends Component {
 	};
 
 	updateToAddress = async (to, ensRecipient) => {
-		await this.props.handleUpdateToAddress(to);
+		await this.props.handleUpdateToAddress(to, ensRecipient);
 		const toAddressError = this.props.validateToAddress();
 		this.setState({ toAddressError, ensRecipient });
 	};
@@ -325,7 +325,7 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transaction: { value, gas, gasPrice, data, from, to, selectedAsset },
+			transaction: { value, gas, gasPrice, data, from, to, selectedAsset, ensRecipient },
 			showHexData,
 			readableValue
 		} = this.props;
@@ -366,6 +366,7 @@ class TransactionEdit extends Component {
 								showQRScanner={this.onScan}
 								value={to}
 								updateToAddressError={this.updateToAddressError}
+								ensRecipient={ensRecipient}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
