@@ -8,7 +8,7 @@ import {
 	Text,
 	View,
 	ScrollView,
-	StyleSheet,
+	StyleSheet
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
