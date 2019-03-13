@@ -27,6 +27,8 @@ import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
 import Logger from '../../../util/Logger';
+import { isprivateConnection } from '../../../util/networks';
+import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -178,8 +180,10 @@ class AdvancedSettings extends Component {
 		const { rpcUrl } = this.state;
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
-			PreferencesController.addToFrequentRpcList(rpcUrl);
-			NetworkController.setRpcTarget(rpcUrl);
+			const url = new URL(rpcUrl);
+			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+			PreferencesController.addToFrequentRpcList(url.href);
+			NetworkController.setRpcTarget(url.href);
 			navigation.navigate('WalletView');
 		}
 	};
@@ -193,6 +197,12 @@ class AdvancedSettings extends Component {
 			} else {
 				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
 			}
+			return false;
+		}
+		const url = new URL(rpcUrl);
+		const privateConnection = isprivateConnection(url.hostname);
+		if (!privateConnection && url.protocol === 'http:') {
+			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
 			return false;
 		}
 		return true;
