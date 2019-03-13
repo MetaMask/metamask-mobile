@@ -205,10 +205,11 @@ class AccountInput extends Component {
 		onFocus && onFocus();
 	};
 
-	onBlur = () => {
-		const { value, ensRecipient } = this.state;
+	onBlur = async () => {
+		const { value } = this.state;
 		const { onBlur } = this.props;
-		if (ensRecipient) {
+		const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
+		if (isEnsName) {
 			onBlur && onBlur(this.state.address, value);
 		} else {
 			onBlur && onBlur(value);
@@ -267,14 +268,10 @@ class AccountInput extends Component {
 		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
 		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
 		this.setState({
-			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
+			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match,
+			value
 		});
-		const isEnsName = this.isEnsName(value) && (await this.lookupEnsName(value));
-		if (isEnsName) {
-			onChange && onChange(this.state.address, value) && this.setState({ value });
-		} else {
-			onChange && onChange(value) && this.setState({ value });
-		}
+		onChange && onChange(value);
 	};
 
 	scan = () => {

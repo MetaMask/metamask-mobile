@@ -275,14 +275,15 @@ class TransactionEdit extends Component {
 		this.props.handleUpdateFromAddress(from);
 	};
 
-	updateToAddress = async (to, ensRecipient) => {
-		await this.props.handleUpdateToAddress(to, ensRecipient);
-		this.setState({ ensRecipient });
+	updateToAddress = async to => {
+		await this.props.handleUpdateToAddress(to);
+		this.setState({ toAddressError: undefined });
 	};
 
 	updateAndValidateToAddress = async (to, ensRecipient) => {
 		await this.props.handleUpdateToAddress(to, ensRecipient);
-		const toAddressError = this.props.validateToAddress();
+		let { toAddressError } = this.state;
+		toAddressError = toAddressError || this.props.validateToAddress();
 		this.setState({ toAddressError, ensRecipient });
 	};
 
