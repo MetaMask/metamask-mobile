@@ -99,7 +99,7 @@
     "react-native-keyboard-aware-scroll-view": "0.8.0",
     "react-native-keychain": "github:brunobar79/react-native-keychain#5210c22c94a4d66c2e0231604601b3636bfc41bc",
     "react-native-modal": "9.0.0",
-    "react-native-os": "^1.2.2",
+    "react-native-os": "1.2.2",
     "react-native-progress": "3.5.0",
     "react-native-push-notification": "github:brunobar79/react-native-push-notification#7adf4ade7d47ea7ed19169ce11ea8a70ef6869f5",
     "react-native-qrcode-svg": "5.1.2",

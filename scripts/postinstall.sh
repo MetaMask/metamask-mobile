@@ -42,7 +42,10 @@ echo "Done"
 
 echo "7. Update all the modules to BuildTools 28.0.3..."
 TARGET="node_modules/react-native-aes-crypto/android/build.gradle"
-sed -i'' -e 's/26.0.1/28.0.3/' $TARGET;
+sed -i'' -e 's/27.0.3/28.0.3/' $TARGET;
+sed -i'' -e 's/23.0.1/28.0.0/' $TARGET;
+sed -i'' -e 's/26/28/' $TARGET;
+sed -i'' -e 's/22/28/' $TARGET;
 TARGET="node_modules/react-native-fabric/android/build.gradle"
 sed -i'' -e 's/26.0.1/28.0.3/' $TARGET;
 TARGET="node_modules/react-native-fs/android/build.gradle"
