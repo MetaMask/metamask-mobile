@@ -12,6 +12,7 @@ import ElevatedView from 'react-native-elevated-view';
 import ENS from 'ethjs-ens';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
+import { strings } from '../../../../locales/i18n';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -193,7 +194,7 @@ class AccountInput extends Component {
 				this.setState({ address: resolvedAddress, ensRecipient: recipient });
 				return true;
 			}
-			throw new Error('No address for ENS name.');
+			throw new Error(strings('transaction.no_address_for_ens'));
 		} catch (error) {
 			this.props.updateToAddressError && this.props.updateToAddressError(error.message);
 			return false;
