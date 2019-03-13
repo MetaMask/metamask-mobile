@@ -9,6 +9,11 @@ import { renderShortAddress } from '../../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { ScrollView } from 'react-native-gesture-handler';
 import ElevatedView from 'react-native-elevated-view';
+import ENS from 'ethjs-ens';
+import networkMap from 'ethjs-ens/lib/network-map.json';
+import Engine from '../../../core/Engine';
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const styles = StyleSheet.create({
 	root: {
@@ -119,14 +124,54 @@ class AccountInput extends Component {
 		/**
 		 * Value of this underlying input
 		 */
-		value: PropTypes.string
+		value: PropTypes.string,
+		/**
+		 * Network id
+		 */
+		network: PropTypes.string,
+		/**
+		 * Network id
+		 */
+		updateToAddressError: PropTypes.func
 	};
 
-	state = { isOpen: false, value: undefined };
+	state = { isOpen: false, value: undefined, ensRecipient: undefined };
 
 	componentDidMount = () => {
-		const { value } = this.props;
+		const { provider } = Engine.context.NetworkController;
+
+		const { value, network } = this.props;
 		value && this.setState({ value });
+		const networkHasEnsSupport = this.getNetworkEnsSupport();
+		if (networkHasEnsSupport) {
+			this.ens = new ENS({ provider, network });
+		}
+	};
+
+	isEnsName = recipient => {
+		const rec = recipient.split('.');
+		if (rec.length === 1) {
+			this.setState({ ensRecipient: undefined });
+			return false;
+		}
+		if (rec[rec.length - 1] === 'eth') return true;
+		this.setState({ ensRecipient: undefined });
+		return false;
+	};
+
+	lookupEnsName = async recipient => {
+		const { ensRecipient } = this.state;
+		try {
+			const address = await this.ens.lookup(recipient.trim());
+			if (address !== ZERO_ADDRESS && address !== ensRecipient) {
+				this.setState({ ensRecipient: address });
+				return address;
+			}
+			throw new Error('No address for ENS name.');
+		} catch (error) {
+			this.props.updateToAddressError && this.props.updateToAddressError(error.message);
+			return undefined;
+		}
 	};
 
 	onFocus = () => {
@@ -137,14 +182,23 @@ class AccountInput extends Component {
 	};
 
 	onBlur = () => {
+		const { value, ensRecipient } = this.state;
 		const { onBlur } = this.props;
-		const { value } = this.state;
-		onBlur && onBlur(value);
+		if (ensRecipient) {
+			onBlur && onBlur(ensRecipient);
+		} else {
+			onBlur && onBlur(value);
+		}
 	};
 
 	selectAccount(account) {
 		this.onChange(account.address);
 	}
+
+	getNetworkEnsSupport = () => {
+		const { network } = this.props;
+		return Boolean(networkMap[network]);
+	};
 
 	renderOption(account, onPress) {
 		return (
@@ -183,7 +237,7 @@ class AccountInput extends Component {
 		);
 	}
 
-	onChange = value => {
+	onChange = async value => {
 		const { accounts, onChange } = this.props;
 		const addresses = Object.keys(accounts).filter(address => address.toLowerCase().match(value.toLowerCase()));
 		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
@@ -191,7 +245,12 @@ class AccountInput extends Component {
 		this.setState({
 			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
 		});
-		onChange && onChange(value) && this.setState({ value });
+		const address = this.isEnsName(value) && (await this.lookupEnsName(value));
+		if (address) {
+			onChange && onChange(address, value) && this.setState({ value });
+		} else {
+			onChange && onChange(value) && this.setState({ value });
+		}
 	};
 
 	scan = () => {
@@ -225,13 +284,10 @@ class AccountInput extends Component {
 	};
 }
 
-const mapStateToProps = ({
-	engine: {
-		backgroundState: { PreferencesController }
-	}
-}) => ({
-	accounts: PreferencesController.identities,
-	activeAddress: PreferencesController.selectedAddress
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.PreferencesController.identities,
+	activeAddress: state.engine.backgroundState.PreferencesController.activeAddress,
+	network: state.engine.backgroundState.NetworkController.network
 });
 
 export default connect(mapStateToProps)(AccountInput);

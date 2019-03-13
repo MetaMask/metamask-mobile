@@ -188,7 +188,8 @@ class TransactionEdit extends Component {
 		addressError: '',
 		toAddressError: '',
 		gasError: '',
-		fillMax: false
+		fillMax: false,
+		ensRecipient: undefined
 	};
 
 	componentDidMount = () => {
@@ -226,6 +227,10 @@ class TransactionEdit extends Component {
 
 	updateFillMax = fillMax => {
 		this.setState({ fillMax });
+	};
+
+	updateToAddressError = error => {
+		this.setState({ toAddressError: error });
 	};
 
 	onFocusToAddress = () => {
@@ -274,10 +279,10 @@ class TransactionEdit extends Component {
 		this.props.handleUpdateFromAddress(from);
 	};
 
-	updateToAddress = async to => {
+	updateToAddress = async (to, ensRecipient) => {
 		await this.props.handleUpdateToAddress(to);
 		const toAddressError = this.props.validateToAddress();
-		this.setState({ toAddressError });
+		this.setState({ toAddressError, ensRecipient });
 	};
 
 	onScan = () => {
@@ -360,6 +365,7 @@ class TransactionEdit extends Component {
 								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScan}
 								value={to}
+								updateToAddressError={this.updateToAddressError}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
