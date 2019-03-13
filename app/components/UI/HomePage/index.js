@@ -265,6 +265,7 @@ class HomePage extends Component {
 		);
 	}
 	onUrlInputSubmit = async (input = null) => {
+		this.searchInput && this.searchInput.current && this.searchInput.current.blur();
 		const inputValue = (typeof input === 'string' && input) || this.state.inputValue;
 		const { defaultProtocol, searchEngine } = this.props;
 		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
@@ -383,7 +384,11 @@ class HomePage extends Component {
 				</ScrollView>
 				{this.state.searchInputValue.length > 1 && (
 					<View style={styles.urlAutocomplete}>
-						<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
+						<UrlAutocomplete
+							onSubmit={this.onAutocomplete}
+							input={this.state.searchInputValue}
+							onDismiss={this.dismissKeyboardAndClear}
+						/>
 					</View>
 				)}
 				{this.props.passwordSet &&
