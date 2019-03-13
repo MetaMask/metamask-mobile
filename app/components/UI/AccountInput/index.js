@@ -122,7 +122,12 @@ class AccountInput extends Component {
 		value: PropTypes.string
 	};
 
-	state = { isOpen: false };
+	state = { isOpen: false, value: undefined };
+
+	componentDidMount = () => {
+		const { value } = this.props;
+		value && this.setState({ value });
+	};
 
 	onFocus = () => {
 		const { onFocus } = this.props;
@@ -132,7 +137,8 @@ class AccountInput extends Component {
 	};
 
 	onBlur = () => {
-		const { onBlur, value } = this.props;
+		const { onBlur } = this.props;
+		const { value } = this.state;
 		onBlur && onBlur(value);
 	};
 
@@ -185,7 +191,7 @@ class AccountInput extends Component {
 		this.setState({
 			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match
 		});
-		onChange && onChange(value);
+		onChange && onChange(value) && this.setState({ value });
 	};
 
 	scan = () => {
@@ -195,8 +201,8 @@ class AccountInput extends Component {
 	};
 
 	render = () => {
-		const { isOpen } = this.state;
-		const { placeholder, value } = this.props;
+		const { isOpen, value } = this.state;
+		const { placeholder } = this.props;
 		return (
 			<View style={styles.root}>
 				<TextInput
