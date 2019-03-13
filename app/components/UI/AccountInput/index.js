@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
 		fontSize: 16
 	},
 	name: {
+		flex: 1,
 		...fontStyles.bold,
 		fontSize: 16,
 		marginBottom: 4
@@ -233,7 +234,9 @@ class AccountInput extends Component {
 				</View>
 				<View style={styles.content}>
 					<View>
-						<Text style={styles.name}>{account.name}</Text>
+						<Text numberOfLines={1} style={styles.name}>
+							{account.name}
+						</Text>
 					</View>
 					<View>
 						<Text style={styles.address} numberOfLines={1}>

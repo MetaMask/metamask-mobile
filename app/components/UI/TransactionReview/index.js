@@ -57,7 +57,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		flexDirection: 'row',
 		minHeight: 42,
-		width: '50%'
+		width: '50%',
+		flex: 1
 	},
 	fromGraphic: {
 		borderColor: colors.inputBorderColor,
@@ -101,10 +102,12 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	ensRecipientContainer: {
+		flex: 1,
 		marginLeft: 9
 	},
 	ensRecipient: { ...fontStyles.bold, fontSize: FONT_SIZE },
-	ensAddress: { ...fontStyles.normal, fontSize: 10 }
+	ensAddress: { ...fontStyles.normal, fontSize: 10 },
+	addressWrapper: { flex: 1 }
 });
 
 /**
@@ -177,7 +180,7 @@ class TransactionReview extends Component {
 			identities
 		} = this.props;
 		let child = (
-			<Text style={styles.addressText} numberOfLines={1}>
+			<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
 				{renderAccountName(to, identities)}
 			</Text>
 		);
