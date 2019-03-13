@@ -170,7 +170,7 @@ export function isBN(value) {
  * @returns {boolean} - True if the string is a valid decimal
  */
 export function isDecimal(value) {
-	return /^(\d+\.?\d*|\.\d+)$/.test(value);
+	return Number.isFinite(parseFloat(value)) && !Number.isNaN(parseFloat(value)) && !isNaN(+value);
 }
 
 /**
