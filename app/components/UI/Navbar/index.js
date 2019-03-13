@@ -10,6 +10,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -175,7 +176,14 @@ export function getTransactionOptionsTitle(title, backButtonText, navigation) {
 export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
 	const urlObj = new URL(url);
-	const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+	let hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+	if (hostname === 'ipfs.io' && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
+		const ensUrl = navigation.getParam('currentEnsName', '');
+		if (ensUrl) {
+			hostname = ensUrl.toLowerCase().replace('www.', '');
+		}
+	}
+
 	const isHttps = url.toLowerCase().substr(0, 6) === 'https:';
 
 	return {
