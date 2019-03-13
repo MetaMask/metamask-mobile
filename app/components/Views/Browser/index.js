@@ -47,6 +47,7 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
 import { hexToBN } from '../../../util/number';
 import DeviceSize from '../../../util/DeviceSize';
+import AppConstants from '../../../core/AppConstants';
 
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
 const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
@@ -640,6 +641,11 @@ export class Browser extends Component {
 					.split('/')
 					.shift();
 			}
+			// Needed for the navbar to mask the URL
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				currentEnsName: urlObj.hostname
+			});
 		}
 		const urlToGo = ipfsContent || sanitizedURL;
 
@@ -726,6 +732,10 @@ export class Browser extends Component {
 			current && current.goBack();
 			setTimeout(() => {
 				this.setState({ forwardEnabled: true });
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					url: this.state.inputValue
+				});
 			}, 100);
 		}
 	};
@@ -741,6 +751,12 @@ export class Browser extends Component {
 			const { current } = this.webview;
 			this.setState({ forwardEnabled: false });
 			current && current.goForward();
+			setTimeout(() => {
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					url: this.state.inputValue
+				});
+			}, 100);
 		}
 	};
 
@@ -856,7 +872,7 @@ export class Browser extends Component {
 		data.fullHostname = urlObj.hostname;
 		if (!this.state.ipfsWebsite) {
 			data.inputValue = url;
-		} else if (url.search('mm_override=false') === -1) {
+		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			data.inputValue = url.replace(
 				`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
 				`https://${this.state.currentEnsName}/`
@@ -870,7 +886,10 @@ export class Browser extends Component {
 		}
 
 		const { fullHostname, inputValue, hostname } = data;
-		if (fullHostname !== this.state.fullHostname) {
+		if (
+			fullHostname !== this.state.fullHostname ||
+			url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) !== -1
+		) {
 			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 		}
 
@@ -1127,12 +1146,20 @@ export class Browser extends Component {
 	}
 
 	showUrlModal = () => {
-		this.props.navigation.setParams({ url: this.state.url, showUrlModal: true });
+		this.props.navigation.setParams({
+			...this.props.navigation.state.params,
+			url: this.state.inputValue,
+			showUrlModal: true
+		});
 	};
 
 	hideUrlModal = url => {
 		const urlParam = typeof url === 'string' ? url : this.props.navigation.state.params.url;
-		this.props.navigation.setParams({ url: urlParam, showUrlModal: false });
+		this.props.navigation.setParams({
+			...this.props.navigation.state.params,
+			url: urlParam,
+			showUrlModal: false
+		});
 	};
 
 	clearInputText = () => {
