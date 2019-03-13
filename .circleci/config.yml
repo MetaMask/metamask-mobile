@@ -65,6 +65,7 @@ jobs:
 
   test-unit:
     <<: *defaults
+    parallelism: 3
     docker:
       - image: circleci/node:8
     steps:
