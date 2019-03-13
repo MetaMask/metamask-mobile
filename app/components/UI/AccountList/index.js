@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 		paddingVertical: 3,
 		borderRadius: 10,
-		borderWidth: StyleSheet.hairlineWidth,
+		borderWidth: 1,
 		borderColor: colors.another50ShadesOfGrey
 	},
 	importedView: {
