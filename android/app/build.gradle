@@ -162,10 +162,6 @@ android {
 		buildFabricPropertiesIfNeeded()
 	}
 
-	packagingOptions {
-    	pickFirst '**/libjsc.so'
-	}
-
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
@@ -240,12 +236,6 @@ android {
             }
         }
     }
-}
-
-configurations.all {
-	resolutionStrategy {
-		force 'org.webkit:android-jsc:r236355'
-	}
 }
 
 dependencies {
