@@ -185,7 +185,7 @@
 		"reset_account_modal_title": "¿Reinciar Cuenta?",
 		"reset_account_modal_message": "Reiniciar tu cuenta borrará tu historial de transacciones.",
 		"save_rpc_url": "GUARDAR",
-		"invalid_rpc_prefix": "URIs requieren el apropiado HTTP/HTTPS prefijo",
+		"invalid_rpc_prefix": "URIs requieren el prefijo HTTPS",
 		"invalid_rpc_url": "RPC URL inválida",
 		"search_engine": "Motor de Búsqueda",
 		"auto_lock": "Bloqueo automático",
