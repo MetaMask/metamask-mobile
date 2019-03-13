@@ -155,18 +155,19 @@ class AccountInput extends Component {
 
 	state = { isOpen: false, address: undefined, ensRecipient: undefined, value: undefined };
 
-	componentDidMount = () => {
+	componentDidMount = async () => {
 		const { provider } = Engine.context.NetworkController;
 
 		const { address, network, ensRecipient } = this.props;
-		if (ensRecipient) {
-			this.setState({ value: ensRecipient });
-		} else if (address) {
-			this.setState({ value: address });
-		}
+
 		const networkHasEnsSupport = this.getNetworkEnsSupport();
 		if (networkHasEnsSupport) {
 			this.ens = new ENS({ provider, network });
+		}
+		if (ensRecipient) {
+			this.setState({ value: ensRecipient, ensRecipient, address });
+		} else if (address) {
+			this.setState({ value: address, address });
 		}
 	};
 
@@ -205,7 +206,7 @@ class AccountInput extends Component {
 		const { value, ensRecipient } = this.state;
 		const { onBlur } = this.props;
 		if (ensRecipient) {
-			onBlur && onBlur(ensRecipient, value);
+			onBlur && onBlur(this.state.address, value);
 		} else {
 			onBlur && onBlur(value);
 		}
