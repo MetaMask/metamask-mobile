@@ -9,7 +9,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <ScrollViewMock
     style={
       Object {
         "backgroundColor": "#FFFFFF",
@@ -995,6 +995,6 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
         This was to ensure you follow this security measure
       </Text>
     </CustomAlert>
-  </ScrollView>
+  </ScrollViewMock>
 </SafeAreaView>
 `;

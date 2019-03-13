@@ -9,7 +9,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <ScrollViewMock
     contentContainerStyle={
       Object {
         "flex": 1,
@@ -246,6 +246,6 @@ exports[`ProtectYourAccount should render correctly 1`] = `
         CREATE PASSWORD
       </StyledButton>
     </View>
-  </ScrollView>
+  </ScrollViewMock>
 </SafeAreaView>
 `;

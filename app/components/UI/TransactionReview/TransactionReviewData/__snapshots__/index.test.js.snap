@@ -88,6 +88,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
       editable={false}
       multiline={true}
       placeholder="Optional"
+      rejectResponderTermination={true}
       style={
         Object {
           "backgroundColor": "#FFFFFF",

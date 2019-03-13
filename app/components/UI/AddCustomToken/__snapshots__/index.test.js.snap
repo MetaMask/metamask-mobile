@@ -46,6 +46,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
+          rejectResponderTermination={true}
           returnKeyType="next"
           style={
             Object {
@@ -94,6 +95,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="GNO"
+          rejectResponderTermination={true}
           returnKeyType="next"
           style={
             Object {
@@ -144,6 +146,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="18"
+          rejectResponderTermination={true}
           returnKeyType="done"
           style={
             Object {

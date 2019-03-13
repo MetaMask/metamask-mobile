@@ -9,7 +9,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
     }
   }
 >
-  <KeyboardAwareScrollView
+  <KeyboardAwareScrollViewMock
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -60,6 +60,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Enter your seed phrase here"
+        rejectResponderTermination={true}
         returnKeyType="next"
         style={
           Array [
@@ -110,6 +111,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          rejectResponderTermination={true}
           returnKeyType="next"
           secureTextEntry={true}
           style={
@@ -152,6 +154,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          rejectResponderTermination={true}
           returnKeyType="done"
           secureTextEntry={true}
           style={
@@ -235,6 +238,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollView>
+  </KeyboardAwareScrollViewMock>
 </SafeAreaView>
 `;

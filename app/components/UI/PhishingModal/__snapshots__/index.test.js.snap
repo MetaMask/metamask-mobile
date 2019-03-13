@@ -9,7 +9,7 @@ exports[`PhishingModal should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <Image
     resizeMethod="auto"
     source={
       Object {
@@ -70,7 +70,7 @@ exports[`PhishingModal should render correctly 1`] = `
         Ethereum Phishing Detection
       </Text>
     </View>
-    <ScrollView
+    <ScrollViewMock
       contentContainerStyle={
         Object {
           "paddingBottom": 20,
@@ -199,7 +199,7 @@ exports[`PhishingModal should render correctly 1`] = `
           please file an issue.
         </Text>
       </Text>
-    </ScrollView>
+    </ScrollViewMock>
   </View>
   <View
     style={

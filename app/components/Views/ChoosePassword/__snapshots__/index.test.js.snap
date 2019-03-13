@@ -18,7 +18,7 @@ exports[`ChoosePassword should render correctly 1`] = `
     }
     testID="choose-password-screen"
   >
-    <KeyboardAwareScrollView
+    <KeyboardAwareScrollViewMock
       enableAutomaticScroll={true}
       enableOnAndroid={false}
       enableResetScrollToCoords={true}
@@ -136,6 +136,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder=""
+            rejectResponderTermination={true}
             returnKeyType="next"
             secureTextEntry={true}
             style={
@@ -244,6 +245,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder=""
+            rejectResponderTermination={true}
             returnKeyType="done"
             secureTextEntry={true}
             style={
@@ -328,7 +330,7 @@ exports[`ChoosePassword should render correctly 1`] = `
           />
         </View>
       </View>
-    </KeyboardAwareScrollView>
+    </KeyboardAwareScrollViewMock>
     <View
       style={
         Object {

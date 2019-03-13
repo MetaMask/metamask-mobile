@@ -9,7 +9,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     }
   }
 >
-  <KeyboardAwareScrollView
+  <KeyboardAwareScrollViewMock
     contentContainerStyle={
       Object {
         "flex": 1,
@@ -189,6 +189,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
+          rejectResponderTermination={true}
           returnKeyType="next"
           style={
             Array [
@@ -250,6 +251,6 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         IMPORT
       </StyledButton>
     </View>
-  </KeyboardAwareScrollView>
+  </KeyboardAwareScrollViewMock>
 </View>
 `;
