@@ -283,8 +283,9 @@ class HomePage extends Component {
 	};
 
 	dismissKeyboardAndClear = () => {
+		console.log('TAP');
 		this.mounted && this.setState({ searchInputValue: '' });
-		Keyboard.dismiss();
+		this.searchInput && this.searchInput.current && this.searchInput.current.blur();
 	};
 
 	keyboardDidHide = () => {
@@ -307,7 +308,6 @@ class HomePage extends Component {
 						<View style={styles.flex}>
 							<View style={styles.searchWrapper}>
 								<TextInput
-									ref={this.searchInput}
 									style={[
 										styles.searchInput,
 										this.state.inputWidth ? { width: this.state.inputWidth } : {}
@@ -321,6 +321,7 @@ class HomePage extends Component {
 									placeholderTextColor={colors.asphalt}
 									returnKeyType="go"
 									value={this.state.searchInputValue}
+									blurOnSubmit
 								/>
 								<FeatherIcon
 									onPress={this.focusInput}
@@ -356,7 +357,6 @@ class HomePage extends Component {
 							</View>
 
 							<ScrollableTabView
-								ref={this.scrollableTabViewRef}
 								renderTabBar={this.renderTabBar}
 								// eslint-disable-next-line react/jsx-no-bind
 								onChangeTab={obj => this.handleTabHeight(obj)}

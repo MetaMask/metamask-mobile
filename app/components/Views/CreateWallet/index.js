@@ -9,8 +9,8 @@ import {
 	View,
 	ScrollView,
 	StyleSheet,
-	AsyncStorage
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
 import { strings } from '../../../../locales/i18n';

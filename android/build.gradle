@@ -3,7 +3,7 @@
 buildscript {
 
 	ext {
-		buildToolsVersion = "28.0.2"
+		buildToolsVersion = "28.0.3"
 		minSdkVersion = 19
 		compileSdkVersion = 28
 		targetSdkVersion = 28
@@ -16,7 +16,7 @@ buildscript {
     }
 
 	dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.3.2'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -32,6 +32,7 @@ allprojects {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url "$rootDir/../node_modules/react-native/android"
         }
+		maven { url "https://jitpack.io" }
     }
 
 	subprojects {
@@ -59,11 +60,4 @@ subprojects {project ->
             }
         }
     }
-}
-
-
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
-    distributionUrl = distributionUrl.replace("bin", "all")
 }
