@@ -173,8 +173,9 @@ class AccountInput extends Component {
 	};
 
 	isEnsName = recipient => {
-		const rec = recipient.split('.');
+		const rec = recipient && recipient.split('.');
 		if (
+			!rec ||
 			rec.length === 1 ||
 			(rec[rec.length - 1] !== 'eth' && rec[rec.length - 1] !== 'xyz' && rec[rec.length - 1] !== 'test')
 		) {
@@ -213,7 +214,8 @@ class AccountInput extends Component {
 		if (isEnsName) {
 			onBlur && onBlur(this.state.address, value);
 		} else {
-			onBlur && onBlur(value);
+			this.setState({ address: value, ensRecipient: undefined });
+			onBlur && onBlur(value, undefined);
 		}
 	};
 
@@ -277,6 +279,10 @@ class AccountInput extends Component {
 		onChange && onChange(value);
 	};
 
+	onInputFocus = () => {
+		this.setState({ isOpen: false });
+	};
+
 	scan = () => {
 		const { showQRScanner } = this.props;
 		this.setState({ isOpen: false });
@@ -299,6 +305,7 @@ class AccountInput extends Component {
 							style={styles.input}
 							value={value}
 							onBlur={this.onBlur}
+							onFocus={this.onInputFocus}
 						/>
 						{ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
 					</View>
