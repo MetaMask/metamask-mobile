@@ -31,6 +31,7 @@ export const colors = {
 	lightRed: '#fff1f2',
 	lightBlue: '#F2F9FE',
 	primary: '#008edf',
+	primaryOpacity: '#E9F3FD',
 	primaryFox: '#f7861ce6',
 	red: '#f00',
 	darkRed: '#C63636',

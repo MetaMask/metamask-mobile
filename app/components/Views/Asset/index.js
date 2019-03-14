@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
-import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
+import { InteractionManager, RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
+import { toChecksumAddress } from 'ethereumjs-util';
+import Networks, { isKnownNetwork } from '../../../util/networks';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
@@ -48,17 +50,35 @@ class Asset extends Component {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * An array that represents the user transactions
+		 */
+		transactions: PropTypes.array
 	};
 
 	state = {
-		refreshing: false
+		refreshing: false,
+		transactionsUpdated: false
 	};
+
+	txs = [];
+	txsPending = [];
 
 	static navigationOptions = ({ navigation }) =>
 		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
 
 	scrollViewRef = React.createRef();
+
+	componentDidMount() {
+		InteractionManager.runAfterInteractions(() => {
+			this.normalizeTransactions();
+		});
+	}
+
+	componentDidUpdate() {
+		this.normalizeTransactions();
+	}
 
 	adjustScroll = index => {
 		const { current } = this.scrollViewRef;
@@ -67,18 +87,48 @@ class Asset extends Component {
 		current.scrollTo({ y: rows + ASSET_OVERVIEW_HEIGHT });
 	};
 
-	getFilteredTxs(transactions) {
-		const symbol = this.props.navigation.getParam('symbol', '');
-		const tokenAddress = this.props.navigation.getParam('address', '');
-		if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
-			const filteredTxs = transactions.filter(
+	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
+
+	normalizeTransactions() {
+		const { selectedAddress, networkType, transactions } = this.props;
+		const networkId = Networks[networkType].networkId;
+		if (transactions.length) {
+			let txs = transactions.filter(
 				tx =>
-					tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
-					tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
+					((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
+						(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
+					((networkId && networkId.toString() === tx.networkID) ||
+						(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+					tx.status !== 'unapproved'
 			);
-			return filteredTxs;
+
+			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
+
+			const symbol = this.props.navigation.getParam('symbol', '');
+			const tokenAddress = this.props.navigation.getParam('address', '');
+			if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
+				txs = txs.filter(
+					tx =>
+						tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
+						tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
+				);
+			}
+
+			// To avoid extra re-renders we want to set the new txs only when
+			// there's a new tx in the history or the status of one of the existing txs changed
+			if (
+				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
+				this.txs.length !== txs.length ||
+				this.didTxStatusesChange(newPendingTxs)
+			) {
+				this.txs = txs;
+				this.txsPending = newPendingTxs;
+				this.setState({ transactionsUpdated: true });
+			}
+		} else if (!this.state.transactionsUpdated) {
+			this.setState({ transactionsUpdated: true });
 		}
-		return transactions;
 	}
 
 	onRefresh = async () => {
@@ -99,8 +149,6 @@ class Asset extends Component {
 			networkType
 		} = this.props;
 
-		const filteredTxs = this.getFilteredTxs((params && params.transactions) || []);
-
 		return (
 			<ScrollView
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
@@ -114,12 +162,13 @@ class Asset extends Component {
 					<View style={styles.wrapper}>
 						<Transactions
 							navigation={navigation}
-							transactions={filteredTxs}
+							transactions={this.txs}
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							networkType={networkType}
 							adjustScroll={this.adjustScroll}
+							loading={!this.state.transactionsUpdated}
 						/>
 					</View>
 				</View>
@@ -132,7 +181,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
 export default connect(mapStateToProps)(Asset);

@@ -1,11 +1,10 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import CollectibleImage from '../CollectibleImage';
 import AssetElement from '../AssetElement';
 
@@ -66,7 +65,7 @@ const styles = StyleSheet.create({
  * View that renders a list of CollectibleContract
  * also known as ERC-721 Tokens
  */
-class CollectibleContracts extends Component {
+class CollectibleContracts extends PureComponent {
 	static propTypes = {
 		/**
 		 * Array of collectibleContract objects
@@ -83,17 +82,11 @@ class CollectibleContracts extends Component {
 		navigation: PropTypes.object
 	};
 
-	state = {
-		refreshing: false
-	};
-
 	renderEmpty = () => (
-		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
-			<View style={styles.emptyView}>
-				<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
-				{this.renderFooter()}
-			</View>
-		</ScrollView>
+		<View style={styles.emptyView}>
+			<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
+			{this.renderFooter()}
+		</View>
 	);
 
 	onItemPress = collectibleContract => {
@@ -105,7 +98,7 @@ class CollectibleContracts extends Component {
 	};
 
 	renderFooter = () => (
-		<View style={styles.footer}>
+		<View style={styles.footer} key={'collectible-contracts-footer'}>
 			<TouchableOpacity style={styles.add} onPress={this.goToAddCollectible} testID={'add-collectible-button'}>
 				<Icon name="plus" size={16} color={colors.primary} />
 				<Text style={styles.addText}>{strings('wallet.add_collectibles').toUpperCase()}</Text>
@@ -113,13 +106,16 @@ class CollectibleContracts extends Component {
 		</View>
 	);
 
-	renderItem = ({ item }) => {
+	renderItem = item => {
 		const { address, name, logo, symbol } = item;
-		const collectibleAmount = this.props.collectibles.filter(
-			collectible => collectible.address.toLowerCase() === address.toLowerCase()
-		).length;
+		const collectibleAmount =
+			(this.props.collectibles &&
+				this.props.collectibles.filter(
+					collectible => collectible.address.toLowerCase() === address.toLowerCase()
+				).length) ||
+			0;
 		return (
-			<AssetElement onPress={this.onItemPress} asset={item}>
+			<AssetElement onPress={this.onItemPress} asset={item} key={address}>
 				<View style={styles.itemWrapper}>
 					<CollectibleImage collectible={{ address, name, image: logo }} />
 					<View style={styles.rows}>
@@ -133,30 +129,18 @@ class CollectibleContracts extends Component {
 		);
 	};
 
-	keyExtractor = item => `${item.address}_${item.tokenId}`;
-
-	onRefresh = async () => {
-		this.setState({ refreshing: true });
-		const { AssetsDetectionController } = Engine.context;
-		await AssetsDetectionController.detectCollectibles();
-		this.setState({ refreshing: false });
-	};
-
 	handleOnItemPress = collectibleContract => {
 		this.onItemPress(collectibleContract);
 	};
 
-	renderCollectiblesGroupList() {
+	renderList() {
 		const { collectibleContracts } = this.props;
+
 		return (
-			<FlatList
-				data={collectibleContracts}
-				extraData={this.state}
-				keyExtractor={this.keyExtractor}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				renderItem={this.renderItem}
-				ListFooterComponent={this.renderFooter}
-			/>
+			<View>
+				{collectibleContracts.map(item => this.renderItem(item))}
+				{this.renderFooter()}
+			</View>
 		);
 	}
 
@@ -164,9 +148,7 @@ class CollectibleContracts extends Component {
 		const { collectibleContracts } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'collectible-contracts'}>
-				{collectibleContracts && collectibleContracts.length
-					? this.renderCollectiblesGroupList()
-					: this.renderEmpty()}
+				{collectibleContracts && collectibleContracts.length ? this.renderList() : this.renderEmpty()}
 			</View>
 		);
 	};

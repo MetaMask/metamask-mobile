@@ -1,19 +1,16 @@
 import React, { Component } from 'react';
-import { InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { colors, fontStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
-import Transactions from '../../UI/Transactions';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
-import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 
@@ -78,10 +75,6 @@ class Wallet extends Component {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * An array that represents the user transactions
-		 */
-		transactions: PropTypes.array,
-		/**
 		 * An object containing token balances for current account and network in the format address => balance
 		 */
 		tokenBalances: PropTypes.object,
@@ -94,22 +87,15 @@ class Wallet extends Component {
 		 */
 		collectibles: PropTypes.array,
 		/**
-		 * A string represeting the network name
-		 */
-		networkType: PropTypes.string,
-		/**
 		 * Action that shows the global alert
 		 */
 		showAlert: PropTypes.func.isRequired
 	};
 
 	state = {
-		showCollectible: false,
-		transactionsUpdated: false
+		refreshing: false
 	};
 
-	txs = [];
-	txsPending = [];
 	mounted = false;
 	scrollableTabViewRef = React.createRef();
 
@@ -118,7 +104,6 @@ class Wallet extends Component {
 		AssetsDetectionController.detectAssets();
 		AccountTrackerController.refresh();
 		this.mounted = true;
-		this.normalizeTransactions();
 	}
 
 	componentDidMount() {
@@ -137,8 +122,15 @@ class Wallet extends Component {
 				this.handleTabChange(currentPage);
 			}
 		}
-		this.normalizeTransactions();
 	}
+
+	onRefresh = async () => {
+		this.setState({ refreshing: true });
+		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
+		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
+		await Promise.all(actions);
+		this.setState({ refreshing: false });
+	};
 
 	handleTabChange = page => {
 		this.scrollableTabViewRef && this.scrollableTabViewRef.current.goToPage(page);
@@ -161,43 +153,6 @@ class Wallet extends Component {
 		);
 	}
 
-	onHideCollectible = () => {
-		this.setState({ showCollectible: false });
-	};
-
-	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
-
-	normalizeTransactions() {
-		const { selectedAddress, networkType, transactions } = this.props;
-		const networkId = Networks[networkType].networkId;
-		if (transactions.length) {
-			const txs = transactions.filter(
-				tx =>
-					((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
-						(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
-					((networkId && networkId.toString() === tx.networkID) ||
-						(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
-					tx.status !== 'unapproved'
-			);
-
-			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
-			// To avoid extra re-renders we want to set the new txs only when
-			// there's a new tx in the history or the status of one of the existing txs changed
-			if (
-				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
-				this.txs.length !== txs.length ||
-				this.didTxStatusesChange(newPendingTxs)
-			) {
-				this.txs = txs;
-				this.txsPending = newPendingTxs;
-				this.setState({ transactionsUpdated: true });
-			}
-		} else if (!this.state.transactionsUpdated) {
-			this.setState({ transactionsUpdated: true });
-		}
-	}
-
 	renderContent() {
 		const {
 			accounts,
@@ -210,7 +165,6 @@ class Wallet extends Component {
 			tokenExchangeRates,
 			collectibles,
 			navigation,
-			networkType,
 			showAlert
 		} = this.props;
 		let balance = 0;
@@ -252,22 +206,11 @@ class Wallet extends Component {
 						conversionRate={conversionRate}
 						tokenBalances={tokenBalances}
 						tokenExchangeRates={tokenExchangeRates}
-						transactions={this.txs}
 					/>
 					<CollectibleContracts
 						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
 						collectibles={collectibles}
-					/>
-					<Transactions
-						navigation={navigation}
-						tabLabel={strings('wallet.transactions')}
-						transactions={this.txs}
-						conversionRate={conversionRate}
-						currentCurrency={currentCurrency}
-						selectedAddress={selectedAddress}
-						networkType={networkType}
-						loading={!this.state.transactionsUpdated}
 					/>
 				</ScrollableTabView>
 			</View>
@@ -283,9 +226,13 @@ class Wallet extends Component {
 	}
 
 	render = () => (
-		<View style={styles.wrapper} testID={'wallet-screen'}>
+		<ScrollView
+			style={styles.wrapper}
+			testID={'wallet-screen'}
+			refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+		>
 			{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
-		</View>
+		</ScrollView>
 	);
 }
 
@@ -299,7 +246,6 @@ const mapStateToProps = state => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	transactions: state.engine.backgroundState.TransactionController.transactions,
 	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 

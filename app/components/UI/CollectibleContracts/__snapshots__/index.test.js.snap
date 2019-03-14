@@ -11,10 +11,9 @@ exports[`CollectibleContracts should render correctly 1`] = `
   }
   testID="collectible-contracts"
 >
-  <FlatList
-    ListFooterComponent={[Function]}
-    data={
-      Array [
+  <View>
+    <AssetElement
+      asset={
         Object {
           "address": "0x0",
           "description": "description",
@@ -22,32 +21,108 @@ exports[`CollectibleContracts should render correctly 1`] = `
           "name": "name",
           "symbol": "NM",
           "totalSupply": 10,
-        },
-      ]
-    }
-    disableVirtualization={false}
-    extraData={
-      Object {
-        "refreshing": false,
+        }
       }
-    }
-    horizontal={false}
-    initialNumToRender={10}
-    keyExtractor={[Function]}
-    maxToRenderPerBatch={10}
-    numColumns={1}
-    onEndReachedThreshold={2}
-    refreshControl={
-      <RefreshControlMock
-        onRefresh={[Function]}
-        refreshing={false}
-      />
-    }
-    removeClippedSubviews={false}
-    renderItem={[Function]}
-    scrollEventThrottle={50}
-    updateCellsBatchingPeriod={50}
-    windowSize={21}
-  />
+      key="0x0"
+      onPress={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+      >
+        <CollectibleImage
+          collectible={
+            Object {
+              "address": "0x0",
+              "image": "logo",
+              "name": "name",
+            }
+          }
+        />
+        <View
+          style={
+            Object {
+              "flex": 1,
+              "marginLeft": 20,
+              "marginTop": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+              }
+            }
+          >
+            name
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#7c7e84",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+              }
+            }
+          >
+            0
+             
+            NM
+          </Text>
+        </View>
+      </View>
+    </AssetElement>
+    <View
+      key="collectible-contracts-footer"
+      style={
+        Object {
+          "flex": 1,
+          "paddingBottom": 30,
+        }
+      }
+    >
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "margin": 20,
+          }
+        }
+        testID="add-collectible-button"
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#008edf"
+          name="plus"
+          size={16}
+        />
+        <Text
+          style={
+            Object {
+              "color": "#008edf",
+              "fontFamily": "Roboto",
+              "fontSize": 15,
+              "fontWeight": "400",
+            }
+          }
+        >
+          ADD COLLECTIBLES
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
 </View>
 `;

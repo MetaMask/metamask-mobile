@@ -120,6 +120,9 @@
 		"remove": "Eliminar",
 		"cancel": "Cancelar"
 	},
+	"transactions_view": {
+		"title": "Transacciones"
+	},
 	"add_asset": {
 		"title": "Agregar Activo",
 		"search_token": "BUSCAR",

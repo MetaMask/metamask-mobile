@@ -9,7 +9,9 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	FlatList
+	FlatList,
+	Dimensions,
+	InteractionManager
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -27,11 +29,14 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	emptyContainer: {
-		minHeight: 250,
-		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		backgroundColor: colors.white,
+		minHeight: Dimensions.get('window').height / 2
+	},
+	loader: {
+		alignSelf: 'center'
 	},
 	text: {
 		fontSize: 20,
@@ -103,6 +108,8 @@ class Transactions extends PureComponent {
 		refreshing: false
 	};
 
+	selectedTx = null;
+
 	flatList = React.createRef();
 
 	componentDidMount() {
@@ -145,16 +152,29 @@ class Transactions extends PureComponent {
 	};
 
 	toggleDetailsView = (id, index) => {
-		this.setState(state => {
-			// copy the map rather than modifying state.
-			const selectedTx = new Map(state.selectedTx);
-			const show = !selectedTx.get(id);
-			selectedTx.set(id, show);
-			if (show && index) {
-				this.scrollToIndex(index);
-			}
-			return { selectedTx };
-		});
+		const oldId = this.selectedTx && this.selectedTx.id;
+		const oldIndex = this.selectedTx && this.selectedTx.index;
+
+		if (this.selectedTx && oldId !== id && oldIndex !== index) {
+			this.selectedTx = null;
+			this.toggleDetailsView(oldId, oldIndex);
+			InteractionManager.runAfterInteractions(() => {
+				this.toggleDetailsView(id, index);
+			});
+		} else {
+			this.setState(state => {
+				const selectedTx = new Map(state.selectedTx);
+				const show = !selectedTx.get(id);
+				selectedTx.set(id, show);
+				if (show && index) {
+					InteractionManager.runAfterInteractions(() => {
+						this.scrollToIndex(index);
+					});
+				}
+				this.selectedTx = show ? { id, index } : null;
+				return { selectedTx };
+			});
+		}
 	};
 
 	onRefresh = async () => {
@@ -165,7 +185,7 @@ class Transactions extends PureComponent {
 
 	renderLoader = () => (
 		<View style={styles.emptyContainer}>
-			<ActivityIndicator size="small" />
+			<ActivityIndicator style={styles.loader} size="small" />
 		</View>
 	);
 
@@ -240,8 +260,8 @@ class Transactions extends PureComponent {
 	}
 
 	render = () => (
-		<View style={styles.wrapper}>
-			<View testID={'transactions'}>{this.renderContent()}</View>
+		<View testID={'transactions'} style={styles.wrapper}>
+			{this.renderContent()}
 		</View>
 	);
 }
