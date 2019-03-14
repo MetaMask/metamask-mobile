@@ -13,6 +13,7 @@ import ENS from 'ethjs-ens';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -162,7 +163,12 @@ class AccountInput extends Component {
 		updateToAddressError: PropTypes.func
 	};
 
-	state = { isOpen: false, address: undefined, ensRecipient: undefined, value: undefined };
+	state = {
+		isOpen: false,
+		address: undefined,
+		ensRecipient: undefined,
+		value: undefined
+	};
 
 	componentDidMount = async () => {
 		const { provider } = Engine.context.NetworkController;
@@ -182,11 +188,7 @@ class AccountInput extends Component {
 
 	isEnsName = recipient => {
 		const rec = recipient && recipient.split('.');
-		if (
-			!rec ||
-			rec.length === 1 ||
-			(rec[rec.length - 1] !== 'eth' && rec[rec.length - 1] !== 'xyz' && rec[rec.length - 1] !== 'test')
-		) {
+		if (!rec || rec.length === 1 || !AppConstants.supportedTLDs.includes(rec[rec.length - 1])) {
 			this.setState({ ensRecipient: undefined });
 			return false;
 		}
