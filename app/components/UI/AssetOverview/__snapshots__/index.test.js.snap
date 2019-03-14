@@ -12,5 +12,6 @@ exports[`AssetOverview should render correctly 1`] = `
     }
   }
   setTokensTransaction={[Function]}
+  toggleReceiveModal={[Function]}
 />
 `;
