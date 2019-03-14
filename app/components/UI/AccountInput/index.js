@@ -102,11 +102,11 @@ const styles = StyleSheet.create({
 	qrCodeButton: {
 		position: 'absolute',
 		left: 5,
-		height: '100%',
+		minHeight: Platform.OS === 'android' ? 22 : 50,
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center',
-		paddingVertical: 6,
+		paddingTop: 7,
 		paddingHorizontal: 10
 	},
 	ensAddress: {
