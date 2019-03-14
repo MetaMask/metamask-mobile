@@ -1,10 +1,16 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import AccountBackupStep6 from './';
+import configureMockStore from 'redux-mock-store';
+import { shallow } from 'enzyme';
+const mockStore = configureMockStore();
 
 describe('AccountBackupStep6', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<AccountBackupStep6 />);
+		const initialState = {};
+
+		const wrapper = shallow(<AccountBackupStep6 />, {
+			context: { store: mockStore(initialState) }
+		});
 		expect(wrapper).toMatchSnapshot();
 	});
 });
