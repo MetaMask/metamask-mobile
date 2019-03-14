@@ -38,8 +38,8 @@ exports[`HomePage should render correctly 1`] = `
         <View
           style={
             Object {
-              "height": 50,
-              "marginBottom": 15,
+              "marginHorizontal": 16,
+              "marginVertical": 12,
             }
           }
         >
@@ -51,22 +51,24 @@ exports[`HomePage should render correctly 1`] = `
             clearButtonMode="while-editing"
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
-            placeholder="SEARCH"
-            placeholderTextColor="#747d8c"
+            placeholder="Search or type a URL"
+            placeholderTextColor="#8E8E93"
             rejectResponderTermination={true}
             returnKeyType="go"
             style={
               Array [
                 Object {
-                  "backgroundColor": "#f9fafa",
+                  "backgroundColor": "#e9eff5",
+                  "borderRadius": 20,
+                  "color": "#8E8E93",
                   "flex": 1,
                   "fontFamily": "Roboto",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
+                  "height": 40,
                   "marginHorizontal": 0,
-                  "paddingHorizontal": 10,
-                  "paddingLeft": 45,
-                  "paddingVertical": 10,
+                  "paddingHorizontal": 38,
+                  "paddingTop": 2,
                 },
                 Object {},
               ]
@@ -76,14 +78,14 @@ exports[`HomePage should render correctly 1`] = `
           />
           <Icon
             allowFontScaling={false}
-            color="#747d8c"
+            color="#8E8E93"
             name="search"
             onPress={[Function]}
             size={18}
             style={
               Object {
-                "marginLeft": 18,
-                "marginTop": 14,
+                "marginLeft": 12,
+                "marginTop": 10,
                 "position": "absolute",
                 "textAlignVertical": "center",
               }
