@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -92,6 +92,10 @@ class Wallet extends Component {
 		showAlert: PropTypes.func.isRequired
 	};
 
+	state = {
+		refreshing: false
+	};
+
 	mounted = false;
 	scrollableTabViewRef = React.createRef();
 
@@ -119,6 +123,14 @@ class Wallet extends Component {
 			}
 		}
 	}
+
+	onRefresh = async () => {
+		this.setState({ refreshing: true });
+		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
+		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
+		await Promise.all(actions);
+		this.setState({ refreshing: false });
+	};
 
 	handleTabChange = page => {
 		this.scrollableTabViewRef && this.scrollableTabViewRef.current.goToPage(page);
@@ -214,9 +226,13 @@ class Wallet extends Component {
 	}
 
 	render = () => (
-		<View style={styles.wrapper} testID={'wallet-screen'}>
+		<ScrollView
+			style={styles.wrapper}
+			testID={'wallet-screen'}
+			refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+		>
 			{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
-		</View>
+		</ScrollView>
 	);
 }
 

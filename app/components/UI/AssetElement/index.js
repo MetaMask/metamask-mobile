@@ -56,13 +56,12 @@ export default class AssetElement extends Component {
 	};
 
 	render = () => {
-		const { children, asset } = this.props;
+		const { children } = this.props;
 		return (
 			<TouchableOpacity
 				onPress={this.handleOnPress}
 				onLongPress={this.handleOnLongPress}
 				style={styles.itemWrapper}
-				key={`asset=${asset.address}`}
 			>
 				{children}
 				<View styles={styles.arrow}>
