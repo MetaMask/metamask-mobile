@@ -117,6 +117,22 @@ class UrlAutocomplete extends Component {
 
 	onSubmitInput = () => this.props.onSubmit(this.props.input);
 
+	renderUrlOption = (url, name, onPress) => (
+		<TouchableOpacity containerStyle={styles.item} onPress={onPress} key={url}>
+			<View style={styles.itemWrapper}>
+				<WebsiteIcon style={styles.bookmarkIco} url={url} title={name} textStyle={styles.fallbackTextStyle} />
+				<View style={styles.textContent}>
+					<Text style={styles.name} numberOfLines={1}>
+						{name || getHost(url)}
+					</Text>
+					<Text style={styles.url} numberOfLines={1}>
+						{url}
+					</Text>
+				</View>
+			</View>
+		</TouchableOpacity>
+	);
+
 	render() {
 		if (this.props.input.length < 2) return null;
 		if (this.state.results.length === 0) {
@@ -141,31 +157,10 @@ class UrlAutocomplete extends Component {
 			<View style={styles.wrapper}>
 				{this.state.results.slice(0, 3).map(r => {
 					const { url, name } = r;
-
-					function onSubmit() {
+					const onPress = () => {
 						this.props.onSubmit(url);
-					}
-
-					return (
-						<TouchableOpacity containerStyle={styles.item} onPress={onSubmit} key={url}>
-							<View style={styles.itemWrapper}>
-								<WebsiteIcon
-									style={styles.bookmarkIco}
-									url={url}
-									title={name}
-									textStyle={styles.fallbackTextStyle}
-								/>
-								<View style={styles.textContent}>
-									<Text style={styles.name} numberOfLines={1}>
-										{name || getHost(url)}
-									</Text>
-									<Text style={styles.url} numberOfLines={1}>
-										{url}
-									</Text>
-								</View>
-							</View>
-						</TouchableOpacity>
-					);
+					};
+					return this.renderUrlOption(url, name, onPress);
 				})}
 				<TouchableWithoutFeedback style={styles.bg} onPress={this.props.onDismiss}>
 					<View style={styles.bg} />
