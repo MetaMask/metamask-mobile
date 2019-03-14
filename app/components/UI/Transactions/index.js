@@ -10,7 +10,8 @@ import {
 	Text,
 	View,
 	FlatList,
-	Dimensions
+	Dimensions,
+	InteractionManager
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -107,6 +108,8 @@ class Transactions extends PureComponent {
 		refreshing: false
 	};
 
+	selectedTx = null;
+
 	flatList = React.createRef();
 
 	componentDidMount() {
@@ -149,16 +152,29 @@ class Transactions extends PureComponent {
 	};
 
 	toggleDetailsView = (id, index) => {
-		this.setState(state => {
-			// copy the map rather than modifying state.
-			const selectedTx = new Map(state.selectedTx);
-			const show = !selectedTx.get(id);
-			selectedTx.set(id, show);
-			if (show && index) {
-				this.scrollToIndex(index);
-			}
-			return { selectedTx };
-		});
+		const oldId = this.selectedTx && this.selectedTx.id;
+		const oldIndex = this.selectedTx && this.selectedTx.index;
+
+		if (this.selectedTx && oldId !== id && oldIndex !== index) {
+			this.selectedTx = null;
+			this.toggleDetailsView(oldId, oldIndex);
+			InteractionManager.runAfterInteractions(() => {
+				this.toggleDetailsView(id, index);
+			});
+		} else {
+			this.setState(state => {
+				const selectedTx = new Map(state.selectedTx);
+				const show = !selectedTx.get(id);
+				selectedTx.set(id, show);
+				if (show && index) {
+					InteractionManager.runAfterInteractions(() => {
+						this.scrollToIndex(index);
+					});
+				}
+				this.selectedTx = show ? { id, index } : null;
+				return { selectedTx };
+			});
+		}
 	};
 
 	onRefresh = async () => {

@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { InteractionManager, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
-import { getWalletNavbarOptions } from '../../UI/Navbar';
+import getNavbarOptions from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
@@ -14,6 +14,12 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		backgroundColor: colors.white
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 
@@ -21,7 +27,7 @@ const styles = StyleSheet.create({
  * Main view for the Transaction history
  */
 class TransactionsView extends Component {
-	static navigationOptions = ({ navigation }) => getWalletNavbarOptions('transactions_view.title', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions('transactions_view.title', navigation);
 
 	static propTypes = {
 		/**
@@ -58,6 +64,7 @@ class TransactionsView extends Component {
 	txs = [];
 	txsPending = [];
 	mounted = false;
+	isNormalizing = false;
 	scrollableTabViewRef = React.createRef();
 
 	async init() {
@@ -71,6 +78,23 @@ class TransactionsView extends Component {
 		});
 	}
 
+	componentDidUpdate(prevProps) {
+		if (
+			prevProps.networkType !== this.props.networkType ||
+			prevProps.selectedAddress !== this.props.selectedAddress
+		) {
+			this.showLoaderAndNormalize();
+		} else {
+			this.normalizeTransactions();
+		}
+	}
+
+	showLoaderAndNormalize() {
+		this.setState({ loading: true }, () => {
+			this.normalizeTransactions();
+		});
+	}
+
 	componentWillUnmount() {
 		this.mounted = false;
 	}
@@ -78,6 +102,8 @@ class TransactionsView extends Component {
 	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
 
 	normalizeTransactions() {
+		if (this.isNormalizing) return;
+		this.isNormalizing = true;
 		const { selectedAddress, networkType, transactions } = this.props;
 		const networkId = Networks[networkType].networkId;
 		if (transactions.length) {
@@ -101,28 +127,39 @@ class TransactionsView extends Component {
 			) {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
-				this.setState({ transactionsUpdated: true });
+				this.setState({ transactionsUpdated: true, loading: false });
 			}
 		} else if (!this.state.transactionsUpdated) {
-			this.setState({ transactionsUpdated: true });
+			this.setState({ transactionsUpdated: true, loading: false });
 		}
+		this.isNormalizing = false;
 	}
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator style={styles.loader} size="small" />
+		</View>
+	);
 
 	render = () => {
 		const { conversionRate, currentCurrency, selectedAddress, navigation, networkType } = this.props;
 
 		return (
 			<View style={styles.wrapper} testID={'wallet-screen'}>
-				<Transactions
-					navigation={navigation}
-					tabLabel={strings('wallet.transactions')}
-					transactions={this.txs}
-					conversionRate={conversionRate}
-					currentCurrency={currentCurrency}
-					selectedAddress={selectedAddress}
-					networkType={networkType}
-					loading={!this.state.transactionsUpdated}
-				/>
+				{this.state.loading ? (
+					this.renderLoader()
+				) : (
+					<Transactions
+						navigation={navigation}
+						tabLabel={strings('wallet.transactions')}
+						transactions={this.txs}
+						conversionRate={conversionRate}
+						currentCurrency={currentCurrency}
+						selectedAddress={selectedAddress}
+						networkType={networkType}
+						loading={!this.state.transactionsUpdated}
+					/>
+				)}
 			</View>
 		);
 	};
