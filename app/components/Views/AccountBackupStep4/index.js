@@ -7,7 +7,8 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
-	Platform
+	Platform,
+	TextInput
 } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -17,7 +18,6 @@ import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { TextInput } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
