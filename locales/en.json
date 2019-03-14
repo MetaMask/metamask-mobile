@@ -548,7 +548,10 @@
 		"title": "Your seed phrase",
 		"info_text_1": "Carefully write down these words on paper. Their order matters.",
 		"info_text_2": "You'll be asked to re-enter it on the next screen",
-		"cta_text": "I'VE COPIED THE PHRASE"
+		"cta_text": "I'VE COPIED THE PHRASE",
+		"confirm_password": "Confirm your password",
+		"before_continiuing": "Before continuing we need you to confirm your password",
+		"confirm": "CONFIRM"
 	},
 	"account_backup_step_5": {
 		"error_title": "Oops!",
@@ -572,7 +575,8 @@
 		"cta_text": "GOT IT!",
 		"modal_title": "Congratulations!",
 		"modal_text": "You are all backed up and ready to go!",
-		"modal_button": "DONE"
+		"modal_button": "DONE",
+		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
@@ -600,7 +604,7 @@
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",
-		"body": "Now that you have valuables in your wallet, create password & save your wallet's seed phrase ",
+		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
 		"required": "(required)",
 		"button": "PROCEED NOW"
 	}

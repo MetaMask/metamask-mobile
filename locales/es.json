@@ -543,7 +543,10 @@
 		"title": "Tu frase semilla",
 		"info_text_1": "Escribe estas palabras en papel con mucho cuidado. El orden es importante.",
 		"info_text_2": "Te pediremos que la reingreses en la siguiente pantalla",
-		"cta_text": "HE ANOTADO MI FRASE SEMILLA"
+		"cta_text": "HE ANOTADO MI FRASE SEMILLA",
+		"confirm_password": "Confirma tu contraseña",
+		"before_continiuing": "Antes de continuar necesitamos que confirmes tu contraseña",
+		"confirm": "CONFIRMAR"
 	},
 	"account_backup_step_5": {
 		"error_title": "Oops!",
@@ -567,7 +570,8 @@
 		"cta_text": "ENTENDIDO!",
 		"modal_title": "Felicitaciones!",
 		"modal_text": "Ya haz completado tu resplado y estas listo para continuar!",
-		"modal_button": "LISTO"
+		"modal_button": "LISTO",
+		"copy_seed_phrase": "COPIAR FRASE SEMILLA EN PORTAPAPELES"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Detección de Phising de Ethereum",
