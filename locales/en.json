@@ -455,7 +455,8 @@
 		"eth": "ETH",
 		"negative": "-",
 		"divisor": "/",
-		"token_id": "#"
+		"token_id": "#",
+		"colon": ":"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",

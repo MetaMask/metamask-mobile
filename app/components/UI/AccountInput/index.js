@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		color: colors.inputBorderColor,
 		position: 'absolute',
 		right: 10,
-		top: Platform.OS === 'android' ? 20 : 13
+		top: Platform.OS === 'android' ? 16 : 14
 	},
 	componentContainer: {
 		position: 'relative',
@@ -38,16 +38,19 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.bold,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
+		paddingHorizontal: 0,
+		paddingVertical: 0,
+		width: '100%'
 	},
 	inputContainer: {
 		fontSize: 16,
 		paddingBottom: 12,
 		paddingRight: 40,
 		paddingLeft: 52,
-		paddingTop: 12,
+		paddingTop: Platform.OS === 'android' ? 10 : 12,
 		position: 'relative',
-		minHeight: 50,
+		minHeight: Platform.OS === 'android' ? 22 : 50,
 		flex: 1,
 		flexDirection: 'row',
 		alignItems: 'center'
@@ -98,12 +101,16 @@ const styles = StyleSheet.create({
 	qrCodeButton: {
 		position: 'absolute',
 		left: 5,
-		top: Platform.OS === 'android' ? 8 : 6,
-		paddingVertical: 8,
+		height: '100%',
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingVertical: 6,
 		paddingHorizontal: 10
 	},
 	ensAddress: {
-		fontSize: 10
+		fontSize: 10,
+		top: Platform.OS === 'android' ? -8 : 0
 	}
 });
 

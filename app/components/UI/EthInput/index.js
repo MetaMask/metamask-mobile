@@ -265,7 +265,7 @@ class EthInput extends Component {
 				);
 		} else {
 			title = asset.name;
-			subTitle = strings('collectible.collectible_token_id') + ': ' + asset.tokenId;
+			subTitle = strings('collectible.collectible_token_id') + strings('unit.colon') + ' ' + asset.tokenId;
 			icon = <CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />;
 		}
 		return <SelectableAsset onPress={onPress} title={title} subTitle={subTitle} icon={icon} asset={asset} />;
