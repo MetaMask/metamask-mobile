@@ -134,14 +134,6 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
-	qrCodeWrapper: {
-		position: 'absolute',
-		right: 17,
-		top: 17
-	},
-	infoIcon: {
-		color: colors.primary
-	},
 	buttons: {
 		flexDirection: 'row',
 		borderBottomColor: colors.borderColor,
@@ -723,13 +715,6 @@ class DrawerView extends Component {
 								)}
 							</TouchableOpacity>
 						</View>
-						<TouchableOpacity
-							style={styles.qrCodeWrapper}
-							onPress={this.onAccountPress}
-							testID={'navbar-account-button'}
-						>
-							<Icon name="qrcode" onPress={this.showReceiveModal} size={30} style={styles.infoIcon} />
-						</TouchableOpacity>
 					</View>
 					<View style={styles.buttons}>
 						<StyledButton
