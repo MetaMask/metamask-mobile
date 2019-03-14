@@ -83,24 +83,26 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	searchWrapper: {
-		height: 50,
-		marginBottom: 15
+		marginVertical: 12,
+		marginHorizontal: 16
 	},
 	searchInput: {
-		paddingVertical: 10,
-		paddingHorizontal: 10,
-		paddingLeft: 45,
 		flex: 1,
 		marginHorizontal: 0,
-		backgroundColor: colors.beige,
-		fontSize: 14,
+		paddingTop: Platform.OS === 'android' ? 12 : 2,
+		borderRadius: 20,
+		paddingHorizontal: 38,
+		fontSize: 16,
+		backgroundColor: colors.blueishGrey,
+		height: 40,
+		color: colors.another50ShadesOfGrey,
 		...fontStyles.normal
 	},
 	searchIcon: {
 		position: 'absolute',
 		textAlignVertical: 'center',
-		marginTop: 14,
-		marginLeft: 18
+		marginTop: Platform.OS === 'android' ? 8 : 10,
+		marginLeft: 12
 	},
 	backupAlert: {
 		position: 'absolute',
@@ -153,7 +155,7 @@ const styles = StyleSheet.create({
 	},
 	urlAutocomplete: {
 		position: 'absolute',
-		marginTop: 50,
+		marginTop: 62,
 		backgroundColor: colors.white,
 		width: '100%',
 		height: '100%'
@@ -320,13 +322,14 @@ class HomePage extends Component {
 										styles.searchInput,
 										this.state.inputWidth ? { width: this.state.inputWidth } : {}
 									]}
+									ref={this.searchInput}
 									autoCapitalize="none"
 									autoCorrect={false}
 									clearButtonMode="while-editing"
 									onChangeText={this.onInitialUrlChange}
 									onSubmitEditing={this.onInitialUrlSubmit}
 									placeholder={strings('browser.search')}
-									placeholderTextColor={colors.asphalt}
+									placeholderTextColor={colors.another50ShadesOfGrey}
 									returnKeyType="go"
 									value={this.state.searchInputValue}
 									blurOnSubmit
@@ -335,7 +338,7 @@ class HomePage extends Component {
 									onPress={this.focusInput}
 									name="search"
 									size={18}
-									color={colors.asphalt}
+									color={colors.another50ShadesOfGrey}
 									style={styles.searchIcon}
 								/>
 							</View>

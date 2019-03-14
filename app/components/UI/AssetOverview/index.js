@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Image, Alert, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
@@ -7,6 +7,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AssetActionButtons from '../AssetActionButtons';
 import { setTokensTransaction } from '../../../actions/transaction';
+import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -68,11 +69,15 @@ class AssetOverview extends Component {
 		/**
 		 * Action that sets a tokens type transaction
 		 */
-		setTokensTransaction: PropTypes.func.isRequired
+		setTokensTransaction: PropTypes.func.isRequired,
+		/**
+		 * Action that toggles the receive modal
+		 */
+		toggleReceiveModal: PropTypes.func
 	};
 
 	onDeposit = () => {
-		Alert.alert(strings('drawer.coming_soon'));
+		this.props.toggleReceiveModal();
 	};
 
 	onSend = async () => {
@@ -122,7 +127,8 @@ class AssetOverview extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
+	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
+	toggleReceiveModal: () => dispatch(toggleReceiveModal())
 });
 
 export default connect(
