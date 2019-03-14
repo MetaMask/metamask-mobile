@@ -13,7 +13,7 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
     pages={5}
     selected={5}
   />
-  <ScrollView
+  <ScrollViewMock
     contentContainerStyle={
       Object {
         "flex": 1,
@@ -36,7 +36,7 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
         }
       }
     >
-      <Component
+      <Image
         resizeMethod="auto"
         source={
           Object {
@@ -300,6 +300,6 @@ exports[`AccountBackupStep6 should render correctly 1`] = `
         You are all backed up and ready to go!
       </Text>
     </CustomAlert>
-  </ScrollView>
+  </ScrollViewMock>
 </SafeAreaView>
 `;

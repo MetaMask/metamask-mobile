@@ -43,6 +43,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
         refreshing={false}
       />
     }
+    removeClippedSubviews={false}
     renderItem={[Function]}
     scrollEventThrottle={50}
     updateCellsBatchingPeriod={50}

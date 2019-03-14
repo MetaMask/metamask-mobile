@@ -54,7 +54,7 @@ export const TransactionNotification = props => {
 		}
 	} = props;
 
-	// eslint-disable-next-line no-undef
+	// eslint-disable-next-line
 	_getIcon = () => {
 		switch (type) {
 			case 'pending':

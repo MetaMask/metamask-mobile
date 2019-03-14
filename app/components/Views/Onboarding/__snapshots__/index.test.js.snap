@@ -2,7 +2,7 @@
 
 exports[`Onboarding should render correctly 1`] = `
 <OnboardingScreenWithBg>
-  <ScrollView
+  <ScrollViewMock
     contentContainerStyle={
       Object {
         "flex": 1,
@@ -143,6 +143,6 @@ exports[`Onboarding should render correctly 1`] = `
         </View>
       </View>
     </View>
-  </ScrollView>
+  </ScrollViewMock>
 </OnboardingScreenWithBg>
 `;

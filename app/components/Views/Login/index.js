@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
-	AsyncStorage,
 	Switch,
 	Alert,
 	ActivityIndicator,
@@ -13,6 +12,7 @@ import {
 	Platform,
 	Image
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';

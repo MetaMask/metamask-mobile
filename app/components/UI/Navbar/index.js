@@ -91,10 +91,11 @@ const metamask_name = require('../../../images/metamask-name.png'); // eslint-di
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
 export default function getNavbarOptions(title, navigation) {
-	const onPress = () => {
+	function onPress() {
 		Keyboard.dismiss();
 		navigation.openDrawer();
-	};
+	}
+
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
@@ -295,10 +296,14 @@ export function getWalletNavbarOptions(title, navigation) {
 		}
 	};
 
+	function openDrawer() {
+		navigation.openDrawer();
+	}
+
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
-			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
+			<TouchableOpacity onPress={openDrawer} style={styles.backButton}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
