@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { ScrollView, Text, Image, View, SafeAreaView, StyleSheet } from 'react-native';
-
+import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet } from 'react-native';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
 import Pager from '../../UI/Pager';
@@ -8,6 +8,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import CustomAlert from '../../UI/CustomAlert';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { showAlert } from '../../../actions/alert';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -57,6 +59,11 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		marginBottom: 15
 	},
+	copy: {
+		flexDirection: 'row',
+		marginBottom: 15,
+		marginLeft: 10
+	},
 	tips: {
 		marginTop: 20
 	},
@@ -82,12 +89,16 @@ const styles = StyleSheet.create({
  * View that's shown during the last step of
  * the backup seed phrase flow
  */
-export default class AccountBackupStep6 extends Component {
+class AccountBackupStep6 extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -102,6 +113,17 @@ export default class AccountBackupStep6 extends Component {
 		this.setState({ showSuccessModal: false });
 		this.props.navigation.popToTop();
 		this.props.navigation.goBack(null);
+	};
+
+	onCopySeedPhrase = async () => {
+		const words = this.props.navigation.getParam('words', []);
+		await Clipboard.setString(words.join(' '));
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings(`reveal_credential.seed_phrase_copied`) }
+		});
 	};
 
 	render() {
@@ -132,6 +154,11 @@ export default class AccountBackupStep6 extends Component {
 								<Text style={styles.bullet}>{'\u2022'}</Text>
 								<Text style={styles.label}>{strings('account_backup_step_6.tip_2')}</Text>
 							</View>
+							<TouchableOpacity style={styles.copy} onPress={this.onCopySeedPhrase}>
+								<Text style={[styles.label, { color: colors.primary }]}>
+									{strings('account_backup_step_6.copy_seed_phrase')}
+								</Text>
+							</TouchableOpacity>
 							<View style={styles.bulletPoint}>
 								<Text style={styles.bullet}>{'\u2022'}</Text>
 								<Text style={styles.label}>{strings('account_backup_step_6.tip_3')}</Text>
@@ -172,3 +199,12 @@ export default class AccountBackupStep6 extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	showAlert: config => dispatch(showAlert(config))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(AccountBackupStep6);

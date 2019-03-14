@@ -7,7 +7,8 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
-	Platform
+	Platform,
+	TextInput
 } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -111,9 +112,25 @@ const styles = StyleSheet.create({
 		minHeight: 300,
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	input: {
+		borderWidth: 2,
+		borderRadius: 5,
+		width: '100%',
+		borderColor: colors.concrete,
+		padding: 10,
+		height: 40
+	},
+	warningMessageText: {
+		paddingVertical: 10,
+		color: colors.red,
+		...fontStyles.normal
 	}
 });
 
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
+const SEED_PHRASE = 'seed_phrase';
+const CONFIRM_PASSWORD = 'confirm_password';
 /**
  * View that's shown during the fourth step of
  * the backup seed phrase flow
@@ -126,7 +143,23 @@ export default class AccountBackupStep4 extends Component {
 		navigation: PropTypes.object
 	};
 	state = {
-		ready: false
+		ready: false,
+		view: SEED_PHRASE,
+		password: undefined,
+		warningIncorrectPassword: undefined
+	};
+
+	onPasswordChange = password => {
+		this.setState({ password });
+	};
+
+	tryExportSeedPhrase = async password => {
+		const { KeyringController } = Engine.context;
+		const mnemonic = await KeyringController.exportSeedPhrase(password);
+		const seed = JSON.stringify(mnemonic)
+			.replace(/"/g, '')
+			.split(' ');
+		return seed;
 	};
 
 	async componentDidMount() {
@@ -135,13 +168,9 @@ export default class AccountBackupStep4 extends Component {
 		if (!this.words.length) {
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
-				const { KeyringController } = Engine.context;
-				const mnemonic = await KeyringController.exportSeedPhrase(credentials.password);
-				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
-				this.words = seed.split(' ');
+				this.words = await this.tryExportSeedPhrase(credentials.password);
 			} else {
-				this.props.navigation.popToTop();
-				this.props.navigation.goBack(null);
+				this.setState({ view: CONFIRM_PASSWORD });
 			}
 		}
 		this.setState({ ready: true });
@@ -161,12 +190,110 @@ export default class AccountBackupStep4 extends Component {
 		</View>
 	);
 
-	render() {
-		const { ready } = this.state;
-		return ready ? this.renderContent() : this.renderLoader();
+	tryUnlockWithPassword = async password => {
+		this.setState({ ready: false });
+		try {
+			this.words = await this.tryExportSeedPhrase(password);
+			this.setState({ view: SEED_PHRASE, ready: true });
+		} catch (e) {
+			let msg = strings('reveal_credential.warning_incorrect_password');
+			if (e.toString() !== WRONG_PASSWORD_ERROR) {
+				msg = strings('reveal_credential.unknown_error');
+			}
+			this.setState({
+				warningIncorrectPassword: msg,
+				ready: true
+			});
+		}
+	};
+
+	tryUnlock = () => {
+		const { password } = this.state;
+		this.tryUnlockWithPassword(password);
+	};
+
+	renderStepContent() {
+		return (
+			<View style={styles.wrapper} testID={'protect-your-account-screen'}>
+				<View style={styles.content}>
+					<Text style={styles.title}>{strings('account_backup_step_4.title')}</Text>
+					<View style={styles.text}>
+						<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
+					</View>
+
+					<View style={styles.seedPhraseWrapper}>
+						<View style={styles.colLeft}>
+							{this.words.slice(0, 6).map((word, i) => (
+								<Text key={`word_${i}`} style={styles.word}>
+									{`${i + 1}. ${word}`}
+								</Text>
+							))}
+						</View>
+						<View style={styles.colRight}>
+							{this.words.slice(-6).map((word, i) => (
+								<Text key={`word_${i}`} style={styles.word}>
+									{`${i + 7}. ${word}`}
+								</Text>
+							))}
+						</View>
+					</View>
+
+					<View style={styles.text}>
+						<Text style={styles.label}>{strings('account_backup_step_4.info_text_2')}</Text>
+					</View>
+				</View>
+				<View style={styles.buttonWrapper}>
+					<StyledButton
+						containerStyle={styles.button}
+						type={'confirm'}
+						onPress={this.goNext}
+						testID={'submit-button'}
+					>
+						{strings('account_backup_step_4.cta_text')}
+					</StyledButton>
+				</View>
+			</View>
+		);
 	}
 
-	renderContent() {
+	renderConfirmPassword() {
+		const { warningIncorrectPassword } = this.state;
+		return (
+			<View style={styles.wrapper}>
+				<View style={styles.content}>
+					<Text style={styles.title}>{strings('account_backup_step_4.confirm_password')}</Text>
+					<View style={styles.text}>
+						<Text style={styles.label}>{strings('account_backup_step_4.before_continiuing')}</Text>
+					</View>
+					<TextInput
+						style={styles.input}
+						placeholder={'Password'}
+						onChangeText={this.onPasswordChange}
+						secureTextEntry
+						onSubmitEditing={this.tryUnlock}
+						testID={'private-credential-password-text-input'}
+					/>
+					{warningIncorrectPassword && (
+						<Text style={styles.warningMessageText}>{warningIncorrectPassword}</Text>
+					)}
+				</View>
+				<View style={styles.buttonWrapper}>
+					<StyledButton
+						containerStyle={styles.button}
+						type={'confirm'}
+						onPress={this.tryUnlock}
+						testID={'submit-button'}
+					>
+						{strings('account_backup_step_4.confirm')}
+					</StyledButton>
+				</View>
+			</View>
+		);
+	}
+
+	render() {
+		const { ready, view } = this.state;
+		if (!ready) return this.renderLoader();
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<ScrollView
@@ -178,45 +305,7 @@ export default class AccountBackupStep4 extends Component {
 					<TouchableOpacity onPress={this.dismiss} style={styles.navbarLeftButton}>
 						<Text style={styles.navbarLeftText}>{strings('account_backup_step_4.back')}</Text>
 					</TouchableOpacity>
-					<View style={styles.wrapper} testID={'protect-your-account-screen'}>
-						<View style={styles.content}>
-							<Text style={styles.title}>{strings('account_backup_step_4.title')}</Text>
-							<View style={styles.text}>
-								<Text style={styles.label}>{strings('account_backup_step_4.info_text_1')}</Text>
-							</View>
-
-							<View style={styles.seedPhraseWrapper}>
-								<View style={styles.colLeft}>
-									{this.words.slice(0, 6).map((word, i) => (
-										<Text key={`word_${i}`} style={styles.word}>
-											{`${i + 1}. ${word}`}
-										</Text>
-									))}
-								</View>
-								<View style={styles.colRight}>
-									{this.words.slice(-6).map((word, i) => (
-										<Text key={`word_${i}`} style={styles.word}>
-											{`${i + 7}. ${word}`}
-										</Text>
-									))}
-								</View>
-							</View>
-
-							<View style={styles.text}>
-								<Text style={styles.label}>{strings('account_backup_step_4.info_text_2')}</Text>
-							</View>
-						</View>
-						<View style={styles.buttonWrapper}>
-							<StyledButton
-								containerStyle={styles.button}
-								type={'confirm'}
-								onPress={this.goNext}
-								testID={'submit-button'}
-							>
-								{strings('account_backup_step_4.cta_text')}
-							</StyledButton>
-						</View>
-					</View>
+					{view === SEED_PHRASE ? this.renderStepContent() : this.renderConfirmPassword()}
 				</ScrollView>
 			</SafeAreaView>
 		);
