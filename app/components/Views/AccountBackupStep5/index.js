@@ -196,7 +196,7 @@ class AccountBackupStep5 extends Component {
 	onSuccesModalAction = () => {
 		this.setState({ showSuccessModal: false });
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('AccountBackupStep6');
+			this.props.navigation.navigate('AccountBackupStep6', { words: this.words });
 		});
 	};
 
