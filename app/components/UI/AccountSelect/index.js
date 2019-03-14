@@ -54,7 +54,8 @@ const styles = StyleSheet.create({
 		paddingTop: 1.5
 	},
 	content: {
-		paddingLeft: 8
+		flex: 1,
+		paddingHorizontal: 8
 	},
 	arrow: {
 		color: colors.inputBorderColor,
@@ -155,19 +156,13 @@ class AccountSelect extends Component {
 					<Identicon address={account.address} diameter={22} />
 				</View>
 				<View style={styles.content}>
-					<View>
-						<Text style={styles.name}>{account.name}</Text>
-					</View>
-					<View>
-						<Text style={styles.info}>
-							{renderFromWei(balance)} {strings('unit.eth')}
-						</Text>
-					</View>
-					<View>
-						<Text style={styles.info}>
-							{weiToFiat(balance, conversionRate, currentCurrency).toUpperCase()}
-						</Text>
-					</View>
+					<Text numberOfLines={1} style={styles.name}>
+						{account.name}
+					</Text>
+					<Text style={styles.info}>
+						{renderFromWei(balance)} {strings('unit.eth')}
+					</Text>
+					<Text style={styles.info}>{weiToFiat(balance, conversionRate, currentCurrency).toUpperCase()}</Text>
 				</View>
 			</TouchableOpacity>
 		);
