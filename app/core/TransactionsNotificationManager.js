@@ -35,11 +35,7 @@ class TransactionsNotificationManager {
 
 	_viewTransaction = id => {
 		this._transactionToView.push(id);
-		this._navigation.navigate('WalletTabHome');
-		this._navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this._navigation.navigate('WalletView', { page: 2 });
-		}, 300);
+		this._navigation.navigate('TransactionsHome');
 	};
 
 	_removeListeners = transactionId => {

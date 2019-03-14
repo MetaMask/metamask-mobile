@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Image, RefreshControl, FlatList, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -104,10 +104,6 @@ export default class Tokens extends PureComponent {
 		transactions: PropTypes.array
 	};
 
-	state = {
-		refreshing: false
-	};
-
 	actionSheet = null;
 
 	tokenToRemove = null;
@@ -123,7 +119,7 @@ export default class Tokens extends PureComponent {
 	};
 
 	renderFooter = () => (
-		<View style={styles.footer}>
+		<View style={styles.footer} key={'tokens-footer'}>
 			<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
 				<Icon name="plus" size={16} color={colors.primary} />
 				<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
@@ -131,17 +127,7 @@ export default class Tokens extends PureComponent {
 		</View>
 	);
 
-	keyExtractor = item => item.symbol;
-
-	onRefresh = async () => {
-		this.setState({ refreshing: true });
-		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
-		await Promise.all(actions);
-		this.setState({ refreshing: false });
-	};
-
-	renderItem = ({ item }) => {
+	renderItem = item => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
 		const logo = item.logo || ((contractMap[item.address] && contractMap[item.address].logo) || undefined);
 		const exchangeRate = item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
@@ -153,7 +139,12 @@ export default class Tokens extends PureComponent {
 		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		item = { ...item, ...{ logo, balance, balanceFiat } };
 		return (
-			<AssetElement onPress={this.onItemPress} onLongPress={this.showRemoveMenu} asset={item}>
+			<AssetElement
+				key={item.address || '0x'}
+				onPress={this.onItemPress}
+				onLongPress={this.showRemoveMenu}
+				asset={item}
+			>
 				{item.symbol === 'ETH' ? (
 					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 						<Image source={ethLogo} style={styles.ethLogo} />
@@ -175,13 +166,10 @@ export default class Tokens extends PureComponent {
 		const { tokens } = this.props;
 
 		return (
-			<FlatList
-				data={tokens}
-				keyExtractor={this.keyExtractor}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				renderItem={this.renderItem}
-				ListFooterComponent={this.renderFooter}
-			/>
+			<View>
+				{tokens.map(item => this.renderItem(item))}
+				{this.renderFooter()}
+			</View>
 		);
 	}
 

@@ -168,21 +168,29 @@ const styles = StyleSheet.create({
 	buttonIcon: {
 		marginTop: 0
 	},
-	menu: {
-		marginLeft: 17
-	},
+	menu: {},
 	noTopBorder: {
 		borderTopWidth: 0
 	},
 	menuSection: {
 		borderTopWidth: 1,
 		borderColor: colors.borderColor,
-		paddingVertical: 5
+		paddingVertical: 10
 	},
 	menuItem: {
 		flex: 1,
 		flexDirection: 'row',
-		paddingVertical: 9
+		paddingVertical: 9,
+		paddingLeft: 17
+	},
+	selectedRoute: {
+		backgroundColor: colors.primaryOpacity,
+		marginRight: 10,
+		borderTopRightRadius: 20,
+		borderBottomRightRadius: 20
+	},
+	selectedName: {
+		color: colors.primary
 	},
 	menuItemName: {
 		flex: 1,
@@ -286,7 +294,8 @@ const styles = StyleSheet.create({
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
-	assets: require('../../../images/wallet-icon.png')
+	wallet: require('../../../images/wallet-icon.png'),
+	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
 const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
 
@@ -445,17 +454,6 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
-	async goToWalletTab(tabIndex) {
-		this.props.navigation.navigate('WalletTabHome');
-		this.hideDrawer();
-		if (tabIndex !== 0) {
-			setTimeout(() => {
-				this.props.navigation.navigate('WalletView', { page: 0 });
-				this.props.navigation.navigate('WalletView', { page: tabIndex });
-			}, 100);
-		}
-	}
-
 	goToBrowser = () => {
 		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
@@ -467,7 +465,8 @@ class DrawerView extends Component {
 	};
 
 	goToTransactionHistory = () => {
-		this.goToWalletTab(2);
+		this.props.navigation.navigate('TransactionsHome');
+		this.hideDrawer();
 	};
 
 	showSettings = async () => {
@@ -583,22 +582,44 @@ class DrawerView extends Component {
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
+	getSelectedIcon(name, size) {
+		return <Icon name={name} size={size || 24} color={colors.primary} />;
+	}
+
+	getSelectedFeatherIcon(name, size) {
+		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
+	}
+
+	getSelectedMaterialIcon(name, size) {
+		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
+	}
+
+	getSelectedImageIcon(name) {
+		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
+	}
+
 	getSections = () => [
 		[
 			{
 				name: strings('drawer.browser'),
 				icon: this.getIcon('globe'),
-				action: this.goToBrowser
+				selectedIcon: this.getSelectedIcon('globe'),
+				action: this.goToBrowser,
+				routeNames: ['BrowserHome', 'BrowserView', 'AddBookmark']
 			},
 			{
 				name: strings('drawer.wallet'),
-				icon: this.getImageIcon('assets'),
-				action: this.showWallet
+				icon: this.getImageIcon('wallet'),
+				selectedIcon: this.getSelectedImageIcon('wallet'),
+				action: this.showWallet,
+				routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
 			},
 			{
 				name: strings('drawer.transaction_history'),
 				icon: this.getFeatherIcon('list'),
-				action: this.goToTransactionHistory
+				selectedIcon: this.getSelectedFeatherIcon('list'),
+				action: this.goToTransactionHistory,
+				routeNames: ['TransactionsView']
 			}
 		],
 		[
@@ -659,6 +680,12 @@ class DrawerView extends Component {
 		});
 	};
 
+	findRouteNameFromNavigatorState({ routes }) {
+		let route = routes[routes.length - 1];
+		while (route.index !== undefined) route = route.routes[route.index];
+		return route.routeName;
+	}
+
 	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -669,6 +696,7 @@ class DrawerView extends Component {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
+		const currentRoute = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
@@ -757,11 +785,28 @@ class DrawerView extends Component {
 									.map((item, j) => (
 										<TouchableOpacity
 											key={`item_${i}_${j}`}
-											style={styles.menuItem}
+											style={[
+												styles.menuItem,
+												item.routeNames && item.routeNames.includes(currentRoute)
+													? styles.selectedRoute
+													: null
+											]}
 											onPress={() => item.action()} // eslint-disable-line
 										>
-											{item.icon ? item.icon : null}
-											<Text style={[styles.menuItemName, !item.icon ? styles.noIcon : null]}>
+											{item.icon
+												? item.routeNames && item.routeNames.includes(currentRoute)
+													? item.selectedIcon
+													: item.icon
+												: null}
+											<Text
+												style={[
+													styles.menuItemName,
+													!item.icon ? styles.noIcon : null,
+													item.routeNames && item.routeNames.includes(currentRoute)
+														? styles.selectedName
+														: null
+												]}
+											>
 												{item.name}
 											</Text>
 										</TouchableOpacity>
