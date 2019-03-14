@@ -737,12 +737,7 @@ class DrawerView extends Component {
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
 						>
-							<MaterialIcon
-								name={'arrow-collapse-down'}
-								size={22}
-								color={colors.primary}
-								style={styles.buttonIcon}
-							/>
+							<Icon name={'qrcode'} size={22} color={colors.primary} style={styles.buttonIcon} />
 							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>
