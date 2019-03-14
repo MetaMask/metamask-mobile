@@ -9,7 +9,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <ScrollViewMock
     contentContainerStyle={
       Object {
         "flex": 1,
@@ -276,6 +276,6 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         </Button>
       </View>
     </View>
-  </ScrollView>
+  </ScrollViewMock>
 </SafeAreaView>
 `;

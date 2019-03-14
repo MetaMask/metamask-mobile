@@ -19,7 +19,7 @@ import {
 	TypedMessageManager
 } from 'gaba';
 
-import { AsyncStorage } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';

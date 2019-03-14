@@ -1,14 +1,6 @@
 import React, { Component } from 'react';
-import {
-	AsyncStorage,
-	SafeAreaView,
-	StyleSheet,
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	Clipboard
-} from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
 	Switch,
-	AsyncStorage,
 	ActivityIndicator,
 	Alert,
 	Text,
@@ -12,6 +11,7 @@ import {
 	StyleSheet,
 	Platform
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';

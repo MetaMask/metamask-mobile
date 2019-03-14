@@ -81,7 +81,11 @@ export default class CustomAlert extends Component {
 		/**
 		/* Direction of the swipe gesture to trigger a swipeComplete event
 		*/
-		swipeDirection: PropTypes.string
+		swipeDirection: PropTypes.string,
+		/**
+		/* Children components
+		*/
+		children: PropTypes.any
 	};
 
 	render() {

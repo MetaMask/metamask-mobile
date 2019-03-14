@@ -141,9 +141,11 @@ class UrlAutocomplete extends Component {
 			<View style={styles.wrapper}>
 				{this.state.results.slice(0, 3).map(r => {
 					const { url, name } = r;
-					const onSubmit = () => {
+
+					function onSubmit() {
 						this.props.onSubmit(url);
-					};
+					}
+
 					return (
 						<TouchableOpacity containerStyle={styles.item} onPress={onSubmit} key={url}>
 							<View style={styles.itemWrapper}>

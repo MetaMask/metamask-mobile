@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GeneralSettings should render correctly 1`] = `
-<ScrollView
+<ScrollViewMock
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -463,5 +463,5 @@ exports[`GeneralSettings should render correctly 1`] = `
       />
     </View>
   </View>
-</ScrollView>
+</ScrollViewMock>
 `;

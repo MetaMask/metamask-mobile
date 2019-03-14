@@ -11,7 +11,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
       }
       useNativeDriver={true}
     >
-      <Component
+      <Image
         onError={[Function]}
         source={
           Object {

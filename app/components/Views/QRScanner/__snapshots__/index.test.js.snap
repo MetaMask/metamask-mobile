@@ -48,7 +48,7 @@ exports[`QrScanner should render correctly 1`] = `
           size={50}
         />
       </TouchableOpacity>
-      <Component
+      <Image
         source={
           Object {
             "testUri": "../../../app/images/frame.png",

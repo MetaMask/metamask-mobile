@@ -11,5 +11,6 @@ package.json
 app/util/blockies.js
 /shim.js
 babel.config.js
+metro.config.js
 jest.preprocessor.js
 scripts/metamask-bot-build-announce.js

@@ -4,12 +4,12 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.ocetnik.timer.BackgroundTimerPackage;
 import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
-import com.clipsub.RNShake.RNShakeEventPackage;
 import io.branch.rnbranch.RNBranchPackage;
 import io.branch.referral.Branch;
 import com.web3webview.Web3WebviewPackage;
@@ -17,7 +17,6 @@ import com.oblador.vectoricons.VectorIconsPackage;
 import cl.json.RNSharePackage;
 import com.bitgo.randombytes.RandomBytesPackage;
 import com.peel.react.rnos.RNOSModule;
-import com.BV.LinearGradient.LinearGradientPackage;
 import com.oblador.keychain.KeychainPackage;
 import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
 import com.rnfs.RNFSPackage;
@@ -49,17 +48,16 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
+           		new AsyncStoragePackage(),
             	new ReactNativePushNotificationPackage(),
             	new BackgroundTimerPackage(),
 				new RNDeviceInfo(),
 				new SvgPackage(),
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),
-            	new RNShakeEventPackage(),
 				new RNBranchPackage(),
 				new FabricPackage(),
 				new KeychainPackage(),
-				new LinearGradientPackage(),
 				new RandomBytesPackage(),
 				new RCTAesPackage(),
 				new RNCameraPackage(),

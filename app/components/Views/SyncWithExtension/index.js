@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, AsyncStorage, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import SecureKeychain from '../../../core/SecureKeychain';
