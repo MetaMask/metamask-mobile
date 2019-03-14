@@ -323,7 +323,8 @@
 		"conversion_not_available": "Datos de conversión no disponibles",
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
-		"optional": "Opcional"
+		"optional": "Opcional",
+		"no_address_for_ens": "No existe dirección para nombre ENS"
 	},
 	"custom_gas": {
 		"advanced_options": "Opciones Avanzadas",

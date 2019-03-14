@@ -157,10 +157,6 @@ class TransactionEdit extends Component {
 		 */
 		handleUpdateAsset: PropTypes.func,
 		/**
-		 * A string that represents the value un a readable format (decimal)
-		 */
-		readableValue: PropTypes.string,
-		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
 		validateAmount: PropTypes.func,
@@ -188,7 +184,8 @@ class TransactionEdit extends Component {
 		addressError: '',
 		toAddressError: '',
 		gasError: '',
-		fillMax: false
+		fillMax: false,
+		ensRecipient: undefined
 	};
 
 	componentDidMount = () => {
@@ -226,6 +223,10 @@ class TransactionEdit extends Component {
 
 	updateFillMax = fillMax => {
 		this.setState({ fillMax });
+	};
+
+	updateToAddressError = error => {
+		this.setState({ toAddressError: error });
 	};
 
 	onFocusToAddress = () => {
@@ -276,8 +277,14 @@ class TransactionEdit extends Component {
 
 	updateToAddress = async to => {
 		await this.props.handleUpdateToAddress(to);
-		const toAddressError = this.props.validateToAddress();
-		this.setState({ toAddressError });
+		this.setState({ toAddressError: undefined });
+	};
+
+	updateAndValidateToAddress = async (to, ensRecipient) => {
+		await this.props.handleUpdateToAddress(to, ensRecipient);
+		let { toAddressError } = this.state;
+		toAddressError = toAddressError || this.props.validateToAddress();
+		this.setState({ toAddressError, ensRecipient });
 	};
 
 	onScan = () => {
@@ -320,9 +327,8 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transaction: { value, gas, gasPrice, data, from, to, selectedAsset },
-			showHexData,
-			readableValue
+			transaction: { value, gas, gasPrice, data, from, to, selectedAsset, readableValue, ensRecipient },
+			showHexData
 		} = this.props;
 		const { gasError, toAddressError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
@@ -355,11 +361,13 @@ class TransactionEdit extends Component {
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
-								onBlur={this.updateToAddress}
+								onBlur={this.updateAndValidateToAddress}
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScan}
-								value={to}
+								address={to}
+								updateToAddressError={this.updateToAddressError}
+								ensRecipient={ensRecipient}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>

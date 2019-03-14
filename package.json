@@ -65,6 +65,7 @@
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
     "ethjs-contract": "0.2.3",
+    "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",

@@ -183,12 +183,13 @@ exports[`TransactionEdit should render correctly 1`] = `
           </Text>
         </View>
         <Connect(AccountInput)
+          address="0x2"
           onBlur={[Function]}
           onChange={[Function]}
           onFocus={[Function]}
           placeholder="Recipient Address"
           showQRScanner={[Function]}
-          value="0x2"
+          updateToAddressError={[Function]}
         />
       </View>
       <View
