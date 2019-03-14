@@ -68,6 +68,18 @@ exports[`Main should render correctly 1`] = `
                 "getScreenOptions": [Function],
                 "getStateForAction": [Function],
               },
+              "TransactionsHome": Object {
+                "childRouters": Object {
+                  "TransactionsView": null,
+                },
+                "getActionCreators": [Function],
+                "getActionForPathAndParams": [Function],
+                "getComponentForRouteName": [Function],
+                "getComponentForState": [Function],
+                "getPathAndParamsForState": [Function],
+                "getScreenOptions": [Function],
+                "getStateForAction": [Function],
+              },
               "WalletTabHome": Object {
                 "childRouters": Object {
                   "AddAsset": null,
@@ -188,7 +200,7 @@ exports[`Main should render correctly 1`] = `
           Object {
             "index": 0,
             "isTransitioning": false,
-            "key": "id-123-2",
+            "key": "id-123-3",
             "routeName": "Home",
             "routes": Array [
               Object {
@@ -214,6 +226,19 @@ exports[`Main should render correctly 1`] = `
                   Object {
                     "key": "id-123-1",
                     "routeName": "WalletView",
+                  },
+                ],
+              },
+              Object {
+                "index": 0,
+                "isTransitioning": false,
+                "key": "TransactionsHome",
+                "params": undefined,
+                "routeName": "TransactionsHome",
+                "routes": Array [
+                  Object {
+                    "key": "id-123-2",
+                    "routeName": "TransactionsView",
                   },
                 ],
               },
@@ -282,6 +307,18 @@ exports[`Main should render correctly 1`] = `
                   "childRouters": Object {
                     "BrowserHome": null,
                     "BrowserView": null,
+                  },
+                  "getActionCreators": [Function],
+                  "getActionForPathAndParams": [Function],
+                  "getComponentForRouteName": [Function],
+                  "getComponentForState": [Function],
+                  "getPathAndParamsForState": [Function],
+                  "getScreenOptions": [Function],
+                  "getStateForAction": [Function],
+                },
+                "TransactionsHome": Object {
+                  "childRouters": Object {
+                    "TransactionsView": null,
                   },
                   "getActionCreators": [Function],
                   "getActionForPathAndParams": [Function],
@@ -411,7 +448,7 @@ exports[`Main should render correctly 1`] = `
             Object {
               "index": 0,
               "isTransitioning": false,
-              "key": "id-123-2",
+              "key": "id-123-3",
               "routeName": "Home",
               "routes": Array [
                 Object {
@@ -437,6 +474,19 @@ exports[`Main should render correctly 1`] = `
                     Object {
                       "key": "id-123-1",
                       "routeName": "WalletView",
+                    },
+                  ],
+                },
+                Object {
+                  "index": 0,
+                  "isTransitioning": false,
+                  "key": "TransactionsHome",
+                  "params": undefined,
+                  "routeName": "TransactionsHome",
+                  "routes": Array [
+                    Object {
+                      "key": "id-123-2",
+                      "routeName": "TransactionsView",
                     },
                   ],
                 },

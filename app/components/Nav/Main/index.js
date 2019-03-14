@@ -17,6 +17,7 @@ import AdvancedSettings from '../../Views/AdvancedSettings';
 import AppInformation from '../../UI/AppInformation';
 import SecuritySettings from '../../Views/SecuritySettings';
 import Wallet from '../../Views/Wallet';
+import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
 import Asset from '../../Views/Asset';
 import AddAsset from '../../Views/AddAsset';
@@ -86,6 +87,11 @@ const MainNavigator = createStackNavigator(
 						},
 						RevealPrivateCredentialView: {
 							screen: RevealPrivateCredential
+						}
+					}),
+					TransactionsHome: createStackNavigator({
+						TransactionsView: {
+							screen: TransactionsView
 						}
 					})
 				},
@@ -257,11 +263,7 @@ export default class Main extends Component {
 				}
 				if (data && data.action === 'tx') {
 					TransactionsNotificationManager.setTransactionToView(data.id);
-					this.props.navigation.navigate('WalletTabHome');
-					this.props.navigation.navigate('WalletView', { page: 0 });
-					setTimeout(() => {
-						this.props.navigation.navigate('WalletView', { page: 2 });
-					}, 300);
+					this.props.navigation.navigate('TransactionsHome');
 				}
 
 				if (Platform.OS === 'ios') {
