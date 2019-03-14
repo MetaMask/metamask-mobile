@@ -9,7 +9,8 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	FlatList
+	FlatList,
+	Dimensions
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -27,11 +28,14 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	emptyContainer: {
-		minHeight: 250,
-		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		backgroundColor: colors.white,
+		minHeight: Dimensions.get('window').height / 2
+	},
+	loader: {
+		alignSelf: 'center'
 	},
 	text: {
 		fontSize: 20,
@@ -165,7 +169,7 @@ class Transactions extends PureComponent {
 
 	renderLoader = () => (
 		<View style={styles.emptyContainer}>
-			<ActivityIndicator size="small" />
+			<ActivityIndicator style={styles.loader} size="small" />
 		</View>
 	);
 
@@ -240,8 +244,8 @@ class Transactions extends PureComponent {
 	}
 
 	render = () => (
-		<View style={styles.wrapper}>
-			<View testID={'transactions'}>{this.renderContent()}</View>
+		<View testID={'transactions'} style={styles.wrapper}>
+			{this.renderContent()}
 		</View>
 	);
 }
