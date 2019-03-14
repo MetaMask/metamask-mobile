@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Switch, AsyncStorage, Text, ScrollView, Platform, View } from 'react-native';
+import { StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import ActionModal from '../../UI/ActionModal';

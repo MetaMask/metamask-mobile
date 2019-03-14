@@ -9,7 +9,7 @@ exports[`HomePage should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <ScrollViewMock
     style={
       Object {
         "backgroundColor": "#f9fafa",
@@ -47,11 +47,13 @@ exports[`HomePage should render correctly 1`] = `
             allowFontScaling={true}
             autoCapitalize="none"
             autoCorrect={false}
+            blurOnSubmit={true}
             clearButtonMode="while-editing"
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="SEARCH"
             placeholderTextColor="#747d8c"
+            rejectResponderTermination={true}
             returnKeyType="go"
             style={
               Array [
@@ -110,7 +112,7 @@ exports[`HomePage should render correctly 1`] = `
                 }
               }
             >
-              <Component
+              <Image
                 resizeMethod="auto"
                 source={
                   Object {
@@ -135,7 +137,7 @@ exports[`HomePage should render correctly 1`] = `
                 }
               }
             >
-              <Component
+              <Image
                 resizeMethod="auto"
                 source={
                   Object {
@@ -243,6 +245,6 @@ exports[`HomePage should render correctly 1`] = `
         </ScrollableTabView>
       </View>
     </TouchableWithoutFeedback>
-  </ScrollView>
+  </ScrollViewMock>
 </View>
 `;

@@ -8,7 +8,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
     }
   }
 >
-  <KeyboardAwareScrollView
+  <KeyboardAwareScrollViewMock
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -247,6 +247,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           onBlur={[Function]}
           onChangeText={[Function]}
           placeholder="New RPC Network"
+          rejectResponderTermination={true}
           style={
             Array [
               Object {
@@ -423,6 +424,6 @@ exports[`AdvancedSettings should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </KeyboardAwareScrollView>
+  </KeyboardAwareScrollViewMock>
 </SafeAreaView>
 `;
