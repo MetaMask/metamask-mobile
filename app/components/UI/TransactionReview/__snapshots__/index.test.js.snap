@@ -18,23 +18,26 @@ exports[`TransactionReview should render correctly 1`] = `
         "flexDirection": "row",
         "flexGrow": 0,
         "flexShrink": 0,
-        "paddingHorizontal": 16,
       }
     }
   >
     <View
       style={
-        Object {
-          "alignItems": "center",
-          "borderColor": "#dedede",
-          "borderRightWidth": 1,
-          "flexDirection": "row",
-          "flexGrow": 1,
-          "flexShrink": 1,
-          "height": 42,
-          "paddingRight": 32,
-          "width": "50%",
-        }
+        Array [
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "minHeight": 42,
+            "width": "50%",
+          },
+          Object {
+            "borderColor": "#dedede",
+            "borderRightWidth": 1,
+            "paddingLeft": 20,
+            "paddingRight": 35,
+          },
+        ]
       }
     >
       <IdenticonComponent
@@ -45,7 +48,6 @@ exports[`TransactionReview should render correctly 1`] = `
         numberOfLines={1}
         style={
           Object {
-            "flex": 1,
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "600",
@@ -59,16 +61,16 @@ exports[`TransactionReview should render correctly 1`] = `
     <View
       style={
         Object {
+          "alignSelf": "center",
           "backgroundColor": "#FFFFFF",
           "borderColor": "#d2d8dd",
           "borderRadius": 15,
           "borderWidth": 1,
-          "flex": 0,
           "height": 30,
           "left": "50%",
+          "marginLeft": -15,
           "marginTop": -15,
           "position": "absolute",
-          "top": "50%",
           "width": 30,
           "zIndex": 1,
         }
@@ -89,15 +91,19 @@ exports[`TransactionReview should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "flexGrow": 1,
-          "flexShrink": 1,
-          "height": 42,
-          "paddingLeft": 32,
-          "width": "50%",
-        }
+        Array [
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "minHeight": 42,
+            "width": "50%",
+          },
+          Object {
+            "paddingLeft": 35,
+            "paddingRight": 20,
+          },
+        ]
       }
     >
       <IdenticonComponent
@@ -107,13 +113,17 @@ exports[`TransactionReview should render correctly 1`] = `
       <Text
         numberOfLines={1}
         style={
-          Object {
-            "flex": 1,
-            "fontFamily": "Roboto",
-            "fontSize": 16,
-            "fontWeight": "600",
-            "marginLeft": 9,
-          }
+          Array [
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "600",
+              "marginLeft": 9,
+            },
+            Object {
+              "flex": 1,
+            },
+          ]
         }
       >
         0x2...0x2

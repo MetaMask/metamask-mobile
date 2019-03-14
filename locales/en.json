@@ -327,7 +327,8 @@
 		"conversion_not_available": "Conversion rate not available",
 		"value_not_available": "Not Available",
 		"rate_not_available": "Conversion not available",
-		"optional": "Optional"
+		"optional": "Optional",
+		"no_address_for_ens": "No address for ENS name"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -454,7 +455,8 @@
 		"eth": "ETH",
 		"negative": "-",
 		"divisor": "/",
-		"token_id": "#"
+		"token_id": "#",
+		"colon": ":"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",

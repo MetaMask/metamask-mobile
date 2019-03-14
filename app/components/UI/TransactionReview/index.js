@@ -27,12 +27,10 @@ const styles = StyleSheet.create({
 		borderTopWidth: 1,
 		flexDirection: 'row',
 		flexGrow: 0,
-		flexShrink: 0,
-		paddingHorizontal: 16
+		flexShrink: 0
 	},
 	addressText: {
 		...fontStyles.bold,
-		flex: 1,
 		fontSize: FONT_SIZE,
 		marginLeft: 9
 	},
@@ -41,14 +39,14 @@ const styles = StyleSheet.create({
 		borderColor: colors.lightGray,
 		borderRadius: 15,
 		borderWidth: 1,
-		flex: 0,
 		height: 30,
-		left: '50%',
-		marginTop: -15,
-		position: 'absolute',
-		top: '50%',
 		width: 30,
-		zIndex: 1
+		marginTop: -15,
+		marginLeft: -15,
+		left: '50%',
+		position: 'absolute',
+		zIndex: 1,
+		alignSelf: 'center'
 	},
 	arrowIcon: {
 		color: colors.gray,
@@ -58,18 +56,19 @@ const styles = StyleSheet.create({
 	addressGraphic: {
 		alignItems: 'center',
 		flexDirection: 'row',
-		flexGrow: 1,
-		flexShrink: 1,
-		height: 42,
-		width: '50%'
+		minHeight: 42,
+		width: '50%',
+		flex: 1
 	},
 	fromGraphic: {
 		borderColor: colors.inputBorderColor,
 		borderRightWidth: 1,
-		paddingRight: 32
+		paddingRight: 35,
+		paddingLeft: 20
 	},
 	toGraphic: {
-		paddingLeft: 32
+		paddingRight: 20,
+		paddingLeft: 35
 	},
 	reviewForm: {
 		flex: 1
@@ -101,7 +100,14 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		marginHorizontal: 14,
 		...fontStyles.normal
-	}
+	},
+	ensRecipientContainer: {
+		flex: 1,
+		marginLeft: 9
+	},
+	ensRecipient: { ...fontStyles.bold, fontSize: FONT_SIZE },
+	ensAddress: { ...fontStyles.normal, fontSize: 10 },
+	addressWrapper: { flex: 1 }
 });
 
 /**
@@ -168,6 +174,31 @@ class TransactionReview extends Component {
 		onModeChange && onModeChange('edit');
 	};
 
+	renderToAddressDirection = () => {
+		const {
+			transaction: { to, ensRecipient },
+			identities
+		} = this.props;
+		let child = (
+			<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
+				{renderAccountName(to, identities)}
+			</Text>
+		);
+		if (ensRecipient) {
+			child = (
+				<View style={styles.ensRecipientContainer}>
+					<Text style={styles.ensRecipient} numberOfLines={1}>
+						{ensRecipient}
+					</Text>
+					<Text style={styles.ensAddress} numberOfLines={1}>
+						{renderAccountName(to, identities)}
+					</Text>
+				</View>
+			);
+		}
+		return child;
+	};
+
 	renderTransactionDirection = () => {
 		const {
 			transaction: { from, to },
@@ -175,7 +206,7 @@ class TransactionReview extends Component {
 		} = this.props;
 		return (
 			<View style={styles.graphic}>
-				<View style={{ ...styles.addressGraphic, ...styles.fromGraphic }}>
+				<View style={[styles.addressGraphic, styles.fromGraphic]}>
 					<Identicon address={from} diameter={18} />
 					<Text style={styles.addressText} numberOfLines={1}>
 						{renderAccountName(from, identities)}
@@ -184,11 +215,9 @@ class TransactionReview extends Component {
 				<View style={styles.arrow}>
 					<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
 				</View>
-				<View style={{ ...styles.addressGraphic, ...styles.toGraphic }}>
+				<View style={[styles.addressGraphic, styles.toGraphic]}>
 					<Identicon address={to} diameter={18} />
-					<Text style={styles.addressText} numberOfLines={1}>
-						{renderAccountName(to, identities)}
-					</Text>
+					{this.renderToAddressDirection()}
 				</View>
 			</View>
 		);

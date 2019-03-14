@@ -192,7 +192,8 @@ class EthInput extends Component {
 							symbol: 'ETH'
 						},
 						...this.props.tokens
-					]
+					],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'ETHER_TRANSACTION':
@@ -208,12 +209,14 @@ class EthInput extends Component {
 				break;
 			case 'INDIVIDUAL_TOKEN_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset]
+					assets: [transaction.selectedAsset],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'INDIVIDUAL_COLLECTIBLE_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset]
+					assets: [transaction.selectedAsset],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'CONTRACT_COLLECTIBLE_TRANSACTION': {
@@ -221,7 +224,8 @@ class EthInput extends Component {
 					collectible => collectible.address.toLowerCase() === transaction.selectedAsset.address.toLowerCase()
 				);
 				this.setState({
-					assets: collectiblesToShow
+					assets: collectiblesToShow,
+					readableValue: transaction.readableValue
 				});
 				break;
 			}
@@ -261,7 +265,7 @@ class EthInput extends Component {
 				);
 		} else {
 			title = asset.name;
-			subTitle = 'ID: ' + asset.tokenId;
+			subTitle = strings('collectible.collectible_token_id') + strings('unit.colon') + ' ' + asset.tokenId;
 			icon = <CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />;
 		}
 		return <SelectableAsset onPress={onPress} title={title} subTitle={subTitle} icon={icon} asset={asset} />;
