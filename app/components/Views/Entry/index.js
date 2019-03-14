@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import Engine from '../../../core/Engine';
 import FoxScreen from '../../UI/FoxScreen';
 import SecureKeychain from '../../../core/SecureKeychain';

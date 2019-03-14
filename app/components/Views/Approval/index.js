@@ -38,7 +38,11 @@ class Approval extends Component {
 		/**
 		 * Transaction state
 		 */
-		transaction: PropTypes.object.isRequired
+		transaction: PropTypes.object.isRequired,
+		/**
+		 * List of transactions
+		 */
+		transactions: PropTypes.array
 	};
 
 	state = {

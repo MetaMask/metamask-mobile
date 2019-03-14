@@ -95,6 +95,7 @@ exports[`Browser should render correctly 1`] = `
         onSubmitEditing={[Function]}
         placeholder="Enter website address"
         placeholderTextColor="#747d8c"
+        rejectResponderTermination={true}
         returnKeyType="go"
         selectTextOnFocus={true}
         style={

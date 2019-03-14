@@ -9,7 +9,7 @@ exports[`Login should render correctly 1`] = `
     }
   }
 >
-  <KeyboardAwareScrollView
+  <KeyboardAwareScrollViewMock
     enableAutomaticScroll={true}
     enableOnAndroid={false}
     enableResetScrollToCoords={true}
@@ -88,6 +88,7 @@ exports[`Login should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
+          rejectResponderTermination={true}
           returnKeyType="done"
           secureTextEntry={true}
           style={
@@ -189,6 +190,6 @@ exports[`Login should render correctly 1`] = `
         </Button>
       </View>
     </View>
-  </KeyboardAwareScrollView>
+  </KeyboardAwareScrollViewMock>
 </SafeAreaView>
 `;

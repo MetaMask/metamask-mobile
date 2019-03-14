@@ -36,7 +36,7 @@ exports[`NetworkList should render correctly 1`] = `
       Networks
     </Text>
   </View>
-  <ScrollView
+  <ScrollViewMock
     style={
       Object {
         "flex": 1,
@@ -429,7 +429,7 @@ exports[`NetworkList should render correctly 1`] = `
         </Text>
       </View>
     </TouchableOpacity>
-  </ScrollView>
+  </ScrollViewMock>
   <View
     style={
       Object {

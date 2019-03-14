@@ -195,7 +195,15 @@ class HomePage extends Component {
 		/**
 		 * function that removes a bookmark
 		 */
-		removeBookmark: PropTypes.func
+		removeBookmark: PropTypes.func,
+		/**
+		 * Default protocol of the browser, for ex. https
+		 */
+		defaultProtocol: PropTypes.string,
+		/**
+		 * Default search engine
+		 */
+		searchEngine: PropTypes.string
 	};
 
 	state = {
@@ -265,6 +273,7 @@ class HomePage extends Component {
 		);
 	}
 	onUrlInputSubmit = async (input = null) => {
+		this.searchInput && this.searchInput.current && this.searchInput.current.blur();
 		const inputValue = (typeof input === 'string' && input) || this.state.inputValue;
 		const { defaultProtocol, searchEngine } = this.props;
 		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
@@ -284,7 +293,7 @@ class HomePage extends Component {
 
 	dismissKeyboardAndClear = () => {
 		this.mounted && this.setState({ searchInputValue: '' });
-		Keyboard.dismiss();
+		this.searchInput && this.searchInput.current && this.searchInput.current.blur();
 	};
 
 	keyboardDidHide = () => {
@@ -307,7 +316,6 @@ class HomePage extends Component {
 						<View style={styles.flex}>
 							<View style={styles.searchWrapper}>
 								<TextInput
-									ref={this.searchInput}
 									style={[
 										styles.searchInput,
 										this.state.inputWidth ? { width: this.state.inputWidth } : {}
@@ -321,6 +329,7 @@ class HomePage extends Component {
 									placeholderTextColor={colors.asphalt}
 									returnKeyType="go"
 									value={this.state.searchInputValue}
+									blurOnSubmit
 								/>
 								<FeatherIcon
 									onPress={this.focusInput}
@@ -356,7 +365,6 @@ class HomePage extends Component {
 							</View>
 
 							<ScrollableTabView
-								ref={this.scrollableTabViewRef}
 								renderTabBar={this.renderTabBar}
 								// eslint-disable-next-line react/jsx-no-bind
 								onChangeTab={obj => this.handleTabHeight(obj)}
@@ -383,27 +391,28 @@ class HomePage extends Component {
 				</ScrollView>
 				{this.state.searchInputValue.length > 1 && (
 					<View style={styles.urlAutocomplete}>
-						<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
+						<UrlAutocomplete
+							onSubmit={this.onAutocomplete}
+							input={this.state.searchInputValue}
+							onDismiss={this.dismissKeyboardAndClear}
+						/>
 					</View>
 				)}
-				{this.props.passwordSet &&
-					!this.props.seedphraseBackedUp && (
-						<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
-							<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
-								<View style={styles.backupAlertIconWrapper}>
-									<Icon name="info-outline" style={styles.backupAlertIcon} />
-								</View>
-								<View>
-									<Text style={styles.backupAlertTitle}>
-										{strings('home_page.backup_alert_title')}
-									</Text>
-									<Text style={styles.backupAlertMessage}>
-										{strings('home_page.backup_alert_message')}
-									</Text>
-								</View>
-							</ElevatedView>
-						</TouchableOpacity>
-					)}
+				{this.props.passwordSet && !this.props.seedphraseBackedUp && (
+					<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
+						<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
+							<View style={styles.backupAlertIconWrapper}>
+								<Icon name="info-outline" style={styles.backupAlertIcon} />
+							</View>
+							<View>
+								<Text style={styles.backupAlertTitle}>{strings('home_page.backup_alert_title')}</Text>
+								<Text style={styles.backupAlertMessage}>
+									{strings('home_page.backup_alert_message')}
+								</Text>
+							</View>
+						</ElevatedView>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	}

@@ -6,12 +6,16 @@
  */
 
 #import "AppDelegate.h"
+
 #import <Fabric/Fabric.h>
 #import <Crashlytics/Crashlytics.h>
 
-#import <React/RCTPushNotificationManager.h>
+#import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
+
+#import <React/RCTPushNotificationManager.h>
+
 #import <react-native-branch/RNBranch.h>
 
 
@@ -23,25 +27,25 @@
       [Fabric with:@[[Crashlytics class]]];
       [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
   # endif
-  
+
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
   NSString *foxCode;
-  
+
   if(foxCodeFromBundle != nil){
     foxCode = foxCodeFromBundle;
   } else {
     foxCode = @"debug";
   }
-  
-  
-  NSURL *jsCodeLocation;
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
 
 
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
-                                                      moduleName:@"MetaMask"
-                                               initialProperties: @{@"foxCode": foxCode}
-                                                   launchOptions:launchOptions];
+  RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
+  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
+                                                   moduleName:@"MetaMask"
+                                            initialProperties:@{@"foxCode": foxCode}];
+
+
+
+
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -94,6 +98,15 @@ fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
+}
+
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
+{
+#if DEBUG
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+#else
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+#endif
 }
 
 @end

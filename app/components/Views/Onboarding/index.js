@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
+import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';

@@ -9,7 +9,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <ScrollViewMock
     contentContainerStyle={
       Object {
         "flex": 1,
@@ -117,6 +117,6 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
         </View>
       </View>
     </View>
-  </ScrollView>
+  </ScrollViewMock>
 </View>
 `;

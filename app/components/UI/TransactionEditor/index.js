@@ -62,6 +62,10 @@ class TransactionEditor extends Component {
 		 */
 		contractBalances: PropTypes.object,
 		/**
+		 * String containing the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func.isRequired
