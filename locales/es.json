@@ -570,7 +570,8 @@
 		"cta_text": "ENTENDIDO!",
 		"modal_title": "Felicitaciones!",
 		"modal_text": "Ya haz completado tu resplado y estas listo para continuar!",
-		"modal_button": "LISTO"
+		"modal_button": "LISTO",
+		"copy_seed_phrase": "COPIAR FRASE SEMILLA EN PORTAPAPELES"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Detección de Phising de Ethereum",

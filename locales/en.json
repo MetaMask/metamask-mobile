@@ -575,7 +575,8 @@
 		"cta_text": "GOT IT!",
 		"modal_title": "Congratulations!",
 		"modal_text": "You are all backed up and ready to go!",
-		"modal_button": "DONE"
+		"modal_button": "DONE",
+		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",

@@ -156,7 +156,7 @@ class AccountBackupStep6 extends Component {
 							</View>
 							<TouchableOpacity style={styles.copy} onPress={this.onCopySeedPhrase}>
 								<Text style={[styles.label, { color: colors.primary }]}>
-									{'COPY SEED PHRASE TO CLIPBOARD'}
+									{strings('account_backup_step_6.copy_seed_phrase')}
 								</Text>
 							</TouchableOpacity>
 							<View style={styles.bulletPoint}>
