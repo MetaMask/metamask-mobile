@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Image, StyleSheet, Text, View, Platform } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 	balance: {
 		alignItems: 'center',
 		marginTop: 10,
-		marginBottom: Platform.OS === 'android' ? 14 : 10
+		marginBottom: 10
 	},
 	amount: {
 		fontSize: 30,
