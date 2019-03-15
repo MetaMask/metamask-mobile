@@ -915,6 +915,9 @@ export class Browser extends Component {
 					const { url, title } = data.payload;
 					this.setState({ inputValue: url, currentPageTitle: title, forwardEnabled: false });
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
+					setTimeout(() => {
+						this.resetBottomBarPosition();
+					}, 100);
 					break;
 				}
 				case 'INPAGE_REQUEST':
@@ -935,6 +938,17 @@ export class Browser extends Component {
 		}
 	};
 
+	resetBottomBarPosition() {
+		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
+
+		this.mounted &&
+			this.setState({
+				scrollAnim,
+				offsetAnim,
+				clampedScroll
+			});
+	}
+
 	onPageChange = ({ url }) => {
 		if ((this.goingBack && url === 'about:blank') || (this.initialUrl === url && url === 'about:blank')) {
 			this.goBackToHomepage();
@@ -943,7 +957,7 @@ export class Browser extends Component {
 
 		// Reset the navbar every time we change the page
 		if (Platform.OS === 'ios') {
-			this.state.offsetAnim.setValue(0);
+			this.resetBottomBarPosition();
 		}
 
 		this.forwardHistoryStack = [];
