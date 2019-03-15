@@ -88,7 +88,7 @@ class Settings extends Component {
 		getNavigationOptionsTitle(strings('app_settings.general_title'), navigation);
 
 	state = {
-		currentLanguage: I18n.locale,
+		currentLanguage: I18n.locale.substr(0, 2),
 		languages: {}
 	};
 
@@ -112,7 +112,7 @@ class Settings extends Component {
 
 	componentDidMount = () => {
 		const languages = getLanguages();
-		this.setState({ languages, currentLanguage: I18n.locale });
+		this.setState({ languages });
 		this.languageOptions = Object.keys(languages).map(key => ({ value: key, label: languages[key], key }));
 		this.searchEngineOptions = [
 			{ value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },

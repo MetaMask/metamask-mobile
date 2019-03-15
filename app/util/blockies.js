@@ -343,6 +343,12 @@
 	}
 
 	function toDataUrl(address) {
+
+		const cache = Blockies.cache[address];
+		if (address && cache) {
+			return cache;
+		}
+
 		const opts = buildOpts({ seed: address.toLowerCase() });
 
 		const imageData = createImageData(opts.size);
@@ -363,10 +369,24 @@
 				p.fillRect(col * opts.scale, row * opts.scale, opts.scale, opts.scale, pngColor);
 			}
 		}
-		return `data:image/png;base64,${p.getBase64()}`;
+		const ret = `data:image/png;base64,${p.getBase64()}`;
+		Blockies.cache[address] = ret;
+		return ret;
 	}
+
+
 
 	exports.toDataUrl = toDataUrl;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 });
+
+
+/**
+ * Utility class with the single responsibility
+ * of caching Blockies Data URIs
+ */
+class Blockies {
+	static cache = {};
+}
+

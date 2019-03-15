@@ -6,7 +6,6 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { colors } from '../../../styles/common';
 import Transactions from '../../UI/Transactions';
 import getNavbarOptions from '../../UI/Navbar';
-import { strings } from '../../../../locales/i18n';
 import Networks, { isKnownNetwork } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
 
@@ -57,8 +56,8 @@ class TransactionsView extends Component {
 	};
 
 	state = {
-		showCollectible: false,
-		transactionsUpdated: false
+		transactionsUpdated: false,
+		loading: false
 	};
 
 	txs = [];
@@ -66,6 +65,7 @@ class TransactionsView extends Component {
 	mounted = false;
 	isNormalizing = false;
 	scrollableTabViewRef = React.createRef();
+	flatlistRef = null;
 
 	async init() {
 		this.mounted = true;
@@ -128,6 +128,12 @@ class TransactionsView extends Component {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
 				this.setState({ transactionsUpdated: true, loading: false });
+				// Attempt to scroll to the top when the TX statuses change
+				setTimeout(() => {
+					if (this.flatlistRef && this.flatlistRef.current) {
+						this.flatlistRef.current.scrollToIndex({ index: 0, animated: true });
+					}
+				}, 1000);
 			}
 		} else if (!this.state.transactionsUpdated) {
 			this.setState({ transactionsUpdated: true, loading: false });
@@ -141,6 +147,10 @@ class TransactionsView extends Component {
 		</View>
 	);
 
+	storeRef = ref => {
+		this.flatlistRef = ref;
+	};
+
 	render = () => {
 		const { conversionRate, currentCurrency, selectedAddress, navigation, networkType } = this.props;
 
@@ -151,13 +161,13 @@ class TransactionsView extends Component {
 				) : (
 					<Transactions
 						navigation={navigation}
-						tabLabel={strings('wallet.transactions')}
 						transactions={this.txs}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
 						selectedAddress={selectedAddress}
 						networkType={networkType}
 						loading={!this.state.transactionsUpdated}
+						onRefSet={this.storeRef}
 					/>
 				)}
 			</View>

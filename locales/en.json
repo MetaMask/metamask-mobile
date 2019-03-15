@@ -93,7 +93,8 @@
 		"logout_ok": "YES",
 		"logout_cancel": "NO",
 		"feedback": "Feedback",
-		"metamask_support": "MetaMask Support"
+		"metamask_support": "MetaMask Support",
+		"public_address": "Public Address"
 	},
 	"send": {
 		"title": "Send"
@@ -352,6 +353,7 @@
 		"cancel": "Cancel",
 		"go_back": "Go back",
 		"go_forward": "Go forward",
+		"home": "Home",
 		"close": "Close",
 		"open_in_browser": "Open in browser",
 		"change_url": "Change url",
