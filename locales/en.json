@@ -242,7 +242,7 @@
 		"attributions": "Attributions",
 		"support_center": "Visit our Support Center",
 		"web_site": "Visit our Website",
-		"email_us": "Email Us!"
+		"email_us": "Email Us at support@metamask.io!"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Reveal Seed Phrase",
@@ -411,6 +411,7 @@
 	},
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
+		"short_title": "Sync with Extension",
 		"label": "Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",

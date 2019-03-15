@@ -62,7 +62,6 @@ export default class Settings extends Component {
 						navigation.push('CompanySettings');
 					}}
 				/>
-				<SettingsDrawer title={strings('app_settings.legal_title')} noBorder />
 			</ScrollView>
 		);
 	};
