@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	address: {
-		fontSize: 17,
+		fontSize: Platform.OS === 'ios' ? 17 : 20,
 		letterSpacing: 2,
 		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
 	},
@@ -869,7 +869,7 @@ class DrawerView extends Component {
 						</View>
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 							<Text style={styles.addressTitle} testID={'public-address-text'}>
-								Public Address
+								{strings('drawer.public_address')}
 							</Text>
 							<Text style={styles.address} testID={'public-address-text'}>
 								{selectedAddress}

@@ -69,15 +69,16 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		flex: 1
 	},
-	browserRigthButtonAndroid: {
-		flex: 1,
+	browserRightButtonAndroid: {
+		flex: 0,
 		flexDirection: 'row'
 	},
-	browserRigthButton: {
+	browserRightButton: {
 		flex: 1
 	},
 	browserMoreIconAndroid: {
-		paddingTop: 10
+		paddingTop: 10,
+		marginLeft: -10
 	},
 	disabled: {
 		opacity: 0.3
@@ -215,7 +216,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 		),
 		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
 		headerRight: (
-			<View style={Platform.OS === 'android' ? styles.browserRigthButtonAndroid : styles.browserRigthButton}>
+			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
 				<AccountRightButton />
 				{Platform.OS === 'android' ? (
 					<TouchableOpacity
