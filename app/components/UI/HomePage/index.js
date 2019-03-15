@@ -83,7 +83,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	searchWrapper: {
-		marginVertical: 12,
+		marginTop: 12,
+		marginBottom: 24,
 		marginHorizontal: 16
 	},
 	searchInput: {
@@ -93,15 +94,23 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		paddingHorizontal: 38,
 		fontSize: 16,
-		backgroundColor: colors.blueishGrey,
-		height: 40,
 		color: colors.another50ShadesOfGrey,
+		height: 40,
+		borderWidth: 2,
 		...fontStyles.normal
+	},
+	searchInputNotFocus: {
+		backgroundColor: colors.anotherBlue,
+		borderColor: colors.anotherBlue
+	},
+	searchInputOnFocus: {
+		backgroundColor: colors.white,
+		borderColor: colors.anotherBorderBlue
 	},
 	searchIcon: {
 		position: 'absolute',
 		textAlignVertical: 'center',
-		marginTop: Platform.OS === 'android' ? 8 : 10,
+		marginTop: Platform.OS === 'android' ? 9 : 10,
 		marginLeft: 12
 	},
 	backupAlert: {
@@ -212,7 +221,8 @@ class HomePage extends Component {
 		searchInputValue: '',
 		inputValue: '',
 		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
-		tabViewStyle: null
+		tabViewStyle: null,
+		searchFocus: false
 	};
 
 	searchInput = React.createRef();
@@ -306,6 +316,10 @@ class HomePage extends Component {
 		this.searchInput && this.searchInput.current && this.searchInput.current.focus();
 	};
 
+	onSearchFocus = () => {
+		this.setState({ searchFocus: !this.state.searchFocus });
+	};
+
 	render() {
 		return (
 			<View style={styles.flex}>
@@ -320,9 +334,12 @@ class HomePage extends Component {
 								<TextInput
 									style={[
 										styles.searchInput,
-										this.state.inputWidth ? { width: this.state.inputWidth } : {}
+										this.state.inputWidth ? { width: this.state.inputWidth } : {},
+										this.state.searchFocus ? styles.searchInputOnFocus : styles.searchInputNotFocus
 									]}
 									ref={this.searchInput}
+									onFocus={this.onSearchFocus}
+									onBlur={this.onSearchFocus}
 									autoCapitalize="none"
 									autoCorrect={false}
 									clearButtonMode="while-editing"

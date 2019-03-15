@@ -10,6 +10,8 @@ export const colors = {
 	accentGray: '#9b9b9b',
 	ash: '#ced6e0',
 	asphalt: '#747d8c',
+	anotherBlue: '#F0F2F4',
+	anotherBorderBlue: '#037DD6',
 	black: '#000000',
 	beige: '#f9fafa',
 	borderColor: '#CCCCCC',
