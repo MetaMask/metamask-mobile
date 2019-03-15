@@ -34,7 +34,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
-import { getEtherscanAddressUrl } from '../../../util/etherscan';
+import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
@@ -499,7 +499,8 @@ class DrawerView extends Component {
 	viewInEtherscan = () => {
 		const { selectedAddress, network } = this.props;
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
-		this.goToBrowserUrl(url, 'etherscan.io');
+		const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
+		this.goToBrowserUrl(url, etherscan_url);
 	};
 
 	submitFeedback = () => {
