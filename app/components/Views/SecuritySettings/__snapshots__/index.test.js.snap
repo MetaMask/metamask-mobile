@@ -437,6 +437,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 22,
               "fontWeight": "600",
+              "marginBottom": 20,
               "textAlign": "center",
             }
           }
@@ -486,6 +487,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 22,
               "fontWeight": "600",
+              "marginBottom": 20,
               "textAlign": "center",
             }
           }

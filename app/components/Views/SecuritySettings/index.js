@@ -59,7 +59,8 @@ const styles = StyleSheet.create({
 	modalTitle: {
 		...fontStyles.bold,
 		fontSize: 22,
-		textAlign: 'center'
+		textAlign: 'center',
+		marginBottom: 20
 	},
 	clearApprovedConfirm: {
 		marginTop: 18

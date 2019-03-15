@@ -33,7 +33,7 @@ exports[`AccountApproval should render correctly 1`] = `
   <ActionView
     cancelTestID=""
     cancelText="CANCEL"
-    confirmButtonMode="normal"
+    confirmButtonMode="confirm"
     confirmTestID=""
     confirmText="CONNECT"
     confirmed={false}
@@ -43,7 +43,7 @@ exports[`AccountApproval should render correctly 1`] = `
     <View
       style={
         Object {
-          "paddingHorizontal": 36,
+          "paddingHorizontal": 25,
         }
       }
     >
@@ -122,7 +122,8 @@ exports[`AccountApproval should render correctly 1`] = `
               }
             }
           >
-            <View
+            <ElevatedView
+              elevation={8}
               style={
                 Object {
                   "alignItems": "center",
@@ -147,13 +148,13 @@ exports[`AccountApproval should render correctly 1`] = `
                   }
                 }
               />
-            </View>
+            </ElevatedView>
             <View
               style={
                 Object {
                   "borderColor": "#9b9b9b",
                   "borderStyle": "dashed",
-                  "borderWidth": 2,
+                  "borderWidth": 1,
                   "left": 0,
                   "overflow": "hidden",
                   "position": "absolute",
@@ -267,7 +268,7 @@ exports[`AccountApproval should render correctly 1`] = `
           allowFontScaling={false}
           color="#008edf"
           name="info-circle"
-          size={24}
+          size={22}
         />
       </View>
       <Text

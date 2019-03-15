@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		paddingHorizontal: 38,
 		fontSize: 16,
-		backgroundColor: colors.blueishGrey,
+		backgroundColor: colors.concrete,
 		height: 40,
 		color: colors.another50ShadesOfGrey,
 		...fontStyles.normal
@@ -216,6 +216,7 @@ class HomePage extends Component {
 	};
 
 	searchInput = React.createRef();
+	scrollView = React.createRef();
 
 	actionSheet = null;
 
@@ -309,7 +310,7 @@ class HomePage extends Component {
 	render() {
 		return (
 			<View style={styles.flex}>
-				<ScrollView style={styles.flex}>
+				<ScrollView style={styles.flex} ref={this.scrollView}>
 					<TouchableWithoutFeedback
 						style={styles.flex}
 						onPress={this.dismissKeyboardAndClear}

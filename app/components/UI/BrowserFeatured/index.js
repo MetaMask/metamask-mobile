@@ -2,13 +2,19 @@ import React, { Component } from 'react';
 import dappList from '../../../util/featured-dapp-list';
 import FeaturedItem from './FeaturedItem';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import Button from '../Button';
+import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		backgroundColor: colors.white
+	},
+	button: {
+		flex: 1,
+		backgroundColor: colors.white,
+		height: 120
 	}
 });
 
@@ -32,12 +38,13 @@ export default class BrowserFeatured extends Component {
 	renderItem = item => {
 		const { name, description, url, imageUrl } = item;
 		return (
-			<TouchableOpacity
+			<Button
 				key={url}
+				style={styles.button}
 				onPress={() => this.props.goTo(url)} // eslint-disable-line react/jsx-no-bind
 			>
 				<FeaturedItem name={name} url={url} description={description} imageUrl={imageUrl} />
-			</TouchableOpacity>
+			</Button>
 		);
 	};
 	render() {
