@@ -201,7 +201,6 @@ export default class ImportPrivateKey extends Component {
 								returnKeyType={'next'}
 								placeholder={strings('import_private_key.example')}
 								autoCapitalize={'none'}
-								autoComplete={'off'}
 							/>
 						</View>
 					</View>
