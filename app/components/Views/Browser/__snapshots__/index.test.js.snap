@@ -60,8 +60,12 @@ exports[`Browser should render correctly 1`] = `
   <View
     style={
       Object {
+        "bottom": 0,
         "flex": 1,
-        "marginTop": -1249,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
       }
     }
   >
@@ -174,6 +178,7 @@ exports[`Browser should render correctly 1`] = `
     </View>
     <Connect(UrlAutocomplete)
       input=""
+      onDismiss={[Function]}
       onSubmit={[Function]}
     />
   </ReactNativeModal>
