@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
+import ElevatedView from 'react-native-elevated-view';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	wrapper: {
-		paddingHorizontal: 36
+		paddingHorizontal: 25
 	},
 	title: {
 		...fontStyles.bold,
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
 	border: {
 		borderColor: colors.accentGray,
 		borderStyle: 'dashed',
-		borderWidth: 2,
+		borderWidth: 1,
 		left: 0,
 		overflow: 'hidden',
 		position: 'absolute',
@@ -190,6 +191,7 @@ class AccountApproval extends Component {
 					confirmText={strings('accountApproval.connect')}
 					onCancelPress={onCancel}
 					onConfirmPress={onConfirm}
+					confirmButtonMode={'confirm'}
 				>
 					<View style={styles.wrapper}>
 						<View style={styles.header}>
@@ -204,9 +206,9 @@ class AccountApproval extends Component {
 							</View>
 							<View style={styles.graphic}>
 								<View style={styles.check}>
-									<View style={styles.checkWrapper}>
+									<ElevatedView style={styles.checkWrapper} elevation={8}>
 										<Icon name="check" style={styles.checkIcon} />
-									</View>
+									</ElevatedView>
 									<View style={styles.border} />
 								</View>
 							</View>
@@ -226,7 +228,7 @@ class AccountApproval extends Component {
 								{strings('accountApproval.permission')}
 								<Text style={styles.permission}> {strings('accountApproval.address')}</Text>
 							</Text>
-							<Icon name="info-circle" color={colors.primary} size={24} />
+							<Icon name="info-circle" color={colors.primary} size={22} />
 						</View>
 						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
 					</View>

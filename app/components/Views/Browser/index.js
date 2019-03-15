@@ -12,7 +12,8 @@ import {
 	Animated,
 	TouchableOpacity,
 	Linking,
-	Keyboard
+	Keyboard,
+	BackHandler
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -28,6 +29,7 @@ import Engine from '../../../core/Engine';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
+import BrowserHome from '../../Views/BrowserHome';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
@@ -49,16 +51,18 @@ import { hexToBN } from '../../../util/number';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
 
+const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
 const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
+const NAVBAR_HEIGHT = Platform.OS === 'ios' ? BOTTOM_NAVBAR_HEIGHT - 1 : 74;
 
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
-		backgroundColor: colors.concrete
+		backgroundColor: colors.white
 	},
 	icon: {
-		color: colors.tar,
+		color: colors.copy,
 		height: 28,
 		lineHeight: 28,
 		textAlign: 'center',
@@ -121,7 +125,7 @@ const styles = StyleSheet.create({
 	},
 	optionIcon: {
 		width: 18,
-		color: colors.tar,
+		color: colors.copy,
 		flex: 0,
 		height: 15,
 		lineHeight: 15,
@@ -216,6 +220,10 @@ const styles = StyleSheet.create({
 	},
 	fullScreenModal: {
 		flex: 1
+	},
+	homepage: {
+		flex: 1,
+		marginTop: -(Dimensions.get('window').height - NAVBAR_HEIGHT)
 	}
 });
 
@@ -304,15 +312,51 @@ export class Browser extends Component {
 	constructor(props) {
 		super(props);
 
-		let url = '';
-		if (props.url) {
-			if (this.isAllowedUrl(props.url)) {
-				url = props.url;
-			} else {
-				setTimeout(() => this.handleNotAllowedUrl(props.url), 100);
-			}
-		}
+		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
 
+		this.state = {
+			approvedOrigin: false,
+			currentEnsName: null,
+			currentPageTitle: '',
+			currentPageUrl: '',
+			currentPageIcon: undefined,
+			entryScriptWeb3: null,
+			fullHostname: '',
+			hostname: '',
+			inputValue: '',
+			ipfsGateway: 'https://ipfs.io/ipfs/',
+			ipfsHash: null,
+			ipfsWebsite: false,
+			showApprovalDialog: false,
+			showPhishingModal: false,
+			signMessage: false,
+			signMessageParams: { data: '' },
+			signType: '',
+			timeout: false,
+			url: HOMEPAGE_URL,
+			scrollAnim,
+			offsetAnim,
+			clampedScroll,
+			contentHeight: 0,
+			forwardEnabled: false,
+			forceReload: false
+		};
+	}
+
+	webview = React.createRef();
+	inputRef = React.createRef();
+	timeoutHandler = null;
+	prevScrollOffset = 0;
+	goingBack = false;
+	forwardHistoryStack = [];
+	approvalRequest;
+
+	clampedScrollValue = 0;
+	offsetValue = 0;
+	scrollValue = 0;
+	scrollStopTimer = null;
+
+	initScrollVariables() {
 		const scrollAnim = Platform.OS === 'ios' ? new Animated.Value(0) : null;
 		const offsetAnim = Platform.OS === 'ios' ? new Animated.Value(0) : null;
 		let clampedScroll = null;
@@ -331,49 +375,8 @@ export class Browser extends Component {
 			);
 		}
 
-		this.state = {
-			appState: 'active',
-			approvedOrigin: false,
-			currentEnsName: null,
-			currentPageTitle: '',
-			currentPageUrl: '',
-			currentPageIcon: undefined,
-			editMode: false,
-			entryScriptWeb3: null,
-			fullHostname: '',
-			hostname: '',
-			inputValue: '',
-			ipfsGateway: 'https://ipfs.io/ipfs/',
-			ipfsHash: null,
-			ipfsWebsite: false,
-			loading: true,
-			showApprovalDialog: false,
-			showPhishingModal: false,
-			signMessage: false,
-			signMessageParams: { data: '' },
-			signType: '',
-			timeout: false,
-			url,
-			scrollAnim,
-			offsetAnim,
-			clampedScroll,
-			contentHeight: 0,
-			forwardEnabled: false
-		};
+		return { scrollAnim, offsetAnim, clampedScroll };
 	}
-
-	webview = React.createRef();
-	inputRef = React.createRef();
-	timeoutHandler = null;
-	prevScrollOffset = 0;
-	isFirstWebsite = true;
-	forwardHistoryStack = [];
-	approvalRequest;
-
-	clampedScrollValue = 0;
-	offsetValue = 0;
-	scrollValue = 0;
-	scrollStopTimer = null;
 
 	async componentDidMount() {
 		this.mounted = true;
@@ -387,7 +390,13 @@ export class Browser extends Component {
 					this.approvalRequest.resolve([selectedAddress]);
 					this.backgroundBridge.enableAccounts();
 				} else {
-					this.setState({ showApprovalDialog: true });
+					// Let the damn website load first!
+					// Otherwise we don't get enough time to load the metadata
+					// (title, icon, etc)
+
+					setTimeout(() => {
+						this.setState({ showApprovalDialog: true });
+					}, 1000);
 				}
 				return promise;
 			},
@@ -475,7 +484,7 @@ export class Browser extends Component {
 				__mm__updateUrl();
 			};
 		  })();
-  		`;
+		`;
 
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
@@ -504,8 +513,18 @@ export class Browser extends Component {
 		}
 
 		// Listen to network changes
-		Engine.context.TransactionController.hub.on('networkChange', this.onNetworkChange);
+		Engine.context.TransactionController.hub.on('networkChange', this.reload);
+
+		BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
 	}
+
+	handleAndroidBackPress = () => {
+		if (this.state.url === HOMEPAGE_URL && this.props.navigation.getParam('url', null) === null) {
+			return false;
+		}
+		this.goBack();
+		return true;
+	};
 
 	onUnapprovedTransaction = transactionMeta => {
 		if (this.props.transaction.value || this.props.transaction.to) {
@@ -524,23 +543,6 @@ export class Browser extends Component {
 		this.props.navigation.push('ApprovalView');
 	};
 
-	onNetworkChange = () => {
-		if (Platform.OS === 'ios') {
-			this.reload();
-		} else {
-			// Force unmount the webview to avoid caching problems
-			this.setState({ loading: true }, () => {
-				setTimeout(() => {
-					this.setState({ loading: false }, () => {
-						setTimeout(() => {
-							this.go(this.state.inputValue);
-						}, 300);
-					});
-				}, 300);
-			});
-		}
-	};
-
 	async loadUrl() {
 		const { navigation } = this.props;
 		if (navigation) {
@@ -548,7 +550,6 @@ export class Browser extends Component {
 			const silent = navigation.getParam('silent', false);
 			if (url && !silent) {
 				await this.go(url);
-				this.setState({ loading: false });
 			}
 		}
 	}
@@ -573,12 +574,13 @@ export class Browser extends Component {
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
-		Engine.context.TransactionController.hub.removeListener('networkChange', this.onNetworkChange);
+		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
 		if (Platform.OS === 'ios') {
 			this.state.scrollAnim.removeAllListeners();
 			this.state.offsetAnim.removeAllListeners();
 		} else {
 			this.keyboardDidHideListener.remove();
+			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 		}
 	}
 
@@ -621,7 +623,7 @@ export class Browser extends Component {
 	};
 
 	go = async url => {
-		const hasProtocol = url.match(/^[a-z]*:\/\//);
+		const hasProtocol = url.match(/^[a-z]*:\/\//) || url === HOMEPAGE_URL;
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
@@ -661,9 +663,11 @@ export class Browser extends Component {
 			});
 
 			this.timeoutHandler && clearTimeout(this.timeoutHandler);
-			this.timeoutHandler = setTimeout(() => {
-				this.urlTimedOut(urlToGo);
-			}, 60000);
+			if (urlToGo !== HOMEPAGE_URL) {
+				this.timeoutHandler = setTimeout(() => {
+					this.urlTimedOut(urlToGo);
+				}, 60000);
+			}
 
 			return sanitizedURL;
 		}
@@ -718,6 +722,7 @@ export class Browser extends Component {
 	}
 
 	onUrlInputSubmit = async (input = null) => {
+		this.toggleOptionsIfNeeded();
 		const inputValue = (typeof input === 'string' && input) || this.state.inputValue;
 		const { defaultProtocol, searchEngine } = this.props;
 		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
@@ -727,7 +732,12 @@ export class Browser extends Component {
 
 	goBack = () => {
 		this.toggleOptionsIfNeeded();
-		if (this.canGoBack()) {
+		this.goingBack = true;
+		setTimeout(() => {
+			this.goingBack = false;
+		}, 500);
+
+		if (this.initialUrl && this.state.inputValue !== this.initialUrl) {
 			const { current } = this.webview;
 			current && current.goBack();
 			setTimeout(() => {
@@ -737,7 +747,45 @@ export class Browser extends Component {
 					url: this.state.inputValue
 				});
 			}, 100);
+		} else {
+			this.goBackToHomepage();
 		}
+	};
+
+	goBackToHomepage = () => {
+		this.toggleOptionsIfNeeded();
+		this.props.navigation.setParams({
+			url: null
+		});
+
+		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
+
+		this.setState({
+			approvedOrigin: false,
+			currentEnsName: null,
+			currentPageTitle: '',
+			currentPageUrl: '',
+			currentPageIcon: undefined,
+			fullHostname: '',
+			hostname: '',
+			inputValue: '',
+			ipfsHash: null,
+			ipfsWebsite: false,
+			showApprovalDialog: false,
+			showPhishingModal: false,
+			signMessage: false,
+			signMessageParams: { data: '' },
+			signType: '',
+			timeout: false,
+			url: HOMEPAGE_URL,
+			scrollAnim,
+			offsetAnim,
+			clampedScroll,
+			contentHeight: 0,
+			forwardEnabled: false
+		});
+
+		this.initialUrl = null;
 	};
 
 	close = () => {
@@ -762,8 +810,21 @@ export class Browser extends Component {
 
 	reload = () => {
 		this.toggleOptionsIfNeeded();
-		const { current } = this.webview;
-		current && current.reload();
+		if (Platform.OS === 'ios') {
+			const { current } = this.webview;
+			current && current.reload();
+		} else {
+			// Force unmount the webview to avoid caching problems
+			this.setState({ forceReload: true }, () => {
+				setTimeout(() => {
+					this.setState({ forceReload: false }, () => {
+						setTimeout(() => {
+							this.go(this.state.inputValue);
+						}, 300);
+					});
+				}, 300);
+			});
+		}
 	};
 
 	bookmark = () => {
@@ -794,7 +855,9 @@ export class Browser extends Component {
 
 	changeUrl = () => {
 		this.toggleOptionsIfNeeded();
-		this.showUrlModal();
+		setTimeout(() => {
+			this.showUrlModal();
+		}, 300);
 	};
 
 	openInBrowser = () => {
@@ -805,7 +868,11 @@ export class Browser extends Component {
 	};
 
 	toggleOptionsIfNeeded() {
-		if (this.props.navigation && this.props.navigation.state.params.showOptions) {
+		if (
+			this.props.navigation &&
+			this.props.navigation.state.params &&
+			this.props.navigation.state.params.showOptions
+		) {
 			this.toggleOptions();
 		}
 	}
@@ -860,6 +927,11 @@ export class Browser extends Component {
 	};
 
 	onPageChange = ({ url }) => {
+		if ((this.goingBack && url === 'about:blank') || (this.initialUrl === url && url === 'about:blank')) {
+			this.goBackToHomepage();
+			return;
+		}
+
 		// Reset the navbar every time we change the page
 		if (Platform.OS === 'ios') {
 			this.state.offsetAnim.setValue(0);
@@ -919,7 +991,6 @@ export class Browser extends Component {
 			}, 100);
 		}
 
-		this.isFirstWebsite = false;
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
 			this.backgroundBridge.enableAccounts();
@@ -931,11 +1002,14 @@ export class Browser extends Component {
 				name: this.state.currentPageTitle,
 				url: this.state.inputValue
 			});
+		}, 500);
 
-			if (!this.initialUrl) {
+		// Let's wait for potential redirects that might break things
+		if (!this.initialUrl || this.initialUrl === HOMEPAGE_URL) {
+			setTimeout(() => {
 				this.initialUrl = this.state.inputValue;
-			}
-		}, 1000);
+			}, 1000);
+		}
 
 		// We need to get the title of the page and the height
 		const { current } = this.webview;
@@ -1010,6 +1084,10 @@ export class Browser extends Component {
 							<Button onPress={this.reload} style={styles.option}>
 								<Icon name="refresh" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText}>{strings('browser.reload')}</Text>
+							</Button>
+							<Button onPress={this.goBackToHomepage} style={styles.option}>
+								<Icon name="home" size={15} style={styles.optionIcon} />
+								<Text style={styles.optionText}>{strings('browser.home')}</Text>
 							</Button>
 							<Button onPress={this.bookmark} style={styles.option}>
 								<Icon name="star" size={15} style={styles.optionIcon} />
@@ -1097,6 +1175,9 @@ export class Browser extends Component {
 	}
 
 	renderBottomBar = (canGoBack, canGoForward) => {
+		if (this.state.url === HOMEPAGE_URL) {
+			return false;
+		}
 		const { clampedScroll } = this.state;
 
 		const bottomBarPosition = clampedScroll.interpolate({
@@ -1290,8 +1371,8 @@ export class Browser extends Component {
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
 				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
+				animationInTiming={300}
+				animationOutTiming={300}
 				onSwipeComplete={this.onSignAction}
 				swipeDirection={'down'}
 			>
@@ -1362,6 +1443,14 @@ export class Browser extends Component {
 		);
 	}
 
+	onBrowserHomeGoToUrl = url => {
+		this.props.navigation.setParams({
+			url,
+			silent: false,
+			showUrlModal: false
+		});
+	};
+
 	getUserAgent() {
 		if (Platform.OS === 'android') {
 			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
@@ -1373,7 +1462,7 @@ export class Browser extends Component {
 		this.backgroundBridge.disableAccounts();
 	};
 
-	canGoBack = () => this.initialUrl && this.state.inputValue !== this.initialUrl;
+	canGoBack = () => true;
 
 	canGoForward = () => this.state.forwardEnabled;
 
@@ -1381,12 +1470,13 @@ export class Browser extends Component {
 		const { entryScriptWeb3, url } = this.state;
 		const canGoBack = this.canGoBack();
 		const canGoForward = this.canGoForward();
+
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.progressBarWrapper}>
 					<WebviewProgressBar progress={this.state.progress} />
 				</View>
-				{entryScriptWeb3 && !this.state.loading ? (
+				{!this.state.forceReload && (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						injectedJavaScriptForMainFrameOnly
@@ -1405,9 +1495,12 @@ export class Browser extends Component {
 						sendCookies
 						javascriptEnabled
 					/>
-				) : (
-					this.renderLoader()
 				)}
+				{this.state.url === HOMEPAGE_URL ? (
+					<View style={styles.homepage}>
+						<BrowserHome goToUrl={this.onBrowserHomeGoToUrl} />
+					</View>
+				) : null}
 				{this.renderUrlModal()}
 				{this.renderSigningModal()}
 				{this.renderApprovalModal()}

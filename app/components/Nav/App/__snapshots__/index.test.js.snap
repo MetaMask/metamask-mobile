@@ -49,7 +49,6 @@ exports[`App should render correctly 1`] = `
                     "childRouters": Object {
                       "BrowserTabHome": Object {
                         "childRouters": Object {
-                          "BrowserHome": null,
                           "BrowserView": null,
                         },
                         "getActionCreators": [Function],
@@ -276,7 +275,7 @@ exports[`App should render correctly 1`] = `
                         "routes": Array [
                           Object {
                             "key": "id-123-0",
-                            "routeName": "BrowserHome",
+                            "routeName": "BrowserView",
                           },
                         ],
                       },
@@ -398,7 +397,6 @@ exports[`App should render correctly 1`] = `
                       "childRouters": Object {
                         "BrowserTabHome": Object {
                           "childRouters": Object {
-                            "BrowserHome": null,
                             "BrowserView": null,
                           },
                           "getActionCreators": [Function],
@@ -625,7 +623,7 @@ exports[`App should render correctly 1`] = `
                           "routes": Array [
                             Object {
                               "key": "id-123-0",
-                              "routeName": "BrowserHome",
+                              "routeName": "BrowserView",
                             },
                           ],
                         },
