@@ -38,8 +38,9 @@ exports[`HomePage should render correctly 1`] = `
         <View
           style={
             Object {
+              "marginBottom": 24,
               "marginHorizontal": 16,
-              "marginVertical": 12,
+              "marginTop": 12,
             }
           }
         >
@@ -49,7 +50,9 @@ exports[`HomePage should render correctly 1`] = `
             autoCorrect={false}
             blurOnSubmit={true}
             clearButtonMode="while-editing"
+            onBlur={[Function]}
             onChangeText={[Function]}
+            onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Search or type a URL"
             placeholderTextColor="#8E8E93"
@@ -58,8 +61,8 @@ exports[`HomePage should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "backgroundColor": "#e9eff5",
                   "borderRadius": 20,
+                  "borderWidth": 2,
                   "color": "#8E8E93",
                   "flex": 1,
                   "fontFamily": "Roboto",
@@ -71,6 +74,10 @@ exports[`HomePage should render correctly 1`] = `
                   "paddingTop": 2,
                 },
                 Object {},
+                Object {
+                  "backgroundColor": "#F0F2F4",
+                  "borderColor": "#F0F2F4",
+                },
               ]
             }
             underlineColorAndroid="transparent"
