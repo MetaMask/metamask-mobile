@@ -54,7 +54,6 @@ import AppConstants from '../../../core/AppConstants';
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
 const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
-const NAVBAR_HEIGHT = Platform.OS === 'ios' ? BOTTOM_NAVBAR_HEIGHT - 1 : 74;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -167,10 +166,10 @@ const styles = StyleSheet.create({
 	},
 	urlModalContent: {
 		flexDirection: 'row',
-		paddingTop: Platform.OS === 'android' ? 10 : 50,
+		paddingTop: Platform.OS === 'android' ? 10 : DeviceSize.isIphoneX() ? 50 : 27,
 		paddingHorizontal: 10,
 		backgroundColor: colors.white,
-		height: Platform.OS === 'android' ? 59 : 87
+		height: Platform.OS === 'android' ? 59 : DeviceSize.isIphoneX() ? 87 : 65
 	},
 	urlModal: {
 		justifyContent: 'flex-start',
@@ -223,7 +222,11 @@ const styles = StyleSheet.create({
 	},
 	homepage: {
 		flex: 1,
-		marginTop: -(Dimensions.get('window').height - NAVBAR_HEIGHT)
+		position: 'absolute',
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 0
 	}
 });
 
@@ -324,6 +327,7 @@ export class Browser extends Component {
 			fullHostname: '',
 			hostname: '',
 			inputValue: '',
+			autocompleteInputValue: '',
 			ipfsGateway: 'https://ipfs.io/ipfs/',
 			ipfsHash: null,
 			ipfsWebsite: false,
@@ -723,11 +727,15 @@ export class Browser extends Component {
 
 	onUrlInputSubmit = async (input = null) => {
 		this.toggleOptionsIfNeeded();
-		const inputValue = (typeof input === 'string' && input) || this.state.inputValue;
+		const inputValue = (typeof input === 'string' && input) || this.state.autocompleteInputValue;
 		const { defaultProtocol, searchEngine } = this.props;
-		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
-		const url = await this.go(sanitizedInput);
-		this.hideUrlModal(url);
+		if (inputValue !== '') {
+			const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
+			const url = await this.go(sanitizedInput);
+			this.hideUrlModal(url);
+		} else {
+			this.hideUrlModal();
+		}
 	};
 
 	goBack = () => {
@@ -769,6 +777,7 @@ export class Browser extends Component {
 			fullHostname: '',
 			hostname: '',
 			inputValue: '',
+			autocompleteInputValue: '',
 			ipfsHash: null,
 			ipfsWebsite: false,
 			showApprovalDialog: false,
@@ -906,6 +915,11 @@ export class Browser extends Component {
 					const { url, title } = data.payload;
 					this.setState({ inputValue: url, currentPageTitle: title, forwardEnabled: false });
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
+					if (Platform.OS === 'ios') {
+						setTimeout(() => {
+							this.resetBottomBarPosition();
+						}, 100);
+					}
 					break;
 				}
 				case 'INPAGE_REQUEST':
@@ -926,6 +940,17 @@ export class Browser extends Component {
 		}
 	};
 
+	resetBottomBarPosition() {
+		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
+
+		this.mounted &&
+			this.setState({
+				scrollAnim,
+				offsetAnim,
+				clampedScroll
+			});
+	}
+
 	onPageChange = ({ url }) => {
 		if ((this.goingBack && url === 'about:blank') || (this.initialUrl === url && url === 'about:blank')) {
 			this.goBackToHomepage();
@@ -934,7 +959,7 @@ export class Browser extends Component {
 
 		// Reset the navbar every time we change the page
 		if (Platform.OS === 'ios') {
-			this.state.offsetAnim.setValue(0);
+			this.resetBottomBarPosition();
 		}
 
 		this.forwardHistoryStack = [];
@@ -973,7 +998,7 @@ export class Browser extends Component {
 	}
 
 	onURLChange = inputValue => {
-		this.setState({ inputValue });
+		this.setState({ autocompleteInputValue: inputValue });
 	};
 
 	sendStateUpdate = () => {
@@ -1227,6 +1252,7 @@ export class Browser extends Component {
 	}
 
 	showUrlModal = () => {
+		this.setState({ autocompleteInputValue: this.state.inputValue });
 		this.props.navigation.setParams({
 			...this.props.navigation.state.params,
 			url: this.state.inputValue,
@@ -1235,7 +1261,7 @@ export class Browser extends Component {
 	};
 
 	hideUrlModal = url => {
-		const urlParam = typeof url === 'string' ? url : this.props.navigation.state.params.url;
+		const urlParam = typeof url === 'string' && url ? url : this.props.navigation.state.params.url;
 		this.props.navigation.setParams({
 			...this.props.navigation.state.params,
 			url: urlParam,
@@ -1290,7 +1316,7 @@ export class Browser extends Component {
 						placeholderTextColor={colors.asphalt}
 						returnKeyType="go"
 						style={styles.urlInput}
-						value={this.state.inputValue}
+						value={this.state.autocompleteInputValue}
 						selectTextOnFocus
 					/>
 
@@ -1304,7 +1330,11 @@ export class Browser extends Component {
 						</TouchableOpacity>
 					)}
 				</View>
-				<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.inputValue} />
+				<UrlAutocomplete
+					onSubmit={this.onAutocomplete}
+					input={this.state.autocompleteInputValue}
+					onDismiss={this.hideUrlModal}
+				/>
 			</Modal>
 		);
 	};
