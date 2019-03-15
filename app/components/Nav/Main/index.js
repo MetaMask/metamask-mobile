@@ -7,7 +7,6 @@ import GlobalAlert from '../../UI/GlobalAlert';
 import FlashMessage from 'react-native-flash-message';
 import BackgroundTimer from 'react-native-background-timer';
 import Browser from '../../Views/Browser';
-import BrowserHome from '../../Views/BrowserHome';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Approval from '../../Views/Approval';
@@ -59,9 +58,6 @@ const MainNavigator = createStackNavigator(
 			screen: createBottomTabNavigator(
 				{
 					BrowserTabHome: createStackNavigator({
-						BrowserHome: {
-							screen: BrowserHome
-						},
 						BrowserView: {
 							screen: Browser,
 							navigationOptions: {

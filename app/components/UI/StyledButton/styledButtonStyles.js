@@ -29,7 +29,8 @@ const styles = StyleSheet.create({
 		color: colors.primaryFox
 	},
 	confirm: {
-		backgroundColor: colors.primary
+		backgroundColor: colors.primary,
+		minHeight: 50
 	},
 	confirmText: {
 		color: colors.white

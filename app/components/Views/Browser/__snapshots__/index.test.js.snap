@@ -4,7 +4,7 @@ exports[`Browser should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#f1f2f6",
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
@@ -19,21 +19,54 @@ exports[`Browser should render correctly 1`] = `
   >
     <WebviewProgressBar />
   </View>
+  <Web3Webview
+    injectedJavaScriptForMainFrameOnly={true}
+    injectedOnStartLoadingJavaScript={null}
+    javaScriptEnabled={true}
+    javascriptEnabled={true}
+    messagingEnabled={true}
+    onLoadEnd={[Function]}
+    onLoadStart={[Function]}
+    onMessage={[Function]}
+    onMomentumScrollBegin={[Function]}
+    onNavigationStateChange={[Function]}
+    onProgress={[Function]}
+    onScroll={[Function]}
+    openNewWindowInWebView={true}
+    originWhitelist={
+      Array [
+        "http://*",
+        "https://*",
+      ]
+    }
+    saveFormDataDisabled={false}
+    scalesPageToFit={true}
+    scrollEventThrottle={1}
+    sendCookies={true}
+    showDefaultLoader={false}
+    source={
+      Object {
+        "uri": "about:blank",
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+    thirdPartyCookiesEnabled={true}
+    userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1"
+  />
   <View
     style={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
         "flex": 1,
-        "justifyContent": "center",
+        "marginTop": -1249,
       }
     }
   >
-    <ActivityIndicator
-      animating={true}
-      color="#999999"
-      hidesWhenStopped={true}
-      size="small"
+    <Connect(BrowserHome)
+      goToUrl={[Function]}
     />
   </View>
   <ReactNativeModal
@@ -188,9 +221,9 @@ exports[`Browser should render correctly 1`] = `
   />
   <ReactNativeModal
     animationIn="slideInUp"
-    animationInTiming={600}
+    animationInTiming={300}
     animationOut="slideOutDown"
-    animationOutTiming={600}
+    animationOutTiming={300}
     avoidKeyboard={false}
     backdropColor="black"
     backdropOpacity={0.7}
@@ -285,128 +318,5 @@ exports[`Browser should render correctly 1`] = `
       goToFilePhishingIssue={[Function]}
     />
   </ReactNativeModal>
-  <AnimatedComponent
-    style={
-      Array [
-        Object {
-          "alignItems": "center",
-          "backgroundColor": "#f1f2f6",
-          "bottom": 0,
-          "flexDirection": "row",
-          "left": 0,
-          "paddingBottom": 32,
-          "paddingHorizontal": 10,
-          "paddingTop": 15,
-          "position": "absolute",
-          "right": 0,
-        },
-        Object {
-          "transform": Array [
-            Object {
-              "translateY": 0,
-            },
-          ],
-        },
-      ]
-    }
-  >
-    <View
-      style={
-        Object {
-          "alignContent": "flex-start",
-          "flex": 1,
-          "flexDirection": "row",
-        }
-      }
-    >
-      <Icon
-        allowFontScaling={false}
-        disabled={true}
-        name="angle-left"
-        onPress={[Function]}
-        size={40}
-        style={
-          Object {
-            "alignSelf": "center",
-            "color": "#ced6e0",
-            "height": 28,
-            "lineHeight": 28,
-            "textAlign": "center",
-            "width": 36,
-          }
-        }
-      />
-      <Icon
-        allowFontScaling={false}
-        disabled={true}
-        name="angle-right"
-        onPress={[Function]}
-        size={40}
-        style={
-          Object {
-            "alignSelf": "center",
-            "color": "#ced6e0",
-            "height": 28,
-            "lineHeight": 28,
-            "textAlign": "center",
-            "width": 36,
-          }
-        }
-      />
-    </View>
-    <View
-      style={
-        Object {
-          "alignItems": "flex-end",
-          "flexDirection": "row",
-        }
-      }
-    >
-      <Icon
-        allowFontScaling={false}
-        name="ios-search"
-        onPress={[Function]}
-        size={30}
-        style={
-          Array [
-            Object {
-              "alignSelf": "center",
-              "color": "#2f3542",
-              "height": 28,
-              "lineHeight": 28,
-              "textAlign": "center",
-              "width": 36,
-            },
-            Object {
-              "alignContent": "flex-end",
-              "alignSelf": "flex-end",
-            },
-          ]
-        }
-      />
-      <Icon
-        allowFontScaling={false}
-        name="more-vert"
-        onPress={[Function]}
-        size={32}
-        style={
-          Array [
-            Object {
-              "alignSelf": "center",
-              "color": "#2f3542",
-              "height": 28,
-              "lineHeight": 28,
-              "textAlign": "center",
-              "width": 36,
-            },
-            Object {
-              "alignContent": "flex-end",
-              "alignSelf": "flex-end",
-            },
-          ]
-        }
-      />
-    </View>
-  </AnimatedComponent>
 </View>
 `;

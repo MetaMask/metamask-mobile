@@ -11,6 +11,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+const HOMEPAGE_URL = 'about:blank';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -77,6 +78,9 @@ const styles = StyleSheet.create({
 	},
 	browserMoreIconAndroid: {
 		paddingTop: 10
+	},
+	disabled: {
+		opacity: 0.3
 	}
 });
 
@@ -176,23 +180,34 @@ export function getTransactionOptionsTitle(title, backButtonText, navigation) {
  */
 export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
-	const urlObj = new URL(url);
-	let hostname = urlObj.hostname.toLowerCase().replace('www.', '');
-	if (hostname === 'ipfs.io' && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
-		const ensUrl = navigation.getParam('currentEnsName', '');
-		if (ensUrl) {
-			hostname = ensUrl.toLowerCase().replace('www.', '');
+	let hostname = null;
+	let isHttps = false;
+	if (url && url !== HOMEPAGE_URL) {
+		isHttps = url.toLowerCase().substr(0, 6) === 'https:';
+		const urlObj = new URL(url);
+		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+		if (hostname === 'ipfs.io' && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
+			const ensUrl = navigation.getParam('currentEnsName', '');
+			if (ensUrl) {
+				hostname = ensUrl.toLowerCase().replace('www.', '');
+			}
 		}
+	} else {
+		hostname = strings('browser.title');
 	}
 
-	const isHttps = url.toLowerCase().substr(0, 6) === 'https:';
+	function onPress() {
+		Keyboard.dismiss();
+		navigation.openDrawer();
+	}
+
+	const optionsDisabled = hostname === strings('browser.title');
 
 	return {
 		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={onPress} style={styles.backButton}>
 				<IonicIcon
-					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
 					style={styles.backIcon}
 				/>
@@ -208,7 +223,8 @@ export function getBrowserViewNavbarOptions(navigation) {
 						onPress={() => {
 							navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
 						}}
-						style={styles.browserMoreIconAndroid}
+						style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
+						disabled={optionsDisabled}
 					>
 						<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
 					</TouchableOpacity>

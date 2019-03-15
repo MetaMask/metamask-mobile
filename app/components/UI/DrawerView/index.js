@@ -605,7 +605,7 @@ class DrawerView extends Component {
 				icon: this.getIcon('globe'),
 				selectedIcon: this.getSelectedIcon('globe'),
 				action: this.goToBrowser,
-				routeNames: ['BrowserHome', 'BrowserView', 'AddBookmark']
+				routeNames: ['BrowserView', 'AddBookmark']
 			},
 			{
 				name: strings('drawer.wallet'),
