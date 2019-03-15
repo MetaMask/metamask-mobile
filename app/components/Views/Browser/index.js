@@ -915,9 +915,11 @@ export class Browser extends Component {
 					const { url, title } = data.payload;
 					this.setState({ inputValue: url, currentPageTitle: title, forwardEnabled: false });
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
-					setTimeout(() => {
-						this.resetBottomBarPosition();
-					}, 100);
+					if (Platform.OS === 'ios') {
+						setTimeout(() => {
+							this.resetBottomBarPosition();
+						}, 100);
+					}
 					break;
 				}
 				case 'INPAGE_REQUEST':
