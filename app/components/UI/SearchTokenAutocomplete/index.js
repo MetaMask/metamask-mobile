@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
 export default class SearchTokenAutocomplete extends Component {
 	state = {
 		searchResults: [],
+		searchQuery: '',
 		selectedAsset: {}
 	};
 
@@ -36,7 +37,7 @@ export default class SearchTokenAutocomplete extends Component {
 	};
 
 	handleSearch = opts => {
-		this.setState({ searchResults: opts.results });
+		this.setState({ searchResults: opts.results, searchQuery: opts.searchQuery });
 	};
 
 	handleSelectAsset = asset => {
@@ -51,7 +52,7 @@ export default class SearchTokenAutocomplete extends Component {
 	};
 
 	render = () => {
-		const { searchResults, selectedAsset } = this.state;
+		const { searchResults, selectedAsset, searchQuery } = this.state;
 
 		return (
 			<View style={styles.wrapper} testID={'search-token-screen'}>
@@ -67,6 +68,7 @@ export default class SearchTokenAutocomplete extends Component {
 							searchResults={searchResults}
 							handleSelectAsset={this.handleSelectAsset}
 							selectedAsset={selectedAsset}
+							searchQuery={searchQuery}
 						/>
 					</View>
 				</ActionView>

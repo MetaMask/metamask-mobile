@@ -146,7 +146,9 @@
 		"address_must_be_valid": "Dirección del token debe ser válida.",
 		"symbol_cant_be_empty": "Símbolo del token no puede estar vacío.",
 		"decimals_cant_be_empty": "Precisión del token no puede estar vacía.",
-		"select_token": "Seleccionar Token"
+		"no_tokens_found": "No hemos podido encontrar ningun token con ese nombre.",
+		"select_token": "Seleccionar Token",
+		"address_must_be_smart_contract": "Dirección personal detectada. Ingrese la dirección del contrato."
 	},
 	"collectible": {
 		"collectible_address": "Dirección del Coleccionable",
@@ -159,7 +161,8 @@
 		"token_id_cant_be_empty": "Identificador del coleccionable no puede estar vacío.",
 		"ownership_error_title": "Ooops! Algo malo ha pasado...",
 		"ownership_error": "No eres el dueño de este coleccionable por lo que no puedes agregarlo",
-		"powered_by_opensea": "Esponsoreado por"
+		"powered_by_opensea": "Esponsoreado por",
+		"id_placeholder": "Ingresa el ID del collecionable"
 	},
 	"transfer": {
 		"title": "Transferir",
