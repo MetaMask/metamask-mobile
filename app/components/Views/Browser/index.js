@@ -1519,7 +1519,6 @@ export class Browser extends Component {
 				{!this.state.forceReload && (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
-						injectedJavaScriptForMainFrameOnly
 						onProgress={this.onLoadProgress}
 						onLoadStart={this.onLoadStart}
 						onLoadEnd={this.onLoadEnd}
