@@ -175,12 +175,12 @@ class Settings extends Component {
 		},
 		{
 			value: '300000',
-			label: strings('app_settings.autolock_after', { time: 300 }),
+			label: strings('app_settings.autolock_after_minutes', { time: 5 }),
 			key: '300000'
 		},
 		{
 			value: '600000',
-			label: strings('app_settings.autolock_after', { time: 600 }),
+			label: strings('app_settings.autolock_after_minutes', { time: 10 }),
 			key: '600000'
 		},
 		{

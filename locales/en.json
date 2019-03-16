@@ -187,6 +187,7 @@
 		"autolock_immediately": "Immediately",
 		"autolock_never": "Never",
 		"autolock_after": "After {{time}} seconds",
+		"autolock_after_minutes": "After {{time}} minutes",
 		"reveal_seed_words": "Reveal Seed Words",
 		"reset_account": "Reset Account",
 		"state_logs_button": "DOWNLOAD STATE LOGS",
