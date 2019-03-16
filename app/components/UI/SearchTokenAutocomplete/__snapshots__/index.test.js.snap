@@ -26,8 +26,9 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
       <AssetSearch
         onSearch={[Function]}
       />
-      <AssetSearch
+      <AssetList
         handleSelectAsset={[Function]}
+        searchQuery=""
         searchResults={Array []}
         selectedAsset={Object {}}
       />

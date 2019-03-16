@@ -68,6 +68,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "color": "#FF0000",
               "fontFamily": "Roboto",
               "fontWeight": "400",
+              "marginTop": 15,
             }
           }
         />
@@ -117,6 +118,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "color": "#FF0000",
               "fontFamily": "Roboto",
               "fontWeight": "400",
+              "marginTop": 15,
             }
           }
         />
@@ -168,6 +170,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               "color": "#FF0000",
               "fontFamily": "Roboto",
               "fontWeight": "400",
+              "marginTop": 15,
             }
           }
         />
