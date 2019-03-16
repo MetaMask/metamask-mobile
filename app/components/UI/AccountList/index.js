@@ -286,19 +286,21 @@ export default class AccountList extends Component {
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
-			const checksummedAddress = toChecksumAddress(addr);
-			const identity = identities[checksummedAddress];
-			const { name, address } = identity;
-			const identityAddressChecksummed = toChecksumAddress(address);
-			const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
-			const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
-			let balance = 0x0;
-			if (accounts[identityAddressChecksummed]) {
-				balance = accounts[identityAddressChecksummed].balance;
-			}
-			return { index, name, address: identityAddressChecksummed, balance, isSelected, isImported };
-		});
+		return accountsOrdered
+			.filter(address => !!identities[toChecksumAddress(address)])
+			.map((addr, index) => {
+				const checksummedAddress = toChecksumAddress(addr);
+				const identity = identities[checksummedAddress];
+				const { name, address } = identity;
+				const identityAddressChecksummed = toChecksumAddress(address);
+				const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
+				const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
+				let balance = 0x0;
+				if (accounts[identityAddressChecksummed]) {
+					balance = accounts[identityAddressChecksummed].balance;
+				}
+				return { index, name, address: identityAddressChecksummed, balance, isSelected, isImported };
+			});
 	}
 
 	keyExtractor = item => item.address;

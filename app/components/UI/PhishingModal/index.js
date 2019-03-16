@@ -129,7 +129,8 @@ export default class PhishingModal extends Component {
 							{strings('phishing.reasons')}
 							<Text style={styles.link} onPress={this.props.goToETHPhishingDetector}>
 								{strings('phishing.ethereum_phishing_detector')}
-							</Text>. {strings('phishing.list_content')}
+							</Text>
+							. {strings('phishing.list_content')}
 						</Text>
 						<Text style={styles.phishingText}>
 							{strings('phishing.to_read_more')}

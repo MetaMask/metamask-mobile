@@ -29,7 +29,13 @@ export class BackgroundBridge {
 					done(error);
 				});
 		} else {
-			provider.sendAsync(payload, done);
+			provider.sendAsync(
+				{
+					method: payload.method,
+					params: payload.params
+				},
+				done
+			);
 		}
 	}
 
