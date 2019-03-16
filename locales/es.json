@@ -146,7 +146,9 @@
 		"address_must_be_valid": "Dirección del token debe ser válida.",
 		"symbol_cant_be_empty": "Símbolo del token no puede estar vacío.",
 		"decimals_cant_be_empty": "Precisión del token no puede estar vacía.",
-		"select_token": "Seleccionar Token"
+		"no_tokens_found": "No hemos podido encontrar ningun token con ese nombre.",
+		"select_token": "Seleccionar Token",
+		"address_must_be_smart_contract": "Dirección personal detectada. Ingrese la dirección del contrato."
 	},
 	"collectible": {
 		"collectible_address": "Dirección del Coleccionable",
@@ -159,7 +161,8 @@
 		"token_id_cant_be_empty": "Identificador del coleccionable no puede estar vacío.",
 		"ownership_error_title": "Ooops! Algo malo ha pasado...",
 		"ownership_error": "No eres el dueño de este coleccionable por lo que no puedes agregarlo",
-		"powered_by_opensea": "Esponsoreado por"
+		"powered_by_opensea": "Esponsoreado por",
+		"id_placeholder": "Ingresa el ID del collecionable"
 	},
 	"transfer": {
 		"title": "Transferir",
@@ -238,16 +241,18 @@
 		"attributions": "Atribuciones",
 		"support_center": "Visita nuestro centro de atención",
 		"web_site": "Visita nuestro sitio web",
-		"email_us": "¡Envíanos un correo!"
+		"email_us": "¡Envíanos un correo a support@metamask.io!"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Revelar Frase Semilla",
 		"private_key_title": "Mostrar dirección privada",
+		"private_key_title_for_account": "Mostrar dirección privada para la cuenta {{accountName}}",
 		"cancel": "Cancelar",
 		"confirm": "Siguiente",
 		"seed_phrase_explanation": "Si alguna vez cambias de navegador o de computador, vas a necesitar esta frase semilla para acceder a tus cuentas. Guárdalas en lugar seguro y secreto.",
 		"private_key_explanation": "Guárdala en lugar seguro y secreto.",
 		"seed_phrase_warning_explanation": "NO compartas esta frase con nadie! Estas palabras pueden ser usadas para robar tus cuentas.",
+		"private_key_warning": "Esta es la llave privada para la cuenta seleccionada: {{accountName}}. Nunca reveles esta llave. Cualquier persona con acceso a tu llave privada puede robar los fondos de tu cuenta.",
 		"private_key_warning_explanation": "Nunca reveles esta clave. Cualquier persona con sus claves privadas puede robar cualquier activo retenido en tu cuenta.",
 		"seed_phrase": "Tu frase semilla privada",
 		"private_key": "Tu dirección privada",

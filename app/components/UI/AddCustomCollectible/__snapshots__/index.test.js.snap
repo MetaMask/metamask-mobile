@@ -70,6 +70,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
               "color": "#FF0000",
               "fontFamily": "Roboto",
               "fontWeight": "400",
+              "marginTop": 15,
             }
           }
         />
@@ -97,7 +98,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
-          placeholder=""
+          placeholder="Enter the collectible ID"
           rejectResponderTermination={true}
           returnKeyType="done"
           style={
@@ -123,6 +124,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
               "color": "#FF0000",
               "fontFamily": "Roboto",
               "fontWeight": "400",
+              "marginTop": 15,
             }
           }
         />

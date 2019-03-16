@@ -146,7 +146,9 @@
 		"address_must_be_valid": "Token address must be a valid address.",
 		"symbol_cant_be_empty": "Token symbol can't be empty.",
 		"decimals_cant_be_empty": "Token decimals can't be empty.",
-		"select_token": "Select Token"
+		"no_tokens_found": "We couldn't find any tokens with that name.",
+		"select_token": "Select Token",
+		"address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
 	},
 	"collectible": {
 		"collectible_address": "Address",
@@ -159,7 +161,8 @@
 		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
 		"ownership_error_title": "Ooops! Something happened.",
 		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
-		"powered_by_opensea": "Powered by"
+		"powered_by_opensea": "Powered by",
+		"id_placeholder": "Enter the collectible ID"
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -239,7 +242,7 @@
 		"attributions": "Attributions",
 		"support_center": "Visit our Support Center",
 		"web_site": "Visit our Website",
-		"email_us": "Email Us!"
+		"email_us": "Email Us at support@metamask.io!"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Reveal Seed Phrase",
@@ -408,6 +411,7 @@
 	},
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
+		"short_title": "Sync with Extension",
 		"label": "Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",

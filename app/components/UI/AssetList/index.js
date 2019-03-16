@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
 import AssetIcon from '../AssetIcon';
+import { fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	rowWrapper: {
@@ -20,17 +21,16 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		padding: 16
+	},
+	normalText: {
+		...fontStyles.normal
 	}
 });
 
 /**
  * Component that provides ability to search assets.
  */
-export default class AssetSearch extends Component {
-	state = {
-		searchQuery: ''
-	};
-
+export default class AssetList extends Component {
 	static propTypes = {
 		/**
 		 * Array of assets objects returned from the search
@@ -43,7 +43,11 @@ export default class AssetSearch extends Component {
 		/**
 		 * Object of the currently-selected token
 		 */
-		selectedAsset: PropTypes.object
+		selectedAsset: PropTypes.object,
+		/**
+		 * Search query that generated "searchResults"
+		 */
+		searchQuery: PropTypes.string
 	};
 
 	onToggleAsset = key => {
@@ -56,7 +60,12 @@ export default class AssetSearch extends Component {
 
 		return (
 			<View style={styles.rowWrapper} testID={'add-searched-token-screen'}>
-				<Text>{strings('token.select_token')}</Text>
+				{searchResults.length > 0 ? (
+					<Text style={styles.normalText}>{strings('token.select_token')}</Text>
+				) : null}
+				{searchResults.length === 0 && this.props.searchQuery.length ? (
+					<Text style={styles.normalText}>{strings('token.no_tokens_found')}</Text>
+				) : null}
 				{searchResults.slice(0, 6).map((_, i) => {
 					const { symbol, name, address, logo } = searchResults[i] || {};
 					const isSelected = selectedAsset && selectedAsset.address === address;

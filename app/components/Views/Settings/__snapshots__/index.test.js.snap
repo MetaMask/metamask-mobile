@@ -30,10 +30,6 @@ exports[`Settings should render correctly 1`] = `
       onPress={[Function]}
       title="About MetaMask"
     />
-    <SettingsDrawer
-      noBorder={true}
-      title="Legal"
-    />
   </View>
 </_class>
 `;
