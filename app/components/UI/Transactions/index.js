@@ -19,7 +19,7 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { hasBlockExplorer, getNetworkTypeById } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
-import { getEtherscanTransactionUrl } from '../../../util/etherscan';
+import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Logger from '../../../util/Logger';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
@@ -218,9 +218,10 @@ class Transactions extends PureComponent {
 		try {
 			const network = getNetworkTypeById(networkID);
 			const url = getEtherscanTransactionUrl(network, transactionHash);
+			const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
 			this.props.navigation.push('Webview', {
 				url,
-				title: 'etherscan.io'
+				title: etherscan_url
 			});
 		} catch (e) {
 			// eslint-disable-next-line no-console

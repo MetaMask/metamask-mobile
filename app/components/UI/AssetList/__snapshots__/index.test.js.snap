@@ -8,9 +8,5 @@ exports[`AssetList should render correctly 1`] = `
     }
   }
   testID="add-searched-token-screen"
->
-  <Text>
-    Select Token
-  </Text>
-</View>
+/>
 `;

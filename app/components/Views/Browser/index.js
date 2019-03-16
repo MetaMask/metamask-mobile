@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 	optionsWrapper: {
 		position: 'absolute',
 		zIndex: 99999999,
-		width: 160,
+		width: 200,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.borderColor,
 		backgroundColor: colors.concrete
@@ -1097,45 +1097,55 @@ export class Browser extends Component {
 							{Platform.OS === 'android' && this.canGoBack() ? (
 								<Button onPress={this.goBack} style={styles.option}>
 									<Icon name="arrow-left" size={15} style={styles.optionIcon} />
-									<Text style={styles.optionText}>{strings('browser.go_back')}</Text>
+									<Text style={styles.optionText} numberOfLines={1}>
+										{strings('browser.go_back')}
+									</Text>
 								</Button>
 							) : null}
 							{Platform.OS === 'android' && this.canGoForward() ? (
 								<Button onPress={this.goForward} style={styles.option}>
 									<Icon name="arrow-right" size={15} style={styles.optionIcon} />
-									<Text style={styles.optionText}>{strings('browser.go_forward')}</Text>
+									<Text style={styles.optionText} numberOfLines={1}>
+										{strings('browser.go_forward')}
+									</Text>
 								</Button>
 							) : null}
 							<Button onPress={this.reload} style={styles.option}>
 								<Icon name="refresh" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>{strings('browser.reload')}</Text>
+								<Text style={styles.optionText} numberOfLines={1}>
+									{strings('browser.reload')}
+								</Text>
 							</Button>
 							<Button onPress={this.goBackToHomepage} style={styles.option}>
 								<Icon name="home" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>{strings('browser.home')}</Text>
+								<Text style={styles.optionText} numberOfLines={1}>
+									{strings('browser.home')}
+								</Text>
 							</Button>
 							<Button onPress={this.bookmark} style={styles.option}>
 								<Icon name="star" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>{strings('browser.add_to_favorites')}</Text>
+								<Text style={styles.optionText} numberOfLines={1}>
+									{strings('browser.add_to_favorites')}
+								</Text>
 							</Button>
 							<Button onPress={this.share} style={styles.option}>
 								<Icon name="share" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>{strings('browser.share')}</Text>
+								<Text style={styles.optionText} numberOfLines={1}>
+									{strings('browser.share')}
+								</Text>
 							</Button>
 							<Button onPress={this.openInBrowser} style={styles.option}>
 								<Icon name="expand" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText}>{strings('browser.open_in_browser')}</Text>
+								<Text style={styles.optionText} numberOfLines={1}>
+									{strings('browser.open_in_browser')}
+								</Text>
 							</Button>
 							{Platform.OS === 'android' ? (
 								<Button onPress={this.changeUrl} style={styles.option}>
 									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
-									<Text style={styles.optionText}>{strings('browser.change_url')}</Text>
-								</Button>
-							) : null}
-							{Platform.OS === 'android' ? (
-								<Button onPress={this.close} style={styles.option}>
-									<Icon name="close" size={15} style={styles.optionIcon} />
-									<Text style={styles.optionText}>{strings('browser.close')}</Text>
+									<Text style={styles.optionText} numberOfLines={1}>
+										{strings('browser.change_url')}
+									</Text>
 								</Button>
 							) : null}
 						</View>
