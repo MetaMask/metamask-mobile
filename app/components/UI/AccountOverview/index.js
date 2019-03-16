@@ -188,7 +188,6 @@ class AccountOverview extends Component {
 								ref={this.input}
 								returnKeyType={'done'}
 								autoCapitalize={'none'}
-								autoComplete={'off'}
 								autoCorrect={false}
 								numberOfLines={1}
 							/>

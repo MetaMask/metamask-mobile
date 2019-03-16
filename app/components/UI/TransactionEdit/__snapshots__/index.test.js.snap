@@ -296,7 +296,6 @@ exports[`TransactionEdit should render correctly 1`] = `
             }
           }
           underlineColorAndroid="transparent"
-          value=""
         />
       </View>
     </View>
