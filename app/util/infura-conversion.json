@@ -648,6 +648,39 @@
 				"code": "zec",
 				"name": "Zcash"
 			}
+		},
+		{
+			"symbol": "ethdai",
+			"base": {
+				"code": "eth",
+				"name": "Ethereum"
+			},
+			"quote": {
+				"code": "dai",
+				"name": "DAI"
+			}
+		},
+		{
+			"symbol": "ethusdc",
+			"base": {
+				"code": "eth",
+				"name": "Ethereum"
+			},
+			"quote": {
+				"code": "usdc",
+				"name": "USD Coin"
+			}
+		},
+		{
+			"symbol": "ethusdt",
+			"base": {
+				"code": "eth",
+				"name": "Ethereum"
+			},
+			"quote": {
+				"code": "usdt",
+				"name": "Tether"
+			}
 		}
 	]
 }

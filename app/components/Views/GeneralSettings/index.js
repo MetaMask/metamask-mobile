@@ -12,7 +12,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setSearchEngine } from '../../../actions/settings';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
-	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
+	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
 );
 
 const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) => ({

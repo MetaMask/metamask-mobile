@@ -10,6 +10,7 @@ exports[`QrScanner should render correctly 1`] = `
   }
 >
   <View
+    captureAudio={false}
     flashMode="auto"
     onBarCodeRead={[Function]}
     onMountError={[Function]}
