@@ -111,7 +111,7 @@ class TransactionEditor extends Component {
 				amount,
 				from,
 				data,
-				to: selectedAsset ? selectedAsset.address : to
+				to: selectedAsset && selectedAsset.address ? selectedAsset.address : to
 			});
 		} catch (e) {
 			estimation = { gas: '0x5208' };
