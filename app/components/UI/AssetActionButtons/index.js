@@ -7,9 +7,7 @@ import { colors, fontStyles } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	buttons: {
-		flex: 1,
 		flexDirection: 'row',
-		marginTop: 20,
 		width: '50%',
 		alignContent: 'center',
 		alignItems: 'center'

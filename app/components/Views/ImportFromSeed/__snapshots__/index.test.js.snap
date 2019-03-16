@@ -52,7 +52,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
       <TextInput
         allowFontScaling={true}
         autoCapitalize="none"
-        autoComplete="off"
         blurOnSubmit={true}
         keyboardType="default"
         multiline={true}

@@ -217,7 +217,7 @@
 		"general_title": "General",
 		"general_desc": "Conversion, Moneda principal, lenguaje",
 		"advanced_title": "Avanzado",
-		"advanced_desc": "Accede a opciones de desarrolador, Reiniciar cuenta, agregar redes de prueba y RPC personalizados",
+		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
 		"security_desc": "Opciones de privacidad y frase semilla de la billetera",
 		"info_title": "Acerca de MetaMask",

@@ -310,7 +310,6 @@ class AdvancedSettings extends Component {
 							<TextInput
 								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 								autoCapitalize={'none'}
-								autoComplete={'off'}
 								autoCorrect={false}
 								value={this.state.rpcUrl}
 								onBlur={this.addRpcUrl}
