@@ -11,12 +11,13 @@ export class BackgroundBridge {
 		const current = this._webview.current;
 		const { provider } = this._engine.context.NetworkController;
 		const override = this._rpcOverrides && this._rpcOverrides[payload.method];
+		const __mmID = payload.__mmID + '';
 		const done = (error, response) => {
 			current &&
 				current.postMessage(
 					JSON.stringify({
 						type: 'INPAGE_RESPONSE',
-						payload: { error, response, __mmID: payload.__mmID }
+						payload: { error, response, __mmID }
 					})
 				);
 		};
@@ -29,13 +30,10 @@ export class BackgroundBridge {
 					done(error);
 				});
 		} else {
-			provider.sendAsync(
-				{
-					method: payload.method,
-					params: payload.params
-				},
-				done
-			);
+			delete payload.__mmID;
+			delete payload.beta;
+			delete payload.hostname;
+			provider.sendAsync(payload, done);
 		}
 	}
 
