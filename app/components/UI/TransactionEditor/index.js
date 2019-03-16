@@ -463,7 +463,6 @@ class TransactionEditor extends Component {
 						navigation={this.props.navigation}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
-						onScanSuccess={this.handleNewTxMeta}
 						handleUpdateAmount={this.handleUpdateAmount}
 						handleUpdateData={this.handleUpdateData}
 						handleUpdateFromAddress={this.handleUpdateFromAddress}
