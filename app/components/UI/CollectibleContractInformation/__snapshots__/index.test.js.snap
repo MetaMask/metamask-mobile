@@ -181,7 +181,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
                 "fontFamily": "Roboto",
                 "fontSize": 8,
                 "fontWeight": "300",
-                "marginTop": 5,
+                "marginTop": 4,
                 "paddingRight": 5,
                 "textAlignVertical": "center",
               }
