@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const WRONG_PASSWORD_ERROR = 'Error: decrypt failed';
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 
 /**
  * View where returning users can authenticate

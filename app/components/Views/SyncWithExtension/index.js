@@ -10,7 +10,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
@@ -90,7 +90,8 @@ class SyncWithExtension extends Component {
 		loading: false
 	};
 
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('sync_with_extension.short_title'), navigation);
 
 	componentDidMount() {
 		this.mounted = true;
