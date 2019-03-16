@@ -301,7 +301,6 @@ class ImportFromSeed extends Component {
 						blurOnSubmit
 						onSubmitEditing={this.jumpToPassword}
 						returnKeyType={'next'}
-						autoComplete={'off'}
 						keyboardType={Platform.OS === 'android' ? 'email-address' : 'default'}
 						autoCapitalize="none"
 					/>

@@ -218,7 +218,7 @@
 		"general_title": "General",
 		"general_desc": "Currency conversion, primary currency, language",
 		"advanced_title": "Advanced",
-		"advanced_desc": "Access developer features, Reset Account, setup testnets and custom RPC",
+		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs and custom RPC",
 		"security_title": "Security & Privacy",
 		"security_desc": "Privacy settings, private key and wallet seed phrase",
 		"info_title": "About MetaMask",
