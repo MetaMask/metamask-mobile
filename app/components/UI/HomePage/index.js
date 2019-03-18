@@ -94,19 +94,10 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		paddingHorizontal: 38,
 		fontSize: 16,
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.anotherBlue,
 		height: 40,
 		color: colors.another50ShadesOfGrey,
-		borderWidth: 2,
 		...fontStyles.normal
-	},
-	searchInputNotFocus: {
-		backgroundColor: colors.anotherBlue,
-		borderColor: colors.anotherBlue
-	},
-	searchInputOnFocus: {
-		backgroundColor: colors.white,
-		borderColor: colors.white
 	},
 	searchIcon: {
 		position: 'absolute',
@@ -336,8 +327,7 @@ class HomePage extends Component {
 								<TextInput
 									style={[
 										styles.searchInput,
-										this.state.inputWidth ? { width: this.state.inputWidth } : {},
-										this.state.searchFocus ? styles.searchInputOnFocus : styles.searchInputNotFocus
+										this.state.inputWidth ? { width: this.state.inputWidth } : {}
 									]}
 									ref={this.searchInput}
 									onFocus={this.onSearchFocus}
