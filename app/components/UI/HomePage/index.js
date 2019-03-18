@@ -213,8 +213,7 @@ class HomePage extends Component {
 		searchInputValue: '',
 		inputValue: '',
 		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
-		tabViewStyle: null,
-		searchFocus: false
+		tabViewStyle: null
 	};
 
 	searchInput = React.createRef();
@@ -309,10 +308,6 @@ class HomePage extends Component {
 		this.searchInput && this.searchInput.current && this.searchInput.current.focus();
 	};
 
-	onSearchFocus = () => {
-		this.setState({ searchFocus: !this.state.searchFocus });
-	};
-
 	render() {
 		return (
 			<View style={styles.flex}>
@@ -330,8 +325,6 @@ class HomePage extends Component {
 										this.state.inputWidth ? { width: this.state.inputWidth } : {}
 									]}
 									ref={this.searchInput}
-									onFocus={this.onSearchFocus}
-									onBlur={this.onSearchFocus}
 									autoCapitalize="none"
 									autoCorrect={false}
 									clearButtonMode="while-editing"
