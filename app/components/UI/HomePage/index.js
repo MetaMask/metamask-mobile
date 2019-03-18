@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 	},
 	searchInputOnFocus: {
 		backgroundColor: colors.white,
-		borderColor: colors.primary
+		borderColor: colors.white
 	},
 	searchIcon: {
 		position: 'absolute',
