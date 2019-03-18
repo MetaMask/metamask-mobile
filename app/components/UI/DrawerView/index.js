@@ -475,6 +475,7 @@ class DrawerView extends Component {
 	};
 
 	logout = () => {
+		const { passwordSet } = this.props;
 		Alert.alert(
 			strings('drawer.logout_title'),
 			'',
@@ -488,7 +489,11 @@ class DrawerView extends Component {
 					text: strings('drawer.logout_ok'),
 					onPress: async () => {
 						await SecureKeychain.resetGenericPassword();
-						this.props.navigation.navigate('Entry');
+						if (!passwordSet) {
+							this.props.navigation.navigate('Onboarding');
+						} else {
+							this.props.navigation.navigate('Entry');
+						}
 					}
 				}
 			],
