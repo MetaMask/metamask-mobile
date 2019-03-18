@@ -38,8 +38,9 @@ exports[`HomePage should render correctly 1`] = `
         <View
           style={
             Object {
+              "marginBottom": 24,
               "marginHorizontal": 16,
-              "marginVertical": 12,
+              "marginTop": 12,
             }
           }
         >
@@ -58,7 +59,7 @@ exports[`HomePage should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "backgroundColor": "#f1f2f6",
+                  "backgroundColor": "#F0F2F4",
                   "borderRadius": 20,
                   "color": "#8E8E93",
                   "flex": 1,
