@@ -12,7 +12,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setSearchEngine } from '../../../actions/settings';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
-	a.quote.name.toLocaleLowerCase().localeCompare(b.quote.name.toLocaleLowerCase())
+	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
 );
 
 const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) => ({
@@ -77,11 +77,7 @@ class Settings extends Component {
 		/**
 		 * Active search engine
 		 */
-		searchEngine: PropTypes.string,
-		/**
-		 * Active network
-		 */
-		networkType: PropTypes.string
+		searchEngine: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -101,9 +97,6 @@ class Settings extends Component {
 		setLocale(language);
 		this.setState({ currentLanguage: language });
 		setTimeout(() => this.props.navigation.navigate('Home'), 100);
-		// This is the only hack that will make the navbar to re-render
-		const { NetworkController } = Engine.context;
-		NetworkController.setProviderType(this.props.networkType);
 	};
 
 	selectSearchEngine = searchEngine => {
@@ -173,7 +166,6 @@ class Settings extends Component {
 
 const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	searchEngine: state.settings.searchEngine
 });
 

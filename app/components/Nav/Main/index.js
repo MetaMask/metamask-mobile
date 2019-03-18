@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 // eslint-disable-next-line react-native/split-platform-components
-import { AppState, StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 import GlobalAlert from '../../UI/GlobalAlert';
 import FlashMessage from 'react-native-flash-message';
@@ -41,10 +42,19 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
+import I18n from '../../../../locales/i18n';
+import { colors } from '../../../styles/common';
+import LockManager from '../../../core/LockManager';
 
 const styles = StyleSheet.create({
 	flex: {
 		flex: 1
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	}
 });
 
@@ -218,7 +228,7 @@ const MainNavigator = createStackNavigator(
 	}
 );
 
-export default class Main extends Component {
+class Main extends Component {
 	static router = {
 		...MainNavigator.router
 	};
@@ -226,10 +236,19 @@ export default class Main extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Time to auto-lock the app after it goes in background mode
+		 */
+		lockTime: PropTypes.number
+	};
+
+	state = {
+		forceReload: false
 	};
 
 	backgroundMode = false;
+	locale = I18n.locale;
 
 	pollForIncomingTransactions = async () => {
 		await Engine.refreshTransactionHistory();
@@ -245,6 +264,8 @@ export default class Main extends Component {
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
+
+		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 
 		PushNotification.configure({
 			requestPermissions: true,
@@ -289,15 +310,48 @@ export default class Main extends Component {
 		}
 	};
 
+	componentDidUpdate(prevProps) {
+		if (this.locale !== I18n.locale) {
+			this.locale = I18n.locale;
+			this.forceReload();
+			return;
+		}
+		if (this.props.lockTime !== prevProps.lockTime) {
+			this.lockManager.updateLockTime(this.props.lockTime);
+		}
+	}
+
+	forceReload() {
+		// Force unmount the webview to avoid caching problems
+		this.setState({ forceReload: true }, () => {
+			setTimeout(() => {
+				this.setState({ forceReload: false });
+			}, 1000);
+		});
+	}
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator size="small" />
+		</View>
+	);
+
 	componentWillUnmount() {
 		AppState.removeEventListener('change', this.handleAppStateChange);
+		this.lockManager.stopListening();
 	}
 
 	render = () => (
 		<View style={styles.flex}>
-			<MainNavigator navigation={this.props.navigation} />
+			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 			<GlobalAlert />
 			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 		</View>
 	);
 }
+
+const mapStateToProps = state => ({
+	lockTime: state.settings.lockTime
+});
+
+export default connect(mapStateToProps)(Main);
