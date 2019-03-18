@@ -3,10 +3,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import HomePage from '../../UI/HomePage';
 import onUrlSubmit from '../../../util/browser';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import Branch from 'react-native-branch';
-import Logger from '../../../util/Logger';
-// eslint-disable-next-line import/no-unresolved
 
 /**
  * Complete Web browser component with URL entry and history management
@@ -40,8 +36,7 @@ class BrowserHome extends Component {
 	};
 
 	state = {
-		url: this.props.defaultURL || '',
-		tabs: []
+		url: this.props.defaultURL || ''
 	};
 
 	mounted = false;
@@ -49,28 +44,13 @@ class BrowserHome extends Component {
 
 	componentDidMount() {
 		this.mounted = true;
-		if (!__DEV__) {
-			Branch.subscribe(this.handleDeeplinks);
-		}
 	}
 
 	componentWillUnmount() {
 		this.mounted = false;
 	}
 
-	handleDeeplinks = async ({ error, params }) => {
-		if (error) {
-			Logger.error('Error from Branch: ', error);
-			return;
-		}
-		if (params['+non_branch_link']) {
-			const dm = new DeeplinkManager(this.props.navigation);
-			dm.parse(params['+non_branch_link']);
-		}
-	};
-
 	go = async url => {
-		this.setState({ tabs: [...this.state.tabs, url] });
 		this.props.goToUrl(url);
 	};
 
