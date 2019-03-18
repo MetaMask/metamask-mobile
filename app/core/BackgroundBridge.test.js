@@ -51,7 +51,7 @@ describe('BackgroundBridge', () => {
 			bridge.onMessage({ type: 'INPAGE_REQUEST', payload: { method: 'net_version' } });
 			setTimeout(() => {
 				expect(stub).toBeCalledWith(
-					JSON.stringify({ type: 'INPAGE_RESPONSE', payload: { response: true }, __mmID: undefined })
+					JSON.stringify({ type: 'INPAGE_RESPONSE', payload: { response: true, __mmID: 'undefined' } })
 				);
 				resolve();
 			}, 250);
