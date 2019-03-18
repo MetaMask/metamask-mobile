@@ -23,16 +23,13 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
 
-  # if DEBUG == 0
-      [Fabric with:@[[Crashlytics class]]];
-      [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
-  # endif
-
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
   NSString *foxCode;
 
   if(foxCodeFromBundle != nil){
     foxCode = foxCodeFromBundle;
+	[Fabric with:@[[Crashlytics class]]];
+  	[RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
   } else {
     foxCode = @"debug";
   }
