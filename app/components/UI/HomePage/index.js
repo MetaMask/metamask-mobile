@@ -83,7 +83,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	searchWrapper: {
-		marginVertical: 12,
+		marginTop: 12,
+		marginBottom: 24,
 		marginHorizontal: 16
 	},
 	searchInput: {
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		paddingHorizontal: 38,
 		fontSize: 16,
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.anotherBlue,
 		height: 40,
 		color: colors.another50ShadesOfGrey,
 		...fontStyles.normal
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
 	searchIcon: {
 		position: 'absolute',
 		textAlignVertical: 'center',
-		marginTop: Platform.OS === 'android' ? 8 : 10,
+		marginTop: Platform.OS === 'android' ? 9 : 10,
 		marginLeft: 12
 	},
 	backupAlert: {
