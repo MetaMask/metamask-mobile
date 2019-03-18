@@ -59,7 +59,7 @@
     "base-64": "0.1.0",
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
-    "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#e307359ca9ea6be4ded6ac58ac7e16f192ae4e2a",
+    "eth-contract-metadata": "github:MetaMask/eth-contract-metadata#2d0c1f1c6f0872c09603ae7bd7b30f1d680f8bd6",
     "eth-ens-namehash": "2.0.8",
     "eth-url-parser": "1.0.2",
     "ethereumjs-abi": "0.6.6",
