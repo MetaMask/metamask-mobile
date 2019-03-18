@@ -8,7 +8,8 @@ import {
 	View,
 	SafeAreaView,
 	InteractionManager,
-	Image
+	Image,
+	Platform
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
 		fontSize: 8,
 		textAlignVertical: 'center',
 		paddingRight: 5,
-		marginTop: 5,
+		marginTop: Platform.OS === 'android' ? -2 : 4,
 		color: colors.fontSecondary,
 		...fontStyles.light
 	},

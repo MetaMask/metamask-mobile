@@ -17,7 +17,7 @@ exports[`Settings should render correctly 1`] = `
       title="General"
     />
     <SettingsDrawer
-      description="Access developer features, Reset Account, setup testnets and custom RPC"
+      description="Access developer features, reset account, setup testnets, sync with extension, state logs and custom RPC"
       onPress={[Function]}
       title="Advanced"
     />
@@ -29,10 +29,6 @@ exports[`Settings should render correctly 1`] = `
     <SettingsDrawer
       onPress={[Function]}
       title="About MetaMask"
-    />
-    <SettingsDrawer
-      noBorder={true}
-      title="Legal"
     />
   </View>
 </_class>

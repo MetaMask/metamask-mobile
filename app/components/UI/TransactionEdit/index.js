@@ -185,7 +185,8 @@ class TransactionEdit extends Component {
 		toAddressError: '',
 		gasError: '',
 		fillMax: false,
-		ensRecipient: undefined
+		ensRecipient: undefined,
+		data: undefined
 	};
 
 	componentDidMount = () => {
@@ -195,6 +196,15 @@ class TransactionEdit extends Component {
 		}
 		if (transaction && transaction.assetType === 'ETH') {
 			this.props.handleUpdateReadableValue(fromWei(transaction.value));
+		}
+		if (transaction && transaction.data) {
+			this.setState({ data: transaction.data });
+		}
+	};
+
+	componentDidUpdate = prevProps => {
+		if (this.props.transaction.data !== prevProps.transaction.data) {
+			this.setState({ data: this.props.transaction.data });
 		}
 	};
 
@@ -268,6 +278,7 @@ class TransactionEdit extends Component {
 	};
 
 	updateData = data => {
+		this.setState({ data });
 		this.props.handleUpdateData(data);
 	};
 
@@ -327,10 +338,10 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transaction: { value, gas, gasPrice, data, from, to, selectedAsset, readableValue, ensRecipient },
+			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
 			showHexData
 		} = this.props;
-		const { gasError, toAddressError } = this.state;
+		const { gasError, toAddressError, data } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>

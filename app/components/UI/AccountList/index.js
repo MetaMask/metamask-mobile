@@ -319,7 +319,7 @@ export default class AccountList extends Component {
 					renderItem={this.renderItem}
 					ref={this.flatList}
 					style={styles.accountsWrapper}
-					getItemLayout={(data, index) => ({ length: 80, offset: 80 * (index - 2), index })} // eslint-disable-line
+					getItemLayout={(data, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
 				/>
 				<View style={styles.footer}>
 					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
