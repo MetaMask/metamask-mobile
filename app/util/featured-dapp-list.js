@@ -15,6 +15,11 @@ export default [
 		description: 'A blockchain-powered social network for our best selves.'
 	},
 	{
+		url: 'https://opensea.io/',
+		name: 'OpenSea',
+		description: 'The largest marketplace for crypto collectibles. Buy, sell, and discover rare digital items'
+	},
+	{
 		url: 'https://compound.finance/',
 		name: 'Compound',
 		description: 'Supply assets to the Compound protocol and earn interest.'
