@@ -107,6 +107,7 @@ export default class QrScanner extends Component {
 		<View style={styles.container}>
 			<RNCamera
 				onMountError={this.onError}
+				captureAudio={false}
 				style={styles.preview}
 				type={'back'}
 				onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}

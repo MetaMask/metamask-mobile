@@ -1,5 +1,6 @@
 import { AppState } from 'react-native';
 import SecureKeychain from './SecureKeychain';
+import BackgroundTimer from 'react-native-background-timer';
 
 export default class LockManager {
 	constructor(navigation, lockTime) {
@@ -25,7 +26,7 @@ export default class LockManager {
 				this.lockApp();
 			} else {
 				// Autolock after some time
-				this.lockTimer = setTimeout(() => {
+				this.lockTimer = BackgroundTimer.setTimeout(() => {
 					if (this.lockTimer) {
 						this.lockApp();
 					}
@@ -34,7 +35,7 @@ export default class LockManager {
 		} else if (this.appState !== 'active' && nextAppState === 'active') {
 			// Prevent locking since it didnt reach the time threshold
 			if (this.lockTimer) {
-				clearTimeout(this.lockTimer);
+				BackgroundTimer.clearTimeout(this.lockTimer);
 				this.lockTimer = null;
 			}
 		}
@@ -47,7 +48,7 @@ export default class LockManager {
 			this.navigation.navigate('LockScreen', { backgroundMode: true });
 			this.locked = true;
 		} else if (this.lockTimer) {
-			clearTimeout(this.lockTimer);
+			BackgroundTimer.clearTimeout(this.lockTimer);
 			this.lockTimer = null;
 		}
 	}

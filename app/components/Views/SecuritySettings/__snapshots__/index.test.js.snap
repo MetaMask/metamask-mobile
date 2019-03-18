@@ -267,12 +267,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               },
               Object {
                 "key": "300000",
-                "label": "After 300 seconds",
+                "label": "After 5 minutes",
                 "value": "300000",
               },
               Object {
                 "key": "600000",
-                "label": "After 600 seconds",
+                "label": "After 10 minutes",
                 "value": "600000",
               },
               Object {

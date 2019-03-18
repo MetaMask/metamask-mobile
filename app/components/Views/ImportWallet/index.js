@@ -122,13 +122,22 @@ class ImportWallet extends Component {
 	complete = false;
 
 	state = {
-		loading: false
+		loading: false,
+		existingUser: false
 	};
 
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
+	async checkIfExistingUser() {
+		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
+		if (existingUser !== null) {
+			this.setState({ existingUser: true });
+		}
+	}
+
 	componentDidMount() {
 		this.mounted = true;
+		this.checkIfExistingUser();
 	}
 
 	componentWillUnmount() {
@@ -319,8 +328,36 @@ class ImportWallet extends Component {
 		}
 	}
 
+	alertExistingUser = callback => {
+		Alert.alert(
+			strings('sync_with_extension.warning_title'),
+			strings('sync_with_extension.warning_message'),
+			[
+				{ text: strings('sync_with_extension.warning_cancel_button'), onPress: () => false, style: 'cancel' },
+				{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => callback() }
+			],
+			{ cancelable: false }
+		);
+	};
+
 	onPressImport = () => {
-		this.props.navigation.push('ImportFromSeed');
+		const { existingUser } = this.state;
+		const action = () => this.props.navigation.push('ImportFromSeed');
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
+	};
+
+	safeSync = () => {
+		const { existingUser } = this.state;
+		const action = () => this.onPressSync;
+		if (existingUser) {
+			this.alertExistingUser(action);
+		} else {
+			action();
+		}
 	};
 
 	onPressSync = () => {
@@ -374,7 +411,7 @@ class ImportWallet extends Component {
 					<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
 				</View>
 				<View style={styles.ctaWrapper}>
-					<StyledButton type={'blue'} onPress={this.onPressSync} testID={'onboarding-import-button'}>
+					<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
 						{strings('import_wallet.sync_from_browser_extension_button')}
 					</StyledButton>
 				</View>
