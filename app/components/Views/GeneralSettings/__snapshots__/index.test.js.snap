@@ -72,9 +72,9 @@ exports[`GeneralSettings should render correctly 1`] = `
           options={
             Array [
               Object {
-                "key": "adx",
-                "label": "ADX - AdEx",
-                "value": "adx",
+                "key": "1st",
+                "label": "1ST - FirstBlood",
+                "value": "1st",
               },
               Object {
                 "key": "adt",
@@ -82,14 +82,14 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "adt",
               },
               Object {
+                "key": "adx",
+                "label": "ADX - AdEx",
+                "value": "adx",
+              },
+              Object {
                 "key": "ant",
                 "label": "ANT - Aragon",
                 "value": "ant",
-              },
-              Object {
-                "key": "rep",
-                "label": "REP - Augur",
-                "value": "rep",
               },
               Object {
                 "key": "aud",
@@ -97,14 +97,14 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "aud",
               },
               Object {
-                "key": "bnt",
-                "label": "BNT - Bancor",
-                "value": "bnt",
-              },
-              Object {
                 "key": "bat",
                 "label": "BAT - Basic Attention Token",
                 "value": "bat",
+              },
+              Object {
+                "key": "bnt",
+                "label": "BNT - Bancor",
+                "value": "bnt",
               },
               Object {
                 "key": "btc",
@@ -117,16 +117,6 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "cad",
               },
               Object {
-                "key": "time",
-                "label": "TIME - ChronoBank",
-                "value": "time",
-              },
-              Object {
-                "key": "cvc",
-                "label": "CVC - Civic",
-                "value": "cvc",
-              },
-              Object {
                 "key": "cfi",
                 "label": "CFI - Cofound.it",
                 "value": "cfi",
@@ -135,6 +125,16 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "key": "crb",
                 "label": "CRB - CreditBit",
                 "value": "crb",
+              },
+              Object {
+                "key": "cvc",
+                "label": "CVC - Civic",
+                "value": "cvc",
+              },
+              Object {
+                "key": "dai",
+                "label": "DAI - DAI",
+                "value": "dai",
               },
               Object {
                 "key": "dash",
@@ -157,14 +157,14 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "eur",
               },
               Object {
-                "key": "1st",
-                "label": "1ST - FirstBlood",
-                "value": "1st",
-              },
-              Object {
                 "key": "fun",
                 "label": "FUN - FunFair",
                 "value": "fun",
+              },
+              Object {
+                "key": "gbp",
+                "label": "GBP - Pound Sterling",
+                "value": "gbp",
               },
               Object {
                 "key": "gno",
@@ -177,6 +177,11 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "gnt",
               },
               Object {
+                "key": "gup",
+                "label": "GUP - Matchpool",
+                "value": "gup",
+              },
+              Object {
                 "key": "hkd",
                 "label": "HKD - Hong Kong Dollar",
                 "value": "hkd",
@@ -185,11 +190,6 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "key": "hmq",
                 "label": "HMQ - Humaniq",
                 "value": "hmq",
-              },
-              Object {
-                "key": "rlc",
-                "label": "RLC - iEx.ec",
-                "value": "rlc",
               },
               Object {
                 "key": "idr",
@@ -222,9 +222,9 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "lun",
               },
               Object {
-                "key": "gup",
-                "label": "GUP - Matchpool",
-                "value": "gup",
+                "key": "mco",
+                "label": "MCO - Monaco",
+                "value": "mco",
               },
               Object {
                 "key": "mtl",
@@ -232,24 +232,9 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "mtl",
               },
               Object {
-                "key": "mco",
-                "label": "MCO - Monaco",
-                "value": "mco",
-              },
-              Object {
-                "key": "xmr",
-                "label": "XMR - Monero",
-                "value": "xmr",
-              },
-              Object {
                 "key": "myst",
                 "label": "MYST - Mysterium",
                 "value": "myst",
-              },
-              Object {
-                "key": "xem",
-                "label": "XEM - NEM",
-                "value": "xem",
               },
               Object {
                 "key": "nmr",
@@ -262,9 +247,9 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "omg",
               },
               Object {
-                "key": "ptoy",
-                "label": "PTOY - Patientory",
-                "value": "ptoy",
+                "key": "pay",
+                "label": "PAY - TenX",
+                "value": "pay",
               },
               Object {
                 "key": "php",
@@ -272,14 +257,9 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "php",
               },
               Object {
-                "key": "gbp",
-                "label": "GBP - Pound Sterling",
-                "value": "gbp",
-              },
-              Object {
-                "key": "qtum",
-                "label": "QTUM - Qtum",
-                "value": "qtum",
+                "key": "ptoy",
+                "label": "PTOY - Patientory",
+                "value": "ptoy",
               },
               Object {
                 "key": "qrl",
@@ -287,9 +267,19 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "qrl",
               },
               Object {
-                "key": "xrp",
-                "label": "XRP - Ripple",
-                "value": "xrp",
+                "key": "qtum",
+                "label": "QTUM - Qtum",
+                "value": "qtum",
+              },
+              Object {
+                "key": "rep",
+                "label": "REP - Augur",
+                "value": "rep",
+              },
+              Object {
+                "key": "rlc",
+                "label": "RLC - iEx.ec",
+                "value": "rlc",
               },
               Object {
                 "key": "rub",
@@ -322,24 +312,24 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "steem",
               },
               Object {
-                "key": "xlm",
-                "label": "XLM - Stellar Lumen",
-                "value": "xlm",
-              },
-              Object {
                 "key": "storj",
                 "label": "STORJ - Storj",
                 "value": "storj",
               },
               Object {
-                "key": "pay",
-                "label": "PAY - TenX",
-                "value": "pay",
+                "key": "time",
+                "label": "TIME - ChronoBank",
+                "value": "time",
               },
               Object {
                 "key": "tkn",
                 "label": "TKN - TokenCard",
                 "value": "tkn",
+              },
+              Object {
+                "key": "trst",
+                "label": "TRST - WeTrust",
+                "value": "trst",
               },
               Object {
                 "key": "uah",
@@ -352,14 +342,39 @@ exports[`GeneralSettings should render correctly 1`] = `
                 "value": "usd",
               },
               Object {
-                "key": "trst",
-                "label": "TRST - WeTrust",
-                "value": "trst",
+                "key": "usdc",
+                "label": "USDC - USD Coin",
+                "value": "usdc",
+              },
+              Object {
+                "key": "usdt",
+                "label": "USDT - Tether",
+                "value": "usdt",
               },
               Object {
                 "key": "wings",
                 "label": "WINGS - Wings",
                 "value": "wings",
+              },
+              Object {
+                "key": "xem",
+                "label": "XEM - NEM",
+                "value": "xem",
+              },
+              Object {
+                "key": "xlm",
+                "label": "XLM - Stellar Lumen",
+                "value": "xlm",
+              },
+              Object {
+                "key": "xmr",
+                "label": "XMR - Monero",
+                "value": "xmr",
+              },
+              Object {
+                "key": "xrp",
+                "label": "XRP - Ripple",
+                "value": "xrp",
               },
               Object {
                 "key": "zec",

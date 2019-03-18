@@ -248,7 +248,7 @@ exports[`Main should render correctly 1`] = `
     }
   }
 >
-  <Main
+  <Connect(Main)
     navigation={
       Object {
         "_childrenNavigation": Object {},

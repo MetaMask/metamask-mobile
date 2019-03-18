@@ -123,13 +123,7 @@ export default class Onboarding extends Component {
 	};
 
 	onPressImport = () => {
-		const { existingUser } = this.state;
-		const action = () => this.props.navigation.push('ImportWallet');
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
+		this.props.navigation.push('ImportWallet');
 	};
 
 	alertExistingUser = callback => {

@@ -1519,7 +1519,6 @@ export class Browser extends Component {
 				{!this.state.forceReload && (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
-						injectedJavaScriptForMainFrameOnly
 						onProgress={this.onLoadProgress}
 						onLoadStart={this.onLoadStart}
 						onLoadEnd={this.onLoadEnd}
@@ -1538,7 +1537,7 @@ export class Browser extends Component {
 				)}
 				{this.state.url === HOMEPAGE_URL ? (
 					<View style={styles.homepage}>
-						<BrowserHome goToUrl={this.onBrowserHomeGoToUrl} />
+						<BrowserHome goToUrl={this.onBrowserHomeGoToUrl} navigation={this.props.navigation} />
 					</View>
 				) : null}
 				{this.renderUrlModal()}

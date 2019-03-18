@@ -59,7 +59,11 @@ class NavbarTitle extends Component {
 		/**
 		 * Boolean that specifies if the title needs translation
 		 */
-		translate: PropTypes.bool
+		translate: PropTypes.bool,
+		/**
+		 * Boolean that specifies if the network can be changed
+		 */
+		disableNetwork: PropTypes.bool
 	};
 
 	static defaultProps = {
@@ -67,7 +71,9 @@ class NavbarTitle extends Component {
 	};
 
 	openNetworkList = () => {
-		this.props.toggleNetworkModal();
+		if (!this.props.disableNetwork) {
+			this.props.toggleNetworkModal();
+		}
 	};
 
 	render = () => {
@@ -76,7 +82,11 @@ class NavbarTitle extends Component {
 		const realTitle = translate ? strings(title) : title;
 
 		return (
-			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
+			<TouchableOpacity
+				onPress={this.openNetworkList}
+				style={styles.wrapper}
+				activeOpacity={this.props.disableNetwork ? 1 : 0.2}
+			>
 				{title ? <Text style={styles.title}>{realTitle}</Text> : null}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
