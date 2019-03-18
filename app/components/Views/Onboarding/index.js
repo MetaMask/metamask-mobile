@@ -8,6 +8,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
+import { connect } from 'react-redux';
+import SecureKeychain from '../../../core/SecureKeychain';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -75,7 +77,7 @@ const styles = StyleSheet.create({
 /**
  * View that is displayed to first time (new) users
  */
-export default class Onboarding extends Component {
+class Onboarding extends Component {
 	static navigationOptions = () => ({
 		headerStyle: {
 			shadowColor: 'transparent',
@@ -90,7 +92,16 @@ export default class Onboarding extends Component {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * redux flag that indicates if the user set a password
+		 */
+		passwordSet: PropTypes.bool,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	state = {
@@ -108,8 +119,14 @@ export default class Onboarding extends Component {
 		}
 	}
 
-	onLogin = () => {
-		this.props.navigation.navigate('Login');
+	onLogin = async () => {
+		const { passwordSet, seedphraseBackedUp } = this.props;
+		if (!passwordSet && !seedphraseBackedUp) {
+			await SecureKeychain.resetGenericPassword();
+			this.props.navigation.navigate('HomeNav');
+		} else {
+			this.props.navigation.navigate('Login');
+		}
 	};
 
 	onPressCreate = () => {
@@ -191,3 +208,10 @@ export default class Onboarding extends Component {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	passwordSet: state.user.passwordSet
+});
+
+export default connect(mapStateToProps)(Onboarding);
