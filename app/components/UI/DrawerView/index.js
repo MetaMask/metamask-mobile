@@ -366,6 +366,11 @@ class DrawerView extends Component {
 		 */
 		setTokensTransaction: PropTypes.func.isRequired,
 		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool,
+		/**
 		 * Boolean that determines if the user has set a password before
 		 */
 		passwordSet: PropTypes.bool
@@ -475,6 +480,7 @@ class DrawerView extends Component {
 	};
 
 	logout = () => {
+		const { passwordSet, seedphraseBackedUp } = this.props;
 		Alert.alert(
 			strings('drawer.logout_title'),
 			'',
@@ -488,7 +494,11 @@ class DrawerView extends Component {
 					text: strings('drawer.logout_ok'),
 					onPress: async () => {
 						await SecureKeychain.resetGenericPassword();
-						this.props.navigation.navigate('Entry');
+						if (!passwordSet && !seedphraseBackedUp) {
+							this.props.navigation.navigate('Onboarding');
+						} else {
+							this.props.navigation.navigate('Entry');
+						}
 					}
 				}
 			],
@@ -914,6 +924,7 @@ const mapStateToProps = state => ({
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	passwordSet: state.user.passwordSet
 });
 

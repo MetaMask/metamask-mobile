@@ -10,6 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -122,6 +123,9 @@ class Onboarding extends Component {
 	onLogin = async () => {
 		const { passwordSet, seedphraseBackedUp } = this.props;
 		if (!passwordSet && !seedphraseBackedUp) {
+			const { KeyringController } = Engine.context;
+			// Restore vault with empty password
+			await KeyringController.submitPassword('');
 			await SecureKeychain.resetGenericPassword();
 			this.props.navigation.navigate('HomeNav');
 		} else {
