@@ -84,9 +84,7 @@ const styles = StyleSheet.create({
 	componentContainer: {
 		position: 'relative',
 		maxHeight: 200,
-		borderColor: colors.inputBorderColor,
-		borderRadius: 4,
-		borderWidth: 1
+		borderRadius: 4
 	},
 	optionList: {
 		backgroundColor: colors.white,
