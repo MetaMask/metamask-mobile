@@ -8,7 +8,8 @@ import {
 	Text,
 	View,
 	ScrollView,
-	StyleSheet
+	StyleSheet,
+	BackHandler
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
@@ -95,7 +96,13 @@ class CreateWallet extends Component {
 		seedphraseNotBackedUp: PropTypes.func
 	};
 
+	// Temporary disabling the back button so users can't go back
+	// while creating the wallet
+	handleBackPress = () => true;
+
 	componentDidMount() {
+		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+
 		InteractionManager.runAfterInteractions(async () => {
 			const { KeyringController } = Engine.context;
 
@@ -111,6 +118,10 @@ class CreateWallet extends Component {
 				this.props.navigation.navigate('HomeNav');
 			}, 1000);
 		});
+	}
+
+	componentWillUnmount() {
+		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 	}
 
 	render() {

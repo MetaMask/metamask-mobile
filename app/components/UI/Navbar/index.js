@@ -155,7 +155,7 @@ export function getNavigationOptionsTitle(title, navigation) {
  */
 export function getTransactionOptionsTitle(title, backButtonText, navigation) {
 	return {
-		headerTitle: <NavbarTitle title={title} />,
+		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft:
 			Platform.OS === 'ios' ? (
 				// eslint-disable-next-line react/jsx-no-bind

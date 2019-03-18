@@ -7,7 +7,6 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
 // eslint-disable-next-line import/no-unresolved
-import LockManager from '../../../core/LockManager';
 
 /**
  * Complete Web browser component with URL entry and history management
@@ -37,10 +36,6 @@ class BrowserHome extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		lockTime: PropTypes.number,
-		/**
-		 * Time to auto-lock the app after it goes in background mode
-		 */
 		goToUrl: PropTypes.func
 	};
 
@@ -57,18 +52,10 @@ class BrowserHome extends Component {
 		if (!__DEV__) {
 			Branch.subscribe(this.handleDeeplinks);
 		}
-		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-	}
-
-	componentDidUpdate(prevProps) {
-		if (this.props.lockTime !== prevProps.lockTime) {
-			this.lockManager.updateLockTime(this.props.lockTime);
-		}
 	}
 
 	componentWillUnmount() {
 		this.mounted = false;
-		this.lockManager.stopListening();
 	}
 
 	handleDeeplinks = async ({ error, params }) => {
@@ -102,8 +89,7 @@ class BrowserHome extends Component {
 }
 
 const mapStateToProps = state => ({
-	searchEngine: state.settings.searchEngine,
-	lockTime: state.settings.lockTime
+	searchEngine: state.settings.searchEngine
 });
 
 export default connect(mapStateToProps)(BrowserHome);
