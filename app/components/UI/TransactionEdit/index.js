@@ -126,10 +126,6 @@ class TransactionEdit extends Component {
 		 */
 		transaction: PropTypes.object.isRequired,
 		/**
-		 * Callback to open the qr scanner
-		 */
-		onScanSuccess: PropTypes.func,
-		/**
 		 * Callback to update amount in parent state
 		 */
 		handleUpdateAmount: PropTypes.func,
@@ -306,19 +302,6 @@ class TransactionEdit extends Component {
 		this.setState({ toAddressError, ensRecipient });
 	};
 
-	onScan = () => {
-		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: this.onScanSuccess
-		});
-	};
-
-	onScanSuccess = meta => {
-		this.props.onScanSuccess(meta);
-		if (meta.target_address) {
-			this.updateToAddress(meta.target_address);
-		}
-	};
-
 	renderAmountLabel = () => {
 		const { amountError } = this.state;
 		const { assetType } = this.props.transaction;
@@ -346,6 +329,7 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
+			navigation,
 			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
 			showHexData
 		} = this.props;
@@ -387,6 +371,7 @@ class TransactionEdit extends Component {
 								address={to}
 								updateToAddressError={this.updateToAddressError}
 								ensRecipient={ensRecipient}
+								navigation={navigation}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>

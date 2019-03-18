@@ -198,6 +198,7 @@
 		"autolock_immediately": "Inmediatamente",
 		"autolock_never": "Nunca",
 		"autolock_after": "Luego de {{time}} segundos",
+		"autolock_after_minutes": "Luego de {{time}} minutos",
 		"clear_approvals_modal_title": "Borrar sitios aprobados?",
 		"clear_approvals_modal_message": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_browser_history_modal_title": "Borrar historial del navegador?",

@@ -20,7 +20,6 @@ exports[`Browser should render correctly 1`] = `
     <WebviewProgressBar />
   </View>
   <Web3Webview
-    injectedJavaScriptForMainFrameOnly={true}
     injectedOnStartLoadingJavaScript={null}
     javaScriptEnabled={true}
     javascriptEnabled={true}

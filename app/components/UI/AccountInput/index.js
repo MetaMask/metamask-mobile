@@ -142,9 +142,9 @@ class AccountInput extends Component {
 		 */
 		placeholder: PropTypes.string,
 		/**
-		 * Called when a user clicks the QR code icon
+		 * react-navigation object used for switching between screens
 		 */
-		showQRScanner: PropTypes.func,
+		navigation: PropTypes.object,
 		/**
 		 * Value of this underlying input
 		 */
@@ -294,9 +294,14 @@ class AccountInput extends Component {
 	};
 
 	scan = () => {
-		const { showQRScanner } = this.props;
 		this.setState({ isOpen: false });
-		showQRScanner && showQRScanner();
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: meta => {
+				if (meta.target_address) {
+					this.onChange(meta.target_address);
+				}
+			}
+		});
 	};
 
 	render = () => {
