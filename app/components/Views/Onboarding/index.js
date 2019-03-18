@@ -97,12 +97,7 @@ class Onboarding extends Component {
 		/**
 		 * redux flag that indicates if the user set a password
 		 */
-		passwordSet: PropTypes.bool,
-		/**
-		 * redux flag that indicates if the user
-		 * completed the seed phrase backup flow
-		 */
-		seedphraseBackedUp: PropTypes.bool
+		passwordSet: PropTypes.bool
 	};
 
 	state = {
@@ -121,8 +116,8 @@ class Onboarding extends Component {
 	}
 
 	onLogin = async () => {
-		const { passwordSet, seedphraseBackedUp } = this.props;
-		if (!passwordSet && !seedphraseBackedUp) {
+		const { passwordSet } = this.props;
+		if (!passwordSet) {
 			const { KeyringController } = Engine.context;
 			// Restore vault with empty password
 			await KeyringController.submitPassword('');
@@ -214,7 +209,6 @@ class Onboarding extends Component {
 }
 
 const mapStateToProps = state => ({
-	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	passwordSet: state.user.passwordSet
 });
 
