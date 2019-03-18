@@ -33,7 +33,7 @@ import BrowserHome from '../../Views/BrowserHome';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
-import onUrlSubmit from '../../../util/browser';
+import onUrlSubmit, { getHost } from '../../../util/browser';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -50,6 +50,9 @@ import { setTransactionObject } from '../../../actions/transaction';
 import { hexToBN } from '../../../util/number';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
+import SearchApi from 'react-native-search-api';
+import DeeplinkManager from '../../../core/DeeplinkManager';
+import Branch from 'react-native-branch';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -502,6 +505,8 @@ export class Browser extends Component {
 		});
 		this.loadUrl();
 
+		Branch.subscribe(this.handleDeeplinks);
+
 		if (Platform.OS === 'ios') {
 			this.state.scrollAnim.addListener(({ value }) => {
 				const diff = value - this.scrollValue;
@@ -521,6 +526,25 @@ export class Browser extends Component {
 
 		BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
 	}
+
+	handleDeeplinks = async ({ error, params }) => {
+		if (error) {
+			Logger.error('Error from Branch: ', error);
+			return;
+		}
+		if (params['+non_branch_link']) {
+			const dm = new DeeplinkManager(this.props.navigation);
+			dm.parse(params['+non_branch_link']);
+		} else if (params.spotlight_identifier) {
+			setTimeout(() => {
+				this.props.navigation.setParams({
+					url: params.spotlight_identifier,
+					silent: false,
+					showUrlModal: false
+				});
+			}, 1000);
+		}
+	};
 
 	handleAndroidBackPress = () => {
 		if (this.state.url === HOMEPAGE_URL && this.props.navigation.getParam('url', null) === null) {
@@ -849,6 +873,20 @@ export class Browser extends Component {
 			url: this.state.inputValue,
 			onAddBookmark: async ({ name, url }) => {
 				this.props.addBookmark({ name, url });
+				if (Platform.OS === 'ios') {
+					const item = {
+						uniqueIdentifier: url,
+						title: name || url,
+						contentDescription: `Launch ${name || url} on MetaMask`,
+						keywords: [name.split(' '), url, 'dapp'],
+						thumbnail: { uri: `https://api.faviconkit.com/${getHost(url)}/256` }
+					};
+					try {
+						SearchApi.indexSpotlightItem(item);
+					} catch (e) {
+						Logger.error('Error adding to spotlight', e);
+					}
+				}
 			}
 		});
 	};
