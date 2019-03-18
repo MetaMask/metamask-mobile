@@ -125,10 +125,6 @@ class TransactionEdit extends Component {
 		 */
 		transaction: PropTypes.object.isRequired,
 		/**
-		 * Callback to open the qr scanner
-		 */
-		onScanSuccess: PropTypes.func,
-		/**
 		 * Callback to update amount in parent state
 		 */
 		handleUpdateAmount: PropTypes.func,
@@ -185,7 +181,8 @@ class TransactionEdit extends Component {
 		toAddressError: '',
 		gasError: '',
 		fillMax: false,
-		ensRecipient: undefined
+		ensRecipient: undefined,
+		data: undefined
 	};
 
 	componentDidMount = () => {
@@ -195,6 +192,15 @@ class TransactionEdit extends Component {
 		}
 		if (transaction && transaction.assetType === 'ETH') {
 			this.props.handleUpdateReadableValue(fromWei(transaction.value));
+		}
+		if (transaction && transaction.data) {
+			this.setState({ data: transaction.data });
+		}
+	};
+
+	componentDidUpdate = prevProps => {
+		if (this.props.transaction.data !== prevProps.transaction.data) {
+			this.setState({ data: this.props.transaction.data });
 		}
 	};
 
@@ -268,6 +274,7 @@ class TransactionEdit extends Component {
 	};
 
 	updateData = data => {
+		this.setState({ data });
 		this.props.handleUpdateData(data);
 	};
 
@@ -285,19 +292,6 @@ class TransactionEdit extends Component {
 		let { toAddressError } = this.state;
 		toAddressError = toAddressError || this.props.validateToAddress();
 		this.setState({ toAddressError, ensRecipient });
-	};
-
-	onScan = () => {
-		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: this.onScanSuccess
-		});
-	};
-
-	onScanSuccess = meta => {
-		this.props.onScanSuccess(meta);
-		if (meta.target_address) {
-			this.updateToAddress(meta.target_address);
-		}
 	};
 
 	renderAmountLabel = () => {
@@ -327,10 +321,11 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transaction: { value, gas, gasPrice, data, from, to, selectedAsset, readableValue, ensRecipient },
+			navigation,
+			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
 			showHexData
 		} = this.props;
-		const { gasError, toAddressError } = this.state;
+		const { gasError, toAddressError, data } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -368,6 +363,7 @@ class TransactionEdit extends Component {
 								address={to}
 								updateToAddressError={this.updateToAddressError}
 								ensRecipient={ensRecipient}
+								navigation={navigation}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>

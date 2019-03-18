@@ -6,9 +6,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     Object {
       "alignContent": "center",
       "alignItems": "center",
-      "flex": 1,
       "flexDirection": "row",
-      "marginTop": 20,
       "width": "50%",
     }
   }

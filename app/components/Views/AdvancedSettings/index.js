@@ -100,7 +100,8 @@ const styles = StyleSheet.create({
 	modalTitle: {
 		...fontStyles.bold,
 		fontSize: 22,
-		textAlign: 'center'
+		textAlign: 'center',
+		marginBottom: 20
 	},
 	inner: {
 		paddingBottom: 48
@@ -309,7 +310,6 @@ class AdvancedSettings extends Component {
 							<TextInput
 								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 								autoCapitalize={'none'}
-								autoComplete={'off'}
 								autoCorrect={false}
 								value={this.state.rpcUrl}
 								onBlur={this.addRpcUrl}

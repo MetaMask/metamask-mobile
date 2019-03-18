@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { InteractionManager, RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, { isKnownNetwork } from '../../../util/networks';
@@ -17,11 +17,14 @@ const styles = StyleSheet.create({
 	},
 	assetOverviewWrapper: {
 		height: 280
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
-
-const TRANSACTION_ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
-const ASSET_OVERVIEW_HEIGHT = 280;
 
 /**
  * View that displays a specific asset (Token or ETH)
@@ -59,37 +62,50 @@ class Asset extends Component {
 
 	state = {
 		refreshing: false,
+		loading: false,
 		transactionsUpdated: false
 	};
 
 	txs = [];
 	txsPending = [];
+	isNormalizing = false;
 
 	static navigationOptions = ({ navigation }) =>
 		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
 
-	scrollViewRef = React.createRef();
-
 	componentDidMount() {
 		InteractionManager.runAfterInteractions(() => {
+			this.normalizeTransactions();
+			this.mounted = true;
+		});
+	}
+
+	componentDidUpdate(prevProps) {
+		if (
+			prevProps.networkType !== this.props.networkType ||
+			prevProps.selectedAddress !== this.props.selectedAddress
+		) {
+			this.showLoaderAndNormalize();
+		} else {
+			this.normalizeTransactions();
+		}
+	}
+
+	showLoaderAndNormalize() {
+		this.setState({ loading: true }, () => {
 			this.normalizeTransactions();
 		});
 	}
 
-	componentDidUpdate() {
-		this.normalizeTransactions();
+	componentWillUnmount() {
+		this.mounted = false;
 	}
-
-	adjustScroll = index => {
-		const { current } = this.scrollViewRef;
-		const rowHeight = TRANSACTION_ROW_HEIGHT;
-		const rows = index * rowHeight;
-		current.scrollTo({ y: rows + ASSET_OVERVIEW_HEIGHT });
-	};
 
 	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
 
 	normalizeTransactions() {
+		if (this.isNormalizing) return;
+		this.isNormalizing = true;
 		const { selectedAddress, networkType, transactions } = this.props;
 		const networkId = Networks[networkType].networkId;
 		if (transactions.length) {
@@ -124,12 +140,19 @@ class Asset extends Component {
 			) {
 				this.txs = txs;
 				this.txsPending = newPendingTxs;
-				this.setState({ transactionsUpdated: true });
+				this.setState({ transactionsUpdated: true, loading: false });
 			}
 		} else if (!this.state.transactionsUpdated) {
-			this.setState({ transactionsUpdated: true });
+			this.setState({ transactionsUpdated: true, loading: false });
 		}
+		this.isNormalizing = false;
 	}
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator style={styles.loader} size="small" />
+		</View>
+	);
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -150,29 +173,29 @@ class Asset extends Component {
 		} = this.props;
 
 		return (
-			<ScrollView
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				style={styles.wrapper}
-				ref={this.scrollViewRef}
-			>
-				<View testID={'asset'}>
-					<View style={styles.assetOverviewWrapper}>
-						<AssetOverview navigation={navigation} asset={navigation && params} />
-					</View>
-					<View style={styles.wrapper}>
+			<View style={styles.wrapper}>
+				<View style={styles.wrapper}>
+					{this.state.loading ? (
+						this.renderLoader()
+					) : (
 						<Transactions
+							header={
+								<View style={styles.assetOverviewWrapper}>
+									<AssetOverview navigation={navigation} asset={navigation && params} />
+								</View>
+							}
 							navigation={navigation}
 							transactions={this.txs}
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							networkType={networkType}
-							adjustScroll={this.adjustScroll}
 							loading={!this.state.transactionsUpdated}
+							headerHeight={280}
 						/>
-					</View>
+					)}
 				</View>
-			</ScrollView>
+			</View>
 		);
 	};
 }

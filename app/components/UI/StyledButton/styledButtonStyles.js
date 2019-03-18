@@ -29,7 +29,8 @@ const styles = StyleSheet.create({
 		color: colors.primaryFox
 	},
 	confirm: {
-		backgroundColor: colors.primary
+		backgroundColor: colors.primary,
+		minHeight: 50
 	},
 	confirmText: {
 		color: colors.white
@@ -80,10 +81,10 @@ const styles = StyleSheet.create({
 	neutral: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.lightGray
+		borderColor: colors.copy
 	},
 	neutralText: {
-		color: colors.lightGray
+		color: colors.copy
 	},
 	danger: {
 		backgroundColor: colors.red,

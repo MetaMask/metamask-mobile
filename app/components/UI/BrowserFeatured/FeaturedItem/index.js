@@ -8,8 +8,7 @@ const styles = StyleSheet.create({
 	wrapper: {
 		padding: 15,
 		flex: 1,
-		flexDirection: 'row',
-		backgroundColor: colors.white
+		flexDirection: 'row'
 	},
 	icon: {
 		height: PixelRatio.getPixelSizeForLayoutSize(15),

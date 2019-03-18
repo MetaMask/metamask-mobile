@@ -61,6 +61,7 @@ exports[`HomePage should render correctly 1`] = `
             style={
               Array [
                 Object {
+                  "backgroundColor": "#f1f2f6",
                   "borderRadius": 20,
                   "borderWidth": 2,
                   "color": "#8E8E93",

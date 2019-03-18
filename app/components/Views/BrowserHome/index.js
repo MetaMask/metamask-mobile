@@ -1,21 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import getNavbarOptions from '../../UI/Navbar';
 import HomePage from '../../UI/HomePage';
 import onUrlSubmit from '../../../util/browser';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
 // eslint-disable-next-line import/no-unresolved
-import LockManager from '../../../core/LockManager';
 
 /**
  * Complete Web browser component with URL entry and history management
  */
 class BrowserHome extends Component {
-	static navigationOptions = ({ navigation }) => getNavbarOptions('browser.title', navigation);
-
 	static defaultProps = {
 		defaultProtocol: 'https://'
 	};
@@ -40,7 +36,7 @@ class BrowserHome extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		lockTime: PropTypes.number
+		goToUrl: PropTypes.func
 	};
 
 	state = {
@@ -56,18 +52,10 @@ class BrowserHome extends Component {
 		if (!__DEV__) {
 			Branch.subscribe(this.handleDeeplinks);
 		}
-		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-	}
-
-	componentDidUpdate(prevProps) {
-		if (this.props.lockTime !== prevProps.lockTime) {
-			this.lockManager.updateLockTime(this.props.lockTime);
-		}
 	}
 
 	componentWillUnmount() {
 		this.mounted = false;
-		this.lockManager.stopListening();
 	}
 
 	handleDeeplinks = async ({ error, params }) => {
@@ -83,7 +71,7 @@ class BrowserHome extends Component {
 
 	go = async url => {
 		this.setState({ tabs: [...this.state.tabs, url] });
-		this.props.navigation.navigate('BrowserView', { url });
+		this.props.goToUrl(url);
 	};
 
 	onInitialUrlSubmit = async url => {
@@ -101,8 +89,7 @@ class BrowserHome extends Component {
 }
 
 const mapStateToProps = state => ({
-	searchEngine: state.settings.searchEngine,
-	lockTime: state.settings.lockTime
+	searchEngine: state.settings.searchEngine
 });
 
 export default connect(mapStateToProps)(BrowserHome);

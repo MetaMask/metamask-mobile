@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	warningText: {
+		marginTop: 15,
 		color: colors.error,
 		...fontStyles.normal
 	}
@@ -180,13 +181,13 @@ class AddCustomCollectible extends Component {
 							style={[styles.textInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							value={this.state.tokenId}
 							keyboardType="numeric"
-							placeholder={''}
 							onChangeText={this.onTokenIdChange}
 							onBlur={this.validateCustomCollectibleTokenId}
 							testID={'input-token-decimals'}
 							ref={this.assetTokenIdInput}
 							onSubmitEditing={this.addCollectible}
 							returnKeyType={'done'}
+							placeholder={strings('collectible.id_placeholder')}
 						/>
 						<Text style={styles.warningText}>{this.state.warningTokenId}</Text>
 					</View>

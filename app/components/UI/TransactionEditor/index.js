@@ -111,7 +111,7 @@ class TransactionEditor extends Component {
 				amount,
 				from,
 				data,
-				to: selectedAsset ? selectedAsset.address : to
+				to: selectedAsset && selectedAsset.address ? selectedAsset.address : to
 			});
 		} catch (e) {
 			estimation = { gas: '0x5208' };
@@ -463,7 +463,6 @@ class TransactionEditor extends Component {
 						navigation={this.props.navigation}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
-						onScanSuccess={this.handleNewTxMeta}
 						handleUpdateAmount={this.handleUpdateAmount}
 						handleUpdateData={this.handleUpdateData}
 						handleUpdateFromAddress={this.handleUpdateFromAddress}

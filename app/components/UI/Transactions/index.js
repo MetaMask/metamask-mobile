@@ -19,7 +19,7 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { hasBlockExplorer, getNetworkTypeById } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
-import { getEtherscanTransactionUrl } from '../../../util/etherscan';
+import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Logger from '../../../util/Logger';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
@@ -93,13 +93,25 @@ class Transactions extends PureComponent {
 		 */
 		showAlert: PropTypes.func,
 		/**
-		 * Callback to adjust the scroll position
-		 */
-		adjustScroll: PropTypes.func,
-		/**
 		 * Loading flag from an external call
 		 */
-		loading: PropTypes.bool
+		loading: PropTypes.bool,
+		/**
+		 * Pass the flatlist ref to the parent
+		 */
+		onRefSet: PropTypes.func,
+		/**
+		 * Optional header component
+		 */
+		header: PropTypes.object,
+		/**
+		 * Optional header height
+		 */
+		headerHeight: PropTypes.number
+	};
+
+	static defaultProps = {
+		headerHeight: 0
 	};
 
 	state = {
@@ -117,6 +129,7 @@ class Transactions extends PureComponent {
 		setTimeout(() => {
 			this.mounted && this.setState({ ready: true });
 			this.init();
+			this.props.onRefSet && this.props.onRefSet(this.flatList);
 		}, 100);
 	}
 
@@ -138,13 +151,9 @@ class Transactions extends PureComponent {
 	}
 
 	scrollToIndex = index => {
-		if (!this.scrolling && index) {
+		if (!this.scrolling && (this.props.headerHeight || index)) {
 			this.scrolling = true;
-			if (!this.props.adjustScroll) {
-				this.flatList.current.scrollToIndex({ index, animated: true });
-			} else {
-				this.props.adjustScroll(index);
-			}
+			this.flatList.current.scrollToIndex({ index, animated: true });
 			setTimeout(() => {
 				this.scrolling = false;
 			}, 300);
@@ -166,7 +175,7 @@ class Transactions extends PureComponent {
 				const selectedTx = new Map(state.selectedTx);
 				const show = !selectedTx.get(id);
 				selectedTx.set(id, show);
-				if (show && index) {
+				if (show && (this.props.headerHeight || index)) {
 					InteractionManager.runAfterInteractions(() => {
 						this.scrollToIndex(index);
 					});
@@ -191,13 +200,18 @@ class Transactions extends PureComponent {
 
 	renderEmpty = () => (
 		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+			{this.props.header ? this.props.header : null}
 			<View style={styles.emptyContainer}>
 				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
 			</View>
 		</ScrollView>
 	);
 
-	getItemLayout = (data, index) => ({ length: ROW_HEIGHT, offset: ROW_HEIGHT * index, index });
+	getItemLayout = (data, index) => ({
+		length: ROW_HEIGHT,
+		offset: this.props.headerHeight + ROW_HEIGHT * index,
+		index
+	});
 
 	keyExtractor = item => item.id;
 
@@ -205,9 +219,10 @@ class Transactions extends PureComponent {
 		try {
 			const network = getNetworkTypeById(networkID);
 			const url = getEtherscanTransactionUrl(network, transactionHash);
+			const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
 			this.props.navigation.push('Webview', {
 				url,
-				title: 'etherscan.io'
+				title: etherscan_url
 			});
 		} catch (e) {
 			// eslint-disable-next-line no-console
@@ -255,6 +270,10 @@ class Transactions extends PureComponent {
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 				renderItem={this.renderItem}
+				initialNumToRender={20}
+				maxToRenderPerBatch={2}
+				onEndReachedThreshold={0.5}
+				ListHeaderComponent={this.props.header}
 			/>
 		);
 	}
