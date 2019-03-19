@@ -194,14 +194,13 @@ export default class TransactionDetails extends PureComponent {
 						</View>
 					)}
 				</View>
-				{this.props.transactionDetails.transactionHash &&
-					blockExplorer && (
-						<TouchableOpacity
-							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
-						>
-							<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
-						</TouchableOpacity>
-					)}
+				{this.props.transactionDetails.transactionHash && blockExplorer && (
+					<TouchableOpacity
+						onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
+					>
+						<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	};
