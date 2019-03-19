@@ -357,6 +357,7 @@ export class Browser extends Component {
 	goingBack = false;
 	forwardHistoryStack = [];
 	approvalRequest;
+	accountsRequest;
 
 	clampedScrollValue = 0;
 	offsetValue = 0;
@@ -404,6 +405,19 @@ export class Browser extends Component {
 					setTimeout(() => {
 						this.setState({ showApprovalDialog: true });
 					}, 1000);
+				}
+				return promise;
+			},
+			eth_accounts: ({ id, jsonrpc, hostname }) => {
+				const { approvedHosts, privacyMode, selectedAddress } = this.props;
+				const isEnabled = !privacyMode || approvedHosts[hostname];
+				const promise = new Promise((resolve, reject) => {
+					this.accountsRequest = { resolve, reject };
+				});
+				if (isEnabled) {
+					this.accountsRequest.resolve({ id, jsonrpc, result: [selectedAddress] });
+				} else {
+					this.accountsRequest.resolve({ id, jsonrpc, result: [] });
 				}
 				return promise;
 			},
