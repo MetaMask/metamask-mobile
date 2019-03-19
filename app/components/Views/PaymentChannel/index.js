@@ -511,10 +511,10 @@ class PaymentChannel extends Component {
 							STATUS: {this.state.authorized ? <Text style={styles.auth}>Authorized</Text> : null}{' '}
 						</Text>
 					</View> */}
-					<View style={styles.row}>
+					{/* <View style={styles.row}>
 						<Text style={styles.subtitle}>ONCHAIN TX: {this.state.channelState.txCountChain}</Text>
 						<Text style={styles.subtitle}>GLOBAL TX: {this.state.channelState.txCountGlobal}</Text>
-					</View>
+					</View> */}
 
 					{/* <View style={styles.row}>
 						<Text style={styles.subtitle}>
