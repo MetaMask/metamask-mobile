@@ -19,6 +19,7 @@ import {
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
+import { addHexPrefix } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -241,8 +242,15 @@ class TransactionEdit extends Component {
 
 	review = async () => {
 		const { onModeChange } = this.props;
+		const { data } = this.state;
 		await this.setState({ toFocused: true });
-		!(await this.validate()) && onModeChange && onModeChange('review');
+		const validated = !(await this.validate());
+		if (validated) {
+			if (data) {
+				this.updateData(addHexPrefix(data));
+			}
+			onModeChange && onModeChange('review');
+		}
 	};
 
 	validate = async () => {

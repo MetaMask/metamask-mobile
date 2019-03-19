@@ -19,47 +19,49 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const styles = StyleSheet.create({
 	root: {
-		flex: 1,
-		borderColor: colors.inputBorderColor,
-		borderRadius: 4,
-		borderWidth: 1
+		flex: 1
 	},
 	arrow: {
 		color: colors.inputBorderColor,
 		position: 'absolute',
 		right: 10,
-		top: Platform.OS === 'android' ? 16 : 14
+		top: Platform.OS === 'android' ? 14 : 12
 	},
 	componentContainer: {
-		position: 'relative',
 		maxHeight: Platform.OS === 'android' ? 175 : 200,
-		borderColor: colors.inputBorderColor,
 		borderRadius: 4,
-		borderWidth: 1
+		flex: 1
 	},
 	input: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		paddingHorizontal: 0,
-		paddingVertical: 0,
-		width: '100%'
+		marginRight: 24
 	},
-	inputContainer: {
-		fontSize: 16,
-		paddingBottom: 12,
-		paddingRight: 40,
-		paddingLeft: 52,
-		paddingTop: Platform.OS === 'android' ? 10 : 12,
-		position: 'relative',
-		minHeight: Platform.OS === 'android' ? 22 : 50,
-		flex: 1,
+	qrCodeButton: {
+		minHeight: Platform.OS === 'android' ? 50 : 50,
+		paddingRight: 8,
+		paddingLeft: 12,
+		paddingTop: 2,
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
-	inputContent: {
+	accountContainer: {
 		flex: 1,
-		flexDirection: 'column',
-		alignItems: 'flex-start'
+		flexDirection: 'row',
+		backgroundColor: colors.white,
+		borderColor: colors.inputBorderColor,
+		borderRadius: 4,
+		borderWidth: 1
+	},
+	toContainer: {
+		flexDirection: 'column'
+	},
+	inputContainer: {
+		fontSize: 16,
+		paddingLeft: 8,
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginRight: 48
 	},
 	option: {
 		flexDirection: 'row',
@@ -89,7 +91,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,
-		paddingTop: 10,
+		paddingTop: 12,
 		width: '100%',
 		top: 0,
 		left: 0,
@@ -99,19 +101,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingLeft: 8
 	},
-	qrCodeButton: {
-		position: 'absolute',
-		left: 5,
-		minHeight: Platform.OS === 'android' ? 22 : 50,
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		paddingTop: 7,
-		paddingHorizontal: 10
-	},
 	ensAddress: {
 		fontSize: 10,
-		top: Platform.OS === 'android' ? -8 : 0
+		top: Platform.OS === 'android' ? -16 : 0,
+		paddingLeft: Platform.OS === 'android' ? 4 : 0
 	}
 });
 
@@ -263,7 +256,7 @@ class AccountInput extends Component {
 	renderOptionList() {
 		const { visibleOptions = this.props.accounts } = this.state;
 		return (
-			<ElevatedView elevation={10} style={styles.root}>
+			<ElevatedView elevation={10}>
 				<ScrollView style={styles.componentContainer}>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
@@ -309,26 +302,31 @@ class AccountInput extends Component {
 		const { placeholder } = this.props;
 		return (
 			<View style={styles.root}>
-				<View style={styles.inputContainer}>
-					<View style={styles.inputContent}>
-						<TextInput
-							autoCapitalize="none"
-							autoCorrect={false}
-							onChangeText={this.onChange}
-							placeholder={placeholder}
-							spellCheck={false}
-							style={styles.input}
-							value={value}
-							onBlur={this.onBlur}
-							onFocus={this.onInputFocus}
-						/>
-						{ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
+				<View style={styles.accountContainer}>
+					<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
+						<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
+					</TouchableOpacity>
+					<View style={styles.inputContainer}>
+						<View style={styles.toContainer}>
+							<TextInput
+								autoCapitalize="none"
+								autoCorrect={false}
+								onChangeText={this.onChange}
+								placeholder={placeholder}
+								spellCheck={false}
+								style={styles.input}
+								value={value}
+								onBlur={this.onBlur}
+								onFocus={this.onInputFocus}
+							/>
+							<View style={styles.ensView}>
+								{ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
+							</View>
+						</View>
 					</View>
+					<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
 				</View>
-				<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
-					<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
-				</TouchableOpacity>
-				<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
+
 				{isOpen && this.renderOptionList()}
 			</View>
 		);
