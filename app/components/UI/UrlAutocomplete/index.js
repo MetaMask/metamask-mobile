@@ -104,6 +104,7 @@ class UrlAutocomplete extends Component {
 		});
 
 		this.timer = null;
+		this.mounted = true;
 	}
 
 	componentDidUpdate(prevProps) {
@@ -115,12 +116,16 @@ class UrlAutocomplete extends Component {
 			this.timer = setTimeout(() => {
 				const fuseSearchResult = this.fuse.search(this.props.input);
 				this.updateResults([...fuseSearchResult]);
-			}, 300);
+			}, 500);
 		}
 	}
 
+	componentWillUnmount() {
+		this.mounted = false;
+	}
+
 	updateResults(results) {
-		this.setState({ results });
+		this.mounted && this.setState({ results });
 	}
 
 	onSubmitInput = () => this.props.onSubmit(this.props.input);
