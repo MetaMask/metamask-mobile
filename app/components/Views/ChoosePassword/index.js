@@ -236,7 +236,7 @@ class ChoosePassword extends Component {
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
 				this.props.passwordSet();
-				this.props.setLockTime(parseInt(AppConstants.DEFAULT_LOCK_TIMEOUT, 10));
+				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
