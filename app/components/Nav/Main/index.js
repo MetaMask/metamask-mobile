@@ -268,7 +268,7 @@ class Main extends Component {
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 
 		PushNotification.configure({
-			requestPermissions: true,
+			requestPermissions: false,
 			onNotification: notification => {
 				let data = null;
 				if (Platform.OS === 'android') {

@@ -161,6 +161,11 @@ class TransactionsNotificationManager {
 				});
 				// Clean up
 				this._removeListeners(transactionMeta.id);
+
+				Platform.OS === 'ios' &&
+					setTimeout(() => {
+						PushNotification.requestPermissions();
+					}, 7000);
 			}, 500);
 		});
 
