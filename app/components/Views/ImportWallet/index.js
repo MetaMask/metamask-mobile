@@ -472,7 +472,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	passwordHasBeenSet: () => dispatch(passwordSet()),
-	setLockTime: () => dispatch(setLockTime()),
+	setLockTime: time => dispatch(setLockTime(time)),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });
 

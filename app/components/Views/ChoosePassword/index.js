@@ -522,7 +522,7 @@ class ChoosePassword extends Component {
 
 const mapDispatchToProps = dispatch => ({
 	passwordSet: () => dispatch(passwordSet()),
-	setLockTime: () => dispatch(setLockTime())
+	setLockTime: time => dispatch(setLockTime(time))
 });
 
 export default connect(

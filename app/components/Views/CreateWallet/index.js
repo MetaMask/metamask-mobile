@@ -160,7 +160,7 @@ class CreateWallet extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	setLockTime: () => dispatch(setLockTime()),
+	setLockTime: time => dispatch(setLockTime(time)),
 	passwordUnset: () => dispatch(passwordUnset()),
 	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
 });
