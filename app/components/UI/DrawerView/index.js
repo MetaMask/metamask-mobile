@@ -412,7 +412,7 @@ class DrawerView extends Component {
 					// before attempting to show the secure wallet modal
 					setTimeout(() => {
 						this.setState({ showSecureWalletModal: true });
-					}, 4000);
+					}, 8000);
 				}
 			}
 		}, 1000);
