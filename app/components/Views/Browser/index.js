@@ -76,7 +76,11 @@ const styles = StyleSheet.create({
 	},
 	progressBarWrapper: {
 		height: 3,
-		marginTop: 0
+		width: '100%',
+		left: 0,
+		right: 0,
+		top: 0,
+		position: 'absolute'
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -1342,6 +1346,12 @@ export class Browser extends Component {
 		});
 	};
 
+	renderProgressBar = () => (
+		<View style={styles.progressBarWrapper}>
+			<WebviewProgressBar progress={this.state.progress} />
+		</View>
+	);
+
 	renderUrlModal = () => {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
@@ -1565,9 +1575,6 @@ export class Browser extends Component {
 
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.progressBarWrapper}>
-					<WebviewProgressBar progress={this.state.progress} />
-				</View>
 				{!this.state.forceReload && (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
@@ -1587,6 +1594,7 @@ export class Browser extends Component {
 						javascriptEnabled
 					/>
 				)}
+				{this.renderProgressBar()}
 				{this.state.url === HOMEPAGE_URL ? (
 					<View style={styles.homepage}>
 						<BrowserHome goToUrl={this.onBrowserHomeGoToUrl} navigation={this.props.navigation} />
