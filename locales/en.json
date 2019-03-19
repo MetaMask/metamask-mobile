@@ -10,15 +10,14 @@
 	},
 	"onboarding": {
 		"title": "Welcome to MetaMask",
-		"subtitle":
-			"A new type of web browser for a more secure internet. Start exploring the decentralized web of tomorrow, now.",
+		"subtitle": "A browser that connects you to applications on the decentralized web",
 		"import_wallet_button": "Import a wallet",
-		"start_exploring_now": "Start exploring now",
+		"start_exploring_now": "Start exploring",
 		"login": "Login"
 	},
 	"create_wallet": {
-		"title": "Hang tight, we're building this thing while it's flying.",
-		"subtitle": "- The Blockchain"
+		"title": "Creating your new wallet",
+		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
 	},
 	"import_wallet": {
 		"title": "Import Wallet",
@@ -39,7 +38,7 @@
 		"invalid_password": "Invalid password"
 	},
 	"choose_password": {
-		"title": "Choose a password",
+		"title": "Create password",
 		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
 		"password": "New Password",
 		"confirm_password": "Confirm Password",
@@ -56,8 +55,7 @@
 		"must_be_at_least": "Must be at least {{number}} characters",
 		"remember_me": "Remember me",
 		"security_alert_title": "Security Alert",
-		"security_alert_message":
-			"In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
+		"security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
 	},
 	"import_from_seed": {
 		"title": "Import from seed",
@@ -81,11 +79,12 @@
 		"receive_button": "Receive",
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
+		"transaction_history": "Transaction History",
 		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",
-		"submit_bug": "BUG",
+		"submit_bug": "BUG REPORT",
 		"submit_general_feedback": "GENERAL",
-		"copy_address": "Copy my Public Address",
+		"share_address": "Share my Public Address",
 		"view_in_etherscan": "View on Etherscan",
 		"browser": "Browser",
 		"settings": "Settings",
@@ -95,7 +94,8 @@
 		"logout_ok": "YES",
 		"logout_cancel": "NO",
 		"feedback": "Feedback",
-		"metamask_support": "MetaMask Support"
+		"metamask_support": "MetaMask Support",
+		"public_address": "Public Address"
 	},
 	"send": {
 		"title": "Send"
@@ -122,6 +122,9 @@
 		"remove": "Remove",
 		"cancel": "Cancel"
 	},
+	"transactions_view": {
+		"title": "Transactions"
+	},
 	"add_asset": {
 		"title": "Add Asset",
 		"search_token": "SEARCH",
@@ -144,7 +147,9 @@
 		"address_must_be_valid": "Token address must be a valid address.",
 		"symbol_cant_be_empty": "Token symbol can't be empty.",
 		"decimals_cant_be_empty": "Token decimals can't be empty.",
-		"select_token": "Select Token"
+		"no_tokens_found": "We couldn't find any tokens with that name.",
+		"select_token": "Select Token",
+		"address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
 	},
 	"collectible": {
 		"collectible_address": "Address",
@@ -157,7 +162,8 @@
 		"token_id_cant_be_empty": "Collectible identifier can't be empty.",
 		"ownership_error_title": "Ooops! Something happened.",
 		"ownership_error": "You are not the owner of this collectible, so you can't add it.",
-		"powered_by_opensea": "Powered by"
+		"powered_by_opensea": "Powered by",
+		"id_placeholder": "Enter the collectible ID"
 	},
 	"transfer": {
 		"title": "Transfer",
@@ -174,12 +180,15 @@
 		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
 		"search_engine": "Search Engine",
-		"new_RPC_URL": "New RPC URL",
+		"new_RPC_URL": "New RPC Network",
 		"state_logs": "State Logs",
 		"auto_lock": "Auto-lock",
+		"auto_lock_desc": "Choose the amount of time before the application automatically locks.",
+		"state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it via email to mobile@metamask.io",
 		"autolock_immediately": "Immediately",
 		"autolock_never": "Never",
 		"autolock_after": "After {{time}} seconds",
+		"autolock_after_minutes": "After {{time}} minutes",
 		"reveal_seed_words": "Reveal Seed Words",
 		"reset_account": "Reset Account",
 		"state_logs_button": "DOWNLOAD STATE LOGS",
@@ -194,19 +203,38 @@
 		"clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
 		"reset_account_modal_message": "Resetting your account will clear your transaction history.",
 		"save_rpc_url": "SAVE",
-		"invalid_rpc_prefix": "URIs require the appropriate HTTP/HTTPS prefix",
+		"invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
 		"invalid_rpc_url": "Invalid RPC URL",
 		"sync_with_extension": "Sync with Metamask Extension",
+		"sync_with_extension_desc": "This will import all extension accounts to this device.",
 		"sync": "SYNC",
 		"clear_approved_dapps": "CLEAR APPROVED DAPPS",
 		"clear_browser_history": "CLEAR BROWSER HISTORY",
 		"clear_approve_dapps_desc": "Clear approved dapps",
-		"clear_browser_history_desc": "Browser history",
+		"clear_browser_history_desc": "Clear browser history",
 		"clear": "CLEAR",
-		"privacy_mode": "Privacy Mode",
-		"privacy_mode_desc": "Disabling privacy mode will allow every website to read your public accounts by default.",
+		"privacy_mode": "Privacy mode",
+		"privacy_mode_desc": "Websites must request access to view your account information.",
 		"show_hex_data": "Show Hex Data",
-		"show_hex_data_desc": "Select this to show the hex data field on the send screen."
+		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
+		"general_title": "General",
+		"general_desc": "Currency conversion, primary currency, language",
+		"advanced_title": "Advanced",
+		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs and custom RPC",
+		"security_title": "Security & Privacy",
+		"security_desc": "Privacy settings, private key and wallet seed phrase",
+		"info_title": "About MetaMask",
+		"legal_title": "Legal",
+		"conversion_title": "Currency conversion",
+		"conversion_desc": "Display fiat values in using a specific currency throughout the application.",
+		"language_desc": "Translate the application to a different supported language.",
+		"engine_desc": "Change the default search engine used when entering search terms in the URL bar.",
+		"reset_desc": "This action will clear your transaction history. This data might not be retrievable.",
+		"rpc_desc": "Use a custom RPC-capable network via URL instead of one of the provided networks.",
+		"hex_desc": "Select this to show the hex data field on the send screen.",
+		"clear_privacy_title": "Clear privacy data",
+		"clear_privacy_desc": "Clear privacy data so all websites must request access to view account information again.",
+		"clear_history_desc": "Choose this option to clear your entire browsing history."
 	},
 	"app_information": {
 		"title": "Information",
@@ -216,42 +244,20 @@
 		"attributions": "Attributions",
 		"support_center": "Visit our Support Center",
 		"web_site": "Visit our Website",
-		"email_us": "Email Us!"
-	},
-	"app_configurations": {
-		"information_title": "INFO",
-		"security_title": "SECURITY",
-		"settings_title": "GENERAL"
-	},
-	"settings": {
-		"title": "Settings",
-		"network": "Network",
-		"network_status": "Network status",
-		"seed_words": "Seed Words",
-		"sync_with_extension": "Sync with MetaMask Extension",
-		"face_id": "Enable FaceID",
-		"logout": "Logout"
-	},
-	"network": {
-		"title": "Network",
-		"selected": "selected"
-	},
-	"seed_words": {
-		"title": "Seed Words",
-		"label": "These are your seed words, make sure you keep them safe!"
+		"email_us": "Email Us at support@metamask.io!"
 	},
 	"reveal_credential": {
 		"seed_phrase_title": "Reveal Seed Phrase",
 		"private_key_title": "Show Private Key",
+		"show_private_key": "Show Private Key",
+		"private_key_title_for_account": "Show Private Key for {{accountName}}",
 		"cancel": "Cancel",
 		"confirm": "Next",
-		"seed_phrase_explanation":
-			"If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
+		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
 		"private_key_explanation": "Save it somewhere safe and secret.",
-		"seed_phrase_warning_explanation":
-			"DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
-		"private_key_warning_explanation":
-			"Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
+		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
+		"seed_phrase_warning_explanation": "DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
+		"private_key_warning_explanation": "Never disclose this key. Anyone with your private keys can take steal any assets held in your account.",
 		"seed_phrase": "Your seed phrase",
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
@@ -259,7 +265,8 @@
 		"seed_phrase_copied": "Seed phrase copied to clipboard",
 		"private_key_copied": "Private key copied to clipboard",
 		"warning_incorrect_password": "Incorrect password",
-		"unknown_error": "Couldn't unlock your account. Please try again."
+		"unknown_error": "Couldn't unlock your account. Please try again.",
+		"seed_warning": "This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE."
 	},
 	"asset_overview": {
 		"send_button": "Send",
@@ -320,7 +327,8 @@
 		"conversion_not_available": "Conversion rate not available",
 		"value_not_available": "Not Available",
 		"rate_not_available": "Conversion not available",
-		"optional": "Optional"
+		"optional": "Optional",
+		"no_address_for_ens": "No address for ENS name"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -350,6 +358,7 @@
 		"cancel": "Cancel",
 		"go_back": "Go back",
 		"go_forward": "Go forward",
+		"home": "Home",
 		"close": "Close",
 		"open_in_browser": "Open in browser",
 		"change_url": "Change url",
@@ -357,7 +366,7 @@
 		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
 		"featured_dapps": "FEATURED DAPPS",
 		"my_favorites": "MY FAVORITES",
-		"search": "SEARCH",
+		"search": "Search or type a URL",
 		"welcome": "Welcome!",
 		"remove": "Remove"
 	},
@@ -404,22 +413,20 @@
 	},
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
-		"label":
-			"Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
+		"short_title": "Sync with Extension",
+		"label": "Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",
 		"error_title": "Bummer!",
 		"error_message": "Something went wrong... Please try again",
 		"warning_title": "Warning!",
-		"warning_message":
-			"This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
+		"warning_message": "This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
 		"warning_ok_button": "YES",
 		"warning_cancel_button": "NO"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",
-		"sync_complete":
-			"We have synchronized all the information from your MetaMask extension and now you're ready to go!",
+		"sync_complete": "We have synchronized all the information from your MetaMask extension and now you're ready to go!",
 		"button_continue": "Continue"
 	},
 	"networks": {
@@ -447,7 +454,8 @@
 		"eth": "ETH",
 		"negative": "-",
 		"divisor": "/",
-		"token_id": "#"
+		"token_id": "#",
+		"colon": ":"
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",
@@ -468,13 +476,11 @@
 		"cancel": "CANCEL",
 		"permission": "View your",
 		"address": "public address",
-		"warning":
-			"By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks."
+		"warning": "By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks."
 	},
 	"import_private_key": {
 		"title": "Import Account",
-		"description_one":
-			"Imported accounts are viewable in your wallet but are not recoverable with your MetaMask seed phrase.",
+		"description_one": "Imported accounts are viewable in your wallet but are not recoverable with your MetaMask seed phrase.",
 		"learn_more_here": "Learn more about imported accounts here.",
 		"subtitle": "Paste your private key string",
 		"cta_text": "IMPORT",
@@ -494,10 +500,14 @@
 		"from": "From:",
 		"cta_text": "OK"
 	},
-	"protect_your_account": {
-		"title": "Protect your Account",
-		"info_text":
-			"Now that your account has stored value, let's create a password in order to protect your account.",
+	"secure_your_wallet": {
+		"title": "Secure your wallet",
+		"step_1": "Step 1:",
+		"step_1_description": "Create password",
+		"step_2": "Step 2:",
+		"step_2_description": "Save wallet seed phrase",
+		"info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
+		"info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
 		"cta_text": "CREATE PASSWORD"
 	},
 	"account_backup_step_1": {
@@ -507,14 +517,15 @@
 		"cancel_backup_no": "No, back up Seed Phrase",
 		"skip": "Skip",
 		"important": "IMPORTANT!",
-		"title": "Save your wallet's seed phrase?",
+		"title": "Save your wallet's seed phrase",
 		"highly_recommended": "HIGHLY RECOMMENDED",
-		"info_text_1":
-			"The seed phrase is a unique twelve word phrase used to recover your wallet should you ever loose your device.",
-		"info_text_2":
-			"Do not share this with anyone! It’s crucial to save this phrase in a secure place only you have access to.",
-		"info_text_3":
-			"Your password cannot be used to recover your wallet! Only the seed phrase can be used to recover your wallet and all of it’s funds!",
+		"info_text_1": "Your wallet's seed phrase is:",
+		"info_text_2_1": "A ",
+		"info_text_2_2": "secret",
+		"info_text_2_3": " code that you do NOT share with anyone.",
+		"info_text_3_1": "used to ",
+		"info_text_3_2": "recover your wallet",
+		"info_text_3_3": " in case you lose your device, forget your password, have to re-install the MetaMask app or want to access your wallet on another device.",
 		"cta_text": "YEAH, LET'S SAVE IT",
 		"learn_more": "Learn More"
 	},
@@ -524,12 +535,10 @@
 		"cancel_backup_ok": "Yes, I'll take the risk",
 		"cancel_backup_no": "No, back up Seed Phrase",
 		"title": "Grab a pen and paper",
-		"info_text_1":
-			"You're going to need to write your seed phrase down. You will be asked to re-enter it in the other it's presented to you.",
-		"security_tips": "Security Tips",
-		"tip_1": "Write it down on paper and keep it somewhere safe!",
-		"tip_2": "Save it to a password manager",
-		"tip_3": "Never share this phrase with anyone!",
+		"info": "Next step is to write your seed phrase down.",
+		"info_2_1": "You will be asked to ",
+		"info_2_2": "re-enter",
+		"info_2_3": " it for confirmation",
 		"cta_text": "OK"
 	},
 	"account_backup_step_3": {
@@ -538,8 +547,7 @@
 		"cancel_backup_ok": "Yes, I'll take the risk",
 		"cancel_backup_no": "No, back up Seed Phrase",
 		"title": "Is anyone watching?",
-		"info_text":
-			"Make sure no other human or robot is watching your screen. If your seed phrase is copied, it can be used on other devices to steal your funds",
+		"info_text": "Make sure no other human or robot is watching your screen. If your seed phrase is copied, it can be used on other devices to steal your funds",
 		"cta_text": "NO ONE'S WATCHING ME"
 	},
 	"account_backup_step_4": {
@@ -551,55 +559,64 @@
 		"title": "Your seed phrase",
 		"info_text_1": "Carefully write down these words on paper. Their order matters.",
 		"info_text_2": "You'll be asked to re-enter it on the next screen",
-		"cta_text": "I'VE WRITTEN IT DOWN"
+		"cta_text": "I'VE COPIED THE PHRASE",
+		"confirm_password": "Confirm your password",
+		"before_continiuing": "Before continuing we need you to confirm your password",
+		"confirm": "CONFIRM"
 	},
 	"account_backup_step_5": {
 		"error_title": "Oops!",
-		"error_message":
-			"The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
+		"error_message": "The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
 		"back": "Back",
 		"title": "Confirm seed phrase",
-		"info_text": "Insert each phrase in the order it was presented to you on the previous screen.",
-		"cta_text": "CONFIRM PHRASE"
+		"info_text": "Insert each word in the order it was presented to you on the previous screen.",
+		"cta_text": "CONFIRM PHRASE",
+		"modal_title": "Seed phrase confirmed!",
+		"modal_text": "This was to ensure you follow this security measure",
+		"modal_button": "NEXT"
 	},
 	"account_backup_step_6": {
-		"title": "Congratulations!",
-		"info_text": "You passed the test. Keep your seed phrase safe, it's your responsibility!",
-		"tips": "Tips on storing it safely",
-		"tip_1": "Save a backup in multiple places",
-		"tip_2": "Never tell anyone",
-		"tip_3": "If you need to back it up again, you can find them in Settings => Security.",
-		"disclaimer": "*MetaMask cannot recover your seedphrase",
-		"learn_more": "Learn More",
-		"cta_text": "ALL DONE"
+		"title": "Security Tips",
+		"info_text": "MetaMask cannot recover your seed phrase if you lose it",
+		"tip_1": "Keep multiple backups of your seed phrase",
+		"tip_2": "Store the phrase in a trusted password manager and paper backups in a safe place",
+		"tip_3": "Never share this phrase with anyone",
+		"disclaimer": "* You can find your seedphrase if you go to ",
+		"disclaimer_bold": "Settings > Security & Privacy",
+		"cta_text": "GOT IT!",
+		"modal_title": "Congratulations!",
+		"modal_text": "You are all backed up and ready to go!",
+		"modal_button": "DONE",
+		"copy_seed_phrase": "COPY SEED PHRASE TO CLIPBOARD"
 	},
 	"phishing": {
 		"ethereum_phishing_detection": "Ethereum Phishing Detection",
 		"ethereum_phishing_detector": "Ethereum Phishing Detector",
-		"intro":
-			" is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, please read the rest of this warning for instructions on how to continue at your own risk.",
-		"reasons":
-			"There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the ",
-		"list_content":
-			"Domains on these warning lists may include outright malicious websites and legitimate websites that have been compromised by a malicious actor.",
+		"intro": " is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, please read the rest of this warning for instructions on how to continue at your own risk.",
+		"reasons": "There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the ",
+		"list_content": "Domains on these warning lists may include outright malicious websites and legitimate websites that have been compromised by a malicious actor.",
 		"to_read_more": "To read more about this site ",
 		"review_on_etherscam": "please review the domain on Etherscam.",
-		"warning":
-			"Note that this warning list is compiled on a voluntary basis. This list may be inaccurate or incomplete. Just because a domain does not appear on this list is not an implicit guarantee of that domain's safety. As always, your transactions are your own responsibility. If you wish to interact with any domain on our warning list, you can do so by ",
+		"warning": "Note that this warning list is compiled on a voluntary basis. This list may be inaccurate or incomplete. Just because a domain does not appear on this list is not an implicit guarantee of that domain's safety. As always, your transactions are your own responsibility. If you wish to interact with any domain on our warning list, you can do so by ",
 		"continue_on_your_own": "continuing at your own risk.",
-		"file_an_issue_intro":
-			"If you think this domain is incorrectly flagged or if a blocked legitimate website has resolved its security issues, ",
+		"file_an_issue_intro": "If you think this domain is incorrectly flagged or if a blocked legitimate website has resolved its security issues, ",
 		"file_an_issue": "please file an issue.",
 		"back_to_safety": "Back to safety"
 	},
 	"notifications": {
-		"pending_title": "Waiting for confirmation...",
+		"pending_title": "Transaction submitted!",
 		"success_title": "Transaction #{{nonce}} Complete!",
 		"error_title": "Oops, something went wrong :/",
 		"received_title": "You received {{amount}} {{assetType}}!",
-		"pending_message": "Your transaction is in progress",
+		"pending_message": "Waiting for confirmation...",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
 		"received_message": "Tap to view this transaction"
+	},
+	"secure_your_wallet_modal": {
+		"title": "Secure your wallet",
+		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
+		"required": "(required)",
+		"button": "PROCEED NOW"
 	}
 }

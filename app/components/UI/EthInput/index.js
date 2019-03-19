@@ -8,8 +8,7 @@ import {
 	balanceToFiat,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
-	renderFromWei,
-	fromWei
+	renderFromWei
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -26,7 +25,7 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		flexDirection: 'row',
-		paddingRight: 40,
+		paddingRight: 10,
 		paddingVertical: 10,
 		paddingLeft: 14,
 		position: 'relative',
@@ -44,11 +43,11 @@ const styles = StyleSheet.create({
 		paddingRight: 0,
 		paddingLeft: 0,
 		paddingTop: 0,
-		position: 'relative'
+		maxWidth: '80%'
 	},
 	eth: {
 		...fontStyles.bold,
-		flex: 0,
+		marginRight: 30,
 		fontSize: 16,
 		paddingTop: Platform.OS === 'android' ? 3 : 0,
 		paddingLeft: 10
@@ -58,13 +57,13 @@ const styles = StyleSheet.create({
 		fontSize: 12
 	},
 	split: {
-		flex: 0,
-		flexDirection: 'row',
-		marginRight: 100
+		flex: 1,
+		flexDirection: 'row'
 	},
 	ethContainer: {
+		flex: 1,
 		paddingLeft: 6,
-		paddingRight: 30
+		paddingRight: 10
 	},
 	icon: {
 		paddingBottom: 4,
@@ -85,9 +84,7 @@ const styles = StyleSheet.create({
 	componentContainer: {
 		position: 'relative',
 		maxHeight: 200,
-		borderColor: colors.inputBorderColor,
-		borderRadius: 4,
-		borderWidth: 1
+		borderRadius: 4
 	},
 	optionList: {
 		backgroundColor: colors.white,
@@ -184,7 +181,6 @@ class EthInput extends Component {
 
 	componentDidMount = () => {
 		const { transaction, collectibles } = this.props;
-		let { readableValue } = this.props;
 		switch (transaction.type) {
 			case 'TOKENS_TRANSACTION':
 				this.setState({
@@ -194,7 +190,8 @@ class EthInput extends Component {
 							symbol: 'ETH'
 						},
 						...this.props.tokens
-					]
+					],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'ETHER_TRANSACTION':
@@ -204,17 +201,20 @@ class EthInput extends Component {
 							name: 'Ether',
 							symbol: 'ETH'
 						}
-					]
+					],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'INDIVIDUAL_TOKEN_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset]
+					assets: [transaction.selectedAsset],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'INDIVIDUAL_COLLECTIBLE_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset]
+					assets: [transaction.selectedAsset],
+					readableValue: transaction.readableValue
 				});
 				break;
 			case 'CONTRACT_COLLECTIBLE_TRANSACTION': {
@@ -222,15 +222,12 @@ class EthInput extends Component {
 					collectible => collectible.address.toLowerCase() === transaction.selectedAsset.address.toLowerCase()
 				);
 				this.setState({
-					assets: collectiblesToShow
+					assets: collectiblesToShow,
+					readableValue: transaction.readableValue
 				});
 				break;
 			}
 		}
-		// If value is set, do the same with readable value
-		readableValue =
-			(transaction.value && transaction.assetType === 'ETH' && fromWei(transaction.value)) || readableValue;
-		this.setState({ readableValue });
 	};
 
 	onFocus = () => {
@@ -266,7 +263,7 @@ class EthInput extends Component {
 				);
 		} else {
 			title = asset.name;
-			subTitle = 'ID: ' + asset.tokenId;
+			subTitle = strings('collectible.collectible_token_id') + strings('unit.colon') + ' ' + asset.tokenId;
 			icon = <CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />;
 		}
 		return <SelectableAsset onPress={onPress} title={title} subTitle={subTitle} icon={icon} asset={asset} />;

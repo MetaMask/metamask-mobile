@@ -1,3 +1,5 @@
+jest.useFakeTimers();
+
 import React from 'react';
 import CustomGas from './';
 import configureMockStore from 'redux-mock-store';

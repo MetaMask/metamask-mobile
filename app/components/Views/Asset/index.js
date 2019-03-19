@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
-import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
+import { toChecksumAddress } from 'ethereumjs-util';
+import Networks, { isKnownNetwork } from '../../../util/networks';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
@@ -15,11 +17,14 @@ const styles = StyleSheet.create({
 	},
 	assetOverviewWrapper: {
 		height: 280
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
-
-const TRANSACTION_ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
-const ASSET_OVERVIEW_HEIGHT = 280;
 
 /**
  * View that displays a specific asset (Token or ETH)
@@ -48,38 +53,106 @@ class Asset extends Component {
 		/**
 		 * A string representing the network name
 		 */
-		networkType: PropTypes.string
+		networkType: PropTypes.string,
+		/**
+		 * An array that represents the user transactions
+		 */
+		transactions: PropTypes.array
 	};
 
 	state = {
-		refreshing: false
+		refreshing: false,
+		loading: false,
+		transactionsUpdated: false
 	};
+
+	txs = [];
+	txsPending = [];
+	isNormalizing = false;
 
 	static navigationOptions = ({ navigation }) =>
-		getNetworkNavbarOptions(navigation.getParam('symbol', ''), navigation);
+		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
 
-	scrollViewRef = React.createRef();
-
-	adjustScroll = index => {
-		const { current } = this.scrollViewRef;
-		const rowHeight = TRANSACTION_ROW_HEIGHT;
-		const rows = index * rowHeight;
-		current.scrollTo({ y: rows + ASSET_OVERVIEW_HEIGHT });
-	};
-
-	getFilteredTxs(transactions) {
-		const symbol = this.props.navigation.getParam('symbol', '');
-		const tokenAddress = this.props.navigation.getParam('address', '');
-		if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
-			const filteredTxs = transactions.filter(
-				tx =>
-					tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
-					tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
-			);
-			return filteredTxs;
-		}
-		return transactions;
+	componentDidMount() {
+		InteractionManager.runAfterInteractions(() => {
+			this.normalizeTransactions();
+			this.mounted = true;
+		});
 	}
+
+	componentDidUpdate(prevProps) {
+		if (
+			prevProps.networkType !== this.props.networkType ||
+			prevProps.selectedAddress !== this.props.selectedAddress
+		) {
+			this.showLoaderAndNormalize();
+		} else {
+			this.normalizeTransactions();
+		}
+	}
+
+	showLoaderAndNormalize() {
+		this.setState({ loading: true }, () => {
+			this.normalizeTransactions();
+		});
+	}
+
+	componentWillUnmount() {
+		this.mounted = false;
+	}
+
+	didTxStatusesChange = newTxsPending => this.txsPending.length !== newTxsPending.length;
+
+	normalizeTransactions() {
+		if (this.isNormalizing) return;
+		this.isNormalizing = true;
+		const { selectedAddress, networkType, transactions } = this.props;
+		const networkId = Networks[networkType].networkId;
+		if (transactions.length) {
+			let txs = transactions.filter(
+				tx =>
+					((tx.transaction.from && toChecksumAddress(tx.transaction.from) === selectedAddress) ||
+						(tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress)) &&
+					((networkId && networkId.toString() === tx.networkID) ||
+						(networkType === 'rpc' && !isKnownNetwork(tx.networkID))) &&
+					tx.status !== 'unapproved'
+			);
+
+			txs.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+			const newPendingTxs = txs.filter(tx => tx.status === 'pending');
+
+			const symbol = this.props.navigation.getParam('symbol', '');
+			const tokenAddress = this.props.navigation.getParam('address', '');
+			if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
+				txs = txs.filter(
+					tx =>
+						tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
+						tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
+				);
+			}
+
+			// To avoid extra re-renders we want to set the new txs only when
+			// there's a new tx in the history or the status of one of the existing txs changed
+			if (
+				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
+				this.txs.length !== txs.length ||
+				this.didTxStatusesChange(newPendingTxs)
+			) {
+				this.txs = txs;
+				this.txsPending = newPendingTxs;
+				this.setState({ transactionsUpdated: true, loading: false });
+			}
+		} else if (!this.state.transactionsUpdated) {
+			this.setState({ transactionsUpdated: true, loading: false });
+		}
+		this.isNormalizing = false;
+	}
+
+	renderLoader = () => (
+		<View style={styles.loader}>
+			<ActivityIndicator style={styles.loader} size="small" />
+		</View>
+	);
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -99,31 +172,30 @@ class Asset extends Component {
 			networkType
 		} = this.props;
 
-		const filteredTxs = this.getFilteredTxs((params && params.transactions) || []);
-
 		return (
-			<ScrollView
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-				style={styles.wrapper}
-				ref={this.scrollViewRef}
-			>
-				<View testID={'asset'}>
-					<View style={styles.assetOverviewWrapper}>
-						<AssetOverview navigation={navigation} asset={navigation && params} />
-					</View>
-					<View style={styles.wrapper}>
+			<View style={styles.wrapper}>
+				<View style={styles.wrapper}>
+					{this.state.loading ? (
+						this.renderLoader()
+					) : (
 						<Transactions
+							header={
+								<View style={styles.assetOverviewWrapper}>
+									<AssetOverview navigation={navigation} asset={navigation && params} />
+								</View>
+							}
 							navigation={navigation}
-							transactions={filteredTxs}
+							transactions={this.txs}
 							selectedAddress={selectedAddress}
 							conversionRate={conversionRate}
 							currentCurrency={currentCurrency}
 							networkType={networkType}
-							adjustScroll={this.adjustScroll}
+							loading={!this.state.transactionsUpdated}
+							headerHeight={280}
 						/>
-					</View>
+					)}
 				</View>
-			</ScrollView>
+			</View>
 		);
 	};
 }
@@ -132,7 +204,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
 export default connect(mapStateToProps)(Asset);

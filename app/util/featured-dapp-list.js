@@ -10,9 +10,14 @@ export default [
 		description: 'The income-generating social network, earn money by sharing your wisdom and creativity.'
 	},
 	{
-		url: 'https://peepeth.com/',
+		url: 'https://peepeth.com/_',
 		name: 'Peepeth',
 		description: 'A blockchain-powered social network for our best selves.'
+	},
+	{
+		url: 'https://opensea.io/',
+		name: 'OpenSea',
+		description: 'The largest marketplace for crypto collectibles. Buy, sell, and discover rare digital items'
 	},
 	{
 		url: 'https://compound.finance/',

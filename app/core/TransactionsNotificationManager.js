@@ -35,11 +35,7 @@ class TransactionsNotificationManager {
 
 	_viewTransaction = id => {
 		this._transactionToView.push(id);
-		this._navigation.navigate('WalletTabHome');
-		this._navigation.navigate('WalletView', { page: 0 });
-		setTimeout(() => {
-			this._navigation.navigate('WalletView', { page: 2 });
-		}, 300);
+		this._navigation.navigate('TransactionsHome');
 	};
 
 	_removeListeners = transactionId => {
@@ -81,19 +77,15 @@ class TransactionsNotificationManager {
 				smallIcon: 'ic_notification_small'
 			};
 
-			if (data.type !== 'pending') {
-				const extraData = { action: 'tx', id: data.message.transaction.id };
-				if (Platform.OS === 'android') {
-					pushData.tag = JSON.stringify(extraData);
-				} else {
-					pushData.userInfo = extraData;
-				}
-				PushNotification.localNotification(pushData);
+			const extraData = { action: 'tx', id: data.message.transaction.id };
+			if (Platform.OS === 'android') {
+				pushData.tag = JSON.stringify(extraData);
+			} else {
+				pushData.userInfo = extraData;
 			}
+			PushNotification.localNotification(pushData);
 
-			if (data.type !== 'pending') {
-				this._transactionToView.push(data.message.transaction.id);
-			}
+			this._transactionToView.push(data.message.transaction.id);
 		} else {
 			showMessage(data);
 		}
@@ -140,7 +132,13 @@ class TransactionsNotificationManager {
 		this._showNotification({
 			type: 'pending',
 			autoHide: false,
-			message: {}
+			message: {
+				transaction: {
+					nonce: `${hexToBN(transaction.transaction.nonce).toString()}`,
+					id: transaction.id
+				},
+				callback: () => this._viewTransaction(transaction.id)
+			}
 		});
 
 		// We wait for confirmation

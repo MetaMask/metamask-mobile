@@ -22,101 +22,113 @@ exports[`AddCustomCollectible should render correctly 1`] = `
     showCancelButton={true}
     showConfirmButton={true}
   >
-    <View
-      style={
-        Object {
-          "padding": 20,
-        }
-      }
-    >
-      <Text
+    <View>
+      <View
         style={
           Object {
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+            "padding": 20,
           }
         }
       >
-        Address
-      </Text>
-      <TextInput
-        allowFontScaling={true}
-        onBlur={[Function]}
-        onChangeText={[Function]}
-        onSubmitEditing={[Function]}
-        placeholder="0x..."
-        style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
           }
-        }
-        testID="input-collectible-address"
-        underlineColorAndroid="transparent"
-        value=""
-      />
-      <Text
-        style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+        >
+          Address
+        </Text>
+        <TextInput
+          allowFontScaling={true}
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="0x..."
+          rejectResponderTermination={true}
+          style={
+            Array [
+              Object {
+                "borderColor": "#CCCCCC",
+                "borderRadius": 4,
+                "borderWidth": 1,
+                "fontFamily": "Roboto",
+                "fontWeight": "400",
+                "padding": 16,
+              },
+              Object {},
+            ]
           }
-        }
-      />
-    </View>
-    <View
-      style={
-        Object {
-          "padding": 20,
-        }
-      }
-    >
-      <Text
+          testID="input-collectible-address"
+          underlineColorAndroid="transparent"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#FF0000",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "marginTop": 15,
+            }
+          }
+        />
+      </View>
+      <View
         style={
           Object {
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+            "padding": 20,
           }
         }
       >
-        ID
-      </Text>
-      <TextInput
-        allowFontScaling={true}
-        keyboardType="numeric"
-        onBlur={[Function]}
-        onChangeText={[Function]}
-        onSubmitEditing={[Function]}
-        placeholder=""
-        returnKeyType="done"
-        style={
-          Object {
-            "borderColor": "#CCCCCC",
-            "borderRadius": 4,
-            "borderWidth": 1,
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
-            "padding": 16,
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            }
           }
-        }
-        testID="input-token-decimals"
-        underlineColorAndroid="transparent"
-        value=""
-      />
-      <Text
-        style={
-          Object {
-            "color": "#FF0000",
-            "fontFamily": "Roboto",
-            "fontWeight": "400",
+        >
+          ID
+        </Text>
+        <TextInput
+          allowFontScaling={true}
+          keyboardType="numeric"
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="Enter the collectible ID"
+          rejectResponderTermination={true}
+          returnKeyType="done"
+          style={
+            Array [
+              Object {
+                "borderColor": "#CCCCCC",
+                "borderRadius": 4,
+                "borderWidth": 1,
+                "fontFamily": "Roboto",
+                "fontWeight": "400",
+                "padding": 16,
+              },
+              Object {},
+            ]
           }
-        }
-      />
+          testID="input-token-decimals"
+          underlineColorAndroid="transparent"
+          value=""
+        />
+        <Text
+          style={
+            Object {
+              "color": "#FF0000",
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "marginTop": 15,
+            }
+          }
+        />
+      </View>
     </View>
   </ActionView>
 </View>

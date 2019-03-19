@@ -121,7 +121,7 @@ export default class TransactionDetails extends PureComponent {
 		await Clipboard.setString(this.props.transactionDetails.transactionHash);
 		this.props.showAlert({
 			isVisible: true,
-			autodismiss: 2000,
+			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.hash_copied_to_clipboard') }
 		});
@@ -194,14 +194,13 @@ export default class TransactionDetails extends PureComponent {
 						</View>
 					)}
 				</View>
-				{this.props.transactionDetails.transactionHash &&
-					blockExplorer && (
-						<TouchableOpacity
-							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
-						>
-							<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
-						</TouchableOpacity>
-					)}
+				{this.props.transactionDetails.transactionHash && blockExplorer && (
+					<TouchableOpacity
+						onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
+					>
+						<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	};

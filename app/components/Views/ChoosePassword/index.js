@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {
 	Animated,
 	Switch,
-	AsyncStorage,
 	ActivityIndicator,
 	Alert,
 	Text,
@@ -15,6 +14,7 @@ import {
 	TouchableOpacity
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
 import StyledButton from '../../UI/StyledButton';
@@ -39,7 +39,6 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start'
 	},
 	title: {
-		width: 200,
 		fontSize: 32,
 		marginTop: 20,
 		marginBottom: 20,

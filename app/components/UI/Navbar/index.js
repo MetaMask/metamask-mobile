@@ -4,11 +4,14 @@ import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { Text, Platform, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
+import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
+const HOMEPAGE_URL = 'about:blank';
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -66,15 +69,19 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		flex: 1
 	},
-	browserRigthButtonAndroid: {
-		flex: 1,
+	browserRightButtonAndroid: {
+		flex: 0,
 		flexDirection: 'row'
 	},
-	browserRigthButton: {
+	browserRightButton: {
 		flex: 1
 	},
 	browserMoreIconAndroid: {
-		paddingTop: 10
+		paddingTop: 10,
+		marginLeft: -10
+	},
+	disabled: {
+		opacity: 0.3
 	}
 });
 
@@ -89,10 +96,15 @@ const metamask_name = require('../../../images/metamask-name.png'); // eslint-di
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
 export default function getNavbarOptions(title, navigation) {
+	function onPress() {
+		Keyboard.dismiss();
+		navigation.openDrawer();
+	}
+
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
-			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
+			<TouchableOpacity onPress={onPress} style={styles.backButton}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
@@ -143,7 +155,7 @@ export function getNavigationOptionsTitle(title, navigation) {
  */
 export function getTransactionOptionsTitle(title, backButtonText, navigation) {
 	return {
-		headerTitle: <NavbarTitle title={title} />,
+		headerTitle: <NavbarTitle title={title} disableNetwork />,
 		headerLeft:
 			Platform.OS === 'ios' ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -155,7 +167,8 @@ export function getTransactionOptionsTitle(title, backButtonText, navigation) {
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
-			)
+			),
+		headerRight: <View />
 	};
 }
 /**
@@ -168,16 +181,34 @@ export function getTransactionOptionsTitle(title, backButtonText, navigation) {
  */
 export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
-	const urlObj = new URL(url);
-	const hostname = urlObj.hostname.toLowerCase().replace('www.', '');
-	const isHttps = url.toLowerCase().substr(0, 6) === 'https:';
+	let hostname = null;
+	let isHttps = false;
+	if (url && url !== HOMEPAGE_URL) {
+		isHttps = url.toLowerCase().substr(0, 6) === 'https:';
+		const urlObj = new URL(url);
+		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
+		if (hostname === 'ipfs.io' && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
+			const ensUrl = navigation.getParam('currentEnsName', '');
+			if (ensUrl) {
+				hostname = ensUrl.toLowerCase().replace('www.', '');
+			}
+		}
+	} else {
+		hostname = strings('browser.title');
+	}
+
+	function onPress() {
+		Keyboard.dismiss();
+		navigation.openDrawer();
+	}
+
+	const optionsDisabled = hostname === strings('browser.title');
 
 	return {
 		headerLeft: (
-			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={onPress} style={styles.backButton}>
 				<IonicIcon
-					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
 					style={styles.backIcon}
 				/>
@@ -185,7 +216,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 		),
 		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
 		headerRight: (
-			<View style={Platform.OS === 'android' ? styles.browserRigthButtonAndroid : styles.browserRigthButton}>
+			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
 				<AccountRightButton />
 				{Platform.OS === 'android' ? (
 					<TouchableOpacity
@@ -193,7 +224,8 @@ export function getBrowserViewNavbarOptions(navigation) {
 						onPress={() => {
 							navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
 						}}
-						style={styles.browserMoreIconAndroid}
+						style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
+						disabled={optionsDisabled}
 					>
 						<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
 					</TouchableOpacity>
@@ -275,10 +307,20 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getWalletNavbarOptions(title, navigation) {
+	const onScanSuccess = data => {
+		if (data.target_address) {
+			navigation.navigate('SendView', { txMeta: data });
+		}
+	};
+
+	function openDrawer() {
+		navigation.openDrawer();
+	}
+
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
-			<TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.backButton}>
+			<TouchableOpacity onPress={openDrawer} style={styles.backButton}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
 					size={Platform.OS === 'android' ? 24 : 28}
@@ -291,10 +333,12 @@ export function getWalletNavbarOptions(title, navigation) {
 				style={styles.infoButton}
 				// eslint-disable-next-line
 				onPress={() => {
-					navigation.navigate('AccountDetails');
+					navigation.navigate('QRScanner', {
+						onScanSuccess
+					});
 				}}
 			>
-				<IonicIcon name="ios-information-circle-outline" size={28} style={styles.infoIcon} />
+				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
 		)
 	};
@@ -303,11 +347,14 @@ export function getWalletNavbarOptions(title, navigation) {
 /**
  * Function that returns the navigation options containing title and network indicator
  *
+ * @param {string} title - Title in string format
+ * @param {string} translate - Boolean that specifies if the title needs translation
+ * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getNetworkNavbarOptions(title, navigation) {
+export function getNetworkNavbarOptions(title, translate, navigation) {
 	return {
-		headerTitle: <NavbarTitle title={title} />,
+		headerTitle: <NavbarTitle title={title} translate={translate} />,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>

@@ -6,9 +6,11 @@
  * Map of color names to HEX values
  */
 export const colors = {
+	drawerBg: '#F8F8F8',
 	accentGray: '#9b9b9b',
 	ash: '#ced6e0',
 	asphalt: '#747d8c',
+	anotherBlue: '#F0F2F4',
 	black: '#000000',
 	beige: '#f9fafa',
 	borderColor: '#CCCCCC',
@@ -30,10 +32,12 @@ export const colors = {
 	lightRed: '#fff1f2',
 	lightBlue: '#F2F9FE',
 	primary: '#008edf',
+	primaryOpacity: '#E9F3FD',
 	primaryFox: '#f7861ce6',
 	red: '#f00',
 	darkRed: '#C63636',
 	warningRed: '#d95846',
+	headerModalRed: '#DA4453',
 	slate: '#dfe4ea',
 	subtleGray: '#8c8e94',
 	tar: '#2f3542',
@@ -54,6 +58,7 @@ export const colors = {
 	androidStatusbar: '#EBEBED',
 	switchOnColor: '#4CD964',
 	switchOffColor: '#B3B3B3',
+	blueishGrey: '#e9eff5',
 	pager: '#DADADA',
 	modalDragGrey: '#C4C4C4',
 	spinnerColor: '#F758AC',

@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
  */
 class Approval extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle(strings('approval.title'), strings('navigation.cancel'), navigation);
+		getTransactionOptionsTitle('approval.title', strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**
@@ -38,7 +38,11 @@ class Approval extends Component {
 		/**
 		 * Transaction state
 		 */
-		transaction: PropTypes.object.isRequired
+		transaction: PropTypes.object.isRequired,
+		/**
+		 * List of transactions
+		 */
+		transactions: PropTypes.array
 	};
 
 	state = {

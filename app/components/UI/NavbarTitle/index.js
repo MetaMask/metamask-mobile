@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -16,7 +17,7 @@ const styles = StyleSheet.create({
 	},
 	networkName: {
 		fontSize: 11,
-		color: colors.fontSecondary,
+		color: colors.gray,
 		...fontStyles.normal
 	},
 	networkIcon: {
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 100,
 		marginRight: 5,
-		marginTop: 5
+		marginTop: Platform.OS === 'ios' ? 4 : 5
 	},
 	title: {
 		fontSize: 18,
@@ -54,20 +55,39 @@ class NavbarTitle extends Component {
 		/**
 		 * Action that toggles the network modal
 		 */
-		toggleNetworkModal: PropTypes.func
+		toggleNetworkModal: PropTypes.func,
+		/**
+		 * Boolean that specifies if the title needs translation
+		 */
+		translate: PropTypes.bool,
+		/**
+		 * Boolean that specifies if the network can be changed
+		 */
+		disableNetwork: PropTypes.bool
+	};
+
+	static defaultProps = {
+		translate: true
 	};
 
 	openNetworkList = () => {
-		this.props.toggleNetworkModal();
+		if (!this.props.disableNetwork) {
+			this.props.toggleNetworkModal();
+		}
 	};
 
 	render = () => {
-		const { network, title } = this.props;
+		const { network, title, translate } = this.props;
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
+		const realTitle = translate ? strings(title) : title;
 
 		return (
-			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
-				{title ? <Text style={styles.title}>{title}</Text> : null}
+			<TouchableOpacity
+				onPress={this.openNetworkList}
+				style={styles.wrapper}
+				activeOpacity={this.props.disableNetwork ? 1 : 0.2}
+			>
+				{title ? <Text style={styles.title}>{realTitle}</Text> : null}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
@@ -79,7 +99,9 @@ class NavbarTitle extends Component {
 	};
 }
 
-const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController });
+const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController
+});
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal())
 });

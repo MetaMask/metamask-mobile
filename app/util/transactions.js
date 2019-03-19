@@ -2,7 +2,6 @@ import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
-import { hexToBN } from './number';
 import contractMap from 'eth-contract-metadata';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
@@ -18,8 +17,8 @@ export const TRANSFER_FROM_ACTION_KEY = 'transferFrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 
-export const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
-export const COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
+export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
+export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 /**
@@ -39,32 +38,40 @@ class SmartContractAddresses {
 }
 
 /**
- * Generates transfer data for specified asset type
+ * Utility class with the single responsibility
+ * of caching CollectibleAddresses
+ */
+class CollectibleAddresses {
+	static cache = {};
+}
+
+/**
+ * Generates transfer data for specified method
  *
- * @param {String} assetType - Asset type (ERC20)
+ * @param {String} type - Method to use to generate data
  * @param {Object} opts - Optional asset parameters
  * @returns {String} - String containing the generated transfer data
  */
-export function generateTransferData(assetType, opts) {
-	if (!assetType) {
-		throw new Error('[transactions] assetType must be defined');
+export function generateTransferData(type, opts) {
+	if (!type) {
+		throw new Error('[transactions] type must be defined');
 	}
-	switch (assetType) {
-		case 'ERC20':
+	switch (type) {
+		case 'transfer':
 			if (!opts.toAddress || !opts.amount) {
-				throw new Error(`[transactions] 'toAddress' and 'amount' must be defined for 'assetType' ERC20`);
+				throw new Error(`[transactions] 'toAddress' and 'amount' must be defined for 'type' transfer`);
 			}
 			return (
-				TOKEN_TRANSFER_FUNCTION_SIGNATURE +
+				TRANSFER_FUNCTION_SIGNATURE +
 				Array.prototype.map
 					.call(rawEncode(['address', 'uint256'], [opts.toAddress, addHexPrefix(opts.amount)]), x =>
 						('00' + x.toString(16)).slice(-2)
 					)
 					.join('')
 			);
-		case 'ERC721':
+		case 'transferFrom':
 			return (
-				COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE +
+				TRANSFER_FROM_FUNCTION_SIGNATURE +
 				Array.prototype.map
 					.call(
 						rawEncode(
@@ -79,21 +86,24 @@ export function generateTransferData(assetType, opts) {
 }
 
 /**
- * Decode transfer data for specified asset type
+ * Decode transfer data for specified method data
  *
- * @param {String} assetType - Asset type (ERC20)
+ * @param {String} type - Method to use to generate data
  * @param {String} data - Data to decode
  * @returns {Object} - Object containing the decoded transfer data
  */
-export function decodeTransferData(assetType, data) {
-	switch (assetType) {
-		case 'ERC20': {
+export function decodeTransferData(type, data) {
+	switch (type) {
+		case 'transfer': {
 			const encodedAddress = data.substr(10, 64);
 			const encodedAmount = data.substr(74, 138);
 			const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
-			return [addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]), hexToBN(encodedAmount)];
+			return [
+				addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
+				parseInt(encodedAmount, 16).toString()
+			];
 		}
-		case 'ERC721': {
+		case 'transferFrom': {
 			const encodedFromAddress = data.substr(10, 64);
 			const encodedToAddress = data.substr(74, 64);
 			const encodedTokenId = data.substr(138, 64);
@@ -116,9 +126,9 @@ export function decodeTransferData(assetType, data) {
  */
 export function getMethodData(data) {
 	// TODO use eth-method-registry from GABA
-	if (data.substr(0, 10) === TOKEN_TRANSFER_FUNCTION_SIGNATURE) {
+	if (data.substr(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER };
-	} else if (data.substr(0, 10) === COLLECTIBLE_TRANSFER_FROM_FUNCTION_SIGNATURE) {
+	} else if (data.substr(0, 10) === TRANSFER_FROM_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER_FROM };
 	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
@@ -149,6 +159,27 @@ export async function isSmartContractAddress(address) {
 	const codeIsEmpty = !code || code === '0x' || code === '0x0';
 	SmartContractAddresses.cache[address] = !codeIsEmpty;
 	return !codeIsEmpty;
+}
+
+/**
+ * Returns wether the given address is an ERC721 contract
+ *
+ * @param {string} address - Ethereum address
+ * @param {string} tokenId - A possible collectible id
+ * @returns {boolean} - Wether the given address is an ERC721 contract
+ */
+export async function isCollectibleAddress(address, tokenId) {
+	const cache = CollectibleAddresses.cache[address];
+	if (cache) {
+		return Promise.resolve(cache);
+	}
+	const { AssetsContractController } = Engine.context;
+	// Hack to know if the address is a collectible smart contract
+	// for now this method is called from tx element so we have the respective 'tokenId'
+	const ownerOf = await AssetsContractController.getOwnerOf(address, tokenId);
+	const isCollectibleAddress = ownerOf && ownerOf !== '0x';
+	CollectibleAddresses.cache[address] = isCollectibleAddress;
+	return isCollectibleAddress;
 }
 
 /**

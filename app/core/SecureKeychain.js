@@ -62,16 +62,18 @@ export default {
 	},
 
 	async getGenericPassword() {
-		instance.isAuthenticating = true;
-		const keychainObject = await Keychain.getGenericPassword(defaultOptions);
-		if (keychainObject.password) {
-			const encryptedPassword = keychainObject.password;
-			const decrypted = await instance.decryptPassword(encryptedPassword);
-			keychainObject.password = decrypted.password;
+		if (instance) {
+			instance.isAuthenticating = true;
+			const keychainObject = await Keychain.getGenericPassword(defaultOptions);
+			if (keychainObject.password) {
+				const encryptedPassword = keychainObject.password;
+				const decrypted = await instance.decryptPassword(encryptedPassword);
+				keychainObject.password = decrypted.password;
+				instance.isAuthenticating = false;
+				return keychainObject;
+			}
 			instance.isAuthenticating = false;
-			return keychainObject;
 		}
-		instance.isAuthenticating = false;
 		return null;
 	},
 

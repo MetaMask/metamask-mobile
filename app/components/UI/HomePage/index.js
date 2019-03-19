@@ -10,30 +10,34 @@ import {
 	Platform,
 	StyleSheet,
 	TextInput,
-	View
+	View,
+	ScrollView
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import FeatherIcon from 'react-native-vector-icons/Feather';
 import DeviceSize from '../../../util/DeviceSize';
-import { withNavigation } from 'react-navigation';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import BrowserFeatured from '../BrowserFeatured';
 import BrowserFavorites from '../BrowserFavorites';
 import UrlAutocomplete from '../UrlAutocomplete';
 import onUrlSubmit from '../../../util/browser';
+import { removeBookmark } from '../../../actions/bookmarks';
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
+const NAVBAR_HEIGHT = 50;
 
 const styles = StyleSheet.create({
 	flex: {
-		flex: 1
+		flex: 1,
+		backgroundColor: colors.beige
 	},
 	homePageContent: {
-		paddingHorizontal: 18,
-		marginBottom: 43
+		marginBottom: 43,
+		paddingHorizontal: 18
 	},
 	foxWrapper: {
 		height: 20
@@ -57,7 +61,7 @@ const styles = StyleSheet.create({
 	startPageTitle: {
 		fontSize: Platform.OS === 'android' ? 30 : 35,
 		marginTop: 20,
-		marginBottom: 20,
+		marginBottom: 8,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
@@ -79,18 +83,27 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	searchWrapper: {
-		flexDirection: 'row',
-		marginVertical: Platform.OS === 'ios' ? 20 : 10
+		marginTop: 12,
+		marginBottom: 24,
+		marginHorizontal: 16
 	},
 	searchInput: {
-		marginHorizontal: 10,
-		backgroundColor: colors.white,
-		fontSize: 14,
 		flex: 1,
+		marginHorizontal: 0,
+		paddingTop: Platform.OS === 'android' ? 12 : 2,
+		borderRadius: 20,
+		paddingHorizontal: 38,
+		fontSize: 16,
+		backgroundColor: colors.anotherBlue,
+		height: 40,
+		color: colors.another50ShadesOfGrey,
 		...fontStyles.normal
 	},
 	searchIcon: {
-		textAlignVertical: 'center'
+		position: 'absolute',
+		textAlignVertical: 'center',
+		marginTop: Platform.OS === 'android' ? 9 : 10,
+		marginLeft: 12
 	},
 	backupAlert: {
 		position: 'absolute',
@@ -130,8 +143,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.primary
 	},
 	tabStyle: {
-		paddingHorizontal: 0,
-		backgroundColor: colors.beige
+		paddingHorizontal: 0
 	},
 	textStyle: {
 		fontSize: 12,
@@ -144,7 +156,7 @@ const styles = StyleSheet.create({
 	},
 	urlAutocomplete: {
 		position: 'absolute',
-		marginTop: 60,
+		marginTop: 62,
 		backgroundColor: colors.white,
 		width: '100%',
 		height: '100%'
@@ -178,26 +190,66 @@ class HomePage extends Component {
 		 * redux flag that indicates if the user
 		 * completed the seed phrase backup flow
 		 */
-		seedphraseBackedUp: PropTypes.bool
+		seedphraseBackedUp: PropTypes.bool,
+		/**
+		 * Array containing all the bookmark items
+		 */
+		bookmarks: PropTypes.array,
+		/**
+		 * function that removes a bookmark
+		 */
+		removeBookmark: PropTypes.func,
+		/**
+		 * Default protocol of the browser, for ex. https
+		 */
+		defaultProtocol: PropTypes.string,
+		/**
+		 * Default search engine
+		 */
+		searchEngine: PropTypes.string
 	};
 
 	state = {
 		searchInputValue: '',
-		inputValue: ''
+		inputValue: '',
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
+		tabViewStyle: null
 	};
+
+	searchInput = React.createRef();
+	scrollView = React.createRef();
 
 	actionSheet = null;
 
+	handleTabHeight(obj) {
+		const refName = obj.ref.ref;
+		setTimeout(() => {
+			// eslint-disable-next-line
+			this.refs[refName].measureMyself((x, y, w, h, l, t) => {
+				if (h !== 0) {
+					this.setState({ tabViewStyle: { height: h + NAVBAR_HEIGHT } });
+				}
+			});
+		}, 100);
+	}
+
 	bookmarkIndexToRemove = null;
 
-	componentDidMount() {
+	componentDidMount = () => {
 		if (Platform.OS === 'android') {
 			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
 		}
-	}
+		this.mounted = true;
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.mounted && this.setState({ inputWidth: '100%' });
+			}, 100);
+	};
 
 	componentWillUnmount() {
 		Platform.OS === 'android' && this.keyboardDidHideListener.remove();
+		this.mounted = false;
 	}
 
 	onInitialUrlChange = searchInputValue => {
@@ -219,13 +271,13 @@ class HomePage extends Component {
 				underlineStyle={styles.tabUnderlineStyle}
 				activeTextColor={colors.primary}
 				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>
 		);
 	}
 	onUrlInputSubmit = async (input = null) => {
+		this.searchInput && this.searchInput.current && this.searchInput.current.blur();
 		const inputValue = (typeof input === 'string' && input) || this.state.inputValue;
 		const { defaultProtocol, searchEngine } = this.props;
 		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
@@ -234,7 +286,7 @@ class HomePage extends Component {
 		} else {
 			this.onInitialUrlSubmit(input);
 		}
-		this.setState({ inputValue: '' });
+		this.mounted && this.setState({ inputValue: '' });
 	};
 
 	onAutocomplete = link => {
@@ -244,89 +296,144 @@ class HomePage extends Component {
 	};
 
 	dismissKeyboardAndClear = () => {
-		this.setState({ searchInputValue: '' });
-		Keyboard.dismiss();
+		this.mounted && this.setState({ searchInputValue: '' });
+		this.searchInput && this.searchInput.current && this.searchInput.current.blur();
 	};
 
 	keyboardDidHide = () => {
-		this.setState({ searchInputValue: '' });
+		this.mounted && this.setState({ searchInputValue: '' });
+	};
+
+	focusInput = () => {
+		this.searchInput && this.searchInput.current && this.searchInput.current.focus();
 	};
 
 	render() {
 		return (
-			<TouchableWithoutFeedback style={styles.flex} onPress={this.dismissKeyboardAndClear} accesible={false}>
-				<View style={styles.flex}>
-					<View style={styles.homePageContent}>
-						<View style={styles.searchWrapper}>
-							<Icon name="search" size={18} color={colors.asphalt} style={styles.searchIcon} />
-							<TextInput
-								style={styles.searchInput}
-								autoCapitalize="none"
-								autoCorrect={false}
-								clearButtonMode="while-editing"
-								onChangeText={this.onInitialUrlChange}
-								onSubmitEditing={this.onInitialUrlSubmit}
-								placeholder={strings('browser.search')}
-								placeholderTextColor={colors.asphalt}
-								returnKeyType="go"
-								value={this.state.searchInputValue}
-							/>
-						</View>
-						<View style={styles.topBarWrapper}>
-							<View style={styles.foxWrapper}>
-								<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+			<View style={styles.flex}>
+				<ScrollView style={styles.flex} ref={this.scrollView}>
+					<TouchableWithoutFeedback
+						style={styles.flex}
+						onPress={this.dismissKeyboardAndClear}
+						accesible={false}
+					>
+						<View style={styles.flex}>
+							<View style={styles.searchWrapper}>
+								<TextInput
+									style={[
+										styles.searchInput,
+										this.state.inputWidth ? { width: this.state.inputWidth } : {}
+									]}
+									ref={this.searchInput}
+									autoCapitalize="none"
+									autoCorrect={false}
+									clearButtonMode="while-editing"
+									onChangeText={this.onInitialUrlChange}
+									onSubmitEditing={this.onInitialUrlSubmit}
+									placeholder={strings('browser.search')}
+									placeholderTextColor={colors.another50ShadesOfGrey}
+									returnKeyType="go"
+									value={this.state.searchInputValue}
+									blurOnSubmit
+								/>
+								<FeatherIcon
+									onPress={this.focusInput}
+									name="search"
+									size={18}
+									color={colors.another50ShadesOfGrey}
+									style={styles.searchIcon}
+								/>
 							</View>
-							<View style={styles.titleWrapper}>
-								<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+							<View style={styles.homePageContent}>
+								<View style={styles.topBarWrapper}>
+									<View style={styles.foxWrapper}>
+										<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
+									</View>
+									<View style={styles.titleWrapper}>
+										<Image
+											source={metamask_name}
+											style={styles.metamaskName}
+											resizeMethod={'auto'}
+										/>
 
-								<Text style={styles.separator}> | </Text>
-								<Text style={styles.title}>{strings('browser.dapp_browser')}</Text>
+										<Text style={styles.separator}> | </Text>
+										<Text style={styles.title}>{strings('browser.dapp_browser')}</Text>
+									</View>
+								</View>
+
+								<View style={styles.startPageContent}>
+									<Text style={styles.startPageTitle}>{strings('browser.welcome')}</Text>
+									<Text style={styles.startPageSubtitle}>
+										{strings('browser.dapp_browser_message')}
+									</Text>
+								</View>
 							</View>
-						</View>
 
-						<View style={styles.startPageContent}>
-							<Text style={styles.startPageTitle}>{strings('browser.welcome')}</Text>
-							<Text style={styles.startPageSubtitle}>{strings('browser.dapp_browser_message')}</Text>
+							<ScrollableTabView
+								renderTabBar={this.renderTabBar}
+								// eslint-disable-next-line react/jsx-no-bind
+								onChangeTab={obj => this.handleTabHeight(obj)}
+								style={this.state.tabViewStyle}
+							>
+								<BrowserFeatured
+									tabLabel={strings('browser.featured_dapps')}
+									goTo={this.props.goTo}
+									// eslint-disable-next-line react/no-string-refs
+									ref={'featuredTab'}
+								/>
+								<BrowserFavorites
+									tabLabel={strings('browser.my_favorites')}
+									goTo={this.props.goTo}
+									// eslint-disable-next-line react/no-string-refs
+									ref={'favoritesTab'}
+									navigation={this.props.navigation}
+									removeBookmark={this.props.removeBookmark}
+									bookmarks={this.props.bookmarks}
+								/>
+							</ScrollableTabView>
 						</View>
+					</TouchableWithoutFeedback>
+				</ScrollView>
+				{this.state.searchInputValue.length > 1 && (
+					<View style={styles.urlAutocomplete}>
+						<UrlAutocomplete
+							onSubmit={this.onAutocomplete}
+							input={this.state.searchInputValue}
+							onDismiss={this.dismissKeyboardAndClear}
+						/>
 					</View>
-
-					<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
-						<BrowserFeatured tabLabel={strings('browser.featured_dapps')} goTo={this.props.goTo} />
-						<BrowserFavorites tabLabel={strings('browser.my_favorites')} goTo={this.props.goTo} />
-					</ScrollableTabView>
-
-					{this.props.passwordSet &&
-						!this.props.seedphraseBackedUp && (
-							<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
-								<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
-									<View style={styles.backupAlertIconWrapper}>
-										<Icon name="info-outline" style={styles.backupAlertIcon} />
-									</View>
-									<View>
-										<Text style={styles.backupAlertTitle}>
-											{strings('home_page.backup_alert_title')}
-										</Text>
-										<Text style={styles.backupAlertMessage}>
-											{strings('home_page.backup_alert_message')}
-										</Text>
-									</View>
-								</ElevatedView>
-							</TouchableOpacity>
-						)}
-					{this.state.searchInputValue.length > 1 && (
-						<View style={styles.urlAutocomplete}>
-							<UrlAutocomplete onSubmit={this.onAutocomplete} input={this.state.searchInputValue} />
-						</View>
-					)}
-				</View>
-			</TouchableWithoutFeedback>
+				)}
+				{this.props.passwordSet && !this.props.seedphraseBackedUp && (
+					<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
+						<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
+							<View style={styles.backupAlertIconWrapper}>
+								<Icon name="info-outline" style={styles.backupAlertIcon} />
+							</View>
+							<View>
+								<Text style={styles.backupAlertTitle}>{strings('home_page.backup_alert_title')}</Text>
+								<Text style={styles.backupAlertMessage}>
+									{strings('home_page.backup_alert_message')}
+								</Text>
+							</View>
+						</ElevatedView>
+					</TouchableOpacity>
+				)}
+			</View>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	bookmarks: state.bookmarks
 });
 
-export default connect(mapStateToProps)(withNavigation(HomePage));
+const mapDispatchToProps = dispatch => ({
+	removeBookmark: bookmark => dispatch(removeBookmark(bookmark))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(HomePage);

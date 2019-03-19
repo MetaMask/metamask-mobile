@@ -4,7 +4,7 @@ import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet,
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import TransactionEditor from '../../UI/TransactionEditor';
-import { toBN, BNToHex, hexToBN } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
  */
 class Send extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle(strings('send.title'), strings('navigation.cancel'), navigation);
+		getTransactionOptionsTitle('send.title', strings('navigation.cancel'), navigation);
 
 	static propTypes = {
 		/**
@@ -95,13 +95,12 @@ class Send extends Component {
 
 	checkForDeeplinks() {
 		const { navigation } = this.props;
-		if (navigation) {
-			const txMeta = navigation.getParam('txMeta', null);
-			if (txMeta) {
-				this.handleNewTxMeta(txMeta);
-			}
+		const txMeta = navigation && navigation.getParam('txMeta', null);
+		if (txMeta) {
+			this.handleNewTxMeta(txMeta);
+		} else {
+			this.mounted && this.setState({ ready: true });
 		}
-		this.mounted && this.setState({ ready: true });
 	}
 
 	/**
@@ -142,19 +141,20 @@ class Send extends Component {
 		}
 	}
 
-	handleNewTxMeta = ({
+	handleNewTxMeta = async ({
 		target_address,
 		chain_id = null, // eslint-disable-line no-unused-vars
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
-		const newTxMeta = { ...this.state.transaction };
+		const newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
 		newTxMeta.to = toChecksumAddress(target_address);
 
 		if (parameters) {
 			const { value, gas, gasPrice } = parameters;
 			if (value) {
 				newTxMeta.value = toBN(value);
+				newTxMeta.readableValue = fromWei(newTxMeta.value);
 			}
 			if (gas) {
 				newTxMeta.gas = toBN(gas);
@@ -166,7 +166,18 @@ class Send extends Component {
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
-		this.mounted && this.setState({ transaction: newTxMeta });
+		if (!newTxMeta.gas || !newTxMeta.gasPrice) {
+			const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(this.props.transaction);
+			newTxMeta.gas = gas;
+			newTxMeta.gasPrice = gasPrice;
+		}
+
+		if (!newTxMeta.value) {
+			newTxMeta.value = toBN(0);
+		}
+
+		this.props.setTransactionObject(newTxMeta);
+		this.mounted && this.setState({ ready: true, mode: 'edit', transactionKey: Date.now() });
 	};
 
 	/**
@@ -239,10 +250,10 @@ class Send extends Component {
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 			await TransactionController.approveTransaction(transactionMeta.id);
-			const hash = await result;
-			this.props.navigation.push('TransactionSubmitted', { hash });
+			await result;
 			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
+			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
 				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 			});

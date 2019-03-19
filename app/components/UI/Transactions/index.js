@@ -1,14 +1,25 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { ScrollView, ActivityIndicator, RefreshControl, StyleSheet, Text, View, FlatList } from 'react-native';
+import {
+	Platform,
+	ScrollView,
+	ActivityIndicator,
+	RefreshControl,
+	StyleSheet,
+	Text,
+	View,
+	FlatList,
+	Dimensions,
+	InteractionManager
+} from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { hasBlockExplorer, getNetworkTypeById } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
-import { getEtherscanTransactionUrl } from '../../../util/etherscan';
+import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Logger from '../../../util/Logger';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
@@ -18,11 +29,14 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	emptyContainer: {
-		minHeight: 250,
-		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		backgroundColor: colors.white,
+		minHeight: Dimensions.get('window').height / 2
+	},
+	loader: {
+		alignSelf: 'center'
 	},
 	text: {
 		fontSize: 20,
@@ -31,7 +45,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ROW_HEIGHT = 90 + StyleSheet.hairlineWidth;
+const ROW_HEIGHT = (Platform.OS === 'ios' ? 95 : 100) + StyleSheet.hairlineWidth;
 
 /**
  * View that renders a list of transactions for a specific asset
@@ -79,13 +93,25 @@ class Transactions extends PureComponent {
 		 */
 		showAlert: PropTypes.func,
 		/**
-		 * Callback to adjust the scroll position
-		 */
-		adjustScroll: PropTypes.func,
-		/**
 		 * Loading flag from an external call
 		 */
-		loading: PropTypes.bool
+		loading: PropTypes.bool,
+		/**
+		 * Pass the flatlist ref to the parent
+		 */
+		onRefSet: PropTypes.func,
+		/**
+		 * Optional header component
+		 */
+		header: PropTypes.object,
+		/**
+		 * Optional header height
+		 */
+		headerHeight: PropTypes.number
+	};
+
+	static defaultProps = {
+		headerHeight: 0
 	};
 
 	state = {
@@ -94,6 +120,8 @@ class Transactions extends PureComponent {
 		refreshing: false
 	};
 
+	selectedTx = null;
+
 	flatList = React.createRef();
 
 	componentDidMount() {
@@ -101,6 +129,7 @@ class Transactions extends PureComponent {
 		setTimeout(() => {
 			this.mounted && this.setState({ ready: true });
 			this.init();
+			this.props.onRefSet && this.props.onRefSet(this.flatList);
 		}, 100);
 	}
 
@@ -122,13 +151,9 @@ class Transactions extends PureComponent {
 	}
 
 	scrollToIndex = index => {
-		if (!this.scrolling && index) {
+		if (!this.scrolling && (this.props.headerHeight || index)) {
 			this.scrolling = true;
-			if (!this.props.adjustScroll) {
-				this.flatList.current.scrollToIndex({ index, animated: true });
-			} else {
-				this.props.adjustScroll(index);
-			}
+			this.flatList.current.scrollToIndex({ index, animated: true });
 			setTimeout(() => {
 				this.scrolling = false;
 			}, 300);
@@ -136,16 +161,29 @@ class Transactions extends PureComponent {
 	};
 
 	toggleDetailsView = (id, index) => {
-		this.setState(state => {
-			// copy the map rather than modifying state.
-			const selectedTx = new Map(state.selectedTx);
-			const show = !selectedTx.get(id);
-			selectedTx.set(id, show);
-			if (show && index) {
-				this.scrollToIndex(index);
-			}
-			return { selectedTx };
-		});
+		const oldId = this.selectedTx && this.selectedTx.id;
+		const oldIndex = this.selectedTx && this.selectedTx.index;
+
+		if (this.selectedTx && oldId !== id && oldIndex !== index) {
+			this.selectedTx = null;
+			this.toggleDetailsView(oldId, oldIndex);
+			InteractionManager.runAfterInteractions(() => {
+				this.toggleDetailsView(id, index);
+			});
+		} else {
+			this.setState(state => {
+				const selectedTx = new Map(state.selectedTx);
+				const show = !selectedTx.get(id);
+				selectedTx.set(id, show);
+				if (show && (this.props.headerHeight || index)) {
+					InteractionManager.runAfterInteractions(() => {
+						this.scrollToIndex(index);
+					});
+				}
+				this.selectedTx = show ? { id, index } : null;
+				return { selectedTx };
+			});
+		}
 	};
 
 	onRefresh = async () => {
@@ -156,19 +194,24 @@ class Transactions extends PureComponent {
 
 	renderLoader = () => (
 		<View style={styles.emptyContainer}>
-			<ActivityIndicator size="small" />
+			<ActivityIndicator style={styles.loader} size="small" />
 		</View>
 	);
 
 	renderEmpty = () => (
 		<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+			{this.props.header ? this.props.header : null}
 			<View style={styles.emptyContainer}>
 				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
 			</View>
 		</ScrollView>
 	);
 
-	getItemLayout = (data, index) => ({ length: ROW_HEIGHT, offset: ROW_HEIGHT * index, index });
+	getItemLayout = (data, index) => ({
+		length: ROW_HEIGHT,
+		offset: this.props.headerHeight + ROW_HEIGHT * index,
+		index
+	});
 
 	keyExtractor = item => item.id;
 
@@ -176,9 +219,10 @@ class Transactions extends PureComponent {
 		try {
 			const network = getNetworkTypeById(networkID);
 			const url = getEtherscanTransactionUrl(network, transactionHash);
+			const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
 			this.props.navigation.push('Webview', {
 				url,
-				title: 'etherscan.io'
+				title: etherscan_url
 			});
 		} catch (e) {
 			// eslint-disable-next-line no-console
@@ -226,13 +270,17 @@ class Transactions extends PureComponent {
 				keyExtractor={this.keyExtractor}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 				renderItem={this.renderItem}
+				initialNumToRender={20}
+				maxToRenderPerBatch={2}
+				onEndReachedThreshold={0.5}
+				ListHeaderComponent={this.props.header}
 			/>
 		);
 	}
 
 	render = () => (
-		<View style={styles.wrapper}>
-			<View testID={'transactions'}>{this.renderContent()}</View>
+		<View testID={'transactions'} style={styles.wrapper}>
+			{this.renderContent()}
 		</View>
 	);
 }

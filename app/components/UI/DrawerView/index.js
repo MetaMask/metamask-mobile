@@ -3,20 +3,21 @@ import {
 	Alert,
 	Clipboard,
 	Platform,
-	ImageBackground,
 	TouchableOpacity,
-	SafeAreaView,
 	View,
 	Image,
 	StyleSheet,
 	Text,
-	ScrollView
+	ScrollView,
+	Dimensions,
+	InteractionManager
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import QRCode from 'react-native-qrcode-svg';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
 import { hasBlockExplorer } from '../../../util/networks';
@@ -24,21 +25,24 @@ import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
+import CustomAlert from '../CustomAlert';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import Modal from 'react-native-modal';
 import { toChecksumAddress } from 'ethereumjs-util';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { toggleNetworkModal, toggleAccountsModal } from '../../../actions/modals';
+import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
-import { getEtherscanAddressUrl } from '../../../util/etherscan';
+import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
 import DeviceInfo from 'react-native-device-info';
+import Logger from '../../../util/Logger';
+import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -46,7 +50,9 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	header: {
-		height: 50,
+		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
+		backgroundColor: colors.drawerBg,
+		height: DeviceSize.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
 	},
@@ -78,26 +84,34 @@ const styles = StyleSheet.create({
 		height: 18
 	},
 	account: {
-		backgroundColor: colors.white
-	},
-	accountBg: {
-		width: '100%',
-		height: 150
+		flex: 1,
+		backgroundColor: colors.drawerBg
 	},
 	accountBgOverlay: {
-		backgroundColor: colors.overlay,
+		borderBottomColor: colors.borderColor,
+		borderBottomWidth: 1,
 		padding: 17
 	},
 	identiconWrapper: {
-		marginBottom: 12
+		marginBottom: 12,
+		width: 56,
+		height: 56
+	},
+	identiconBorder: {
+		borderRadius: 96,
+		borderWidth: 2,
+		padding: 2,
+		borderColor: colors.primary
 	},
 	accountNameWrapper: {
-		flexDirection: 'row'
+		flexDirection: 'row',
+		paddingRight: 17
 	},
 	accountName: {
 		fontSize: 20,
 		lineHeight: 24,
-		color: colors.white,
+		marginBottom: 5,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
 	caretDown: {
@@ -105,30 +119,25 @@ const styles = StyleSheet.create({
 		marginLeft: 7,
 		marginTop: 3,
 		fontSize: 18,
-		color: colors.white
+		color: colors.fontPrimary
 	},
 	accountBalance: {
-		fontSize: 12,
-		lineHeight: 16,
-		color: colors.white,
+		fontSize: 14,
+		lineHeight: 17,
+		marginBottom: 5,
+		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
 	accountAddress: {
 		fontSize: 12,
-		lineHeight: 16,
-		color: colors.white,
+		lineHeight: 17,
+		color: colors.fontSecondary,
 		...fontStyles.normal
-	},
-	qrCodeWrapper: {
-		position: 'absolute',
-		right: 17,
-		top: 17
-	},
-	infoIcon: {
-		color: colors.white
 	},
 	buttons: {
 		flexDirection: 'row',
+		borderBottomColor: colors.borderColor,
+		borderBottomWidth: 1,
 		padding: 15
 	},
 	button: {
@@ -159,18 +168,29 @@ const styles = StyleSheet.create({
 	buttonIcon: {
 		marginTop: 0
 	},
-	menu: {
-		marginLeft: 17
+	menu: {},
+	noTopBorder: {
+		borderTopWidth: 0
 	},
 	menuSection: {
 		borderTopWidth: 1,
 		borderColor: colors.borderColor,
-		paddingVertical: 5
+		paddingVertical: 10
 	},
 	menuItem: {
 		flex: 1,
 		flexDirection: 'row',
-		paddingVertical: 12
+		paddingVertical: 9,
+		paddingLeft: 17
+	},
+	selectedRoute: {
+		backgroundColor: colors.primaryOpacity,
+		marginRight: 10,
+		borderTopRightRadius: 20,
+		borderBottomRightRadius: 20
+	},
+	selectedName: {
+		color: colors.primary
 	},
 	menuItemName: {
 		flex: 1,
@@ -191,20 +211,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		margin: 0
 	},
-	itemLabel: {
-		marginRight: 15,
-		alignContent: 'flex-end',
-		justifyContent: 'flex-end',
-		alignSelf: 'flex-end',
-		paddingHorizontal: 12,
-		paddingVertical: 3,
-		borderRadius: 15
-	},
-	itemLabelText: {
-		color: colors.white,
-		textAlign: 'center',
-		...fontStyles.bold
-	},
 	modalView: {
 		flex: 1,
 		justifyContent: 'center',
@@ -219,7 +225,68 @@ const styles = StyleSheet.create({
 	},
 	modalTitle: {
 		fontSize: 22,
+		marginBottom: 15,
 		textAlign: 'center',
+		...fontStyles.bold
+	},
+	detailsWrapper: {
+		padding: 10,
+		alignItems: 'center'
+	},
+	qrCode: {
+		marginVertical: 15,
+		alignItems: 'center',
+		justifyContent: 'center',
+		padding: 40,
+		backgroundColor: colors.concrete,
+		borderRadius: 8
+	},
+	addressWrapper: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 15,
+		paddingVertical: 10,
+		marginTop: 10,
+		marginBottom: 20,
+		marginRight: 10,
+		marginLeft: 10,
+		borderRadius: 5,
+		backgroundColor: colors.concrete
+	},
+	addressTitle: {
+		fontSize: 16,
+		marginBottom: 10,
+		...fontStyles.normal
+	},
+	address: {
+		fontSize: Platform.OS === 'ios' ? 17 : 20,
+		letterSpacing: 2,
+		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
+	},
+	secureModalText: {
+		textAlign: 'center',
+		fontSize: 13,
+		...fontStyles.normal
+	},
+	bold: {
+		...fontStyles.bold
+	},
+	secureModalImage: {
+		width: 100,
+		height: 100
+	},
+	importedWrapper: {
+		marginTop: 10,
+		width: 73,
+		paddingHorizontal: 10,
+		paddingVertical: 3,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: colors.another50ShadesOfGrey
+	},
+	importedText: {
+		color: colors.another50ShadesOfGrey,
+		fontSize: 10,
 		...fontStyles.bold
 	}
 });
@@ -227,7 +294,8 @@ const styles = StyleSheet.create({
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
-	assets: require('../../../images/wallet-icon.png')
+	wallet: require('../../../images/wallet-icon.png'),
+	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
 const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
 
@@ -249,10 +317,6 @@ class DrawerView extends Component {
 		 * Selected address as string
 		 */
 		selectedAddress: PropTypes.string,
-		/**
-		 * Number of assets from the AssetsController
-		 */
-		tokensCount: PropTypes.number,
 		/**
 		 * List of accounts from the AccountTrackerController
 		 */
@@ -278,6 +342,10 @@ class DrawerView extends Component {
 		 */
 		toggleAccountsModal: PropTypes.func,
 		/**
+		 * Action that toggles the receive modal
+		 */
+		toggleReceiveModal: PropTypes.func,
+		/**
 		 * Action that shows the global alert
 		 */
 		showAlert: PropTypes.func.isRequired,
@@ -285,6 +353,10 @@ class DrawerView extends Component {
 		 * Boolean that determines the status of the networks modal
 		 */
 		networkModalVisible: PropTypes.bool.isRequired,
+		/**
+		 * Boolean that determines the status of the receive modal
+		 */
+		receiveModalVisible: PropTypes.bool.isRequired,
 		/**
 		 * Boolean that determines the status of the networks modal
 		 */
@@ -300,31 +372,47 @@ class DrawerView extends Component {
 	};
 
 	state = {
-		submitFeedback: false
+		submitFeedback: false,
+		showSecureWalletModal: false
 	};
 
 	currentBalance = null;
 	previousBalance = null;
 	processedNewBalance = false;
 
+	isCurrentAccountImported() {
+		let ret = false;
+		const { keyrings, selectedAddress } = this.props;
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(selectedAddress)) {
+				ret = keyring.type !== 'HD Key Tree';
+				break;
+			}
+		}
+
+		return ret;
+	}
+
 	componentDidUpdate() {
 		setTimeout(async () => {
 			if (
+				!this.isCurrentAccountImported() &&
 				!this.props.passwordSet &&
 				!this.processedNewBalance &&
 				this.currentBalance >= this.previousBalance &&
 				this.currentBalance > 0
 			) {
-				this.processedNewBalance = true;
-				const { selectedAddress, network, identities } = this.props;
+				const { selectedAddress, network } = this.props;
 
 				const incomingTransaction = await findFirstIncomingTransaction(network.provider.type, selectedAddress);
 				if (incomingTransaction) {
-					this.props.navigation.navigate('FirstIncomingTransaction', {
-						incomingTransaction,
-						selectedAddress,
-						accountName: identities[selectedAddress].name
-					});
+					this.processedNewBalance = true;
+					// We need to wait for the notification to dismiss
+					// before attempting to show the secure wallet modal
+					setTimeout(() => {
+						this.setState({ showSecureWalletModal: true });
+					}, 4000);
 				}
 			}
 		}, 1000);
@@ -338,6 +426,10 @@ class DrawerView extends Component {
 		this.props.toggleAccountsModal();
 	};
 
+	hideReceiveModal = () => {
+		this.props.toggleReceiveModal();
+	};
+
 	onNetworksModalClose = async manualClose => {
 		this.hideNetworksModal();
 		if (!manualClose) {
@@ -348,15 +440,12 @@ class DrawerView extends Component {
 		this.props.toggleNetworkModal();
 	};
 
-	showAccountDetails = () => {
-		this.props.navigation.navigate('WalletTabHome');
-		this.props.navigation.navigate('WalletView', { page: 0 });
-		this.props.navigation.navigate('AccountDetails');
-		this.hideDrawer();
+	showReceiveModal = () => {
+		this.props.toggleReceiveModal();
 	};
 
 	onReceive = () => {
-		Alert.alert(strings('drawer.coming_soon'));
+		this.props.toggleReceiveModal();
 	};
 
 	onSend = async () => {
@@ -364,18 +453,6 @@ class DrawerView extends Component {
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 	};
-
-	async goToWalletTab(tabIndex) {
-		this.props.navigation.navigate('WalletTabHome');
-		this.hideDrawer();
-		if (tabIndex !== 0) {
-			setTimeout(() => {
-				this.props.navigation.navigate('WalletView', { page: 0 });
-				this.props.navigation.navigate('WalletView', { page: tabIndex });
-				this.props.navigation.navigate('WalletView', { page: tabIndex });
-			}, 300);
-		}
-	}
 
 	goToBrowser = () => {
 		this.props.navigation.navigate('BrowserTabHome');
@@ -389,17 +466,12 @@ class DrawerView extends Component {
 
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
+		this.hideDrawer();
 	};
 
-	copyAddressToClipboard = async () => {
-		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 2000,
-			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
-		});
+	goToTransactionHistory = () => {
+		this.props.navigation.navigate('TransactionsHome');
+		this.hideDrawer();
 	};
 
 	showSettings = async () => {
@@ -408,6 +480,7 @@ class DrawerView extends Component {
 	};
 
 	logout = () => {
+		const { passwordSet } = this.props;
 		Alert.alert(
 			strings('drawer.logout_title'),
 			'',
@@ -421,7 +494,11 @@ class DrawerView extends Component {
 					text: strings('drawer.logout_ok'),
 					onPress: async () => {
 						await SecureKeychain.resetGenericPassword();
-						this.props.navigation.navigate('Entry');
+						if (!passwordSet) {
+							this.props.navigation.navigate('Onboarding');
+						} else {
+							this.props.navigation.navigate('Entry');
+						}
 					}
 				}
 			],
@@ -432,7 +509,8 @@ class DrawerView extends Component {
 	viewInEtherscan = () => {
 		const { selectedAddress, network } = this.props;
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
-		this.goToBrowserUrl(url, 'etherscan.io');
+		const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
+		this.goToBrowserUrl(url, etherscan_url);
 	};
 
 	submitFeedback = () => {
@@ -503,44 +581,69 @@ class DrawerView extends Component {
 		return <Icon name={name} size={size || 24} color={colors.gray} />;
 	}
 
+	getFeatherIcon(name, size) {
+		return <FeatherIcon name={name} size={size || 24} color={colors.gray} />;
+	}
+
+	getMaterialIcon(name, size) {
+		return <MaterialIcon name={name} size={size || 24} color={colors.gray} />;
+	}
+
 	getImageIcon(name) {
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
-	getLabelForAssets = () => {
-		if (this.props.tokensCount > 0) {
-			return {
-				text: this.props.tokensCount + 1,
-				color: colors.fontSecondary
-			};
-		}
-		return null;
-	};
+	getSelectedIcon(name, size) {
+		return <Icon name={name} size={size || 24} color={colors.primary} />;
+	}
+
+	getSelectedFeatherIcon(name, size) {
+		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
+	}
+
+	getSelectedMaterialIcon(name, size) {
+		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
+	}
+
+	getSelectedImageIcon(name) {
+		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
+	}
 
 	getSections = () => [
 		[
 			{
 				name: strings('drawer.browser'),
 				icon: this.getIcon('globe'),
-				action: this.goToBrowser
+				selectedIcon: this.getSelectedIcon('globe'),
+				action: this.goToBrowser,
+				routeNames: ['BrowserView', 'AddBookmark']
 			},
 			{
 				name: strings('drawer.wallet'),
-				icon: this.getImageIcon('assets'),
+				icon: this.getImageIcon('wallet'),
+				selectedIcon: this.getSelectedImageIcon('wallet'),
 				action: this.showWallet,
-				label: this.getLabelForAssets()
+				routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+			},
+			{
+				name: strings('drawer.transaction_history'),
+				icon: this.getFeatherIcon('list'),
+				selectedIcon: this.getSelectedFeatherIcon('list'),
+				action: this.goToTransactionHistory,
+				routeNames: ['TransactionsView']
 			},
 			{
 				name: strings('drawer.payment_channel'),
 				icon: this.getIcon('dollar'),
-				action: this.goToPaymentChannel
+				action: this.goToPaymentChannel,
+				routeNames: ['PaymentChannelsView']
 			}
 		],
 		[
 			{
-				name: strings('drawer.copy_address'),
-				icon: this.getIcon('copy'),
-				action: this.copyAddressToClipboard
+				name: strings('drawer.share_address'),
+				icon: this.getMaterialIcon('share-variant'),
+				action: this.onShare
 			},
 			{
 				name: strings('drawer.view_in_etherscan'),
@@ -564,6 +667,42 @@ class DrawerView extends Component {
 		]
 	];
 
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
+		this.hideReceiveModal();
+		InteractionManager.runAfterInteractions(() => {
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 1500,
+				content: 'clipboard-alert',
+				data: { msg: strings('account_details.account_copied_to_clipboard') }
+			});
+		});
+	};
+
+	onShare = () => {
+		const { selectedAddress } = this.props;
+		Share.open({
+			message: `ethereum:${selectedAddress}`
+		}).catch(err => {
+			Logger.log('Error while trying to share address', err);
+		});
+	};
+
+	onSecureWalletModalAction = () => {
+		this.setState({ showSecureWalletModal: false });
+		InteractionManager.runAfterInteractions(() => {
+			this.props.navigation.navigate('SetPasswordFlow');
+		});
+	};
+
+	findRouteNameFromNavigatorState({ routes }) {
+		let route = routes[routes.length - 1];
+		while (route.index !== undefined) route = route.routes[route.index];
+		return route.routeName;
+	}
+
 	render() {
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -574,9 +713,10 @@ class DrawerView extends Component {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
+		const currentRoute = this.findRouteNameFromNavigatorState(this.props.navigation.state);
 
 		return (
-			<SafeAreaView style={styles.wrapper} testID={'drawer-screen'}>
+			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
 					<View style={styles.header}>
 						<View style={styles.metamaskLogo}>
@@ -588,43 +728,38 @@ class DrawerView extends Component {
 						</TouchableOpacity>
 					</View>
 					<View style={styles.account}>
-						<ImageBackground source={drawerBg} style={styles.accountBg} resizeMode={'cover'}>
-							<View style={styles.accountBgOverlay}>
-								<TouchableOpacity
-									style={styles.identiconWrapper}
-									onPress={this.onAccountPress}
-									testID={'navbar-account-identicon'}
-								>
-									<Identicon diameter={48} address={selectedAddress} />
-								</TouchableOpacity>
-								<TouchableOpacity
-									style={styles.accountInfo}
-									onPress={this.onAccountPress}
-									testID={'navbar-account-button'}
-								>
-									<View style={styles.accountNameWrapper}>
-										<Text style={styles.accountName} numberOfLines={1}>
-											{account.name}
-										</Text>
-										<Icon name="caret-down" size={24} style={styles.caretDown} />
-									</View>
-									<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
-									<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
-								</TouchableOpacity>
-							</View>
+						<View style={styles.accountBgOverlay}>
 							<TouchableOpacity
-								style={styles.qrCodeWrapper}
+								style={styles.identiconWrapper}
+								onPress={this.onAccountPress}
+								testID={'navbar-account-identicon'}
+							>
+								<View style={styles.identiconBorder}>
+									<Identicon diameter={48} address={selectedAddress} />
+								</View>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={styles.accountInfo}
 								onPress={this.onAccountPress}
 								testID={'navbar-account-button'}
 							>
-								<IonicIcon
-									name="ios-information-circle-outline"
-									onPress={this.showAccountDetails}
-									size={24}
-									style={styles.infoIcon}
-								/>
+								<View style={styles.accountNameWrapper}>
+									<Text style={styles.accountName} numberOfLines={1}>
+										{account.name}
+									</Text>
+									<Icon name="caret-down" size={24} style={styles.caretDown} />
+								</View>
+								<Text style={styles.accountBalance}>${fiatBalanceStr}</Text>
+								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
+								{this.isCurrentAccountImported() && (
+									<View style={styles.importedWrapper}>
+										<Text numberOfLines={1} style={styles.importedText}>
+											{strings('accounts.imported')}
+										</Text>
+									</View>
+								)}
 							</TouchableOpacity>
-						</ImageBackground>
+						</View>
 					</View>
 					<View style={styles.buttons}>
 						<StyledButton
@@ -647,18 +782,16 @@ class DrawerView extends Component {
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
 						>
-							<MaterialIcon
-								name={'arrow-collapse-down'}
-								size={22}
-								color={colors.primary}
-								style={styles.buttonIcon}
-							/>
+							<Icon name={'qrcode'} size={22} color={colors.primary} style={styles.buttonIcon} />
 							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>
 					<View style={styles.menu}>
 						{this.getSections().map((section, i) => (
-							<View key={`section_${i}`} style={styles.menuSection}>
+							<View
+								key={`section_${i}`}
+								style={[styles.menuSection, i === 0 ? styles.noTopBorder : null]}
+							>
 								{section
 									.filter(item => {
 										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
@@ -669,18 +802,30 @@ class DrawerView extends Component {
 									.map((item, j) => (
 										<TouchableOpacity
 											key={`item_${i}_${j}`}
-											style={styles.menuItem}
+											style={[
+												styles.menuItem,
+												item.routeNames && item.routeNames.includes(currentRoute)
+													? styles.selectedRoute
+													: null
+											]}
 											onPress={() => item.action()} // eslint-disable-line
 										>
-											{item.icon ? item.icon : null}
-											<Text style={[styles.menuItemName, !item.icon ? styles.noIcon : null]}>
+											{item.icon
+												? item.routeNames && item.routeNames.includes(currentRoute)
+													? item.selectedIcon
+													: item.icon
+												: null}
+											<Text
+												style={[
+													styles.menuItemName,
+													!item.icon ? styles.noIcon : null,
+													item.routeNames && item.routeNames.includes(currentRoute)
+														? styles.selectedName
+														: null
+												]}
+											>
 												{item.name}
 											</Text>
-											{item.label ? (
-												<View style={[styles.itemLabel, { backgroundColor: item.label.color }]}>
-													<Text style={styles.itemLabelText}>{item.label.text}</Text>
-												</View>
-											) : null}
 										</TouchableOpacity>
 									))}
 							</View>
@@ -692,6 +837,7 @@ class DrawerView extends Component {
 					onBackdropPress={this.hideNetworksModal}
 					onSwipeComplete={this.hideNetworksModal}
 					swipeDirection={'down'}
+					propagateSwipe
 				>
 					<NetworkList onClose={this.onNetworksModalClose} />
 				</Modal>
@@ -701,6 +847,7 @@ class DrawerView extends Component {
 					onBackdropPress={this.hideAccountsModal}
 					onSwipeComplete={this.hideAccountsModal}
 					swipeDirection={'down'}
+					propagateSwipe
 				>
 					<AccountList
 						accounts={accounts}
@@ -718,13 +865,57 @@ class DrawerView extends Component {
 					onCancelPress={this.goToGeneralFeedback}
 					onRequestClose={this.closeSubmitFeedback}
 					onConfirmPress={this.goToBugFeedback}
+					cancelButtonMode={'confirm'}
+					confirmButtonMode={'confirm'}
 				>
 					<View style={styles.modalView}>
 						<Text style={styles.modalTitle}>{strings('drawer.submit_feedback')}</Text>
 						<Text style={styles.modalText}>{strings('drawer.submit_feedback_message')}</Text>
 					</View>
 				</ActionModal>
-			</SafeAreaView>
+				<Modal
+					isVisible={this.props.receiveModalVisible}
+					onBackdropPress={this.hideReceiveModal}
+					onSwipeComplete={this.hideReceiveModal}
+					swipeDirection={'down'}
+					propagateSwipe
+				>
+					<View style={styles.detailsWrapper}>
+						<View style={styles.qrCode}>
+							<QRCode value={`ethereum:${selectedAddress}`} size={Dimensions.get('window').width - 160} />
+						</View>
+						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+							<Text style={styles.addressTitle} testID={'public-address-text'}>
+								{strings('drawer.public_address')}
+							</Text>
+							<Text style={styles.address} testID={'public-address-text'}>
+								{selectedAddress}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</Modal>
+				{!this.props.passwordSet && (
+					<CustomAlert
+						headerStyle={{ backgroundColor: colors.headerModalRed }}
+						headerContent={
+							<Image
+								source={require('../../../images/lock.png')}
+								style={styles.secureModalImage}
+								resizeMethod={'auto'}
+							/>
+						}
+						titleText={strings('secure_your_wallet_modal.title')}
+						buttonText={strings('secure_your_wallet_modal.button')}
+						onPress={this.onSecureWalletModalAction}
+						isVisible={this.state.showSecureWalletModal}
+					>
+						<Text style={styles.secureModalText}>
+							{strings('secure_your_wallet_modal.body')}
+							<Text style={styles.bold}>{strings('secure_your_wallet_modal.required')}</Text>
+						</Text>
+					</CustomAlert>
+				)}
+			</View>
 		);
 	}
 }
@@ -738,13 +929,14 @@ const mapStateToProps = state => ({
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
-	tokensCount: state.engine.backgroundState.AssetsController.tokens.length,
+	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: config => dispatch(showAlert(config)),
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset))
 });

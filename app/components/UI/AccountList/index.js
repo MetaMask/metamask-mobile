@@ -51,11 +51,14 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderColor,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
-		paddingVertical: 20
+		paddingVertical: 20,
+		height: 80
 	},
 	accountInfo: {
 		marginLeft: 15,
-		flex: 1
+		marginRight: 0,
+		flex: 1,
+		flexDirection: 'row'
 	},
 	accountLabel: {
 		fontSize: 18,
@@ -68,12 +71,8 @@ const styles = StyleSheet.create({
 		color: colors.fontSecondary,
 		...fontStyles.normal
 	},
-	selected: {
-		marginRight: 15,
-		alignContent: 'flex-end'
-	},
 	footer: {
-		height: DeviceSize.isIphoneX() ? 120 : 100,
+		height: DeviceSize.isIphoneX() ? 140 : 110,
 		paddingBottom: DeviceSize.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
@@ -86,7 +85,7 @@ const styles = StyleSheet.create({
 	},
 	footerButton: {
 		width: '100%',
-		height: 43,
+		height: 55,
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
@@ -98,14 +97,25 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	importedWrapper: {
-		width: Platform.OS === 'android' ? 73 : 70,
-		flex: 1,
-		marginTop: 5,
+		width: 73,
 		paddingHorizontal: 10,
 		paddingVertical: 3,
 		borderRadius: 10,
-		borderWidth: StyleSheet.hairlineWidth,
+		borderWidth: 1,
 		borderColor: colors.another50ShadesOfGrey
+	},
+	importedView: {
+		flex: 0.5,
+		alignItems: 'center',
+		marginTop: 2
+	},
+	accountMain: {
+		flex: 1,
+		flexDirection: 'column'
+	},
+	selectedWrapper: {
+		flex: 0.2,
+		alignItems: 'flex-end'
 	}
 });
 
@@ -187,11 +197,10 @@ export default class AccountList extends Component {
 
 			this.props.onAccountChange();
 
-			InteractionManager.runAfterInteractions(() => {
-				Engine.refreshTransactionHistory();
-				const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-				AssetsDetectionController.detectAssets();
-				AccountTrackerController.refresh();
+			InteractionManager.runAfterInteractions(async () => {
+				setTimeout(() => {
+					Engine.refreshTransactionHistory();
+				}, 1000);
 			});
 		} catch (e) {
 			// Restore to the previous index in case anything goes wrong
@@ -256,13 +265,17 @@ export default class AccountList extends Component {
 			>
 				<Identicon address={address} diameter={38} />
 				<View style={styles.accountInfo}>
-					<Text style={styles.accountLabel}>{name}</Text>
-					<Text style={styles.accountBalance}>
-						{renderFromWei(balance)} {strings('unit.eth')}
-					</Text>
-					<View style={styles.imported}>{imported}</View>
+					<View style={styles.accountMain}>
+						<Text numberOfLines={1} style={[styles.accountLabel]}>
+							{name}
+						</Text>
+						<Text style={styles.accountBalance}>
+							{renderFromWei(balance)} {strings('unit.eth')}
+						</Text>
+					</View>
+					{imported && <View style={styles.importedView}>{imported}</View>}
+					<View style={styles.selectedWrapper}>{selected}</View>
 				</View>
-				<View style={styles.selected}>{selected}</View>
 			</TouchableOpacity>
 		);
 	};
@@ -273,24 +286,26 @@ export default class AccountList extends Component {
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 
 		const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
-		return accountsOrdered.filter(address => !!identities[toChecksumAddress(address)]).map((addr, index) => {
-			const checksummedAddress = toChecksumAddress(addr);
-			const identity = identities[checksummedAddress];
-			const { name, address } = identity;
-			const identityAddressChecksummed = toChecksumAddress(address);
-			const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
-			const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
-			let balance = 0x0;
-			if (accounts[identityAddressChecksummed]) {
-				balance = accounts[identityAddressChecksummed].balance;
-			}
-			return { index, name, address: identityAddressChecksummed, balance, isSelected, isImported };
-		});
+		return accountsOrdered
+			.filter(address => !!identities[toChecksumAddress(address)])
+			.map((addr, index) => {
+				const checksummedAddress = toChecksumAddress(addr);
+				const identity = identities[checksummedAddress];
+				const { name, address } = identity;
+				const identityAddressChecksummed = toChecksumAddress(address);
+				const isSelected = identityAddressChecksummed === toChecksumAddress(selectedAddress);
+				const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
+				let balance = 0x0;
+				if (accounts[identityAddressChecksummed]) {
+					balance = accounts[identityAddressChecksummed].balance;
+				}
+				return { index, name, address: identityAddressChecksummed, balance, isSelected, isImported };
+			});
 	}
 
 	keyExtractor = item => item.address;
 
-	render = () => {
+	render() {
 		const accounts = this.getAccounts();
 
 		return (
@@ -304,6 +319,7 @@ export default class AccountList extends Component {
 					renderItem={this.renderItem}
 					ref={this.flatList}
 					style={styles.accountsWrapper}
+					getItemLayout={(data, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
 				/>
 				<View style={styles.footer}>
 					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
@@ -319,5 +335,5 @@ export default class AccountList extends Component {
 				</View>
 			</SafeAreaView>
 		);
-	};
+	}
 }

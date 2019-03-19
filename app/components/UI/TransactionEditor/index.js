@@ -10,8 +10,8 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { generateTransferData } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
-
 import Engine from '../../../core/Engine';
+import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 
 const styles = StyleSheet.create({
 	root: {
@@ -62,6 +62,10 @@ class TransactionEditor extends Component {
 		 */
 		contractBalances: PropTypes.object,
 		/**
+		 * String containing the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func.isRequired
@@ -69,7 +73,7 @@ class TransactionEditor extends Component {
 
 	state = {
 		toFocused: false,
-		readableValue: undefined
+		ensRecipient: undefined
 	};
 
 	/**
@@ -107,7 +111,7 @@ class TransactionEditor extends Component {
 				amount,
 				from,
 				data,
-				to: selectedAsset ? selectedAsset.address : to
+				to: selectedAsset && selectedAsset.address ? selectedAsset.address : to
 			});
 		} catch (e) {
 			estimation = { gas: '0x5208' };
@@ -154,7 +158,7 @@ class TransactionEditor extends Component {
 	 * @param {string} readableValue - String containing the readable value
 	 */
 	handleUpdateReadableValue = readableValue => {
-		this.setState({ readableValue });
+		this.props.setTransactionObject({ readableValue });
 	};
 
 	/**
@@ -181,20 +185,21 @@ class TransactionEditor extends Component {
 	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
 	 *
 	 * @param {string} to - String containing to address
+	 * @param {string} ensRecipient? - String containing ens name
 	 */
-	handleUpdateToAddress = async to => {
+	handleUpdateToAddress = async (to, ensRecipient) => {
 		const {
 			transaction: { data, assetType }
 		} = this.props;
 		// If ETH transaction, there is no need to generate new data
 		if (assetType === 'ETH') {
 			const { gas } = await this.estimateGas({ data, to });
-			this.props.setTransactionObject({ to, gas: hexToBN(gas) });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), ensRecipient });
 		}
 		// If selectedAsset defined, generates data
 		else {
 			const { data, gas } = await this.handleDataGeneration({ to });
-			this.props.setTransactionObject({ to, gas: hexToBN(gas), data });
+			this.props.setTransactionObject({ to, gas: hexToBN(gas), data, ensRecipient });
 		}
 	};
 
@@ -238,16 +243,35 @@ class TransactionEditor extends Component {
 			ERC20: () => {
 				const tokenAmountToSend = selectedAsset && value && value.toString(16);
 				return to && tokenAmountToSend
-					? generateTransferData('ERC20', { toAddress: to, amount: tokenAmountToSend })
+					? generateTransferData('transfer', { toAddress: to, amount: tokenAmountToSend })
 					: undefined;
 			},
-			ERC721: () =>
-				to &&
-				generateTransferData('ERC721', {
-					fromAddress: from,
-					toAddress: to,
-					tokenId: selectedAsset.tokenId
-				})
+			ERC721: () => {
+				const address = selectedAsset.address.toLowerCase();
+				const collectibleTransferInformation =
+					address in collectiblesTransferInformation && collectiblesTransferInformation[address];
+				if (!to) return;
+				// If not in list, default to transferFrom
+				if (
+					!collectibleTransferInformation ||
+					(collectibleTransferInformation.tradable &&
+						collectibleTransferInformation.method === 'transferFrom')
+				) {
+					return generateTransferData('transferFrom', {
+						fromAddress: from,
+						toAddress: to,
+						tokenId: selectedAsset.tokenId
+					});
+				} else if (
+					collectibleTransferInformation.tradable &&
+					collectibleTransferInformation.method === 'transfer'
+				) {
+					return generateTransferData('transfer', {
+						toAddress: to,
+						amount: selectedAsset.tokenId.toString(16)
+					});
+				}
+			}
 		};
 		const data = generateData[assetType]();
 		const { gas } = await this.estimateGas({ data, to: selectedAsset.address });
@@ -431,7 +455,6 @@ class TransactionEditor extends Component {
 	};
 
 	render = () => {
-		const { readableValue } = this.state;
 		const { mode, transactionConfirmed } = this.props;
 		return (
 			<View style={styles.root}>
@@ -440,7 +463,6 @@ class TransactionEditor extends Component {
 						navigation={this.props.navigation}
 						onCancel={this.onCancel}
 						onModeChange={this.props.onModeChange}
-						onScanSuccess={this.handleNewTxMeta}
 						handleUpdateAmount={this.handleUpdateAmount}
 						handleUpdateData={this.handleUpdateData}
 						handleUpdateFromAddress={this.handleUpdateFromAddress}
@@ -450,7 +472,6 @@ class TransactionEditor extends Component {
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
 						handleUpdateAsset={this.handleUpdateAsset}
-						readableValue={readableValue}
 						handleUpdateReadableValue={this.handleUpdateReadableValue}
 					/>
 				)}

@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
-import { ScrollView, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
-
+import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet } from 'react-native';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import Pager from '../../UI/Pager';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
+import CustomAlert from '../../UI/CustomAlert';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { showAlert } from '../../../actions/alert';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -44,57 +46,42 @@ const styles = StyleSheet.create({
 	},
 	emoji: {
 		textAlign: 'left',
-		fontSize: 75,
-		marginTop: 40
+		fontSize: 75
 	},
 	buttonWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
-	},
-	bold: {
-		marginTop: 20,
-		marginBottom: 20,
-		...fontStyles.bold
 	},
 	bullet: {
 		marginRight: 5
 	},
 	bulletPoint: {
 		flexDirection: 'row',
-		marginBottom: 5
+		marginBottom: 15
 	},
-	link: {
-		flexDirection: 'row'
-	},
-	dot: {
-		color: colors.fontPrimary,
-		fontSize: 16,
-		lineHeight: 23,
-		textAlign: 'left',
-		...fontStyles.normal
-	},
-	linkText: {
-		color: colors.primary,
-		fontSize: 16,
-		lineHeight: 23,
-		textAlign: 'left',
-		...fontStyles.normal
-	},
-	buttonContent: {
+	copy: {
 		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center'
+		marginBottom: 15,
+		marginLeft: 10
 	},
-	successIcon: {
-		color: colors.white,
-		fontSize: 20,
-		marginRight: 10
+	tips: {
+		marginTop: 20
 	},
-	buttonText: {
-		fontSize: 18,
-		textAlign: 'center',
-		color: colors.white,
+	disclaimer: {
+		marginTop: 20
+	},
+	singleBold: {
 		...fontStyles.bold
+	},
+	foxBadge: {
+		marginTop: 40,
+		width: 75,
+		height: 75
+	},
+	succesModalText: {
+		textAlign: 'center',
+		fontSize: 13,
+		...fontStyles.normal
 	}
 });
 
@@ -102,24 +89,42 @@ const styles = StyleSheet.create({
  * View that's shown during the last step of
  * the backup seed phrase flow
  */
-export default class AccountBackupStep6 extends Component {
+class AccountBackupStep6 extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
-	dismiss = () => {
+	state = {
+		showSuccessModal: false
+	};
+
+	showModal = () => {
+		this.setState({ showSuccessModal: true });
+	};
+
+	onSuccesModalAction = () => {
+		this.setState({ showSuccessModal: false });
 		this.props.navigation.popToTop();
 		this.props.navigation.goBack(null);
 	};
 
-	learnMore = () =>
-		this.props.navigation.navigate('Webview', {
-			url: 'https://support.metamask.io',
-			title: strings('drawer.metamask_support')
+	onCopySeedPhrase = async () => {
+		const words = this.props.navigation.getParam('words', []);
+		await Clipboard.setString(words.join(' '));
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings(`reveal_credential.seed_phrase_copied`) }
 		});
+	};
 
 	render() {
 		return (
@@ -131,15 +136,16 @@ export default class AccountBackupStep6 extends Component {
 					testID={'account-backup-step-6-screen'}
 				>
 					<View style={styles.content}>
-						<Emoji name="tada" style={styles.emoji} />
+						<Image
+							source={require('../../../images/fox-badge.png')}
+							style={styles.foxBadge}
+							resizeMethod={'auto'}
+						/>
 						<Text style={styles.title}>{strings('account_backup_step_6.title')}</Text>
 						<View style={styles.text}>
 							<Text style={styles.label}>{strings('account_backup_step_6.info_text')}</Text>
 						</View>
-						<View style={styles.text}>
-							<Text style={[styles.label, styles.bold]}>{strings('account_backup_step_6.tips')}</Text>
-						</View>
-						<View style={styles.text}>
+						<View style={[styles.text, styles.tips]}>
 							<View style={styles.bulletPoint}>
 								<Text style={styles.bullet}>{'\u2022'}</Text>
 								<Text style={styles.label}>{strings('account_backup_step_6.tip_1')}</Text>
@@ -148,33 +154,57 @@ export default class AccountBackupStep6 extends Component {
 								<Text style={styles.bullet}>{'\u2022'}</Text>
 								<Text style={styles.label}>{strings('account_backup_step_6.tip_2')}</Text>
 							</View>
-						</View>
-						<View style={styles.text}>
-							<Text style={styles.label}>{strings('account_backup_step_6.tip_3')}</Text>
-						</View>
-						<View style={styles.text}>
-							<Text style={styles.label}>{strings('account_backup_step_6.disclaimer')}</Text>
-							<TouchableOpacity style={styles.link} onPress={this.learnMore}>
-								<Text style={styles.linkText}>{strings('account_backup_step_6.learn_more')}</Text>
-								<Text style={styles.dot}>.</Text>
+							<TouchableOpacity style={styles.copy} onPress={this.onCopySeedPhrase}>
+								<Text style={[styles.label, { color: colors.primary }]}>
+									{strings('account_backup_step_6.copy_seed_phrase')}
+								</Text>
 							</TouchableOpacity>
+							<View style={styles.bulletPoint}>
+								<Text style={styles.bullet}>{'\u2022'}</Text>
+								<Text style={styles.label}>{strings('account_backup_step_6.tip_3')}</Text>
+							</View>
+						</View>
+
+						<View style={[styles.text, styles.disclaimer]}>
+							<Text style={styles.label}>
+								{strings('account_backup_step_6.disclaimer')}
+								<Text style={styles.singleBold}>
+									{strings('account_backup_step_6.disclaimer_bold')}
+								</Text>
+							</Text>
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>
 						<StyledButton
 							containerStyle={styles.button}
 							type={'confirm'}
-							onPress={this.dismiss}
+							onPress={this.showModal}
 							testID={'submit-button'}
 						>
-							<View style={styles.buttonContent}>
-								<Icon name="check" size={15} style={styles.successIcon} />
-								<Text style={styles.buttonText}>{strings('account_backup_step_6.cta_text')}</Text>
-							</View>
+							{strings('account_backup_step_6.cta_text')}
 						</StyledButton>
 					</View>
+					<CustomAlert
+						headerStyle={{ backgroundColor: colors.lightGray }}
+						headerContent={<Emoji name="tada" style={styles.emoji} />}
+						titleText={strings('account_backup_step_6.modal_title')}
+						buttonText={strings('account_backup_step_6.modal_button')}
+						onPress={this.onSuccesModalAction}
+						isVisible={this.state.showSuccessModal}
+					>
+						<Text style={styles.succesModalText}>{strings('account_backup_step_6.modal_text')}</Text>
+					</CustomAlert>
 				</ScrollView>
 			</SafeAreaView>
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	showAlert: config => dispatch(showAlert(config))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(AccountBackupStep6);

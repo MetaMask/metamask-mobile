@@ -10,6 +10,7 @@ exports[`QrScanner should render correctly 1`] = `
   }
 >
   <View
+    captureAudio={false}
     flashMode="auto"
     onBarCodeRead={[Function]}
     onMountError={[Function]}
@@ -48,7 +49,7 @@ exports[`QrScanner should render correctly 1`] = `
           size={50}
         />
       </TouchableOpacity>
-      <Component
+      <Image
         source={
           Object {
             "testUri": "../../../app/images/frame.png",

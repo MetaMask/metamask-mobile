@@ -84,6 +84,7 @@ jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Prom
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-fabric', () => 'Fabric');
 jest.mock('react-native-branch', () => 'RNBranch');
+jest.mock('react-native-search-api', () => 'SearchApi');
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('react-native-camera', () => ({
 	RNCamera: View,
@@ -103,3 +104,5 @@ NativeModules.RNGestureHandlerModule = {
 NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };
+
+jest.mock('NativeAnimatedHelper');

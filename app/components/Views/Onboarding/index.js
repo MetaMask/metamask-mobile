@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { AsyncStorage, Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
+import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
-
+import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
+import { connect } from 'react-redux';
+import SecureKeychain from '../../../core/SecureKeychain';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -24,20 +28,22 @@ const styles = StyleSheet.create({
 	},
 	ctas: {
 		justifyContent: 'flex-end',
-		height: 210,
-		paddingBottom: 50
+		height: 190,
+		paddingBottom: 40
 	},
-	logoWrapper: {
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start'
+	foxWrapper: {
+		width: Platform.OS === 'ios' ? 100 : 66,
+		height: Platform.OS === 'ios' ? 100 : 66,
+		marginTop: 30,
+		marginBottom: 0
 	},
-	fox: {
-		marginTop: Platform.OS === 'android' ? 25 : 45,
-		width: 66,
-		height: 63
+	image: {
+		alignSelf: 'center',
+		width: Platform.OS === 'ios' ? 100 : 66,
+		height: Platform.OS === 'ios' ? 10 : 66
 	},
 	title: {
-		fontSize: 32,
+		fontSize: 28,
 		marginTop: 20,
 		marginBottom: 10,
 		color: colors.fontPrimary,
@@ -72,7 +78,7 @@ const styles = StyleSheet.create({
 /**
  * View that is displayed to first time (new) users
  */
-export default class Onboarding extends Component {
+class Onboarding extends Component {
 	static navigationOptions = () => ({
 		headerStyle: {
 			shadowColor: 'transparent',
@@ -87,7 +93,11 @@ export default class Onboarding extends Component {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * redux flag that indicates if the user set a password
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	state = {
@@ -105,8 +115,17 @@ export default class Onboarding extends Component {
 		}
 	}
 
-	onLogin = () => {
-		this.props.navigation.navigate('Login');
+	onLogin = async () => {
+		const { passwordSet } = this.props;
+		if (!passwordSet) {
+			const { KeyringController } = Engine.context;
+			// Restore vault with empty password
+			await KeyringController.submitPassword('');
+			await SecureKeychain.resetGenericPassword();
+			this.props.navigation.navigate('HomeNav');
+		} else {
+			this.props.navigation.navigate('Login');
+		}
 	};
 
 	onPressCreate = () => {
@@ -120,13 +139,7 @@ export default class Onboarding extends Component {
 	};
 
 	onPressImport = () => {
-		const { existingUser } = this.state;
-		const action = () => this.props.navigation.push('ImportWallet');
-		if (existingUser) {
-			this.alertExistingUser(action);
-		} else {
-			action();
-		}
+		this.props.navigation.push('ImportWallet');
 	};
 
 	alertExistingUser = callback => {
@@ -147,12 +160,16 @@ export default class Onboarding extends Component {
 				<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
 					<View style={styles.wrapper}>
 						<View style={styles.content}>
-							<View style={styles.logoWrapper}>
-								<Image
-									source={require('../../../images/fox.png')}
-									style={styles.fox}
-									resizeMethod={'auto'}
-								/>
+							<View style={styles.foxWrapper}>
+								{Platform.OS === 'android' ? (
+									<Image
+										source={require('../../../images/fox.png')}
+										style={styles.image}
+										resizeMethod={'auto'}
+									/>
+								) : (
+									<AnimatedFox />
+								)}
 							</View>
 							<Text style={styles.title}>{strings('onboarding.title')}</Text>
 							<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
@@ -190,3 +207,9 @@ export default class Onboarding extends Component {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	passwordSet: state.user.passwordSet
+});
+
+export default connect(mapStateToProps)(Onboarding);

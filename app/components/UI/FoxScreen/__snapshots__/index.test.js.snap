@@ -17,7 +17,7 @@ exports[`FoxScreen should render correctly 1`] = `
   }
   testID="fox-screen"
 >
-  <Component
+  <Image
     resizeMethod="auto"
     source={
       Object {

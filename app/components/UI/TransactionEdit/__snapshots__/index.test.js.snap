@@ -183,12 +183,19 @@ exports[`TransactionEdit should render correctly 1`] = `
           </Text>
         </View>
         <Connect(AccountInput)
+          address="0x2"
+          navigation={
+            Object {
+              "state": Object {
+                "params": Object {},
+              },
+            }
+          }
           onBlur={[Function]}
           onChange={[Function]}
           onFocus={[Function]}
           placeholder="Recipient Address"
-          showQRScanner={[Function]}
-          value="0x2"
+          updateToAddressError={[Function]}
         />
       </View>
       <View
@@ -278,6 +285,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           multiline={true}
           onChangeText={[Function]}
           placeholder="Optional"
+          rejectResponderTermination={true}
           style={
             Object {
               "backgroundColor": "#FFFFFF",
@@ -294,7 +302,6 @@ exports[`TransactionEdit should render correctly 1`] = `
             }
           }
           underlineColorAndroid="transparent"
-          value=""
         />
       </View>
     </View>

@@ -19,6 +19,7 @@ import {
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
+import { addHexPrefix } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -125,10 +126,6 @@ class TransactionEdit extends Component {
 		 */
 		transaction: PropTypes.object.isRequired,
 		/**
-		 * Callback to open the qr scanner
-		 */
-		onScanSuccess: PropTypes.func,
-		/**
 		 * Callback to update amount in parent state
 		 */
 		handleUpdateAmount: PropTypes.func,
@@ -157,10 +154,6 @@ class TransactionEdit extends Component {
 		 */
 		handleUpdateAsset: PropTypes.func,
 		/**
-		 * A string that represents the value un a readable format (decimal)
-		 */
-		readableValue: PropTypes.string,
-		/**
 		 * Callback to validate amount in transaction in parent state
 		 */
 		validateAmount: PropTypes.func,
@@ -188,7 +181,9 @@ class TransactionEdit extends Component {
 		addressError: '',
 		toAddressError: '',
 		gasError: '',
-		fillMax: false
+		fillMax: false,
+		ensRecipient: undefined,
+		data: undefined
 	};
 
 	componentDidMount = () => {
@@ -198,6 +193,15 @@ class TransactionEdit extends Component {
 		}
 		if (transaction && transaction.assetType === 'ETH') {
 			this.props.handleUpdateReadableValue(fromWei(transaction.value));
+		}
+		if (transaction && transaction.data) {
+			this.setState({ data: transaction.data });
+		}
+	};
+
+	componentDidUpdate = prevProps => {
+		if (this.props.transaction.data !== prevProps.transaction.data) {
+			this.setState({ data: this.props.transaction.data });
 		}
 	};
 
@@ -228,14 +232,25 @@ class TransactionEdit extends Component {
 		this.setState({ fillMax });
 	};
 
+	updateToAddressError = error => {
+		this.setState({ toAddressError: error });
+	};
+
 	onFocusToAddress = () => {
 		this.setState({ toFocused: true });
 	};
 
 	review = async () => {
 		const { onModeChange } = this.props;
+		const { data } = this.state;
 		await this.setState({ toFocused: true });
-		!(await this.validate()) && onModeChange && onModeChange('review');
+		const validated = !(await this.validate());
+		if (validated) {
+			if (data) {
+				this.updateData(addHexPrefix(data));
+			}
+			onModeChange && onModeChange('review');
+		}
 	};
 
 	validate = async () => {
@@ -267,6 +282,7 @@ class TransactionEdit extends Component {
 	};
 
 	updateData = data => {
+		this.setState({ data });
 		this.props.handleUpdateData(data);
 	};
 
@@ -276,22 +292,14 @@ class TransactionEdit extends Component {
 
 	updateToAddress = async to => {
 		await this.props.handleUpdateToAddress(to);
-		const toAddressError = this.props.validateToAddress();
-		this.setState({ toAddressError });
+		this.setState({ toAddressError: undefined });
 	};
 
-	onScan = () => {
-		this.props.navigation.navigate('QRScanner', {
-			onScanSuccess: this.onScanSuccess,
-			addressOnly: true
-		});
-	};
-
-	onScanSuccess = meta => {
-		this.props.onScanSuccess(meta);
-		if (meta.target_address) {
-			this.updateToAddress(meta.target_address);
-		}
+	updateAndValidateToAddress = async (to, ensRecipient) => {
+		await this.props.handleUpdateToAddress(to, ensRecipient);
+		let { toAddressError } = this.state;
+		toAddressError = toAddressError || this.props.validateToAddress();
+		this.setState({ toAddressError, ensRecipient });
 	};
 
 	renderAmountLabel = () => {
@@ -321,11 +329,11 @@ class TransactionEdit extends Component {
 
 	render = () => {
 		const {
-			transaction: { value, gas, gasPrice, data, from, to, selectedAsset },
-			showHexData,
-			readableValue
+			navigation,
+			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
+			showHexData
 		} = this.props;
-		const { gasError, toAddressError } = this.state;
+		const { gasError, toAddressError, data } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -356,11 +364,14 @@ class TransactionEdit extends Component {
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
-								onBlur={this.updateToAddress}
+								onBlur={this.updateAndValidateToAddress}
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScan}
-								value={to}
+								address={to}
+								updateToAddressError={this.updateToAddressError}
+								ensRecipient={ensRecipient}
+								navigation={navigation}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>

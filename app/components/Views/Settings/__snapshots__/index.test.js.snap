@@ -1,7 +1,35 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Settings should render correctly 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<_class
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "paddingLeft": 18,
+    }
+  }
+>
+  <View>
+    <SettingsDrawer
+      description="Currency conversion, primary currency, language"
+      onPress={[Function]}
+      title="General"
+    />
+    <SettingsDrawer
+      description="Access developer features, reset account, setup testnets, sync with extension, state logs and custom RPC"
+      onPress={[Function]}
+      title="Advanced"
+    />
+    <SettingsDrawer
+      description="Privacy settings, private key and wallet seed phrase"
+      onPress={[Function]}
+      title="Security & Privacy"
+    />
+    <SettingsDrawer
+      onPress={[Function]}
+      title="About MetaMask"
+    />
+  </View>
+</_class>
 `;

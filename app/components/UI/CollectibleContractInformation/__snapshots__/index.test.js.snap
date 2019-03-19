@@ -35,7 +35,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
       name
     </Text>
   </View>
-  <ScrollView
+  <ScrollViewMock
     style={
       Object {
         "flex": 1,
@@ -181,7 +181,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
                 "fontFamily": "Roboto",
                 "fontSize": 8,
                 "fontWeight": "300",
-                "marginTop": 5,
+                "marginTop": 4,
                 "paddingRight": 5,
                 "textAlignVertical": "center",
               }
@@ -189,7 +189,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           >
             Powered by
           </Text>
-          <Component
+          <Image
             source={
               Object {
                 "testUri": "../../../app/images/opensea-logo-flat-colored-blue.png",
@@ -206,7 +206,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-  </ScrollView>
+  </ScrollViewMock>
   <View
     style={
       Object {

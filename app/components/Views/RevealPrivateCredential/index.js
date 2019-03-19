@@ -1,14 +1,6 @@
 import React, { Component } from 'react';
-import {
-	AsyncStorage,
-	SafeAreaView,
-	StyleSheet,
-	View,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	Clipboard
-} from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -93,6 +85,9 @@ const styles = StyleSheet.create({
 		marginLeft: 10,
 		marginRight: 40,
 		...fontStyles.normal
+	},
+	enterPassword: {
+		marginBottom: 15
 	}
 });
 
@@ -127,14 +122,20 @@ class RevealPrivateCredential extends Component {
 		/**
 		 * String that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	async componentDidMount() {
 		// Try to use biometrics to unloc
 		// (if available)
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
+		if (!this.props.passwordSet) {
+			this.tryUnlockWithPassword('');
+		} else if (biometryType) {
 			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
 				const credentials = await SecureKeychain.getGenericPassword();
@@ -204,7 +205,7 @@ class RevealPrivateCredential extends Component {
 		await Clipboard.setString(privateCredential);
 		this.props.showAlert({
 			isVisible: true,
-			autodismiss: 2000,
+			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: { msg: strings(`reveal_credential.${privateCredentialName}_copied`) }
 		});
@@ -228,58 +229,62 @@ class RevealPrivateCredential extends Component {
 					onConfirmPress={this.tryUnlock}
 					showConfirmButton={!unlocked}
 				>
-					<View style={[styles.rowWrapper, styles.header]}>
-						<Text>{strings(`reveal_credential.${privateCredentialName}_explanation`)}</Text>
-					</View>
-					<View style={styles.warningWrapper}>
-						<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-							<Icon style={styles.icon} name="warning" size={22} />
-							<Text style={styles.warningMessageText}>
-								{strings(`reveal_credential.${privateCredentialName}_warning_explanation`)}
-							</Text>
+					<View>
+						<View style={[styles.rowWrapper, styles.header]}>
+							<Text>{strings(`reveal_credential.${privateCredentialName}_explanation`)}</Text>
 						</View>
-					</View>
+						<View style={styles.warningWrapper}>
+							<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
+								<Icon style={styles.icon} name="warning" size={22} />
+								<Text style={styles.warningMessageText}>
+									{strings(`reveal_credential.${privateCredentialName}_warning_explanation`)}
+								</Text>
+							</View>
+						</View>
 
-					<View style={styles.rowWrapper}>
-						{unlocked ? (
-							<View>
-								<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
-								<View style={styles.seedPhraseView}>
-									<TextInput
-										value={privateCredential}
-										numberOfLines={3}
-										multiline
-										selectTextOnFocus
-										style={styles.seedPhrase}
-										editable={false}
-										testID={'private-credential-text'}
-									/>
-									<TouchableOpacity
-										style={styles.privateCredentialAction}
-										onPress={this.copyPrivateCredentialToClipboard}
-										testID={'private-credential-touchable'}
-									>
-										<Icon style={styles.actionIcon} name="copy" size={18} />
-										<Text style={styles.actionText}>
-											{strings('reveal_credential.copy_to_clipboard')}
-										</Text>
-									</TouchableOpacity>
+						<View style={styles.rowWrapper}>
+							{unlocked ? (
+								<View>
+									<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
+									<View style={styles.seedPhraseView}>
+										<TextInput
+											value={privateCredential}
+											numberOfLines={3}
+											multiline
+											selectTextOnFocus
+											style={styles.seedPhrase}
+											editable={false}
+											testID={'private-credential-text'}
+										/>
+										<TouchableOpacity
+											style={styles.privateCredentialAction}
+											onPress={this.copyPrivateCredentialToClipboard}
+											testID={'private-credential-touchable'}
+										>
+											<Icon style={styles.actionIcon} name="copy" size={18} />
+											<Text style={styles.actionText}>
+												{strings('reveal_credential.copy_to_clipboard')}
+											</Text>
+										</TouchableOpacity>
+									</View>
 								</View>
-							</View>
-						) : (
-							<View>
-								<Text>{strings('reveal_credential.enter_password')}</Text>
-								<TextInput
-									style={styles.input}
-									placeholder={'Password'}
-									onChangeText={this.onPasswordChange}
-									secureTextEntry
-									onSubmitEditing={this.tryUnlock}
-									testID={'private-credential-password-text-input'}
-								/>
-								<Text style={styles.warningText}>{this.state.warningIncorrectPassword}</Text>
-							</View>
-						)}
+							) : (
+								<View>
+									<Text style={styles.enterPassword}>
+										{strings('reveal_credential.enter_password')}
+									</Text>
+									<TextInput
+										style={styles.input}
+										placeholder={'Password'}
+										onChangeText={this.onPasswordChange}
+										secureTextEntry
+										onSubmitEditing={this.tryUnlock}
+										testID={'private-credential-password-text-input'}
+									/>
+									<Text style={styles.warningText}>{this.state.warningIncorrectPassword}</Text>
+								</View>
+							)}
+						</View>
 					</View>
 				</ActionView>
 			</SafeAreaView>
@@ -288,7 +293,8 @@ class RevealPrivateCredential extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({

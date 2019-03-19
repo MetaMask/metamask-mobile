@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
-	AsyncStorage,
 	Switch,
 	Alert,
 	ActivityIndicator,
@@ -13,11 +12,12 @@ import {
 	Platform,
 	Image
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
-
+import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -29,16 +29,19 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 20
+		paddingHorizontal: 20,
+		paddingTop: 100
 	},
-	logoWrapper: {
-		marginTop: 100,
+	foxWrapper: {
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignSelf: 'center',
+		width: Platform.OS === 'ios' ? 130 : 100,
+		height: Platform.OS === 'ios' ? 130 : 100
 	},
 	image: {
-		width: 100,
-		height: 100
+		alignSelf: 'center',
+		width: Platform.OS === 'ios' ? 130 : 100,
+		height: Platform.OS === 'ios' ? 130 : 100
 	},
 	title: {
 		fontSize: Platform.OS === 'android' ? 30 : 35,
@@ -96,7 +99,7 @@ const styles = StyleSheet.create({
 });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const WRONG_PASSWORD_ERROR = 'Error: decrypt failed';
+const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 
 /**
  * View where returning users can authenticate
@@ -229,8 +232,16 @@ export default class Login extends Component {
 		<SafeAreaView style={styles.mainWrapper}>
 			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 				<View testID={'login'}>
-					<View style={styles.logoWrapper}>
-						<Image source={require('../../../images/fox.png')} style={styles.image} resizeMethod={'auto'} />
+					<View style={styles.foxWrapper}>
+						{Platform.OS === 'android' ? (
+							<Image
+								source={require('../../../images/fox.png')}
+								style={styles.image}
+								resizeMethod={'auto'}
+							/>
+						) : (
+							<AnimatedFox />
+						)}
 					</View>
 					<Text style={styles.title}>{strings('login.title')}</Text>
 					<View style={styles.field}>

@@ -11,7 +11,9 @@ const initialState = {
 	selectedAsset: undefined,
 	type: undefined,
 	assetType: undefined,
-	id: undefined
+	id: undefined,
+	readableValue: undefined,
+	ensRecipient: undefined
 };
 
 const getAssetType = selectedAsset => {

@@ -11,6 +11,9 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Require cycle',
+	'ListView is deprecated',
+	'WebView has been extracted from react-native core',
 	'Exception was previously raised by watchStore',
 	'StateUpdateController',
 	'this.web3.eth',

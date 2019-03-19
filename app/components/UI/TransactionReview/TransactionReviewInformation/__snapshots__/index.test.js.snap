@@ -29,7 +29,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 12,
           "fontWeight": "600",
-          "minWidth": 50,
+          "minWidth": 30,
         }
       }
     >
@@ -100,7 +100,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 12,
           "fontWeight": "600",
-          "minWidth": 50,
+          "minWidth": 30,
         }
       }
     >
@@ -137,17 +137,6 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
               "color": "#008edf",
             },
           ]
-        }
-      />
-      <Text
-        style={
-          Object {
-            "color": "#8c8e94",
-            "fontFamily": "Roboto",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "textAlign": "right",
-          }
         }
       />
     </View>

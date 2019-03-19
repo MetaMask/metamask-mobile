@@ -42,12 +42,12 @@ const styles = StyleSheet.create({
 		borderLeftWidth: 1
 	},
 	slow: {
-		borderBottomEndRadius: 4,
-		borderTopEndRadius: 4
-	},
-	fast: {
 		borderBottomStartRadius: 4,
 		borderTopStartRadius: 4
+	},
+	fast: {
+		borderBottomEndRadius: 4,
+		borderTopEndRadius: 4
 	},
 	text: {
 		...fontStyles.normal,
@@ -223,22 +223,22 @@ class CustomGas extends Component {
 		return (
 			<View style={styles.selectors}>
 				<TouchableOpacity
-					key={'fast'}
-					onPress={this.onPressGasFast}
+					key={'safeLow'}
+					onPress={this.onPressGasSlow}
 					style={[
 						styles.selector,
-						styles.fast,
-						{ backgroundColor: this.state.gasFastSelected ? colors.primary : colors.white }
+						styles.slow,
+						{ backgroundColor: this.state.gasSlowSelected ? colors.primary : colors.white }
 					]}
 				>
-					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{strings('transaction.gas_fee_fast')}
+					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+						{strings('transaction.gas_fee_slow')}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(fastGwei, gas)} {strings('unit.eth')}
+					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+						{getRenderableEthGasFee(safeLowGwei, gas)} {strings('unit.eth')}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas).toUpperCase()}
+					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
+						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas).toUpperCase()}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
@@ -263,22 +263,22 @@ class CustomGas extends Component {
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
-					key={'safeLow'}
-					onPress={this.onPressGasSlow}
+					key={'fast'}
+					onPress={this.onPressGasFast}
 					style={[
 						styles.selector,
-						styles.slow,
-						{ backgroundColor: this.state.gasSlowSelected ? colors.primary : colors.white }
+						styles.fast,
+						{ backgroundColor: this.state.gasFastSelected ? colors.primary : colors.white }
 					]}
 				>
-					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{strings('transaction.gas_fee_slow')}
+					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+						{strings('transaction.gas_fee_fast')}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(safeLowGwei, gas)} {strings('unit.eth')}
+					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+						{getRenderableEthGasFee(fastGwei, gas)} {strings('unit.eth')}
 					</Text>
-					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas).toUpperCase()}
+					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
+						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas).toUpperCase()}
 					</Text>
 				</TouchableOpacity>
 			</View>

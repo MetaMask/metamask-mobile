@@ -17,6 +17,9 @@
       android:theme="@style/AppTheme"
 	  android:hardwareAccelerated="true"
 	  android:usesCleartextTraffic="${isDebug}"
+	  tools:targetApi="28"
+	  tools:ignore="GoogleAppIndexingWarning"
+	  android:networkSecurityConfig="@xml/react_native_config"
 	>
       <activity
         android:launchMode="singleTask"
@@ -32,7 +35,7 @@
         android:name=".MainActivity"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-        android:windowSoftInputMode="adjustResize"
+		android:windowSoftInputMode="adjustResize"
         android:screenOrientation="portrait"
         android:exported="true">
         <intent-filter>
@@ -74,6 +77,17 @@
 			<action android:name="com.android.vending.INSTALL_REFERRER" />
 		</intent-filter>
 	  </receiver>
+
+
+	   <provider
+        android:name="android.support.v4.content.FileProvider"
+        android:authorities="io.metamask.provider"
+        android:grantUriPermissions="true"
+        android:exported="false">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/filepaths" />
+   		</provider>
     </application>
 
 </manifest>
