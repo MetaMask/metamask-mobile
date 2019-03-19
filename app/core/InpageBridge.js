@@ -25,6 +25,13 @@ class InpageBridge {
 		if (!error && response.error) {
 			error = response.error;
 		}
+		if (!Array.isArray(response)) {
+			response = {
+				id: '',
+				jsonrpc: '2.0',
+				...response
+			};
+		}
 		callback && callback(error, response);
 		delete this._pending[`${__mmID}`];
 	}
@@ -158,7 +165,7 @@ class InpageBridge {
 	 * @returns - Standard Promise or legacy object containing RPC result
 	 */
 	send(action, meta) {
-		if ((typeof action === 'string' && !meta) || Array.isArray(meta)) {
+		if (typeof action === 'string') {
 			return this._sendStandard(action, meta);
 		}
 		return this._sendLegacy(action, meta);
@@ -172,7 +179,16 @@ class InpageBridge {
 	 */
 	sendAsync(payload, callback) {
 		const random = Math.floor(Math.random() * 100 + 1);
-		if (!Array.isArray(payload)) {
+		if (typeof payload === 'string') {
+			// Support dapps calling sendAsync('some_method') even though this is not
+			// compliant with EIP-1193 and should be send('some_method').
+			payload = {
+				method: payload,
+				params: callback || [],
+				__mmID: Date.now() * random,
+				hostname: window.location.hostname
+			};
+		} else if (!Array.isArray(payload)) {
 			payload = {
 				...payload,
 				__mmID: Date.now() * random,
