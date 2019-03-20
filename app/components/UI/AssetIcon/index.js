@@ -19,10 +19,7 @@ const styles = StyleSheet.create({
 const AssetIcon = React.memo(props => {
 	if (!props.logo) return null;
 	const uri = getAssetLogoPath(props.logo);
-	const style = [styles.logo];
-	if (props.customStyle && props.customStyle.length) {
-		style.push(props.customStyle);
-	}
+	const style = [styles.logo, props.customStyle];
 	return <Image fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
 });
 
