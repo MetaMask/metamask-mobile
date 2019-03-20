@@ -105,6 +105,18 @@ class AccountOverview extends Component {
 		originalAccountLabel: ''
 	};
 
+	animatingAccountsModal = false;
+
+	toggleAccountsModal = () => {
+		if (!this.animatingAccountsModal) {
+			this.animatingAccountsModal = true;
+			this.props.toggleAccountsModal();
+			setTimeout(() => {
+				this.animatingAccountsModal = false;
+			}, 1000);
+		}
+	};
+
 	input = React.createRef();
 
 	componentDidMount = () => {
@@ -171,7 +183,7 @@ class AccountOverview extends Component {
 				testID={'account-overview'}
 			>
 				<View style={styles.info}>
-					<TouchableOpacity style={styles.identiconBorder} onPress={this.props.toggleAccountsModal}>
+					<TouchableOpacity style={styles.identiconBorder} onPress={this.toggleAccountsModal}>
 						<Identicon address={address} size="38" />
 					</TouchableOpacity>
 					<View style={styles.data}>
