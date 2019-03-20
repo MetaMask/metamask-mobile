@@ -5,11 +5,13 @@ import PropTypes from 'prop-types';
 import Button from '../Button';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
+import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white
+		backgroundColor: colors.white,
+		paddingBottom: DeviceSize.isIphoneX() ? 30 : 20
 	},
 	button: {
 		flex: 1,

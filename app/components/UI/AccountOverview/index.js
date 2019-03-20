@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.blueishGrey,
 		borderRadius: 40,
 		marginTop: 20,
+		marginBottom: 20,
 		paddingVertical: 7,
 		paddingHorizontal: 15
 	},
@@ -103,6 +104,18 @@ class AccountOverview extends Component {
 		accountLabelEditable: true,
 		accountLabel: '',
 		originalAccountLabel: ''
+	};
+
+	animatingAccountsModal = false;
+
+	toggleAccountsModal = () => {
+		if (!this.animatingAccountsModal) {
+			this.animatingAccountsModal = true;
+			this.props.toggleAccountsModal();
+			setTimeout(() => {
+				this.animatingAccountsModal = false;
+			}, 500);
+		}
 	};
 
 	input = React.createRef();
@@ -171,7 +184,7 @@ class AccountOverview extends Component {
 				testID={'account-overview'}
 			>
 				<View style={styles.info}>
-					<TouchableOpacity style={styles.identiconBorder} onPress={this.props.toggleAccountsModal}>
+					<TouchableOpacity style={styles.identiconBorder} onPress={this.toggleAccountsModal}>
 						<Identicon address={address} size="38" />
 					</TouchableOpacity>
 					<View style={styles.data}>

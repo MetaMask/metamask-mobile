@@ -403,7 +403,8 @@
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
-		"hash_copied_to_clipboard": "Transaction hash copied to clipboard"
+		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
+		"address_copied_to_clipboard": "Address copied to clipboard"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",

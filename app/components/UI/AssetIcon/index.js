@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import Image from 'react-native-remote-svg';
 import PropTypes from 'prop-types';
@@ -15,38 +15,23 @@ const styles = StyleSheet.create({
 /**
  * Component that provides an asset icon dependent on OS.
  */
-export default class AssetIcon extends Component {
-	state = {
-		searchQuery: ''
-	};
+// eslint-disable-next-line react/display-name
+const AssetIcon = React.memo(props => {
+	if (!props.logo) return null;
+	const uri = getAssetLogoPath(props.logo);
+	const style = [styles.logo, props.customStyle];
+	return <Image fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
+});
 
-	static propTypes = {
-		/**
-		 * String of the asset icon
-		 */
-		logo: PropTypes.string,
-		/**
-		 * Custom style to apply to image
-		 */
-		customStyle: PropTypes.object
-	};
+AssetIcon.propTypes = {
+	/**
+	 * String of the asset icon
+	 */
+	logo: PropTypes.string,
+	/**
+	 * Custom style to apply to image
+	 */
+	customStyle: PropTypes.object
+};
 
-	shouldComponentUpdate(nextProps) {
-		return nextProps.logo !== this.props.logo;
-	}
-
-	render = () => {
-		const { logo, customStyle } = this.props;
-		if (!logo) return;
-		const uri = getAssetLogoPath(logo);
-
-		return logo ? (
-			<Image
-				fadeIn
-				placeholderStyle={{ backgroundColor: colors.white }}
-				source={{ uri }}
-				style={[styles.logo, customStyle]}
-			/>
-		) : null;
-	};
-}
+export default AssetIcon;

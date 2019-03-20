@@ -379,6 +379,9 @@ class DrawerView extends Component {
 	currentBalance = null;
 	previousBalance = null;
 	processedNewBalance = false;
+	animatingReceiveModal = false;
+	animatingNetworksModal = false;
+	animatingAccountsModal = false;
 
 	isCurrentAccountImported() {
 		let ret = false;
@@ -412,32 +415,47 @@ class DrawerView extends Component {
 					// before attempting to show the secure wallet modal
 					setTimeout(() => {
 						this.setState({ showSecureWalletModal: true });
-					}, 4000);
+					}, 8000);
 				}
 			}
 		}, 1000);
 	}
 
-	onAccountPress = () => {
-		this.props.toggleAccountsModal();
+	toggleAccountsModal = () => {
+		if (!this.animatingAccountsModal) {
+			this.animatingAccountsModal = true;
+			this.props.toggleAccountsModal();
+			setTimeout(() => {
+				this.animatingAccountsModal = false;
+			}, 500);
+		}
 	};
 
-	hideAccountsModal = () => {
-		this.props.toggleAccountsModal();
-	};
-
-	hideReceiveModal = () => {
-		this.props.toggleReceiveModal();
+	toggleReceiveModal = () => {
+		if (!this.animatingReceiveModal) {
+			this.animatingReceiveModal = true;
+			this.props.toggleReceiveModal();
+			setTimeout(() => {
+				this.animatingReceiveModal = false;
+			}, 500);
+		}
 	};
 
 	onNetworksModalClose = async manualClose => {
-		this.hideNetworksModal();
+		this.toggleNetworksModal();
 		if (!manualClose) {
 			await this.hideDrawer();
 		}
 	};
-	hideNetworksModal = () => {
-		this.props.toggleNetworkModal();
+
+	toggleNetworksModal = () => {
+		if (!this.animatingNetworksModal) {
+			this.animatingNetworksModal = true;
+			this.props.toggleNetworkModal();
+			setTimeout(() => {
+				this.animatingNetworksModal = false;
+			}, 500);
+		}
 	};
 
 	showReceiveModal = () => {
@@ -561,13 +579,13 @@ class DrawerView extends Component {
 
 	onAccountChange = () => {
 		setTimeout(() => {
-			this.hideAccountsModal();
+			this.toggleAccountsModal();
 			this.hideDrawer();
 		}, 300);
 	};
 
 	onImportAccount = () => {
-		this.hideAccountsModal();
+		this.toggleAccountsModal();
 		this.props.navigation.navigate('ImportPrivateKey');
 		this.hideDrawer();
 	};
@@ -659,7 +677,7 @@ class DrawerView extends Component {
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
 		await Clipboard.setString(selectedAddress);
-		this.hideReceiveModal();
+		this.toggleReceiveModal();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.showAlert({
 				isVisible: true,
@@ -720,7 +738,7 @@ class DrawerView extends Component {
 						<View style={styles.accountBgOverlay}>
 							<TouchableOpacity
 								style={styles.identiconWrapper}
-								onPress={this.onAccountPress}
+								onPress={this.toggleAccountsModal}
 								testID={'navbar-account-identicon'}
 							>
 								<View style={styles.identiconBorder}>
@@ -729,7 +747,7 @@ class DrawerView extends Component {
 							</TouchableOpacity>
 							<TouchableOpacity
 								style={styles.accountInfo}
-								onPress={this.onAccountPress}
+								onPress={this.toggleAccountsModal}
 								testID={'navbar-account-button'}
 							>
 								<View style={styles.accountNameWrapper}>
@@ -823,8 +841,8 @@ class DrawerView extends Component {
 				</ScrollView>
 				<Modal
 					isVisible={this.props.networkModalVisible}
-					onBackdropPress={this.hideNetworksModal}
-					onSwipeComplete={this.hideNetworksModal}
+					onBackdropPress={this.toggleNetworksModal}
+					onSwipeComplete={this.toggleNetworksModal}
 					swipeDirection={'down'}
 					propagateSwipe
 				>
@@ -833,8 +851,8 @@ class DrawerView extends Component {
 				<Modal
 					isVisible={this.props.accountsModalVisible}
 					style={styles.bottomModal}
-					onBackdropPress={this.hideAccountsModal}
-					onSwipeComplete={this.hideAccountsModal}
+					onBackdropPress={this.toggleAccountsModal}
+					onSwipeComplete={this.toggleAccountsModal}
 					swipeDirection={'down'}
 					propagateSwipe
 				>
@@ -864,8 +882,8 @@ class DrawerView extends Component {
 				</ActionModal>
 				<Modal
 					isVisible={this.props.receiveModalVisible}
-					onBackdropPress={this.hideReceiveModal}
-					onSwipeComplete={this.hideReceiveModal}
+					onBackdropPress={this.toggleReceiveModal}
+					onSwipeComplete={this.toggleReceiveModal}
 					swipeDirection={'down'}
 					propagateSwipe
 				>

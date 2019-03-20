@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { Platform, TouchableHighlight, StyleSheet, Text, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
@@ -437,15 +437,17 @@ export default class TransactionElement extends PureComponent {
 				[transactionElement, transactionDetails] = this.renderConfirmElement(totalGas);
 		}
 		return (
-			<TouchableOpacity
+			<TouchableHighlight
 				style={styles.row}
 				onPress={this.onPressItem} // eslint-disable-line react/jsx-no-bind
+				underlayColor={colors.lighterGray}
+				activeOpacity={1}
 			>
 				<View style={styles.rowContent}>
 					{this.renderTxElement(transactionElement)}
 					{this.renderTxDetails(selected, tx, transactionDetails)}
 				</View>
-			</TouchableOpacity>
+			</TouchableHighlight>
 		);
 	}
 }

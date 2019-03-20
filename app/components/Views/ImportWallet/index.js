@@ -4,6 +4,7 @@ import { Platform, Alert, ActivityIndicator, Image, Text, View, ScrollView, Styl
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
 import PubNub from 'pubnub';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
@@ -13,6 +14,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import StyledButton from '../../UI/StyledButton';
 import SecureKeychain from '../../../core/SecureKeychain';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -103,6 +105,11 @@ class ImportWallet extends Component {
 		 * in the redux store
 		 */
 		passwordHasBeenSet: PropTypes.func,
+		/**
+		 * The action to update set the locktime
+		 * in the redux store
+		 */
+		setLockTime: PropTypes.func,
 		/**
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
@@ -316,6 +323,7 @@ class ImportWallet extends Component {
 			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
+			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();
 			this.done = true;
 			this.dataToSync = null;
@@ -464,6 +472,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	passwordHasBeenSet: () => dispatch(passwordSet()),
+	setLockTime: time => dispatch(setLockTime(time)),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });
 

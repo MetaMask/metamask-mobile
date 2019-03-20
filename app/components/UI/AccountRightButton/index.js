@@ -29,10 +29,26 @@ class AccountRightButton extends Component {
 		toggleAccountsModal: PropTypes.func
 	};
 
+	animating = false;
+
+	toggleAccountsModal = () => {
+		if (!this.animating) {
+			this.animating = true;
+			this.props.toggleAccountsModal();
+			setTimeout(() => {
+				this.animating = false;
+			}, 500);
+		}
+	};
+
 	render = () => {
-		const { address, toggleAccountsModal } = this.props;
+		const { address } = this.props;
 		return (
-			<TouchableOpacity style={styles.leftButton} onPress={toggleAccountsModal} testID={'navbar-account-button'}>
+			<TouchableOpacity
+				style={styles.leftButton}
+				onPress={this.toggleAccountsModal}
+				testID={'navbar-account-button'}
+			>
 				<Identicon diameter={28} address={address} />
 			</TouchableOpacity>
 		);

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "scripts": {
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
@@ -105,7 +105,7 @@
     "react-native-push-notification": "github:brunobar79/react-native-push-notification#7adf4ade7d47ea7ed19169ce11ea8a70ef6869f5",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "3.5.2",
-    "react-native-remote-svg": "github:brunobar79/react-native-remote-svg#92ebf7d079a6174e4451a47d372fe2335308c65e",
+    "react-native-remote-svg": "github:brunobar79/react-native-remote-svg#0fea4be6ec7b1c1ed8d01ed458b4551e7e1ea6bd",
     "react-native-screens": "1.0.0-alpha.22",
     "react-native-scrollable-tab-view": "github:estebanmino/react-native-scrollable-tab-view#f954274c6260a07c956e2185c611aed24b2f1526",
     "react-native-search-api": "1.2.0",
