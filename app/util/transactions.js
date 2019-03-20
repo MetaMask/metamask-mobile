@@ -140,24 +140,30 @@ export function getMethodData(data) {
  * Returns wether the given address is a contract
  *
  * @param {string} address - Ethereum address
+ * @param {string} transactionHash? - Transaction hash
  * @returns {boolean} - Wether the given address is a contract
  */
-export async function isSmartContractAddress(address) {
-	const cache = SmartContractAddresses.cache[address];
-	if (cache) {
-		return Promise.resolve(cache);
-	}
-
+export async function isSmartContractAddress(address, transactionHash) {
+	address = toChecksumAddress(address);
+	// If in contract map we don't need to cache it
 	if (contractMap[address]) {
-		SmartContractAddresses.cache[address] = true;
 		return Promise.resolve(true);
 	}
-
+	// Look in cache memory only for specific time (transaction hash)
+	if (transactionHash) {
+		const cache = SmartContractAddresses.cache[(address, transactionHash)];
+		if (cache) {
+			return Promise.resolve(cache);
+		}
+	}
 	const { TransactionController } = Engine.context;
 	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
 	// Geth will return '0x', and ganache-core v2.2.1 will return '0x0'
 	const codeIsEmpty = !code || code === '0x' || code === '0x0';
-	SmartContractAddresses.cache[address] = !codeIsEmpty;
+	// Save in cache for specific time (transaction hash)
+	if (transactionHash) {
+		SmartContractAddresses.cache[(address, transactionHash)] = !codeIsEmpty;
+	}
 	return !codeIsEmpty;
 }
 
@@ -219,7 +225,7 @@ export async function getTransactionActionKey(transaction) {
 			return ret;
 		}
 	}
-	const toSmartContract = await isSmartContractAddress(to);
+	const toSmartContract = await isSmartContractAddress(to, transactionHash);
 	if (toSmartContract) {
 		// There is no data or unknown method data, if is smart contract
 		ret = SMART_CONTRACT_INTERACTION_ACTION_KEY;
