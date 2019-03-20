@@ -213,7 +213,10 @@ const MainNavigator = createStackNavigator(
 						screen: AccountBackupStep5
 					},
 					AccountBackupStep6: {
-						screen: AccountBackupStep6
+						screen: AccountBackupStep6,
+						navigationOptions: {
+							gesturesEnabled: false
+						}
 					}
 				},
 				{
@@ -268,7 +271,7 @@ class Main extends Component {
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 
 		PushNotification.configure({
-			requestPermissions: true,
+			requestPermissions: false,
 			onNotification: notification => {
 				let data = null;
 				if (Platform.OS === 'android') {

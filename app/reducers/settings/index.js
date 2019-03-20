@@ -3,7 +3,7 @@ import AppConstants from '../../core/AppConstants';
 
 const initialState = {
 	searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
-	lockTime: AppConstants.DEFAULT_LOCK_TIMEOUT
+	lockTime: -1 // Disabled by default
 };
 
 const settingsReducer = (state = initialState, action) => {

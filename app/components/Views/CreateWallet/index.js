@@ -18,6 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
@@ -91,6 +92,10 @@ class CreateWallet extends Component {
 		 */
 		passwordUnset: PropTypes.func,
 		/**
+		 * Action to set the locktime in redux
+		 */
+		setLockTime: PropTypes.func,
+		/**
 		 * Action to reset the flag seedphraseBackedUp in redux
 		 */
 		seedphraseNotBackedUp: PropTypes.func
@@ -113,6 +118,7 @@ class CreateWallet extends Component {
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();
+			this.props.setLockTime(-1);
 			this.props.seedphraseNotBackedUp();
 			setTimeout(() => {
 				this.props.navigation.navigate('HomeNav');
@@ -154,6 +160,7 @@ class CreateWallet extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
+	setLockTime: time => dispatch(setLockTime(time)),
 	passwordUnset: () => dispatch(passwordUnset()),
 	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
 });

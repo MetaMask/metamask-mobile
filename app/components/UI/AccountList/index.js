@@ -214,6 +214,7 @@ export default class AccountList extends Component {
 	};
 
 	addAccount = async () => {
+		if (this.state.loading) return;
 		this.setState({ loading: true });
 		const { KeyringController } = Engine.context;
 		try {

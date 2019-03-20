@@ -17,6 +17,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 
@@ -25,6 +26,7 @@ import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -153,7 +155,12 @@ class ChoosePassword extends Component {
 		 * The action to update the password set flag
 		 * in the redux store
 		 */
-		passwordSet: PropTypes.func
+		passwordSet: PropTypes.func,
+		/**
+		 * The action to update the lock time
+		 * in the redux store
+		 */
+		setLockTime: PropTypes.func
 	};
 
 	state = {
@@ -229,6 +236,7 @@ class ChoosePassword extends Component {
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
 				this.props.passwordSet();
+				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.navigation.navigate('AccountBackupStep1', { words: seed.split(' ') });
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
@@ -513,7 +521,8 @@ class ChoosePassword extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
-	passwordSet: () => dispatch(passwordSet())
+	passwordSet: () => dispatch(passwordSet()),
+	setLockTime: time => dispatch(setLockTime(time))
 });
 
 export default connect(

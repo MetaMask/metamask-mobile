@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 	balance: {
 		alignItems: 'center',
 		marginTop: 10,
-		marginBottom: 10
+		marginBottom: 20
 	},
 	amount: {
 		fontSize: 30,

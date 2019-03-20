@@ -97,7 +97,6 @@ class Wallet extends Component {
 	};
 
 	mounted = false;
-	scrollableTabViewRef = React.createRef();
 
 	async init() {
 		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
@@ -112,28 +111,12 @@ class Wallet extends Component {
 		});
 	}
 
-	componentDidUpdate(prevProps) {
-		const prevNavigation = prevProps.navigation;
-		const { navigation } = this.props;
-		if (prevNavigation && navigation) {
-			const prevPage = prevNavigation.getParam('page', null);
-			const currentPage = navigation.getParam('page', null);
-			if (currentPage && currentPage !== prevPage) {
-				this.handleTabChange(currentPage);
-			}
-		}
-	}
-
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
 		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
 		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
 		await Promise.all(actions);
 		this.setState({ refreshing: false });
-	};
-
-	handleTabChange = page => {
-		this.scrollableTabViewRef && this.scrollableTabViewRef.current.goToPage(page);
 	};
 
 	componentWillUnmount() {
@@ -197,7 +180,7 @@ class Wallet extends Component {
 					showAlert={showAlert}
 					currentCurrency={currentCurrency}
 				/>
-				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
+				<ScrollableTabView renderTabBar={this.renderTabBar}>
 					<Tokens
 						navigation={navigation}
 						tabLabel={strings('wallet.tokens')}

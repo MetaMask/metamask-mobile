@@ -16,12 +16,14 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -117,6 +119,11 @@ class ImportFromSeed extends Component {
 		 */
 		passwordSet: PropTypes.func,
 		/**
+		 * The action to set the locktime
+		 * in the redux store
+		 */
+		setLockTime: PropTypes.func,
+		/**
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
@@ -206,6 +213,7 @@ class ImportFromSeed extends Component {
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
 				this.props.passwordSet();
+				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
 				this.props.navigation.navigate('HomeNav');
 			} catch (error) {
@@ -357,6 +365,7 @@ class ImportFromSeed extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
+	setLockTime: time => dispatch(setLockTime(time)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });
