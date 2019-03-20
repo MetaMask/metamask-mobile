@@ -55,7 +55,7 @@ exports[`TransactionElement should render correctly 1`] = `
           }
         }
       >
-        <IdenticonComponent
+        <Component
           address="0x0"
           diameter={24}
         />

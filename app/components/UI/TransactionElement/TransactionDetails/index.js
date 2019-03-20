@@ -111,7 +111,7 @@ export default class TransactionDetails extends PureComponent {
 						0,
 						20
 					)} ... ${transactionHash.substr(-20)}`}</Text>
-					{this.renderCopyIcon(transactionHash)}
+					{this.renderCopyIcon()}
 				</View>
 			</View>
 		);
@@ -127,8 +127,40 @@ export default class TransactionDetails extends PureComponent {
 		});
 	};
 
+	copyFrom = async () => {
+		await Clipboard.setString(this.props.transactionDetails.renderFrom);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('transactions.address_copied_to_clipboard') }
+		});
+	};
+
+	copyTo = async () => {
+		await Clipboard.setString(this.props.transactionDetails.renderTo);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('transactions.address_copied_to_clipboard') }
+		});
+	};
+
 	renderCopyIcon = () => (
 		<TouchableOpacity style={styles.copyIcon} onPress={this.copy}>
+			<Icon name={'copy'} size={15} color={colors.primary} />
+		</TouchableOpacity>
+	);
+
+	renderCopyToIcon = () => (
+		<TouchableOpacity style={styles.copyIcon} onPress={this.copyTo}>
+			<Icon name={'copy'} size={15} color={colors.primary} />
+		</TouchableOpacity>
+	);
+
+	renderCopyFromIcon = () => (
+		<TouchableOpacity style={styles.copyIcon} onPress={this.copyFrom}>
 			<Icon name={'copy'} size={15} color={colors.primary} />
 		</TouchableOpacity>
 	);
@@ -149,10 +181,12 @@ export default class TransactionDetails extends PureComponent {
 				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={styles.detailRowText}>{this.props.transactionDetails.renderFrom}</Text>
+					{this.renderCopyFromIcon()}
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={styles.detailRowText}>{this.props.transactionDetails.renderTo}</Text>
+					{this.renderCopyToIcon()}
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
 				<View style={styles.detailRowInfo}>

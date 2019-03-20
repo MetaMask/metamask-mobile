@@ -401,7 +401,8 @@
 		"gas_price": "Precio del gas (GWEI)",
 		"total": "Total",
 		"view_on_etherscan": "VER EN ETHERSCAN",
-		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles"
+		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles",
+		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles"
 	},
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
