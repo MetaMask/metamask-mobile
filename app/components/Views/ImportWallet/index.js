@@ -152,26 +152,6 @@ class ImportWallet extends Component {
 		this.disconnectWebsockets();
 	}
 
-	scanCode = () => {
-		if (this.props.navigation.getParam('existingUser', false)) {
-			Alert.alert(
-				strings('sync_with_extension.warning_title'),
-				strings('sync_with_extension.warning_message'),
-				[
-					{
-						text: strings('sync_with_extension.warning_cancel_button'),
-						onPress: () => false,
-						style: 'cancel'
-					},
-					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
-				],
-				{ cancelable: false }
-			);
-		} else {
-			this.showQrCode();
-		}
-	};
-
 	showQrCode = () => {
 		this.props.navigation.push('QRScanner', {
 			onScanSuccess: data => {
@@ -360,7 +340,7 @@ class ImportWallet extends Component {
 
 	safeSync = () => {
 		const { existingUser } = this.state;
-		const action = () => this.onPressSync;
+		const action = () => this.onPressSync();
 		if (existingUser) {
 			this.alertExistingUser(action);
 		} else {
