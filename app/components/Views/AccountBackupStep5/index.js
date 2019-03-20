@@ -257,7 +257,7 @@ class AccountBackupStep5 extends Component {
 													i === this.state.currentIndex ? styles.currentWord : null
 												]}
 											>
-												{word && `${i + 1}. ${word}`}
+												{(word && `${i + 1}. ${word}`) || ' '}
 											</Text>
 										</TouchableOpacity>
 									))}
@@ -275,7 +275,7 @@ class AccountBackupStep5 extends Component {
 													i + 6 === this.state.currentIndex ? styles.currentWord : null
 												]}
 											>
-												{word && `${i + 7}. ${word}`}
+												{(word && `${i + 7}. ${word}`) || ' '}
 											</Text>
 										</TouchableOpacity>
 									))}
