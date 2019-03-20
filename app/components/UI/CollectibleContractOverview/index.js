@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 	information: {
 		flex: 1,
 		flexDirection: 'row',
-		marginTop: 10
+		marginTop: 10,
+		marginBottom: 20
 	},
 	name: {
 		fontSize: 30,
