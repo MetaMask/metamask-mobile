@@ -14,7 +14,7 @@ exports[`TokenImage should render correctly 1`] = `
     ]
   }
 >
-  <IdenticonComponent
+  <Component
     address="0x123"
     diameter={46}
   />

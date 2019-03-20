@@ -175,7 +175,7 @@ exports[`AccountApproval should render correctly 1`] = `
             }
           }
         >
-          <IdenticonComponent
+          <Component
             address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
             diameter={54}
           />

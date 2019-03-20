@@ -196,7 +196,13 @@ class AccountBackupStep5 extends Component {
 	onSuccesModalAction = () => {
 		this.setState({ showSuccessModal: false });
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('AccountBackupStep6', { words: this.words });
+			const words = this.props.navigation.getParam('words', []);
+			this.props.navigation.navigate('AccountBackupStep6', { words });
+			// Clean up
+			setTimeout(() => {
+				this.setState({ confirmedWords: [] });
+				this.words = null;
+			}, 1000);
 		});
 	};
 
@@ -257,7 +263,7 @@ class AccountBackupStep5 extends Component {
 													i === this.state.currentIndex ? styles.currentWord : null
 												]}
 											>
-												{word && `${i + 1}. ${word}`}
+												{(word && `${i + 1}. ${word}`) || ' '}
 											</Text>
 										</TouchableOpacity>
 									))}
@@ -275,7 +281,7 @@ class AccountBackupStep5 extends Component {
 													i + 6 === this.state.currentIndex ? styles.currentWord : null
 												]}
 											>
-												{word && `${i + 7}. ${word}`}
+												{(word && `${i + 7}. ${word}`) || ' '}
 											</Text>
 										</TouchableOpacity>
 									))}

@@ -35,6 +35,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       Object {
         "flex": 1,
         "flexDirection": "row",
+        "marginBottom": 20,
         "marginTop": 10,
       }
     }

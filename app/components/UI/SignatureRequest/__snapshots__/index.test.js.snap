@@ -47,7 +47,7 @@ exports[`SignatureRequest should render correctly 1`] = `
               }
             }
           >
-            <IdenticonComponent
+            <Component
               address="0x2"
               diameter={20}
             />
