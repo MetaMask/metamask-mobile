@@ -113,7 +113,7 @@ class AccountOverview extends Component {
 			this.props.toggleAccountsModal();
 			setTimeout(() => {
 				this.animatingAccountsModal = false;
-			}, 1000);
+			}, 500);
 		}
 	};
 

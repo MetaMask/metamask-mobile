@@ -427,7 +427,7 @@ class DrawerView extends Component {
 			this.props.toggleAccountsModal();
 			setTimeout(() => {
 				this.animatingAccountsModal = false;
-			}, 1000);
+			}, 500);
 		}
 	};
 
@@ -437,7 +437,7 @@ class DrawerView extends Component {
 			this.props.toggleReceiveModal();
 			setTimeout(() => {
 				this.animatingReceiveModal = false;
-			}, 1000);
+			}, 500);
 		}
 	};
 
@@ -454,7 +454,7 @@ class DrawerView extends Component {
 			this.props.toggleNetworkModal();
 			setTimeout(() => {
 				this.animatingNetworksModal = false;
-			}, 1000);
+			}, 500);
 		}
 	};
 

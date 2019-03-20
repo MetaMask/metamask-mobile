@@ -37,7 +37,7 @@ class AccountRightButton extends Component {
 			this.props.toggleAccountsModal();
 			setTimeout(() => {
 				this.animating = false;
-			}, 1000);
+			}, 500);
 		}
 	};
 

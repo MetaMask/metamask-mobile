@@ -70,9 +70,17 @@ class NavbarTitle extends Component {
 		translate: true
 	};
 
+	animating = false;
+
 	openNetworkList = () => {
 		if (!this.props.disableNetwork) {
-			this.props.toggleNetworkModal();
+			if (!this.animating) {
+				this.animating = true;
+				this.props.toggleNetworkModal();
+				setTimeout(() => {
+					this.animating = false;
+				}, 500);
+			}
 		}
 	};
 
