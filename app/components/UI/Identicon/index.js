@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Image } from 'react-native';
 import { toDataUrl } from '../../../util/blockies.js';
@@ -10,47 +10,47 @@ import { colors } from '../../../styles/common.js';
  * for now it's just a blockie
  * but we could add more types in the future
  */
-export default class IdenticonComponent extends Component {
-	static propTypes = {
-		/**
-		 * Diameter that represents the size of the identicon
-		 */
-		diameter: PropTypes.number,
-		/**
-		 * Address used to render a specific identicon
-		 */
-		address: PropTypes.string,
-		/**
-		 * Custom style to apply to image
-		 */
-		customStyle: PropTypes.object
-	};
+// eslint-disable-next-line react/display-name
+const Identicon = React.memo(props => {
+	const { diameter, address, customStyle } = props;
+	if (!address) return null;
 
-	static defaultProps = {
-		diameter: 46
-	};
+	const uri = toDataUrl(address);
 
-	shouldComponentUpdate(nextProps) {
-		return nextProps.address !== this.props.address;
-	}
+	return (
+		<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+			<Image
+				source={{ uri }}
+				style={[
+					{
+						height: diameter,
+						width: diameter,
+						borderRadius: diameter / 2
+					},
+					customStyle
+				]}
+			/>
+		</FadeIn>
+	);
+});
 
-	render = () => {
-		const { diameter, address, customStyle } = this.props;
+Identicon.propTypes = {
+	/**
+	 * Diameter that represents the size of the identicon
+	 */
+	diameter: PropTypes.number,
+	/**
+	 * Address used to render a specific identicon
+	 */
+	address: PropTypes.string,
+	/**
+	 * Custom style to apply to image
+	 */
+	customStyle: PropTypes.object
+};
 
-		return address ? (
-			<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
-				<Image
-					source={{ uri: toDataUrl(address) }}
-					style={[
-						{
-							height: diameter,
-							width: diameter,
-							borderRadius: diameter / 2
-						},
-						customStyle
-					]}
-				/>
-			</FadeIn>
-		) : null;
-	};
-}
+Identicon.defaultProps = {
+	diameter: 46
+};
+
+export default Identicon;

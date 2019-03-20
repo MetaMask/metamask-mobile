@@ -40,7 +40,7 @@ exports[`TransactionReview should render correctly 1`] = `
         ]
       }
     >
-      <IdenticonComponent
+      <Component
         address="0x1"
         diameter={18}
       />
@@ -106,7 +106,7 @@ exports[`TransactionReview should render correctly 1`] = `
         ]
       }
     >
-      <IdenticonComponent
+      <Component
         address="0x2"
         diameter={18}
       />
