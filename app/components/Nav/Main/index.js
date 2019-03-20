@@ -213,7 +213,10 @@ const MainNavigator = createStackNavigator(
 						screen: AccountBackupStep5
 					},
 					AccountBackupStep6: {
-						screen: AccountBackupStep6
+						screen: AccountBackupStep6,
+						navigationOptions: {
+							gesturesEnabled: false
+						}
 					}
 				},
 				{
