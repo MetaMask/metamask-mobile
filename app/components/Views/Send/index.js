@@ -249,8 +249,16 @@ class Send extends Component {
 				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
 			}
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
+
 			await TransactionController.approveTransaction(transactionMeta.id);
-			await result;
+			try {
+				await result;
+			} catch (e) {
+				//
+			}
+			if (transactionMeta.error) {
+				throw transactionMeta.error.message;
+			}
 			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
@@ -258,7 +266,8 @@ class Send extends Component {
 				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 			});
 		} catch (error) {
-			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			const errorToShow = error.toString().replace('Error: ', '');
+			Alert.alert('Transaction error', errorToShow, [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}
