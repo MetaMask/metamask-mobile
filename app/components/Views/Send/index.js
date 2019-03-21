@@ -251,13 +251,11 @@ class Send extends Component {
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 
 			await TransactionController.approveTransaction(transactionMeta.id);
-			try {
-				await result;
-			} catch (e) {
-				//
-			}
+			await new Promise(resolve => {
+				resolve(result);
+			});
 			if (transactionMeta.error) {
-				throw transactionMeta.error.message;
+				throw transactionMeta.erroßr;
 			}
 			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
@@ -266,8 +264,7 @@ class Send extends Component {
 				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 			});
 		} catch (error) {
-			const errorToShow = error.toString().replace('Error: ', '');
-			Alert.alert('Transaction error', errorToShow, [{ text: 'OK' }]);
+			Alert.alert('Transaction error', error.message, [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}

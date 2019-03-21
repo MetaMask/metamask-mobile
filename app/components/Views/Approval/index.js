@@ -95,7 +95,7 @@ class Approval extends Component {
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
-			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			Alert.alert('Transaction error', error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
 	};
