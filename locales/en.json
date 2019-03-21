@@ -422,7 +422,9 @@
 		"warning_title": "Warning!",
 		"warning_message": "This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
 		"warning_ok_button": "YES",
-		"warning_cancel_button": "NO"
+		"warning_cancel_button": "NO",
+		"invalid_qr_code": "Invalid QR Code",
+		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to Settings --> Sync with Mobile in the browser extension and scan the QR there"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",
