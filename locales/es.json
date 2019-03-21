@@ -419,7 +419,9 @@
 		"warning_title": "Advertencia!",
 		"warning_message": "Esto eliminará todas tus cuentas y historial de transactiones en tu dispositivo. Estás seguro?",
 		"warning_ok_button": "SI",
-		"warning_cancel_button": "NO"
+		"warning_cancel_button": "NO",
+		"invalid_qr_code": "Código QR inválido",
+		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  Ajustes --> Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",
