@@ -56,6 +56,7 @@ class Approval extends Component {
 		if (!transactionHandled) {
 			Engine.context.TransactionController.cancelTransaction(transaction.id);
 		}
+		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
 		this.clear();
 	};
 

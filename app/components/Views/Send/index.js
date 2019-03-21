@@ -255,7 +255,7 @@ class Send extends Component {
 				resolve(result);
 			});
 			if (transactionMeta.error) {
-				throw transactionMeta.erroßr;
+				throw transactionMeta.error;
 			}
 			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
