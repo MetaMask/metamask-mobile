@@ -56,6 +56,7 @@ class Approval extends Component {
 		if (!transactionHandled) {
 			Engine.context.TransactionController.cancelTransaction(transaction.id);
 		}
+		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
 		this.clear();
 	};
 
@@ -95,7 +96,7 @@ class Approval extends Component {
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
-			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
 	};
