@@ -264,7 +264,7 @@ class Send extends Component {
 				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
 			});
 		} catch (error) {
-			Alert.alert('Transaction error', error.message, [{ text: 'OK' }]);
+			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}
