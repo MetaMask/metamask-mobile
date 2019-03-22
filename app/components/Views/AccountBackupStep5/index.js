@@ -206,11 +206,30 @@ class AccountBackupStep5 extends Component {
 		});
 	};
 
+	getIndexOfWord(word, index, words) {
+		const confirmedWordsOcurrences = this.getNumberOfOcurrences(word, words);
+		if (confirmedWordsOcurrences === 1) {
+			return words.indexOf(word);
+		}
+
+		let currentOccurence = 0;
+
+		for (let i = 0; i < words.length; i++) {
+			if (words[i] === word) {
+				currentOccurence++;
+				if (i === index && currentOccurence <= confirmedWordsOcurrences) {
+					return i;
+				}
+			}
+		}
+		return words.indexOf(word);
+	}
+
 	selectWord = (word, i) => {
 		const newConfirmedWords = this.state.confirmedWords.slice();
 		let newIndex;
-		if (newConfirmedWords.includes(word)) {
-			const matchIndex = newConfirmedWords.indexOf(word);
+		if (this.isSelectedWord(word, i)) {
+			const matchIndex = this.getIndexOfWord(word, i, this.state.confirmedWords);
 			newConfirmedWords[matchIndex] = undefined;
 			newIndex = matchIndex;
 		} else {
@@ -233,6 +252,37 @@ class AccountBackupStep5 extends Component {
 		newConfirmedWords[index] = undefined;
 		this.setState({ confirmedWords: newConfirmedWords, currentIndex: newIndex });
 	};
+
+	getNumberOfOcurrences(word, words) {
+		let ocurrences = 0;
+		for (let i = 0; i < words.length; i++) {
+			words[i] === word && ocurrences++;
+		}
+		return ocurrences;
+	}
+
+	isSelectedWord(word, index) {
+		if (!this.state.confirmedWords.includes(word)) {
+			return false;
+		}
+		const totalOcurrences = this.getNumberOfOcurrences(word, this.words);
+		const confirmedWordsOcurrences = this.getNumberOfOcurrences(word, this.state.confirmedWords);
+		if (totalOcurrences === confirmedWordsOcurrences) {
+			return true;
+		}
+
+		let currentOccurence = 0;
+
+		for (let i = 0; i < this.words.length; i++) {
+			if (this.words[i] === word) {
+				currentOccurence++;
+				if (i === index && currentOccurence <= confirmedWordsOcurrences) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	render() {
 		return (
@@ -290,9 +340,7 @@ class AccountBackupStep5 extends Component {
 
 							<View style={styles.words}>
 								{this.words.map((word, i) => {
-									const selected = this.state.confirmedWords.includes(word)
-										? styles.selectedWord
-										: null;
+									const selected = this.isSelectedWord(word, i) ? styles.selectedWord : null;
 									const selectedText = selected ? styles.selectedWordText : null;
 									return (
 										<TouchableOpacity
