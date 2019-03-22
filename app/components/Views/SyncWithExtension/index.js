@@ -141,10 +141,17 @@ class SyncWithExtension extends Component {
 	showQrCode = () => {
 		this.props.navigation.push('QRScanner', {
 			onScanSuccess: data => {
-				const result = data.content.replace('metamask-sync:', '').split('|@|');
-				this.channelName = result[0];
-				this.cipherKey = result[1];
-				this.initWebsockets();
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
+					const result = data.content.replace('metamask-sync:', '').split('|@|');
+					this.channelName = result[0];
+					this.cipherKey = result[1];
+					this.initWebsockets();
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
+					);
+				}
 			}
 		});
 	};
