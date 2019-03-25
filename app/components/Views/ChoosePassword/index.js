@@ -27,6 +27,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
+import zxcvbn from 'zxcvbn';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -127,6 +128,7 @@ const styles = StyleSheet.create({
 		color: colors.brightGreen
 	},
 	showHideToggle: {
+		backgroundColor: colors.white,
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
@@ -284,11 +286,15 @@ class ChoosePassword extends Component {
 
 	getPasswordStrengthWord() {
 		switch (this.state.passwordStrength) {
+			case 0:
+				return 'weak';
 			case 1:
 				return 'weak';
 			case 2:
-				return 'good';
+				return 'weak';
 			case 3:
+				return 'good';
+			case 4:
 				return 'strong';
 		}
 	}
@@ -330,22 +336,9 @@ class ChoosePassword extends Component {
 	};
 
 	onPasswordChange = val => {
-		let strength = 1;
+		const passInfo = zxcvbn(val);
 
-		// If the password length is greater than 6 and contain alphabet,number,special character respectively
-		if (
-			val.length > 6 &&
-			((val.match(/[a-z]/) && val.match(/\d+/)) ||
-				(val.match(/\d+/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/)) ||
-				(val.match(/[a-z]/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/)))
-		)
-			strength = 2;
-
-		// If the password length is greater than 6 and must contain alphabets,numbers and special characters
-		if (val.length > 6 && val.match(/[a-z]/) && val.match(/\d+/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/))
-			strength = 3;
-
-		this.setState({ password: val, passwordStrength: strength });
+		this.setState({ password: val, passwordStrength: passInfo.score });
 	};
 
 	toggleShowHide = () => {
