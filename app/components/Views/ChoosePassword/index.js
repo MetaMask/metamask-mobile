@@ -285,6 +285,9 @@ class ChoosePassword extends Component {
 	};
 
 	getPasswordStrengthWord() {
+		// this.state.passwordStrength is calculated by zxcvbn
+		// which returns a score based on "entropy to crack time"
+		// 0 is the weakest, 4 the strongest
 		switch (this.state.passwordStrength) {
 			case 0:
 				return 'weak';
