@@ -106,14 +106,6 @@ describe('Transactions utils :: isSmartContractAddress', () => {
 		expect(stub).toBeCalled();
 	});
 
-	it('isSmartContractAddress should not call query if cached', async () => {
-		Engine.context = MOCK_ENGINE.context;
-		await isSmartContractAddress('0x1', '0x123');
-		const stub = spyOn(Engine.context.TransactionController, 'query');
-		await isSmartContractAddress('0x1', '0x123');
-		expect(stub).not.toBeCalled();
-	});
-
 	it('isSmartContractAddress should call query if only address was provided', async () => {
 		Engine.context = MOCK_ENGINE.context;
 		const stub = spyOn(Engine.context.TransactionController, 'query');
