@@ -161,6 +161,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             style={
               Object {
                 "alignSelf": "flex-end",
+                "backgroundColor": "#FFFFFF",
                 "marginTop": 8,
                 "position": "absolute",
               }
