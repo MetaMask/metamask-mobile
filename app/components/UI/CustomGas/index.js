@@ -8,6 +8,7 @@ import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
+	apiEstimateModifiedToGWEI,
 	fetchBasicGasEstimates
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
@@ -120,7 +121,7 @@ class CustomGas extends Component {
 		selected: 'average',
 		ready: false,
 		advancedCustomGas: false,
-		customGasPrice: '20',
+		customGasPrice: '10',
 		customGasLimit: this.props.gas.toNumber().toString(),
 		warningGasLimit: '',
 		warningGasPrice: ''
@@ -306,7 +307,7 @@ class CustomGas extends Component {
 					keyboardType="numeric"
 					style={styles.gasInput}
 					onChangeText={this.onGasPriceChange}
-					value={customGasPrice}
+					value={apiEstimateModifiedToGWEI(customGasPrice).toString()}
 				/>
 				<Text style={styles.text}>{warningGasPrice}</Text>
 			</View>

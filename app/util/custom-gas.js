@@ -13,6 +13,16 @@ export function apiEstimateModifiedToWEI(estimate) {
 }
 
 /**
+ * Calculates value of estimate gas price in gwei
+ *
+ * @param {number} estimate - Number corresponding to api gas price estimation
+ * @returns {Object} - BN instance containing gas price in gwei
+ */
+export function apiEstimateModifiedToGWEI(estimate) {
+	return new BN((estimate / 10).toString(), 10);
+}
+
+/**
  * Calculates gas fee in wei
  *
  * @param {number} estimate - Number corresponding to api gas price estimation
