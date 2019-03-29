@@ -162,6 +162,15 @@ class TransactionsNotificationManager {
 				// Clean up
 				this._removeListeners(transactionMeta.id);
 
+				const { TokenBalancesController, AssetsDetectionController, AccountTrackerController } = Engine.context;
+				// Detect assets and tokens and account balances
+				// right after a transaction was confirmed
+				Promise.all([
+					AccountTrackerController.poll(),
+					TokenBalancesController.poll(),
+					AssetsDetectionController.poll()
+				]);
+
 				Platform.OS === 'ios' &&
 					setTimeout(() => {
 						PushNotification.requestPermissions();
@@ -236,6 +245,11 @@ class TransactionsNotificationManager {
 				});
 			}
 		}
+
+		// Update balance upon detecting
+		// a new incoming transaction
+		const { AccountTrackerController } = Engine.context;
+		AccountTrackerController.poll();
 	};
 }
 
