@@ -98,6 +98,20 @@ describe('Transactions utils :: isSmartContractAddress', () => {
 		await isSmartContractAddress('0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359');
 		expect(stub).not.toBeCalled();
 	});
+
+	it('isSmartContractAddress should call query if not cached', async () => {
+		Engine.context = MOCK_ENGINE.context;
+		const stub = spyOn(Engine.context.TransactionController, 'query');
+		await isSmartContractAddress('0x1', '0x123');
+		expect(stub).toBeCalled();
+	});
+
+	it('isSmartContractAddress should call query if only address was provided', async () => {
+		Engine.context = MOCK_ENGINE.context;
+		const stub = spyOn(Engine.context.TransactionController, 'query');
+		await isSmartContractAddress('0x1');
+		expect(stub).toBeCalled();
+	});
 });
 
 describe('Transactions utils :: getTransactionActionKey', () => {
@@ -109,21 +123,27 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 	const randomData = '0x987654321';
 	const transferFromData = '0x23b872dd0000000000000000000000000000';
 	it('getTransactionActionKey send ether', async () => {
-		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: {} });
+		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { to: '0x0' } });
 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
 	});
 
 	it('getTransactionActionKey send ether with empty data', async () => {
-		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { data: '0x' } });
+		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { data: '0x', to: '0x0' } });
 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
 	});
 	it('getTransactionActionKey send token', async () => {
-		const get = await getTransactionActionKey({ transactionHash: '0x2', transaction: { data: transferData } });
+		const get = await getTransactionActionKey({
+			transactionHash: '0x2',
+			transaction: { data: transferData, to: '0x0' }
+		});
 		expect(get).toEqual(SEND_TOKEN_ACTION_KEY);
 	});
 
 	it('getTransactionActionKey send collectible', async () => {
-		const get = await getTransactionActionKey({ transactionHash: '0x6', transaction: { data: transferFromData } });
+		const get = await getTransactionActionKey({
+			transactionHash: '0x6',
+			transaction: { data: transferFromData, to: '0x0' }
+		});
 		expect(get).toEqual(TRANSFER_FROM_ACTION_KEY);
 	});
 

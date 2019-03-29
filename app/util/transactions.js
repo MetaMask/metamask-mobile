@@ -3,6 +3,7 @@ import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
+import { isSmartContractCode } from 'gaba/util';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -26,14 +27,6 @@ export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
  * of caching ActionKeys
  */
 class ActionKeys {
-	static cache = {};
-}
-
-/**
- * Utility class with the single responsibility
- * of caching SmartContractAddresses
- */
-class SmartContractAddresses {
 	static cache = {};
 }
 
@@ -143,22 +136,15 @@ export function getMethodData(data) {
  * @returns {boolean} - Wether the given address is a contract
  */
 export async function isSmartContractAddress(address) {
-	const cache = SmartContractAddresses.cache[address];
-	if (cache) {
-		return Promise.resolve(cache);
-	}
-
+	address = toChecksumAddress(address);
+	// If in contract map we don't need to cache it
 	if (contractMap[address]) {
-		SmartContractAddresses.cache[address] = true;
 		return Promise.resolve(true);
 	}
-
 	const { TransactionController } = Engine.context;
 	const code = address ? await TransactionController.query('getCode', [address]) : undefined;
-	// Geth will return '0x', and ganache-core v2.2.1 will return '0x0'
-	const codeIsEmpty = !code || code === '0x' || code === '0x0';
-	SmartContractAddresses.cache[address] = !codeIsEmpty;
-	return !codeIsEmpty;
+	const isSmartContract = isSmartContractCode(code);
+	return isSmartContract;
 }
 
 /**
@@ -219,7 +205,8 @@ export async function getTransactionActionKey(transaction) {
 			return ret;
 		}
 	}
-	const toSmartContract = await isSmartContractAddress(to);
+	const toSmartContract =
+		transaction.toSmartContract !== undefined ? transaction.toSmartContract : await isSmartContractAddress(to);
 	if (toSmartContract) {
 		// There is no data or unknown method data, if is smart contract
 		ret = SMART_CONTRACT_INTERACTION_ACTION_KEY;
