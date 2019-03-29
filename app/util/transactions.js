@@ -11,24 +11,16 @@ export const TOKEN_METHOD_TRANSFER_FROM = 'transferfrom';
 export const CONTRACT_METHOD_DEPLOY = 'deploy';
 
 export const SEND_ETHER_ACTION_KEY = 'sentEther';
-export const DEPLOY_CONTRACT_ACTION_KEY = 'contractDeployment';
+export const DEPLOY_CONTRACT_ACTION_KEY = 'deploy';
 export const APPROVE_ACTION_KEY = 'approve';
-export const SEND_TOKEN_ACTION_KEY = 'sentTokens';
-export const TRANSFER_FROM_ACTION_KEY = 'transferFrom';
+export const SEND_TOKEN_ACTION_KEY = 'transfer';
+export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
-
-/**
- * Utility class with the single responsibility
- * of caching ActionKeys
- */
-class ActionKeys {
-	static cache = {};
-}
 
 /**
  * Utility class with the single responsibility
@@ -117,14 +109,24 @@ export function decodeTransferData(type, data) {
  * @param {string} data - Transaction data
  * @returns {object} - Method data object containing the name if is valid
  */
-export function getMethodData(data) {
-	// TODO use eth-method-registry from GABA
+export async function getMethodData(data) {
+	if (data.length < 10) return {};
+	const { TransactionController } = Engine.context;
 	if (data.substr(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER };
 	} else if (data.substr(0, 10) === TRANSFER_FROM_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER_FROM };
 	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
+	}
+	// If it's a new method, use on-chain method registry
+	try {
+		const registryObject = await TransactionController.handleMethodData(data.substr(0, 10));
+		if (registryObject) {
+			return registryObject.parsedRegistryMethod;
+		}
+	} catch (e) {
+		//
 	}
 	return {};
 }
@@ -175,35 +177,13 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction) {
-	const { transactionHash, transaction: { data, to } = {} } = transaction;
-	const cache = ActionKeys.cache[transactionHash];
-	if (transactionHash && cache) {
-		return Promise.resolve(cache);
-	}
+	const { transaction: { data, to } = {} } = transaction;
 	let ret;
 	// if data in transaction try to get method data
 	if (data && data !== '0x') {
-		const methodData = getMethodData(data);
+		const methodData = await getMethodData(data);
 		const { name } = methodData;
-		const methodName = name && name.toLowerCase();
-		switch (methodName) {
-			case TOKEN_METHOD_TRANSFER:
-				ret = SEND_TOKEN_ACTION_KEY;
-				break;
-			case TOKEN_METHOD_APPROVE:
-				ret = APPROVE_ACTION_KEY;
-				break;
-			case TOKEN_METHOD_TRANSFER_FROM:
-				ret = TRANSFER_FROM_ACTION_KEY;
-				break;
-			case CONTRACT_METHOD_DEPLOY:
-				ret = DEPLOY_CONTRACT_ACTION_KEY;
-				break;
-		}
-		if (ret) {
-			ActionKeys.cache[transactionHash] = ret;
-			return ret;
-		}
+		if (name) return name;
 	}
 	const toSmartContract =
 		transaction.toSmartContract !== undefined ? transaction.toSmartContract : await isSmartContractAddress(to);
@@ -214,7 +194,6 @@ export async function getTransactionActionKey(transaction) {
 		// If there is no data and no smart contract interaction
 		ret = SEND_ETHER_ACTION_KEY;
 	}
-	ActionKeys.cache[transactionHash] = ret;
 	return ret;
 }
 
@@ -245,7 +224,7 @@ export async function getActionKey(tx, selectedAddress) {
 		case SMART_CONTRACT_INTERACTION_ACTION_KEY:
 			return strings('transactions.smart_contract_interaction');
 		default:
-			return strings('transactions.smart_contract_interaction');
+			return actionKey;
 	}
 }
 
@@ -269,6 +248,6 @@ export async function getTransactionReviewActionKey(transaction) {
 		case SMART_CONTRACT_INTERACTION_ACTION_KEY:
 			return strings('transactions.tx_review_confirm');
 		default:
-			return strings('transactions.tx_review_unknown');
+			return actionKey;
 	}
 }
