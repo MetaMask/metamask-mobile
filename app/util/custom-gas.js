@@ -15,8 +15,8 @@ export function apiEstimateModifiedToWEI(estimate) {
 /**
  * Calculates GWEI value of estimate gas price from ethgasstation.info
  *
- * @param {number} estimate - Number corresponding to api gas price estimation
- * @returns {Object} - BN instance containing gas price in wei
+ * @param {number} val - Number corresponding to api gas price estimation
+ * @returns {string} - The GWEI value as a string
  */
 export function convertApiValueToGWEI(val) {
 	return (parseInt(val, 10) / 10).toString();
