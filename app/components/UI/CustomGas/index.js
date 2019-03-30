@@ -8,8 +8,8 @@ import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
-	apiEstimateModifiedToGWEI,
-	fetchBasicGasEstimates
+	fetchBasicGasEstimates,
+	convertApiValueToGWEI
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../../util/number';
@@ -135,7 +135,7 @@ class CustomGas extends Component {
 			gasAverageSelected: false,
 			gasSlowSelected: false,
 			selected: 'fast',
-			customGasPrice: fastGwei.toString()
+			customGasPrice: fastGwei
 		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
 	};
@@ -148,7 +148,7 @@ class CustomGas extends Component {
 			gasAverageSelected: true,
 			gasSlowSelected: false,
 			selected: 'average',
-			customGasPrice: averageGwei.toString()
+			customGasPrice: averageGwei
 		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
 	};
@@ -161,7 +161,7 @@ class CustomGas extends Component {
 			gasAverageSelected: false,
 			gasSlowSelected: true,
 			selected: 'slow',
-			customGasPrice: safeLowGwei.toString()
+			customGasPrice: safeLowGwei
 		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
 	};
@@ -198,9 +198,9 @@ class CustomGas extends Component {
 		const basicGasEstimates = await fetchBasicGasEstimates();
 		const { average, fast, safeLow } = basicGasEstimates;
 		this.setState({
-			averageGwei: average,
-			fastGwei: fast,
-			safeLowGwei: safeLow,
+			averageGwei: convertApiValueToGWEI(average),
+			fastGwei: convertApiValueToGWEI(fast),
+			safeLowGwei: convertApiValueToGWEI(safeLow),
 			ready: true
 		});
 	};
@@ -307,7 +307,7 @@ class CustomGas extends Component {
 					keyboardType="numeric"
 					style={styles.gasInput}
 					onChangeText={this.onGasPriceChange}
-					value={apiEstimateModifiedToGWEI(customGasPrice).toString()}
+					value={customGasPrice.toString()}
 				/>
 				<Text style={styles.text}>{warningGasPrice}</Text>
 			</View>
