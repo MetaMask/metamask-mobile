@@ -9,7 +9,17 @@ import { renderFromWei, weiToFiat } from './number';
  */
 export function apiEstimateModifiedToWEI(estimate) {
 	const GWEIRate = 1000000000;
-	return new BN(((estimate * GWEIRate) / 10).toString(), 10);
+	return new BN((estimate * GWEIRate).toString(), 10);
+}
+
+/**
+ * Calculates GWEI value of estimate gas price from ethgasstation.info
+ *
+ * @param {number} val - Number corresponding to api gas price estimation
+ * @returns {string} - The GWEI value as a string
+ */
+export function convertApiValueToGWEI(val) {
+	return (parseInt(val, 10) / 10).toString();
 }
 
 /**
