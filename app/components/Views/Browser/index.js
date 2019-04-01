@@ -445,6 +445,21 @@ export class Browser extends Component {
 					});
 				});
 				return promise;
+			},
+			wallet_watchAsset: ({ params }) => {
+				const {
+					options: { address, decimals, image, symbol }
+				} = params;
+				const { AssetsController } = Engine.context;
+				const promise = new Promise(async (resolve, reject) => {
+					const newTokens = await AssetsController.addToken(address, symbol, decimals, image);
+					const added = newTokens.find(token => token.address === address);
+					if (added) {
+						resolve(true);
+					}
+					reject('Error');
+				});
+				return promise;
 			}
 		});
 
