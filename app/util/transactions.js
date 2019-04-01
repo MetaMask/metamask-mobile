@@ -20,6 +20,7 @@ export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
+export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 /**
@@ -29,6 +30,29 @@ export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 class CollectibleAddresses {
 	static cache = {};
 }
+
+/**
+ * Object containing all known action keys, to be used in transaction review
+ */
+const reviewActionKeys = {
+	[SEND_TOKEN_ACTION_KEY]: strings('transactions.tx_review_transfer'),
+	[SEND_ETHER_ACTION_KEY]: strings('transactions.tx_review_confirm'),
+	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.tx_review_contract_deployment'),
+	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.tx_review_transfer_from'),
+	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.tx_review_confirm'),
+	[APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve')
+};
+
+/**
+ * Object containing all known action keys, to be used in transactions list
+ */
+const actionKeys = {
+	[SEND_TOKEN_ACTION_KEY]: strings('transactions.sent_tokens'),
+	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.sent_collectible'),
+	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.contract_deploy'),
+	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.smart_contract_interaction'),
+	[APPROVE_ACTION_KEY]: strings('transactions.approve')
+};
 
 /**
  * Generates transfer data for specified method
@@ -111,22 +135,25 @@ export function decodeTransferData(type, data) {
  */
 export async function getMethodData(data) {
 	if (data.length < 10) return {};
-	const { TransactionController } = Engine.context;
-	if (data.substr(0, 10) === TRANSFER_FUNCTION_SIGNATURE) {
+	const fourByteSignature = data.substr(0, 10);
+	if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER };
-	} else if (data.substr(0, 10) === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+	} else if (fourByteSignature === TRANSFER_FROM_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_TRANSFER_FROM };
+	} else if (fourByteSignature === APPROVE_FUNCTION_SIGNATURE) {
+		return { name: TOKEN_METHOD_APPROVE };
 	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
 	}
+	const { TransactionController } = Engine.context;
 	// If it's a new method, use on-chain method registry
 	try {
-		const registryObject = await TransactionController.handleMethodData(data.substr(0, 10));
+		const registryObject = await TransactionController.handleMethodData(fourByteSignature);
 		if (registryObject) {
 			return registryObject.parsedRegistryMethod;
 		}
 	} catch (e) {
-		//
+		// Ignore and return empty object
 	}
 	return {};
 }
@@ -206,26 +233,20 @@ export async function getTransactionActionKey(transaction) {
  */
 export async function getActionKey(tx, selectedAddress) {
 	const actionKey = await getTransactionActionKey(tx);
-	const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
-	const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
-	switch (actionKey) {
-		case SEND_TOKEN_ACTION_KEY:
-			return strings('transactions.sent_tokens');
-		case TRANSFER_FROM_ACTION_KEY:
-			return strings('transactions.sent_collectible');
-		case SEND_ETHER_ACTION_KEY:
-			return incoming
-				? selfSent
-					? strings('transactions.self_sent_ether')
-					: strings('transactions.received_ether')
-				: strings('transactions.sent_ether');
-		case DEPLOY_CONTRACT_ACTION_KEY:
-			return strings('transactions.contract_deploy');
-		case SMART_CONTRACT_INTERACTION_ACTION_KEY:
-			return strings('transactions.smart_contract_interaction');
-		default:
-			return actionKey;
+	if (actionKey === SEND_ETHER_ACTION_KEY) {
+		const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
+		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
+		return incoming
+			? selfSent
+				? strings('transactions.self_sent_ether')
+				: strings('transactions.received_ether')
+			: strings('transactions.sent_ether');
 	}
+	const transactionActionKey = actionKeys[actionKey];
+	if (transactionActionKey) {
+		return transactionActionKey;
+	}
+	return actionKey;
 }
 
 /**
@@ -236,18 +257,9 @@ export async function getActionKey(tx, selectedAddress) {
  */
 export async function getTransactionReviewActionKey(transaction) {
 	const actionKey = await getTransactionActionKey({ transaction });
-	switch (actionKey) {
-		case SEND_TOKEN_ACTION_KEY:
-			return strings('transactions.tx_review_transfer');
-		case SEND_ETHER_ACTION_KEY:
-			return strings('transactions.tx_review_confirm');
-		case DEPLOY_CONTRACT_ACTION_KEY:
-			return strings('transactions.tx_review_contract_deployment');
-		case TRANSFER_FROM_ACTION_KEY:
-			return strings('transactions.tx_review_transfer_from');
-		case SMART_CONTRACT_INTERACTION_ACTION_KEY:
-			return strings('transactions.tx_review_confirm');
-		default:
-			return actionKey;
+	const transactionReviewActionKey = reviewActionKeys[actionKey];
+	if (transactionReviewActionKey) {
+		return transactionReviewActionKey;
 	}
+	return actionKey;
 }
