@@ -53,6 +53,7 @@ import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
+import WatchAssetRequest from '../../UI/WatchAssetRequest';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -350,7 +351,9 @@ export class Browser extends Component {
 			clampedScroll,
 			contentHeight: 0,
 			forwardEnabled: false,
-			forceReload: false
+			forceReload: false,
+			tokenToWatch: undefined,
+			watchAsset: false
 		};
 	}
 
@@ -451,6 +454,7 @@ export class Browser extends Component {
 					options: { address, decimals, image, symbol }
 				} = params;
 				const { AssetsController } = Engine.context;
+				this.setState({ tokenToWatch: { address, symbol, decimals, image }, watchAsset: true });
 				const promise = new Promise(async (resolve, reject) => {
 					const newTokens = await AssetsController.addToken(address, symbol, decimals, image);
 					const added = newTokens.find(token => token.address === address);
@@ -1466,6 +1470,35 @@ export class Browser extends Component {
 		);
 	};
 
+	onCancelWatchAsset = () => {
+		this.setState({ watchAsset: false });
+	};
+
+	renderWatchAssetModal = () => {
+		const { watchAsset, tokenToWatch } = this.state;
+		return (
+			<Modal
+				isVisible={watchAsset}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onCancelWatchAsset}
+				onSwipeComplete={this.onCancelWatchAsset}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<WatchAssetRequest
+					onCancel={this.onCancelWatchAsset}
+					onConfirm={this.onCancelWatchAsset}
+					token={tokenToWatch || { address: '', symbol: '', image: '', decimals: 0 }}
+				/>
+			</Modal>
+		);
+	};
+
 	onAccountsConfirm = () => {
 		const { approveHost, selectedAddress } = this.props;
 		this.setState({ showApprovalDialog: false });
@@ -1619,6 +1652,7 @@ export class Browser extends Component {
 				{this.renderSigningModal()}
 				{this.renderApprovalModal()}
 				{this.renderPhishingModal()}
+				{this.renderWatchAssetModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
 			</View>

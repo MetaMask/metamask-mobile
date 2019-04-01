@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 // eslint-disable-next-line react/display-name
 const AssetIcon = React.memo(props => {
 	if (!props.logo) return null;
-	const uri = getAssetLogoPath(props.logo);
+	const uri = props.contractMapLogo ? props.logo : getAssetLogoPath(props.logo);
 	const style = [styles.logo, props.customStyle];
 	return <Image fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
 });
@@ -28,6 +28,10 @@ AssetIcon.propTypes = {
 	 * String of the asset icon
 	 */
 	logo: PropTypes.string,
+	/**
+	 * Whether logo has to be fetched from eth-contract-metadata
+	 */
+	contractMapLogo: PropTypes.bool,
 	/**
 	 * Custom style to apply to image
 	 */

@@ -54,7 +54,7 @@ export default class TokenElement extends Component {
 		return (
 			<View style={[styles.itemLogoWrapper, containerStyle]}>
 				{asset.logo ? (
-					<AssetIcon logo={asset.logo} customStyle={iconStyle} />
+					<AssetIcon contractMapLogo={asset.image !== undefined} logo={asset.logo} customStyle={iconStyle} />
 				) : (
 					<Identicon address={asset.address} customStyle={iconStyle} />
 				)}
