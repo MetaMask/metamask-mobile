@@ -95,7 +95,11 @@ class NavbarTitle extends Component {
 				style={styles.wrapper}
 				activeOpacity={this.props.disableNetwork ? 1 : 0.2}
 			>
-				{title ? <Text style={styles.title}>{realTitle}</Text> : null}
+				{title ? (
+					<Text numberOfLines={1} style={styles.title}>
+						{realTitle}
+					</Text>
+				) : null}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>
