@@ -352,7 +352,7 @@ export class Browser extends Component {
 			contentHeight: 0,
 			forwardEnabled: false,
 			forceReload: false,
-			tokenToWatch: undefined,
+			suggestedAssetMeta: undefined,
 			watchAsset: false
 		};
 	}
@@ -449,21 +449,14 @@ export class Browser extends Component {
 				});
 				return promise;
 			},
-			wallet_watchAsset: ({ params }) => {
+			wallet_watchAsset: async ({ params }) => {
 				const {
-					options: { address, decimals, image, symbol }
+					options: { address, decimals, image, symbol },
+					type
 				} = params;
 				const { AssetsController } = Engine.context;
-				this.setState({ tokenToWatch: { address, symbol, decimals, image }, watchAsset: true });
-				const promise = new Promise(async (resolve, reject) => {
-					const newTokens = await AssetsController.addToken(address, symbol, decimals, image);
-					const added = newTokens.find(token => token.address === address);
-					if (added) {
-						resolve(true);
-					}
-					reject('Error');
-				});
-				return promise;
+				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
+				return suggestionResult.result;
 			}
 		});
 
@@ -539,6 +532,10 @@ export class Browser extends Component {
 		});
 		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
+		});
+
+		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
+			this.setState({ watchAsset: true, suggestedAssetMeta });
 		});
 		this.loadUrl();
 
@@ -638,6 +635,7 @@ export class Browser extends Component {
 		// Remove all Engine listeners
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
+		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
 		if (Platform.OS === 'ios') {
@@ -1475,7 +1473,7 @@ export class Browser extends Component {
 	};
 
 	renderWatchAssetModal = () => {
-		const { watchAsset, tokenToWatch } = this.state;
+		const { watchAsset, suggestedAssetMeta } = this.state;
 		return (
 			<Modal
 				isVisible={watchAsset}
@@ -1493,7 +1491,7 @@ export class Browser extends Component {
 				<WatchAssetRequest
 					onCancel={this.onCancelWatchAsset}
 					onConfirm={this.onCancelWatchAsset}
-					token={tokenToWatch || { address: '', symbol: '', image: '', decimals: 0 }}
+					suggestedAssetMeta={suggestedAssetMeta}
 				/>
 			</Modal>
 		);

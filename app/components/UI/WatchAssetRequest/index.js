@@ -8,6 +8,7 @@ import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import DeviceSize from '../../../util/DeviceSize';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	root: {
@@ -86,18 +87,35 @@ class WatchAssetRequest extends Component {
 		/**
 		 * Token object
 		 */
-		token: PropTypes.object,
+		suggestedAssetMeta: PropTypes.object,
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
 		tokenBalances: PropTypes.object
 	};
 
+	onConfirm = async () => {
+		const { onConfirm, suggestedAssetMeta } = this.props;
+		const { AssetsController } = Engine.context;
+		await AssetsController.acceptWatchAsset(suggestedAssetMeta.id);
+		onConfirm && onConfirm();
+	};
+
+	onCancel = async () => {
+		const { onCancel, suggestedAssetMeta } = this.props;
+		const { AssetsController } = Engine.context;
+		await AssetsController.rejectWatchAsset(suggestedAssetMeta.id);
+		onCancel && onCancel();
+	};
+
 	render() {
-		const { token, tokenBalances } = this.props;
+		const {
+			suggestedAssetMeta: { asset },
+			tokenBalances
+		} = this.props;
 		const balance =
-			token.address in tokenBalances
-				? renderFromTokenMinimalUnit(tokenBalances[token.address], token.decimals)
+			asset.address in tokenBalances
+				? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals)
 				: '0';
 		return (
 			<View style={styles.root}>
@@ -111,8 +129,8 @@ class WatchAssetRequest extends Component {
 					confirmTestID={'request-signature-confirm-button'}
 					cancelText={strings('watch_asset_request.cancel')}
 					confirmText={strings('watch_asset_request.add')}
-					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.props.onConfirm}
+					onCancelPress={this.onCancel}
+					onConfirmPress={this.onConfirm}
 				>
 					<View style={styles.children}>
 						<View style={styles.addMessage}>
@@ -123,15 +141,21 @@ class WatchAssetRequest extends Component {
 								<Text>{strings('watch_asset_request.token')}</Text>
 								<View style={styles.account}>
 									<View style={styles.identicon}>
-										<TokenImage asset={{ ...token, logo: token.image }} logoDefined />
+										<TokenImage
+											asset={{
+												...asset,
+												logo: asset.image
+											}}
+											logoDefined
+										/>
 									</View>
-									<Text style={styles.text}>{token.symbol}</Text>
+									<Text style={styles.text}>{asset.symbol}</Text>
 								</View>
 							</View>
 							<View style={styles.accountInfoCol}>
 								<Text>{strings('watch_asset_request.balance')}</Text>
 								<Text style={styles.text}>
-									{balance} {token.symbol}
+									{balance} {asset.symbol}
 								</Text>
 							</View>
 						</View>
