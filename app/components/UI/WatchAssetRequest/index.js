@@ -94,18 +94,17 @@ class WatchAssetRequest extends Component {
 		tokenBalances: PropTypes.object
 	};
 
+	componentWillUnmount = async () => {
+		const { AssetsController } = Engine.context;
+		const { suggestedAssetMeta } = this.props;
+		await AssetsController.rejectWatchAsset(suggestedAssetMeta.id);
+	};
+
 	onConfirm = async () => {
 		const { onConfirm, suggestedAssetMeta } = this.props;
 		const { AssetsController } = Engine.context;
 		await AssetsController.acceptWatchAsset(suggestedAssetMeta.id);
 		onConfirm && onConfirm();
-	};
-
-	onCancel = async () => {
-		const { onCancel, suggestedAssetMeta } = this.props;
-		const { AssetsController } = Engine.context;
-		await AssetsController.rejectWatchAsset(suggestedAssetMeta.id);
-		onCancel && onCancel();
 	};
 
 	render() {
@@ -129,7 +128,7 @@ class WatchAssetRequest extends Component {
 					confirmTestID={'request-signature-confirm-button'}
 					cancelText={strings('watch_asset_request.cancel')}
 					confirmText={strings('watch_asset_request.add')}
-					onCancelPress={this.onCancel}
+					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.onConfirm}
 				>
 					<View style={styles.children}>
