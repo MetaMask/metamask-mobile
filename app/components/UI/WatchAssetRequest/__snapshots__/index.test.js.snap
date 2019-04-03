@@ -7,7 +7,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": "90%",
+      "minHeight": "40%",
       "paddingBottom": 20,
     }
   }
@@ -43,17 +43,15 @@ exports[`WatchAssetRequest should render correctly 1`] = `
     <View
       style={
         Object {
+          "alignItems": "center",
           "borderTopColor": "#d2d8dd",
           "borderTopWidth": 1,
-          "flex": 1,
-          "height": "100%",
         }
       }
     >
       <View
         style={
           Object {
-            "flex": 1,
             "flexDirection": "row",
             "marginHorizontal": 20,
             "marginVertical": 10,
@@ -66,8 +64,6 @@ exports[`WatchAssetRequest should render correctly 1`] = `
               "fontFamily": "Roboto",
               "fontSize": 16,
               "fontWeight": "400",
-              "padding": 5,
-              "textAlign": "center",
             }
           }
         >
@@ -77,11 +73,11 @@ exports[`WatchAssetRequest should render correctly 1`] = `
       <View
         style={
           Object {
+            "alignItems": "flex-start",
             "flex": 1,
             "flexDirection": "row",
-            "justifyContent": "space-between",
-            "margin": 20,
-            "marginBottom": 40,
+            "marginHorizontal": 40,
+            "marginVertical": 30,
           }
         }
       >
@@ -89,39 +85,102 @@ exports[`WatchAssetRequest should render correctly 1`] = `
           style={
             Object {
               "flex": 1,
+              "flexDirection": "column",
             }
           }
         >
-          <Text>
-            Token:
-          </Text>
+          <View
+            style={Object {}}
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "Roboto",
+                  "fontWeight": "400",
+                }
+              }
+            >
+              Token:
+            </Text>
+          </View>
           <View
             style={
               Object {
-                "flex": 1,
-                "flexDirection": "row",
+                "alignItems": "center",
               }
             }
           >
             <View
               style={
                 Object {
-                  "padding": 10,
+                  "flexDirection": "row",
                 }
               }
             >
-              <TokenElement
-                asset={
+              <View
+                style={
                   Object {
-                    "address": "0x2",
-                    "decimals": 0,
-                    "logo": undefined,
-                    "symbol": "TKN",
+                    "paddingVertical": 10,
                   }
                 }
-                logoDefined={true}
-              />
+              >
+                <TokenElement
+                  asset={
+                    Object {
+                      "address": "0x2",
+                      "decimals": 0,
+                      "logo": undefined,
+                      "symbol": "TKN",
+                    }
+                  }
+                  logoDefined={true}
+                />
+              </View>
+              <Text
+                style={
+                  Object {
+                    "fontFamily": "Roboto",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "paddingHorizontal": 10,
+                    "paddingTop": 25,
+                  }
+                }
+              >
+                TKN
+              </Text>
             </View>
+          </View>
+        </View>
+        <View
+          style={
+            Object {
+              "flex": 1,
+              "flexDirection": "column",
+            }
+          }
+        >
+          <View
+            style={Object {}}
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "Roboto",
+                  "fontWeight": "400",
+                }
+              }
+            >
+              Balance:
+            </Text>
+          </View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+              }
+            }
+          >
             <Text
               style={
                 Object {
@@ -133,35 +192,11 @@ exports[`WatchAssetRequest should render correctly 1`] = `
                 }
               }
             >
+              0
+               
               TKN
             </Text>
           </View>
-        </View>
-        <View
-          style={
-            Object {
-              "flex": 1,
-            }
-          }
-        >
-          <Text>
-            Balance:
-          </Text>
-          <Text
-            style={
-              Object {
-                "fontFamily": "Roboto",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "paddingHorizontal": 10,
-                "paddingTop": 25,
-              }
-            }
-          >
-            0
-             
-            TKN
-          </Text>
         </View>
       </View>
     </View>
