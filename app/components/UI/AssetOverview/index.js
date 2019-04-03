@@ -92,12 +92,17 @@ class AssetOverview extends Component {
 
 	renderLogo = () => {
 		const {
-			asset: { address, logo, symbol }
+			asset: { address, image, logo, symbol }
 		} = this.props;
 		if (symbol === 'ETH') {
 			return <Image source={ethLogo} style={styles.ethLogo} />;
 		}
-		return logo ? <AssetIcon logo={logo} /> : <Identicon address={address} />;
+		const watchedAsset = image !== undefined;
+		return logo || image ? (
+			<AssetIcon watchedAsset={watchedAsset} logo={image || logo} />
+		) : (
+			<Identicon address={address} />
+		);
 	};
 
 	render() {
