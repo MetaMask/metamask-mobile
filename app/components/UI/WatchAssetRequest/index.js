@@ -120,7 +120,7 @@ class WatchAssetRequest extends Component {
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
 					<Text style={styles.title} onPress={this.cancelSignature}>
-						{'Add Suggested Token'}
+						{strings('watch_asset_request.title')}
 					</Text>
 				</View>
 				<ActionView
