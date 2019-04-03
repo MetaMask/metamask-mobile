@@ -457,8 +457,8 @@
 		"cancel": "CANCEL",
 		"add": "ADD TOKEN",
 		"message": "Would you like to add this token?",
-		"token": "Token:",
-		"balance": "Balance:"
+		"token": "Token",
+		"balance": "Balance"
 	},
 	"unit": {
 		"eth": "ETH",

@@ -7,7 +7,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": "40%",
+      "minHeight": "50%",
       "paddingBottom": 20,
     }
   }
@@ -53,8 +53,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
         style={
           Object {
             "flexDirection": "row",
-            "marginHorizontal": 20,
-            "marginVertical": 10,
+            "margin": 20,
           }
         }
       >
@@ -90,17 +89,21 @@ exports[`WatchAssetRequest should render correctly 1`] = `
           }
         >
           <View
-            style={Object {}}
+            style={
+              Object {
+                "alignItems": "center",
+              }
+            }
           >
             <Text
               style={
                 Object {
                   "fontFamily": "Roboto",
-                  "fontWeight": "400",
+                  "fontWeight": "600",
                 }
               }
             >
-              Token:
+              Token
             </Text>
           </View>
           <View
@@ -161,17 +164,21 @@ exports[`WatchAssetRequest should render correctly 1`] = `
           }
         >
           <View
-            style={Object {}}
+            style={
+              Object {
+                "alignItems": "center",
+              }
+            }
           >
             <Text
               style={
                 Object {
                   "fontFamily": "Roboto",
-                  "fontWeight": "400",
+                  "fontWeight": "600",
                 }
               }
             >
-              Balance:
+              Balance
             </Text>
           </View>
           <View

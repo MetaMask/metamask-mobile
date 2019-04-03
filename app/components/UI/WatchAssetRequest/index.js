@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0,
-		minHeight: Platform.OS === 'ios' ? '40%' : '50%'
+		minHeight: Platform.OS === 'ios' ? '50%' : '60%'
 	},
 	title: {
 		textAlign: 'center',
@@ -43,9 +43,11 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'column'
 	},
-	infoTitleWrapper: {},
+	infoTitleWrapper: {
+		alignItems: 'center'
+	},
 	infoTitle: {
-		...fontStyles.normal
+		...fontStyles.bold
 	},
 	infoBalance: {
 		alignItems: 'center'
@@ -65,8 +67,7 @@ const styles = StyleSheet.create({
 	},
 	addMessage: {
 		flexDirection: 'row',
-		marginVertical: 10,
-		marginHorizontal: 20
+		margin: 20
 	},
 	children: {
 		alignItems: 'center',
