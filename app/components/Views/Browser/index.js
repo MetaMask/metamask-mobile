@@ -53,6 +53,7 @@ import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
+import WatchAssetRequest from '../../UI/WatchAssetRequest';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -350,7 +351,9 @@ export class Browser extends Component {
 			clampedScroll,
 			contentHeight: 0,
 			forwardEnabled: false,
-			forceReload: false
+			forceReload: false,
+			suggestedAssetMeta: undefined,
+			watchAsset: false
 		};
 	}
 
@@ -445,6 +448,15 @@ export class Browser extends Component {
 					});
 				});
 				return promise;
+			},
+			wallet_watchAsset: async ({ params }) => {
+				const {
+					options: { address, decimals, image, symbol },
+					type
+				} = params;
+				const { AssetsController } = Engine.context;
+				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
+				return suggestionResult.result;
 			}
 		});
 
@@ -520,6 +532,10 @@ export class Browser extends Component {
 		});
 		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
+		});
+
+		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
+			this.setState({ watchAsset: true, suggestedAssetMeta });
 		});
 		this.loadUrl();
 
@@ -619,6 +635,7 @@ export class Browser extends Component {
 		// Remove all Engine listeners
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
+		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
 		if (Platform.OS === 'ios') {
@@ -1451,6 +1468,35 @@ export class Browser extends Component {
 		);
 	};
 
+	onCancelWatchAsset = () => {
+		this.setState({ watchAsset: false });
+	};
+
+	renderWatchAssetModal = () => {
+		const { watchAsset, suggestedAssetMeta } = this.state;
+		return (
+			<Modal
+				isVisible={watchAsset}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onCancelWatchAsset}
+				onSwipeComplete={this.onCancelWatchAsset}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<WatchAssetRequest
+					onCancel={this.onCancelWatchAsset}
+					onConfirm={this.onCancelWatchAsset}
+					suggestedAssetMeta={suggestedAssetMeta}
+				/>
+			</Modal>
+		);
+	};
+
 	onAccountsConfirm = () => {
 		const { approveHost, selectedAddress } = this.props;
 		this.setState({ showApprovalDialog: false });
@@ -1604,6 +1650,7 @@ export class Browser extends Component {
 				{this.renderSigningModal()}
 				{this.renderApprovalModal()}
 				{this.renderPhishingModal()}
+				{this.renderWatchAssetModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
 			</View>
