@@ -39,7 +39,7 @@ const reviewActionKeys = {
 	[SEND_ETHER_ACTION_KEY]: strings('transactions.tx_review_confirm'),
 	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.tx_review_contract_deployment'),
 	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.tx_review_transfer_from'),
-	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.tx_review_confirm'),
+	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.tx_review_unknown'),
 	[APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve')
 };
 
