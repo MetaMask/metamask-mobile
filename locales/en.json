@@ -454,6 +454,14 @@
 		"balance_title": "Balance:",
 		"message": "Message:"
 	},
+	"watch_asset_request": {
+		"title": "Add Suggested Token",
+		"cancel": "CANCEL",
+		"add": "ADD TOKEN",
+		"message": "Would you like to add this token?",
+		"token": "Token",
+		"balance": "Balance"
+	},
 	"unit": {
 		"eth": "ETH",
 		"negative": "-",
