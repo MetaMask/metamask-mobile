@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { Platform, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -13,10 +13,10 @@ import Engine from '../../../core/Engine';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		minHeight: '90%',
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0,
+		minHeight: Platform.OS === 'ios' ? '40%' : '50%'
 	},
 	title: {
 		textAlign: 'center',
@@ -32,40 +32,46 @@ const styles = StyleSheet.create({
 		paddingTop: 25,
 		paddingHorizontal: 10
 	},
-	accountInformation: {
-		flex: 1,
+	tokenInformation: {
 		flexDirection: 'row',
-		justifyContent: 'space-between',
-		margin: 20,
-		marginBottom: 40
-	},
-	accountInfoCol: {
-		flex: 1
-	},
-	account: {
+		marginHorizontal: 40,
 		flex: 1,
+		alignItems: 'flex-start',
+		marginVertical: 30
+	},
+	tokenInfo: {
+		flex: 1,
+		flexDirection: 'column'
+	},
+	infoTitleWrapper: {},
+	infoTitle: {
+		...fontStyles.normal
+	},
+	infoBalance: {
+		alignItems: 'center'
+	},
+	infoToken: {
+		alignItems: 'center'
+	},
+	token: {
 		flexDirection: 'row'
 	},
 	identicon: {
-		padding: 10
+		paddingVertical: 10
 	},
 	signText: {
 		...fontStyles.normal,
-		fontSize: 16,
-		padding: 5,
-		textAlign: 'center'
+		fontSize: 16
 	},
 	addMessage: {
-		flex: 1,
 		flexDirection: 'row',
 		marginVertical: 10,
 		marginHorizontal: 20
 	},
 	children: {
-		flex: 1,
+		alignItems: 'center',
 		borderTopColor: colors.lightGray,
-		borderTopWidth: 1,
-		height: '100%'
+		borderTopWidth: 1
 	}
 });
 
@@ -133,27 +139,39 @@ class WatchAssetRequest extends Component {
 						<View style={styles.addMessage}>
 							<Text style={styles.signText}>{strings('watch_asset_request.message')}</Text>
 						</View>
-						<View style={styles.accountInformation}>
-							<View style={styles.accountInfoCol}>
-								<Text>{strings('watch_asset_request.token')}</Text>
-								<View style={styles.account}>
-									<View style={styles.identicon}>
-										<TokenImage
-											asset={{
-												...asset,
-												logo: asset.image
-											}}
-											logoDefined
-										/>
+
+						<View style={styles.tokenInformation}>
+							<View style={styles.tokenInfo}>
+								<View style={styles.infoTitleWrapper}>
+									<Text style={styles.infoTitle}>{strings('watch_asset_request.token')}</Text>
+								</View>
+
+								<View style={styles.infoToken}>
+									<View style={styles.token}>
+										<View style={styles.identicon}>
+											<TokenImage
+												asset={{
+													...asset,
+													logo: asset.image
+												}}
+												logoDefined
+											/>
+										</View>
+										<Text style={styles.text}>{asset.symbol}</Text>
 									</View>
-									<Text style={styles.text}>{asset.symbol}</Text>
 								</View>
 							</View>
-							<View style={styles.accountInfoCol}>
-								<Text>{strings('watch_asset_request.balance')}</Text>
-								<Text style={styles.text}>
-									{balance} {asset.symbol}
-								</Text>
+
+							<View style={styles.tokenInfo}>
+								<View style={styles.infoTitleWrapper}>
+									<Text style={styles.infoTitle}>{strings('watch_asset_request.balance')}</Text>
+								</View>
+
+								<View style={styles.infoBalance}>
+									<Text style={styles.text}>
+										{balance} {asset.symbol}
+									</Text>
+								</View>
 							</View>
 						</View>
 					</View>
