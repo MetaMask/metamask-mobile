@@ -1,0 +1,170 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WatchAssetRequest should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 10,
+      "borderTopRightRadius": 10,
+      "minHeight": "90%",
+      "paddingBottom": 20,
+    }
+  }
+>
+  <View>
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "600",
+          "marginHorizontal": 20,
+          "marginVertical": 12,
+          "textAlign": "center",
+        }
+      }
+    >
+      Add Suggested Token
+    </Text>
+  </View>
+  <ActionView
+    cancelTestID="request-signature-cancel-button"
+    cancelText="CANCEL"
+    confirmButtonMode="normal"
+    confirmTestID="request-signature-confirm-button"
+    confirmText="ADD TOKEN"
+    confirmed={false}
+    onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
+  >
+    <View
+      style={
+        Object {
+          "borderTopColor": "#d2d8dd",
+          "borderTopWidth": 1,
+          "flex": 1,
+          "height": "100%",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+            "marginHorizontal": 20,
+            "marginVertical": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "padding": 5,
+              "textAlign": "center",
+            }
+          }
+        >
+          Would you like to add this token?
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "margin": 20,
+            "marginBottom": 40,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <Text>
+            Token:
+          </Text>
+          <View
+            style={
+              Object {
+                "flex": 1,
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "padding": 10,
+                }
+              }
+            >
+              <TokenElement
+                asset={
+                  Object {
+                    "address": "0x2",
+                    "decimals": 0,
+                    "logo": undefined,
+                    "symbol": "TKN",
+                  }
+                }
+                logoDefined={true}
+              />
+            </View>
+            <Text
+              style={
+                Object {
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "paddingHorizontal": 10,
+                  "paddingTop": 25,
+                }
+              }
+            >
+              TKN
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            Object {
+              "flex": 1,
+            }
+          }
+        >
+          <Text>
+            Balance:
+          </Text>
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "paddingHorizontal": 10,
+                "paddingTop": 25,
+              }
+            }
+          >
+            0
+             
+            TKN
+          </Text>
+        </View>
+      </View>
+    </View>
+  </ActionView>
+</View>
+`;

@@ -69,8 +69,6 @@ const styles = StyleSheet.create({
 	}
 });
 
-const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
-
 /**
  * Component that renders watch asset content
  */
@@ -91,7 +89,7 @@ class WatchAssetRequest extends Component {
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
-		tokenBalances: PropTypes.object
+		contractBalances: PropTypes.object
 	};
 
 	componentWillUnmount = async () => {
@@ -110,11 +108,11 @@ class WatchAssetRequest extends Component {
 	render() {
 		const {
 			suggestedAssetMeta: { asset },
-			tokenBalances
+			contractBalances
 		} = this.props;
 		const balance =
-			asset.address in tokenBalances
-				? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals)
+			asset.address in contractBalances
+				? renderFromTokenMinimalUnit(contractBalances[asset.address], asset.decimals)
 				: '0';
 		return (
 			<View style={styles.root}>
@@ -166,7 +164,7 @@ class WatchAssetRequest extends Component {
 }
 
 const mapStateToProps = state => ({
-	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances
 });
 
 export default connect(mapStateToProps)(WatchAssetRequest);
