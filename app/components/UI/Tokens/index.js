@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -11,6 +11,7 @@ import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number'
 import Engine from '../../../core/Engine';
 import AssetElement from '../AssetElement';
 import FadeIn from 'react-native-fade-in-image';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -184,7 +185,8 @@ export default class Tokens extends PureComponent {
 
 	removeToken = () => {
 		const { AssetsController } = Engine.context;
-		AssetsController.removeToken(this.tokenToRemove.address);
+		AssetsController.removeToken(toChecksumAddress(this.tokenToRemove.address));
+		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 	};
 
 	createActionSheetRef = ref => {
