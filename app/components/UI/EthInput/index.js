@@ -166,10 +166,18 @@ class EthInput extends Component {
 		/**
 		 * Transaction object associated with this transaction
 		 */
-		transaction: PropTypes.object
+		transaction: PropTypes.object,
+		/**
+		 * Callback to open assets dropdown
+		 */
+		openEthInput: PropTypes.func,
+		/**
+		 * Whether assets dropdown is opened
+		 */
+		isOpen: PropTypes.bool
 	};
 
-	state = { isOpen: false, readableValue: undefined, assets: undefined };
+	state = { readableValue: undefined, assets: undefined };
 
 	componentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
@@ -231,13 +239,13 @@ class EthInput extends Component {
 	};
 
 	onFocus = () => {
-		const { isOpen } = this.state;
-		this.setState({ isOpen: !isOpen });
+		const { isOpen, openEthInput } = this.props;
+		openEthInput && openEthInput(!isOpen);
 	};
 
 	selectAsset = async asset => {
-		this.setState({ isOpen: false });
-		const { handleUpdateAsset, onChange } = this.props;
+		const { handleUpdateAsset, onChange, openEthInput } = this.props;
+		openEthInput && openEthInput(false);
 		handleUpdateAsset && (await handleUpdateAsset(asset));
 		onChange && onChange(undefined);
 		this.setState({ readableValue: undefined });
@@ -412,7 +420,8 @@ class EthInput extends Component {
 	};
 
 	render = () => {
-		const { isOpen, assets } = this.state;
+		const { assets } = this.state;
+		const { isOpen } = this.props;
 		const selectAssets = assets && assets.length > 1;
 		return (
 			<View style={styles.root}>

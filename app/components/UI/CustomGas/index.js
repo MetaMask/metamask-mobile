@@ -107,7 +107,11 @@ class CustomGas extends Component {
 		/**
 		 * Object BN containing estimated gas limit
 		 */
-		gas: PropTypes.object
+		gas: PropTypes.object,
+		/**
+		 * Callback to modify state in parent state
+		 */
+		onPress: PropTypes.func
 	};
 
 	state = {
@@ -129,7 +133,8 @@ class CustomGas extends Component {
 
 	onPressGasFast = () => {
 		const { fastGwei } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		this.setState({
 			gasFastSelected: true,
 			gasAverageSelected: false,
@@ -142,7 +147,8 @@ class CustomGas extends Component {
 
 	onPressGasAverage = () => {
 		const { averageGwei } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: true,
@@ -155,7 +161,8 @@ class CustomGas extends Component {
 
 	onPressGasSlow = () => {
 		const { safeLowGwei } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: false,
@@ -168,7 +175,8 @@ class CustomGas extends Component {
 
 	onAdvancedOptions = () => {
 		const { advancedCustomGas, selected, fastGwei, averageGwei, safeLowGwei, customGasPrice } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		if (advancedCustomGas) {
 			switch (selected) {
 				case 'slow':
