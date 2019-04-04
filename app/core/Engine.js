@@ -178,6 +178,7 @@ class Engine {
 			AssetsContractController,
 			AssetsDetectionController,
 			NetworkController: { provider },
+			TokenRatesController,
 			TransactionController
 		} = this.datamodel.context;
 
@@ -188,6 +189,7 @@ class Engine {
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();
+		TokenRatesController.poll();
 	}
 
 	/**

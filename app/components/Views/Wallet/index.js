@@ -113,8 +113,12 @@ class Wallet extends Component {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
+		const { AssetsDetectionController, AccountTrackerController, TokenRatesController } = Engine.context;
+		const actions = [
+			AssetsDetectionController.detectAssets(),
+			AccountTrackerController.refresh(),
+			TokenRatesController.poll()
+		];
 		await Promise.all(actions);
 		this.setState({ refreshing: false });
 	};
@@ -150,6 +154,15 @@ class Wallet extends Component {
 			navigation,
 			showAlert
 		} = this.props;
+
+		let allTokenExchangeRates = tokenExchangeRates;
+		if (
+			Object.keys(tokenExchangeRates).length <
+			Object.keys(Engine.context.TokenRatesController.state.contractExchangeRates).length
+		) {
+			allTokenExchangeRates = Engine.context.TokenRatesController.state.contractExchangeRates;
+		}
+
 		let balance = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {
@@ -188,7 +201,7 @@ class Wallet extends Component {
 						currentCurrency={currentCurrency}
 						conversionRate={conversionRate}
 						tokenBalances={tokenBalances}
-						tokenExchangeRates={tokenExchangeRates}
+						tokenExchangeRates={allTokenExchangeRates}
 					/>
 					<CollectibleContracts
 						navigation={navigation}
