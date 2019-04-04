@@ -7,7 +7,6 @@ import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../../core/Engine';
 import CollectibleImage from '../CollectibleImage';
 import AssetElement from '../AssetElement';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -110,10 +109,7 @@ export default class Collectibles extends Component {
 
 	removeCollectible = () => {
 		const { AssetsController } = Engine.context;
-		AssetsController.removeCollectible(
-			toChecksumAddress(this.collectibleToRemove.address),
-			this.collectibleToRemove.tokenId
-		);
+		AssetsController.removeCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
 		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
 	};
 
