@@ -154,7 +154,13 @@ class AccountInput extends Component {
 		 * Network id
 		 */
 		updateToAddressError: PropTypes.func,
+		/**
+		 * Callback to open accounts dropdown
+		 */
 		openAccountSelect: PropTypes.func,
+		/**
+		 * Whether accounts dropdown is opened
+		 */
 		isOpen: PropTypes.bool
 	};
 
