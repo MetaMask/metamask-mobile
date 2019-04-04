@@ -197,7 +197,7 @@ class TransactionEdit extends Component {
 		this.setState({ ethInputIsOpen: isOpen, accountSelectIsOpen: false });
 	};
 
-	closeAccountSelect = () => {
+	closeDropdowns = () => {
 		this.setState({ accountSelectIsOpen: false, ethInputIsOpen: false });
 	};
 
@@ -356,7 +356,7 @@ class TransactionEdit extends Component {
 					confirmText={strings('transaction.next')}
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.review}
-					onTouchablePress={this.closeAccountSelect}
+					onTouchablePress={this.closeDropdowns}
 				>
 					<View style={styles.form}>
 						<View style={[styles.formRow, styles.fromRow]}>
@@ -408,7 +408,7 @@ class TransactionEdit extends Component {
 								totalGas={totalGas}
 								gas={gas}
 								gasPrice={gasPrice}
-								onPress={this.closeAccountSelect}
+								onPress={this.closeDropdowns}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row]}>
