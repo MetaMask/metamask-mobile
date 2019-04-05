@@ -118,6 +118,10 @@
 		"copy_address": "Copiar",
 		"remove_token_title": "Deseas eliminar este token?",
 		"remove_collectible_title": "Deseas eliminar este coleccionable?",
+		"token_removed_title": "Token eliminado!",
+		"token_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"+ AGREGAR TOKENS\"",
+		"collectible_removed_title": "Coleccionable eliminado!",
+		"collectible_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"Agregar Coleccionable\"",
 		"remove": "Eliminar",
 		"cancel": "Cancelar"
 	},
