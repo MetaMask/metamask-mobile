@@ -37,6 +37,7 @@ export default function ActionView({
 	confirmButtonMode,
 	onCancelPress,
 	onConfirmPress,
+	onTouchablePress,
 	showCancelButton,
 	showConfirmButton,
 	confirmed,
@@ -45,7 +46,9 @@ export default function ActionView({
 	return (
 		<View style={baseStyles.flexGrow}>
 			<KeyboardAwareScrollView style={baseStyles.flexGrow} resetScrollToCoords={{ x: 0, y: 0 }}>
-				<TouchableWithoutFeedback style={baseStyles.flexGrow}>{children}</TouchableWithoutFeedback>
+				<TouchableWithoutFeedback style={baseStyles.flexGrow} onPress={onTouchablePress}>
+					{children}
+				</TouchableWithoutFeedback>
 			</KeyboardAwareScrollView>
 			<View style={styles.actionContainer}>
 				{showCancelButton && (
@@ -127,6 +130,11 @@ ActionView.propTypes = {
 	 * Called when the confirm button is clicked
 	 */
 	onConfirmPress: PropTypes.func,
+	/**
+	 * Called when the touchable without feedback is clicked
+	 */
+	onTouchablePress: PropTypes.func,
+
 	/**
 	 * Whether cancel button is shown
 	 */
