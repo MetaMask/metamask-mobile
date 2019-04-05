@@ -178,7 +178,6 @@ class Engine {
 			AssetsContractController,
 			AssetsDetectionController,
 			NetworkController: { provider },
-			TokenRatesController,
 			TransactionController
 		} = this.datamodel.context;
 
