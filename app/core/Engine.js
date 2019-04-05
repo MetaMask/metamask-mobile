@@ -189,7 +189,6 @@ class Engine {
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
 		AssetsDetectionController.detectAssets();
-		TokenRatesController.poll();
 	}
 
 	/**
