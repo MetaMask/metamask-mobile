@@ -113,8 +113,18 @@ class Wallet extends Component {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
+		const { 
+			AssetsDetectionController,
+			AccountTrackerController,
+			CurrencyRateController,
+			TokenRatesController
+		} = Engine.context;
+		const actions = [
+			AssetsDetectionController.detectAssets(),
+			AccountTrackerController.refresh(),
+			CurrencyRateController.poll(),
+			TokenRatesController.poll()
+		];
 		await Promise.all(actions);
 		this.setState({ refreshing: false });
 	};
@@ -150,6 +160,7 @@ class Wallet extends Component {
 			navigation,
 			showAlert
 		} = this.props;
+
 		let balance = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {
