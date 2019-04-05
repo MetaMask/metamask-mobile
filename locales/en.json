@@ -298,6 +298,7 @@
 	"transaction": {
 		"alert": "ALERT",
 		"amount": "Amount",
+		"next": "Next",
 		"confirm": "Confirm",
 		"reject": "Reject",
 		"edit": "Edit",
