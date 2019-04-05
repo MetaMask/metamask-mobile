@@ -11,6 +11,7 @@ import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number'
 import Engine from '../../../core/Engine';
 import AssetElement from '../AssetElement';
 import FadeIn from 'react-native-fade-in-image';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -129,18 +130,17 @@ export default class Tokens extends PureComponent {
 
 	renderItem = item => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
-		const logo = item.logo || ((contractMap[item.address] && contractMap[item.address].logo) || undefined);
-		const exchangeRate = item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
+		const itemAddress = (item.address && toChecksumAddress(item.address)) || undefined;
+		const logo = item.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
+		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			item.balance ||
-			(item.address in tokenBalances
-				? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
-				: 0);
+			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], item.decimals) : 0);
 		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		item = { ...item, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement
-				key={item.address || '0x'}
+				key={itemAddress || '0x'}
 				onPress={this.onItemPress}
 				onLongPress={this.showRemoveMenu}
 				asset={item}
