@@ -113,10 +113,16 @@ class Wallet extends Component {
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		const { AssetsDetectionController, AccountTrackerController, TokenRatesController } = Engine.context;
+		const { 
+			AssetsDetectionController,
+			AccountTrackerController,
+			CurrencyRateController,
+			TokenRatesController
+		} = Engine.context;
 		const actions = [
 			AssetsDetectionController.detectAssets(),
 			AccountTrackerController.refresh(),
+			CurrencyRateController.poll(),
 			TokenRatesController.poll()
 		];
 		await Promise.all(actions);
