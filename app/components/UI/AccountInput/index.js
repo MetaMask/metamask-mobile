@@ -153,11 +153,18 @@ class AccountInput extends Component {
 		/**
 		 * Network id
 		 */
-		updateToAddressError: PropTypes.func
+		updateToAddressError: PropTypes.func,
+		/**
+		 * Callback to open accounts dropdown
+		 */
+		openAccountSelect: PropTypes.func,
+		/**
+		 * Whether accounts dropdown is opened
+		 */
+		isOpen: PropTypes.bool
 	};
 
 	state = {
-		isOpen: false,
 		address: undefined,
 		ensRecipient: undefined,
 		value: undefined
@@ -204,9 +211,8 @@ class AccountInput extends Component {
 	};
 
 	onFocus = () => {
-		const { onFocus } = this.props;
-		const { isOpen } = this.state;
-		this.setState({ isOpen: !isOpen });
+		const { onFocus, isOpen, openAccountSelect } = this.props;
+		openAccountSelect && openAccountSelect(!isOpen);
 		onFocus && onFocus();
 	};
 
@@ -271,22 +277,25 @@ class AccountInput extends Component {
 	}
 
 	onChange = async value => {
-		const { accounts, onChange } = this.props;
+		const { accounts, onChange, openAccountSelect } = this.props;
 		const addresses = Object.keys(accounts).filter(address => address.toLowerCase().match(value.toLowerCase()));
 		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
 		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
 		this.setState({
-			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match,
 			value
 		});
+		openAccountSelect && openAccountSelect((value.length === 0 || visibleOptions.length) > 0 && !match);
 		onChange && onChange(value);
 	};
 
 	onInputFocus = () => {
-		this.setState({ isOpen: false });
+		const { openAccountSelect } = this.props;
+		openAccountSelect && openAccountSelect(true);
 	};
 
 	scan = () => {
+		const { openAccountSelect } = this.props;
+		openAccountSelect && openAccountSelect(false);
 		this.setState({ isOpen: false });
 		this.props.navigation.navigate('QRScanner', {
 			onScanSuccess: meta => {
@@ -298,8 +307,8 @@ class AccountInput extends Component {
 	};
 
 	render = () => {
-		const { isOpen, value, ensRecipient, address } = this.state;
-		const { placeholder } = this.props;
+		const { value, ensRecipient, address } = this.state;
+		const { placeholder, isOpen } = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.accountContainer}>
