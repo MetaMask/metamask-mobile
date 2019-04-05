@@ -114,14 +114,20 @@ class AccountSelect extends Component {
 		/**
 		 * Address of the currently-selected account
 		 */
-		value: PropTypes.string
+		value: PropTypes.string,
+		/**
+		 * Callback to open accounts dropdown
+		 */
+		openAccountSelect: PropTypes.func,
+		/**
+		 * Whether accounts dropdown is opened
+		 */
+		isOpen: PropTypes.bool
 	};
 
 	static defaultProps = {
 		enabled: true
 	};
-
-	state = { isOpen: false };
 
 	componentDidMount() {
 		const { onChange, selectedAddress } = this.props;
@@ -129,14 +135,14 @@ class AccountSelect extends Component {
 	}
 
 	renderActiveOption() {
-		const { selectedAddress, accounts, identities, value } = this.props;
+		const { selectedAddress, accounts, identities, value, isOpen, openAccountSelect } = this.props;
 		const targetAddress = toChecksumAddress(value || selectedAddress);
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>
 				{this.props.enabled && <MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />}
 				{this.renderOption(account, () => {
-					this.setState({ isOpen: !this.state.isOpen });
+					openAccountSelect && openAccountSelect(!isOpen);
 				})}
 			</View>
 		);
@@ -169,13 +175,14 @@ class AccountSelect extends Component {
 	}
 
 	renderOptionList() {
-		const { accounts, identities, onChange } = this.props;
+		const { accounts, identities, onChange, openAccountSelect } = this.props;
 		return (
 			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{Object.keys(identities).map(address =>
 						this.renderOption({ ...identities[address], ...accounts[address] }, () => {
-							this.setState({ isOpen: false, value: address });
+							this.setState({ value: address });
+							openAccountSelect && openAccountSelect(true);
 							onChange && onChange(address);
 						})
 					)}
@@ -187,7 +194,7 @@ class AccountSelect extends Component {
 	render = () => (
 		<View style={styles.root}>
 			{this.renderActiveOption()}
-			{this.state.isOpen && this.props.enabled && this.renderOptionList()}
+			{this.props.isOpen && this.props.enabled && this.renderOptionList()}
 		</View>
 	);
 }

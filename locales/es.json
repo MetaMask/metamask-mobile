@@ -300,6 +300,7 @@
 	"transaction": {
 		"alert": "ALERTA",
 		"amount": "Cantidad",
+		"next": "Siguiente",
 		"confirm": "Confirmar",
 		"reject": "Rechazar",
 		"edit": "Editar",

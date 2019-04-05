@@ -84,7 +84,8 @@ const styles = StyleSheet.create({
 	form: {
 		flex: 1,
 		padding: 16,
-		flexDirection: 'column'
+		flexDirection: 'column',
+		minHeight: '100%'
 	},
 	hexData: {
 		...fontStyles.bold,
@@ -183,7 +184,21 @@ class TransactionEdit extends Component {
 		gasError: '',
 		fillMax: false,
 		ensRecipient: undefined,
-		data: undefined
+		data: undefined,
+		accountSelectIsOpen: false,
+		ethInputIsOpen: false
+	};
+
+	openAccountSelect = isOpen => {
+		this.setState({ accountSelectIsOpen: isOpen, ethInputIsOpen: false });
+	};
+
+	openEthInputIsOpen = isOpen => {
+		this.setState({ ethInputIsOpen: isOpen, accountSelectIsOpen: false });
+	};
+
+	closeDropdowns = () => {
+		this.setState({ accountSelectIsOpen: false, ethInputIsOpen: false });
 	};
 
 	componentDidMount = () => {
@@ -333,11 +348,16 @@ class TransactionEdit extends Component {
 			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
 			showHexData
 		} = this.props;
-		const { gasError, toAddressError, data } = this.state;
+		const { gasError, toAddressError, data, accountSelectIsOpen, ethInputIsOpen } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
-				<ActionView confirmText="Next" onCancelPress={this.props.onCancel} onConfirmPress={this.review}>
+				<ActionView
+					confirmText={strings('transaction.next')}
+					onCancelPress={this.props.onCancel}
+					onConfirmPress={this.review}
+					onTouchablePress={this.closeDropdowns}
+				>
 					<View style={styles.form}>
 						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
@@ -355,6 +375,8 @@ class TransactionEdit extends Component {
 								readableValue={readableValue}
 								fillMax={this.state.fillMax}
 								updateFillMax={this.updateFillMax}
+								openEthInput={this.openEthInputIsOpen}
+								isOpen={ethInputIsOpen}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.toRow]}>
@@ -372,6 +394,8 @@ class TransactionEdit extends Component {
 								updateToAddressError={this.updateToAddressError}
 								ensRecipient={ensRecipient}
 								navigation={navigation}
+								openAccountSelect={this.openAccountSelect}
+								isOpen={accountSelectIsOpen}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
@@ -384,6 +408,7 @@ class TransactionEdit extends Component {
 								totalGas={totalGas}
 								gas={gas}
 								gasPrice={gasPrice}
+								onPress={this.closeDropdowns}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row]}>
