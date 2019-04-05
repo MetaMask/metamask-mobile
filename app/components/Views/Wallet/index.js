@@ -155,14 +155,6 @@ class Wallet extends Component {
 			showAlert
 		} = this.props;
 
-		let allTokenExchangeRates = tokenExchangeRates;
-		if (
-			Object.keys(tokenExchangeRates).length <
-			Object.keys(Engine.context.TokenRatesController.state.contractExchangeRates).length
-		) {
-			allTokenExchangeRates = Engine.context.TokenRatesController.state.contractExchangeRates;
-		}
-
 		let balance = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {
@@ -201,7 +193,7 @@ class Wallet extends Component {
 						currentCurrency={currentCurrency}
 						conversionRate={conversionRate}
 						tokenBalances={tokenBalances}
-						tokenExchangeRates={allTokenExchangeRates}
+						tokenExchangeRates={tokenExchangeRates}
 					/>
 					<CollectibleContracts
 						navigation={navigation}
