@@ -93,6 +93,9 @@ class Send extends Component {
 		this.props.newTransaction();
 	};
 
+	/**
+	 * Check if view is called with txMeta object for a deeplink
+	 */
 	checkForDeeplinks() {
 		const { navigation } = this.props;
 		const txMeta = navigation && navigation.getParam('txMeta', null);
@@ -141,14 +144,38 @@ class Send extends Component {
 		}
 	}
 
+	/**
+	 * Handle txMeta object, setting neccesary state to make a transaction
+	 */
 	handleNewTxMeta = async ({
 		target_address,
+		action,
 		chain_id = null, // eslint-disable-line no-unused-vars
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
-		const newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
-		newTxMeta.to = toChecksumAddress(target_address);
+		let newTxMeta;
+		switch (action) {
+			case 'send-eth':
+				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
+				newTxMeta.to = toChecksumAddress(target_address);
+				break;
+			case 'send-token':
+				newTxMeta = {
+					assetType: 'ERC20',
+					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
+					selectedAsset: {
+						symbol: 'TKN',
+						address: '0xe9f786dfdd9ae4d57e830acb52296837765f0e5b',
+						decimals: 18
+					}
+				};
+				newTxMeta.to = toChecksumAddress(parameters.address);
+				break;
+			default:
+				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
+				newTxMeta.to = toChecksumAddress(target_address);
+		}
 
 		if (parameters) {
 			const { value, gas, gasPrice } = parameters;
