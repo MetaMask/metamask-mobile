@@ -241,7 +241,7 @@ class Send extends Component {
 				isVisible: true,
 				autodismiss: 5000,
 				content: 'clipboard-alert',
-				data: { msg: strings('send.warn_network_hange') + NetworkList[newNetworkType].name }
+				data: { msg: strings('send.warn_network_change') + NetworkList[newNetworkType].name }
 			});
 		}
 	};
