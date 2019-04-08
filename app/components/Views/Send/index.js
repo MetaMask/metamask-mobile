@@ -4,7 +4,7 @@ import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet,
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import TransactionEditor from '../../UI/TransactionEditor';
-import { toBN, BNToHex, hexToBN, fromWei } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
@@ -163,30 +163,31 @@ class Send extends Component {
 			case 'send-eth':
 				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
 				newTxMeta.to = toChecksumAddress(target_address);
+				if (parameters && parameters.value) {
+					newTxMeta.value = toBN(parameters.value);
+					newTxMeta.readableValue = fromWei(newTxMeta.value);
+				}
 				break;
-			case 'send-token':
+			case 'send-token': {
+				const selectedAsset = await this.handleTokenDeeplink(target_address);
 				newTxMeta = {
 					assetType: 'ERC20',
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
-					selectedAsset: {
-						symbol: 'TKN',
-						address: '0xe9f786dfdd9ae4d57e830acb52296837765f0e5b',
-						decimals: 18
-					}
+					selectedAsset
 				};
 				newTxMeta.to = toChecksumAddress(parameters.address);
+				if (parameters && parameters.uint256) {
+					newTxMeta.value = toTokenMinimalUnit(parameters.uint256, selectedAsset.decimals);
+					newTxMeta.readableValue = String(
+						renderFromTokenMinimalUnit(newTxMeta.value, selectedAsset.decimals)
+					);
+				}
 				break;
-			default:
-				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
-				newTxMeta.to = toChecksumAddress(target_address);
+			}
 		}
 
 		if (parameters) {
-			const { value, gas, gasPrice } = parameters;
-			if (value) {
-				newTxMeta.value = toBN(value);
-				newTxMeta.readableValue = fromWei(newTxMeta.value);
-			}
+			const { gas, gasPrice } = parameters;
 			if (gas) {
 				newTxMeta.gas = toBN(gas);
 			}
@@ -222,6 +223,20 @@ class Send extends Component {
 			const { NetworkController } = Engine.context;
 			NetworkController.setProviderType(networkType);
 		}
+	};
+
+	/**
+	 * Retrieves ERC20 asset information (symbol and decimals) to be used with deeplinks
+	 *
+	 * @param address- Corresponding ERC20 asset address
+	 *
+	 * @returns ERC20 asset, containing address, symbol and decimals
+	 */
+	handleTokenDeeplink = async address => {
+		const { AssetsContractController } = Engine.context;
+		const decimals = await AssetsContractController.getTokenDecimals(address);
+		const symbol = await AssetsContractController.getAssetSymbol(address);
+		return { address, symbol, decimals: parseInt(String(decimals)) };
 	};
 
 	/**
