@@ -297,7 +297,7 @@ class TransactionEditor extends Component {
 		} = this.props;
 		const validations = {
 			ETH: () => this.validateEtherAmount(allowEmpty),
-			ERC20: () => this.validateTokenAmount(allowEmpty),
+			ERC20: async () => await this.validateTokenAmount(allowEmpty),
 			ERC721: async () => await this.validateCollectibleOwnership()
 		};
 		return await validations[assetType]();
@@ -358,7 +358,7 @@ class TransactionEditor extends Component {
 	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
 	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
 	 */
-	validateTokenAmount = (allowEmpty = true) => {
+	validateTokenAmount = async (allowEmpty = true) => {
 		let error;
 		if (!allowEmpty) {
 			const {
@@ -370,10 +370,22 @@ class TransactionEditor extends Component {
 			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
 			}
-			// If user trying to send a token that doesn't own, don't validate balance
-			const contractBalanceForAddress =
-				contractBalances[selectedAsset.address] &&
-				hexToBN(contractBalances[selectedAsset.address].toString(16));
+			// If user trying to send a token that doesn't own, validate balance querying contract
+			// If it fails, skip validation
+			let contractBalanceForAddress;
+			if (contractBalances[selectedAsset.address]) {
+				contractBalanceForAddress = hexToBN(contractBalances[selectedAsset.address].toString(16));
+			} else {
+				const { AssetsContractController } = Engine.context;
+				try {
+					contractBalanceForAddress = await AssetsContractController.getBalanceOf(
+						checksummedFrom,
+						selectedAsset.address
+					);
+				} catch (e) {
+					// Don't validate balance if error
+				}
+			}
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
 			const validateAssetAmount = contractBalanceForAddress && contractBalanceForAddress.lt(value);
 			const ethTotalAmount = gas.mul(gasPrice);
