@@ -11,6 +11,7 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import { getNetworkTypeById } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -154,6 +155,9 @@ class Send extends Component {
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
+		if (chain_id) {
+			this.handleNetworkSwitch(chain_id);
+		}
 		let newTxMeta;
 		switch (action) {
 			case 'send-eth':
@@ -205,6 +209,19 @@ class Send extends Component {
 
 		this.props.setTransactionObject(newTxMeta);
 		this.mounted && this.setState({ ready: true, mode: 'edit', transactionKey: Date.now() });
+	};
+
+	/**
+	 * Method in charge of changing network if is needed
+	 *
+	 * @param chainId - Corresponding id for network
+	 */
+	handleNetworkSwitch = chainId => {
+		const networkType = getNetworkTypeById(chainId);
+		if (networkType) {
+			const { NetworkController } = Engine.context;
+			NetworkController.setProviderType(networkType);
+		}
 	};
 
 	/**
