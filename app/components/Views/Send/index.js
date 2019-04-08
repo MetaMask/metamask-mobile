@@ -53,6 +53,10 @@ class Send extends Component {
 		 */
 		setTransactionObject: PropTypes.func.isRequired,
 		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
 		 * Transaction state
 		 */
 		transaction: PropTypes.object.isRequired,
@@ -250,17 +254,24 @@ class Send extends Component {
 	 * @returns ERC20 asset, containing address, symbol and decimals
 	 */
 	handleTokenDeeplink = async address => {
+		const { tokens } = this.props;
 		address = toChecksumAddress(address);
+		// First check if we have token information in contractMap
 		if (address in contractMap) {
 			return contractMap[address];
 		}
+		// Then check if the token is already in state
+		const stateToken = tokens.find(token => token.address === address);
+		if (stateToken) {
+			return stateToken;
+		}
+		// Finally try to query the contract
 		const { AssetsContractController } = Engine.context;
 		const token = { address };
 		try {
 			const decimals = await AssetsContractController.getTokenDecimals(address);
 			token.decimals = parseInt(String(decimals));
 		} catch (e) {
-			// TODO probably drop tx
 			// Drop tx since we don't have any form to get decimals and send the correct tx
 			this.props.showAlert({
 				isVisible: true,
@@ -402,7 +413,8 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	transaction: state.transaction,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	tokens: state.engine.backgroundState.AssetsController.tokens
 });
 
 const mapDispatchToProps = dispatch => ({
