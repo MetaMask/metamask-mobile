@@ -97,7 +97,9 @@
 		"public_address": "Public Address"
 	},
 	"send": {
-		"title": "Send"
+		"title": "Send",
+		"deeplink_failure": "Ooops! Something happened, please try again with other transaction.",
+		"warn_network_hange": "Network is being changed to "
 	},
 	"receive": {
 		"title": "Receive"

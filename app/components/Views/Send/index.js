@@ -237,7 +237,7 @@ class Send extends Component {
 				isVisible: true,
 				autodismiss: 5000,
 				content: 'clipboard-alert',
-				data: { msg: `Network is being changed to ${NetworkList[newNetworkType].name}` }
+				data: { msg: strings('send.warn_network_hange') + NetworkList[newNetworkType].name }
 			});
 		}
 	};
@@ -261,7 +261,14 @@ class Send extends Component {
 			token.decimals = parseInt(String(decimals));
 		} catch (e) {
 			// TODO probably drop tx
-			token.decimals = 18;
+			// Drop tx since we don't have any form to get decimals and send the correct tx
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 2000,
+				content: 'clipboard-alert',
+				data: { msg: strings(`send.deeplink_failure`) }
+			});
+			this.onCancel();
 		}
 		try {
 			token.symbol = await AssetsContractController.getAssetSymbol(address);
