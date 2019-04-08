@@ -255,9 +255,20 @@ class Send extends Component {
 			return contractMap[address];
 		}
 		const { AssetsContractController } = Engine.context;
-		const decimals = await AssetsContractController.getTokenDecimals(address);
-		const symbol = await AssetsContractController.getAssetSymbol(address);
-		return { address, symbol, decimals: parseInt(String(decimals)) };
+		const token = { address };
+		try {
+			const decimals = await AssetsContractController.getTokenDecimals(address);
+			token.decimals = parseInt(String(decimals));
+		} catch (e) {
+			// TODO probably drop tx
+			token.decimals = 18;
+		}
+		try {
+			token.symbol = await AssetsContractController.getAssetSymbol(address);
+		} catch (e) {
+			token.symbol = 'ERC20';
+		}
+		return token;
 	};
 
 	/**

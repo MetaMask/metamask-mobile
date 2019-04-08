@@ -370,9 +370,12 @@ class TransactionEditor extends Component {
 			if (!value || !gas || !gasPrice || !from) {
 				return strings('transaction.invalid_amount');
 			}
-			const contractBalanceForAddress = hexToBN(contractBalances[selectedAsset.address].toString(16));
+			// If user trying to send a token that doesn't own, don't validate balance
+			const contractBalanceForAddress =
+				contractBalances[selectedAsset.address] &&
+				hexToBN(contractBalances[selectedAsset.address].toString(16));
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
-			const validateAssetAmount = contractBalanceForAddress.lt(value);
+			const validateAssetAmount = contractBalanceForAddress && contractBalanceForAddress.lt(value);
 			const ethTotalAmount = gas.mul(gasPrice);
 			if (
 				value &&
