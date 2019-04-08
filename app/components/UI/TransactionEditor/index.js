@@ -379,8 +379,8 @@ class TransactionEditor extends Component {
 				const { AssetsContractController } = Engine.context;
 				try {
 					contractBalanceForAddress = await AssetsContractController.getBalanceOf(
-						checksummedFrom,
-						selectedAsset.address
+						selectedAsset.address,
+						checksummedFrom
 					);
 				} catch (e) {
 					// Don't validate balance if error
