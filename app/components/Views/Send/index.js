@@ -11,8 +11,9 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
-import { getNetworkTypeById } from '../../../util/networks';
+import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
+import { showAlert } from '../../../actions/alert';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,13 +45,21 @@ class Send extends Component {
 		 */
 		newTransaction: PropTypes.func.isRequired,
 		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string,
+		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func.isRequired,
 		/**
 		 * Transaction state
 		 */
-		transaction: PropTypes.object.isRequired
+		transaction: PropTypes.object.isRequired,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -219,10 +228,17 @@ class Send extends Component {
 	 * @param chainId - Corresponding id for network
 	 */
 	handleNetworkSwitch = chainId => {
-		const networkType = getNetworkTypeById(chainId);
-		if (networkType) {
+		const { networkType } = this.props;
+		const newNetworkType = getNetworkTypeById(chainId);
+		if (newNetworkType && networkType !== newNetworkType) {
 			const { NetworkController } = Engine.context;
-			NetworkController.setProviderType(networkType);
+			NetworkController.setProviderType(newNetworkType);
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 5000,
+				content: 'clipboard-alert',
+				data: { msg: `Network is being changed to ${NetworkList[newNetworkType].name}` }
+			});
 		}
 	};
 
@@ -367,12 +383,14 @@ class Send extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	transaction: state.transaction
+	transaction: state.transaction,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
 	newTransaction: () => dispatch(newTransaction()),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(
