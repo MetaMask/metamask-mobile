@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import { getNetworkTypeById } from '../../../util/networks';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -151,7 +152,7 @@ class Send extends Component {
 	handleNewTxMeta = async ({
 		target_address,
 		action,
-		chain_id = null, // eslint-disable-line no-unused-vars
+		chain_id = null,
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
@@ -228,11 +229,15 @@ class Send extends Component {
 	/**
 	 * Retrieves ERC20 asset information (symbol and decimals) to be used with deeplinks
 	 *
-	 * @param address- Corresponding ERC20 asset address
+	 * @param address - Corresponding ERC20 asset address
 	 *
 	 * @returns ERC20 asset, containing address, symbol and decimals
 	 */
 	handleTokenDeeplink = async address => {
+		address = toChecksumAddress(address);
+		if (address in contractMap) {
+			return contractMap[address];
+		}
 		const { AssetsContractController } = Engine.context;
 		const decimals = await AssetsContractController.getTokenDecimals(address);
 		const symbol = await AssetsContractController.getAssetSymbol(address);
