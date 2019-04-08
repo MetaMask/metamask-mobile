@@ -126,7 +126,12 @@ export default class Login extends Component {
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
+			let enabled = true;
+			const previouslyDisabled = await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			if (previouslyDisabled && previouslyDisabled === 'true') {
+				enabled = false;
+			}
+			this.setState({ biometryType, biometryChoice: enabled });
 		}
 	}
 
@@ -190,6 +195,15 @@ export default class Login extends Component {
 		this.props.navigation.navigate('OnboardingRootNav');
 	};
 
+	updateBiometryChoice = async biometryChoice => {
+		if (!biometryChoice) {
+			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+		} else {
+			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+		}
+		this.setState({ biometryChoice });
+	};
+
 	renderSwitch = () => {
 		if (this.state.biometryType) {
 			return (
@@ -198,7 +212,7 @@ export default class Login extends Component {
 						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
 					</Text>
 					<Switch
-						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
 						trackColor={
