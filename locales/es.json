@@ -98,8 +98,8 @@
 	},
 	"send": {
 		"title": "Enviar",
-		"deeplink_failure": "Ooops! S algo ha salido mal, por favor intenta nuevamente con una nueva transacción.",
-		"warn_network_change": "La red está siendo cambiada a "
+		"deeplink_failure": "Ooops! Algo ha salido mal, por favor intėntalo de nuevo",
+		"warn_network_change": "La red ha sido cambiada a "
 	},
 	"receive": {
 		"title": "Recibir"
