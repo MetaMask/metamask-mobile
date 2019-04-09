@@ -630,7 +630,11 @@
 		"pending_message": "Waiting for confirmation...",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
-		"received_message": "Tap to view this transaction"
+		"received_message": "Tap to view this transaction",
+		"prompt_title": "Enable Push Notifications",
+		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
+		"prompt_ok": "Yes",
+		"prompt_cancel": "No, thanks"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",
