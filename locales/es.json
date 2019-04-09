@@ -626,7 +626,11 @@
 		"pending_message": "Tu transacción esta en proceso",
 		"error_message": "Presiona para ver esta transacción",
 		"success_message": "Presiona para ver esta transacción",
-		"received_message": "Presiona para ver esta transacción"
+		"received_message": "Presiona para ver esta transacción",
+		"prompt_title": "Habilitar Notificationes",
+		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
+		"prompt_ok": "Si",
+		"prompt_cancel": "No, gracias"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Protege tu billetera",
