@@ -112,16 +112,11 @@ class TransactionsNotificationManager {
 	 * Handles the push notification prompt
 	 * with a custom set of rules, like max. number of attempts
 	 */
-	requestPushNotificationsPermission = () => {
-		const promptCount = AsyncStorage.getItem('@MetaMask:pushNotificationsPromptCount');
-		if (!promptCount && Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES) {
+	requestPushNotificationsPermission = async () => {
+		const promptCount = await AsyncStorage.getItem('@MetaMask:pushNotificationsPromptCount');
+		if (!promptCount || Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES) {
 			PushNotification.checkPermissions(permissions => {
 				if (!permissions || !permissions.alert) {
-					const times = (promptCount && promptCount + 1) || 1;
-					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptCount', times.toString());
-					// In case we want to prompt again after certain time.
-					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptTime', Date.now());
-
 					Alert.alert(
 						strings('notifications.prompt_title'),
 						strings('notifications.prompt_desc'),
@@ -129,7 +124,7 @@ class TransactionsNotificationManager {
 							{
 								text: strings('notifications.prompt_cancel'),
 								onPress: () => false,
-								style: 'cancel'
+								style: 'default'
 							},
 							{
 								text: strings('notifications.prompt_ok'),
@@ -138,6 +133,11 @@ class TransactionsNotificationManager {
 						],
 						{ cancelable: false }
 					);
+
+					const times = (promptCount && Number(promptCount) + 1) || 1;
+					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptCount', times.toString());
+					// In case we want to prompt again after certain time.
+					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptTime', Date.now().toString());
 				}
 			});
 		}
@@ -308,5 +308,8 @@ export default {
 	},
 	gotIncomingTransaction(lastBlock) {
 		return instance.gotIncomingTransaction(lastBlock);
+	},
+	requestPushNotificationsPermission() {
+		return instance.requestPushNotificationsPermission();
 	}
 };
