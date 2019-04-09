@@ -4,13 +4,16 @@ import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet,
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import TransactionEditor from '../../UI/TransactionEditor';
-import { toBN, BNToHex, hexToBN, fromWei } from '../../../util/number';
+import { toBN, BNToHex, hexToBN, fromWei, toTokenMinimalUnit, renderFromTokenMinimalUnit } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import NetworkList, { getNetworkTypeById } from '../../../util/networks';
+import contractMap from 'eth-contract-metadata';
+import { showAlert } from '../../../actions/alert';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -42,13 +45,25 @@ class Send extends Component {
 		 */
 		newTransaction: PropTypes.func.isRequired,
 		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string,
+		/**
 		 * Action that sets transaction attributes from object to a transaction
 		 */
 		setTransactionObject: PropTypes.func.isRequired,
 		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
 		 * Transaction state
 		 */
-		transaction: PropTypes.object.isRequired
+		transaction: PropTypes.object.isRequired,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -93,6 +108,9 @@ class Send extends Component {
 		this.props.newTransaction();
 	};
 
+	/**
+	 * Check if view is called with txMeta object for a deeplink
+	 */
 	checkForDeeplinks() {
 		const { navigation } = this.props;
 		const txMeta = navigation && navigation.getParam('txMeta', null);
@@ -141,21 +159,49 @@ class Send extends Component {
 		}
 	}
 
+	/**
+	 * Handle txMeta object, setting neccesary state to make a transaction
+	 */
 	handleNewTxMeta = async ({
 		target_address,
-		chain_id = null, // eslint-disable-line no-unused-vars
+		action,
+		chain_id = null,
 		function_name = null, // eslint-disable-line no-unused-vars
 		parameters = null
 	}) => {
-		const newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
-		newTxMeta.to = toChecksumAddress(target_address);
+		if (chain_id) {
+			this.handleNetworkSwitch(chain_id);
+		}
+		let newTxMeta;
+		switch (action) {
+			case 'send-eth':
+				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
+				newTxMeta.to = toChecksumAddress(target_address);
+				if (parameters && parameters.value) {
+					newTxMeta.value = toBN(parameters.value);
+					newTxMeta.readableValue = fromWei(newTxMeta.value);
+				}
+				break;
+			case 'send-token': {
+				const selectedAsset = await this.handleTokenDeeplink(target_address);
+				newTxMeta = {
+					assetType: 'ERC20',
+					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
+					selectedAsset
+				};
+				newTxMeta.to = toChecksumAddress(parameters.address);
+				if (parameters && parameters.uint256) {
+					newTxMeta.value = toTokenMinimalUnit(parameters.uint256, selectedAsset.decimals);
+					newTxMeta.readableValue = String(
+						renderFromTokenMinimalUnit(newTxMeta.value, selectedAsset.decimals)
+					);
+				}
+				break;
+			}
+		}
 
 		if (parameters) {
-			const { value, gas, gasPrice } = parameters;
-			if (value) {
-				newTxMeta.value = toBN(value);
-				newTxMeta.readableValue = fromWei(newTxMeta.value);
-			}
+			const { gas, gasPrice } = parameters;
 			if (gas) {
 				newTxMeta.gas = toBN(gas);
 			}
@@ -178,6 +224,69 @@ class Send extends Component {
 
 		this.props.setTransactionObject(newTxMeta);
 		this.mounted && this.setState({ ready: true, mode: 'edit', transactionKey: Date.now() });
+	};
+
+	/**
+	 * Method in charge of changing network if is needed
+	 *
+	 * @param chainId - Corresponding id for network
+	 */
+	handleNetworkSwitch = chainId => {
+		const { networkType } = this.props;
+		const newNetworkType = getNetworkTypeById(chainId);
+		if (newNetworkType && networkType !== newNetworkType) {
+			const { NetworkController } = Engine.context;
+			NetworkController.setProviderType(newNetworkType);
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 5000,
+				content: 'clipboard-alert',
+				data: { msg: strings('send.warn_network_change') + NetworkList[newNetworkType].name }
+			});
+		}
+	};
+
+	/**
+	 * Retrieves ERC20 asset information (symbol and decimals) to be used with deeplinks
+	 *
+	 * @param address - Corresponding ERC20 asset address
+	 *
+	 * @returns ERC20 asset, containing address, symbol and decimals
+	 */
+	handleTokenDeeplink = async address => {
+		const { tokens } = this.props;
+		address = toChecksumAddress(address);
+		// First check if we have token information in contractMap
+		if (address in contractMap) {
+			return contractMap[address];
+		}
+		// Then check if the token is already in state
+		const stateToken = tokens.find(token => token.address === address);
+		if (stateToken) {
+			return stateToken;
+		}
+		// Finally try to query the contract
+		const { AssetsContractController } = Engine.context;
+		const token = { address };
+		try {
+			const decimals = await AssetsContractController.getTokenDecimals(address);
+			token.decimals = parseInt(String(decimals));
+		} catch (e) {
+			// Drop tx since we don't have any form to get decimals and send the correct tx
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 2000,
+				content: 'clipboard-alert',
+				data: { msg: strings(`send.deeplink_failure`) }
+			});
+			this.onCancel();
+		}
+		try {
+			token.symbol = await AssetsContractController.getAssetSymbol(address);
+		} catch (e) {
+			token.symbol = 'ERC20';
+		}
+		return token;
 	};
 
 	/**
@@ -303,12 +412,15 @@ class Send extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	transaction: state.transaction
+	transaction: state.transaction,
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	tokens: state.engine.backgroundState.AssetsController.tokens
 });
 
 const mapDispatchToProps = dispatch => ({
 	newTransaction: () => dispatch(newTransaction()),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction)),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(
