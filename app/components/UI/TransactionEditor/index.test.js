@@ -23,6 +23,11 @@ describe('TransactionEditor', () => {
 					AssetsController: {
 						tokens: [],
 						collectibles: []
+					},
+					NetworkController: {
+						provider: {
+							type: 'mainnet'
+						}
 					}
 				}
 			}
