@@ -109,7 +109,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  * @param {Number|String|BN} tokenValue - Token value to convert
  * @param {Number} decimals - Token decimals to convert
  * @param {Number} decimalsToShow - Decimals to 5
- * @returns {Number} - String of token minimal unit, in render format
+ * @returns {Number} - Number of token minimal unit, in render format
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
 	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
