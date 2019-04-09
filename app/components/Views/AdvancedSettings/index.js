@@ -31,6 +31,10 @@ import { isprivateConnection } from '../../../util/networks';
 import URL from 'url-parse';
 import ipfsGateways from '../../../util/ipfs-gateways.json';
 import SelectComponent from '../../UI/SelectComponent';
+import timeoutFetch from '../../../util/general';
+
+const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
+const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -157,10 +161,12 @@ class AdvancedSettings extends Component {
 		resetModalVisible: false,
 		rpcUrl: undefined,
 		warningRpcUrl: '',
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
+		onlineIpfsGateways: []
 	};
 
-	componentDidMount = () => {
+	componentDidMount = async () => {
+		await this.handleAvailableIpfsGateways();
 		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		this.state.inputWidth &&
@@ -171,6 +177,26 @@ class AdvancedSettings extends Component {
 
 	componentWillUnmount = () => {
 		this.mounted = false;
+	};
+
+	handleAvailableIpfsGateways = async () => {
+		const ipfsGatewaysPromises = ipfsGateways.map(async ipfsGateway => {
+			const testUrl = ipfsGateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
+			try {
+				const res = await timeoutFetch(testUrl);
+				const text = await res.text();
+				const available = text.trim() === HASH_STRING.trim();
+				ipfsGateway.available = available;
+				return ipfsGateway;
+			} catch (e) {
+				ipfsGateway.available = false;
+				return ipfsGateway;
+			}
+		});
+		const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
+		const onlineIpfsGateways = ipfsGatewaysAvailability.filter(ipfsGateway => ipfsGateway.available);
+		const sortedOnlineIpfsGateways = onlineIpfsGateways.sort((a, b) => a.key < b.key);
+		this.setState({ onlineIpfsGateways: sortedOnlineIpfsGateways });
 	};
 
 	displayResetAccountModal = () => {
@@ -277,7 +303,7 @@ class AdvancedSettings extends Component {
 
 	render = () => {
 		const { showHexData, ipfsGateway } = this.props;
-		const { resetModalVisible } = this.state;
+		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
@@ -356,7 +382,7 @@ class AdvancedSettings extends Component {
 									selectedValue={ipfsGateway}
 									onValueChange={this.setIpfsGateway}
 									label={strings('app_settings.ipfs_gateway')}
-									options={ipfsGateways}
+									options={onlineIpfsGateways}
 								/>
 							</View>
 						</View>
