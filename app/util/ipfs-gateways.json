@@ -1,50 +1,13 @@
 [
-	{
-		"value": "https://ipfs.io/ipfs/",
-		"key": 0,
-		"label": "https://ipfs.io/ipfs/"
-	},
-
-	{
-		"value": "https://gateway.ipfs.io/ipfs/",
-		"key": 1,
-		"label": "https://gateway.ipfs.io/ipfs/"
-	},
-	{
-		"value": "https://ipfs.infura.io/ipfs/",
-		"key": 2,
-		"label": "https://ipfs.infura.io/ipfs/"
-	},
-	{
-		"value": "https://rx14.co.uk/ipfs/",
-		"key": 3,
-		"label": "https://rx14.co.uk/ipfs/"
-	},
-	{
-		"value": "https://ninetailed.ninja/ipfs/",
-		"key": 4,
-		"label": "https://ninetailed.ninja/ipfs/"
-	},
-	{
-		"value": "https://upload.global/ipfs/",
-		"key": 5,
-		"label": "https://upload.global/ipfs/"
-	},
-	{
-		"value": "https://ipfs.jes.xxx/ipfs/",
-		"key": 6,
-		"label": "https://ipfs.jes.xxx/ipfs/"
-	},
-	{
-		"value": "https://catalunya.network/ipfs/",
-		"key": 7,
-		"label": "https://catalunya.network/ipfs/"
-	},
-	{
-		"value": "https://siderus.io/ipfs/",
-		"key": 8,
-		"label": "https://siderus.io/ipfs/"
-	},
+	{ "value": "https://ipfs.io/ipfs/", "key": 0, "label": "https://ipfs.io/ipfs/" },
+	{ "value": "https://gateway.ipfs.io/ipfs/", "key": 1, "label": "https://gateway.ipfs.io/ipfs/" },
+	{ "value": "https://ipfs.infura.io/ipfs/", "key": 2, "label": "https://ipfs.infura.io/ipfs/" },
+	{ "value": "https://rx14.co.uk/ipfs/", "key": 3, "label": "https://rx14.co.uk/ipfs/" },
+	{ "value": "https://ninetailed.ninja/ipfs/", "key": 4, "label": "https://ninetailed.ninja/ipfs/" },
+	{ "value": "https://upload.global/ipfs/", "key": 5, "label": "https://upload.global/ipfs/" },
+	{ "value": "https://ipfs.jes.xxx/ipfs/", "key": 6, "label": "https://ipfs.jes.xxx/ipfs/" },
+	{ "value": "https://catalunya.network/ipfs/", "key": 7, "label": "https://catalunya.network/ipfs/" },
+	{ "value": "https://siderus.io/ipfs/", "key": 8, "label": "https://siderus.io/ipfs/" },
 	{ "value": "https://ipfs.eternum.io/ipfs/", "key": 9, "label": "https://ipfs.eternum.io/ipfs/" },
 	{ "value": "https://hardbin.com/ipfs/", "key": 10, "label": "https://hardbin.com/ipfs/" },
 	{ "value": "https://ipfs.macholibre.org/ipfs/", "key": 11, "label": "https://ipfs.macholibre.org/ipfs/" },
