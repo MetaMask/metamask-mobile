@@ -328,6 +328,7 @@
 		"review_function_type": "TIPO DE FUNCIÓN",
 		"review_hex_data": "DATOS HEX ",
 		"invalid_collectible_ownership": "No eres el dueño de este coleccionable",
+		"known_asset_contract": "Dirección de contrato de un activo conocido",
 		"conversion_not_available": "Datos de conversión no disponibles",
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
