@@ -99,7 +99,7 @@
 	"send": {
 		"title": "Send",
 		"deeplink_failure": "Ooops! Something happened, please try again with other transaction.",
-		"warn_network_change": "Network is being changed to "
+		"warn_network_change": "Network changed to "
 	},
 	"receive": {
 		"title": "Receive"
