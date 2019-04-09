@@ -262,6 +262,10 @@ export class Browser extends Component {
 		 */
 		defaultProtocol: PropTypes.string,
 		/**
+		 * A string that of the chosen ipfs gateway
+		 */
+		ipfsGateway: PropTypes.string,
+		/**
 		 * Object containing the information for the current transaction
 		 */
 		transaction: PropTypes.object,
@@ -690,6 +694,7 @@ export class Browser extends Component {
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
+		const { ipfsGateway } = this.props;
 
 		let ipfsContent = null;
 		let currentEnsName = null;
@@ -702,7 +707,7 @@ export class Browser extends Component {
 				const urlObj = new URL(sanitizedURL);
 				currentEnsName = urlObj.hostname;
 				ipfsHash = ipfsContent
-					.replace(this.state.ipfsGateway, '')
+					.replace(ipfsGateway, '')
 					.split('/')
 					.shift();
 			}
@@ -756,6 +761,8 @@ export class Browser extends Component {
 
 	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
+		const { ipfsGateway } = this.props;
+
 		let ipfsHash;
 		try {
 			ipfsHash = await resolveEnsToIpfsContentId({ provider, name: hostname });
@@ -766,7 +773,7 @@ export class Browser extends Component {
 			return null;
 		}
 
-		const gatewayUrl = `${this.state.ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
+		const gatewayUrl = `${ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
 
 		try {
 			const response = await fetch(gatewayUrl, { method: 'HEAD' });
@@ -1025,6 +1032,7 @@ export class Browser extends Component {
 	}
 
 	onPageChange = ({ url }) => {
+		const { ipfsGateway } = this.props;
 		if ((this.goingBack && url === 'about:blank') || (this.initialUrl === url && url === 'about:blank')) {
 			this.goBackToHomepage();
 			return;
@@ -1044,7 +1052,7 @@ export class Browser extends Component {
 			data.inputValue = url;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			data.inputValue = url.replace(
-				`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
+				`${ipfsGateway}${this.state.ipfsHash}/`,
 				`https://${this.state.currentEnsName}/`
 			);
 		} else if (this.isENSUrl(url)) {
@@ -1661,6 +1669,7 @@ export class Browser extends Component {
 const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
+	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
