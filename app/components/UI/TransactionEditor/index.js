@@ -12,6 +12,7 @@ import { generateTransferData } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	root: {
@@ -49,6 +50,14 @@ class TransactionEditor extends Component {
 		 * Called when a user changes modes
 		 */
 		onModeChange: PropTypes.func,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
+		 * Array of ERC721 assets
+		 */
+		collectibles: PropTypes.array,
 		/**
 		 * Transaction object associated with this transaction
 		 */
@@ -425,6 +434,28 @@ class TransactionEditor extends Component {
 		return error;
 	};
 
+	/**
+	 * Checks if current transaction to is a known contract address
+	 * If that's the case returns a warning message
+	 *
+	 * @returns {string} - Warning message if defined
+	 */
+	checkForAssetAddress = () => {
+		const {
+			tokens,
+			collectibles,
+			transaction: { to }
+		} = this.props;
+		const address = toChecksumAddress(to);
+		const contractMapToken = contractMap[address];
+		if (contractMapToken) return strings('transaction.known_asset_contract');
+		const tokenAddress = tokens.find(token => token.address === address);
+		if (tokenAddress) return strings('transaction.known_asset_contract');
+		const collectibleAddress = collectibles.find(collectible => collectible.address === address);
+		if (collectibleAddress) return strings('transaction.known_asset_contract');
+		return undefined;
+	};
+
 	handleNewTxMeta = async ({
 		target_address,
 		chain_id = null, // eslint-disable-line no-unused-vars
@@ -472,6 +503,7 @@ class TransactionEditor extends Component {
 						validateGas={this.validateGas}
 						validateToAddress={this.validateToAddress}
 						handleUpdateAsset={this.handleUpdateAsset}
+						checkForAssetAddress={this.checkForAssetAddress}
 						handleUpdateReadableValue={this.handleUpdateReadableValue}
 					/>
 				)}
@@ -491,8 +523,10 @@ class TransactionEditor extends Component {
 
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transaction: state.transaction
 });
 

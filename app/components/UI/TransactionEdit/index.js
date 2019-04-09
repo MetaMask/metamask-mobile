@@ -81,6 +81,13 @@ const styles = StyleSheet.create({
 		lineHeight: 12,
 		paddingTop: 6
 	},
+	warning: {
+		...fontStyles.bold,
+		color: colors.warning,
+		fontSize: 12,
+		lineHeight: 12,
+		paddingTop: 6
+	},
 	form: {
 		flex: 1,
 		padding: 16,
@@ -110,6 +117,10 @@ class TransactionEdit extends Component {
 		 * List of accounts from the AccountTrackerController
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * Callback to warn if transaction to is a known contract address
+		 */
+		checkForAssetAddress: PropTypes.func,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -181,6 +192,7 @@ class TransactionEdit extends Component {
 		amountError: '',
 		addressError: '',
 		toAddressError: '',
+		toAddressWarning: '',
 		gasError: '',
 		fillMax: false,
 		ensRecipient: undefined,
@@ -312,9 +324,10 @@ class TransactionEdit extends Component {
 
 	updateAndValidateToAddress = async (to, ensRecipient) => {
 		await this.props.handleUpdateToAddress(to, ensRecipient);
-		let { toAddressError } = this.state;
+		let { toAddressError, toAddressWarning } = this.state;
 		toAddressError = toAddressError || this.props.validateToAddress();
-		this.setState({ toAddressError, ensRecipient });
+		toAddressWarning = toAddressWarning || this.props.checkForAssetAddress();
+		this.setState({ toAddressError, toAddressWarning, ensRecipient });
 	};
 
 	renderAmountLabel = () => {
@@ -348,7 +361,7 @@ class TransactionEdit extends Component {
 			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
 			showHexData
 		} = this.props;
-		const { gasError, toAddressError, data, accountSelectIsOpen, ethInputIsOpen } = this.state;
+		const { gasError, toAddressError, toAddressWarning, data, accountSelectIsOpen, ethInputIsOpen } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
@@ -383,6 +396,9 @@ class TransactionEdit extends Component {
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
 								{toAddressError ? <Text style={styles.error}>{toAddressError}</Text> : null}
+								{!toAddressError && toAddressWarning ? (
+									<Text style={styles.warning}>{toAddressWarning}</Text>
+								) : null}
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
