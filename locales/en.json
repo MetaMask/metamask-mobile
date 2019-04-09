@@ -182,6 +182,8 @@
 		"title": "Settings",
 		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
+		"ipfs_gateway": "IPFS Gateway",
+		"ipfs_gateway_desc": "Choose your preferred IPFS gateway.",
 		"search_engine": "Search Engine",
 		"new_RPC_URL": "New RPC Network",
 		"state_logs": "State Logs",

@@ -29,6 +29,8 @@ import { Buffer } from 'buffer';
 import Logger from '../../../util/Logger';
 import { isprivateConnection } from '../../../util/networks';
 import URL from 'url-parse';
+import ipfsGateways from '../../../util/ipfs-gateways.json';
+import SelectComponent from '../../UI/SelectComponent';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -103,6 +105,12 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 20
 	},
+	picker: {
+		borderColor: colors.lightGray,
+		borderRadius: 5,
+		borderWidth: 2,
+		marginTop: 16
+	},
 	inner: {
 		paddingBottom: 48
 	},
@@ -120,6 +128,10 @@ const styles = StyleSheet.create({
  */
 class AdvancedSettings extends Component {
 	static propTypes = {
+		/**
+		 * A string that of the chosen ipfs gateway
+		 */
+		ipfsGateway: PropTypes.string,
 		/**
 		/* navigation object required to push new views
 		*/
@@ -258,8 +270,13 @@ class AdvancedSettings extends Component {
 		}
 	};
 
+	setIpfsGateway = ipfsGateway => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController.setIpfsGateway(ipfsGateway);
+	};
+
 	render = () => {
-		const { showHexData } = this.props;
+		const { showHexData, ipfsGateway } = this.props;
 		const { resetModalVisible } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -330,6 +347,19 @@ class AdvancedSettings extends Component {
 								</View>
 							</View>
 						</View>
+
+						<View style={[styles.setting]}>
+							<Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.ipfs_gateway_desc')}</Text>
+							<View style={styles.picker}>
+								<SelectComponent
+									selectedValue={ipfsGateway}
+									onValueChange={this.setIpfsGateway}
+									label={strings('app_settings.ipfs_gateway')}
+									options={ipfsGateways}
+								/>
+							</View>
+						</View>
 						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.show_hex_data')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>
@@ -363,6 +393,7 @@ class AdvancedSettings extends Component {
 }
 
 const mapStateToProps = state => ({
+	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
 	fullState: state
 });

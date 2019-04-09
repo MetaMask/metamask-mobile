@@ -183,6 +183,8 @@
 		"current_conversion": "Conversión actual",
 		"current_language": "Lenguaje Actual",
 		"new_RPC_URL": "Nueva URL del RPC",
+		"ipfs_gateway": "IPFS Gateway",
+		"ipfs_gateway_desc": "Elige tu IPFS gateway preferida.",
 		"state_logs": "Logs de Estado",
 		"reveal_seed_words": "Revelar Palabras de Semilla",
 		"reset_account": "Reiniciar Cuenta",
