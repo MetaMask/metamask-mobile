@@ -95,3 +95,7 @@ sed -i'' -e 's/compile /api /' $TARGET;
 echo "9. Create xcconfig files..."
 echo "" > ios/debug.xcconfig
 echo "" > ios/release.xcconfig
+
+
+echo "10. Fix react-native-push-notification ..."
+rm -rf node_modules/react-native-push-notification/.git
