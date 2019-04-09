@@ -35,6 +35,10 @@ class TransactionEditor extends Component {
 		 */
 		navigation: PropTypes.object,
 		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string,
+		/**
 		 * Current mode this transaction editor is in
 		 */
 		mode: PropTypes.oneOf(['edit', 'review']),
@@ -444,11 +448,14 @@ class TransactionEditor extends Component {
 		const {
 			tokens,
 			collectibles,
-			transaction: { to }
+			transaction: { to },
+			networkType
 		} = this.props;
 		const address = toChecksumAddress(to);
-		const contractMapToken = contractMap[address];
-		if (contractMapToken) return strings('transaction.known_asset_contract');
+		if (networkType === 'mainnet') {
+			const contractMapToken = contractMap[address];
+			if (contractMapToken) return strings('transaction.known_asset_contract');
+		}
 		const tokenAddress = tokens.find(token => token.address === address);
 		if (tokenAddress) return strings('transaction.known_asset_contract');
 		const collectibleAddress = collectibles.find(collectible => collectible.address === address);
@@ -525,6 +532,7 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transaction: state.transaction
