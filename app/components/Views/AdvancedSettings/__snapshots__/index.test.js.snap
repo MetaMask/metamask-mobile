@@ -360,6 +360,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
           }
         >
           <SelectComponent
+            defaultValue="Your current IPFS gateway is down"
             label="IPFS Gateway"
             onValueChange={[Function]}
             options={Array []}
