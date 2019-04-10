@@ -311,6 +311,7 @@
 		"confirm": "Confirm",
 		"reject": "Reject",
 		"edit": "Edit",
+		"cancel": "Cancel",
 		"from": "From",
 		"gas_fee": "Transaction Fee",
 		"gas_fee_fast": "FAST",

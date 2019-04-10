@@ -150,24 +150,23 @@ export function getNavigationOptionsTitle(title, navigation) {
  * This is used by views that confirms transactions, showing current network
  *
  * @param {string} title - Title in string format
- * @param {string} backButtonText - Back text in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(title, backButtonText, navigation) {
+export function getTransactionOptionsTitle(title, navigation) {
+	const transactionMode = navigation.getParam('mode', '');
+	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
+	const toEditLeftAction = navigation.getParam('dispatch', () => {
+		'';
+	});
+	const leftAction = transactionMode === 'edit' ? () => navigation.pop() : () => toEditLeftAction('edit');
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft:
-			Platform.OS === 'ios' ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-					<Text style={styles.closeButtonText}>{backButtonText}</Text>
-				</TouchableOpacity>
-			) : (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-				</TouchableOpacity>
-			),
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{leftText}</Text>
+			</TouchableOpacity>
+		),
 		headerRight: <View />
 	};
 }
