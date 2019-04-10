@@ -97,7 +97,9 @@
 		"public_address": "Public Address"
 	},
 	"send": {
-		"title": "Send"
+		"title": "Send",
+		"deeplink_failure": "Ooops! Something went wrong! Please try again",
+		"warn_network_change": "Network changed to "
 	},
 	"receive": {
 		"title": "Receive"
@@ -324,6 +326,7 @@
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
 		"invalid_collectible_ownership": "You don't own this collectible",
+		"known_asset_contract": "Known asset contract address",
 		"max": "Max",
 		"recipient_address": "Recipient Address",
 		"required": "Required",
@@ -630,7 +633,11 @@
 		"pending_message": "Waiting for confirmation...",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
-		"received_message": "Tap to view this transaction"
+		"received_message": "Tap to view this transaction",
+		"prompt_title": "Enable Push Notifications",
+		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
+		"prompt_ok": "Yes",
+		"prompt_cancel": "No, thanks"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",
