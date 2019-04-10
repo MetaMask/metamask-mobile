@@ -62,7 +62,11 @@ class Send extends Component {
 		/**
 		/* Triggers global alert
 		*/
-		showAlert: PropTypes.func
+		showAlert: PropTypes.func,
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.array
 	};
 
 	state = {
@@ -346,10 +350,11 @@ class Send extends Component {
 	 * and returns to edit transaction
 	 */
 	onConfirm = async () => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, AddressBookController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
 		const {
-			transaction: { selectedAsset, assetType }
+			transaction: { selectedAsset, assetType },
+			addressBook
 		} = this.props;
 		let { transaction } = this.props;
 		try {
@@ -361,6 +366,14 @@ class Send extends Component {
 			const { result, transactionMeta } = await TransactionController.addTransaction(transaction);
 
 			await TransactionController.approveTransaction(transactionMeta.id);
+
+			// Add to the AddressBook if it's an unkonwn address
+			const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
+			const existingContact = addressBook.find(address => toChecksumAddress(address) === checksummedAddress);
+			if (!existingContact) {
+				AddressBookController.set(checksummedAddress, '');
+			}
+
 			await new Promise(resolve => {
 				resolve(result);
 			});
@@ -418,6 +431,7 @@ class Send extends Component {
 }
 
 const mapStateToProps = state => ({
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	transaction: state.transaction,
