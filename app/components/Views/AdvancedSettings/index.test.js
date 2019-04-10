@@ -8,7 +8,14 @@ describe('AdvancedSettings', () => {
 
 	it('should render correctly', () => {
 		const initialState = {
-			settings: { showHexData: true }
+			settings: { showHexData: true },
+			engine: {
+				backgroundState: {
+					PreferencesController: {
+						ipfsGateway: 'https://ipfs.io/ipfs/'
+					}
+				}
+			}
 		};
 
 		const wrapper = shallow(
