@@ -84,12 +84,13 @@ class Send extends Component {
 	 * Resets gas and gasPrice of transaction, passing state to 'edit'
 	 */
 	async reset() {
-		const { transaction } = this.props;
+		const { transaction, navigation } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
 		this.props.setTransactionObject({
 			gas: hexToBN(gas),
 			gasPrice: hexToBN(gasPrice)
 		});
+		navigation && navigation.setParams({ mode: 'edit' });
 		return this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
 	}
 
