@@ -315,6 +315,61 @@ exports[`AdvancedSettings should render correctly 1`] = `
       </View>
       <View
         style={
+          Array [
+            Object {
+              "marginTop": 50,
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "lineHeight": 20,
+            }
+          }
+        >
+          IPFS Gateway
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#4d4d4d",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+              "marginTop": 12,
+            }
+          }
+        >
+          Choose your preferred IPFS gateway.
+        </Text>
+        <View
+          style={
+            Object {
+              "borderColor": "#d2d8dd",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "marginTop": 16,
+            }
+          }
+        >
+          <SelectComponent
+            defaultValue="Your current IPFS gateway is down"
+            label="IPFS Gateway"
+            onValueChange={[Function]}
+            options={Array []}
+            selectedValue="https://ipfs.io/ipfs/"
+          />
+        </View>
+      </View>
+      <View
+        style={
           Object {
             "marginTop": 50,
           }
