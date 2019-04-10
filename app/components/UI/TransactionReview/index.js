@@ -271,7 +271,7 @@ class TransactionReview extends Component {
 					confirmDisabled={error !== undefined}
 				>
 					<View>
-						<TransactionReviewSummary edit={this.edit} actionKey={actionKey} />
+						<TransactionReviewSummary actionKey={actionKey} />
 						<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
 						{error && <Text style={styles.error}>{error}</Text>}
 					</View>

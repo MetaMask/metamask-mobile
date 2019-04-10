@@ -144,7 +144,6 @@ exports[`TransactionReview should render correctly 1`] = `
     <View>
       <Connect(TransactionReviewSummary)
         actionKey="CONFIRM"
-        edit={[Function]}
       />
       <View
         style={
