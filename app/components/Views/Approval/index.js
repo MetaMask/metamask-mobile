@@ -4,7 +4,6 @@ import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
@@ -24,7 +23,7 @@ const styles = StyleSheet.create({
  */
 class Approval extends Component {
 	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle('approval.title', strings('navigation.cancel'), navigation);
+		getTransactionOptionsTitle('approval.title', navigation.getParam('mode', ''), navigation);
 
 	static propTypes = {
 		/**
@@ -58,6 +57,11 @@ class Approval extends Component {
 		}
 		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
 		this.clear();
+	};
+
+	componentDidMount = () => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: 'review', dispatch: this.onModeChange });
 	};
 
 	/**
@@ -102,6 +106,8 @@ class Approval extends Component {
 	};
 
 	onModeChange = mode => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode });
 		this.setState({ mode });
 	};
 
@@ -142,10 +148,11 @@ class Approval extends Component {
 
 	render = () => {
 		const { transaction } = this.props;
+		const { mode } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionEditor
-					mode={this.state.mode}
+					mode={mode}
 					onCancel={this.onCancel}
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
