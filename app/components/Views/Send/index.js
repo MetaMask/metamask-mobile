@@ -386,7 +386,10 @@ class Send extends Component {
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
-				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
+				TransactionsNotificationManager.watchSubmittedTransaction({
+					...transactionMeta,
+					assetType: transaction.assetType
+				});
 			});
 		} catch (error) {
 			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
