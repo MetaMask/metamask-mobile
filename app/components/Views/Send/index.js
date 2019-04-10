@@ -32,8 +32,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Send extends Component {
-	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle('send.title', strings('navigation.cancel'), navigation);
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
 
 	static propTypes = {
 		/**
@@ -125,6 +124,8 @@ class Send extends Component {
 	 * Sets state mounted to true, resets transaction and check for deeplinks
 	 */
 	async componentDidMount() {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: 'edit', dispatch: this.onModeChange });
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -379,7 +380,14 @@ class Send extends Component {
 		}
 	};
 
+	/**
+	 * Change transaction mode
+	 *
+	 * @param mode - Transaction mode, review or edit
+	 */
 	onModeChange = mode => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode });
 		this.mounted && this.setState({ mode });
 	};
 

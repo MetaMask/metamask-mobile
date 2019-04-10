@@ -20,6 +20,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
+import { getTransactionOptionsTitle } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	root: {
@@ -112,6 +113,8 @@ const styles = StyleSheet.create({
  * Component that supports editing and reviewing a transaction
  */
 class TransactionEdit extends Component {
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', 'Cancel', navigation);
+
 	static propTypes = {
 		/**
 		 * List of accounts from the AccountTrackerController
@@ -355,7 +358,7 @@ class TransactionEdit extends Component {
 		);
 	};
 
-	render = () => {
+	render() {
 		const {
 			navigation,
 			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
@@ -447,7 +450,7 @@ class TransactionEdit extends Component {
 				</ActionView>
 			</View>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({

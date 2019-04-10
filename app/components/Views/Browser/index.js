@@ -47,7 +47,7 @@ import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
-import { hexToBN } from '../../../util/number';
+import { hexToBN, fromWei } from '../../../util/number';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
@@ -600,10 +600,11 @@ export class Browser extends Component {
 			transaction: { value, gas, gasPrice }
 		} = transactionMeta;
 		transactionMeta.transaction.value = hexToBN(value);
+		transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
 		transactionMeta.transaction.gas = hexToBN(gas);
 		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 		this.props.setTransactionObject({
-			...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
+			...{ symbol: 'ETH', type: 'ETHER_TRANSACTION', assetType: 'ETH', id: transactionMeta.id },
 			...transactionMeta.transaction
 		});
 		this.props.navigation.push('ApprovalView');
