@@ -380,6 +380,7 @@ class AdvancedSettings extends Component {
 							<View style={styles.picker}>
 								<SelectComponent
 									selectedValue={ipfsGateway}
+									defaultValue={strings('app_settings.ipfs_gateway_down')}
 									onValueChange={this.setIpfsGateway}
 									label={strings('app_settings.ipfs_gateway')}
 									options={onlineIpfsGateways}
