@@ -19,6 +19,15 @@ describe('TransactionEditor', () => {
 					},
 					PreferencesController: {
 						selectedAddress: '0x0'
+					},
+					AssetsController: {
+						tokens: [],
+						collectibles: []
+					},
+					NetworkController: {
+						provider: {
+							type: 'mainnet'
+						}
 					}
 				}
 			}

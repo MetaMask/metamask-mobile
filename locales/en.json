@@ -324,6 +324,7 @@
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
 		"invalid_collectible_ownership": "You don't own this collectible",
+		"known_asset_contract": "Known asset contract address",
 		"max": "Max",
 		"recipient_address": "Recipient Address",
 		"required": "Required",
