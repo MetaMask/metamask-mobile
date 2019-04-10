@@ -150,10 +150,10 @@ export function getNavigationOptionsTitle(title, navigation) {
  * This is used by views that confirms transactions, showing current network
  *
  * @param {string} title - Title in string format
- * @param {string} transactionMode - Back text in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(title, transactionMode, navigation) {
+export function getTransactionOptionsTitle(title, navigation) {
+	const transactionMode = navigation.getParam('mode', '');
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
 	const toEditLeftAction = navigation.getParam('dispatch', () => {
 		'';

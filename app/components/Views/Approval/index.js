@@ -22,8 +22,7 @@ const styles = StyleSheet.create({
  * Component that manages transaction approval from the dapp browser
  */
 class Approval extends Component {
-	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle('approval.title', navigation.getParam('mode', ''), navigation);
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('approval.title', navigation);
 
 	static propTypes = {
 		/**

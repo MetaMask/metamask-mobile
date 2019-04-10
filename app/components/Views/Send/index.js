@@ -32,8 +32,7 @@ const styles = StyleSheet.create({
  * View that wraps the wraps the "Send" screen
  */
 class Send extends Component {
-	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle('send.title', navigation.getParam('mode', ''), navigation);
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
 
 	static propTypes = {
 		/**
