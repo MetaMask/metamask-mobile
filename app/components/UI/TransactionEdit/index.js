@@ -358,7 +358,7 @@ class TransactionEdit extends Component {
 		);
 	};
 
-	render = () => {
+	render() {
 		const {
 			navigation,
 			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
@@ -450,7 +450,7 @@ class TransactionEdit extends Component {
 				</ActionView>
 			</View>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
