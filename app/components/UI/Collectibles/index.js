@@ -109,7 +109,7 @@ export default class Collectibles extends Component {
 
 	removeCollectible = () => {
 		const { AssetsController } = Engine.context;
-		AssetsController.removeCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
+		AssetsController.removeAndIgnoreCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
 		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
 	};
 
