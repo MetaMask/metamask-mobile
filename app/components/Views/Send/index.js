@@ -369,7 +369,9 @@ class Send extends Component {
 
 			// Add to the AddressBook if it's an unkonwn address
 			const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-			const existingContact = addressBook.find(address => toChecksumAddress(address) === checksummedAddress);
+			const existingContact = addressBook.find(
+				({ address }) => toChecksumAddress(address) === checksummedAddress
+			);
 			if (!existingContact) {
 				AddressBookController.set(checksummedAddress, '');
 			}
