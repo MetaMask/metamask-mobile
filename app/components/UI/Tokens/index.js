@@ -184,7 +184,7 @@ export default class Tokens extends PureComponent {
 
 	removeToken = () => {
 		const { AssetsController } = Engine.context;
-		AssetsController.removeToken(this.tokenToRemove.address);
+		AssetsController.removeAndIgnoreToken(this.tokenToRemove.address);
 		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 	};
 
