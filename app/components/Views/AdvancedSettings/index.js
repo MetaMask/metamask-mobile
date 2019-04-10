@@ -29,6 +29,12 @@ import { Buffer } from 'buffer';
 import Logger from '../../../util/Logger';
 import { isprivateConnection } from '../../../util/networks';
 import URL from 'url-parse';
+import ipfsGateways from '../../../util/ipfs-gateways.json';
+import SelectComponent from '../../UI/SelectComponent';
+import timeoutFetch from '../../../util/general';
+
+const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
+const HASH_STRING = 'Hello from IPFS Gateway Checker';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -103,6 +109,12 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 20
 	},
+	picker: {
+		borderColor: colors.lightGray,
+		borderRadius: 5,
+		borderWidth: 2,
+		marginTop: 16
+	},
 	inner: {
 		paddingBottom: 48
 	},
@@ -120,6 +132,10 @@ const styles = StyleSheet.create({
  */
 class AdvancedSettings extends Component {
 	static propTypes = {
+		/**
+		 * A string that of the chosen ipfs gateway
+		 */
+		ipfsGateway: PropTypes.string,
 		/**
 		/* navigation object required to push new views
 		*/
@@ -145,10 +161,12 @@ class AdvancedSettings extends Component {
 		resetModalVisible: false,
 		rpcUrl: undefined,
 		warningRpcUrl: '',
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
+		onlineIpfsGateways: []
 	};
 
-	componentDidMount = () => {
+	componentDidMount = async () => {
+		await this.handleAvailableIpfsGateways();
 		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		this.state.inputWidth &&
@@ -159,6 +177,26 @@ class AdvancedSettings extends Component {
 
 	componentWillUnmount = () => {
 		this.mounted = false;
+	};
+
+	handleAvailableIpfsGateways = async () => {
+		const ipfsGatewaysPromises = ipfsGateways.map(async ipfsGateway => {
+			const testUrl = ipfsGateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
+			try {
+				const res = await timeoutFetch(testUrl);
+				const text = await res.text();
+				const available = text.trim() === HASH_STRING.trim();
+				ipfsGateway.available = available;
+				return ipfsGateway;
+			} catch (e) {
+				ipfsGateway.available = false;
+				return ipfsGateway;
+			}
+		});
+		const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
+		const onlineIpfsGateways = ipfsGatewaysAvailability.filter(ipfsGateway => ipfsGateway.available);
+		const sortedOnlineIpfsGateways = onlineIpfsGateways.sort((a, b) => a.key < b.key);
+		this.setState({ onlineIpfsGateways: sortedOnlineIpfsGateways });
 	};
 
 	displayResetAccountModal = () => {
@@ -258,9 +296,14 @@ class AdvancedSettings extends Component {
 		}
 	};
 
+	setIpfsGateway = ipfsGateway => {
+		const { PreferencesController } = Engine.context;
+		PreferencesController.setIpfsGateway(ipfsGateway);
+	};
+
 	render = () => {
-		const { showHexData } = this.props;
-		const { resetModalVisible } = this.state;
+		const { showHexData, ipfsGateway } = this.props;
+		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
@@ -330,6 +373,20 @@ class AdvancedSettings extends Component {
 								</View>
 							</View>
 						</View>
+
+						<View style={[styles.setting]}>
+							<Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.ipfs_gateway_desc')}</Text>
+							<View style={styles.picker}>
+								<SelectComponent
+									selectedValue={ipfsGateway}
+									defaultValue={strings('app_settings.ipfs_gateway_down')}
+									onValueChange={this.setIpfsGateway}
+									label={strings('app_settings.ipfs_gateway')}
+									options={onlineIpfsGateways}
+								/>
+							</View>
+						</View>
 						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.show_hex_data')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.hex_desc')}</Text>
@@ -363,6 +420,7 @@ class AdvancedSettings extends Component {
 }
 
 const mapStateToProps = state => ({
+	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
 	fullState: state
 });
