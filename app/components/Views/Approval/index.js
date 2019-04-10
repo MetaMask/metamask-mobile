@@ -40,7 +40,11 @@ class Approval extends Component {
 		/**
 		 * List of transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.array
 	};
 
 	state = {
@@ -78,13 +82,20 @@ class Approval extends Component {
 	 * Callback on confirm transaction
 	 */
 	onConfirm = async () => {
-		const { TransactionController } = Engine.context;
-		const { transactions } = this.props;
+		const { TransactionController, AddressBookController } = Engine.context;
+		const { transactions, addressBook } = this.props;
 		let { transaction } = this.props;
 		try {
 			transaction = this.prepareTransaction(transaction);
 
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+				// Add to the AddressBook if it's an unkonwn address
+				const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
+				const existingContact = addressBook.find(address => toChecksumAddress(address) === checksummedAddress);
+				if (!existingContact) {
+					AddressBookController.set(checksummedAddress, '');
+				}
+
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
@@ -165,7 +176,8 @@ class Approval extends Component {
 
 const mapStateToProps = state => ({
 	transaction: state.transaction,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook
 });
 
 const mapDispatchToProps = dispatch => ({

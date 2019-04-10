@@ -355,6 +355,7 @@ export default {
 	get state() {
 		const {
 			AccountTrackerController,
+			AddressBookController,
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
@@ -373,6 +374,7 @@ export default {
 
 		return {
 			AccountTrackerController,
+			AddressBookController,
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
