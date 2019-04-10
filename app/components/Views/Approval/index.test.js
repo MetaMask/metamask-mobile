@@ -22,6 +22,9 @@ describe('Approval', () => {
 				backgroundState: {
 					TransactionController: {
 						transactions: []
+					},
+					AddressBookController: {
+						addressBook: []
 					}
 				}
 			}

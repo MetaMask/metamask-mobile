@@ -15,6 +15,7 @@ exports[`ActionView should render correctly 1`] = `
     extraHeight={75}
     extraScrollHeight={0}
     keyboardOpeningTime={250}
+    keyboardShouldPersistTaps="never"
     resetScrollToCoords={
       Object {
         "x": 0,
@@ -29,6 +30,7 @@ exports[`ActionView should render correctly 1`] = `
     viewIsInsideTabBar={false}
   >
     <TouchableWithoutFeedback
+      onPress={[Function]}
       style={
         Object {
           "flex": 1,

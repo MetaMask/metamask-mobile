@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
+import { Keyboard, ScrollView, Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -13,7 +13,6 @@ import {
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { ScrollView } from 'react-native-gesture-handler';
 import ElevatedView from 'react-native-elevated-view';
 import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
@@ -244,6 +243,7 @@ class EthInput extends Component {
 	};
 
 	selectAsset = async asset => {
+		Keyboard.dismiss();
 		const { handleUpdateAsset, onChange, openEthInput } = this.props;
 		openEthInput && openEthInput(false);
 		handleUpdateAsset && (await handleUpdateAsset(asset));
@@ -290,7 +290,7 @@ class EthInput extends Component {
 		const assetsList = assetsLists[assetType]();
 		return (
 			<ElevatedView elevation={10} style={styles.root}>
-				<ScrollView style={styles.componentContainer}>
+				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
 						{assetsList.map(asset => (
 							<View
