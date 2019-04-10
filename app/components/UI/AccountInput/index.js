@@ -2,12 +2,11 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { ScrollView } from 'react-native-gesture-handler';
 import ElevatedView from 'react-native-elevated-view';
 import ENS from 'ethjs-ens';
 import networkMap from 'ethjs-ens/lib/network-map.json';
@@ -237,6 +236,7 @@ class AccountInput extends Component {
 	};
 
 	selectAccount(account) {
+		Keyboard.dismiss();
 		this.onChange(account.address);
 		const { openAccountSelect } = this.props;
 		openAccountSelect && openAccountSelect(false);
@@ -315,7 +315,7 @@ class AccountInput extends Component {
 		const visibleOptions = this.getVisibleOptions(this.state.value);
 		return (
 			<ElevatedView elevation={10}>
-				<ScrollView style={styles.componentContainer}>
+				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
 							this.renderOption(visibleOptions[address], () => {

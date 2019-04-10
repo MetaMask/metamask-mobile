@@ -357,6 +357,7 @@ class TransactionEdit extends Component {
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.review}
 					onTouchablePress={this.closeDropdowns}
+					keyboardShouldPersistTaps={'handled'}
 				>
 					<View style={styles.form}>
 						<View style={[styles.formRow, styles.fromRow]}>
