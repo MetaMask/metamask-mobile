@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import AsyncStorage from '@react-native-community/async-storage';
 import Engine from '../../../core/Engine';
-import FoxScreen from '../../UI/FoxScreen';
+import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 /**
  * Entry Screen that decides which screen to show
@@ -18,7 +18,13 @@ export default class Entry extends Component {
 		navigation: PropTypes.object
 	};
 
-	async componentDidMount() {
+	animation = React.createRef();
+
+	componentDidMount() {
+		this.animation.play();
+	}
+
+	async onInitialAnimationFinished() {
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 		if (existingUser !== null) {
 			await this.unlockKeychain();
@@ -57,5 +63,14 @@ export default class Entry extends Component {
 		this.props.navigation.navigate('Login');
 	}
 
-	render = () => <FoxScreen />;
+	render = () => (
+		<LottieView
+			// eslint-disable-next-line react/jsx-no-bind
+			ref={animation => {
+				this.animation = animation;
+			}}
+			source={require('../../../animations/intro.json')}
+			onAnimationFinish={this.onInitialAnimationFinished}
+		/>
+	);
 }
