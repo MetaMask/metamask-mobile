@@ -164,7 +164,6 @@ class TransactionsNotificationManager {
 	 */
 	watchSubmittedTransaction(transaction) {
 		const { TransactionController } = Engine.context;
-
 		// First we show the pending tx notification
 		this._showNotification({
 			type: 'pending',
@@ -200,13 +199,21 @@ class TransactionsNotificationManager {
 				this._removeListeners(transactionMeta.id);
 
 				const { TokenBalancesController, AssetsDetectionController, AccountTrackerController } = Engine.context;
-				// Detect assets and tokens and account balances
+				// account balances for ETH txs
+				// Detect assets and tokens for ERC20 txs
+				// Detect assets for ERC721 txs
 				// right after a transaction was confirmed
-				Promise.all([
-					AccountTrackerController.poll(),
-					TokenBalancesController.poll(),
-					AssetsDetectionController.poll()
-				]);
+				const pollPromises = [AccountTrackerController.poll()];
+				switch (transaction.assetType) {
+					case 'ERC20': {
+						pollPromises.push(...[TokenBalancesController.poll(), AssetsDetectionController.poll()]);
+						break;
+					}
+					case 'ERC721':
+						pollPromises.push(AssetsDetectionController.poll());
+						break;
+				}
+				Promise.all(pollPromises);
 
 				Platform.OS === 'ios' &&
 					setTimeout(() => {

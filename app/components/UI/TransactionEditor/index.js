@@ -466,6 +466,9 @@ class TransactionEditor extends Component {
 			transaction: { to },
 			networkType
 		} = this.props;
+		if (!to) {
+			return undefined;
+		}
 		const address = toChecksumAddress(to);
 		if (networkType === 'mainnet') {
 			const contractMapToken = contractMap[address];

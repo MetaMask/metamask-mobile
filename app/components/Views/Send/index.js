@@ -84,12 +84,13 @@ class Send extends Component {
 	 * Resets gas and gasPrice of transaction, passing state to 'edit'
 	 */
 	async reset() {
-		const { transaction } = this.props;
+		const { transaction, navigation } = this.props;
 		const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(transaction);
 		this.props.setTransactionObject({
 			gas: hexToBN(gas),
 			gasPrice: hexToBN(gasPrice)
 		});
+		navigation && navigation.setParams({ mode: 'edit' });
 		return this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
 	}
 
@@ -369,7 +370,9 @@ class Send extends Component {
 
 			// Add to the AddressBook if it's an unkonwn address
 			const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-			const existingContact = addressBook.find(address => toChecksumAddress(address) === checksummedAddress);
+			const existingContact = addressBook.find(
+				({ address }) => toChecksumAddress(address) === checksummedAddress
+			);
 			if (!existingContact) {
 				AddressBookController.set(checksummedAddress, '');
 			}
@@ -384,7 +387,10 @@ class Send extends Component {
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
-				TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
+				TransactionsNotificationManager.watchSubmittedTransaction({
+					...transactionMeta,
+					assetType: transaction.assetType
+				});
 			});
 		} catch (error) {
 			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
