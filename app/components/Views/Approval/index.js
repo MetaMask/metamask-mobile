@@ -91,7 +91,9 @@ class Approval extends Component {
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				// Add to the AddressBook if it's an unkonwn address
 				const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-				const existingContact = addressBook.find(address => toChecksumAddress(address) === checksummedAddress);
+				const existingContact = addressBook.find(
+					({ address }) => toChecksumAddress(address) === checksummedAddress
+				);
 				if (!existingContact) {
 					AddressBookController.set(checksummedAddress, '');
 				}
@@ -99,7 +101,10 @@ class Approval extends Component {
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
+					TransactionsNotificationManager.watchSubmittedTransaction({
+						...transactionMeta,
+						assetType: transaction.assetType
+					});
 				} else {
 					throw transactionMeta.error;
 				}
