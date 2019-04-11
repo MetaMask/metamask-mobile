@@ -101,7 +101,7 @@ class AccountOverview extends Component {
 	};
 
 	state = {
-		accountLabelEditable: true,
+		accountLabelEditable: false,
 		accountLabel: '',
 		originalAccountLabel: ''
 	};
