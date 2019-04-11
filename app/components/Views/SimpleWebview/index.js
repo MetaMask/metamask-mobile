@@ -16,7 +16,8 @@ export default class SimpleWebview extends Component {
 	};
 
 	componentDidMount = () => {
-		this.props.navigation.setParams({ dispatch: this.share });
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ dispatch: this.share });
 	};
 
 	share = () => {
