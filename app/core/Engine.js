@@ -29,6 +29,7 @@ import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 
+const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -158,11 +159,13 @@ class Engine {
 			);
 
 			const {
+				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction
 			} = this.datamodel.context;
 
+			assets.setApiKey(OPENSEA_API_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
