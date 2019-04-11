@@ -21,7 +21,8 @@ export default class SimpleWebview extends Component {
 	};
 
 	share = () => {
-		const uri = this.props.navigation.getParam('url', 'about:blank');
+		const { navigation } = this.props;
+		const uri = navigation && navigation.getParam('url', 'about:blank');
 		Share.open({
 			url: uri
 		}).catch(err => {
