@@ -461,7 +461,10 @@ export class Browser extends Component {
 				const { AssetsController } = Engine.context;
 				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
 				return suggestionResult.result;
-			}
+			},
+			metamask_isApproved: async ({ hostname }) => ({
+				isApproved: !!this.props.approvedHosts[hostname]
+			})
 		});
 
 		const entryScriptWeb3 =
