@@ -19,7 +19,8 @@ describe('InpageBridge', () => {
 			set(instance) {
 				expect(instance).toBeDefined();
 				INSTANCE = instance;
-			}
+			},
+			get: () => ({})
 		});
 		require('./InpageBridge');
 	});
