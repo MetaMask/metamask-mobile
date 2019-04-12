@@ -35,6 +35,12 @@ const styles = StyleSheet.create({
 	backIcon: {
 		color: colors.primary
 	},
+	backIconIOS: {
+		marginHorizontal: 5
+	},
+	shareIconIOS: {
+		marginHorizontal: -5
+	},
 	backButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
 		paddingRight: Platform.OS === 'android' ? 22 : 18,
@@ -396,19 +402,19 @@ export function getWebviewNavbar(navigation) {
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 				</TouchableOpacity>
 			),
 		headerRight:
 			Platform.OS === 'android' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
-					<MaterialCommunityIcon name="share-variant" size={24} style={styles.closeIcon} />
+					<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
-					<EvilIcons name="share-apple" size={32} style={styles.closeIcon} />
+					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
 				</TouchableOpacity>
 			)
 	};
