@@ -45,6 +45,7 @@ import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
+import OnboardingWizard from '../../UI/OnboardingWizard';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -247,7 +248,8 @@ class Main extends Component {
 	};
 
 	state = {
-		forceReload: false
+		forceReload: false,
+		wizard: true
 	};
 
 	backgroundMode = false;
@@ -344,13 +346,17 @@ class Main extends Component {
 		this.lockManager.stopListening();
 	}
 
-	render = () => (
-		<View style={styles.flex}>
-			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-			<GlobalAlert />
-			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
-		</View>
-	);
+	render() {
+		const { forceReload, wizard } = this.state;
+		return (
+			<View style={styles.flex}>
+				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+				{wizard && <OnboardingWizard />}
+				<GlobalAlert />
+				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+			</View>
+		);
+	}
 }
 
 const mapStateToProps = state => ({
