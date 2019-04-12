@@ -346,12 +346,16 @@ class Main extends Component {
 		this.lockManager.stopListening();
 	}
 
+	closeOnboardingWizard = () => {
+		this.setState({ wizard: false });
+	};
+
 	render() {
 		const { forceReload, wizard } = this.state;
 		return (
 			<View style={styles.flex}>
 				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-				{wizard && <OnboardingWizard navigation={this.props.navigation} />}
+				{wizard && <OnboardingWizard close={this.closeOnboardingWizard} navigation={this.props.navigation} />}
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 			</View>

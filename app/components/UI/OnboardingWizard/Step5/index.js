@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Step1 extends Component {
+export default class Step5 extends Component {
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -22,11 +22,12 @@ export default class Step1 extends Component {
 
 	onNext = () => {
 		const { navigation } = this.props;
-		navigation && navigation.navigate('Step2');
+		navigation && navigation.navigate('Step6');
 	};
 
 	onBack = () => {
-		this.onClose();
+		const { navigation } = this.props;
+		navigation && navigation.navigate('Step4');
 	};
 
 	onClose = () => {
@@ -38,7 +39,7 @@ export default class Step1 extends Component {
 		return (
 			<SafeAreaView style={styles.main}>
 				<Tooltip
-					title={'OnboardingWizard Step1'}
+					title={'OnboardingWizard Step5'}
 					content={'Text test'}
 					onNext={this.onNext}
 					onBack={this.onBack}
