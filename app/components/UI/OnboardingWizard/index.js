@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
-import { createStackNavigator } from 'react-navigation';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
@@ -23,66 +22,31 @@ const styles = StyleSheet.create({
 	}
 });
 
-const OnboardingWizardNavigator = createStackNavigator(
-	{
-		Home: {
-			screen: Step1
-		},
-		Step2: {
-			screen: Step2
-		},
-		Step3: {
-			screen: Step3
-		},
-		Step4: {
-			screen: Step4
-		},
-		Step5: {
-			screen: Step5
-		},
-		Step6: {
-			screen: Step6
-		},
-		Step7: {
-			screen: Step7
-		}
-	},
-	{
-		cardStyle: {
-			backgroundColor: 'transparent'
-		},
-		transitionConfig: () => ({
-			containerStyle: {
-				backgroundColor: 'transparent'
-			}
-		}),
-		transparentCard: true,
-		mode: 'modal',
-		headerMode: 'none'
-	}
-);
-
 export default class OnboardingWizard extends Component {
 	static propTypes = {
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
 		close: PropTypes.func
 	};
 
-	static router = {
-		...OnboardingWizardNavigator.router
+	state = {
+		step: 'Step1'
+	};
+
+	navigate = step => {
+		this.setState({ step });
+	};
+
+	onboardingWizardNavigator = {
+		Step1: <Step1 onClose={this.props.close} navigate={this.navigate} />,
+		Step2: <Step2 onClose={this.props.close} navigate={this.navigate} />,
+		Step3: <Step3 onClose={this.props.close} navigate={this.navigate} />,
+		Step4: <Step4 onClose={this.props.close} navigate={this.navigate} />,
+		Step5: <Step5 onClose={this.props.close} navigate={this.navigate} />,
+		Step6: <Step6 onClose={this.props.close} navigate={this.navigate} />,
+		Step7: <Step7 onClose={this.props.close} navigate={this.navigate} />
 	};
 
 	render() {
-		return (
-			<View style={styles.main}>
-				<OnboardingWizardNavigator
-					screenProps={{ close: this.props.close }}
-					navigation={this.props.navigation}
-				/>
-			</View>
-		);
+		const { step } = this.state;
+		return <View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>;
 	}
 }

@@ -13,16 +13,13 @@ const styles = StyleSheet.create({
 
 export default class Step1 extends Component {
 	static propTypes = {
-		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
-		screenProps: PropTypes.object
+		navigate: PropTypes.func,
+		onClose: PropTypes.func
 	};
 
 	onNext = () => {
-		const { navigation } = this.props;
-		navigation && navigation.navigate('Step2');
+		const { navigate } = this.props;
+		navigate && navigate('Step2');
 	};
 
 	onBack = () => {
@@ -30,8 +27,8 @@ export default class Step1 extends Component {
 	};
 
 	onClose = () => {
-		const { close } = this.props.screenProps;
-		close && close();
+		const { onClose } = this.props;
+		onClose && onClose();
 	};
 
 	render() {
