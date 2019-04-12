@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
-import { SafeAreaView, Text, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
+import { View, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
+import { createStackNavigator } from 'react-navigation';
+import Step1 from './Step1';
 
 const styles = StyleSheet.create({
 	main: {
 		flex: 1,
 		position: 'absolute',
-		backgroundColor: colors.onboardingWizardBackground,
+		backgroundColor: colors.transperent,
 		left: 0,
 		right: 0,
 		top: 0,
@@ -14,14 +17,40 @@ const styles = StyleSheet.create({
 	}
 });
 
+const OnboardingWizardNavigator = createStackNavigator(
+	{
+		Home: {
+			screen: Step1
+		}
+	},
+	{
+		cardStyle: {
+			backgroundColor: 'transparent'
+		},
+		transitionConfig: () => ({
+			containerStyle: {
+				backgroundColor: 'transparent'
+			}
+		}),
+		transparentCard: true,
+		mode: 'modal',
+		headerMode: 'none'
+	}
+);
+
 export default class OnboardingWizard extends Component {
-	static propTypes = {};
+	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
+	};
 
 	render() {
 		return (
-			<SafeAreaView style={styles.main}>
-				<Text>OnboardingWizard</Text>
-			</SafeAreaView>
+			<View style={styles.main}>
+				<OnboardingWizardNavigator navigation={this.props.navigation} />
+			</View>
 		);
 	}
 }

@@ -351,7 +351,7 @@ class Main extends Component {
 		return (
 			<View style={styles.flex}>
 				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-				{wizard && <OnboardingWizard />}
+				{wizard && <OnboardingWizard navigation={this.props.navigation} />}
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 			</View>
