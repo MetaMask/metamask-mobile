@@ -11,14 +11,16 @@ import Step6 from './Step6';
 import Step7 from './Step7';
 
 const styles = StyleSheet.create({
-	main: {
-		flex: 1,
-		position: 'absolute',
-		backgroundColor: colors.transperent,
+	root: {
 		left: 0,
 		right: 0,
 		top: 0,
-		bottom: 0
+		bottom: 0,
+		position: 'absolute'
+	},
+	main: {
+		flex: 1,
+		backgroundColor: colors.transperent
 	}
 });
 
@@ -47,6 +49,10 @@ export default class OnboardingWizard extends Component {
 
 	render() {
 		const { step } = this.state;
-		return <View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>;
+		return (
+			<View style={styles.root}>
+				<View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>
+			</View>
+		);
 	}
 }
