@@ -54,6 +54,7 @@ export default class Step2 extends Component {
 						onClose={this.onClose}
 						style={styles.some}
 						topIndicatorPosition={'topCenter'}
+						currentStep={1}
 					/>
 				</View>
 			</View>

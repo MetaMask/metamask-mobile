@@ -90,6 +90,21 @@ const styles = StyleSheet.create({
 		marginTop: -8,
 		alignItems: 'flex-start',
 		marginLeft: 12
+	},
+	circle: {
+		width: 7,
+		height: 7,
+		borderRadius: 7 / 2,
+		backgroundColor: colors.white,
+		opacity: 0.4,
+		margin: 5
+	},
+	solidCircle: {
+		opacity: 1
+	},
+	progessContainer: {
+		flexDirection: 'row',
+		alignSelf: 'center'
 	}
 });
 
@@ -104,7 +119,8 @@ export default class Tooltip extends Component {
 		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft']),
 		style: PropTypes.object,
 		tooltipStyle: PropTypes.object,
-		action: PropTypes.bool
+		action: PropTypes.bool,
+		currentStep: PropTypes.number
 	};
 
 	onNext = () => {
@@ -140,24 +156,35 @@ export default class Tooltip extends Component {
 		return positions[bottomIndicatorPosition];
 	};
 
-	renderProgressButtons = () => (
-		<View style={styles.progress}>
-			<StyledButton
-				containerStyle={[styles.progressButton, styles.leftProgessButton]}
-				type={'blue'}
-				onPress={this.onBack}
-			>
-				Back
-			</StyledButton>
-			<StyledButton
-				containerStyle={[styles.progressButton, styles.rightProgessButton]}
-				type={'normal'}
-				onPress={this.onNext}
-			>
-				Next
-			</StyledButton>
-		</View>
-	);
+	renderProgressButtons = () => {
+		const { currentStep } = this.props;
+		return (
+			<View style={styles.progress}>
+				<StyledButton
+					containerStyle={[styles.progressButton, styles.leftProgessButton]}
+					type={'blue'}
+					onPress={this.onBack}
+				>
+					Back
+				</StyledButton>
+				<View style={styles.progessContainer}>
+					<View style={[styles.circle, currentStep === 1 ? styles.solidCircle : {}]} />
+					<View style={[styles.circle, currentStep === 2 ? styles.solidCircle : {}]} />
+					<View style={[styles.circle, currentStep === 3 ? styles.solidCircle : {}]} />
+					<View style={[styles.circle, currentStep === 4 ? styles.solidCircle : {}]} />
+					<View style={[styles.circle, currentStep === 5 ? styles.solidCircle : {}]} />
+				</View>
+
+				<StyledButton
+					containerStyle={[styles.progressButton, styles.rightProgessButton]}
+					type={'normal'}
+					onPress={this.onNext}
+				>
+					Next
+				</StyledButton>
+			</View>
+		);
+	};
 
 	renderActionButtons = () => (
 		<View style={styles.actions}>
