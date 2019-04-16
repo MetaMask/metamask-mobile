@@ -63,7 +63,8 @@ export const colors = {
 	modalDragGrey: '#C4C4C4',
 	spinnerColor: '#F758AC',
 	spinnerBackground: `rgba(185, 156, 171, 0.396)`,
-	onboardingWizardBackground: 'rgba(0, 0, 0, 0.75)'
+	onboardingWizardBackground: 'rgba(0, 0, 0, 0.75)',
+	tooltipBlue: '#037DD6'
 };
 
 /**

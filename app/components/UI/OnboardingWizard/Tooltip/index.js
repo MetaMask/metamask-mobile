@@ -5,22 +5,26 @@ import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 
 const styles = StyleSheet.create({
-	root: {
-		paddingHorizontal: 55
-	},
 	tooltip: {
 		backgroundColor: colors.primary,
 		borderRadius: 5,
 		padding: 18
 	},
-	actions: {
+	progress: {
 		flexDirection: 'row',
 		backgroundColor: colors.primary
+	},
+	actions: {
+		flexDirection: 'column'
 	},
 	button: {
 		width: 80,
 		height: 30,
 		padding: 5
+	},
+	actionButton: {
+		width: '100%',
+		marginTop: 10
 	},
 	content: {
 		...fontStyles.normal,
@@ -33,7 +37,8 @@ const styles = StyleSheet.create({
 	title: {
 		...fontStyles.bold,
 		color: colors.white,
-		fontSize: 18
+		fontSize: 18,
+		alignSelf: 'center'
 	},
 	triangle: {
 		width: 0,
@@ -90,7 +95,9 @@ export default class Tooltip extends Component {
 		title: PropTypes.string,
 		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft']),
 		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft']),
-		style: PropTypes.object
+		style: PropTypes.object,
+		tooltipStyle: PropTypes.object,
+		action: PropTypes.bool
 	};
 
 	onNext = () => {
@@ -126,31 +133,47 @@ export default class Tooltip extends Component {
 		return positions[bottomIndicatorPosition];
 	};
 
+	renderProgressButtons = () => (
+		<View style={styles.progress}>
+			<StyledButton containerStyle={styles.button} type={'warning'} onPress={this.onBack}>
+				Back
+			</StyledButton>
+			<StyledButton containerStyle={styles.button} type={'warning'} onPress={this.onNext}>
+				Next
+			</StyledButton>
+		</View>
+	);
+
+	renderActionButtons = () => (
+		<View style={styles.actions}>
+			<StyledButton containerStyle={styles.actionButton} type={'blue'} onPress={this.onBack}>
+				No, Thanks
+			</StyledButton>
+			<StyledButton containerStyle={styles.actionButton} type={'normal'} onPress={this.onNext}>
+				Take the tour
+			</StyledButton>
+		</View>
+	);
+
 	render() {
-		const { content, title, topIndicatorPosition, bottomIndicatorPosition } = this.props;
+		const { content, title, topIndicatorPosition, bottomIndicatorPosition, action } = this.props;
 		const style = this.props.style || {};
+		const tooltipStyle = this.props.tooltipStyle || {};
 		return (
-			<View style={[styles.root, style]}>
+			<View style={style}>
 				{topIndicatorPosition && (
 					<View style={this.getIndicatorStyle(topIndicatorPosition)}>
 						<View style={styles.triangle} />
 					</View>
 				)}
-				<View style={styles.tooltip}>
+				<View style={[styles.tooltip, tooltipStyle]}>
 					<View style={styles.titleContainer}>
 						<Text style={styles.title}>{title}</Text>
 					</View>
 					<View style={styles.contentContainer}>
 						<Text style={styles.content}>{content}</Text>
 					</View>
-					<View style={styles.actions}>
-						<StyledButton containerStyle={styles.button} type={'orange'} onPress={this.onBack}>
-							Back
-						</StyledButton>
-						<StyledButton containerStyle={styles.button} type={'warning'} onPress={this.onNext}>
-							Next
-						</StyledButton>
-					</View>
+					{action ? this.renderActionButtons() : this.renderProgressButtons()}
 				</View>
 				{bottomIndicatorPosition && (
 					<View style={this.getBotttomIndicatorStyle(bottomIndicatorPosition)}>
