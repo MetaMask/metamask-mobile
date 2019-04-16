@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 import { colors } from '../../../../styles/common';
-import Tooltip from '../Tooltip';
+import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 
@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		marginLeft: 30,
 		marginRight: 80
 	},
-	tooltipContainer: {
+	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
@@ -54,8 +54,8 @@ class Step5 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.tooltipContainer}>
-					<Tooltip
+				<View style={styles.coachmarkContainer}>
+					<Coachmark
 						title={'Explore the Browser'}
 						content={'You can explore blockchainapplications (DAPPS) in the Browser.'}
 						onNext={this.onNext}

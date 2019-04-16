@@ -64,7 +64,7 @@ export const colors = {
 	spinnerColor: '#F758AC',
 	spinnerBackground: `rgba(185, 156, 171, 0.396)`,
 	onboardingWizardBackground: 'rgba(0, 0, 0, 0.75)',
-	tooltipBlue: '#037DD6'
+	coachmarkBlue: '#037DD6'
 };
 
 /**

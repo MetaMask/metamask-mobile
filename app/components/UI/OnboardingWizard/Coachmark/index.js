@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, Text, StyleSheet } from 'react-native';
+import { Animated, View, Text, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 
 const styles = StyleSheet.create({
-	tooltip: {
+	coachmark: {
 		backgroundColor: colors.primary,
-		borderRadius: 5,
+		borderRadius: 8,
 		padding: 18
 	},
 	progress: {
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Tooltip extends Component {
+export default class Coachmark extends Component {
 	static propTypes = {
 		content: PropTypes.string,
 		onClose: PropTypes.func,
@@ -123,9 +123,33 @@ export default class Tooltip extends Component {
 		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft', 'topLeftCorner']),
 		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft']),
 		style: PropTypes.object,
-		tooltipStyle: PropTypes.object,
+		coachmarkStyle: PropTypes.object,
 		action: PropTypes.bool,
 		currentStep: PropTypes.number
+	};
+
+	state = {
+		ready: false
+	};
+
+	opacity = new Animated.Value(0);
+
+	componentDidMount = () => {
+		Animated.timing(this.opacity, {
+			toValue: 1,
+			duration: 1000,
+			useNativeDriver: true,
+			isInteraction: false
+		}).start();
+	};
+
+	componentWillUnmount = () => {
+		Animated.timing(this.opacity, {
+			toValue: 0,
+			duration: 1000,
+			useNativeDriver: true,
+			isInteraction: false
+		}).start();
 	};
 
 	onNext = () => {
@@ -206,15 +230,15 @@ export default class Tooltip extends Component {
 	render() {
 		const { content, title, topIndicatorPosition, bottomIndicatorPosition, action } = this.props;
 		const style = this.props.style || {};
-		const tooltipStyle = this.props.tooltipStyle || {};
+		const coachmarkStyle = this.props.coachmarkStyle || {};
 		return (
-			<View style={style}>
+			<Animated.View style={[style, { opacity: this.opacity }]}>
 				{topIndicatorPosition && (
 					<View style={this.getIndicatorStyle(topIndicatorPosition)}>
 						<View style={styles.triangle} />
 					</View>
 				)}
-				<View style={[styles.tooltip, tooltipStyle]}>
+				<View style={[styles.coachmark, coachmarkStyle]}>
 					<View style={styles.titleContainer}>
 						<Text style={styles.title}>{title}</Text>
 					</View>
@@ -228,7 +252,7 @@ export default class Tooltip extends Component {
 						<View style={styles.triangleDown} />
 					</View>
 				)}
-			</View>
+			</Animated.View>
 		);
 	}
 }

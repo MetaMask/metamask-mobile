@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
-import Tooltip from '../Tooltip';
+import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 
 const styles = StyleSheet.create({
@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 	some: {
 		marginHorizontal: 45
 	},
-	tooltipContainer: {
+	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
@@ -45,8 +45,8 @@ class Step2 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.tooltipContainer}>
-					<Tooltip
+				<View style={styles.coachmarkContainer}>
+					<Coachmark
 						title={'Your Accounts'}
 						content={
 							'This is your first account, total value, and its unique public address (0x...).\n\nYou can create multiple accounts withinthis wallet by typing on profile icon.'

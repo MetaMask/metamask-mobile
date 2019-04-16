@@ -2,14 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
-import Tooltip from '../Tooltip';
+import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 
 const styles = StyleSheet.create({
 	main: {
 		flex: 1
 	},
-	tooltipContainer: {
+	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
@@ -42,8 +42,8 @@ class Step7 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.tooltipContainer}>
-					<Tooltip
+				<View style={styles.coachmarkContainer}>
+					<Coachmark
 						title={'Featured Dapps'}
 						content={'Start exploring featured blockchain applications (DAPPS).'}
 						onNext={this.onNext}

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
-import Tooltip from '../Tooltip';
+import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 
 const styles = StyleSheet.create({
@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 	some: {
 		marginHorizontal: 45
 	},
-	tooltipContainer: {
+	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
@@ -45,8 +45,8 @@ class Step3 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.tooltipContainer}>
-					<Tooltip
+				<View style={styles.coachmarkContainer}>
+					<Coachmark
 						title={'Edit Account Name'}
 						content={`'Account 1' isn't that catchy. So why not name your account omething a little more memorable.\n\n<b>Long tap</n> now to edit account name.`}
 						onNext={this.onNext}

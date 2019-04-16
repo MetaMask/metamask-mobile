@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
-import Tooltip from '../Tooltip';
+import Coachmark from '../Coachmark';
 import DeviceSize from '../../../../util/DeviceSize';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 
@@ -10,10 +10,10 @@ const styles = StyleSheet.create({
 	main: {
 		flex: 1
 	},
-	toolTip: {
+	coachmark: {
 		marginHorizontal: 16
 	},
-	tooltipContainer: {
+	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
@@ -45,8 +45,8 @@ class Step1 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.tooltipContainer}>
-					<Tooltip
+				<View style={styles.coachmarkContainer}>
+					<Coachmark
 						title={'Welcome to your new wallet!'}
 						content={
 							'To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH). \n\n To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH)'
@@ -54,7 +54,7 @@ class Step1 extends Component {
 						onNext={this.onNext}
 						onBack={this.onBack}
 						onClose={this.onClose}
-						tooltipStyle={styles.toolTip}
+						coachmarkStyle={styles.coachmark}
 						action
 					/>
 				</View>
