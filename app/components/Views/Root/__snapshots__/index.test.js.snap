@@ -13,7 +13,7 @@ exports[`Root should render correctly 1`] = `
   }
 >
   <PersistGate
-    loading={<FoxScreen />}
+    loading={null}
     persistor={
       Object {
         "dispatch": [Function],
