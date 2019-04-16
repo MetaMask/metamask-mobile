@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 
 export default class OnboardingWizard extends Component {
 	static propTypes = {
-		close: PropTypes.func
+		close: PropTypes.func,
+		navigation: PropTypes.object
 	};
 
 	state = {
@@ -41,7 +42,7 @@ export default class OnboardingWizard extends Component {
 		Step1: <Step1 onClose={this.props.close} navigate={this.navigate} />,
 		Step2: <Step2 onClose={this.props.close} navigate={this.navigate} />,
 		Step3: <Step3 onClose={this.props.close} navigate={this.navigate} />,
-		Step4: <Step4 onClose={this.props.close} navigate={this.navigate} />,
+		Step4: <Step4 onClose={this.props.close} navigate={this.navigate} navigation={this.props.navigation} />,
 		Step5: <Step5 onClose={this.props.close} navigate={this.navigate} />,
 		Step6: <Step6 onClose={this.props.close} navigate={this.navigate} />,
 		Step7: <Step7 onClose={this.props.close} navigate={this.navigate} />

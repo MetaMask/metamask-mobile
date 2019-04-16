@@ -1,24 +1,35 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { View, StyleSheet } from 'react-native';
 import Tooltip from '../Tooltip';
 
 const styles = StyleSheet.create({
 	main: {
+		flex: 1
+	},
+	some: {
+		marginLeft: 10,
+		marginRight: 85
+	},
+	tooltipContainer: {
 		flex: 1,
-		backgroundColor: colors.dimmed
+		position: 'absolute',
+		left: 0,
+		right: 0,
+		top: 90
 	}
 });
 
 export default class Step4 extends Component {
 	static propTypes = {
 		navigate: PropTypes.func,
-		screenProps: PropTypes.object
+		screenProps: PropTypes.object,
+		navigation: PropTypes.object
 	};
 
 	onNext = () => {
-		const { navigate } = this.props;
+		const { navigate, navigation } = this.props;
+		navigation && navigation.openDrawer();
 		navigate && navigate('Step5');
 	};
 
@@ -34,15 +45,22 @@ export default class Step4 extends Component {
 
 	render() {
 		return (
-			<SafeAreaView style={styles.main}>
-				<Tooltip
-					title={'OnboardingWizard Step4'}
-					content={'Text test'}
-					onNext={this.onNext}
-					onBack={this.onBack}
-					onClose={this.onClose}
-				/>
-			</SafeAreaView>
+			<View style={styles.main}>
+				<View style={styles.tooltipContainer}>
+					<Tooltip
+						title={'Main Navigation'}
+						content={
+							'Tap here to access your Wallet, Browser, and Transaction history.\n\nYou can take more actionswith your accounts & access MetaMask settings.'
+						}
+						onNext={this.onNext}
+						onBack={this.onBack}
+						onClose={this.onClose}
+						style={styles.some}
+						topIndicatorPosition={'topLeft'}
+						currentStep={3}
+					/>
+				</View>
+			</View>
 		);
 	}
 }

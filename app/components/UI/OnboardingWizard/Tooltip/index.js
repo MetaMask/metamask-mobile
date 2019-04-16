@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	topLeft: {
-		marginBottom: 12,
+		marginBottom: 10,
 		alignItems: 'flex-start',
 		marginLeft: 12
 	},
