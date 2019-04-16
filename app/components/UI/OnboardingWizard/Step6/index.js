@@ -1,23 +1,39 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { View, StyleSheet } from 'react-native';
 import Tooltip from '../Tooltip';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 
 const styles = StyleSheet.create({
 	main: {
+		flex: 1
+	},
+	tooltipContainer: {
 		flex: 1,
-		backgroundColor: colors.dimmed
+		position: 'absolute',
+		left: 0,
+		right: 0,
+		top: 150,
+		marginHorizontal: 45
 	}
 });
 
 class Step6 extends Component {
 	static propTypes = {
 		setOnboardingWizardStep: PropTypes.func,
-		screenProps: PropTypes.object
+		screenProps: PropTypes.object,
+		navigation: PropTypes.object
 	};
+
+	state = {
+		ready: false
+	};
+
+	componentDidMount() {
+		// TODO animation ?
+		this.setState({ ready: true });
+	}
 
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
@@ -25,7 +41,8 @@ class Step6 extends Component {
 	};
 
 	onBack = () => {
-		const { setOnboardingWizardStep } = this.props;
+		const { navigation, setOnboardingWizardStep } = this.props;
+		navigation && navigation.openDrawer();
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
 	};
 
@@ -35,16 +52,22 @@ class Step6 extends Component {
 	};
 
 	render() {
+		const { ready } = this.state;
+		if (!ready) return null;
 		return (
-			<SafeAreaView style={styles.main}>
-				<Tooltip
-					title={'OnboardingWizard Step6'}
-					content={'Text test'}
-					onNext={this.onNext}
-					onBack={this.onBack}
-					onClose={this.onClose}
-				/>
-			</SafeAreaView>
+			<View style={styles.main}>
+				<View style={styles.tooltipContainer}>
+					<Tooltip
+						title={'Search Dapps'}
+						content={'Search directly blockchain applications (DAPPS)!'}
+						onNext={this.onNext}
+						onBack={this.onBack}
+						onClose={this.onClose}
+						topIndicatorPosition={'topCenter'}
+						currentStep={5}
+					/>
+				</View>
+			</View>
 		);
 	}
 }

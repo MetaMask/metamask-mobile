@@ -42,6 +42,7 @@ class Step5 extends Component {
 	onBack = () => {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(4);
+		navigation && navigation.navigate('WalletView');
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 	};
 

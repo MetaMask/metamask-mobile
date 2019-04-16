@@ -244,7 +244,8 @@ class Main extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		lockTime: PropTypes.number
+		lockTime: PropTypes.number,
+		wizardStep: PropTypes.number
 	};
 
 	state = {
@@ -352,10 +353,13 @@ class Main extends Component {
 
 	render() {
 		const { forceReload, wizard } = this.state;
+		const { wizardStep } = this.props;
 		return (
 			<View style={styles.flex}>
 				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-				{wizard && <OnboardingWizard close={this.closeOnboardingWizard} navigation={this.props.navigation} />}
+				{wizard && wizardStep !== 5 && (
+					<OnboardingWizard close={this.closeOnboardingWizard} navigation={this.props.navigation} />
+				)}
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 			</View>
@@ -364,7 +368,8 @@ class Main extends Component {
 }
 
 const mapStateToProps = state => ({
-	lockTime: state.settings.lockTime
+	lockTime: state.settings.lockTime,
+	wizardStep: state.wizard.step
 });
 
 export default connect(mapStateToProps)(Main);

@@ -80,16 +80,21 @@ const styles = StyleSheet.create({
 	topLeft: {
 		marginBottom: 10,
 		alignItems: 'flex-start',
+		marginLeft: 30
+	},
+	topLeftCorner: {
+		marginBottom: 10,
+		alignItems: 'flex-start',
 		marginLeft: 12
 	},
 	bottomCenter: {
-		marginBottom: 12,
+		marginBottom: 10,
 		alignItems: 'center'
 	},
 	bottomLeft: {
-		marginTop: -8,
+		marginBottom: 10,
 		alignItems: 'flex-start',
-		marginLeft: 12
+		marginLeft: 30
 	},
 	circle: {
 		width: 7,
@@ -115,7 +120,7 @@ export default class Tooltip extends Component {
 		onNext: PropTypes.func,
 		onBack: PropTypes.func,
 		title: PropTypes.string,
-		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft']),
+		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft', 'topLeftCorner']),
 		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft']),
 		style: PropTypes.object,
 		tooltipStyle: PropTypes.object,
@@ -142,6 +147,7 @@ export default class Tooltip extends Component {
 		const positions = {
 			topCenter: styles.topCenter,
 			topLeft: styles.topLeft,
+			topLeftCorner: styles.topLeftCorner,
 			[undefined]: styles.topCenter
 		};
 		return positions[topIndicatorPosition];

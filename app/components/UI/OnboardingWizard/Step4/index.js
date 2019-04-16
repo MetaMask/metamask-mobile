@@ -58,7 +58,7 @@ class Step4 extends Component {
 						onBack={this.onBack}
 						onClose={this.onClose}
 						style={styles.some}
-						topIndicatorPosition={'topLeft'}
+						topIndicatorPosition={'topLeftCorner'}
 						currentStep={3}
 					/>
 				</View>

@@ -1,15 +1,21 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { View, StyleSheet } from 'react-native';
 import Tooltip from '../Tooltip';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 
 const styles = StyleSheet.create({
 	main: {
+		flex: 1
+	},
+	tooltipContainer: {
 		flex: 1,
-		backgroundColor: colors.dimmed
+		position: 'absolute',
+		left: 0,
+		right: 0,
+		top: 160,
+		marginHorizontal: 45
 	}
 });
 
@@ -35,15 +41,19 @@ class Step7 extends Component {
 
 	render() {
 		return (
-			<SafeAreaView style={styles.main}>
-				<Tooltip
-					title={'OnboardingWizard Step7'}
-					content={'Text test'}
-					onNext={this.onNext}
-					onBack={this.onBack}
-					onClose={this.onClose}
-				/>
-			</SafeAreaView>
+			<View style={styles.main}>
+				<View style={styles.tooltipContainer}>
+					<Tooltip
+						title={'Featured Dapps'}
+						content={'Start exploring featured blockchain applications (DAPPS).'}
+						onNext={this.onNext}
+						onBack={this.onBack}
+						onClose={this.onClose}
+						currentStep={5}
+						bottomIndicatorPosition={'bottomLeft'}
+					/>
+				</View>
+			</View>
 		);
 	}
 }
