@@ -24,7 +24,7 @@ export default class FadeOutOverlay extends Component {
 	};
 
 	state = {
-		existingUser: false
+		done: false
 	};
 
 	opacity = new Animated.Value(1);
@@ -35,10 +35,13 @@ export default class FadeOutOverlay extends Component {
 			duration: this.props.duration,
 			useNativeDriver: true,
 			isInteraction: false
-		}).start();
+		}).start(() => {
+			this.setState({ done: true });
+		});
 	}
 
 	render() {
+		if (this.state.done) return null;
 		return <Animated.View style={[{ opacity: this.opacity }, styles.view, this.props.style]} />;
 	}
 }

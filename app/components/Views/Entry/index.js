@@ -61,7 +61,7 @@ export default class Entry extends Component {
 			} else {
 				this.animateAndGoTo('OnboardingRootNav');
 			}
-		}, 2500);
+		}, 1500);
 	}
 
 	animateAndGoTo(view) {
