@@ -37,7 +37,7 @@ class OnboardingWizard extends Component {
 		2: <Step2 onClose={this.props.close} />,
 		3: <Step3 onClose={this.props.close} />,
 		4: <Step4 onClose={this.props.close} navigation={this.props.navigation} />,
-		5: <Step5 onClose={this.props.close} />,
+		5: <Step5 onClose={this.props.close} navigation={this.props.navigation} />,
 		6: <Step6 onClose={this.props.close} />,
 		7: <Step7 onClose={this.props.close} />
 	};

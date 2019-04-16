@@ -43,6 +43,7 @@ import ActionModal from '../ActionModal';
 import DeviceInfo from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
+import OnboardingWizard from '../OnboardingWizard';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -288,6 +289,13 @@ const styles = StyleSheet.create({
 		color: colors.another50ShadesOfGrey,
 		fontSize: 10,
 		...fontStyles.bold
+	},
+	onboardingContainer: {
+		position: 'absolute',
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 315 - DeviceSize.getDeviceWidth()
 	}
 });
 
@@ -368,7 +376,11 @@ class DrawerView extends Component {
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * Wizard onboarding state
+		 */
+		wizard: PropTypes.object
 	};
 
 	state = {
@@ -711,7 +723,15 @@ class DrawerView extends Component {
 	}
 
 	render() {
-		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
+		const {
+			network,
+			accounts,
+			identities,
+			selectedAddress,
+			keyrings,
+			currentCurrency,
+			wizard: { step }
+		} = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -721,7 +741,6 @@ class DrawerView extends Component {
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 		const currentRoute = this.findRouteNameFromNavigatorState(this.props.navigation.state);
-
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
@@ -865,6 +884,11 @@ class DrawerView extends Component {
 						onImportAccount={this.onImportAccount}
 					/>
 				</Modal>
+				{step === 5 && (
+					<View style={styles.onboardingContainer}>
+						<OnboardingWizard navigation={this.props.navigation} />
+					</View>
+				)}
 				<ActionModal
 					modalVisible={this.state.submitFeedback}
 					confirmText={strings('drawer.submit_bug')}
@@ -937,7 +961,8 @@ const mapStateToProps = state => ({
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	wizard: state.wizard
 });
 
 const mapDispatchToProps = dispatch => ({
