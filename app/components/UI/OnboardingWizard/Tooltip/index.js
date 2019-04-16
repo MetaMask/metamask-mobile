@@ -12,15 +12,11 @@ const styles = StyleSheet.create({
 	},
 	progress: {
 		flexDirection: 'row',
-		backgroundColor: colors.primary
+		backgroundColor: colors.primary,
+		justifyContent: 'space-between'
 	},
 	actions: {
 		flexDirection: 'column'
-	},
-	button: {
-		width: 80,
-		height: 30,
-		padding: 5
 	},
 	actionButton: {
 		width: '100%',
@@ -45,9 +41,9 @@ const styles = StyleSheet.create({
 		height: 0,
 		backgroundColor: colors.transparent,
 		borderStyle: 'solid',
-		borderLeftWidth: 10,
-		borderRightWidth: 10,
-		borderBottomWidth: 20,
+		borderLeftWidth: 15,
+		borderRightWidth: 15,
+		borderBottomWidth: 10,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderBottomColor: colors.primary,
@@ -58,16 +54,27 @@ const styles = StyleSheet.create({
 		height: 0,
 		backgroundColor: colors.transparent,
 		borderStyle: 'solid',
-		borderLeftWidth: 10,
-		borderRightWidth: 10,
-		borderTopWidth: 20,
+		borderLeftWidth: 15,
+		borderRightWidth: 15,
+		borderTopWidth: 10,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderTopColor: colors.primary,
 		position: 'absolute'
 	},
+	progressButton: {
+		width: 75,
+		height: 45,
+		padding: 5
+	},
+	leftProgessButton: {
+		left: 0
+	},
+	rightProgessButton: {
+		right: 0
+	},
 	topCenter: {
-		marginBottom: 12,
+		marginBottom: 10,
 		alignItems: 'center'
 	},
 	topLeft: {
@@ -135,10 +142,18 @@ export default class Tooltip extends Component {
 
 	renderProgressButtons = () => (
 		<View style={styles.progress}>
-			<StyledButton containerStyle={styles.button} type={'warning'} onPress={this.onBack}>
+			<StyledButton
+				containerStyle={[styles.progressButton, styles.leftProgessButton]}
+				type={'blue'}
+				onPress={this.onBack}
+			>
 				Back
 			</StyledButton>
-			<StyledButton containerStyle={styles.button} type={'warning'} onPress={this.onNext}>
+			<StyledButton
+				containerStyle={[styles.progressButton, styles.rightProgessButton]}
+				type={'normal'}
+				onPress={this.onNext}
+			>
 				Next
 			</StyledButton>
 		</View>
