@@ -4,13 +4,14 @@ import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'reac
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import AnimatedFox from 'react-native-animated-fox';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -156,54 +157,57 @@ class Onboarding extends Component {
 
 	render() {
 		return (
-			<OnboardingScreenWithBg>
-				<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
-					<View style={styles.wrapper}>
-						<View style={styles.content}>
-							<View style={styles.foxWrapper}>
-								{Platform.OS === 'android' ? (
-									<Image
-										source={require('../../../images/fox.png')}
-										style={styles.image}
-										resizeMethod={'auto'}
-									/>
-								) : (
-									<AnimatedFox />
-								)}
+			<View style={baseStyles.flexGrow}>
+				<OnboardingScreenWithBg>
+					<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
+						<View style={styles.wrapper}>
+							<View style={styles.content}>
+								<View style={styles.foxWrapper}>
+									{Platform.OS === 'android' ? (
+										<Image
+											source={require('../../../images/fox.png')}
+											style={styles.image}
+											resizeMethod={'auto'}
+										/>
+									) : (
+										<AnimatedFox />
+									)}
+								</View>
+								<Text style={styles.title}>{strings('onboarding.title')}</Text>
+								<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
 							</View>
-							<Text style={styles.title}>{strings('onboarding.title')}</Text>
-							<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
+							<View style={styles.ctas}>
+								<View style={styles.ctaWrapper}>
+									<StyledButton
+										type={'blue'}
+										onPress={this.onPressCreate}
+										testID={'onboarding-new-button'}
+									>
+										{strings('onboarding.start_exploring_now')}
+									</StyledButton>
+								</View>
+								<View style={styles.ctaWrapper}>
+									<StyledButton
+										type={'normal'}
+										onPress={this.onPressImport}
+										testID={'onboarding-import-button'}
+									>
+										{strings('onboarding.import_wallet_button')}
+									</StyledButton>
+								</View>
+							</View>
+							{this.state.existingUser && (
+								<View style={styles.footer}>
+									<Button style={styles.login} onPress={this.onLogin}>
+										{strings('onboarding.login')}
+									</Button>
+								</View>
+							)}
 						</View>
-						<View style={styles.ctas}>
-							<View style={styles.ctaWrapper}>
-								<StyledButton
-									type={'blue'}
-									onPress={this.onPressCreate}
-									testID={'onboarding-new-button'}
-								>
-									{strings('onboarding.start_exploring_now')}
-								</StyledButton>
-							</View>
-							<View style={styles.ctaWrapper}>
-								<StyledButton
-									type={'normal'}
-									onPress={this.onPressImport}
-									testID={'onboarding-import-button'}
-								>
-									{strings('onboarding.import_wallet_button')}
-								</StyledButton>
-							</View>
-						</View>
-						{this.state.existingUser && (
-							<View style={styles.footer}>
-								<Button style={styles.login} onPress={this.onLogin}>
-									{strings('onboarding.login')}
-								</Button>
-							</View>
-						)}
-					</View>
-				</ScrollView>
-			</OnboardingScreenWithBg>
+					</ScrollView>
+				</OnboardingScreenWithBg>
+				<FadeOutOverlay />
+			</View>
 		);
 	}
 }
