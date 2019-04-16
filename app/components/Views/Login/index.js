@@ -21,6 +21,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -294,6 +295,7 @@ export default class Login extends Component {
 					</View>
 				</View>
 			</KeyboardAwareScrollView>
+			<FadeOutOverlay />
 		</SafeAreaView>
 	);
 }

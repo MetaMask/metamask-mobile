@@ -45,6 +45,7 @@ import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -349,6 +350,7 @@ class Main extends Component {
 			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 			<GlobalAlert />
 			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+			<FadeOutOverlay />
 		</View>
 	);
 }
