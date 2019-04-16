@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { colors } from '../../../../styles/common';
 import Tooltip from '../Tooltip';
+import setOnboardingWizardStep from '../../../../actions/wizard';
 
 const styles = StyleSheet.create({
 	main: {
@@ -11,9 +13,9 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Step7 extends Component {
+class Step7 extends Component {
 	static propTypes = {
-		navigate: PropTypes.func,
+		setOnboardingWizardStep: PropTypes.func,
 		onClose: PropTypes.func
 	};
 
@@ -22,8 +24,8 @@ export default class Step7 extends Component {
 	};
 
 	onBack = () => {
-		const { navigate } = this.props;
-		navigate && navigate('Step6');
+		const { setOnboardingWizardStep } = this.props;
+		setOnboardingWizardStep && setOnboardingWizardStep(6);
 	};
 
 	onClose = () => {
@@ -45,3 +47,12 @@ export default class Step7 extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(Step7);

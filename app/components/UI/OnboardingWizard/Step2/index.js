@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 import Tooltip from '../Tooltip';
+import setOnboardingWizardStep from '../../../../actions/wizard';
 
 const styles = StyleSheet.create({
 	main: {
@@ -19,20 +21,20 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Step2 extends Component {
+class Step2 extends Component {
 	static propTypes = {
-		navigate: PropTypes.func,
-		screenProps: PropTypes.object
+		screenProps: PropTypes.object,
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	onNext = () => {
-		const { navigate } = this.props;
-		navigate && navigate('Step3');
+		const { setOnboardingWizardStep } = this.props;
+		setOnboardingWizardStep && setOnboardingWizardStep(3);
 	};
 
 	onBack = () => {
-		const { navigate } = this.props;
-		navigate && navigate('Step1');
+		const { setOnboardingWizardStep } = this.props;
+		setOnboardingWizardStep && setOnboardingWizardStep(1);
 	};
 
 	onClose = () => {
@@ -61,3 +63,12 @@ export default class Step2 extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(Step2);

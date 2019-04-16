@@ -7,6 +7,7 @@ import settingsReducer from './settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
 import userReducer from './user';
+import wizardReducer from './wizard';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -18,7 +19,8 @@ const rootReducer = combineReducers({
 	settings: settingsReducer,
 	alert: alertReducer,
 	transaction: transactionReducer,
-	user: userReducer
+	user: userReducer,
+	wizard: wizardReducer
 });
 
 export default rootReducer;
