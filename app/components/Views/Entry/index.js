@@ -74,7 +74,7 @@ export default class Entry extends Component {
 		setTimeout(() => {
 			Animated.timing(this.opacity, {
 				toValue: 0,
-				duration: 500,
+				duration: 400,
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
