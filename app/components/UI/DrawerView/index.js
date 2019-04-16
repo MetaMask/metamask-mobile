@@ -510,7 +510,7 @@ class DrawerView extends Component {
 						if (!passwordSet) {
 							this.props.navigation.navigate('Onboarding');
 						} else {
-							this.props.navigation.navigate('Entry');
+							this.props.navigation.navigate('Login');
 						}
 					}
 				}
