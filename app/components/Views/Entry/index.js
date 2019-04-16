@@ -61,7 +61,7 @@ export default class Entry extends Component {
 			} else {
 				this.animateAndGoTo('OnboardingRootNav');
 			}
-		}, 1000);
+		}, 1900);
 	}
 
 	animateAndGoTo(view) {
@@ -80,7 +80,7 @@ export default class Entry extends Component {
 			}).start(() => {
 				this.props.navigation.navigate(this.state.viewToGo);
 			});
-		}, 1500);
+		}, 1750);
 	};
 
 	async unlockKeychain() {

@@ -107,7 +107,7 @@ export default class LockScreen extends Component {
 			}).start(() => {
 				this.props.navigation.goBack();
 			});
-		}, 1500);
+		}, 1750);
 	};
 
 	renderAnimations() {
