@@ -186,7 +186,7 @@ export default class Tooltip extends Component {
 					type={'normal'}
 					onPress={this.onNext}
 				>
-					Next
+					Got it!
 				</StyledButton>
 			</View>
 		);
