@@ -8,6 +8,8 @@ import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard } f
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -32,6 +34,12 @@ const styles = StyleSheet.create({
 	},
 	backIcon: {
 		color: colors.primary
+	},
+	backIconIOS: {
+		marginHorizontal: 5
+	},
+	shareIconIOS: {
+		marginHorizontal: -5
 	},
 	backButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
@@ -375,6 +383,9 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
  */
 export function getWebviewNavbar(navigation) {
 	const title = navigation.getParam('title', '');
+	const share = navigation.getParam('dispatch', () => {
+		'';
+	});
 	return {
 		title,
 		headerTitleStyle: {
@@ -389,16 +400,22 @@ export function getWebviewNavbar(navigation) {
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
-				<View />
-			),
-		headerRight:
-			Platform.OS === 'ios' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			),
+		headerRight:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+					<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
-				<View />
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
+				</TouchableOpacity>
 			)
 	};
 }

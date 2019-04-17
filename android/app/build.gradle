@@ -244,6 +244,7 @@ android {
 }
 
 dependencies {
+    implementation project(':lottie-react-native')
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-push-notification')
     implementation project(':react-native-background-timer')

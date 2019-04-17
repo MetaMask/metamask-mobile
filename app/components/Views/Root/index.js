@@ -5,7 +5,6 @@ import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store/';
 
 import App from '../../Nav/App';
-import FoxScreen from '../../UI/FoxScreen';
 import SecureKeychain from '../../../core/SecureKeychain';
 
 /**
@@ -20,7 +19,7 @@ export default class Root extends Component {
 
 	render = () => (
 		<Provider store={store}>
-			<PersistGate loading={<FoxScreen />} persistor={persistor}>
+			<PersistGate persistor={persistor}>
 				<App />
 			</PersistGate>
 		</Provider>
