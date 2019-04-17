@@ -117,7 +117,7 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
 	const minimalUnitNumber = parseFloat(minimalUnit);
 	let renderMinimalUnit;
 	if (minimalUnitNumber < 0.00001 && minimalUnitNumber !== 0) {
-		renderMinimalUnit = '< 0.00001';
+		renderMinimalUnit = '< 0.0001';
 	} else {
 		const base = Math.pow(10, decimalsToShow);
 		renderMinimalUnit = Math.round(minimalUnitNumber * base) / base;
