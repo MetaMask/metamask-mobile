@@ -711,10 +711,11 @@ class DrawerView extends Component {
 	}
 
 	render() {
+		const { getTotalFiatAccountBalance } = Engine;
 		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
-		const fiatBalance = Engine.getTotalFiatAccountBalance();
+		const fiatBalance = getTotalFiatAccountBalance && getTotalFiatAccountBalance();
 		if (fiatBalance !== this.previousBalance) {
 			this.previousBalance = this.currentBalance;
 		}
