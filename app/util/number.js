@@ -116,7 +116,7 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
 	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
 	const minimalUnitNumber = parseFloat(minimalUnit);
 	let renderMinimalUnit;
-	if (minimalUnitNumber < 0.00001) {
+	if (minimalUnitNumber < 0.00001 && minimalUnitNumber !== 0) {
 		renderMinimalUnit = '< 0.00001';
 	} else {
 		const base = Math.pow(10, decimalsToShow);
@@ -137,7 +137,7 @@ export function renderFromWei(value, decimalsToShow = 5) {
 	const wei = fromWei(value);
 	const weiNumber = parseFloat(wei);
 	let renderWei;
-	if (weiNumber < 0.00001) {
+	if (weiNumber < 0.00001 && weiNumber !== 0) {
 		renderWei = '< 0.00001';
 	} else {
 		const base = Math.pow(10, decimalsToShow);
