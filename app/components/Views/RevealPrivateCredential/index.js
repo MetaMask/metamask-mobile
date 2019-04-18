@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 		padding: 20
 	},
 	warningWrapper: {
-		backgroundColor: colors.lightRed
+		backgroundColor: colors.red000
 	},
 	warningRowWrapper: {
 		flex: 1,
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		marginTop: 10,
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	},
 	input: {

@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
 		color: colors.warning
 	},
 	statusFailed: {
-		backgroundColor: colors.lightRed,
-		color: colors.error
+		backgroundColor: colors.red000,
+		color: colors.red
 	},
 	ethLogo: {
 		width: 24,

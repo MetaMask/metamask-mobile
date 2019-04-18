@@ -903,7 +903,7 @@ class DrawerView extends Component {
 				</Modal>
 				{!this.props.passwordSet && (
 					<CustomAlert
-						headerStyle={{ backgroundColor: colors.headerModalRed }}
+						headerStyle={{ backgroundColor: colors.red }}
 						headerContent={
 							<Image
 								source={require('../../../images/lock.png')}

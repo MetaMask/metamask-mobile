@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	error: {
-		backgroundColor: colors.lightRed,
-		color: colors.error,
+		backgroundColor: colors.red000,
+		color: colors.red,
 		marginTop: 5,
 		paddingVertical: 8,
 		paddingHorizontal: 5,

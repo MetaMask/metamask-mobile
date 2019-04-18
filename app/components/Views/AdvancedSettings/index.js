@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		...fontStyles.normal,
-		color: colors.error,
+		color: colors.red,
 		marginTop: 4,
 		paddingLeft: 2,
 		paddingRight: 4

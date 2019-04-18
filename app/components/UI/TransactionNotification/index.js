@@ -65,12 +65,7 @@ export const TransactionNotification = props => {
 				return <Icon color={colors.success} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'error':
 				return (
-					<MaterialIcon
-						color={colors.darkRed}
-						size={36}
-						name="alert-circle-outline"
-						style={styles.checkIcon}
-					/>
+					<MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />
 				);
 		}
 	};

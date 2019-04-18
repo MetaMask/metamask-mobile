@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
 	},
 	overviewAlert: {
 		alignItems: 'center',
-		backgroundColor: colors.lightRed,
-		borderColor: colors.borderRed,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
 		borderRadius: 4,
 		borderWidth: 1,
 		flexDirection: 'row',
@@ -38,13 +38,13 @@ const styles = StyleSheet.create({
 	},
 	overviewAlertText: {
 		...fontStyles.normal,
-		color: colors.borderRed,
+		color: colors.red,
 		flex: 1,
 		fontSize: 12,
 		marginLeft: 8
 	},
 	overviewAlertIcon: {
-		color: colors.borderRed,
+		color: colors.red,
 		flex: 0
 	},
 	topOverviewRow: {

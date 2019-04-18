@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
 		marginVertical: 40
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	},
 	goBack: {

@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	},
 	biometrics: {

@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	warningText: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	}
 });

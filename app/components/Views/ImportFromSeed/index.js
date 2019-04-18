@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 		marginTop: 20
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		textAlign: 'center',
 		...fontStyles.normal
 	},
