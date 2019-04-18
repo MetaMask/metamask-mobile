@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 	},
 	warning: {
 		...fontStyles.bold,
-		color: colors.warning,
+		color: colors.orange300,
 		fontSize: 12,
 		lineHeight: 12,
 		paddingTop: 6

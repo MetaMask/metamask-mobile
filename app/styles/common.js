@@ -35,6 +35,10 @@ export const colors = {
 	yellow: '#FFD33D',
 	yellow200: '#ffe281',
 
+	orange: '#f66a0a',
+	orange300: '#faa66c',
+	orange000: '#fef5ef',
+
 	slate: '#dfe4ea',
 	tar: '#2f3542',
 	title: '#1B344D',
@@ -42,8 +46,7 @@ export const colors = {
 
 	warningText: '#735710',
 	lightSuccess: '#eafad7',
-	warning: '#CA810A',
-	lightWarning: '#FFF2DB',
+
 	dimmed: '#00000080',
 	transparent: 'transparent',
 	overlay: 'rgba(0,0,0,.5)',
