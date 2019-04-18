@@ -23,6 +23,7 @@ export const colors = {
 	fontTertiary: '#AAAAAA',
 	fontError: '#D73A49',
 	fontWarning: '#f66a0a',
+	primaryFox: '#f66a0a',
 
 	black: '#000000',
 
@@ -31,14 +32,14 @@ export const colors = {
 	green300: '#86e29b',
 	green200: '#afecbd',
 
-	primaryFox: '#f66a0a',
+	yellow: '#FFD33D',
+	yellow200: '#ffe281',
 
 	slate: '#dfe4ea',
 	tar: '#2f3542',
 	title: '#1B344D',
 	white: '#FFFFFF',
-	yellow: '#F8D66D',
-	yellowBorder: '#ECD391',
+
 	warningText: '#735710',
 	lightSuccess: '#eafad7',
 	warning: '#CA810A',

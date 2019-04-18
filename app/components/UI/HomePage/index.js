@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		backgroundColor: colors.lightWarning,
 		borderWidth: 1,
-		borderColor: colors.yellowBorder,
+		borderColor: colors.yellow200,
 		borderRadius: 8
 	},
 	backupAlertIconWrapper: {
