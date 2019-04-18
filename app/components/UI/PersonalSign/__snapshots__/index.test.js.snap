@@ -43,7 +43,7 @@ exports[`PersonalSign should render correctly 1`] = `
     <View
       style={
         Object {
-          "borderBottomColor": "#d2d8dd",
+          "borderBottomColor": "#bbc0c5",
           "borderBottomWidth": 1,
           "padding": 20,
         }

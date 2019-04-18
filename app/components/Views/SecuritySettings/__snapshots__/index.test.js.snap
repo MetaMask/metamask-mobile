@@ -46,7 +46,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4d4d4d",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
@@ -65,12 +65,12 @@ exports[`SecuritySettings should render correctly 1`] = `
         }
       >
         <Switch
-          ios_backgroundColor="#dfe4ea"
+          ios_backgroundColor="#f2f3f4"
           onValueChange={[Function]}
           trackColor={
             Object {
-              "false": "#f1f2f6",
-              "true": "#008edf",
+              "false": "#f2f3f4",
+              "true": "#037dd6",
             }
           }
           value={true}
@@ -100,7 +100,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4d4d4d",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
@@ -157,7 +157,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4d4d4d",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
@@ -214,7 +214,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4d4d4d",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
@@ -228,7 +228,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "borderColor": "#d2d8dd",
+            "borderColor": "#bbc0c5",
             "borderRadius": 5,
             "borderWidth": 2,
             "marginTop": 16,
@@ -310,7 +310,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#4d4d4d",
+              "color": "#6a737d",
               "fontFamily": "Roboto",
               "fontSize": 14,
               "fontWeight": "400",
@@ -318,7 +318,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "marginTop": 12,
             },
             Object {
-              "color": "#f00",
+              "color": "#D73A49",
             },
           ]
         }
@@ -371,7 +371,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#4d4d4d",
+              "color": "#6a737d",
               "fontFamily": "Roboto",
               "fontSize": 14,
               "fontWeight": "400",
@@ -379,7 +379,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "marginTop": 12,
             },
             Object {
-              "color": "#f00",
+              "color": "#D73A49",
             },
           ]
         }

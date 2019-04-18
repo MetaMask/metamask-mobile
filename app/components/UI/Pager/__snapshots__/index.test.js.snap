@@ -14,7 +14,7 @@ exports[`Pager should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#DADADA",
+          "backgroundColor": "#d6d9dc",
           "height": 7,
           "marginRight": 4,
         },
