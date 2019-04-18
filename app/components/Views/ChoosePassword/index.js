@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderBottomWidth: Platform.OS === 'android' ? 0 : 1,
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
@@ -407,7 +407,7 @@ class ChoosePassword extends Component {
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									underlineColorAndroid={colors.borderColor}
+									underlineColorAndroid={colors.grey100}
 									testID={'input-password'}
 									onSubmitEditing={this.jumpToConfirmPassword}
 									returnKeyType={'next'}
@@ -470,7 +470,7 @@ class ChoosePassword extends Component {
 									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									underlineColorAndroid={colors.borderColor}
+									underlineColorAndroid={colors.grey100}
 									testID={'input-password-confirm'}
 									onSubmitEditing={this.onPressCreate}
 									returnKeyType={'done'}

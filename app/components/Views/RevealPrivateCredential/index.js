@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	header: {
-		borderBottomColor: colors.accentGray,
+		borderBottomColor: colors.grey400,
 		borderBottomWidth: 1,
 		...fontStyles.normal
 	},
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 20,
 		paddingLeft: 20,
 		paddingRight: 20,
-		borderColor: colors.accentGray,
+		borderColor: colors.grey400,
 		borderBottomWidth: 1,
 		fontSize: 20,
 		textAlign: 'center',
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	seedPhraseView: {
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.accentGray,
+		borderColor: colors.grey400,
 		marginTop: 10,
 		alignItems: 'center'
 	},
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
-		borderColor: colors.concrete,
+		borderColor: colors.grey000,
 		padding: 10
 	},
 	icon: {

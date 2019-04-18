@@ -69,11 +69,11 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	seedPhraseWrapper: {
-		backgroundColor: colors.lighterGray,
+		backgroundColor: colors.grey000,
 		borderRadius: 10,
 		marginBottom: 20,
 		flexDirection: 'row',
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1
 	},
 	colLeft: {
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 10,
 		flex: 1,
 		alignItems: 'center',
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderRightWidth: 1
 	},
 	colRight: {
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 		lineHeight: 14,
 		color: colors.fontPrimary,
 		backgroundColor: colors.white,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 15,
 		borderRadius: 4
@@ -128,9 +128,9 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between'
 	},
 	selectedWord: {
-		backgroundColor: colors.another50ShadesOfGrey,
+		backgroundColor: colors.grey400,
 		borderWidth: 1,
-		borderColor: colors.another50ShadesOfGrey
+		borderColor: colors.grey400
 	},
 	selectedWordText: {
 		color: colors.white

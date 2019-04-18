@@ -21,14 +21,14 @@ const styles = StyleSheet.create({
 		width: '100%',
 		marginTop: 75,
 		maxHeight: 200,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		elevation: 11
 	},
 	activeOption: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		position: 'relative'
@@ -58,14 +58,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8
 	},
 	arrow: {
-		color: colors.inputBorderColor,
+		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
 		top: 25
 	},
 	optionList: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,

@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		height: 120,
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		...fontStyles.normal
 	},
 	navbarRightButton: {

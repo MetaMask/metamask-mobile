@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	tokenId: {
 		fontSize: 12,
 		marginTop: 4,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal
 	}
 });

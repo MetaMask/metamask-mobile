@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 	},
 	amount: {
 		fontSize: 12,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal
 	},
 	itemWrapper: {

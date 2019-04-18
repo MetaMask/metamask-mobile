@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 	},
 	address: {
 		fontSize: 12,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal,
 		letterSpacing: 0.8
 	},

@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.bold,
-		color: colors.gray,
+		color: colors.grey400,
 		fontSize: 16
 	},
 	max: {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 	hexData: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,

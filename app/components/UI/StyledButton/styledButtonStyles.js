@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.accentGray
+		borderColor: colors.grey400
 	},
 	cancelText: {
-		color: colors.accentGray
+		color: colors.grey400
 	},
 	warning: {
 		backgroundColor: colors.white,
@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
 	neutral: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.copy
+		borderColor: colors.grey500
 	},
 	neutralText: {
-		color: colors.copy
+		color: colors.grey500
 	},
 	danger: {
 		backgroundColor: colors.red,

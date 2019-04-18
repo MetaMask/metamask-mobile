@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 10,
 		borderRadius: 4,
 		fontSize: Platform.OS === 'android' ? 15 : 20,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		minHeight: 110,
 		height: 'auto',
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		...fontStyles.normal
 	},
 	biometrics: {
@@ -335,7 +335,7 @@ class ImportFromSeed extends Component {
 							onChangeText={this.onPasswordChange}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							testID={'input-password'}
 							onSubmitEditing={this.jumpToConfirmPassword}
 							returnKeyType={'next'}
@@ -351,7 +351,7 @@ class ImportFromSeed extends Component {
 							onChangeText={this.onPasswordConfirmChange}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							testID={'input-password-confirm'}
 							onSubmitEditing={this.onPressImport}
 							returnKeyType={'done'}

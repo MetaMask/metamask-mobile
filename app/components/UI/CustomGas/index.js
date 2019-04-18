@@ -17,7 +17,7 @@ import { fromWei } from '../../../util/number';
 const styles = StyleSheet.create({
 	selectors: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		marginTop: 10
 	},
 	average: {
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRightWidth: 1,
 		borderLeftWidth: 1
 	},
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 	gasInput: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		fontSize: 16,

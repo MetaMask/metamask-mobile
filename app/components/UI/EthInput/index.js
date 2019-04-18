@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 14,
 		position: 'relative',
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1
 	},
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 		borderRadius: 11
 	},
 	arrow: {
-		color: colors.inputBorderColor,
+		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
 		top: Platform.OS === 'android' ? 20 : 13
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 	},
 	optionList: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingLeft: 14,

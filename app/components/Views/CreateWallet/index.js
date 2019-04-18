@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		lineHeight: 23,
 		marginBottom: 20,
-		color: colors.copy,
+		color: colors.grey500,
 		textAlign: 'center',
 		...fontStyles.normal
 	},

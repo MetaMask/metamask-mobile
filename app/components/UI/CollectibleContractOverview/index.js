@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 20,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		alignContent: 'center',
 		alignItems: 'center',
 		paddingBottom: 30

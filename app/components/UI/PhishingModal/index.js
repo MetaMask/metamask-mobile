@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	phishingModalInfo: {
-		backgroundColor: colors.lighterGray,
+		backgroundColor: colors.grey000,
 		paddingTop: 20,
 		paddingHorizontal: 20
 	},

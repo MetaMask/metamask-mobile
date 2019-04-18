@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 10,
 		borderRadius: 4,
 		fontSize: Platform.OS === 'android' ? 15 : 20,
@@ -267,7 +267,7 @@ export default class Login extends Component {
 							onChangeText={this.setPassword}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}
 							autoCapitalize="none"

@@ -34,13 +34,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.gray,
+		backgroundColor: colors.grey400,
 		opacity: Platform.OS === 'android' ? 0.6 : 0.5
 	},
 	accountsWrapper: {
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 	},
 	account: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
@@ -89,10 +89,10 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	importedText: {
-		color: colors.another50ShadesOfGrey,
+		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
 	},
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.another50ShadesOfGrey
+		borderColor: colors.grey400
 	},
 	importedView: {
 		flex: 0.5,

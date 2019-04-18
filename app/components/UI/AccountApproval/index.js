@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 	permissions: {
 		alignItems: 'center',
 		borderBottomWidth: 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderTopWidth: 1,
 		display: 'flex',
 		flexDirection: 'row',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
 		width: '33%'
 	},
 	border: {
-		borderColor: colors.accentGray,
+		borderColor: colors.grey400,
 		borderStyle: 'dashed',
 		borderWidth: 1,
 		left: 0,

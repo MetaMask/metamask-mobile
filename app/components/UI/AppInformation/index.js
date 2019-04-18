@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	division: {
-		borderBottomColor: colors.gray,
+		borderBottomColor: colors.grey400,
 		borderBottomWidth: 1,
 		width: '30%',
 		marginBottom: 20

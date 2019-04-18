@@ -185,7 +185,7 @@ class AccountBackupStep6 extends Component {
 						</StyledButton>
 					</View>
 					<CustomAlert
-						headerStyle={{ backgroundColor: colors.lightGray }}
+						headerStyle={{ backgroundColor: colors.grey200 }}
 						headerContent={<Emoji name="tada" style={styles.emoji} />}
 						titleText={strings('account_backup_step_6.modal_title')}
 						buttonText={strings('account_backup_step_6.modal_button')}

@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	},
 	graphic: {
 		borderBottomWidth: 1,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey000,
 		borderTopWidth: 1,
 		flexDirection: 'row',
 		flexGrow: 0,
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 	},
 	arrow: {
 		backgroundColor: colors.white,
-		borderColor: colors.lightGray,
+		borderColor: colors.grey200,
 		borderRadius: 15,
 		borderWidth: 1,
 		height: 30,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center'
 	},
 	arrowIcon: {
-		color: colors.gray,
+		color: colors.grey400,
 		marginLeft: 3,
 		marginTop: 3
 	},
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	fromGraphic: {
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey000,
 		borderRightWidth: 1,
 		paddingRight: 35,
 		paddingLeft: 20

@@ -7,27 +7,20 @@
  */
 export const colors = {
 	drawerBg: '#F8F8F8',
-	ash: '#ced6e0',
 
-	asphalt: '#747d8c',
-	accentGray: '#9b9b9b',
-	inactive: '#808080',
-	another50ShadesOfGrey: '#8E8E93',
-	lightGray: '#d2d8dd',
-	lighterGray: '#F7F7F7',
-	inputBorderColor: '#dedede',
+	grey500: '#6a737d',
+	grey400: '#848c96',
+	grey200: '#bbc0c5',
+	grey100: '#d6d9dc',
+	grey000: '#f2f3f4',
+
+	fontPrimary: '#000000',
 	fontSecondary: '#999999',
 	fontTertiary: '#AAAAAA',
-	gray: '#7c7e84',
-	subtleGray: '#8c8e94',
+	fontError: '#D73A49',
+	fontWarning: '#f66a0a',
 
-	anotherBlue: '#F0F2F4',
 	black: '#000000',
-	beige: '#f9fafa',
-	borderColor: '#CCCCCC',
-	concrete: '#f1f2f6',
-	copy: '#4d4d4d',
-	fontPrimary: '#000000',
 
 	green: '#02c9b1',
 	brightGreen: '#4CD964',
@@ -35,7 +28,7 @@ export const colors = {
 	blue: '#037dd6',
 	blue000: '#eaf6ff',
 
-	primaryFox: '#f7861ce6',
+	primaryFox: '#f66a0a',
 
 	red: '#D73A49',
 	red000: '#fcf2f3',
