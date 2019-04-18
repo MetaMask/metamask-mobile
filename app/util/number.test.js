@@ -85,38 +85,44 @@ describe('Number utils :: toTokenMinimalUnit', () => {
 
 describe('Number utils :: renderFromTokenMinimalUnit', () => {
 	it('renderFromTokenMinimalUnit using number', () => {
-		expect(renderFromTokenMinimalUnit(1337, 6)).toEqual(0.00134);
-		expect(renderFromTokenMinimalUnit(1337, 0)).toEqual(1337);
-		expect(renderFromTokenMinimalUnit(1337, 10)).toEqual(0);
+		expect(renderFromTokenMinimalUnit(1337, 6)).toEqual('0.00134');
+		expect(renderFromTokenMinimalUnit(1337, 0)).toEqual('1337');
+		expect(renderFromTokenMinimalUnit(1337, 10)).toEqual('< 0.00001');
+		expect(renderFromTokenMinimalUnit(0, 10)).toEqual('0');
 	});
 
 	it('renderFromTokenMinimalUnit using string', () => {
-		expect(renderFromTokenMinimalUnit('1337', 6)).toEqual(0.00134);
-		expect(renderFromTokenMinimalUnit('1337', 0)).toEqual(1337);
-		expect(renderFromTokenMinimalUnit('1337', 10)).toEqual(0);
+		expect(renderFromTokenMinimalUnit('1337', 6)).toEqual('0.00134');
+		expect(renderFromTokenMinimalUnit('1337', 0)).toEqual('1337');
+		expect(renderFromTokenMinimalUnit('1337', 10)).toEqual('< 0.00001');
+		expect(renderFromTokenMinimalUnit('0', 10)).toEqual('0');
 	});
 
 	it('renderFromTokenMinimalUnit using BN number', () => {
-		expect(renderFromTokenMinimalUnit(new BN('1337'), 0)).toEqual(1337);
-		expect(renderFromTokenMinimalUnit(new BN('1337'), 6)).toEqual(0.00134);
-		expect(renderFromTokenMinimalUnit(new BN('1337'), 10)).toEqual(0);
+		expect(renderFromTokenMinimalUnit(new BN('1337'), 0)).toEqual('1337');
+		expect(renderFromTokenMinimalUnit(new BN('1337'), 6)).toEqual('0.00134');
+		expect(renderFromTokenMinimalUnit(new BN('1337'), 10)).toEqual('< 0.00001');
+		expect(renderFromTokenMinimalUnit(new BN('0'), 10)).toEqual('0');
 	});
 });
 
 describe('Number utils :: renderFromWei', () => {
 	it('renderFromWei using number', () => {
-		expect(renderFromWei(133700000000000000)).toEqual(0.1337);
-		expect(renderFromWei(1337)).toEqual(0);
+		expect(renderFromWei(133700000000000000)).toEqual('0.1337');
+		expect(renderFromWei(1337)).toEqual('< 0.00001');
+		expect(renderFromWei(0)).toEqual('0');
 	});
 
 	it('renderFromWei using string', () => {
-		expect(renderFromWei('133700000000000000')).toEqual(0.1337);
-		expect(renderFromWei('1337')).toEqual(0);
+		expect(renderFromWei('133700000000000000')).toEqual('0.1337');
+		expect(renderFromWei('1337')).toEqual('< 0.00001');
+		expect(renderFromWei('0')).toEqual('0');
 	});
 
 	it('renderFromWei using BN number', () => {
-		expect(renderFromWei(new BN('133700000000000000'))).toEqual(0.1337);
-		expect(renderFromWei(new BN('1337'))).toEqual(0);
+		expect(renderFromWei(new BN('133700000000000000'))).toEqual('0.1337');
+		expect(renderFromWei(new BN('1337'))).toEqual('< 0.00001');
+		expect(renderFromWei(new BN('0'))).toEqual('0');
 	});
 });
 
