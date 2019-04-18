@@ -124,18 +124,18 @@ const styles = StyleSheet.create({
 	},
 	backupAlertIcon: {
 		fontSize: 22,
-		color: colors.warningText
+		color: colors.yellow700
 	},
 	backupAlertTitle: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.warningText,
+		color: colors.yellow700,
 		...fontStyles.bold
 	},
 	backupAlertMessage: {
 		fontSize: 10,
 		lineHeight: 14,
-		color: colors.warningText,
+		color: colors.yellow700,
 		...fontStyles.normal
 	},
 	tabUnderlineStyle: {

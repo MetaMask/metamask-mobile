@@ -313,10 +313,8 @@ class ChoosePassword extends Component {
 						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -329,8 +327,8 @@ class ChoosePassword extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);

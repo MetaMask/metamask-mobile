@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		marginBottom: Platform.OS === 'android' ? -10 : 0
 	},
 	addressWrapper: {
-		backgroundColor: colors.blueishGrey,
+		backgroundColor: colors.blue000,
 		borderRadius: 40,
 		marginTop: 20,
 		marginBottom: 20,

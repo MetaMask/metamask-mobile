@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	statusConfirmed: {
-		backgroundColor: colors.lightSuccess,
+		backgroundColor: colors.green100,
 		color: colors.green500
 	},
 	statusSubmitted: {

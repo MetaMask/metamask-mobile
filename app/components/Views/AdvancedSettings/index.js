@@ -397,7 +397,7 @@ class AdvancedSettings extends Component {
 									trackColor={
 										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
 									}
-									ios_backgroundColor={colors.slate}
+									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
 						</View>

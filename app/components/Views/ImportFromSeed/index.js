@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		fontSize: Platform.OS === 'android' ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title,
+		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold
@@ -282,10 +282,8 @@ class ImportFromSeed extends Component {
 						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -298,8 +296,8 @@ class ImportFromSeed extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);

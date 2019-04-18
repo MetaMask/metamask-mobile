@@ -281,7 +281,7 @@ class Settings extends Component {
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
 								trackColor={Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.slate}
+								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
 					</View>
@@ -335,7 +335,7 @@ class Settings extends Component {
 									trackColor={
 										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
 									}
-									ios_backgroundColor={colors.slate}
+									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
 						</View>
