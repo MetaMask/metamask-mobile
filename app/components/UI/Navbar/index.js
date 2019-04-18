@@ -30,10 +30,10 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
-		color: colors.primary
+		color: colors.blue
 	},
 	backIcon: {
-		color: colors.primary
+		color: colors.blue
 	},
 	backIconIOS: {
 		marginHorizontal: 5
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	infoIcon: {
-		color: colors.primary
+		color: colors.blue
 	},
 	moreIcon: {
 		marginRight: 15,
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 22
 	},
 	closeButtonText: {
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 14,
 		...fontStyles.normal
 	},
@@ -139,7 +139,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerTintColor: colors.primary,
+		headerTintColor: colors.blue,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>

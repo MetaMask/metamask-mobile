@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 	},
 	max: {
 		...fontStyles.bold,
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 12,
 		paddingTop: 6
 	},

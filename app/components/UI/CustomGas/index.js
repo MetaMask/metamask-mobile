@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	textAdvancedOptions: {
-		color: colors.primary
+		color: colors.blue
 	},
 	gasInput: {
 		...fontStyles.bold,
@@ -237,7 +237,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.slow,
-						{ backgroundColor: this.state.gasSlowSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasSlowSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
@@ -256,7 +256,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.average,
-						{ backgroundColor: this.state.gasAverageSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasAverageSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text
@@ -277,7 +277,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.fast,
-						{ backgroundColor: this.state.gasFastSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasFastSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>

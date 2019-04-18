@@ -146,10 +146,7 @@ class CreateWallet extends Component {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator
-							size="large"
-							color={Platform.OS === 'android' ? colors.primary : colors.grey}
-						/>
+						<ActivityIndicator size="large" color={Platform.OS === 'android' ? colors.blue : colors.grey} />
 						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
 						<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
 					</View>

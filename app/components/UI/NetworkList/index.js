@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		fontSize: 16,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	networkIcon: {

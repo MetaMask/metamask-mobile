@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	},
 	btnText: {
 		fontSize: 14,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	footerButton: {
@@ -249,7 +249,7 @@ export default class AccountList extends Component {
 	renderItem = ({ item }) => {
 		const { index, name, address, balance, isSelected, isImported } = item;
 
-		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
 				<Text numberOfLines={1} style={styles.importedText}>
@@ -325,7 +325,7 @@ export default class AccountList extends Component {
 				<View style={styles.footer}>
 					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
 						{this.state.loading ? (
-							<ActivityIndicator size="small" color={colors.primary} />
+							<ActivityIndicator size="small" color={colors.blue} />
 						) : (
 							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
 						)}

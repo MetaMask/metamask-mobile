@@ -228,7 +228,7 @@ class AccountApproval extends Component {
 								{strings('accountApproval.permission')}
 								<Text style={styles.permission}> {strings('accountApproval.address')}</Text>
 							</Text>
-							<Icon name="info-circle" color={colors.primary} size={22} />
+							<Icon name="info-circle" color={colors.blue} size={22} />
 						</View>
 						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
 					</View>

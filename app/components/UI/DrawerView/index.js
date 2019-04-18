@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 		borderRadius: 96,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	},
 	accountNameWrapper: {
 		flexDirection: 'row',
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
 		marginTop: Platform.OS === 'ios' ? 0 : -23,
 		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
 		fontSize: 15,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	buttonContent: {
@@ -184,13 +184,13 @@ const styles = StyleSheet.create({
 		paddingLeft: 17
 	},
 	selectedRoute: {
-		backgroundColor: colors.primaryOpacity,
+		backgroundColor: colors.blue000,
 		marginRight: 10,
 		borderTopRightRadius: 20,
 		borderBottomRightRadius: 20
 	},
 	selectedName: {
-		color: colors.primary
+		color: colors.blue
 	},
 	menuItemName: {
 		flex: 1,
@@ -607,15 +607,15 @@ class DrawerView extends Component {
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.primary} />;
+		return <Icon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedImageIcon(name) {
@@ -778,7 +778,7 @@ class DrawerView extends Component {
 							<MaterialIcon
 								name={'arrow-top-right'}
 								size={22}
-								color={colors.primary}
+								color={colors.blue}
 								style={styles.buttonIcon}
 							/>
 							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
@@ -789,7 +789,7 @@ class DrawerView extends Component {
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
 						>
-							<Icon name={'qrcode'} size={22} color={colors.primary} style={styles.buttonIcon} />
+							<Icon name={'qrcode'} size={22} color={colors.blue} style={styles.buttonIcon} />
 							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>

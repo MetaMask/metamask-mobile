@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.primary
+		color: colors.blue
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {

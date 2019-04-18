@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		marginRight: defaultMargin
 	},
 	selected: {
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	}
 });
 

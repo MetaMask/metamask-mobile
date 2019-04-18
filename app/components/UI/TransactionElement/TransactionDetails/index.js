@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 	},
 	viewOnEtherscan: {
 		fontSize: 14,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal,
 		textAlign: 'center',
 		marginTop: 15,
@@ -149,19 +149,19 @@ export default class TransactionDetails extends PureComponent {
 
 	renderCopyIcon = () => (
 		<TouchableOpacity style={styles.copyIcon} onPress={this.copy}>
-			<Icon name={'copy'} size={15} color={colors.primary} />
+			<Icon name={'copy'} size={15} color={colors.blue} />
 		</TouchableOpacity>
 	);
 
 	renderCopyToIcon = () => (
 		<TouchableOpacity style={styles.copyIcon} onPress={this.copyTo}>
-			<Icon name={'copy'} size={15} color={colors.primary} />
+			<Icon name={'copy'} size={15} color={colors.blue} />
 		</TouchableOpacity>
 	);
 
 	renderCopyFromIcon = () => (
 		<TouchableOpacity style={styles.copyIcon} onPress={this.copyFrom}>
-			<Icon name={'copy'} size={15} color={colors.primary} />
+			<Icon name={'copy'} size={15} color={colors.blue} />
 		</TouchableOpacity>
 	);
 

@@ -76,10 +76,10 @@ const styles = StyleSheet.create({
 	},
 	actionIcon: {
 		margin: 10,
-		color: colors.primary
+		color: colors.blue
 	},
 	actionText: {
-		color: colors.primary
+		color: colors.blue
 	},
 	warningMessageText: {
 		marginLeft: 10,

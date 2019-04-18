@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		borderRadius: 80,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	}
 });
 

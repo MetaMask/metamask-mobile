@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	tabStyle: {
 		paddingBottom: 0,
@@ -227,7 +227,7 @@ class TransactionReview extends Component {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.primary}
+				activeTextColor={colors.blue}
 				inactiveTextColor={colors.fontTertiary}
 				backgroundColor={colors.white}
 				tabStyle={styles.tabStyle}

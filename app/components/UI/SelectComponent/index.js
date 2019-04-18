@@ -199,7 +199,7 @@ export default class SelectComponent extends Component {
 										{option.label}
 									</Text>
 									{this.props.selectedValue === option.value ? (
-										<IconCheck style={styles.icon} name="check" size={24} color={colors.primary} />
+										<IconCheck style={styles.icon} name="check" size={24} color={colors.blue} />
 									) : null}
 								</TouchableOpacity>
 							))}

@@ -281,7 +281,7 @@ class Settings extends Component {
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
 								trackColor={
-									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+									Platform.OS === 'ios' ? { true: colors.blue, false: colors.concrete } : null
 								}
 								ios_backgroundColor={colors.slate}
 							/>
@@ -335,7 +335,7 @@ class Settings extends Component {
 									onValueChange={biometryChoice => this.onBiometryChange(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 									value={this.state.biometryChoice}
 									trackColor={
-										Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+										Platform.OS === 'ios' ? { true: colors.blue, false: colors.concrete } : null
 									}
 									ios_backgroundColor={colors.slate}
 								/>

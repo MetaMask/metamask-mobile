@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 	},
 	navbarLeftText: {
 		fontSize: 18,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	seedPhraseWrapper: {
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4
 	},
 	selectableWord: {
-		borderColor: colors.primary,
+		borderColor: colors.blue,
 		borderWidth: 1,
 		paddingHorizontal: 8,
 		paddingVertical: 5,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
 	},
 	currentWord: {
 		borderWidth: 1,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	},
 	succesModalText: {
 		textAlign: 'center',

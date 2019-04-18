@@ -395,7 +395,7 @@ class AdvancedSettings extends Component {
 									value={showHexData}
 									onValueChange={this.toggleShowHexData}
 									trackColor={
-										Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+										Platform.OS === 'ios' ? { true: colors.blue, false: colors.concrete } : null
 									}
 									ios_backgroundColor={colors.slate}
 								/>

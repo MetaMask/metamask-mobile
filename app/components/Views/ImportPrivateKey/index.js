@@ -13,7 +13,7 @@ import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.lightBlue,
+		backgroundColor: colors.blue000,
 		flex: 1
 	},
 	wrapper: {

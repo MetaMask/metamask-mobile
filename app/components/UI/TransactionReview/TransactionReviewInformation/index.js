@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		textAlign: 'right'
 	},
 	overviewAccent: {
-		color: colors.primary
+		color: colors.blue
 	},
 	overviewEth: {
 		...fontStyles.normal,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 	},
 	overviewAction: {
 		...fontStyles.nold,
-		color: colors.primary
+		color: colors.blue
 	},
 	assetName: {
 		maxWidth: 200

@@ -32,9 +32,9 @@ export const colors = {
 	green: '#02c9b1',
 	brightGreen: '#4CD964',
 
-	lightBlue: '#F2F9FE',
-	primary: '#008edf',
-	primaryOpacity: '#E9F3FD',
+	blue: '#037dd6',
+	blue000: '#eaf6ff',
+
 	primaryFox: '#f7861ce6',
 
 	red: '#D73A49',
