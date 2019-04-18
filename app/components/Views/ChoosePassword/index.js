@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.brightGreen
+		color: colors.green300
 	},
 	showHideToggle: {
 		backgroundColor: colors.white,
@@ -314,7 +314,7 @@ class ChoosePassword extends Component {
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
 						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+							Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null
 						}
 						ios_backgroundColor={colors.switchOffColor}
 					/>
@@ -329,9 +329,7 @@ class ChoosePassword extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null}
 					ios_backgroundColor={colors.switchOffColor}
 				/>
 			</View>
@@ -481,7 +479,7 @@ class ChoosePassword extends Component {
 								<View style={styles.showMatchingPasswords}>
 									{this.state.password !== '' &&
 									this.state.password === this.state.confirmPassword ? (
-										<Icon name="check" size={12} color={colors.brightGreen} />
+										<Icon name="check" size={12} color={colors.green300} />
 									) : null}
 								</View>
 								<Text style={styles.passwordStrengthLabel}>

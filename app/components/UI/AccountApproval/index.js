@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
 	},
 	checkWrapper: {
 		alignItems: 'center',
-		backgroundColor: colors.success,
+		backgroundColor: colors.green500,
 		borderRadius: 12,
 		height: 24,
 		position: 'relative',

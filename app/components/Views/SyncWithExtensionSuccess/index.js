@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 		marginTop: 40
 	},
 	icon: {
-		color: colors.success,
+		color: colors.green500,
 		marginBottom: 30
 	}
 });

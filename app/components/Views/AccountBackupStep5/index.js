@@ -368,7 +368,7 @@ class AccountBackupStep5 extends Component {
 						</View>
 					</View>
 					<CustomAlert
-						headerStyle={{ backgroundColor: colors.success }}
+						headerStyle={{ backgroundColor: colors.green500 }}
 						headerContent={<Icon color={colors.white} name={'check'} size={100} />}
 						titleText={strings('account_backup_step_5.modal_title')}
 						buttonText={strings('account_backup_step_5.modal_button')}

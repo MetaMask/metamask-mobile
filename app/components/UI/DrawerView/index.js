@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.drawerBg,
+		backgroundColor: colors.grey000,
 		height: DeviceSize.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 	},
 	account: {
 		flex: 1,
-		backgroundColor: colors.drawerBg
+		backgroundColor: colors.grey000
 	},
 	accountBgOverlay: {
 		borderBottomColor: colors.grey100,

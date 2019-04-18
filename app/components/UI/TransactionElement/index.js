@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
 	},
 	statusConfirmed: {
 		backgroundColor: colors.lightSuccess,
-		color: colors.success
+		color: colors.green500
 	},
 	statusSubmitted: {
 		backgroundColor: colors.lightWarning,

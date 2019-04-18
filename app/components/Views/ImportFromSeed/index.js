@@ -283,7 +283,7 @@ class ImportFromSeed extends Component {
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
 						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
+							Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null
 						}
 						ios_backgroundColor={colors.switchOffColor}
 					/>
@@ -298,9 +298,7 @@ class ImportFromSeed extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.switchOffColor } : null}
 					ios_backgroundColor={colors.switchOffColor}
 				/>
 			</View>
