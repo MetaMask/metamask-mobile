@@ -29,7 +29,7 @@ jobs:
   prep-deps:
     <<: *defaults
     macos:
-      xcode: 10.1.0
+      xcode: 10.2.0
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -81,7 +81,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 10.1.0
+      xcode: 10.2.0
     steps:
       - checkout
       - attach_workspace:
@@ -144,7 +144,7 @@ jobs:
           command: npm run build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 10.1.0
+      xcode: 10.2.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
