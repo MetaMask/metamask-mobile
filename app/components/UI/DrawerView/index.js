@@ -756,7 +756,7 @@ class DrawerView extends Component {
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
-								<Text style={styles.accountBalance}>${fiatBalanceStr}</Text>
+								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
 								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
 								{this.isCurrentAccountImported() && (
 									<View style={styles.importedWrapper}>
