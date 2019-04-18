@@ -71,16 +71,10 @@ exports[`Entry should render correctly 1`] = `
                         "ix": 2,
                         "k": Array [
                           Object {
-                            "e": Array [
-                              562.688,
-                              730.992,
-                              0,
-                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
                             },
-                            "n": "0p833_0p833_0p167_0p167",
                             "o": Object {
                               "x": 0.167,
                               "y": 0.167,
@@ -103,16 +97,10 @@ exports[`Entry should render correctly 1`] = `
                             ],
                           },
                           Object {
-                            "e": Array [
-                              562.688,
-                              850.992,
-                              0,
-                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
                             },
-                            "n": "0p833_0p833_0p167_0p167",
                             "o": Object {
                               "x": 0.167,
                               "y": 0.167,
@@ -135,6 +123,11 @@ exports[`Entry should render correctly 1`] = `
                             ],
                           },
                           Object {
+                            "s": Array [
+                              562.688,
+                              850.992,
+                              0,
+                            ],
                             "t": 22,
                           },
                         ],
@@ -158,6 +151,7 @@ exports[`Entry should render correctly 1`] = `
                     "op": 23,
                     "shapes": Array [
                       Object {
+                        "bm": 0,
                         "cix": 2,
                         "hd": false,
                         "it": Array [
@@ -170,70 +164,10 @@ exports[`Entry should render correctly 1`] = `
                               "ix": 2,
                               "k": Array [
                                 Object {
-                                  "e": Array [
-                                    Object {
-                                      "c": true,
-                                      "i": Array [
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                      ],
-                                      "o": Array [
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                      ],
-                                      "v": Array [
-                                        Array [
-                                          52.608,
-                                          -367.008,
-                                        ],
-                                        Array [
-                                          0.188,
-                                          -271.228,
-                                        ],
-                                        Array [
-                                          -52.232,
-                                          -367.008,
-                                        ],
-                                        Array [
-                                          0.188,
-                                          -462.788,
-                                        ],
-                                      ],
-                                    },
-                                  ],
                                   "i": Object {
                                     "x": 0.667,
                                     "y": 1,
                                   },
-                                  "n": "0p667_1_0p333_0",
                                   "o": Object {
                                     "x": 0.333,
                                     "y": 0,
@@ -300,70 +234,10 @@ exports[`Entry should render correctly 1`] = `
                                   "t": 0,
                                 },
                                 Object {
-                                  "e": Array [
-                                    Object {
-                                      "c": true,
-                                      "i": Array [
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                      ],
-                                      "o": Array [
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                      ],
-                                      "v": Array [
-                                        Array [
-                                          52.608,
-                                          -367.008,
-                                        ],
-                                        Array [
-                                          0.188,
-                                          -271.228,
-                                        ],
-                                        Array [
-                                          51.768,
-                                          -367.008,
-                                        ],
-                                        Array [
-                                          0.188,
-                                          -462.788,
-                                        ],
-                                      ],
-                                    },
-                                  ],
                                   "i": Object {
                                     "x": 0.833,
                                     "y": 1,
                                   },
-                                  "n": "0p833_1_0p167_0",
                                   "o": Object {
                                     "x": 0.167,
                                     "y": 0,
@@ -430,6 +304,65 @@ exports[`Entry should render correctly 1`] = `
                                   "t": 10,
                                 },
                                 Object {
+                                  "s": Array [
+                                    Object {
+                                      "c": true,
+                                      "i": Array [
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                      ],
+                                      "o": Array [
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                      ],
+                                      "v": Array [
+                                        Array [
+                                          52.608,
+                                          -367.008,
+                                        ],
+                                        Array [
+                                          0.188,
+                                          -271.228,
+                                        ],
+                                        Array [
+                                          51.768,
+                                          -367.008,
+                                        ],
+                                        Array [
+                                          0.188,
+                                          -462.788,
+                                        ],
+                                      ],
+                                    },
+                                  ],
                                   "t": 12,
                                 },
                               ],
@@ -439,6 +372,7 @@ exports[`Entry should render correctly 1`] = `
                             "ty": "sh",
                           },
                           Object {
+                            "bm": 0,
                             "c": Object {
                               "a": 0,
                               "ix": 4,
@@ -546,16 +480,10 @@ exports[`Entry should render correctly 1`] = `
                         "ix": 2,
                         "k": Array [
                           Object {
-                            "e": Array [
-                              562.688,
-                              730.992,
-                              0,
-                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
                             },
-                            "n": "0p833_0p833_0p167_0p167",
                             "o": Object {
                               "x": 0.167,
                               "y": 0.167,
@@ -578,16 +506,10 @@ exports[`Entry should render correctly 1`] = `
                             ],
                           },
                           Object {
-                            "e": Array [
-                              562.688,
-                              850.992,
-                              0,
-                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
                             },
-                            "n": "0p833_0p833_0p167_0p167",
                             "o": Object {
                               "x": 0.167,
                               "y": 0.167,
@@ -610,6 +532,11 @@ exports[`Entry should render correctly 1`] = `
                             ],
                           },
                           Object {
+                            "s": Array [
+                              562.688,
+                              850.992,
+                              0,
+                            ],
                             "t": 22,
                           },
                         ],
@@ -633,6 +560,7 @@ exports[`Entry should render correctly 1`] = `
                     "op": 23,
                     "shapes": Array [
                       Object {
+                        "bm": 0,
                         "cix": 2,
                         "hd": false,
                         "it": Array [
@@ -730,6 +658,7 @@ exports[`Entry should render correctly 1`] = `
                             "ty": "sh",
                           },
                           Object {
+                            "bm": 0,
                             "c": Object {
                               "a": 0,
                               "ix": 3,
@@ -757,9 +686,6 @@ exports[`Entry should render correctly 1`] = `
                               "ix": 5,
                               "k": Array [
                                 Object {
-                                  "e": Array [
-                                    2,
-                                  ],
                                   "i": Object {
                                     "x": Array [
                                       0.833,
@@ -768,9 +694,6 @@ exports[`Entry should render correctly 1`] = `
                                       0.833,
                                     ],
                                   },
-                                  "n": Array [
-                                    "0p833_0p833_0p167_0p167",
-                                  ],
                                   "o": Object {
                                     "x": Array [
                                       0.167,
@@ -785,12 +708,16 @@ exports[`Entry should render correctly 1`] = `
                                   "t": 27,
                                 },
                                 Object {
+                                  "s": Array [
+                                    2,
+                                  ],
                                   "t": 30,
                                 },
                               ],
                             },
                           },
                           Object {
+                            "bm": 0,
                             "c": Object {
                               "a": 0,
                               "ix": 4,
@@ -877,7 +804,7 @@ exports[`Entry should render correctly 1`] = `
             ],
             "ddd": 0,
             "fr": 30,
-            "h": 2436,
+            "h": 930,
             "ip": 0,
             "layers": Array [
               Object {
@@ -906,8 +833,8 @@ exports[`Entry should render correctly 1`] = `
                     "a": 0,
                     "ix": 2,
                     "k": Array [
-                      562.5,
-                      1218,
+                      560,
+                      733,
                       0,
                     ],
                   },
@@ -920,8 +847,8 @@ exports[`Entry should render correctly 1`] = `
                     "a": 0,
                     "ix": 6,
                     "k": Array [
-                      65,
-                      65,
+                      100,
+                      100,
                       100,
                     ],
                   },
@@ -936,9 +863,6 @@ exports[`Entry should render correctly 1`] = `
                   "ix": 2,
                   "k": Array [
                     Object {
-                      "e": Array [
-                        0.4,
-                      ],
                       "i": Object {
                         "x": Array [
                           0,
@@ -947,9 +871,6 @@ exports[`Entry should render correctly 1`] = `
                           1,
                         ],
                       },
-                      "n": Array [
-                        "0_1_0p064_0",
-                      ],
                       "o": Object {
                         "x": Array [
                           0.064,
@@ -964,9 +885,6 @@ exports[`Entry should render correctly 1`] = `
                       "t": 0,
                     },
                     Object {
-                      "e": Array [
-                        0.733,
-                      ],
                       "i": Object {
                         "x": Array [
                           1,
@@ -975,9 +893,6 @@ exports[`Entry should render correctly 1`] = `
                           1,
                         ],
                       },
-                      "n": Array [
-                        "1_1_1_0",
-                      ],
                       "o": Object {
                         "x": Array [
                           1,
@@ -992,9 +907,6 @@ exports[`Entry should render correctly 1`] = `
                       "t": 10,
                     },
                     Object {
-                      "e": Array [
-                        0.733,
-                      ],
                       "i": Object {
                         "x": Array [
                           0.858,
@@ -1003,9 +915,6 @@ exports[`Entry should render correctly 1`] = `
                           1,
                         ],
                       },
-                      "n": Array [
-                        "0p858_1_0p158_0",
-                      ],
                       "o": Object {
                         "x": Array [
                           0.158,
@@ -1020,9 +929,6 @@ exports[`Entry should render correctly 1`] = `
                       "t": 20,
                     },
                     Object {
-                      "e": Array [
-                        10,
-                      ],
                       "i": Object {
                         "x": Array [
                           0.833,
@@ -1031,9 +937,6 @@ exports[`Entry should render correctly 1`] = `
                           0.833,
                         ],
                       },
-                      "n": Array [
-                        "0p833_0p833_0p037_0",
-                      ],
                       "o": Object {
                         "x": Array [
                           0.037,
@@ -1048,6 +951,9 @@ exports[`Entry should render correctly 1`] = `
                       "t": 102,
                     },
                     Object {
+                      "s": Array [
+                        10,
+                      ],
                       "t": 300,
                     },
                   ],
@@ -1065,35 +971,22 @@ exports[`Entry should render correctly 1`] = `
             ],
             "nm": "Bounce",
             "op": 20,
-            "v": "5.1.13",
-            "w": 1125,
+            "v": "5.5.1",
+            "w": 1120,
           }
         }
         speed={1}
         style={
           Object {
-            "height": 400,
-            "width": 400,
+            "alignItems": "center",
+            "alignSelf": "center",
+            "height": 125,
+            "justifyContent": "center",
+            "width": 125,
           }
         }
       />
     </View>
-    <Image
-      resizeMethod="auto"
-      source={
-        Object {
-          "testUri": "../../../app/images/metamask-name.png",
-        }
-      }
-      style={
-        Object {
-          "alignSelf": "center",
-          "height": 30,
-          "marginLeft": 6,
-          "width": 190,
-        }
-      }
-    />
   </AnimatedComponent>
 </View>
 `;
