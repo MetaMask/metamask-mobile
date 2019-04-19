@@ -35,9 +35,13 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.beige
 	},
+
 	homePageContent: {
 		marginBottom: 43,
 		paddingHorizontal: 18
+	},
+	paddingBottom: {
+		paddingBottom: Platform.OS === 'ios' ? 75 : 0
 	},
 	foxWrapper: {
 		height: 20
@@ -311,7 +315,7 @@ class HomePage extends Component {
 	render() {
 		return (
 			<View style={styles.flex}>
-				<ScrollView style={styles.flex} ref={this.scrollView}>
+				<ScrollView style={styles.flex} contentContainerStyle={styles.paddingBottom} ref={this.scrollView}>
 					<TouchableWithoutFeedback
 						style={styles.flex}
 						onPress={this.dismissKeyboardAndClear}

@@ -13,7 +13,8 @@ import {
 	TouchableOpacity,
 	Linking,
 	Keyboard,
-	BackHandler
+	BackHandler,
+	ScrollView
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -151,9 +152,9 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 15 : 12,
 		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
-		alignItems: 'center',
 		flexDirection: 'row',
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
+		flex: 1
 	},
 	iconSearch: {
 		alignSelf: 'flex-end',
@@ -168,9 +169,32 @@ const styles = StyleSheet.create({
 		alignContent: 'flex-start',
 		flexDirection: 'row'
 	},
-	iconsRight: {
+	iconsMiddle: {
+		flex: 1,
+		alignContent: 'center',
 		flexDirection: 'row',
-		alignItems: 'flex-end'
+		justifyContent: 'center'
+	},
+	iconsRight: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'flex-end'
+	},
+	tabIcon: {
+		borderWidth: 3,
+		borderColor: colors.copy,
+		paddingVertical: 5,
+		paddingHorizontal: 10,
+		borderRadius: 8
+	},
+	tabCount: {
+		color: colors.copy,
+		flex: 0,
+		lineHeight: 15,
+		marginRight: 10,
+		textAlign: 'center',
+		alignSelf: 'center',
+		...fontStyles.normal
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -235,6 +259,73 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		left: 0,
 		right: 0
+	},
+	tabAction: {
+		flex: 1,
+		alignContent: 'center'
+	},
+
+	tabActionleft: {
+		justifyContent: 'center'
+	},
+	tabActionRight: {
+		justifyContent: 'center',
+		alignItems: 'flex-end'
+	},
+	tabActionText: {
+		color: colors.fontPrimary,
+		...fontStyles.normal,
+		fontSize: 14
+	},
+	tabsView: {
+		flex: 1,
+		backgroundColor: colors.concrete,
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0
+	},
+	tabActions: {
+		paddingHorizontal: 20,
+		flexDirection: 'row',
+		marginBottom: 30,
+		paddingVertical: 10
+	},
+	tabs: {
+		height: Dimensions.get('window').height - 100
+	},
+	tabsContent: {
+		flex: 1,
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'space-between',
+		padding: 15
+	},
+	tab: {
+		backgroundColor: colors.white,
+		borderRadius: 10,
+		margin: 10,
+		width: Dimensions.get('window').width / 2 - 40,
+		height: Dimensions.get('window').width / 2,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderColor: colors.borderColor,
+		borderWidth: 1
+	},
+	newTabIcon: {
+		color: colors.white,
+		fontSize: 20,
+		textAlign: 'center'
+	},
+	newTabIconButton: {
+		alignSelf: 'center',
+		justifyContent: 'center',
+		alignContent: 'center',
+		backgroundColor: colors.primary,
+		borderRadius: 100,
+		width: 30,
+		height: 30
 	}
 });
 
@@ -357,7 +448,8 @@ export class Browser extends Component {
 			forwardEnabled: false,
 			forceReload: false,
 			suggestedAssetMeta: undefined,
-			watchAsset: false
+			watchAsset: false,
+			showTabs: false
 		};
 	}
 
@@ -1294,10 +1386,11 @@ export class Browser extends Component {
 		}).start();
 	}
 
+	showTabs = () => {
+		this.setState({ showTabs: true });
+	};
+
 	renderBottomBar = (canGoBack, canGoForward) => {
-		if (this.state.url === HOMEPAGE_URL) {
-			return false;
-		}
 		const { clampedScroll } = this.state;
 
 		const bottomBarPosition = clampedScroll.interpolate({
@@ -1323,6 +1416,11 @@ export class Browser extends Component {
 						size={40}
 						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
 					/>
+				</View>
+				<View style={styles.iconsMiddle}>
+					<TouchableOpacity style={styles.tabIcon} onPress={this.showTabs}>
+						<Text styles={styles.tabCount}>1</Text>
+					</TouchableOpacity>
 				</View>
 				<View style={styles.iconsRight}>
 					<IonIcon
@@ -1626,6 +1724,78 @@ export class Browser extends Component {
 
 	canGoForward = () => this.state.forwardEnabled;
 
+	closeAllTabs = () => {
+		// console.log('TO DO');
+	};
+	newTab = () => {
+		// console.log('TO DO');
+	};
+	closeTabsView = () => {
+		this.setState({ showTabs: false });
+	};
+
+	// eslint-disable-next-line no-unused-vars
+	switchToTab(tab) {
+		// console.log('switching to ', tab);
+	}
+
+	renderTabsView = () => {
+		if (!this.state.showTabs) return null;
+		const tabs = [
+			{
+				url: 'google.com',
+				thumb: null
+			},
+			{
+				url: 'twitter.com',
+				thumb: null
+			},
+			{
+				url: 'facebook.com',
+				thumb: null
+			},
+			{
+				url: 'metamask.io',
+				thumb: null
+			},
+			{
+				url: 'uniswap.exchange',
+				thumb: null
+			}
+		];
+		return (
+			<View style={styles.tabsView}>
+				<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent}>
+					{tabs.map((tab, i) => (
+						// eslint-disable-next-line react/jsx-key
+						<TouchableOpacity
+							key={`tab_${i}`}
+							style={styles.tab}
+							// eslint-disable-next-line react/jsx-no-bind
+							onPress={() => this.switchToTab(tab)}
+						>
+							<Text>{tab.url}</Text>
+						</TouchableOpacity>
+					))}
+				</ScrollView>
+				<View style={styles.tabActions}>
+					<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={this.closeAllTabs}>
+						<Text style={styles.tabActionText}>Close All</Text>
+					</TouchableOpacity>
+					<View style={styles.tabAction}>
+						<TouchableOpacity style={styles.newTabIconButton} onPress={this.newTab}>
+							<MaterialCommunityIcon name="plus" size={15} style={styles.newTabIcon} />
+						</TouchableOpacity>
+					</View>
+
+					<TouchableOpacity style={[styles.tabAction, styles.tabActionRight]} onPress={this.closeTabsView}>
+						<Text style={styles.tabActionText}>Done</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
+		);
+	};
+
 	render() {
 		const { entryScriptWeb3, url } = this.state;
 		const canGoBack = this.canGoBack();
@@ -1665,6 +1835,7 @@ export class Browser extends Component {
 				{this.renderWatchAssetModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
+				{this.renderTabsView()}
 			</View>
 		);
 	}
