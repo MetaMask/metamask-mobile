@@ -53,14 +53,14 @@ const styles = StyleSheet.create({
 	},
 	overviewLabel: {
 		...fontStyles.bold,
-		color: colors.grey400,
+		color: colors.grey500,
 		flex: 1,
 		fontSize: 12,
 		minWidth: 30
 	},
 	overviewFiat: {
 		...fontStyles.bold,
-		color: colors.grey500,
+		color: colors.fontPrimary,
 		fontSize: 24,
 		textAlign: 'right'
 	},
@@ -69,12 +69,13 @@ const styles = StyleSheet.create({
 	},
 	overviewEth: {
 		...fontStyles.normal,
-		color: colors.grey400,
+		color: colors.grey500,
 		fontSize: 16,
 		textAlign: 'right'
 	},
 	overviewInfo: {
 		...fontStyles.normal,
+		color: colors.grey500,
 		fontSize: 12,
 		marginBottom: 6,
 		textAlign: 'right'

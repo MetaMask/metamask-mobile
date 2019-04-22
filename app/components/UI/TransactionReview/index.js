@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	},
 	graphic: {
 		borderBottomWidth: 1,
-		borderColor: colors.grey000,
+		borderColor: colors.grey100,
 		borderTopWidth: 1,
 		flexDirection: 'row',
 		flexGrow: 0,
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	fromGraphic: {
-		borderColor: colors.grey000,
+		borderColor: colors.grey100,
 		borderRightWidth: 1,
 		paddingRight: 35,
 		paddingLeft: 20

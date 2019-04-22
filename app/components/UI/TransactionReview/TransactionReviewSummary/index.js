@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 	},
 	summaryFiat: {
 		...fontStyles.normal,
-		color: colors.grey500,
+		color: colors.fontPrimary,
 		fontSize: 44,
 		paddingVertical: 4
 	},
