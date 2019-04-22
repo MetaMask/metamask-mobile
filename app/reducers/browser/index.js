@@ -2,7 +2,14 @@ import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
 	history: [],
-	whitelist: []
+	whitelist: [],
+	tabs: [
+		{
+			url: 'about:blank',
+			id: Date.now()
+		}
+	],
+	activeTab: null
 };
 const browserReducer = (state = initialState, action) => {
 	switch (action.type) {
@@ -25,6 +32,36 @@ const browserReducer = (state = initialState, action) => {
 			return {
 				...state,
 				history: []
+			};
+		case 'CLOSE_ALL_TABS':
+			return {
+				...state,
+				tabs: []
+			};
+		case 'CREATE_NEW_TAB':
+			return {
+				...state,
+				tabs: [...state.tabs, { url: action.url, id: action.id }]
+			};
+		case 'CLOSE_TAB':
+			return {
+				...state,
+				tabs: state.tabs.filter(tab => tab.id !== action.id)
+			};
+		case 'SET_ACTIVE_TAB':
+			return {
+				...state,
+				activeTab: action.id
+			};
+		case 'UPDATE_TAB_URL':
+			return {
+				...state,
+				tabs: state.tabs.map(tab => {
+					if (tab.id === action.id) {
+						return { ...tab, url: action.url };
+					}
+					return tab;
+				})
 			};
 		default:
 			return state;

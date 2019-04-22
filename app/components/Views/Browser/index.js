@@ -46,7 +46,15 @@ import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import AccountApproval from '../../UI/AccountApproval';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
-import { addToHistory, addToWhitelist } from '../../../actions/browser';
+import {
+	addToHistory,
+	addToWhitelist,
+	createNewTab,
+	closeAllTabs,
+	setActiveTab,
+	closeTab,
+	updateTabUrl
+} from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
 import { hexToBN, fromWei } from '../../../util/number';
 import DeviceSize from '../../../util/DeviceSize';
@@ -277,6 +285,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 14
 	},
+	actionDisabled: {
+		color: colors.fontSecondary
+	},
 	tabsView: {
 		flex: 1,
 		backgroundColor: colors.concrete,
@@ -313,6 +324,12 @@ const styles = StyleSheet.create({
 		borderColor: colors.borderColor,
 		borderWidth: 1
 	},
+	activeTab: {
+		shadowColor: colors.primary,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3
+	},
 	newTabIcon: {
 		color: colors.white,
 		fontSize: 20,
@@ -326,6 +343,27 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 		width: 30,
 		height: 30
+	},
+	noTabs: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	noTabsTitle: {
+		...fontStyles.normal,
+		color: colors.fontPrimary,
+		fontSize: 18,
+		marginBottom: 10
+	},
+	noTabsDesc: {
+		...fontStyles.normal,
+		color: colors.fontSecondary,
+		fontSize: 14
+	},
+	closeTabIcon: {
+		top: 0,
+		right: 10,
+		position: 'absolute'
 	}
 });
 
@@ -412,7 +450,35 @@ export class Browser extends Component {
 		/**
 		 * Function to store the a website in the browser whitelist
 		 */
-		addToWhitelist: PropTypes.func
+		addToWhitelist: PropTypes.func,
+		/**
+		 * Function to create a new tab
+		 */
+		createNewTab: PropTypes.func,
+		/**
+		 * Function to close all the existing tabs
+		 */
+		closeAllTabs: PropTypes.func,
+		/**
+		 * Function to close a specific tab
+		 */
+		closeTab: PropTypes.func,
+		/**
+		 * Function to set the active tab
+		 */
+		setActiveTab: PropTypes.func,
+		/**
+		 * Function to set the update the url of a tab
+		 */
+		updateTabUrl: PropTypes.func,
+		/**
+		 * Array of tabs
+		 */
+		tabs: PropTypes.array,
+		/**
+		 * ID of the active tab
+		 */
+		activeTab: PropTypes.number
 	};
 
 	constructor(props) {
@@ -825,6 +891,7 @@ export class Browser extends Component {
 				ipfsHash,
 				hostname: this.formatHostname(hostname)
 			});
+			this.props.updateTabUrl(this.props.activeTab, sanitizedURL);
 
 			this.timeoutHandler && clearTimeout(this.timeoutHandler);
 			if (urlToGo !== HOMEPAGE_URL) {
@@ -1091,6 +1158,7 @@ export class Browser extends Component {
 					const { url, title } = data.payload;
 					this.setState({ inputValue: url, currentPageTitle: title, forwardEnabled: false });
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
+					this.props.updateTabUrl(this.props.activeTab, data.payload.url);
 					if (Platform.OS === 'ios') {
 						setTimeout(() => {
 							this.resetBottomBarPosition();
@@ -1166,7 +1234,7 @@ export class Browser extends Component {
 		) {
 			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 		}
-
+		this.props.updateTabUrl(this.props.activeTab, inputValue);
 		this.setState({ fullHostname, inputValue, hostname });
 	};
 
@@ -1419,7 +1487,7 @@ export class Browser extends Component {
 				</View>
 				<View style={styles.iconsMiddle}>
 					<TouchableOpacity style={styles.tabIcon} onPress={this.showTabs}>
-						<Text styles={styles.tabCount}>1</Text>
+						<Text styles={styles.tabCount}>{Math.max(this.props.tabs.length, 1)}</Text>
 					</TouchableOpacity>
 				</View>
 				<View style={styles.iconsRight}>
@@ -1470,6 +1538,7 @@ export class Browser extends Component {
 	onAutocomplete = link => {
 		this.setState({ inputValue: link }, () => {
 			this.onUrlInputSubmit(link);
+			this.props.updateTabUrl(this.props.activeTab, link);
 		});
 	};
 
@@ -1725,62 +1794,81 @@ export class Browser extends Component {
 	canGoForward = () => this.state.forwardEnabled;
 
 	closeAllTabs = () => {
-		// console.log('TO DO');
+		this.props.closeAllTabs();
 	};
+
 	newTab = () => {
-		// console.log('TO DO');
+		this.props.createNewTab('about:blank');
 	};
+
+	closeTab = id => {
+		this.props.closeTab(id);
+	};
+
 	closeTabsView = () => {
 		this.setState({ showTabs: false });
 	};
 
-	// eslint-disable-next-line no-unused-vars
 	switchToTab(tab) {
-		// console.log('switching to ', tab);
+		this.props.setActiveTab(tab.id);
+		this.setState({ showTabs: false }, () => {
+			this.go(tab.url);
+		});
+	}
+
+	renderTabUrl(tab) {
+		if (tab.url === HOMEPAGE_URL) {
+			return strings('browser.new_tab');
+		}
+		return getHost(tab.url);
+	}
+
+	renderTabs() {
+		const { tabs, activeTab } = this.props;
+		if (tabs.length === 0) {
+			return (
+				<View style={styles.noTabs}>
+					<Text style={styles.noTabsTitle}>{strings('browser.no_tabs_title')}</Text>
+					<Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
+				</View>
+			);
+		}
+
+		return tabs.map((tab, i) => (
+			// eslint-disable-next-line react/jsx-key
+			<TouchableOpacity
+				key={`tab_${i}`}
+				style={[styles.tab, activeTab === tab.id ? styles.activeTab : null]}
+				// eslint-disable-next-line react/jsx-no-bind
+				onPress={() => this.switchToTab(tab)}
+			>
+				<IonIcon
+					name="ios-close"
+					size={32}
+					style={styles.closeTabIcon}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={() => this.closeTab(tab.id)}
+				/>
+				<Text>{this.renderTabUrl(tab)}</Text>
+			</TouchableOpacity>
+		));
 	}
 
 	renderTabsView = () => {
 		if (!this.state.showTabs) return null;
-		const tabs = [
-			{
-				url: 'google.com',
-				thumb: null
-			},
-			{
-				url: 'twitter.com',
-				thumb: null
-			},
-			{
-				url: 'facebook.com',
-				thumb: null
-			},
-			{
-				url: 'metamask.io',
-				thumb: null
-			},
-			{
-				url: 'uniswap.exchange',
-				thumb: null
-			}
-		];
+
+		const { tabs } = this.props;
+
 		return (
 			<View style={styles.tabsView}>
 				<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent}>
-					{tabs.map((tab, i) => (
-						// eslint-disable-next-line react/jsx-key
-						<TouchableOpacity
-							key={`tab_${i}`}
-							style={styles.tab}
-							// eslint-disable-next-line react/jsx-no-bind
-							onPress={() => this.switchToTab(tab)}
-						>
-							<Text>{tab.url}</Text>
-						</TouchableOpacity>
-					))}
+					{this.renderTabs()}
 				</ScrollView>
 				<View style={styles.tabActions}>
 					<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={this.closeAllTabs}>
-						<Text style={styles.tabActionText}>Close All</Text>
+						<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>
+							{strings('browser.tabs_close_all')}
+						</Text>
 					</TouchableOpacity>
 					<View style={styles.tabAction}>
 						<TouchableOpacity style={styles.newTabIconButton} onPress={this.newTab}>
@@ -1789,7 +1877,9 @@ export class Browser extends Component {
 					</View>
 
 					<TouchableOpacity style={[styles.tabAction, styles.tabActionRight]} onPress={this.closeTabsView}>
-						<Text style={styles.tabActionText}>Done</Text>
+						<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>
+							{strings('browser.tabs_done')}
+						</Text>
 					</TouchableOpacity>
 				</View>
 			</View>
@@ -1851,12 +1941,19 @@ const mapStateToProps = state => ({
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
+	tabs: state.browser.tabs,
+	activeTab: state.browser.activeTab,
 	transaction: state.transaction
 });
 
 const mapDispatchToProps = dispatch => ({
 	approveHost: hostname => dispatch(approveHost(hostname)),
 	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
+	createNewTab: url => dispatch(createNewTab(url)),
+	closeAllTabs: () => dispatch(closeAllTabs()),
+	closeTab: id => dispatch(closeTab(id)),
+	setActiveTab: id => dispatch(setActiveTab(id)),
+	updateTabUrl: (id, url) => dispatch(updateTabUrl(id, url)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
 	setTransactionObject: asset => dispatch(setTransactionObject(asset))
