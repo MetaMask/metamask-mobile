@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	header: {
-		borderBottomColor: colors.accentGray,
+		borderBottomColor: colors.grey400,
 		borderBottomWidth: 1,
 		...fontStyles.normal
 	},
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 20,
 		paddingLeft: 20,
 		paddingRight: 20,
-		borderColor: colors.accentGray,
+		borderColor: colors.grey400,
 		borderBottomWidth: 1,
 		fontSize: 20,
 		textAlign: 'center',
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	seedPhraseView: {
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.accentGray,
+		borderColor: colors.grey400,
 		marginTop: 10,
 		alignItems: 'center'
 	},
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 		padding: 20
 	},
 	warningWrapper: {
-		backgroundColor: colors.lightRed
+		backgroundColor: colors.red000
 	},
 	warningRowWrapper: {
 		flex: 1,
@@ -61,13 +61,13 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		marginTop: 10,
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	},
 	input: {
 		borderWidth: 2,
 		borderRadius: 5,
-		borderColor: colors.concrete,
+		borderColor: colors.grey000,
 		padding: 10
 	},
 	icon: {
@@ -76,10 +76,10 @@ const styles = StyleSheet.create({
 	},
 	actionIcon: {
 		margin: 10,
-		color: colors.primary
+		color: colors.blue
 	},
 	actionText: {
-		color: colors.primary
+		color: colors.blue
 	},
 	warningMessageText: {
 		marginLeft: 10,

@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	title: {
 		textAlign: 'center',
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 	otherNetworksHeader: {
 		marginTop: 0,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	otherNetworksText: {
 		textAlign: 'left',
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 	},
 	network: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 	},
 	footer: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		height: 60,
 		justifyContent: 'center',
 		flexDirection: 'row',
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		fontSize: 16,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	networkIcon: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.transparent,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 2
 	}
 });

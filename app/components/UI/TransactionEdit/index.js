@@ -66,12 +66,12 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.bold,
-		color: colors.gray,
+		color: colors.grey400,
 		fontSize: 16
 	},
 	max: {
 		...fontStyles.bold,
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 12,
 		paddingTop: 6
 	},
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 	},
 	warning: {
 		...fontStyles.bold,
-		color: colors.warning,
+		color: colors.orange300,
 		fontSize: 12,
 		lineHeight: 12,
 		paddingTop: 6
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
 	hexData: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,

@@ -60,17 +60,12 @@ export const TransactionNotification = props => {
 			case 'pending':
 				return <AnimatedSpinner size={36} />;
 			case 'success':
-				return <Icon color={colors.success} size={36} name="md-checkmark" style={styles.checkIcon} />;
+				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'received':
-				return <Icon color={colors.success} size={36} name="md-checkmark" style={styles.checkIcon} />;
+				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'error':
 				return (
-					<MaterialIcon
-						color={colors.darkRed}
-						size={36}
-						name="alert-circle-outline"
-						style={styles.checkIcon}
-					/>
+					<MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />
 				);
 		}
 	};
