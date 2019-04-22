@@ -12,7 +12,6 @@ const styles = StyleSheet.create({
 	},
 	progress: {
 		flexDirection: 'row',
-		backgroundColor: colors.primary,
 		justifyContent: 'space-between'
 	},
 	actions: {
@@ -192,7 +191,7 @@ export default class Coachmark extends Component {
 			<View style={styles.progress}>
 				<StyledButton
 					containerStyle={[styles.progressButton, styles.leftProgessButton]}
-					type={'blue'}
+					type={'transparent'}
 					onPress={this.onBack}
 				>
 					Back
@@ -218,7 +217,7 @@ export default class Coachmark extends Component {
 
 	renderActionButtons = () => (
 		<View style={styles.actions}>
-			<StyledButton containerStyle={styles.actionButton} type={'blue'} onPress={this.onBack}>
+			<StyledButton containerStyle={styles.actionButton} type={'transparent'} onPress={this.onBack}>
 				No, Thanks
 			</StyledButton>
 			<StyledButton containerStyle={styles.actionButton} type={'normal'} onPress={this.onNext}>
