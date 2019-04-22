@@ -45,7 +45,7 @@ exports[`GeneralSettings should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4d4d4d",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
@@ -59,7 +59,7 @@ exports[`GeneralSettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "borderColor": "#d2d8dd",
+            "borderColor": "#bbc0c5",
             "borderRadius": 5,
             "borderWidth": 2,
             "marginTop": 16,
@@ -410,7 +410,7 @@ exports[`GeneralSettings should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4d4d4d",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
@@ -424,7 +424,7 @@ exports[`GeneralSettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "borderColor": "#d2d8dd",
+            "borderColor": "#bbc0c5",
             "borderRadius": 5,
             "borderWidth": 2,
             "marginTop": 16,
@@ -455,7 +455,7 @@ exports[`GeneralSettings should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#4d4d4d",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
@@ -469,7 +469,7 @@ exports[`GeneralSettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "borderColor": "#d2d8dd",
+            "borderColor": "#bbc0c5",
             "borderRadius": 5,
             "borderWidth": 2,
             "marginTop": 16,

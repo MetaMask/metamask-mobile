@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 		fontWeight: 'bold'
 	},
 	blue: {
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	blueText: {
 		color: colors.white
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 		color: colors.primaryFox
 	},
 	confirm: {
-		backgroundColor: colors.primary,
+		backgroundColor: colors.blue,
 		minHeight: 50
 	},
 	confirmText: {
@@ -38,19 +38,19 @@ const styles = StyleSheet.create({
 	roundedNormal: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.primary,
+		borderColor: colors.blue,
 		padding: 8
 	},
 	roundedNormalText: {
-		color: colors.primary
+		color: colors.blue
 	},
 	normal: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	},
 	normalText: {
-		color: colors.primary
+		color: colors.blue
 	},
 	transparent: {
 		backgroundColor: colors.white,
@@ -60,10 +60,10 @@ const styles = StyleSheet.create({
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.accentGray
+		borderColor: colors.grey400
 	},
 	cancelText: {
-		color: colors.accentGray
+		color: colors.grey400
 	},
 	warning: {
 		backgroundColor: colors.white,
@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
 	neutral: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.copy
+		borderColor: colors.grey500
 	},
 	neutralText: {
-		color: colors.copy
+		color: colors.grey500
 	},
 	danger: {
 		backgroundColor: colors.red,

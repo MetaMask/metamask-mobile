@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 	},
 	children: {
 		alignItems: 'center',
-		borderTopColor: colors.lightGray,
+		borderTopColor: colors.grey200,
 		borderTopWidth: 1
 	}
 });

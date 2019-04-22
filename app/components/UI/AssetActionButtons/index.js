@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		alignContent: 'center',
 		color: colors.white,
 		borderRadius: 18,
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	buttonIcon: {
 		justifyContent: 'center',
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		marginTop: 12,
 		textAlign: 'center',
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 11,
 		...fontStyles.normal
 	},
@@ -89,7 +89,7 @@ export default class AssetActionButtons extends Component {
 							<MaterialCommunityIcon
 								name={'arrow-top-right'}
 								size={20}
-								color={colors.primary}
+								color={colors.blue}
 								style={[styles.buttonIcon, styles.sendIcon]}
 							/>
 						</View>

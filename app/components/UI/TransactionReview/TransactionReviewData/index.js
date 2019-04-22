@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.bold,
-		color: colors.gray,
+		color: colors.grey400,
 		fontSize: 12
 	},
 	functionType: {
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	},
 	topOverviewRow: {
 		borderBottomWidth: 1,
-		borderColor: colors.lightGray
+		borderColor: colors.grey200
 	},
 	overviewRow: {
 		paddingVertical: 15

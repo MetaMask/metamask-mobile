@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	title: {
 		textAlign: 'center',
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	},
 	label: {
 		marginTop: 0,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		...fontStyles.bold
 	},
 	informationWrapper: {
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		fontSize: 16,
-		color: colors.gray,
+		color: colors.grey400,
 		paddingTop: 10,
 		...fontStyles.normal
 	},
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 	},
 	footer: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		height: 60,
 		justifyContent: 'center',
 		flexDirection: 'row',
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		fontSize: 16,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	opensea: {

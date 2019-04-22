@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	},
 	graphic: {
 		borderBottomWidth: 1,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderTopWidth: 1,
 		flexDirection: 'row',
 		flexGrow: 0,
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 	},
 	arrow: {
 		backgroundColor: colors.white,
-		borderColor: colors.lightGray,
+		borderColor: colors.grey200,
 		borderRadius: 15,
 		borderWidth: 1,
 		height: 30,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center'
 	},
 	arrowIcon: {
-		color: colors.gray,
+		color: colors.grey400,
 		marginLeft: 3,
 		marginTop: 3
 	},
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	fromGraphic: {
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRightWidth: 1,
 		paddingRight: 35,
 		paddingLeft: 20
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	tabStyle: {
 		paddingBottom: 0,
@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	error: {
-		backgroundColor: colors.lightRed,
-		color: colors.error,
+		backgroundColor: colors.red000,
+		color: colors.red,
 		marginTop: 5,
 		paddingVertical: 8,
 		paddingHorizontal: 5,
@@ -227,7 +227,7 @@ class TransactionReview extends Component {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.primary}
+				activeTextColor={colors.blue}
 				inactiveTextColor={colors.fontTertiary}
 				backgroundColor={colors.white}
 				tabStyle={styles.tabStyle}

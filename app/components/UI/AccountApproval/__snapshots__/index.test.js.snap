@@ -127,7 +127,7 @@ exports[`AccountApproval should render correctly 1`] = `
               style={
                 Object {
                   "alignItems": "center",
-                  "backgroundColor": "#5ea40c",
+                  "backgroundColor": "#28a745",
                   "borderRadius": 12,
                   "height": 24,
                   "position": "relative",
@@ -152,7 +152,7 @@ exports[`AccountApproval should render correctly 1`] = `
             <View
               style={
                 Object {
-                  "borderColor": "#9b9b9b",
+                  "borderColor": "#848c96",
                   "borderStyle": "dashed",
                   "borderWidth": 1,
                   "left": 0,
@@ -227,7 +227,7 @@ exports[`AccountApproval should render correctly 1`] = `
           Object {
             "alignItems": "center",
             "borderBottomWidth": 1,
-            "borderColor": "#CCCCCC",
+            "borderColor": "#d6d9dc",
             "borderTopWidth": 1,
             "display": "flex",
             "flexDirection": "row",
@@ -266,7 +266,7 @@ exports[`AccountApproval should render correctly 1`] = `
         </Text>
         <Icon
           allowFontScaling={false}
-          color="#008edf"
+          color="#037dd6"
           name="info-circle"
           size={22}
         />

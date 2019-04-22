@@ -134,13 +134,13 @@ exports[`Browser should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Enter website address"
-        placeholderTextColor="#747d8c"
+        placeholderTextColor="#848c96"
         rejectResponderTermination={true}
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           Object {
-            "backgroundColor": "#dfe4ea",
+            "backgroundColor": "#f2f3f4",
             "borderRadius": 30,
             "flex": 1,
             "fontFamily": "Roboto",
@@ -168,7 +168,7 @@ exports[`Browser should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#008edf",
+              "color": "#037dd6",
               "fontFamily": "Roboto",
               "fontSize": 14,
               "fontWeight": "400",
@@ -286,7 +286,7 @@ exports[`Browser should render correctly 1`] = `
     animationOut="slideOutDown"
     animationOutTiming={300}
     avoidKeyboard={false}
-    backdropColor="#d95846"
+    backdropColor="#D73A49"
     backdropOpacity={1}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}

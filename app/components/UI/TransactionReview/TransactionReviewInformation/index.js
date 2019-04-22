@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 	overview: {
 		paddingHorizontal: 16,
 		borderTopWidth: 1,
-		borderColor: colors.lightGray
+		borderColor: colors.grey200
 	},
 	overviewRow: {
 		alignItems: 'center',
@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
 	},
 	overviewAlert: {
 		alignItems: 'center',
-		backgroundColor: colors.lightRed,
-		borderColor: colors.borderRed,
+		backgroundColor: colors.red000,
+		borderColor: colors.red,
 		borderRadius: 4,
 		borderWidth: 1,
 		flexDirection: 'row',
@@ -38,50 +38,51 @@ const styles = StyleSheet.create({
 	},
 	overviewAlertText: {
 		...fontStyles.normal,
-		color: colors.borderRed,
+		color: colors.red,
 		flex: 1,
 		fontSize: 12,
 		marginLeft: 8
 	},
 	overviewAlertIcon: {
-		color: colors.borderRed,
+		color: colors.red,
 		flex: 0
 	},
 	topOverviewRow: {
 		borderBottomWidth: 1,
-		borderColor: colors.lightGray
+		borderColor: colors.grey200
 	},
 	overviewLabel: {
 		...fontStyles.bold,
-		color: colors.gray,
+		color: colors.grey500,
 		flex: 1,
 		fontSize: 12,
 		minWidth: 30
 	},
 	overviewFiat: {
 		...fontStyles.bold,
-		color: colors.copy,
+		color: colors.fontPrimary,
 		fontSize: 24,
 		textAlign: 'right'
 	},
 	overviewAccent: {
-		color: colors.primary
+		color: colors.blue
 	},
 	overviewEth: {
 		...fontStyles.normal,
-		color: colors.subtleGray,
+		color: colors.grey500,
 		fontSize: 16,
 		textAlign: 'right'
 	},
 	overviewInfo: {
 		...fontStyles.normal,
+		color: colors.grey500,
 		fontSize: 12,
 		marginBottom: 6,
 		textAlign: 'right'
 	},
 	overviewAction: {
 		...fontStyles.nold,
-		color: colors.primary
+		color: colors.blue
 	},
 	assetName: {
 		maxWidth: 200

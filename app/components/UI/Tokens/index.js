@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	},
 	addText: {
 		fontSize: 15,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	footer: {
@@ -122,7 +122,7 @@ export default class Tokens extends PureComponent {
 	renderFooter = () => (
 		<View style={styles.footer} key={'tokens-footer'}>
 			<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
-				<Icon name="plus" size={16} color={colors.primary} />
+				<Icon name="plus" size={16} color={colors.blue} />
 				<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
 			</TouchableOpacity>
 		</View>

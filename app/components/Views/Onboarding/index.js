@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: 19,
 		marginBottom: 20,
-		color: colors.copy,
+		color: colors.grey500,
 		justifyContent: 'flex-start',
 		textAlign: 'left',
 		...fontStyles.normal

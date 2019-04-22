@@ -16,7 +16,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
         },
         Object {
           "borderBottomWidth": 1,
-          "borderColor": "#d2d8dd",
+          "borderColor": "#bbc0c5",
         },
       ]
     }
@@ -32,7 +32,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#7c7e84",
+            "color": "#848c96",
             "fontFamily": "Roboto",
             "fontSize": 12,
             "fontWeight": "600",
@@ -72,7 +72,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#7c7e84",
+            "color": "#848c96",
             "fontFamily": "Roboto",
             "fontSize": 12,
             "fontWeight": "600",

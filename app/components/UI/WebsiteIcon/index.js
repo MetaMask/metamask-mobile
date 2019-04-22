@@ -8,7 +8,7 @@ import { getHost } from '../../../util/browser';
 const styles = StyleSheet.create({
 	fallback: {
 		alignContent: 'center',
-		backgroundColor: colors.gray,
+		backgroundColor: colors.grey400,
 		borderRadius: 27,
 		height: 54,
 		justifyContent: 'center',

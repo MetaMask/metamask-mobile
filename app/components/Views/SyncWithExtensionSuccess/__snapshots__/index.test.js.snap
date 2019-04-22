@@ -55,7 +55,7 @@ exports[`SyncWIthExtensionSuccess should render correctly 1`] = `
         size={150}
         style={
           Object {
-            "color": "#5ea40c",
+            "color": "#28a745",
             "marginBottom": 30,
           }
         }
