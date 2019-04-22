@@ -3,12 +3,7 @@ import { REHYDRATE } from 'redux-persist';
 const initialState = {
 	history: [],
 	whitelist: [],
-	tabs: [
-		{
-			url: 'about:blank',
-			id: Date.now()
-		}
-	],
+	tabs: [],
 	activeTab: null
 };
 const browserReducer = (state = initialState, action) => {

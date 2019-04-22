@@ -190,13 +190,13 @@ const styles = StyleSheet.create({
 	},
 	tabIcon: {
 		borderWidth: 3,
-		borderColor: colors.copy,
+		borderColor: colors.grey500,
 		paddingVertical: 5,
 		paddingHorizontal: 10,
 		borderRadius: 8
 	},
 	tabCount: {
-		color: colors.copy,
+		color: colors.grey500,
 		flex: 0,
 		lineHeight: 15,
 		marginRight: 10,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
 	},
 	tabsView: {
 		flex: 1,
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.grey000,
 		position: 'absolute',
 		top: 0,
 		left: 0,
@@ -321,25 +321,28 @@ const styles = StyleSheet.create({
 		height: Dimensions.get('window').width / 2,
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1
 	},
 	activeTab: {
-		shadowColor: colors.primary,
+		shadowColor: colors.blue,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3
 	},
 	newTabIcon: {
+		marginTop: 3,
 		color: colors.white,
-		fontSize: 20,
-		textAlign: 'center'
+		fontSize: 24,
+		textAlign: 'center',
+		justifyContent: 'center',
+		alignContent: 'center'
 	},
 	newTabIconButton: {
 		alignSelf: 'center',
 		justifyContent: 'center',
 		alignContent: 'center',
-		backgroundColor: colors.primary,
+		backgroundColor: colors.blue,
 		borderRadius: 100,
 		width: 30,
 		height: 30
@@ -724,6 +727,10 @@ export class Browser extends Component {
 		Engine.context.TransactionController.hub.on('networkChange', this.reload);
 
 		BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
+
+		if (!this.props.tabs.length) {
+			this.newTab();
+		}
 	}
 
 	handleDeeplinks = async ({ error, params }) => {
@@ -1794,19 +1801,49 @@ export class Browser extends Component {
 	canGoForward = () => this.state.forwardEnabled;
 
 	closeAllTabs = () => {
-		this.props.closeAllTabs();
+		if (this.props.tabs.length) {
+			this.props.closeAllTabs();
+		}
 	};
 
 	newTab = () => {
 		this.props.createNewTab('about:blank');
+		setTimeout(() => {
+			const { tabs } = this.props;
+			this.switchToTab(tabs[tabs.length - 1]);
+		}, 100);
 	};
 
-	closeTab = id => {
-		this.props.closeTab(id);
+	closeTab = tab => {
+		const { activeTab, tabs } = this.props;
+
+		// If the tab was selected we have to select
+		// the next one, and if there's no next one,
+		// we select the previous one.
+		if (tab.id === activeTab) {
+			if (tabs.length > 1) {
+				tabs.forEach((t, i) => {
+					if (t.id === tab.id) {
+						let newTab = tabs[i - 1];
+						if (tabs[i + 1]) {
+							newTab = tabs[i + 1];
+						}
+						this.props.setActiveTab(newTab.id);
+						setTimeout(() => {
+							this.go(newTab.url);
+						}, 100);
+					}
+				});
+			}
+		}
+
+		this.props.closeTab(tab.id);
 	};
 
 	closeTabsView = () => {
-		this.setState({ showTabs: false });
+		if (this.props.tabs.length) {
+			this.setState({ showTabs: false });
+		}
 	};
 
 	switchToTab(tab) {
@@ -1847,7 +1884,7 @@ export class Browser extends Component {
 					size={32}
 					style={styles.closeTabIcon}
 					// eslint-disable-next-line react/jsx-no-bind
-					onPress={() => this.closeTab(tab.id)}
+					onPress={() => this.closeTab(tab)}
 				/>
 				<Text>{this.renderTabUrl(tab)}</Text>
 			</TouchableOpacity>
