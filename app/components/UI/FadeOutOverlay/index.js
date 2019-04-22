@@ -48,5 +48,5 @@ export default class FadeOutOverlay extends Component {
 
 FadeOutOverlay.defaultProps = {
 	style: null,
-	duration: 300
+	duration: 600
 };

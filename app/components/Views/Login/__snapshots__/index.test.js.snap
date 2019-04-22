@@ -192,7 +192,7 @@ exports[`Login should render correctly 1`] = `
     </View>
   </KeyboardAwareScrollViewMock>
   <FadeOutOverlay
-    duration={300}
+    duration={600}
     style={null}
   />
 </SafeAreaView>
