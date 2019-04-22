@@ -23,7 +23,6 @@ const styles = StyleSheet.create({
 
 class Step2 extends Component {
 	static propTypes = {
-		screenProps: PropTypes.object,
 		setOnboardingWizardStep: PropTypes.func
 	};
 
@@ -37,11 +36,6 @@ class Step2 extends Component {
 		setOnboardingWizardStep && setOnboardingWizardStep(1);
 	};
 
-	onClose = () => {
-		const { close } = this.props.screenProps;
-		close && close();
-	};
-
 	render() {
 		return (
 			<View style={styles.main}>
@@ -53,7 +47,6 @@ class Step2 extends Component {
 						}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						onClose={this.onClose}
 						style={styles.some}
 						topIndicatorPosition={'topCenter'}
 						currentStep={1}

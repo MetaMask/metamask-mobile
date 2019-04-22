@@ -47,8 +47,7 @@ class Step3 extends Component {
 		 * Currency code of the currently-active currency
 		 */
 		currentCurrency: PropTypes.string,
-		setOnboardingWizardStep: PropTypes.func,
-		screenProps: PropTypes.object
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -72,11 +71,6 @@ class Step3 extends Component {
 		setOnboardingWizardStep && setOnboardingWizardStep(2);
 	};
 
-	onClose = () => {
-		const { close } = this.props.screenProps;
-		close && close();
-	};
-
 	render() {
 		const { selectedAddress, identities, accounts, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -93,7 +87,6 @@ class Step3 extends Component {
 						content={`'Account 1' isn't that catchy. So why not name your account something a little more memorable.\n\n<b>Long tap</n> now to edit account name.`}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						onClose={this.onClose}
 						style={styles.some}
 						topIndicatorPosition={'topCenter'}
 						currentStep={2}

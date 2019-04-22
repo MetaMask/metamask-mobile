@@ -22,7 +22,6 @@ const styles = StyleSheet.create({
 class Step6 extends Component {
 	static propTypes = {
 		setOnboardingWizardStep: PropTypes.func,
-		screenProps: PropTypes.object,
 		navigation: PropTypes.object
 	};
 
@@ -31,7 +30,6 @@ class Step6 extends Component {
 	};
 
 	componentDidMount() {
-		// TODO animation ?
 		this.setState({ ready: true });
 	}
 
@@ -46,11 +44,6 @@ class Step6 extends Component {
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
 	};
 
-	onClose = () => {
-		const { close } = this.props.screenProps;
-		close && close();
-	};
-
 	render() {
 		const { ready } = this.state;
 		if (!ready) return null;
@@ -62,7 +55,6 @@ class Step6 extends Component {
 						content={'Search directly blockchain applications (DAPPS)!'}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						onClose={this.onClose}
 						topIndicatorPosition={'topCenter'}
 						currentStep={5}
 					/>

@@ -28,8 +28,7 @@ const styles = StyleSheet.create({
 class Step5 extends Component {
 	static propTypes = {
 		navigation: PropTypes.object,
-		setOnboardingWizardStep: PropTypes.func,
-		screenProps: PropTypes.object
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	onNext = () => {
@@ -46,11 +45,6 @@ class Step5 extends Component {
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 	};
 
-	onClose = () => {
-		const { close } = this.props.screenProps;
-		close && close();
-	};
-
 	render() {
 		return (
 			<View style={styles.main}>
@@ -60,7 +54,6 @@ class Step5 extends Component {
 						content={'You can explore blockchainapplications (DAPPS) in the Browser.'}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						onClose={this.onClose}
 						style={styles.some}
 						topIndicatorPosition={'topLeft'}
 						currentStep={4}

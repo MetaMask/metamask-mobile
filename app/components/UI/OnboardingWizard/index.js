@@ -10,6 +10,8 @@ import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import Step7 from './Step7';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 
 const styles = StyleSheet.create({
 	root: {
@@ -37,31 +39,36 @@ const styles = StyleSheet.create({
 
 class OnboardingWizard extends Component {
 	static propTypes = {
-		close: PropTypes.func,
 		navigation: PropTypes.object,
-		wizard: PropTypes.object
+		wizard: PropTypes.object,
+		setOnboardingWizardStep: PropTypes.func
+	};
+
+	closeOnboardingWizard = () => {
+		const { setOnboardingWizardStep, navigation } = this.props;
+		setOnboardingWizardStep && setOnboardingWizardStep(0);
+		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 	};
 
 	onboardingWizardNavigator = {
-		1: <Step1 onClose={this.props.close} />,
-		2: <Step2 onClose={this.props.close} />,
-		3: <Step3 onClose={this.props.close} />,
-		4: <Step4 onClose={this.props.close} navigation={this.props.navigation} />,
-		5: <Step5 onClose={this.props.close} navigation={this.props.navigation} />,
-		6: <Step6 onClose={this.props.close} navigation={this.props.navigation} />,
-		7: <Step7 onClose={this.props.close} />
+		1: <Step1 onClose={this.closeOnboardingWizard} />,
+		2: <Step2 />,
+		3: <Step3 />,
+		4: <Step4 navigation={this.props.navigation} />,
+		5: <Step5 navigation={this.props.navigation} />,
+		6: <Step6 navigation={this.props.navigation} />,
+		7: <Step7 onClose={this.closeOnboardingWizard} />
 	};
 
 	render() {
 		const {
-			wizard: { step },
-			close
+			wizard: { step }
 		} = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>
 				{step !== 1 && (
-					<TouchableOpacity style={styles.skip} onPress={close}>
+					<TouchableOpacity style={styles.skip} onPress={this.closeOnboardingWizard}>
 						<Text style={styles.skipText}>Skip Tutorial</Text>
 					</TouchableOpacity>
 				)}
@@ -70,8 +77,15 @@ class OnboardingWizard extends Component {
 	}
 }
 
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
 const mapStateToProps = state => ({
 	wizard: state.wizard
 });
 
-export default connect(mapStateToProps)(OnboardingWizard);
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(OnboardingWizard);

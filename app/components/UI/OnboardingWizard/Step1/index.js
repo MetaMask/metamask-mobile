@@ -53,7 +53,6 @@ class Step1 extends Component {
 						}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						onClose={this.onClose}
 						coachmarkStyle={styles.coachmark}
 						action
 					/>

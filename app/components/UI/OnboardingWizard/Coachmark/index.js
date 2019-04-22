@@ -115,7 +115,6 @@ const styles = StyleSheet.create({
 export default class Coachmark extends Component {
 	static propTypes = {
 		content: PropTypes.string,
-		onClose: PropTypes.func,
 		onNext: PropTypes.func,
 		onBack: PropTypes.func,
 		title: PropTypes.string,
@@ -159,11 +158,6 @@ export default class Coachmark extends Component {
 	onBack = () => {
 		const { onBack } = this.props;
 		onBack && onBack();
-	};
-
-	onClose = () => {
-		const { onClose } = this.props;
-		onClose && onClose();
 	};
 
 	getIndicatorStyle = topIndicatorPosition => {
