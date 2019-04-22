@@ -90,7 +90,7 @@ export default class ImportPrivateKey extends Component {
 							<MaterialIcon name="close" size={15} style={styles.closeIcon} />
 						</TouchableOpacity>
 						<View style={styles.top}>
-							<Icon name="ios-checkmark-circle-outline" style={styles.icon} color={colors.success} />
+							<Icon name="ios-checkmark-circle-outline" style={styles.icon} color={colors.green500} />
 							<Text style={styles.title}>{strings('import_private_key_success.title')}</Text>
 							<View style={styles.dataRow}>
 								<Text style={styles.label}>

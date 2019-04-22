@@ -21,6 +21,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
 		fontSize: Platform.OS === 'android' ? 30 : 35,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title,
+		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 10,
 		borderRadius: 4,
 		fontSize: Platform.OS === 'android' ? 15 : 20,
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
 		marginVertical: 40
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	},
 	goBack: {
@@ -215,10 +216,8 @@ export default class Login extends Component {
 						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -231,10 +230,8 @@ export default class Login extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);
@@ -266,7 +263,7 @@ export default class Login extends Component {
 							onChangeText={this.setPassword}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}
 							autoCapitalize="none"
@@ -294,6 +291,7 @@ export default class Login extends Component {
 					</View>
 				</View>
 			</KeyboardAwareScrollView>
+			<FadeOutOverlay />
 		</SafeAreaView>
 	);
 }

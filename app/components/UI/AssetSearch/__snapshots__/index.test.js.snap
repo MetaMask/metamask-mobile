@@ -5,7 +5,7 @@ exports[`AssetSearch should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
-      "borderColor": "#CCCCCC",
+      "borderColor": "#d6d9dc",
       "borderRadius": 4,
       "borderWidth": 1,
       "flex": 1,

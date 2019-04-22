@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 	},
 	networkName: {
 		fontSize: 11,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal
 	},
 	networkIcon: {
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.transparent,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1
 	}
 });

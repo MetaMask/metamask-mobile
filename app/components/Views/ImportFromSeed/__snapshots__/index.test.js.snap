@@ -36,7 +36,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#1B344D",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 25,
             "fontWeight": "600",
@@ -65,7 +65,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           Array [
             Object {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "borderRadius": 10,
               "borderWidth": 0.5,
               "fontFamily": "Roboto",
@@ -115,7 +115,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           secureTextEntry={true}
           style={
             Object {
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
               "fontFamily": "Roboto",
@@ -125,7 +125,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             }
           }
           testID="input-password"
-          underlineColorAndroid="#CCCCCC"
+          underlineColorAndroid="#d6d9dc"
           value=""
         />
       </View>
@@ -158,7 +158,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           secureTextEntry={true}
           style={
             Object {
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
               "fontFamily": "Roboto",
@@ -168,7 +168,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             }
           }
           testID="input-password-confirm"
-          underlineColorAndroid="#CCCCCC"
+          underlineColorAndroid="#d6d9dc"
           value=""
         />
       </View>
@@ -195,7 +195,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           Remember me
         </Text>
         <Switch
-          ios_backgroundColor="#B3B3B3"
+          ios_backgroundColor="#9fa6ae"
           onValueChange={[Function]}
           style={
             Object {
@@ -204,8 +204,8 @@ exports[`ImportFromSeed should render correctly 1`] = `
           }
           trackColor={
             Object {
-              "false": "#B3B3B3",
-              "true": "#4CD964",
+              "false": "#9fa6ae",
+              "true": "#86e29b",
             }
           }
           value={false}

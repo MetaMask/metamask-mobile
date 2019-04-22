@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		fontSize: 18,
-		color: colors.primary
+		color: colors.blue
 	}
 });
 

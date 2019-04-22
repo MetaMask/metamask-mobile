@@ -29,7 +29,7 @@ const NetworkList = {
 	},
 	rpc: {
 		name: 'Private Network',
-		color: colors.concrete
+		color: colors.grey000
 	}
 };
 

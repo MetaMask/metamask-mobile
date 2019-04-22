@@ -4,7 +4,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#F2F9FE",
+      "backgroundColor": "#eaf6ff",
       "flex": 1,
     }
   }
@@ -29,7 +29,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#F2F9FE",
+        "backgroundColor": "#eaf6ff",
         "flex": 1,
       }
     }
@@ -194,7 +194,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             Array [
               Object {
                 "backgroundColor": "#FFFFFF",
-                "borderColor": "#CCCCCC",
+                "borderColor": "#d6d9dc",
                 "borderRadius": 4,
                 "borderWidth": 0.5,
                 "fontFamily": "Roboto",

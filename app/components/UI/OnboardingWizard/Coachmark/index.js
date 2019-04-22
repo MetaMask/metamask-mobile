@@ -6,7 +6,7 @@ import StyledButton from '../../StyledButton';
 
 const styles = StyleSheet.create({
 	coachmark: {
-		backgroundColor: colors.primary,
+		backgroundColor: colors.blue,
 		borderRadius: 8,
 		padding: 18
 	},
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 10,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
-		borderBottomColor: colors.primary,
+		borderBottomColor: colors.blue,
 		position: 'absolute'
 	},
 	triangleDown: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 		borderTopWidth: 10,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
-		borderTopColor: colors.primary,
+		borderTopColor: colors.blue,
 		position: 'absolute'
 	},
 	progressButton: {

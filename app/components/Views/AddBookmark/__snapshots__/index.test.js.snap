@@ -49,7 +49,7 @@ exports[`AddBookmark should render correctly 1`] = `
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
               "fontFamily": "Roboto",
@@ -64,7 +64,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#FF0000",
+              "color": "#D73A49",
               "fontFamily": "Roboto",
               "fontWeight": "400",
             }
@@ -96,7 +96,7 @@ exports[`AddBookmark should render correctly 1`] = `
           returnKeyType="done"
           style={
             Object {
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
               "fontFamily": "Roboto",
@@ -111,7 +111,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#FF0000",
+              "color": "#D73A49",
               "fontFamily": "Roboto",
               "fontWeight": "400",
             }

@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.drawerBg,
+		backgroundColor: colors.grey000,
 		height: DeviceSize.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
@@ -86,10 +86,10 @@ const styles = StyleSheet.create({
 	},
 	account: {
 		flex: 1,
-		backgroundColor: colors.drawerBg
+		backgroundColor: colors.grey000
 	},
 	accountBgOverlay: {
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
 		padding: 17
 	},
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
 		borderRadius: 96,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	},
 	accountNameWrapper: {
 		flexDirection: 'row',
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
 	},
 	buttons: {
 		flexDirection: 'row',
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
 		padding: 15
 	},
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
 		marginTop: Platform.OS === 'ios' ? 0 : -23,
 		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
 		fontSize: 15,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	buttonContent: {
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
 	},
 	menuSection: {
 		borderTopWidth: 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		paddingVertical: 10
 	},
 	menuItem: {
@@ -185,20 +185,20 @@ const styles = StyleSheet.create({
 		paddingLeft: 17
 	},
 	selectedRoute: {
-		backgroundColor: colors.primaryOpacity,
+		backgroundColor: colors.blue000,
 		marginRight: 10,
 		borderTopRightRadius: 20,
 		borderBottomRightRadius: 20
 	},
 	selectedName: {
-		color: colors.primary
+		color: colors.blue
 	},
 	menuItemName: {
 		flex: 1,
 		paddingLeft: 15,
 		paddingTop: 2,
 		fontSize: 16,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal
 	},
 	noIcon: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		padding: 40,
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.grey000,
 		borderRadius: 8
 	},
 	addressWrapper: {
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
 		marginRight: 10,
 		marginLeft: 10,
 		borderRadius: 5,
-		backgroundColor: colors.concrete
+		backgroundColor: colors.grey000
 	},
 	addressTitle: {
 		fontSize: 16,
@@ -283,10 +283,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.another50ShadesOfGrey
+		borderColor: colors.grey400
 	},
 	importedText: {
-		color: colors.another50ShadesOfGrey,
+		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
 	},
@@ -522,7 +522,7 @@ class DrawerView extends Component {
 						if (!passwordSet) {
 							this.props.navigation.navigate('Onboarding');
 						} else {
-							this.props.navigation.navigate('Entry');
+							this.props.navigation.navigate('Login');
 						}
 					}
 				}
@@ -603,15 +603,15 @@ class DrawerView extends Component {
 	};
 
 	getIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.gray} />;
+		return <Icon name={name} size={size || 24} color={colors.grey400} />;
 	}
 
 	getFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.gray} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
 	}
 
 	getMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.gray} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
 	}
 
 	getImageIcon(name) {
@@ -619,15 +619,15 @@ class DrawerView extends Component {
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.primary} />;
+		return <Icon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedImageIcon(name) {
@@ -775,7 +775,7 @@ class DrawerView extends Component {
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
-								<Text style={styles.accountBalance}>${fiatBalanceStr}</Text>
+								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
 								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
 								{this.isCurrentAccountImported() && (
 									<View style={styles.importedWrapper}>
@@ -797,7 +797,7 @@ class DrawerView extends Component {
 							<MaterialIcon
 								name={'arrow-top-right'}
 								size={22}
-								color={colors.primary}
+								color={colors.blue}
 								style={styles.buttonIcon}
 							/>
 							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
@@ -808,7 +808,7 @@ class DrawerView extends Component {
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
 						>
-							<Icon name={'qrcode'} size={22} color={colors.primary} style={styles.buttonIcon} />
+							<Icon name={'qrcode'} size={22} color={colors.blue} style={styles.buttonIcon} />
 							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>
@@ -927,7 +927,7 @@ class DrawerView extends Component {
 				</Modal>
 				{!this.props.passwordSet && (
 					<CustomAlert
-						headerStyle={{ backgroundColor: colors.headerModalRed }}
+						headerStyle={{ backgroundColor: colors.red }}
 						headerContent={
 							<Image
 								source={require('../../../images/lock.png')}

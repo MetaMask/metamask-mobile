@@ -61,7 +61,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -110,7 +110,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -127,7 +127,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "color": "#008edf",
+                  "color": "#037dd6",
                   "fontFamily": "Roboto",
                   "fontSize": 12,
                   "fontWeight": "600",
@@ -176,7 +176,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -233,7 +233,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -277,7 +277,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -297,7 +297,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           style={
             Object {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#dedede",
+              "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
               "flex": 1,

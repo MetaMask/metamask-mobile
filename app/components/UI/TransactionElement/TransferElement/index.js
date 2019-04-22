@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	rowContent: {
 		padding: 0

@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	rowContent: {
 		padding: 0
@@ -48,8 +48,8 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		paddingHorizontal: 5,
 		textAlign: 'center',
-		backgroundColor: colors.concrete,
-		color: colors.gray,
+		backgroundColor: colors.grey000,
+		color: colors.grey400,
 		fontSize: 9,
 		letterSpacing: 0.5,
 		width: 75,
@@ -73,16 +73,16 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	statusConfirmed: {
-		backgroundColor: colors.lightSuccess,
-		color: colors.success
+		backgroundColor: colors.green100,
+		color: colors.green500
 	},
 	statusSubmitted: {
-		backgroundColor: colors.lightWarning,
-		color: colors.warning
+		backgroundColor: colors.orange000,
+		color: colors.orange300
 	},
 	statusFailed: {
-		backgroundColor: colors.lightRed,
-		color: colors.error
+		backgroundColor: colors.red000,
+		color: colors.red
 	},
 	ethLogo: {
 		width: 24,
@@ -440,7 +440,7 @@ export default class TransactionElement extends PureComponent {
 			<TouchableHighlight
 				style={styles.row}
 				onPress={this.onPressItem} // eslint-disable-line react/jsx-no-bind
-				underlayColor={colors.lighterGray}
+				underlayColor={colors.grey000}
 				activeOpacity={1}
 			>
 				<View style={styles.rowContent}>

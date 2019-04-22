@@ -37,7 +37,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#008edf",
+            "color": "#037dd6",
             "fontFamily": "Roboto",
             "fontSize": 18,
             "fontWeight": "400",
@@ -106,8 +106,8 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
         <View
           style={
             Object {
-              "backgroundColor": "#F7F7F7",
-              "borderColor": "#CCCCCC",
+              "backgroundColor": "#f2f3f4",
+              "borderColor": "#d6d9dc",
               "borderRadius": 10,
               "borderWidth": 1,
               "flexDirection": "row",
@@ -119,7 +119,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "borderColor": "#CCCCCC",
+                "borderColor": "#d6d9dc",
                 "borderRightWidth": 1,
                 "flex": 1,
                 "paddingBottom": 10,
@@ -137,7 +137,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -150,7 +150,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                       "width": 105,
                     },
                     Object {
-                      "borderColor": "#008edf",
+                      "borderColor": "#037dd6",
                       "borderWidth": 1,
                     },
                   ]
@@ -169,7 +169,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -198,7 +198,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -227,7 +227,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -256,7 +256,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -285,7 +285,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -325,7 +325,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -354,7 +354,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -383,7 +383,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -412,7 +412,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -441,7 +441,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -470,7 +470,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
                   Array [
                     Object {
                       "backgroundColor": "#FFFFFF",
-                      "borderColor": "#CCCCCC",
+                      "borderColor": "#d6d9dc",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#000000",
@@ -508,7 +508,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -546,7 +546,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -584,7 +584,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -622,7 +622,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -660,7 +660,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -698,7 +698,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -736,7 +736,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -774,7 +774,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -812,7 +812,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -850,7 +850,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -888,7 +888,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -926,7 +926,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
               Array [
                 Object {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#008edf",
+                  "borderColor": "#037dd6",
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "#000000",
@@ -999,7 +999,7 @@ exports[`AccountBackupStep5 should render correctly 1`] = `
       }
       headerStyle={
         Object {
-          "backgroundColor": "#5ea40c",
+          "backgroundColor": "#28a745",
         }
       }
       isVisible={false}
