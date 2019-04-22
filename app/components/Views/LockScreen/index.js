@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Dimensions, Animated, View, Image, AppState } from 'react-native';
+import { StyleSheet, Dimensions, Animated, View, AppState } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import Engine from '../../../core/Engine';
@@ -7,28 +7,37 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 
 const LOGO_SIZE = 194;
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const styles = StyleSheet.create({
 	metamaskName: {
-		marginLeft: 6,
+		marginTop: 10,
 		height: 30,
 		width: 190,
-		alignSelf: 'center'
+		alignSelf: 'center',
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	logoWrapper: {
 		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2,
 		height: LOGO_SIZE
 	},
+	foxAndName: {
+		alignSelf: 'center',
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
 	animation: {
-		width: 400,
-		height: 400
+		width: 125,
+		height: 125,
+		alignSelf: 'center',
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	fox: {
 		width: 125,
 		height: 125,
 		alignSelf: 'center',
-		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 /**
@@ -50,6 +59,7 @@ export default class LockScreen extends Component {
 	locked = true;
 	firstAnimation = React.createRef();
 	secondAnimation = React.createRef();
+	animationName = React.createRef();
 	opacity = new Animated.Value(1);
 
 	componentDidMount() {
@@ -90,6 +100,7 @@ export default class LockScreen extends Component {
 				this.locked = false;
 				this.setState({ ready: true }, () => {
 					this.secondAnimation.play();
+					this.animationName.play();
 				});
 			}
 		} catch (error) {
@@ -101,13 +112,13 @@ export default class LockScreen extends Component {
 		setTimeout(() => {
 			Animated.timing(this.opacity, {
 				toValue: 0,
-				duration: 400,
+				duration: 300,
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
 				this.props.navigation.goBack();
 			});
-		}, 1750);
+		}, 100);
 	};
 
 	renderAnimations() {
@@ -125,16 +136,27 @@ export default class LockScreen extends Component {
 		}
 
 		return (
-			<LottieView
-				// eslint-disable-next-line react/jsx-no-bind
-				ref={animation => {
-					this.secondAnimation = animation;
-				}}
-				style={styles.animation}
-				loop={false}
-				source={require('../../../animations/fox-in-out.json')}
-				onAnimationFinish={this.onAnimationFinished}
-			/>
+			<View style={styles.foxAndName}>
+				<LottieView
+					// eslint-disable-next-line react/jsx-no-bind
+					ref={animation => {
+						this.secondAnimation = animation;
+					}}
+					style={styles.animation}
+					loop={false}
+					source={require('../../../animations/fox-in.json')}
+					onAnimationFinish={this.onAnimationFinished}
+				/>
+				<LottieView
+					// eslint-disable-next-line react/jsx-no-bind
+					ref={animation => {
+						this.animationName = animation;
+					}}
+					style={styles.metamaskName}
+					loop={false}
+					source={require('../../../animations/wordmark.json')}
+				/>
+			</View>
 		);
 	}
 
@@ -143,7 +165,6 @@ export default class LockScreen extends Component {
 			<View style={baseStyles.flexGrow}>
 				<Animated.View style={[styles.logoWrapper, { opacity: this.opacity }]}>
 					<View style={styles.fox}>{this.renderAnimations()}</View>
-					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 				</Animated.View>
 			</View>
 		);
