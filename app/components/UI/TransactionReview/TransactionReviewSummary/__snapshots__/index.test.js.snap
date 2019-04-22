@@ -30,7 +30,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
   <Text
     style={
       Object {
-        "color": "#6a737d",
+        "color": "#000000",
         "fontFamily": "Roboto",
         "fontSize": 44,
         "fontWeight": "400",

@@ -24,7 +24,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#848c96",
+          "color": "#6a737d",
           "flex": 1,
           "fontFamily": "Roboto",
           "fontSize": 12,
@@ -58,7 +58,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#6a737d",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 24,
             "fontWeight": "600",
@@ -71,7 +71,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#848c96",
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",
@@ -95,7 +95,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#848c96",
+          "color": "#6a737d",
           "flex": 1,
           "fontFamily": "Roboto",
           "fontSize": 12,
@@ -110,6 +110,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
       <Text
         style={
           Object {
+            "color": "#6a737d",
             "fontFamily": "Roboto",
             "fontSize": 12,
             "fontWeight": "400",
@@ -127,7 +128,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#6a737d",
+              "color": "#000000",
               "fontFamily": "Roboto",
               "fontSize": 24,
               "fontWeight": "600",
