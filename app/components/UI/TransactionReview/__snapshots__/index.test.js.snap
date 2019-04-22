@@ -13,7 +13,7 @@ exports[`TransactionReview should render correctly 1`] = `
     style={
       Object {
         "borderBottomWidth": 1,
-        "borderColor": "#dedede",
+        "borderColor": "#d6d9dc",
         "borderTopWidth": 1,
         "flexDirection": "row",
         "flexGrow": 0,
@@ -32,7 +32,7 @@ exports[`TransactionReview should render correctly 1`] = `
             "width": "50%",
           },
           Object {
-            "borderColor": "#dedede",
+            "borderColor": "#d6d9dc",
             "borderRightWidth": 1,
             "paddingLeft": 20,
             "paddingRight": 35,
@@ -63,7 +63,7 @@ exports[`TransactionReview should render correctly 1`] = `
         Object {
           "alignSelf": "center",
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#d2d8dd",
+          "borderColor": "#bbc0c5",
           "borderRadius": 15,
           "borderWidth": 1,
           "height": 30,
@@ -82,7 +82,7 @@ exports[`TransactionReview should render correctly 1`] = `
         size={22}
         style={
           Object {
-            "color": "#7c7e84",
+            "color": "#848c96",
             "marginLeft": 3,
             "marginTop": 3,
           }

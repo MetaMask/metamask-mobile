@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		paddingHorizontal: 38,
 		fontSize: 16,
-		backgroundColor: colors.anotherBlue,
+		backgroundColor: colors.grey000,
 		height: 40,
-		color: colors.another50ShadesOfGrey,
+		color: colors.grey400,
 		...fontStyles.normal
 	},
 	searchIcon: {
@@ -114,9 +114,9 @@ const styles = StyleSheet.create({
 	backupAlertWrapper: {
 		padding: 9,
 		flexDirection: 'row',
-		backgroundColor: colors.lightWarning,
+		backgroundColor: colors.orange000,
 		borderWidth: 1,
-		borderColor: colors.yellowBorder,
+		borderColor: colors.yellow200,
 		borderRadius: 8
 	},
 	backupAlertIconWrapper: {
@@ -124,23 +124,23 @@ const styles = StyleSheet.create({
 	},
 	backupAlertIcon: {
 		fontSize: 22,
-		color: colors.warningText
+		color: colors.yellow700
 	},
 	backupAlertTitle: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.warningText,
+		color: colors.yellow700,
 		...fontStyles.bold
 	},
 	backupAlertMessage: {
 		fontSize: 10,
 		lineHeight: 14,
-		color: colors.warningText,
+		color: colors.yellow700,
 		...fontStyles.normal
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	tabStyle: {
 		paddingHorizontal: 0
@@ -269,7 +269,7 @@ class HomePage extends Component {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.primary}
+				activeTextColor={colors.blue}
 				inactiveTextColor={colors.fontTertiary}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
@@ -331,7 +331,7 @@ class HomePage extends Component {
 									onChangeText={this.onInitialUrlChange}
 									onSubmitEditing={this.onInitialUrlSubmit}
 									placeholder={strings('browser.search')}
-									placeholderTextColor={colors.another50ShadesOfGrey}
+									placeholderTextColor={colors.grey400}
 									returnKeyType="go"
 									value={this.state.searchInputValue}
 									blurOnSubmit
@@ -340,7 +340,7 @@ class HomePage extends Component {
 									onPress={this.focusInput}
 									name="search"
 									size={18}
-									color={colors.another50ShadesOfGrey}
+									color={colors.grey400}
 									style={styles.searchIcon}
 								/>
 							</View>

@@ -14,7 +14,7 @@ exports[`TransactionElement should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "borderBottomWidth": 0.5,
-      "borderColor": "#CCCCCC",
+      "borderColor": "#d6d9dc",
       "flex": 1,
     }
   }
@@ -81,8 +81,8 @@ exports[`TransactionElement should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "backgroundColor": "#f1f2f6",
-                  "color": "#7c7e84",
+                  "backgroundColor": "#f2f3f4",
+                  "color": "#848c96",
                   "fontFamily": "Roboto",
                   "fontSize": 9,
                   "fontWeight": "600",

@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 		fontSize: Platform.OS === 'android' ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title,
+		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 10,
 		borderRadius: 4,
 		fontSize: Platform.OS === 'android' ? 15 : 20,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 		marginTop: 20
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		textAlign: 'center',
 		...fontStyles.normal
 	},
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		minHeight: 110,
 		height: 'auto',
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		...fontStyles.normal
 	},
 	biometrics: {
@@ -282,10 +282,8 @@ class ImportFromSeed extends Component {
 						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -298,10 +296,8 @@ class ImportFromSeed extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);
@@ -335,7 +331,7 @@ class ImportFromSeed extends Component {
 							onChangeText={this.onPasswordChange}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							testID={'input-password'}
 							onSubmitEditing={this.jumpToConfirmPassword}
 							returnKeyType={'next'}
@@ -351,7 +347,7 @@ class ImportFromSeed extends Component {
 							onChangeText={this.onPasswordConfirmChange}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							testID={'input-password-confirm'}
 							onSubmitEditing={this.onPressImport}
 							returnKeyType={'done'}

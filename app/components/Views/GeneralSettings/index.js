@@ -35,13 +35,13 @@ const styles = StyleSheet.create({
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.copy,
+		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12
 	},
 	picker: {
-		borderColor: colors.lightGray,
+		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16

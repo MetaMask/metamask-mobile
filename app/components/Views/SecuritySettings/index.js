@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.copy,
+		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 112
 	},
 	picker: {
-		borderColor: colors.lightGray,
+		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16
@@ -280,10 +280,8 @@ class Settings extends Component {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
-								trackColor={
-									Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
-								}
-								ios_backgroundColor={colors.slate}
+								trackColor={Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
 							/>
 						</View>
 					</View>
@@ -335,9 +333,9 @@ class Settings extends Component {
 									onValueChange={biometryChoice => this.onBiometryChange(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 									value={this.state.biometryChoice}
 									trackColor={
-										Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
 									}
-									ios_backgroundColor={colors.slate}
+									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
 						</View>

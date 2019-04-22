@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 		marginBottom: Platform.OS === 'android' ? -10 : 0
 	},
 	addressWrapper: {
-		backgroundColor: colors.blueishGrey,
+		backgroundColor: colors.blue000,
 		borderRadius: 40,
 		marginTop: 20,
 		marginBottom: 20,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 	},
 	address: {
 		fontSize: 12,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal,
 		letterSpacing: 0.8
 	},
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		borderRadius: 80,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	}
 });
 

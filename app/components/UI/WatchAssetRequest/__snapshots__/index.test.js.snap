@@ -44,7 +44,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "borderTopColor": "#d2d8dd",
+          "borderTopColor": "#bbc0c5",
           "borderTopWidth": 1,
         }
       }

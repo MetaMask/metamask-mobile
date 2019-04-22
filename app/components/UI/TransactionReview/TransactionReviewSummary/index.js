@@ -16,10 +16,10 @@ const styles = StyleSheet.create({
 	confirmBadge: {
 		...fontStyles.normal,
 		alignItems: 'center',
-		borderColor: colors.subtleGray,
+		borderColor: colors.grey400,
 		borderRadius: 4,
 		borderWidth: 1,
-		color: colors.subtleGray,
+		color: colors.grey400,
 		fontSize: 12,
 		lineHeight: 22,
 		textAlign: 'center',
@@ -31,13 +31,13 @@ const styles = StyleSheet.create({
 	},
 	summaryFiat: {
 		...fontStyles.normal,
-		color: colors.copy,
+		color: colors.fontPrimary,
 		fontSize: 44,
 		paddingVertical: 4
 	},
 	summaryEth: {
 		...fontStyles.normal,
-		color: colors.subtleGray,
+		color: colors.grey400,
 		fontSize: 24
 	}
 });

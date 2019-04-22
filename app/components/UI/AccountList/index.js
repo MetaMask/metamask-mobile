@@ -34,13 +34,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.gray,
+		backgroundColor: colors.grey400,
 		opacity: Platform.OS === 'android' ? 0.6 : 0.5
 	},
 	accountsWrapper: {
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 	},
 	account: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	},
 	btnText: {
 		fontSize: 14,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	footerButton: {
@@ -89,10 +89,10 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	importedText: {
-		color: colors.another50ShadesOfGrey,
+		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
 	},
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.another50ShadesOfGrey
+		borderColor: colors.grey400
 	},
 	importedView: {
 		flex: 0.5,
@@ -249,7 +249,7 @@ export default class AccountList extends Component {
 	renderItem = ({ item }) => {
 		const { index, name, address, balance, isSelected, isImported } = item;
 
-		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
 				<Text numberOfLines={1} style={styles.importedText}>
@@ -325,7 +325,7 @@ export default class AccountList extends Component {
 				<View style={styles.footer}>
 					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
 						{this.state.loading ? (
-							<ActivityIndicator size="small" color={colors.primary} />
+							<ActivityIndicator size="small" color={colors.blue} />
 						) : (
 							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
 						)}

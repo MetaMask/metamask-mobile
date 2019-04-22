@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 		height: 60
 	},
 	learnMore: {
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 18
 	},
 	bold: {
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 	},
 	navbarRightText: {
 		fontSize: 18,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	bullet: {
