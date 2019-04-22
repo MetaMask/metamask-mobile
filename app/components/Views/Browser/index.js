@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	icon: {
-		color: colors.copy,
+		color: colors.grey500,
 		height: 28,
 		lineHeight: 28,
 		textAlign: 'center',
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
 		alignSelf: 'center'
 	},
 	disabledIcon: {
-		color: colors.ash
+		color: colors.grey100
 	},
 	progressBarWrapper: {
 		height: 3,
@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
 		zIndex: 99999999,
 		width: 200,
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
-		backgroundColor: colors.concrete
+		borderColor: colors.grey100,
+		backgroundColor: colors.grey000
 	},
 	optionsWrapperAndroid: {
 		top: 0,
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
 		elevation: 5
 	},
 	optionsWrapperIos: {
-		shadowColor: colors.gray,
+		shadowColor: colors.grey400,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
 		right: 3
 	},
 	option: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.grey000,
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		justifyContent: 'flex-start',
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
 	},
 	optionIcon: {
 		width: 18,
-		color: colors.copy,
+		color: colors.grey500,
 		flex: 0,
 		height: 15,
 		lineHeight: 15,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.grey000,
 		position: 'absolute',
 		left: 0,
 		right: 0,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
 	},
 	urlInput: {
 		...fontStyles.normal,
-		backgroundColor: Platform.OS === 'android' ? colors.white : colors.slate,
+		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
 		borderRadius: 30,
 		fontSize: Platform.OS === 'android' ? 16 : 14,
 		padding: 8,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
 	},
 	cancelButtonText: {
 		fontSize: 14,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	iconCloseButton: {
@@ -1414,7 +1414,7 @@ export class Browser extends Component {
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
-						placeholderTextColor={colors.asphalt}
+						placeholderTextColor={colors.grey400}
 						returnKeyType="go"
 						style={styles.urlInput}
 						value={this.state.autocompleteInputValue}
@@ -1586,7 +1586,7 @@ export class Browser extends Component {
 				animationOut="slideOutDown"
 				style={styles.fullScreenModal}
 				backdropOpacity={1}
-				backdropColor={colors.warningRed}
+				backdropColor={colors.red}
 				animationInTiming={300}
 				animationOutTiming={300}
 				useNativeDriver

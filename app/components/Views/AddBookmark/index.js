@@ -17,12 +17,12 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 16,
 		...fontStyles.normal
 	},
 	warningText: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	}
 });

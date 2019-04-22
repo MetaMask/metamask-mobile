@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const styles = StyleSheet.create({
 	detailRowWrapper: {
 		flex: 1,
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.grey000,
 		paddingVertical: 10,
 		paddingHorizontal: 15,
 		marginTop: 10
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	detailRowInfo: {
 		borderRadius: 5,
-		shadowColor: colors.accentGray,
+		shadowColor: colors.grey400,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		marginBottom: 10,
 		paddingBottom: 5
 	},
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 	},
 	viewOnEtherscan: {
 		fontSize: 14,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal,
 		textAlign: 'center',
 		marginTop: 15,
@@ -149,19 +149,19 @@ export default class TransactionDetails extends PureComponent {
 
 	renderCopyIcon = () => (
 		<TouchableOpacity style={styles.copyIcon} onPress={this.copy}>
-			<Icon name={'copy'} size={15} color={colors.primary} />
+			<Icon name={'copy'} size={15} color={colors.blue} />
 		</TouchableOpacity>
 	);
 
 	renderCopyToIcon = () => (
 		<TouchableOpacity style={styles.copyIcon} onPress={this.copyTo}>
-			<Icon name={'copy'} size={15} color={colors.primary} />
+			<Icon name={'copy'} size={15} color={colors.blue} />
 		</TouchableOpacity>
 	);
 
 	renderCopyFromIcon = () => (
 		<TouchableOpacity style={styles.copyIcon} onPress={this.copyFrom}>
-			<Icon name={'copy'} size={15} color={colors.primary} />
+			<Icon name={'copy'} size={15} color={colors.blue} />
 		</TouchableOpacity>
 	);
 

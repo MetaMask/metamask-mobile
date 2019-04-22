@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 	},
 	desc: {
 		...fontStyles.normal,
-		color: colors.copy,
+		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
 		marginTop: 12
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	},
 	warningText: {
 		...fontStyles.normal,
-		color: colors.error,
+		color: colors.red,
 		marginTop: 4,
 		paddingLeft: 2,
 		paddingRight: 4
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.normal,
-		borderColor: colors.lightGray,
+		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 14,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 		marginBottom: 20
 	},
 	picker: {
-		borderColor: colors.lightGray,
+		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
 		marginTop: 16
@@ -362,7 +362,7 @@ class AdvancedSettings extends Component {
 							/>
 							{Platform.OS === 'ios' && (
 								<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
-									<View style={styles.inputAccessoryView} backgroundColor={colors.lighterGray}>
+									<View style={styles.inputAccessoryView} backgroundColor={colors.grey000}>
 										<Button onPress={this.addRpcUrl} title="Done" />
 									</View>
 								</InputAccessoryView>
@@ -395,9 +395,9 @@ class AdvancedSettings extends Component {
 									value={showHexData}
 									onValueChange={this.toggleShowHexData}
 									trackColor={
-										Platform.OS === 'ios' ? { true: colors.primary, false: colors.concrete } : null
+										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
 									}
-									ios_backgroundColor={colors.slate}
+									ios_backgroundColor={colors.grey000}
 								/>
 							</View>
 						</View>

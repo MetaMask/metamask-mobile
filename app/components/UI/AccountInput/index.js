@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	arrow: {
-		color: colors.inputBorderColor,
+		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
 		top: Platform.OS === 'android' ? 14 : 12
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row',
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1
 	},
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 	},
 	optionList: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,

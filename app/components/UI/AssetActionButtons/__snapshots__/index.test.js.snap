@@ -27,7 +27,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "backgroundColor": "#008edf",
+          "backgroundColor": "#037dd6",
           "borderRadius": 18,
           "color": "#FFFFFF",
           "height": 36,
@@ -40,7 +40,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     >
       <Icon
         allowFontScaling={false}
-        color="#008edf"
+        color="#037dd6"
         name="arrow-top-right"
         size={20}
         style={
@@ -62,7 +62,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#008edf",
+          "color": "#037dd6",
           "fontFamily": "Roboto",
           "fontSize": 11,
           "fontWeight": "400",
@@ -90,7 +90,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "backgroundColor": "#008edf",
+          "backgroundColor": "#037dd6",
           "borderRadius": 18,
           "color": "#FFFFFF",
           "height": 36,
@@ -119,7 +119,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#008edf",
+          "color": "#037dd6",
           "fontFamily": "Roboto",
           "fontSize": 11,
           "fontWeight": "400",
@@ -145,7 +145,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "backgroundColor": "#008edf",
+          "backgroundColor": "#037dd6",
           "borderRadius": 18,
           "color": "#FFFFFF",
           "height": 36,
@@ -174,7 +174,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#008edf",
+          "color": "#037dd6",
           "fontFamily": "Roboto",
           "fontSize": 11,
           "fontWeight": "400",

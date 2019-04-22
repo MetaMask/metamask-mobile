@@ -185,7 +185,7 @@ exports[`SignatureRequest should render correctly 1`] = `
     <View
       style={
         Object {
-          "borderTopColor": "#d2d8dd",
+          "borderTopColor": "#bbc0c5",
           "borderTopWidth": 1,
           "flex": 1,
           "height": "100%",
