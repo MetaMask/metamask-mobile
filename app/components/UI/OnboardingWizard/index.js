@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 	},
 	main: {
 		flex: 1,
-		backgroundColor: colors.transperent
+		backgroundColor: colors.transparent
 	}
 });
 
