@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		borderColor: colors.primary,
 		padding: Platform.OS === 'ios' ? 0 : -6,
-		top: Platform.OS === 'ios' ? 0 : -4
+		top: Platform.OS === 'ios' ? 0 : -2
 	}
 });
 
@@ -227,7 +227,10 @@ class AccountOverview extends Component {
 							/>
 						) : (
 							<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-								<Text style={styles.label} numberOfLines={1}>
+								<Text
+									style={[styles.label, onboardingWizard ? styles.onboardingWizardLabel : {}]}
+									numberOfLines={1}
+								>
 									{name}
 								</Text>
 							</TouchableOpacity>

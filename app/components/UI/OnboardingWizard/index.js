@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet } from 'react-native';
-import { colors } from '../../../styles/common';
+import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -22,6 +22,16 @@ const styles = StyleSheet.create({
 	main: {
 		flex: 1,
 		backgroundColor: colors.transparent
+	},
+	skip: {
+		height: 30,
+		bottom: 30
+	},
+	skipText: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		fontSize: 18,
+		color: colors.primary
 	}
 });
 
@@ -44,11 +54,17 @@ class OnboardingWizard extends Component {
 
 	render() {
 		const {
-			wizard: { step }
+			wizard: { step },
+			close
 		} = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>
+				{step !== 1 && (
+					<TouchableOpacity style={styles.skip} onPress={close}>
+						<Text style={styles.skipText}>Skip Tutorial</Text>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	}
