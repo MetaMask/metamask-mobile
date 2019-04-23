@@ -7,6 +7,7 @@ import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors } from '../../../../styles/common';
 import { renderAccountName } from '../../../../util/address';
 import AccountOverview from '../../AccountOverview';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	main: {
@@ -95,8 +96,8 @@ class Step3 extends Component {
 
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
-						title={'Edit Account Name'}
-						content={`'Account 1' isn't that catchy. So why not name your account something a little more memorable.\n\n<b>Long tap</n> now to edit account name.`}
+						title={strings('onboarding_wizard.step3.title')}
+						content={strings('onboarding_wizard.step3.content')}
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}

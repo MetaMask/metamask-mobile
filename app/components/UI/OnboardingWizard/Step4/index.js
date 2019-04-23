@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	main: {
@@ -56,10 +57,8 @@ class Step4 extends Component {
 			<View style={styles.main}>
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
-						title={'Main Navigation'}
-						content={
-							'Tap here to access your Wallet, Browser, and Transaction history.\n\nYou can take more actionswith your accounts & access MetaMask settings.'
-						}
+						title={strings('onboarding_wizard.step4.title')}
+						content={strings('onboarding_wizard.step4.content')}
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}

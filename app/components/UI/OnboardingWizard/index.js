@@ -12,6 +12,7 @@ import Step6 from './Step6';
 import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
@@ -81,7 +82,7 @@ class OnboardingWizard extends Component {
 				<View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>
 				{step !== 1 && (
 					<TouchableOpacity style={styles.skip} onPress={this.closeOnboardingWizard}>
-						<Text style={styles.skipText}>Skip Tutorial</Text>
+						<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
 					</TouchableOpacity>
 				)}
 			</View>

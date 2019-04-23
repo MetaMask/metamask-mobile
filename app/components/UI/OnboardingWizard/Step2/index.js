@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	main: {
@@ -50,10 +51,8 @@ class Step2 extends Component {
 			<View style={styles.main}>
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
-						title={'Your Accounts'}
-						content={
-							'This is your first account, total value, and its unique public address (0x...).\n\nYou can create multiple accounts withinthis wallet by typing on profile icon.'
-						}
+						title={strings('onboarding_wizard.step2.title')}
+						content={strings('onboarding_wizard.step2.content')}
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}

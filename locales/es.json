@@ -15,6 +15,43 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Saltar Tutorial",
+		"coachmark": {
+			"action_back": "No, Gracias",
+			"action_next": "Hacer un recorrido",
+			"progress_back": "Atrás",
+			"progress_next": "Perfecto!"
+		},
+		"step1": {
+			"title": "Bienvenido a tu Nueva Billetera!",
+			"content": "Para usar aplicaciones blockchain (DAPPS) necesitas una billetera ya que las acciones en blockchain tienen un costo en Ether (ETH). \n\nPuedes comprar unos cuantos dólares de ETH en una bolsa de valores como Coinbase o simplemente solicitar a un amigo."
+		},
+		"step2": {
+			"title": "Tus Cuentas",
+			"content": "esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).\n\nPuedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+		},
+		"step3": {
+			"title": "Editar Nombre",
+			"content": "'Account 1' no es muy memorable. Porque no nombrar tu cuenta con algo un poco más memorable.\n\n<b>Presiona</n> para editar el nombre de la cuenta."
+		},
+		"step4": {
+			"title": "Navegación Principal",
+			"content": "Presiona acá para acceder a tu Billetera, Navegador, e Historial de Transacciones.\n\nPuedes realizzar más acciones con tus cuentas y acceder a configuraciones."
+		},
+		"step5": {
+			"title": "Explora el Navegador",
+			"content": "Puedes exprolar aplicaciones blockchain (DAPPS) en el Navegador."
+		},
+		"step6": {
+			"title": "Buscar Dapps",
+			"content": "Busca aplicaciones blockchain (DAPPS)!"
+		},
+		"step7": {
+			"title": "Dapps Destacadas",
+			"content": "Comienza a explorar las aplicaciones blockchain (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creando tu nueva billetera",
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"

@@ -5,6 +5,7 @@ import { View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import DeviceSize from '../../../../util/DeviceSize';
 import setOnboardingWizardStep from '../../../../actions/wizard';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	main: {
@@ -55,10 +56,8 @@ class Step1 extends Component {
 			<View style={styles.main}>
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
-						title={'Welcome to your new wallet!'}
-						content={
-							'To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH). \n\n To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH)'
-						}
+						title={strings('onboarding_wizard.step1.title')}
+						content={strings('onboarding_wizard.step1.content')}
 						onNext={this.onNext}
 						onBack={this.onClose}
 						coachmarkStyle={styles.coachmark}

@@ -15,6 +15,43 @@
 		"start_exploring_now": "Start exploring",
 		"login": "Login"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Skip Tutorial",
+		"coachmark": {
+			"action_back": "No, Thanks",
+			"action_next": "Take the tour",
+			"progress_back": "Back",
+			"progress_next": "Got it!"
+		},
+		"step1": {
+			"title": "Welcome to your new wallet!",
+			"content": "To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH). \n\n You can buy a few dollars worth of ETH from an exchange ike Coinbase or simply request a friend."
+		},
+		"step2": {
+			"title": "Your Accounts",
+			"content": "This is your first account, total value, and its unique public address (0x...).\n\nYou can create multiple accounts within this wallet by typing on profile icon."
+		},
+		"step3": {
+			"title": "Edit Account Name",
+			"content": "'Account 1' isn't that catchy. So why not name your account something a little more memorable.\n\n<b>Long tap</n> now to edit account name."
+		},
+		"step4": {
+			"title": "Main Navigation",
+			"content": "Tap here to access your Wallet, Browser, and Transaction history.\n\nYou can take more actions with your accounts & access MetaMask settings."
+		},
+		"step5": {
+			"title": "Explore the Browser",
+			"content": "You can explore blockchain applications (DAPPS) in the Browser."
+		},
+		"step6": {
+			"title": "Search Dapps",
+			"content": "Search directly blockchain applications (DAPPS)!"
+		},
+		"step7": {
+			"title": "Featured Dapps",
+			"content": "Start exploring featured blockchain applications (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creating your new wallet",
 		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"

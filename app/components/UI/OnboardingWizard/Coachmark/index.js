@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Animated, View, Text, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	coachmark: {
@@ -241,7 +242,7 @@ export default class Coachmark extends Component {
 					type={'transparent'}
 					onPress={this.onBack}
 				>
-					Back
+					{strings('onboarding_wizard.coachmark.progress_back')}
 				</StyledButton>
 				<View style={styles.progessContainer}>
 					{[1, 2, 3, 4, 5].map(i => (
@@ -254,7 +255,7 @@ export default class Coachmark extends Component {
 					type={'normal'}
 					onPress={this.onNext}
 				>
-					Got it!
+					{strings('onboarding_wizard.coachmark.progress_next')}
 				</StyledButton>
 			</View>
 		);
@@ -268,10 +269,10 @@ export default class Coachmark extends Component {
 	renderActionButtons = () => (
 		<View style={styles.actions}>
 			<StyledButton containerStyle={styles.actionButton} type={'transparent'} onPress={this.onBack}>
-				No, Thanks
+				{strings('onboarding_wizard.coachmark.action_back')}
 			</StyledButton>
 			<StyledButton containerStyle={styles.actionButton} type={'normal'} onPress={this.onNext}>
-				Take the tour
+				{strings('onboarding_wizard.coachmark.action_next')}
 			</StyledButton>
 		</View>
 	);

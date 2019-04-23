@@ -6,6 +6,7 @@ import { colors } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	main: {
@@ -64,8 +65,8 @@ class Step5 extends Component {
 			<View style={styles.main}>
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
-						title={'Explore the Browser'}
-						content={'You can explore blockchainapplications (DAPPS) in the Browser.'}
+						title={strings('onboarding_wizard.step5.title')}
+						content={strings('onboarding_wizard.step5.content')}
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}
