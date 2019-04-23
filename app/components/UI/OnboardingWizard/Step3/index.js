@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: 210
+		top: Platform.OS === 'ios' ? 210 : 180
 	},
 	accountLabelContainer: {
 		alignItems: 'center',
