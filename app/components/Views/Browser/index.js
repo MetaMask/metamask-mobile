@@ -13,9 +13,7 @@ import {
 	TouchableOpacity,
 	Linking,
 	Keyboard,
-	BackHandler,
-	ScrollView,
-	Image
+	BackHandler
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -65,13 +63,11 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import { captureScreen } from 'react-native-view-shot';
-import WebsiteIcon from '../../UI/WebsiteIcon';
+import Tabs from './Tabs';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
 const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
-const HOME_SNAPSHOT = require('../../../images/home.jpeg'); // eslint-disable-line import/no-commonjs
-const METAMASK_FOX = require('../../../images/fox.png'); // eslint-disable-line
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -272,135 +268,6 @@ const styles = StyleSheet.create({
 		bottom: 0,
 		left: 0,
 		right: 0
-	},
-	tabAction: {
-		flex: 1,
-		alignContent: 'center'
-	},
-
-	tabActionleft: {
-		justifyContent: 'center'
-	},
-	tabActionRight: {
-		justifyContent: 'center',
-		alignItems: 'flex-end'
-	},
-	tabActionText: {
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-		fontSize: 14
-	},
-	actionDisabled: {
-		color: colors.fontSecondary
-	},
-	tabsView: {
-		flex: 1,
-		backgroundColor: colors.grey000,
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0
-	},
-	tabActions: {
-		paddingHorizontal: 20,
-		flexDirection: 'row',
-		marginBottom: 30,
-		paddingVertical: 10
-	},
-	tabs: {
-		height: Dimensions.get('window').height - 100
-	},
-	tabsContent: {
-		flex: 1,
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'space-between',
-		padding: 15
-	},
-	tabFavicon: {
-		alignSelf: 'flex-start',
-		width: 12,
-		height: 12,
-		marginRight: 5
-	},
-	tabSiteName: {
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-		fontSize: 10,
-		marginRight: 25
-	},
-	tabHeader: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		justifyContent: 'flex-start',
-		backgroundColor: colors.grey000,
-		paddingVertical: 5,
-		paddingHorizontal: 8,
-		minHeight: 25
-	},
-	tabWrapper: {
-		marginBottom: 20,
-		borderRadius: 10,
-		overflow: 'hidden',
-		borderColor: colors.grey100,
-		borderWidth: 1,
-		height: Dimensions.get('window').width / 2 + 20,
-		width: Dimensions.get('window').width / 2 - 30
-	},
-	tab: {
-		backgroundColor: colors.white,
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		overflow: 'hidden'
-	},
-	tabImage: {
-		marginTop: 72,
-		width: Dimensions.get('window').width / 2 - 40,
-		height: Dimensions.get('window').width / 0.2
-	},
-	activeTab: {
-		borderWidth: 3,
-		borderColor: colors.blue
-	},
-	newTabIcon: {
-		marginTop: 3,
-		color: colors.white,
-		fontSize: 24,
-		textAlign: 'center',
-		justifyContent: 'center',
-		alignContent: 'center'
-	},
-	newTabIconButton: {
-		alignSelf: 'center',
-		justifyContent: 'center',
-		alignContent: 'center',
-		backgroundColor: colors.blue,
-		borderRadius: 100,
-		width: 30,
-		height: 30
-	},
-	noTabs: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
-	noTabsTitle: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 18,
-		marginBottom: 10
-	},
-	noTabsDesc: {
-		...fontStyles.normal,
-		color: colors.fontSecondary,
-		fontSize: 14
-	},
-	closeTabIcon: {
-		top: -1,
-		right: 8,
-		position: 'absolute'
 	}
 });
 
@@ -1913,98 +1780,28 @@ export class Browser extends Component {
 		}
 	};
 
-	switchToTab(tab) {
+	switchToTab = tab => {
 		this.props.setActiveTab(tab.id);
-		this.setState({ showTabs: false, loading: true }, () => {
+		this.setState({ showTabs: false }, () => {
 			this.go(tab.url);
 		});
-	}
-
-	renderTabUrl(tab) {
-		if (tab.url === HOMEPAGE_URL) {
-			return strings('browser.new_tab');
-		}
-		return getHost(tab.url);
-	}
-
-	renderTabs() {
-		const { tabs, activeTab } = this.props;
-		if (tabs.length === 0) {
-			return (
-				<View style={styles.noTabs}>
-					<Text style={styles.noTabsTitle}>{strings('browser.no_tabs_title')}</Text>
-					<Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
-				</View>
-			);
-		}
-
-		return tabs.map((tab, i) => (
-			// eslint-disable-next-line react/jsx-key
-			<View style={[styles.tabWrapper, activeTab === tab.id ? styles.activeTab : null]} key={`tab_${i}`}>
-				<View style={styles.tabHeader}>
-					{tab.url !== HOMEPAGE_URL ? (
-						<WebsiteIcon style={styles.tabFavicon} title={tab.url} url={tab.url} />
-					) : (
-						<Image style={styles.tabFavicon} title={tab.url} source={METAMASK_FOX} />
-					)}
-					<Text style={styles.tabSiteName} numberOfLines={1}>
-						{tab.url === HOMEPAGE_URL ? strings('browser.new_tab') : tab.url}
-					</Text>
-					<IonIcon
-						name="ios-close"
-						size={24}
-						style={styles.closeTabIcon}
-						// eslint-disable-next-line react/jsx-no-bind
-						onPress={() => this.closeTab(tab)}
-					/>
-				</View>
-				<TouchableOpacity
-					style={styles.tab}
-					// eslint-disable-next-line react/jsx-no-bind
-					onPress={() => this.switchToTab(tab)}
-				>
-					{/* <Text>{this.renderTabUrl(tab)}</Text> */}
-					{tab.url !== HOMEPAGE_URL ? (
-						<Image resizeMode={'contain'} source={{ uri: tab.image }} style={styles.tabImage} />
-					) : (
-						<Image resizeMode={'contain'} source={HOME_SNAPSHOT} style={styles.tabImage} />
-					)}
-				</TouchableOpacity>
-			</View>
-		));
-	}
-
-	renderTabsView = () => {
-		if (!this.state.showTabs) return null;
-
-		const { tabs } = this.props;
-
-		return (
-			<View style={styles.tabsView}>
-				<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent}>
-					{this.renderTabs()}
-				</ScrollView>
-				<View style={styles.tabActions}>
-					<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={this.closeAllTabs}>
-						<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>
-							{strings('browser.tabs_close_all')}
-						</Text>
-					</TouchableOpacity>
-					<View style={styles.tabAction}>
-						<TouchableOpacity style={styles.newTabIconButton} onPress={this.newTab}>
-							<MaterialCommunityIcon name="plus" size={15} style={styles.newTabIcon} />
-						</TouchableOpacity>
-					</View>
-
-					<TouchableOpacity style={[styles.tabAction, styles.tabActionRight]} onPress={this.closeTabsView}>
-						<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>
-							{strings('browser.tabs_done')}
-						</Text>
-					</TouchableOpacity>
-				</View>
-			</View>
-		);
 	};
+
+	renderTabsView() {
+		const { tabs, activeTab } = this.props;
+		return (
+			<Tabs
+				tabs={tabs}
+				activeTab={activeTab}
+				visible={this.state.showTabs}
+				switchToTab={this.switchToTab}
+				newTab={this.newTab}
+				closeTab={this.closeTab}
+				closeTabsView={this.closeTabsView}
+				closeAllTabs={this.closeAllTabs}
+			/>
+		);
+	}
 
 	render() {
 		const { entryScriptWeb3, url } = this.state;
