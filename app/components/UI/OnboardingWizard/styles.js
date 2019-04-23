@@ -12,7 +12,8 @@ export default StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.white,
 		fontSize: 14,
-		textAlign: 'center'
+		textAlign: 'center',
+		marginTop: 10
 	},
 	contentContainer: {
 		marginVertical: 10

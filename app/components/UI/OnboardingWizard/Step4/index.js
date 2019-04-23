@@ -6,6 +6,7 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import { fontStyles } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	main: {
@@ -58,7 +59,11 @@ class Step4 extends Component {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step4.content')}</Text>
+			<Text style={onboardingStyles.content}>
+				<Text style={fontStyles.bold}>{strings('onboarding_wizard.step4.content1')} </Text>
+				{strings('onboarding_wizard.step4.content2')}
+			</Text>
+			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step4.content3')}</Text>
 		</View>
 	);
 

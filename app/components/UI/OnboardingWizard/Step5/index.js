@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
@@ -66,7 +66,10 @@ class Step5 extends Component {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step5.content')}</Text>
+			<Text style={onboardingStyles.content}>
+				{strings('onboarding_wizard.step5.content1')}
+				<Text style={fontStyles.bold}> {strings('onboarding_wizard.step5.content2')} </Text>
+			</Text>
 		</View>
 	);
 

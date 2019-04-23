@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Platform, Text, View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
-import { colors } from '../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import { renderAccountName } from '../../../../util/address';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
@@ -90,7 +90,11 @@ class Step3 extends Component {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step3.content')}</Text>
+			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step3.content1')}</Text>
+			<Text style={onboardingStyles.content}>
+				<Text style={fontStyles.bold}>{strings('onboarding_wizard.step3.content2')} </Text>
+				{strings('onboarding_wizard.step3.content3')}
+			</Text>
 		</View>
 	);
 
