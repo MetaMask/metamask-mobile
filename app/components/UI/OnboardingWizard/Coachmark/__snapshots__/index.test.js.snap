@@ -65,26 +65,7 @@ exports[`Coachmark should render correctly 1`] = `
         title
       </Text>
     </View>
-    <View
-      style={
-        Object {
-          "marginVertical": 10,
-        }
-      }
-    >
-      <Text
-        style={
-          Object {
-            "color": "#FFFFFF",
-            "fontFamily": "Roboto",
-            "fontSize": 14,
-            "fontWeight": "400",
-          }
-        }
-      >
-        content
-      </Text>
-    </View>
+    content
     <View
       style={
         Object {

@@ -35,14 +35,60 @@ exports[`Step3 should render correctly 1`] = `
         "left": 0,
         "position": "absolute",
         "right": 0,
-        "top": 200,
+        "top": 210,
       }
     }
   >
     <Coachmark
-      content="'Account 1' isn't that catchy. So why not name your account something a little more memorable.
-
-<b>Long tap</n> now to edit account name."
+      content={
+        <View
+          style={
+            Object {
+              "marginTop": 20,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#FFFFFF",
+                "fontFamily": "Roboto",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "center",
+              }
+            }
+          >
+            'Account 1' isn't that catchy. So why not name your account something a little more memorable.
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#FFFFFF",
+                "fontFamily": "Roboto",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "center",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "Roboto",
+                  "fontWeight": "600",
+                }
+              }
+            >
+              Long tap
+               
+            </Text>
+            now to edit account name.
+          </Text>
+        </View>
+      }
       currentStep={2}
       onBack={[Function]}
       onNext={[Function]}
