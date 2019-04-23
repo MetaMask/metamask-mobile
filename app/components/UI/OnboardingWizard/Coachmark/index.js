@@ -22,14 +22,6 @@ const styles = StyleSheet.create({
 		width: '100%',
 		marginTop: 10
 	},
-	content: {
-		...fontStyles.normal,
-		color: colors.white,
-		fontSize: 14
-	},
-	contentContainer: {
-		marginVertical: 10
-	},
 	title: {
 		...fontStyles.bold,
 		color: colors.white,
@@ -126,7 +118,7 @@ export default class Coachmark extends Component {
 		/**
 		 * Content text
 		 */
-		content: PropTypes.string,
+		content: PropTypes.object,
 		/**
 		 * Title text
 		 */
@@ -292,9 +284,7 @@ export default class Coachmark extends Component {
 					<View style={styles.titleContainer}>
 						<Text style={styles.title}>{title}</Text>
 					</View>
-					<View style={styles.contentContainer}>
-						<Text style={styles.content}>{content}</Text>
-					</View>
+					{content}
 					{action ? this.renderActionButtons() : this.renderProgressButtons()}
 				</View>
 				{bottomIndicatorPosition && (

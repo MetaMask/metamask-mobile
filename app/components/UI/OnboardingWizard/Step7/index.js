@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
+import onboardingStyles from './../styles';
 
 const styles = StyleSheet.create({
 	main: {
@@ -48,13 +49,22 @@ class Step7 extends Component {
 		onClose && onClose();
 	};
 
+	/**
+	 * Returns content for this step
+	 */
+	content = () => (
+		<View style={onboardingStyles.contentContainer}>
+			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step7.content')}</Text>
+		</View>
+	);
+
 	render() {
 		return (
 			<View style={styles.main}>
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
 						title={strings('onboarding_wizard.step7.title')}
-						content={strings('onboarding_wizard.step7.content')}
+						content={this.content()}
 						onNext={this.onClose}
 						onBack={this.onBack}
 						onClose={this.onClose}

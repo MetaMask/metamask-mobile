@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, StyleSheet } from 'react-native';
+import { Platform, Text, View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors } from '../../../../styles/common';
 import { renderAccountName } from '../../../../util/address';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
+import onboardingStyles from './../styles';
 
 const styles = StyleSheet.create({
 	main: {
@@ -84,6 +85,15 @@ class Step3 extends Component {
 		setOnboardingWizardStep && setOnboardingWizardStep(2);
 	};
 
+	/**
+	 * Returns content for this step
+	 */
+	content = () => (
+		<View style={onboardingStyles.contentContainer}>
+			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step3.content')}</Text>
+		</View>
+	);
+
 	render() {
 		const { selectedAddress, identities, accounts, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
@@ -97,7 +107,7 @@ class Step3 extends Component {
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
 						title={strings('onboarding_wizard.step3.title')}
-						content={strings('onboarding_wizard.step3.content')}
+						content={this.content()}
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}
