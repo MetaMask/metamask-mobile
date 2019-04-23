@@ -9,7 +9,7 @@ import SelectComponent from '../../UI/SelectComponent';
 import infuraCurrencies from '../../../util/infura-conversion.json';
 import { colors, fontStyles } from '../../../styles/common';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { setSearchEngine } from '../../../actions/settings';
+import { setSearchEngine, setPrimaryCurrency } from '../../../actions/settings';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
@@ -75,9 +75,17 @@ class Settings extends Component {
 		 */
 		setSearchEngine: PropTypes.func,
 		/**
+		 * Called to set the active search engine
+		 */
+		setPrimaryCurrency: PropTypes.func,
+		/**
 		 * Active search engine
 		 */
-		searchEngine: PropTypes.string
+		searchEngine: PropTypes.string,
+		/**
+		 * Active primary currency
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -103,6 +111,10 @@ class Settings extends Component {
 		this.props.setSearchEngine(searchEngine);
 	};
 
+	selectPrimaryCurrency = primaryCurrency => {
+		this.props.setPrimaryCurrency(primaryCurrency);
+	};
+
 	componentDidMount = () => {
 		const languages = getLanguages();
 		this.setState({ languages });
@@ -111,9 +123,13 @@ class Settings extends Component {
 			{ value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
 			{ value: 'Google', label: 'Google', key: 'Google' }
 		];
+		this.primaryCurrencyOptions = [
+			{ value: 'ETH', label: 'ETH', key: 'ETH' },
+			{ value: 'Fiat', label: 'Fiat', key: 'Fiat' }
+		];
 	};
 
-	render = () => {
+	render() {
 		const { currentCurrency } = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
@@ -158,19 +174,35 @@ class Settings extends Component {
 							)}
 						</View>
 					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.search_engine')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.engine_desc')}</Text>
+						<View style={styles.picker}>
+							{this.primaryCurrencyOptions && (
+								<SelectComponent
+									selectedValue={this.props.primaryCurrency}
+									onValueChange={this.selectPrimaryCurrency}
+									label={strings('app_settings.search_engine')}
+									options={this.primaryCurrencyOptions}
+								/>
+							)}
+						</View>
+					</View>
 				</View>
 			</ScrollView>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	searchEngine: state.settings.searchEngine
+	searchEngine: state.settings.searchEngine,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
-	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine))
+	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine)),
+	setPrimaryCurrency: primaryCurrency => dispatch(setPrimaryCurrency(primaryCurrency))
 });
 
 export default connect(
