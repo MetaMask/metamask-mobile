@@ -254,6 +254,22 @@ export function weiToFiat(wei, conversionRate, currencyCode) {
  *
  * @param {number} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {string} currencyCode - Current currency code to display
+ * @returns {string} - Currency-formatted string
+ */
+export function fiatToWei(wei, conversionRate, currencyCode) {
+	if (!wei || !isBN(wei)) {
+		return `0.00 ${currencyCode}`;
+	}
+	const value = weiToFiatNumber(wei, conversionRate);
+	return `${value} ${currencyCode}`;
+}
+
+/**
+ * Converts wei expressed as a BN instance into a human-readable fiat string
+ *
+ * @param {number} wei - BN corresponding to an amount of wei
+ * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
  */
@@ -263,6 +279,22 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 	let value = parseFloat(Math.round(eth * conversionRate * base) / base);
 	value = isNaN(value) ? 0.0 : value;
 	return value;
+}
+
+/**
+ * Converts wei expressed as a BN instance into a human-readable fiat string
+ *
+ * @param {number} wei - BN corresponding to an amount of wei
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {Number} decimalsToShow - Decimals to 5
+ * @returns {Number} - The converted balance
+ */
+export function fiatNumberToWei(fiat, conversionRate) {
+	const floatFiatConverted = parseFloat(fiat) / conversionRate;
+	const base = Math.pow(10, 18);
+	const weiNumber = floatFiatConverted * base;
+	const weiBN = numberToBN(weiNumber);
+	return weiBN;
 }
 
 /**

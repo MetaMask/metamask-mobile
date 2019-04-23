@@ -13,10 +13,12 @@ import {
 	toWei,
 	weiToFiat,
 	weiToFiatNumber,
+	fiatNumberToWei,
 	balanceToFiat,
 	balanceToFiatNumber,
 	renderFiat
 } from './number';
+import numberToBN from 'number-to-bn';
 
 describe('Number utils :: BNToHex', () => {
 	it('BNToHex', () => {
@@ -183,6 +185,18 @@ describe('Number utils :: weiToFiatNumber', () => {
 		expect(weiToFiatNumber(wei, 0.1234512345, 1)).toEqual(0.1);
 		expect(weiToFiatNumber(wei, 0.5, 2)).toEqual(0.5);
 		expect(weiToFiatNumber(wei, 0.111112, 3)).toEqual(0.111);
+	});
+});
+
+describe('Number utils :: fiatNumberToWei', () => {
+	it('fiatNumberToWei', () => {
+		const one = numberToBN(Math.pow(10, 18));
+		const ten = numberToBN(Math.pow(10, 19));
+		const decimal = numberToBN(Math.pow(10, 17));
+		expect(fiatNumberToWei('0.1234512345', 0.1234512345)).toEqual(one);
+		expect(fiatNumberToWei('0.5', 0.5)).toEqual(one);
+		expect(fiatNumberToWei('100', 10)).toEqual(ten);
+		expect(fiatNumberToWei('1', 10)).toEqual(decimal);
 	});
 });
 
