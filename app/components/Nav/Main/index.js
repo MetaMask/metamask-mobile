@@ -70,6 +70,14 @@ const MainNavigator = createStackNavigator(
 		Home: {
 			screen: createBottomTabNavigator(
 				{
+					BrowserTabHome: createStackNavigator({
+						BrowserView: {
+							screen: Browser,
+							navigationOptions: {
+								gesturesEnabled: false
+							}
+						}
+					}),
 					WalletTabHome: createStackNavigator({
 						WalletView: {
 							screen: Wallet
@@ -88,14 +96,6 @@ const MainNavigator = createStackNavigator(
 						},
 						RevealPrivateCredentialView: {
 							screen: RevealPrivateCredential
-						}
-					}),
-					BrowserTabHome: createStackNavigator({
-						BrowserView: {
-							screen: Browser,
-							navigationOptions: {
-								gesturesEnabled: false
-							}
 						}
 					}),
 					TransactionsHome: createStackNavigator({
@@ -258,7 +258,8 @@ class Main extends Component {
 	};
 
 	state = {
-		forceReload: false
+		forceReload: false,
+		mounted: false
 	};
 
 	backgroundMode = false;
@@ -275,6 +276,16 @@ class Main extends Component {
 	};
 
 	componentDidMount = async () => {
+		// Get onboarding wizard state
+		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const { setOnboardingWizardStep, navigation } = this.props;
+		if (!onboardingWizard) {
+			navigation && navigation.navigate('WalletView');
+			setOnboardingWizardStep && setOnboardingWizardStep(1);
+			await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
+		}
+		this.setState({ mounted: true });
+
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -302,14 +313,6 @@ class Main extends Component {
 				}
 			}
 		});
-
-		// Get onboarding wizard information
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
-		const { setOnboardingWizardStep } = this.props;
-		if (!onboardingWizard) {
-			setOnboardingWizardStep && setOnboardingWizardStep(1);
-			await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'something');
-		}
 	};
 
 	handleAppStateChange = appState => {
@@ -372,14 +375,20 @@ class Main extends Component {
 	};
 
 	render() {
-		const { forceReload } = this.state;
+		const { forceReload, mounted } = this.state;
 		return (
-			<View style={styles.flex}>
-				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-				{this.renderOnboardingWizard()}
-				<GlobalAlert />
-				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
-			</View>
+			mounted && (
+				<View style={styles.flex}>
+					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+					{this.renderOnboardingWizard()}
+					<GlobalAlert />
+					<FlashMessage
+						position="bottom"
+						MessageComponent={TransactionNotification}
+						animationDuration={150}
+					/>
+				</View>
+			)
 		);
 	}
 }
