@@ -191,11 +191,9 @@ export default class Coachmark extends Component {
 					Back
 				</StyledButton>
 				<View style={styles.progessContainer}>
-					<View style={[styles.circle, currentStep === 1 ? styles.solidCircle : {}]} />
-					<View style={[styles.circle, currentStep === 2 ? styles.solidCircle : {}]} />
-					<View style={[styles.circle, currentStep === 3 ? styles.solidCircle : {}]} />
-					<View style={[styles.circle, currentStep === 4 ? styles.solidCircle : {}]} />
-					<View style={[styles.circle, currentStep === 5 ? styles.solidCircle : {}]} />
+					{[1, 2, 3, 4, 5].map(i => (
+						<View key={i} style={[styles.circle, currentStep === i ? styles.solidCircle : {}]} />
+					))}
 				</View>
 
 				<StyledButton
