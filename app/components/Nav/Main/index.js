@@ -46,6 +46,8 @@ import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import OnboardingWizard from '../../UI/OnboardingWizard';
+import AsyncStorage from '@react-native-community/async-storage';
+import setOnboardingWizardStep from '../../../actions/wizard';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -245,7 +247,14 @@ class Main extends Component {
 		 * Time to auto-lock the app after it goes in background mode
 		 */
 		lockTime: PropTypes.number,
-		wizardStep: PropTypes.number
+		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number,
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -265,7 +274,7 @@ class Main extends Component {
 		}
 	};
 
-	componentDidMount() {
+	componentDidMount = async () => {
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -293,7 +302,15 @@ class Main extends Component {
 				}
 			}
 		});
-	}
+
+		// Get onboarding wizard information
+		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const { setOnboardingWizardStep } = this.props;
+		if (!onboardingWizard) {
+			setOnboardingWizardStep && setOnboardingWizardStep(1);
+			await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'something');
+		}
+	};
 
 	handleAppStateChange = appState => {
 		const newModeIsBackground = appState === 'background';
@@ -367,9 +384,16 @@ class Main extends Component {
 	}
 }
 
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	wizardStep: state.wizard.step
 });
 
-export default connect(mapStateToProps)(Main);
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Main);
