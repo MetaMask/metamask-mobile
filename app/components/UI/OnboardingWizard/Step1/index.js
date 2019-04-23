@@ -57,8 +57,12 @@ class Step1 extends Component {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step1.content1')}</Text>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step1.content2')}</Text>
+			<Text style={[onboardingStyles.content, onboardingStyles.leftContent]}>
+				{strings('onboarding_wizard.step1.content1')}
+			</Text>
+			<Text style={[onboardingStyles.content, onboardingStyles.leftContent]}>
+				{strings('onboarding_wizard.step1.content2')}
+			</Text>
 		</View>
 	);
 

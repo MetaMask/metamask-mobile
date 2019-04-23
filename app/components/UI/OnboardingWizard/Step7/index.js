@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: 160,
+		top: 140,
 		marginHorizontal: 45
 	}
 });

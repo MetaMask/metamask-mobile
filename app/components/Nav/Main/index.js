@@ -306,6 +306,7 @@ class Main extends Component {
 		// Get onboarding wizard information
 		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 		const { setOnboardingWizardStep } = this.props;
+		setOnboardingWizardStep && setOnboardingWizardStep(1);
 		if (!onboardingWizard) {
 			setOnboardingWizardStep && setOnboardingWizardStep(1);
 			await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'something');

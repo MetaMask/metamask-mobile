@@ -13,9 +13,12 @@ export default StyleSheet.create({
 		color: colors.white,
 		fontSize: 14,
 		textAlign: 'center',
-		marginTop: 10
+		marginBottom: 20
+	},
+	leftContent: {
+		textAlign: 'left'
 	},
 	contentContainer: {
-		marginVertical: 10
+		marginTop: 20
 	}
 });
