@@ -14,7 +14,8 @@ import {
 	Linking,
 	Keyboard,
 	BackHandler,
-	ScrollView
+	ScrollView,
+	Image
 } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -53,7 +54,7 @@ import {
 	closeAllTabs,
 	setActiveTab,
 	closeTab,
-	updateTabUrl
+	updateTab
 } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
 import { hexToBN, fromWei } from '../../../util/number';
@@ -63,10 +64,14 @@ import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
+import { captureScreen } from 'react-native-view-shot';
+import WebsiteIcon from '../../UI/WebsiteIcon';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
 const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
+const HOME_SNAPSHOT = require('../../../images/home.jpeg'); // eslint-disable-line import/no-commonjs
+const METAMASK_FOX = require('../../../images/fox.png'); // eslint-disable-line
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -313,22 +318,51 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		padding: 15
 	},
+	tabFavicon: {
+		alignSelf: 'flex-start',
+		width: 12,
+		height: 12,
+		marginRight: 5
+	},
+	tabSiteName: {
+		color: colors.fontPrimary,
+		...fontStyles.normal,
+		fontSize: 10,
+		marginRight: 25
+	},
+	tabHeader: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'flex-start',
+		backgroundColor: colors.grey000,
+		paddingVertical: 5,
+		paddingHorizontal: 8,
+		minHeight: 25
+	},
+	tabWrapper: {
+		marginBottom: 20,
+		borderRadius: 10,
+		overflow: 'hidden',
+		borderColor: colors.grey100,
+		borderWidth: 1,
+		height: Dimensions.get('window').width / 2 + 20,
+		width: Dimensions.get('window').width / 2 - 30
+	},
 	tab: {
 		backgroundColor: colors.white,
-		borderRadius: 10,
-		margin: 10,
-		width: Dimensions.get('window').width / 2 - 40,
-		height: Dimensions.get('window').width / 2,
+		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderColor: colors.grey100,
-		borderWidth: 1
+		overflow: 'hidden'
+	},
+	tabImage: {
+		marginTop: 72,
+		width: Dimensions.get('window').width / 2 - 40,
+		height: Dimensions.get('window').width / 0.2
 	},
 	activeTab: {
-		shadowColor: colors.blue,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3
+		borderWidth: 3,
+		borderColor: colors.blue
 	},
 	newTabIcon: {
 		marginTop: 3,
@@ -364,8 +398,8 @@ const styles = StyleSheet.create({
 		fontSize: 14
 	},
 	closeTabIcon: {
-		top: 0,
-		right: 10,
+		top: -1,
+		right: 8,
 		position: 'absolute'
 	}
 });
@@ -473,7 +507,7 @@ export class Browser extends Component {
 		/**
 		 * Function to set the update the url of a tab
 		 */
-		updateTabUrl: PropTypes.func,
+		updateTab: PropTypes.func,
 		/**
 		 * Array of tabs
 		 */
@@ -525,6 +559,7 @@ export class Browser extends Component {
 	webview = React.createRef();
 	inputRef = React.createRef();
 	timeoutHandler = null;
+	snapshotTimer = null;
 	prevScrollOffset = 0;
 	goingBack = false;
 	forwardHistoryStack = [];
@@ -858,6 +893,37 @@ export class Browser extends Component {
 		}, 500);
 	};
 
+	updateTabInfo(url) {
+		if (this.state.showTabs) return false;
+
+		const { activeTab, updateTab } = this.props;
+		if (url !== HOMEPAGE_URL) {
+			if (this.snapshotTimer) {
+				clearTimeout(this.snapshotTimer);
+			}
+			this.snapshotTimer = setTimeout(() => {
+				captureScreen({
+					format: 'jpg',
+					quality: 0.8
+				}).then(
+					uri => {
+						updateTab(activeTab, {
+							url,
+							image: uri
+						});
+					},
+					error => {
+						Logger.error(`Error saving tab ${url}`, error);
+					}
+				);
+			}, 1000);
+		} else {
+			updateTab(activeTab, {
+				url
+			});
+		}
+	}
+
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//) || url === HOMEPAGE_URL;
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
@@ -898,7 +964,7 @@ export class Browser extends Component {
 				ipfsHash,
 				hostname: this.formatHostname(hostname)
 			});
-			this.props.updateTabUrl(this.props.activeTab, sanitizedURL);
+			this.updateTabInfo(sanitizedURL);
 
 			this.timeoutHandler && clearTimeout(this.timeoutHandler);
 			if (urlToGo !== HOMEPAGE_URL) {
@@ -1165,7 +1231,7 @@ export class Browser extends Component {
 					const { url, title } = data.payload;
 					this.setState({ inputValue: url, currentPageTitle: title, forwardEnabled: false });
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
-					this.props.updateTabUrl(this.props.activeTab, data.payload.url);
+					this.updateTabInfo(data.payload.url);
 					if (Platform.OS === 'ios') {
 						setTimeout(() => {
 							this.resetBottomBarPosition();
@@ -1241,7 +1307,7 @@ export class Browser extends Component {
 		) {
 			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
 		}
-		this.props.updateTabUrl(this.props.activeTab, inputValue);
+		this.updateTabInfo(inputValue);
 		this.setState({ fullHostname, inputValue, hostname });
 	};
 
@@ -1545,7 +1611,7 @@ export class Browser extends Component {
 	onAutocomplete = link => {
 		this.setState({ inputValue: link }, () => {
 			this.onUrlInputSubmit(link);
-			this.props.updateTabUrl(this.props.activeTab, link);
+			this.updateTabInfo(link);
 		});
 	};
 
@@ -1843,12 +1909,13 @@ export class Browser extends Component {
 	closeTabsView = () => {
 		if (this.props.tabs.length) {
 			this.setState({ showTabs: false });
+			this.updateTabInfo(this.state.inputValue);
 		}
 	};
 
 	switchToTab(tab) {
 		this.props.setActiveTab(tab.id);
-		this.setState({ showTabs: false }, () => {
+		this.setState({ showTabs: false, loading: true }, () => {
 			this.go(tab.url);
 		});
 	}
@@ -1873,21 +1940,37 @@ export class Browser extends Component {
 
 		return tabs.map((tab, i) => (
 			// eslint-disable-next-line react/jsx-key
-			<TouchableOpacity
-				key={`tab_${i}`}
-				style={[styles.tab, activeTab === tab.id ? styles.activeTab : null]}
-				// eslint-disable-next-line react/jsx-no-bind
-				onPress={() => this.switchToTab(tab)}
-			>
-				<IonIcon
-					name="ios-close"
-					size={32}
-					style={styles.closeTabIcon}
+			<View style={[styles.tabWrapper, activeTab === tab.id ? styles.activeTab : null]} key={`tab_${i}`}>
+				<View style={styles.tabHeader}>
+					{tab.url !== HOMEPAGE_URL ? (
+						<WebsiteIcon style={styles.tabFavicon} title={tab.url} url={tab.url} />
+					) : (
+						<Image style={styles.tabFavicon} title={tab.url} source={METAMASK_FOX} />
+					)}
+					<Text style={styles.tabSiteName} numberOfLines={1}>
+						{tab.url === HOMEPAGE_URL ? strings('browser.new_tab') : tab.url}
+					</Text>
+					<IonIcon
+						name="ios-close"
+						size={24}
+						style={styles.closeTabIcon}
+						// eslint-disable-next-line react/jsx-no-bind
+						onPress={() => this.closeTab(tab)}
+					/>
+				</View>
+				<TouchableOpacity
+					style={styles.tab}
 					// eslint-disable-next-line react/jsx-no-bind
-					onPress={() => this.closeTab(tab)}
-				/>
-				<Text>{this.renderTabUrl(tab)}</Text>
-			</TouchableOpacity>
+					onPress={() => this.switchToTab(tab)}
+				>
+					{/* <Text>{this.renderTabUrl(tab)}</Text> */}
+					{tab.url !== HOMEPAGE_URL ? (
+						<Image resizeMode={'contain'} source={{ uri: tab.image }} style={styles.tabImage} />
+					) : (
+						<Image resizeMode={'contain'} source={HOME_SNAPSHOT} style={styles.tabImage} />
+					)}
+				</TouchableOpacity>
+			</View>
 		));
 	}
 
@@ -1990,7 +2073,7 @@ const mapDispatchToProps = dispatch => ({
 	closeAllTabs: () => dispatch(closeAllTabs()),
 	closeTab: id => dispatch(closeTab(id)),
 	setActiveTab: id => dispatch(setActiveTab(id)),
-	updateTabUrl: (id, url) => dispatch(updateTabUrl(id, url)),
+	updateTab: (id, url) => dispatch(updateTab(id, url)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
 	setTransactionObject: asset => dispatch(setTransactionObject(asset))

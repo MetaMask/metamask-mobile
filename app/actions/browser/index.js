@@ -86,10 +86,10 @@ export function setActiveTab(id) {
  * @param {number} id - The Tab ID
  * @param {string} url - The website's url
  */
-export function updateTabUrl(id, url) {
+export function updateTab(id, data) {
 	return {
-		type: 'UPDATE_TAB_URL',
+		type: 'UPDATE_TAB',
 		id,
-		url
+		data
 	};
 }

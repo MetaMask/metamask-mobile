@@ -48,12 +48,12 @@ const browserReducer = (state = initialState, action) => {
 				...state,
 				activeTab: action.id
 			};
-		case 'UPDATE_TAB_URL':
+		case 'UPDATE_TAB':
 			return {
 				...state,
 				tabs: state.tabs.map(tab => {
 					if (tab.id === action.id) {
-						return { ...tab, url: action.url };
+						return { ...tab, ...action.data };
 					}
 					return tab;
 				})
