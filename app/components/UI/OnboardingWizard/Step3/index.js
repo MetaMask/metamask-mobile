@@ -47,6 +47,9 @@ class Step3 extends Component {
 		 * Currency code of the currently-active currency
 		 */
 		currentCurrency: PropTypes.string,
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
 		setOnboardingWizardStep: PropTypes.func
 	};
 
@@ -55,17 +58,26 @@ class Step3 extends Component {
 		accountLabelEditable: false
 	};
 
+	/**
+	 * Sets corresponding account label
+	 */
 	componentDidMount = () => {
 		const { identities, selectedAddress } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 */
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(4);
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with back step
+	 */
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(2);

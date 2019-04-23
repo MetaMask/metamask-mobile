@@ -24,19 +24,27 @@ const styles = StyleSheet.create({
 
 class Step1 extends Component {
 	static propTypes = {
+		/**
+		 * Callback called when closing step
+		 */
 		onClose: PropTypes.func,
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
 		setOnboardingWizardStep: PropTypes.func
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 */
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(2);
 	};
 
-	onBack = () => {
-		this.onClose();
-	};
-
+	/**
+	 * Calls props 'onClose'
+	 */
 	onClose = () => {
 		const { onClose } = this.props;
 		onClose && onClose();
@@ -52,7 +60,7 @@ class Step1 extends Component {
 							'To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH). \n\n To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH)'
 						}
 						onNext={this.onNext}
-						onBack={this.onBack}
+						onBack={this.onClose}
 						coachmarkStyle={styles.coachmark}
 						action
 					/>

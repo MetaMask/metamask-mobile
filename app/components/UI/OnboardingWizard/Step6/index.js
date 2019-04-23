@@ -21,8 +21,14 @@ const styles = StyleSheet.create({
 
 class Step6 extends Component {
 	static propTypes = {
-		setOnboardingWizardStep: PropTypes.func,
-		navigation: PropTypes.object
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -33,11 +39,18 @@ class Step6 extends Component {
 		this.setState({ ready: true });
 	}
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 * Closing drawer and navigating to 'WalletView'
+	 */
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(7);
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with back step, opening drawer
+	 */
 	onBack = () => {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		navigation && navigation.openDrawer();

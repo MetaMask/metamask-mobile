@@ -27,10 +27,20 @@ const styles = StyleSheet.create({
 
 class Step5 extends Component {
 	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
 		navigation: PropTypes.object,
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
 		setOnboardingWizardStep: PropTypes.func
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 * Closing drawer and navigating to 'BrowserView'
+	 */
 	onNext = () => {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(6);
@@ -38,6 +48,10 @@ class Step5 extends Component {
 		navigation && navigation.navigate('BrowserView');
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 * Closing drawer and navigating to 'WalletView'
+	 */
 	onBack = () => {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(4);

@@ -24,16 +24,28 @@ const styles = StyleSheet.create({
 
 class Step4 extends Component {
 	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
 		navigation: PropTypes.object,
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
 		setOnboardingWizardStep: PropTypes.func
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 */
 	onNext = () => {
 		const { navigation, setOnboardingWizardStep } = this.props;
 		navigation && navigation.openDrawer();
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with back step
+	 */
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(3);

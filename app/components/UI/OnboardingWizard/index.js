@@ -39,11 +39,23 @@ const styles = StyleSheet.create({
 
 class OnboardingWizard extends Component {
 	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
 		navigation: PropTypes.object,
+		/**
+		 * Wizard state
+		 */
 		wizard: PropTypes.object,
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
 		setOnboardingWizardStep: PropTypes.func
 	};
 
+	/**
+	 * Close onboarding wizard setting step to 0 and closing drawer
+	 */
 	closeOnboardingWizard = () => {
 		const { setOnboardingWizardStep, navigation } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(0);

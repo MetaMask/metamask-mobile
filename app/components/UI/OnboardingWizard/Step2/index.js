@@ -23,14 +23,23 @@ const styles = StyleSheet.create({
 
 class Step2 extends Component {
 	static propTypes = {
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
 		setOnboardingWizardStep: PropTypes.func
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 */
 	onNext = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(3);
 	};
 
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with back step
+	 */
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(1);

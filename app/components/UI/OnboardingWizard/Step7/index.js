@@ -21,19 +21,27 @@ const styles = StyleSheet.create({
 
 class Step7 extends Component {
 	static propTypes = {
+		/**
+		 * Dispatch set onboarding wizard step
+		 */
 		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Callback to call when closing
+		 */
 		onClose: PropTypes.func
 	};
 
-	onNext = () => {
-		this.onClose();
-	};
-
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with back step
+	 */
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(6);
 	};
 
+	/**
+	 * Calls props onClose
+	 */
 	onClose = () => {
 		const { onClose } = this.props;
 		onClose && onClose();
@@ -46,7 +54,7 @@ class Step7 extends Component {
 					<Coachmark
 						title={'Featured Dapps'}
 						content={'Start exploring featured blockchain applications (DAPPS).'}
-						onNext={this.onNext}
+						onNext={this.onClose}
 						onBack={this.onBack}
 						onClose={this.onClose}
 						currentStep={5}

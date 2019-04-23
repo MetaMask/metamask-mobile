@@ -114,16 +114,46 @@ const styles = StyleSheet.create({
 
 export default class Coachmark extends Component {
 	static propTypes = {
-		content: PropTypes.string,
-		onNext: PropTypes.func,
-		onBack: PropTypes.func,
-		title: PropTypes.string,
-		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft', 'topLeftCorner']),
-		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft']),
-		style: PropTypes.object,
+		/**
+		 * Custom coachmark style to apply
+		 */
 		coachmarkStyle: PropTypes.object,
+		/**
+		 * Custom animated view style to apply
+		 */
+		style: PropTypes.object,
+		/**
+		 * Content text
+		 */
+		content: PropTypes.string,
+		/**
+		 * Title text
+		 */
+		title: PropTypes.string,
+		/**
+		 * Current onboarding wizard step
+		 */
+		currentStep: PropTypes.number,
+		/**
+		 * Callback to be called when next is pressed
+		 */
+		onNext: PropTypes.func,
+		/**
+		 * Callback to be called when back is pressed
+		 */
+		onBack: PropTypes.func,
+		/**
+		 * Whether action buttons have to be rendered
+		 */
 		action: PropTypes.bool,
-		currentStep: PropTypes.number
+		/**
+		 * Top indicator position
+		 */
+		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft', 'topLeftCorner']),
+		/**
+		 * Bottom indicator position
+		 */
+		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft'])
 	};
 
 	state = {
@@ -150,16 +180,28 @@ export default class Coachmark extends Component {
 		}).start();
 	};
 
+	/**
+	 * Calls props onNext
+	 */
 	onNext = () => {
 		const { onNext } = this.props;
 		onNext && onNext();
 	};
 
+	/**
+	 * Calls props onBack
+	 */
 	onBack = () => {
 		const { onBack } = this.props;
 		onBack && onBack();
 	};
 
+	/**
+	 * Gets top indicator style according to 'topIndicatorPosition'
+	 *
+	 * @param {string} topIndicatorPosition - Indicator position
+	 * @returns {Object} - Corresponding style object
+	 */
 	getIndicatorStyle = topIndicatorPosition => {
 		const positions = {
 			topCenter: styles.topCenter,
@@ -170,6 +212,12 @@ export default class Coachmark extends Component {
 		return positions[topIndicatorPosition];
 	};
 
+	/**
+	 * Gets top indicator style according to 'bottomIndicatorPosition'
+	 *
+	 * @param {string} bottomIndicatorPosition - Indicator position
+	 * @returns {Object} - Corresponding style object
+	 */
 	getBotttomIndicatorStyle = bottomIndicatorPosition => {
 		const positions = {
 			bottomCenter: styles.bottomCenter,
@@ -179,6 +227,11 @@ export default class Coachmark extends Component {
 		return positions[bottomIndicatorPosition];
 	};
 
+	/**
+	 * Returns progression bar, back and next buttons. According to currentStep
+	 *
+	 * @returns {Object} - Corresponding view object
+	 */
 	renderProgressButtons = () => {
 		const { currentStep } = this.props;
 		return (
@@ -207,6 +260,11 @@ export default class Coachmark extends Component {
 		);
 	};
 
+	/**
+	 * Returns horizontal action buttons
+	 *
+	 * @returns {Object} - Corresponding view object
+	 */
 	renderActionButtons = () => (
 		<View style={styles.actions}>
 			<StyledButton containerStyle={styles.actionButton} type={'transparent'} onPress={this.onBack}>
