@@ -722,16 +722,24 @@ class DrawerView extends Component {
 		return route.routeName;
 	}
 
-	render() {
+	/**
+	 * Return step 5 of onboarding wizard if that is the current step
+	 */
+	renderOnboardingWizard = () => {
 		const {
-			network,
-			accounts,
-			identities,
-			selectedAddress,
-			keyrings,
-			currentCurrency,
 			wizard: { step }
 		} = this.props;
+		return (
+			step === 5 && (
+				<View style={styles.onboardingContainer}>
+					<OnboardingWizard navigation={this.props.navigation} />
+				</View>
+			)
+		);
+	};
+
+	render() {
+		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -884,11 +892,7 @@ class DrawerView extends Component {
 						onImportAccount={this.onImportAccount}
 					/>
 				</Modal>
-				{step === 5 && (
-					<View style={styles.onboardingContainer}>
-						<OnboardingWizard navigation={this.props.navigation} />
-					</View>
-				)}
+				{this.renderOnboardingWizard()}
 				<ActionModal
 					modalVisible={this.state.submitFeedback}
 					confirmText={strings('drawer.submit_bug')}

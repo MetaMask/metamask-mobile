@@ -346,13 +346,20 @@ class Main extends Component {
 		this.lockManager.stopListening();
 	}
 
+	/**
+	 * Return current step of onboarding wizard if not step 5 nor 0
+	 */
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		return wizardStep !== 5 && wizardStep !== 0 && <OnboardingWizard navigation={this.props.navigation} />;
+	};
+
 	render() {
 		const { forceReload } = this.state;
-		const { wizardStep } = this.props;
 		return (
 			<View style={styles.flex}>
 				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-				{wizardStep !== 5 && wizardStep !== 0 && <OnboardingWizard navigation={this.props.navigation} />}
+				{this.renderOnboardingWizard()}
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 			</View>
