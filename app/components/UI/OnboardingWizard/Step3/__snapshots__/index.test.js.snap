@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Step3 should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#FFFFFF",
+        "marginTop": 88,
+      }
+    }
+  >
+    <Connect(AccountOverview)
+      account={
+        Object {
+          "address": "0xe7E125654064EEa56229f273dA586F10DF96B0a1",
+          "balance": 0,
+          "name": "account 1",
+        }
+      }
+      onboardingWizard={true}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 200,
+      }
+    }
+  >
+    <Coachmark
+      content="'Account 1' isn't that catchy. So why not name your account something a little more memorable.
+
+<b>Long tap</n> now to edit account name."
+      currentStep={2}
+      onBack={[Function]}
+      onNext={[Function]}
+      style={
+        Object {
+          "marginHorizontal": 45,
+        }
+      }
+      title="Edit Account Name"
+      topIndicatorPosition="topCenter"
+    />
+  </View>
+</View>
+`;
