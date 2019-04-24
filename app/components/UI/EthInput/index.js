@@ -13,7 +13,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	toWei,
 	fiatNumberToWei,
-	isDecimal
+	isDecimal,
+	weiToFiatNumber
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -189,8 +190,26 @@ class EthInput extends Component {
 
 	componentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
+		const {
+			transaction: { selectedAsset, assetType },
+			conversionRate,
+			primaryCurrency,
+			contractExchangeRates
+		} = this.props;
+		let processedAmount;
+		// TODO update doc
 		if (fillMax) {
-			this.setState({ readableValue });
+			const exchangeRate = selectedAsset && contractExchangeRates[selectedAsset.address];
+			if (assetType !== 'ETH' && primaryCurrency === 'Fiat' && exchangeRate && exchangeRate !== 0) {
+				processedAmount = balanceToFiat(readableValue, conversionRate, exchangeRate, '');
+			} else if (assetType !== 'ETH') {
+				processedAmount = readableValue;
+			} else if (primaryCurrency === 'ETH') {
+				processedAmount = readableValue;
+			} else {
+				processedAmount = weiToFiatNumber(toWei(readableValue), conversionRate).toString();
+			}
+			this.setState({ readableValue: processedAmount });
 		}
 		this.props.updateFillMax(false);
 	};
@@ -352,6 +371,7 @@ class EthInput extends Component {
 			contractExchangeRates
 		} = this.props;
 		let processedAmount;
+		// TODO update doc
 		const exchangeRate = selectedAsset && contractExchangeRates[selectedAsset.address];
 		if (assetType !== 'ETH' && primaryCurrency === 'Fiat' && exchangeRate && exchangeRate !== 0) {
 			processedAmount = isDecimal(value)
