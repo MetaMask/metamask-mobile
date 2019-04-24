@@ -223,7 +223,7 @@ describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
 		);
 		i = 3;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('205761296296296300')
+			numberToBN('205761296296296000')
 		);
 		i = 4;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(

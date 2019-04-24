@@ -139,7 +139,7 @@ export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate,
 	const base = Math.pow(10, decimals);
 	let weiNumber = floatFiatConverted * base;
 	// avoid decimals
-	weiNumber = weiNumber.toString().split('.');
+	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false }).split('.');
 	const weiBN = numberToBN(weiNumber[0]);
 	return weiBN;
 }

@@ -315,62 +315,68 @@ class EthInput extends Component {
 		this.setState({ readableValue: value });
 	};
 
+	renderTokenInput = (image, currency, convertedAmount) => {
+		const { readonly } = this.props;
+		const { readableValue } = this.state;
+		return (
+			<View style={styles.container}>
+				<View style={styles.icon}>{image}</View>
+				<View style={styles.ethContainer}>
+					<View style={styles.split}>
+						<TextInput
+							autoCapitalize="none"
+							autoCorrect={false}
+							editable={!readonly}
+							keyboardType="numeric"
+							numberOfLines={1}
+							onChangeText={this.onChange}
+							placeholder={'0.00'}
+							spellCheck={false}
+							style={styles.input}
+							value={readableValue}
+						/>
+						<Text style={styles.eth} numberOfLines={1}>
+							{currency}
+						</Text>
+					</View>
+					<Text style={styles.fiatValue} numberOfLines={1}>
+						{convertedAmount}
+					</Text>
+				</View>
+			</View>
+		);
+	};
+
 	renderInput = () => {
 		const {
 			currentCurrency,
-			readonly,
 			contractExchangeRates,
 			conversionRate,
 			transaction: { assetType, selectedAsset, value },
 			primaryCurrency
 		} = this.props;
-		const { readableValue } = this.state;
 		const inputs = {
 			ETH: () => {
 				const convertedAmount =
 					primaryCurrency === 'ETH'
 						? weiToFiat(value, conversionRate, currentCurrency)
 						: renderFromWei(value) + ' ' + strings('unit.eth');
+
 				const currency = primaryCurrency === 'ETH' ? strings('unit.eth') : currentCurrency.toUpperCase();
-				return (
-					<View style={styles.container}>
-						<View style={styles.icon}>
-							<Image source={ethLogo} style={styles.logo} />
-						</View>
-						<View style={styles.ethContainer}>
-							<View style={styles.split}>
-								<TextInput
-									autoCapitalize="none"
-									autoCorrect={false}
-									editable={!readonly}
-									keyboardType="numeric"
-									numberOfLines={1}
-									onChangeText={this.onChange}
-									placeholder={'0.00'}
-									spellCheck={false}
-									style={styles.input}
-									value={readableValue}
-								/>
-								<Text style={styles.eth} numberOfLines={1}>
-									{currency}
-								</Text>
-							</View>
-							<Text style={styles.fiatValue} numberOfLines={1}>
-								{convertedAmount}
-							</Text>
-						</View>
-					</View>
-				);
+				const image = <Image source={ethLogo} style={styles.logo} />;
+
+				return this.renderTokenInput(image, currency, convertedAmount);
 			},
 			ERC20: () => {
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				let convertedAmount;
 				if (exchangeRate) {
-					const from = fromTokenMinimalUnit(value, selectedAsset.decimals);
+					const from = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
+					const from2 = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
 					convertedAmount =
 						primaryCurrency === 'ETH'
 							? balanceToFiat(from, conversionRate, exchangeRate, currentCurrency)
-							: renderFromTokenMinimalUnit(value, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
+							: from2 + ' ' + selectedAsset.symbol;
 				} else {
 					convertedAmount = strings('transaction.conversion_not_available');
 				}
@@ -378,36 +384,8 @@ class EthInput extends Component {
 					primaryCurrency !== 'ETH' && exchangeRate && exchangeRate !== 0
 						? currentCurrency.toUpperCase()
 						: selectedAsset.symbol;
-
-				return (
-					<View style={styles.container}>
-						<View style={styles.icon}>
-							<TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />
-						</View>
-						<View style={styles.ethContainer}>
-							<View style={styles.split}>
-								<TextInput
-									autoCapitalize="none"
-									autoCorrect={false}
-									editable={!readonly}
-									keyboardType="numeric"
-									numberOfLines={1}
-									onChangeText={this.onChange}
-									placeholder={'0.00'}
-									spellCheck={false}
-									style={styles.input}
-									value={readableValue}
-								/>
-								<Text style={styles.eth} numberOfLines={1}>
-									{currency}
-								</Text>
-							</View>
-							<Text style={styles.fiatValue} numberOfLines={1}>
-								{convertedAmount}
-							</Text>
-						</View>
-					</View>
-				);
+				const image = <TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />;
+				return this.renderTokenInput(image, currency, convertedAmount);
 			},
 			ERC721: () => (
 				<View style={styles.container}>
