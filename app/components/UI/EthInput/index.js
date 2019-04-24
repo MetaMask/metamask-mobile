@@ -187,6 +187,9 @@ class EthInput extends Component {
 		this.props.updateFillMax(false);
 	};
 
+	/**
+	 * Depending on transaction type, fill 'readableValue' and 'assets' to be rendered in dorpdown asset selector
+	 */
 	componentDidMount = () => {
 		const { transaction, collectibles } = this.props;
 		switch (transaction.type) {
@@ -238,11 +241,19 @@ class EthInput extends Component {
 		}
 	};
 
+	/**
+	 * Callback to openEthInput from props
+	 */
 	onFocus = () => {
 		const { isOpen, openEthInput } = this.props;
 		openEthInput && openEthInput(!isOpen);
 	};
 
+	/**
+	 * Selects new asset from assets dropdown selector
+	 *
+	 * @param {object} asset - Asset to be selected
+	 */
 	selectAsset = async asset => {
 		Keyboard.dismiss();
 		const { handleUpdateAsset, onChange, openEthInput } = this.props;
@@ -252,6 +263,13 @@ class EthInput extends Component {
 		this.setState({ readableValue: undefined });
 	};
 
+	/**
+	 * Depending on 'assetType' return element to be rendered in assets dropdown
+	 *
+	 * @param {object} asset - Asset to be rendered (ETH, ERC20 or ERC721)
+	 * @param {func} onPress - Callback called when object is pressed
+	 * @returns {object} - 'SelectableAsset' object with corresponding asset information
+	 */
 	renderAsset = (asset, onPress) => {
 		const { assetType } = this.props.transaction;
 		let title, subTitle, icon;
@@ -278,6 +296,11 @@ class EthInput extends Component {
 		return <SelectableAsset onPress={onPress} title={title} subTitle={subTitle} icon={icon} asset={asset} />;
 	};
 
+	/**
+	 * Render assets list in a dropdown
+	 *
+	 * @returns {object} - Assets dropdown object in an elevated view
+	 */
 	renderAssetsList = () => {
 		const { assets } = this.state;
 		const {
@@ -309,12 +332,23 @@ class EthInput extends Component {
 		);
 	};
 
+	/**
+	 * On value change, callback to props 'onChange' and update 'readableValue'
+	 */
 	onChange = value => {
 		const { onChange } = this.props;
 		onChange && onChange(value);
 		this.setState({ readableValue: value });
 	};
 
+	/**
+	 * Returns object to be rendered as input field. Only for ETH and ERC20 tokens
+	 *
+	 * @param {object} image - Image object of the asset
+	 * @param {tsring} currency - String containing currency code
+	 * @param {string} conversionRate - String containing amount depending on primary currency
+	 * @returns {object} - View object to render as input field
+	 */
 	renderTokenInput = (image, currency, convertedAmount) => {
 		const { readonly } = this.props;
 		const { readableValue } = this.state;
@@ -347,6 +381,11 @@ class EthInput extends Component {
 		);
 	};
 
+	/**
+	 * Returns object to render input, depending on 'assetType'
+	 *
+	 * @returns {object} - View object to render as input field
+	 */
 	renderInput = () => {
 		const {
 			currentCurrency,
