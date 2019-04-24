@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import Tab from './Tab';
+import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 10
 	},
 	tabs: {
-		height: Dimensions.get('window').height - 100
+		flex: 1
 	},
 	tabsContent: {
 		flex: 1,
@@ -136,7 +136,7 @@ export default class Tabs extends Component {
 
 		return tabs.map(tab => (
 			// eslint-disable-next-line react/jsx-key
-			<Tab
+			<TabThumbnail
 				key={tab.id}
 				tab={tab}
 				isActiveTab={activeTab === tab.id}
