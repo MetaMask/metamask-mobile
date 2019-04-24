@@ -16,7 +16,8 @@ import {
 	toWei,
 	toTokenMinimalUnit,
 	fromTokenMinimalUnit,
-	fiatNumberToWei
+	fiatNumberToWei,
+	fiatNumberToTokenMinimalUnit
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
@@ -193,7 +194,8 @@ class TransactionEdit extends Component {
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
 		showHexData: PropTypes.bool,
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		contractExchangeRates: PropTypes.object
 	};
 
 	state = {
@@ -299,14 +301,21 @@ class TransactionEdit extends Component {
 
 	updateAmount = async amount => {
 		const { selectedAsset, assetType } = this.props.transaction;
-		const { conversionRate, primaryCurrency } = this.props;
+		const { conversionRate, primaryCurrency, contractExchangeRates } = this.props;
 		let processedAmount;
-		if (assetType !== 'ETH') {
+		if (assetType !== 'ETH' && primaryCurrency === 'ETH') {
 			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
+		} else if (assetType !== 'ETH' && primaryCurrency === 'Fiat') {
+			const exchangeRate = contractExchangeRates[selectedAsset.address];
+			processedAmount = fiatNumberToTokenMinimalUnit(
+				amount,
+				conversionRate,
+				exchangeRate,
+				selectedAsset.decimals
+			);
 		} else if (primaryCurrency === 'ETH') {
 			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
 		} else {
-			// make conversion for primary currency
 			processedAmount = isDecimal(amount) ? fiatNumberToWei(amount, conversionRate) : undefined;
 		}
 		await this.props.handleUpdateAmount(processedAmount);
@@ -468,6 +477,7 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	showHexData: state.settings.showHexData,
 	transaction: state.transaction,
 	primaryCurrency: state.settings.primaryCurrency

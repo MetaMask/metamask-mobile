@@ -366,15 +366,19 @@ class EthInput extends Component {
 				const exchangeRate = contractExchangeRates[selectedAsset.address];
 				let convertedAmount;
 				if (exchangeRate) {
-					convertedAmount = balanceToFiat(
-						(value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
-						conversionRate,
-						exchangeRate,
-						currentCurrency.toUpperCase()
-					);
+					const from = fromTokenMinimalUnit(value, selectedAsset.decimals);
+					convertedAmount =
+						primaryCurrency === 'ETH'
+							? balanceToFiat(from, conversionRate, exchangeRate, currentCurrency)
+							: renderFromTokenMinimalUnit(value, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
 				} else {
 					convertedAmount = strings('transaction.conversion_not_available');
 				}
+				const currency =
+					primaryCurrency !== 'ETH' && exchangeRate && exchangeRate !== 0
+						? currentCurrency.toUpperCase()
+						: selectedAsset.symbol;
+
 				return (
 					<View style={styles.container}>
 						<View style={styles.icon}>
@@ -395,7 +399,7 @@ class EthInput extends Component {
 									value={readableValue}
 								/>
 								<Text style={styles.eth} numberOfLines={1}>
-									{selectedAsset.symbol}
+									{currency}
 								</Text>
 							</View>
 							<Text style={styles.fiatValue} numberOfLines={1}>

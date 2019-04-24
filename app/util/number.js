@@ -125,6 +125,15 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
 	return renderMinimalUnit;
 }
 
+/**
+ * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
+ *
+ * @param {number|string} fiat - Fiat number
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @param {number} decimals - Asset decimals
+ * @returns {Object} - The converted balance as BN instance
+ */
 export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate, decimals) {
 	const floatFiatConverted = parseFloat(fiat) / (conversionRate * exchangeRate);
 	const base = Math.pow(10, decimals);
