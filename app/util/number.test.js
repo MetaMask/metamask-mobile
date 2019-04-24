@@ -14,6 +14,7 @@ import {
 	weiToFiat,
 	weiToFiatNumber,
 	fiatNumberToWei,
+	fiatNumberToTokenMinimalUnit,
 	balanceToFiat,
 	balanceToFiatNumber,
 	renderFiat
@@ -199,6 +200,35 @@ describe('Number utils :: fiatNumberToWei', () => {
 		expect(fiatNumberToWei('100', 10)).toEqual(ten);
 		expect(fiatNumberToWei('1', 10)).toEqual(decimal);
 		expect(fiatNumberToWei('1', 3)).toEqual(aThird);
+	});
+});
+
+describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
+	it('fiatNumberToTokenMinimalUnit', () => {
+		const decimals = [18, 3, 12, 16, 4];
+		const conversionRates = [10, 8, 21, 18, 3];
+		const exchangeRates = [10, 1, 3, 3, 7];
+		const fiatValues = ['100', '123', '300', '1111.111', '9.999'];
+		let i = 0;
+		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
+			numberToBN('1000000000000000000')
+		);
+		i = 1;
+		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
+			numberToBN('15375')
+		);
+		i = 2;
+		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
+			numberToBN('4761904761904')
+		);
+		i = 3;
+		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
+			numberToBN('205761296296296300')
+		);
+		i = 4;
+		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
+			numberToBN('4761')
+		);
 	});
 });
 

@@ -125,6 +125,16 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
 	return renderMinimalUnit;
 }
 
+export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate, decimals) {
+	const floatFiatConverted = parseFloat(fiat) / (conversionRate * exchangeRate);
+	const base = Math.pow(10, decimals);
+	let weiNumber = floatFiatConverted * base;
+	// avoid decimals
+	weiNumber = weiNumber.toString().split('.');
+	const weiBN = numberToBN(weiNumber[0]);
+	return weiBN;
+}
+
 /**
  * Converts wei to render format string, showing 5 decimals
  *
