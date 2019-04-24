@@ -173,7 +173,8 @@ class EthInput extends Component {
 		/**
 		 * Whether assets dropdown is opened
 		 */
-		isOpen: PropTypes.bool
+		isOpen: PropTypes.bool,
+		primaryCurrency: PropTypes.string
 	};
 
 	state = { readableValue: undefined, assets: undefined };
@@ -320,12 +321,17 @@ class EthInput extends Component {
 			readonly,
 			contractExchangeRates,
 			conversionRate,
-			transaction: { assetType, selectedAsset, value }
+			transaction: { assetType, selectedAsset, value },
+			primaryCurrency
 		} = this.props;
 		const { readableValue } = this.state;
 		const inputs = {
 			ETH: () => {
-				const convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
+				const convertedAmount =
+					primaryCurrency === 'ETH'
+						? weiToFiat(value, conversionRate, currentCurrency)
+						: renderFromWei(value) + ' ' + strings('unit.eth');
+				const currency = primaryCurrency === 'ETH' ? strings('unit.eth') : currentCurrency.toUpperCase();
 				return (
 					<View style={styles.container}>
 						<View style={styles.icon}>
@@ -346,7 +352,7 @@ class EthInput extends Component {
 									value={readableValue}
 								/>
 								<Text style={styles.eth} numberOfLines={1}>
-									{strings('unit.eth')}
+									{currency}
 								</Text>
 							</View>
 							<Text style={styles.fiatValue} numberOfLines={1}>
@@ -444,7 +450,8 @@ const mapStateToProps = state => ({
 	tokens: state.engine.backgroundState.AssetsController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	transaction: state.transaction
+	transaction: state.transaction,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 export default connect(mapStateToProps)(EthInput);

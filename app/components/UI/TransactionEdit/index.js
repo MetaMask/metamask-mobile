@@ -15,7 +15,8 @@ import {
 	isDecimal,
 	toWei,
 	toTokenMinimalUnit,
-	fromTokenMinimalUnit
+	fromTokenMinimalUnit,
+	fiatNumberToWei
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
@@ -125,6 +126,10 @@ class TransactionEdit extends Component {
 		 */
 		checkForAssetAddress: PropTypes.func,
 		/**
+		 * ETH-to-current currency conversion rate from CurrencyRateController
+		 */
+		conversionRate: PropTypes.number,
+		/**
 		 * react-navigation object used for switching between screens
 		 */
 		navigation: PropTypes.object,
@@ -187,7 +192,8 @@ class TransactionEdit extends Component {
 		/**
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
-		showHexData: PropTypes.bool
+		showHexData: PropTypes.bool,
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -293,11 +299,15 @@ class TransactionEdit extends Component {
 
 	updateAmount = async amount => {
 		const { selectedAsset, assetType } = this.props.transaction;
+		const { conversionRate, primaryCurrency } = this.props;
 		let processedAmount;
 		if (assetType !== 'ETH') {
 			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
-		} else {
+		} else if (primaryCurrency === 'ETH') {
 			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
+		} else {
+			// make conversion for primary currency
+			processedAmount = isDecimal(amount) ? fiatNumberToWei(amount, conversionRate) : undefined;
 		}
 		await this.props.handleUpdateAmount(processedAmount);
 		this.props.handleUpdateReadableValue(amount);
@@ -457,8 +467,10 @@ class TransactionEdit extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	showHexData: state.settings.showHexData,
-	transaction: state.transaction
+	transaction: state.transaction,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 export default connect(mapStateToProps)(TransactionEdit);
