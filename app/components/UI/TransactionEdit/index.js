@@ -7,18 +7,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import {
-	toBN,
-	isBN,
-	hexToBN,
-	fromWei,
-	isDecimal,
-	toWei,
-	toTokenMinimalUnit,
-	fromTokenMinimalUnit,
-	fiatNumberToWei,
-	fiatNumberToTokenMinimalUnit
-} from '../../../util/number';
+import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
@@ -127,10 +116,6 @@ class TransactionEdit extends Component {
 		 */
 		checkForAssetAddress: PropTypes.func,
 		/**
-		 * ETH-to-current currency conversion rate from CurrencyRateController
-		 */
-		conversionRate: PropTypes.number,
-		/**
 		 * react-navigation object used for switching between screens
 		 */
 		navigation: PropTypes.object,
@@ -193,9 +178,7 @@ class TransactionEdit extends Component {
 		/**
 		 * Indicates whether hex data should be shown in transaction editor
 		 */
-		showHexData: PropTypes.bool,
-		primaryCurrency: PropTypes.string,
-		contractExchangeRates: PropTypes.object
+		showHexData: PropTypes.bool
 	};
 
 	state = {
@@ -299,27 +282,9 @@ class TransactionEdit extends Component {
 		return amountError || gasError || toAddressError;
 	};
 
-	updateAmount = async amount => {
-		const { selectedAsset, assetType } = this.props.transaction;
-		const { conversionRate, primaryCurrency, contractExchangeRates } = this.props;
-		let processedAmount;
-		if (assetType !== 'ETH' && primaryCurrency === 'ETH') {
-			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
-		} else if (assetType !== 'ETH' && primaryCurrency === 'Fiat') {
-			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			processedAmount = fiatNumberToTokenMinimalUnit(
-				amount,
-				conversionRate,
-				exchangeRate,
-				selectedAsset.decimals
-			);
-		} else if (primaryCurrency === 'ETH') {
-			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
-		} else {
-			processedAmount = isDecimal(amount) ? fiatNumberToWei(amount, conversionRate) : undefined;
-		}
-		await this.props.handleUpdateAmount(processedAmount);
-		this.props.handleUpdateReadableValue(amount);
+	updateAmount = async (amount, renderValue) => {
+		await this.props.handleUpdateAmount(amount);
+		this.props.handleUpdateReadableValue(renderValue);
 		const amountError = await this.props.validateAmount(true);
 		this.setState({ amountError });
 	};
@@ -476,11 +441,8 @@ class TransactionEdit extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	showHexData: state.settings.showHexData,
-	transaction: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(TransactionEdit);

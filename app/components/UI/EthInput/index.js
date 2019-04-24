@@ -8,7 +8,12 @@ import {
 	balanceToFiat,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
-	renderFromWei
+	renderFromWei,
+	toTokenMinimalUnit,
+	fiatNumberToTokenMinimalUnit,
+	toWei,
+	fiatNumberToWei,
+	isDecimal
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -174,6 +179,9 @@ class EthInput extends Component {
 		 * Whether assets dropdown is opened
 		 */
 		isOpen: PropTypes.bool,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
 		primaryCurrency: PropTypes.string
 	};
 
@@ -336,8 +344,27 @@ class EthInput extends Component {
 	 * On value change, callback to props 'onChange' and update 'readableValue'
 	 */
 	onChange = value => {
-		const { onChange } = this.props;
-		onChange && onChange(value);
+		const {
+			transaction: { selectedAsset, assetType },
+			onChange,
+			conversionRate,
+			primaryCurrency,
+			contractExchangeRates
+		} = this.props;
+		let processedAmount;
+		const exchangeRate = selectedAsset && contractExchangeRates[selectedAsset.address];
+		if (assetType !== 'ETH' && primaryCurrency === 'Fiat' && exchangeRate && exchangeRate !== 0) {
+			processedAmount = isDecimal(value)
+				? fiatNumberToTokenMinimalUnit(value, conversionRate, exchangeRate, selectedAsset.decimals)
+				: undefined;
+		} else if (assetType !== 'ETH') {
+			processedAmount = isDecimal(value) ? toTokenMinimalUnit(value, selectedAsset.decimals) : undefined;
+		} else if (primaryCurrency === 'ETH') {
+			processedAmount = isDecimal(value) ? toWei(value) : undefined;
+		} else {
+			processedAmount = isDecimal(value) ? fiatNumberToWei(value, conversionRate) : undefined;
+		}
+		onChange && onChange(processedAmount, value);
 		this.setState({ readableValue: value });
 	};
 
@@ -403,7 +430,6 @@ class EthInput extends Component {
 
 				const currency = primaryCurrency === 'ETH' ? strings('unit.eth') : currentCurrency.toUpperCase();
 				const image = <Image source={ethLogo} style={styles.logo} />;
-
 				return this.renderTokenInput(image, currency, convertedAmount);
 			},
 			ERC20: () => {
