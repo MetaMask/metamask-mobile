@@ -281,28 +281,41 @@ class EthInput extends Component {
 	 * @returns {object} - 'SelectableAsset' object with corresponding asset information
 	 */
 	renderAsset = (asset, onPress) => {
-		const { assetType } = this.props.transaction;
-		let title, subTitle, icon;
-		if (assetType === 'ERC20' || assetType === 'ETH') {
-			const { tokenBalances, accounts, selectedAddress } = this.props;
-			title = asset.symbol;
-			subTitle =
-				asset.symbol !== 'ETH'
-					? asset.address in tokenBalances
+		const { tokenBalances, accounts, selectedAddress } = this.props;
+		const assetsObject = {
+			ETH: () => {
+				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ETH';
+				const icon = <Image source={ethLogo} style={styles.logo} />;
+				return { title: 'ETH', subTitle, icon };
+			},
+			ERC20: () => {
+				const title = asset.symbol;
+				const subTitle =
+					asset.address in tokenBalances
 						? renderFromTokenMinimalUnit(tokenBalances[asset.address], asset.decimals) + ' ' + asset.symbol
-						: undefined
-					: renderFromWei(accounts[selectedAddress].balance) + ' ' + asset.symbol;
-			icon =
-				asset.symbol !== 'ETH' ? (
-					<TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
-				) : (
-					<Image source={ethLogo} style={styles.logo} />
+						: undefined;
+				const icon = <TokenImage asset={asset} containerStyle={styles.logo} iconStyle={styles.logo} />;
+				return { title, subTitle, icon };
+			},
+			ERC721: () => {
+				const title = asset.name;
+				const subTitle =
+					strings('collectible.collectible_token_id') + strings('unit.colon') + ' ' + asset.tokenId;
+				const icon = (
+					<CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />
 				);
+				return { title, subTitle, icon };
+			}
+		};
+		let assetType;
+		if (asset.symbol === 'ETH') {
+			assetType = 'ETH';
+		} else if (asset.decimals) {
+			assetType = 'ERC20';
 		} else {
-			title = asset.name;
-			subTitle = strings('collectible.collectible_token_id') + strings('unit.colon') + ' ' + asset.tokenId;
-			icon = <CollectibleImage collectible={asset} containerStyle={styles.logo} iconStyle={styles.logo} />;
+			assetType = 'ERC721';
 		}
+		const { title, subTitle, icon } = assetsObject[assetType]();
 		return <SelectableAsset onPress={onPress} title={title} subTitle={subTitle} icon={icon} asset={asset} />;
 	};
 
