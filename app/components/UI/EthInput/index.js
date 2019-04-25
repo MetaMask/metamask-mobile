@@ -13,7 +13,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	toWei,
 	fiatNumberToWei,
-	isDecimal
+	isDecimal,
+	weiToFiatNumber
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -194,8 +195,8 @@ class EthInput extends Component {
 		// TODO update doc
 		const { fillMax, readableValue } = this.props;
 		if (fillMax) {
-			const processedValue = this.processValue(readableValue);
-			this.setState({ readableValue: processedValue });
+			const { processedReadableValue } = this.processValue(readableValue);
+			this.setState({ readableValue: processedReadableValue });
 		}
 		this.props.updateFillMax(false);
 	};
@@ -361,7 +362,7 @@ class EthInput extends Component {
 	/**
 	 * Handle value from eth input according to app 'primaryCurrency', transforming either Token or Fiat value to corresponding transaction object value.
 	 *
-	 * @returns {Object} - BN object containing the value for the transaction
+	 * @returns {Object} - Object containing BN instance of the value for the transaction and a string containing readable value
 	 */
 	processValue = value => {
 		const {
@@ -370,7 +371,7 @@ class EthInput extends Component {
 			primaryCurrency,
 			contractExchangeRates
 		} = this.props;
-		let processedValue;
+		let processedValue, processedReadableValue;
 		const decimal = isDecimal(value);
 		if (decimal) {
 			// Only for ETH or ERC20, depending on 'primaryCurrency' selected
@@ -378,8 +379,10 @@ class EthInput extends Component {
 				case 'ETH':
 					if (primaryCurrency === 'ETH') {
 						processedValue = toWei(value);
+						processedReadableValue = value;
 					} else {
 						processedValue = fiatNumberToWei(value, conversionRate);
+						processedReadableValue = weiToFiatNumber(toWei(value), conversionRate).toString();
 					}
 					break;
 				case 'ERC20': {
@@ -392,13 +395,15 @@ class EthInput extends Component {
 							exchangeRate,
 							selectedAsset.decimals
 						);
+						processedReadableValue = balanceToFiat(value, conversionRate, exchangeRate, '');
 					} else {
 						processedValue = toTokenMinimalUnit(value, selectedAsset.decimals);
+						processedReadableValue = value;
 					}
 				}
 			}
 		}
-		return processedValue;
+		return { processedValue, processedReadableValue };
 	};
 
 	/**
@@ -407,7 +412,7 @@ class EthInput extends Component {
 	onChange = value => {
 		const { onChange } = this.props;
 		// TODO update doc
-		const processedValue = this.processValue(value);
+		const { processedValue } = this.processValue(value);
 		onChange && onChange(processedValue, value);
 		this.setState({ readableValue: value });
 	};
