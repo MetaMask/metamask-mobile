@@ -191,8 +191,8 @@ class EthInput extends Component {
 		// TODO update doc
 		const { fillMax, readableValue } = this.props;
 		if (fillMax) {
-			const processedAmount = this.processValue(readableValue);
-			this.setState({ readableValue: processedAmount });
+			const processedValue = this.processValue(readableValue);
+			this.setState({ readableValue: processedValue });
 		}
 		this.props.updateFillMax(false);
 	};
@@ -354,34 +354,35 @@ class EthInput extends Component {
 			primaryCurrency,
 			contractExchangeRates
 		} = this.props;
-		let processedAmount;
+		let processedValue;
 		const decimal = isDecimal(value);
 		if (decimal) {
+			// Only for ETH or ERC20, depending on 'primaryCurrency' selected
 			switch (assetType) {
 				case 'ETH':
 					if (primaryCurrency === 'ETH') {
-						processedAmount = toWei(value);
+						processedValue = toWei(value);
 					} else {
-						processedAmount = fiatNumberToWei(value, conversionRate);
+						processedValue = fiatNumberToWei(value, conversionRate);
 					}
 					break;
 				case 'ERC20': {
 					const exchangeRate =
 						selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 					if (primaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
-						processedAmount = fiatNumberToTokenMinimalUnit(
+						processedValue = fiatNumberToTokenMinimalUnit(
 							value,
 							conversionRate,
 							exchangeRate,
 							selectedAsset.decimals
 						);
 					} else {
-						processedAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
+						processedValue = toTokenMinimalUnit(value, selectedAsset.decimals);
 					}
 				}
 			}
 		}
-		return processedAmount;
+		return processedValue;
 	};
 
 	/**
@@ -390,8 +391,8 @@ class EthInput extends Component {
 	onChange = value => {
 		const { onChange } = this.props;
 		// TODO update doc
-		const processedAmount = this.processValue(value);
-		onChange && onChange(processedAmount, value);
+		const processedValue = this.processValue(value);
+		onChange && onChange(processedValue, value);
 		this.setState({ readableValue: value });
 	};
 
@@ -448,34 +449,37 @@ class EthInput extends Component {
 			transaction: { assetType, selectedAsset, value },
 			primaryCurrency
 		} = this.props;
+		// Depending on 'assetType' return object with corresponding 'convertedAmount', 'currency' and 'image'
 		const inputs = {
 			ETH: () => {
-				const convertedAmount =
-					primaryCurrency === 'ETH'
-						? weiToFiat(value, conversionRate, currentCurrency)
-						: renderFromWei(value) + ' ' + strings('unit.eth');
-
-				const currency = primaryCurrency === 'ETH' ? strings('unit.eth') : currentCurrency.toUpperCase();
+				let convertedAmount, currency;
+				if (primaryCurrency === 'ETH') {
+					convertedAmount = weiToFiat(value, conversionRate, currentCurrency);
+					currency = strings('unit.eth');
+				} else {
+					convertedAmount = renderFromWei(value) + ' ' + strings('unit.eth');
+					currency = currentCurrency.toUpperCase();
+				}
 				const image = <Image source={ethLogo} style={styles.logo} />;
 				return this.renderTokenInput(image, currency, convertedAmount);
 			},
 			ERC20: () => {
-				const exchangeRate = contractExchangeRates[selectedAsset.address];
-				let convertedAmount;
-				if (exchangeRate) {
-					const from = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-					const from2 = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-					convertedAmount =
-						primaryCurrency === 'ETH'
-							? balanceToFiat(from, conversionRate, exchangeRate, currentCurrency)
-							: from2 + ' ' + selectedAsset.symbol;
+				const exchangeRate =
+					selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+				let convertedAmount, currency;
+				if (exchangeRate && exchangeRate !== 0) {
+					if (primaryCurrency === 'ETH') {
+						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
+						convertedAmount = balanceToFiat(finalValue, conversionRate, exchangeRate, currentCurrency);
+						currency = selectedAsset.symbol;
+					} else {
+						const finalValue = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
+						convertedAmount = finalValue + ' ' + selectedAsset.symbol;
+						currency = currentCurrency.toUpperCase();
+					}
 				} else {
 					convertedAmount = strings('transaction.conversion_not_available');
 				}
-				const currency =
-					primaryCurrency !== 'ETH' && exchangeRate && exchangeRate !== 0
-						? currentCurrency.toUpperCase()
-						: selectedAsset.symbol;
 				const image = <TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />;
 				return this.renderTokenInput(image, currency, convertedAmount);
 			},
