@@ -187,6 +187,9 @@ class EthInput extends Component {
 
 	state = { readableValue: undefined, assets: undefined };
 
+	/**
+	 * Used to 'fillMax' feature. Will process value coming from parent to render corresponding values on input
+	 */
 	componentDidUpdate = () => {
 		// TODO update doc
 		const { fillMax, readableValue } = this.props;

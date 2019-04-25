@@ -309,7 +309,7 @@ export function fiatNumberToWei(fiat, conversionRate) {
  * @returns {string} - Currency-formatted string
  */
 export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCode) {
-	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === null) {
+	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === 0) {
 		return undefined;
 	}
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
