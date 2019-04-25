@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 		paddingRight: 0,
 		paddingLeft: 0,
 		paddingTop: 0,
-		maxWidth: '80%'
+		maxWidth: '70%'
 	},
 	eth: {
 		...fontStyles.bold,
@@ -288,9 +288,9 @@ class EthInput extends Component {
 		const { tokenBalances, accounts, selectedAddress } = this.props;
 		const assetsObject = {
 			ETH: () => {
-				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ETH';
+				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + strings('unit.eth');
 				const icon = <Image source={ethLogo} style={styles.logo} />;
-				return { title: 'ETH', subTitle, icon };
+				return { title: strings('unit.eth'), subTitle, icon };
 			},
 			ERC20: () => {
 				const title = asset.symbol;
@@ -475,7 +475,7 @@ class EthInput extends Component {
 			ETH: () => {
 				let convertedAmount, currency;
 				if (primaryCurrency === 'ETH') {
-					convertedAmount = weiToFiat(value, conversionRate, currentCurrency);
+					convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
 					currency = strings('unit.eth');
 				} else {
 					convertedAmount = renderFromWei(value) + ' ' + strings('unit.eth');
