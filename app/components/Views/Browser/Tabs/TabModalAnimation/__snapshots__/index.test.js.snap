@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabModalAnimation should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "bottom": 0,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
+    }
+  }
+>
+  <Component>
+    <Component />
+  </Component>
+  <View
+    style={
+      Object {
+        "borderRadius": 5,
+        "height": mockConstructor {},
+        "transform": Array [
+          Object {
+            "translateX": mockConstructor {},
+          },
+          Object {
+            "translateY": mockConstructor {},
+          },
+        ],
+        "width": mockConstructor {},
+      }
+    }
+  >
+    <Image
+      source={
+        Object {
+          "uri": "",
+        }
+      }
+      style={
+        Object {
+          "borderRadius": 5,
+          "bottom": 0,
+          "height": null,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "width": null,
+        }
+      }
+    />
+  </View>
+</View>
+`;

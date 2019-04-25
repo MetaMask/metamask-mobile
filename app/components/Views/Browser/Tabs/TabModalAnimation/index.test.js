@@ -2,11 +2,11 @@ jest.useFakeTimers();
 
 import React from 'react';
 import { shallow } from 'enzyme';
-import { Browser } from './';
+import TabModalAnimation from './';
 
-describe('Browser', () => {
+describe('TabModalAnimation', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<Browser url="https://metamask.io" tabs={[]} />);
+		const wrapper = shallow(<TabModalAnimation tab={{ image: '' }} position={{ x: 0, y: 0 }} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });
