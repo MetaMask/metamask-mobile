@@ -93,3 +93,18 @@ export function updateTab(id, data) {
 		data
 	};
 }
+
+/**
+ * Animates the current tab
+ *
+ * @param {Object} data - The info required to animate the tab
+ * @param {object} data.tab - The tab info
+ * @param {object} data.position - The position info
+ */
+export function animateCurrentTab({ tab, position }) {
+	return {
+		type: 'ANIMATE_CURRENT_TAB',
+		tab,
+		position
+	};
+}

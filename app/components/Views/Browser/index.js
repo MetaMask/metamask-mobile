@@ -51,6 +51,7 @@ import {
 	createNewTab,
 	closeAllTabs,
 	setActiveTab,
+	animateCurrentTab,
 	closeTab,
 	updateTab
 } from '../../../actions/browser';
@@ -382,7 +383,11 @@ export class Browser extends Component {
 		/**
 		 * ID of the active tab
 		 */
-		activeTab: PropTypes.number
+		activeTab: PropTypes.number,
+		/**
+		 * Function that triggers the animation of the tab
+		 */
+		animateCurrentTab: PropTypes.func
 	};
 
 	constructor(props) {
@@ -764,31 +769,30 @@ export class Browser extends Component {
 		if (this.state.showTabs) return false;
 
 		const { activeTab, updateTab } = this.props;
-		if (url !== HOMEPAGE_URL) {
-			if (this.snapshotTimer) {
-				clearTimeout(this.snapshotTimer);
-			}
-			this.snapshotTimer = setTimeout(() => {
-				captureScreen({
-					format: 'jpg',
-					quality: 0.8
-				}).then(
-					uri => {
-						updateTab(activeTab, {
-							url,
-							image: uri
-						});
-					},
-					error => {
-						Logger.error(`Error saving tab ${url}`, error);
-					}
-				);
-			}, 1000);
-		} else {
-			updateTab(activeTab, {
-				url
-			});
+		if (this.snapshotTimer) {
+			clearTimeout(this.snapshotTimer);
 		}
+
+		this.snapshotTimer = setTimeout(() => {
+			if (this.state.showTabs) {
+				this.updateTabInfo(url);
+				return false;
+			}
+			captureScreen({
+				format: 'jpg',
+				quality: 0.5
+			}).then(
+				uri => {
+					updateTab(activeTab, {
+						url,
+						image: uri
+					});
+				},
+				error => {
+					Logger.error(`Error saving tab ${url}`, error);
+				}
+			);
+		}, 1000);
 	}
 
 	go = async url => {
@@ -1788,7 +1792,7 @@ export class Browser extends Component {
 	};
 
 	renderTabsView() {
-		const { tabs, activeTab } = this.props;
+		const { tabs, activeTab, animateCurrentTab } = this.props;
 		return (
 			<Tabs
 				tabs={tabs}
@@ -1799,6 +1803,7 @@ export class Browser extends Component {
 				closeTab={this.closeTab}
 				closeTabsView={this.closeTabsView}
 				closeAllTabs={this.closeAllTabs}
+				animateCurrentTab={animateCurrentTab}
 			/>
 		);
 	}
@@ -1873,7 +1878,8 @@ const mapDispatchToProps = dispatch => ({
 	updateTab: (id, url) => dispatch(updateTab(id, url)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
-	setTransactionObject: asset => dispatch(setTransactionObject(asset))
+	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
+	animateCurrentTab: ({ tab, position }) => dispatch(animateCurrentTab({ tab, position }))
 });
 
 export default connect(

@@ -121,7 +121,33 @@ export default class Tabs extends Component {
 		/**
 		 * Switches to a specific tab
 		 */
-		switchToTab: PropTypes.func
+		switchToTab: PropTypes.func,
+		/**
+		 * Sets the current tab used for the animation
+		 */
+		animateCurrentTab: PropTypes.func
+	};
+
+	thumbnails = {};
+
+	state = {
+		currentTab: null
+	};
+
+	constructor(props) {
+		super(props);
+		props.tabs.forEach(tab => {
+			this.thumbnails[tab.id] = React.createRef();
+		});
+	}
+
+	onSwitch = async tab => {
+		const position = await this.thumbnails[tab.id].current.measure();
+		this.props.animateCurrentTab({ tab, position });
+		setTimeout(() => {
+			this.props.switchToTab(tab);
+			this.props.animateCurrentTab({ tab: null, position: null });
+		}, 1000);
 	};
 
 	renderTabs(tabs, activeTab) {
@@ -137,18 +163,18 @@ export default class Tabs extends Component {
 		return tabs.map(tab => (
 			// eslint-disable-next-line react/jsx-key
 			<TabThumbnail
+				ref={this.thumbnails[tab.id]}
 				key={tab.id}
 				tab={tab}
 				isActiveTab={activeTab === tab.id}
 				onClose={this.props.closeTab}
-				onSwitch={this.props.switchToTab}
+				onSwitch={this.onSwitch}
 			/>
 		));
 	}
 
 	render() {
 		const { tabs, activeTab, visible, closeAllTabs, newTab, closeTabsView } = this.props;
-
 		if (!visible) return null;
 
 		return (

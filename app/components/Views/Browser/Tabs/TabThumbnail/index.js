@@ -39,8 +39,6 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 		borderColor: colors.grey100,
 		borderWidth: 1,
-		// height: Dimensions.get('window').width / 2 + 20,
-		// width: Dimensions.get('window').width / 2 - 30
 		width,
 		height: width * 1.77
 	},
@@ -69,7 +67,6 @@ const styles = StyleSheet.create({
 });
 
 const HOMEPAGE_URL = 'about:blank';
-const HOME_SNAPSHOT = require('../../../../../images/home.jpeg'); // eslint-disable-line import/no-commonjs
 const METAMASK_FOX = require('../../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 export default class TabThumbnail extends Component {
@@ -127,11 +124,7 @@ export default class TabThumbnail extends Component {
 					// eslint-disable-next-line react/jsx-no-bind
 					onPress={() => onSwitch(tab)}
 				>
-					{tab.url !== HOMEPAGE_URL ? (
-						<Image source={{ uri: tab.image }} style={styles.tabImage} {...{ ref }} />
-					) : (
-						<Image source={HOME_SNAPSHOT} style={styles.tabImage} {...{ ref }} />
-					)}
+					<Image source={{ uri: tab.image }} style={styles.tabImage} {...{ ref }} />
 				</TouchableOpacity>
 			</View>
 		);

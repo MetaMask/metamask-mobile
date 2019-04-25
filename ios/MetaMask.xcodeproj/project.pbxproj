@@ -5,7 +5,6 @@
 	};
 	objectVersion = 46;
 	objects = {
-
 /* Begin PBXBuildFile section */
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E81ABCBA2D00DB3ED1 /* libRCTImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302C01ABCB91800DB3ED1 /* libRCTImage.a */; };
@@ -79,6 +78,7 @@
 		F5C5F10C32974C2D94FEA3F3 /* EvilIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */; };
 		F719B7ED64E3484FB94EE77B /* Foundation.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */; };
 		FD9BDCD5059C483EAE9C0160 /* libRNVectorIcons.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 70BCC86172F14AB2BF4DDA97 /* libRNVectorIcons.a */; };
+		18A7B873F566443DBDDE4EC7 /* libRNReanimated.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B3D372084DC4A3DBB343F03 /* libRNReanimated.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -714,6 +714,8 @@
 		F562CA6B28AA4A67AA29B61C /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		F9DFF7AC557B46B6BEFAA1C1 /* libRNShakeEvent.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNShakeEvent.a; sourceTree = "<group>"; };
 		FE3C9A2458A1416290DEDAD4 /* branch.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = branch.json; path = ../branch.json; sourceTree = "<group>"; };
+		02F8A1C86B5440F5863C96AF /* RNReanimated.xcodeproj */ = {isa = PBXFileReference; name = "RNReanimated.xcodeproj"; path = "../node_modules/react-native-reanimated/ios/RNReanimated.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		4B3D372084DC4A3DBB343F03 /* libRNReanimated.a */ = {isa = PBXFileReference; name = "libRNReanimated.a"; path = "libRNReanimated.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -757,6 +759,7 @@
 				258B2C29C8CD42BBBF3E4872 /* libLottie.a in Frameworks */,
 				5B523AAB3B4B42348DA7D392 /* libLottieReactNative.a in Frameworks */,
 				9F715EBC29F64D1C8170F284 /* libRNViewShot.a in Frameworks */,
+				18A7B873F566443DBDDE4EC7 /* libRNReanimated.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1195,6 +1198,7 @@
 				4379F36F969347758D1A9F96 /* Lottie.xcodeproj */,
 				4580773CE4544FA2957416DE /* LottieReactNative.xcodeproj */,
 				4C1E265B9A50411786FBDEA5 /* RNViewShot.xcodeproj */,
+				02F8A1C86B5440F5863C96AF /* RNReanimated.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -2115,6 +2119,7 @@
 					"$(SRCROOT)/../node_modules/lottie-ios/lottie-ios/Classes/**",
 					"$(SRCROOT)/../node_modules/lottie-react-native/src/ios/LottieReactNative",
 					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
+					"$(SRCROOT)/../node_modules/react-native-reanimated/ios/**",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -2122,6 +2127,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
+					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask\"",
@@ -2177,6 +2183,7 @@
 					"$(SRCROOT)/../node_modules/lottie-ios/lottie-ios/Classes/**",
 					"$(SRCROOT)/../node_modules/lottie-react-native/src/ios/LottieReactNative",
 					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
+					"$(SRCROOT)/../node_modules/react-native-reanimated/ios/**",
 				);
 				INFOPLIST_FILE = MetaMask/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -2184,6 +2191,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
+					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask\"",
 					"\"$(SRCROOT)/MetaMask\"",

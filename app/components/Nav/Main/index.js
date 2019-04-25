@@ -46,6 +46,7 @@ import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import TabModalAnimation from '../../Views/Browser/Tabs/TabModalAnimation';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -244,7 +245,11 @@ class Main extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		lockTime: PropTypes.number
+		lockTime: PropTypes.number,
+		/**
+		 * Object containing the information of the current tab
+		 */
+		tabToAnimate: PropTypes.object
 	};
 
 	state = {
@@ -345,18 +350,26 @@ class Main extends Component {
 		this.lockManager.stopListening();
 	}
 
-	render = () => (
-		<View style={styles.flex}>
-			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-			<GlobalAlert />
-			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
-			<FadeOutOverlay />
-		</View>
-	);
+	render = () => {
+		const { tabToAnimate } = this.props;
+
+		return (
+			<View style={styles.flex}>
+				{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+				<GlobalAlert />
+				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+				<FadeOutOverlay />
+				{tabToAnimate && tabToAnimate.tab && (
+					<TabModalAnimation tab={tabToAnimate.tab} {...{ position: tabToAnimate.position }} />
+				)}
+			</View>
+		);
+	};
 }
 
 const mapStateToProps = state => ({
-	lockTime: state.settings.lockTime
+	lockTime: state.settings.lockTime,
+	tabToAnimate: state.browser.tabToAnimate
 });
 
 export default connect(mapStateToProps)(Main);
