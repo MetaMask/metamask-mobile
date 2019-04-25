@@ -6,7 +6,11 @@ const mockStore = configureMockStore();
 
 describe('AssetOverview', () => {
 	it('should render correctly', () => {
-		const initialState = {};
+		const initialState = {
+			settings: {
+				primaryCurrency: 'ETH'
+			}
+		};
 		const asset = {
 			balance: 4,
 			balanceFiat: 1500,

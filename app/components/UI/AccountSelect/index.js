@@ -156,6 +156,7 @@ class AccountSelect extends Component {
 		const { conversionRate, currentCurrency, primaryCurrency } = this.props;
 		const balance = hexToBN(account.balance);
 
+		// render balances according to selected 'primaryCurrency'
 		let mainBalance, secondaryBalance;
 		if (primaryCurrency === 'ETH') {
 			mainBalance = renderFromWei(balance) + ' ' + strings('unit.eth');
