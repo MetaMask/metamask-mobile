@@ -10,7 +10,6 @@ const {
 	Clock,
 	cond,
 	eq,
-	//	call,
 	set,
 	block,
 	clockRunning,
@@ -36,12 +35,9 @@ function runSpring(value, dest) {
 
 	const config = {
 		toValue: new Value(0),
-		damping: 10,
+		damping: 12,
 		mass: 1,
-		stiffness: 100,
-		overshootClamping: false,
-		restSpeedThreshold: 0.001,
-		restDisplacementThreshold: 0.001
+		stiffness: 115
 	};
 
 	return block([

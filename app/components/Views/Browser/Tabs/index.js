@@ -146,6 +146,8 @@ export default class Tabs extends Component {
 		this.props.animateCurrentTab({ tab, position });
 		setTimeout(() => {
 			this.props.switchToTab(tab);
+		}, 500);
+		setTimeout(() => {
 			this.props.animateCurrentTab({ tab: null, position: null });
 		}, 1000);
 	};
