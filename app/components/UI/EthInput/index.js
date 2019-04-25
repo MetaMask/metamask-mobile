@@ -13,8 +13,7 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	toWei,
 	fiatNumberToWei,
-	isDecimal,
-	weiToFiatNumber
+	isDecimal
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -189,26 +188,10 @@ class EthInput extends Component {
 	state = { readableValue: undefined, assets: undefined };
 
 	componentDidUpdate = () => {
-		const { fillMax, readableValue } = this.props;
-		const {
-			transaction: { selectedAsset, assetType },
-			conversionRate,
-			primaryCurrency,
-			contractExchangeRates
-		} = this.props;
-		let processedAmount;
 		// TODO update doc
+		const { fillMax, readableValue } = this.props;
 		if (fillMax) {
-			const exchangeRate = selectedAsset && contractExchangeRates[selectedAsset.address];
-			if (assetType !== 'ETH' && primaryCurrency === 'Fiat' && exchangeRate && exchangeRate !== 0) {
-				processedAmount = balanceToFiat(readableValue, conversionRate, exchangeRate, '');
-			} else if (assetType !== 'ETH') {
-				processedAmount = readableValue;
-			} else if (primaryCurrency === 'ETH') {
-				processedAmount = readableValue;
-			} else {
-				processedAmount = weiToFiatNumber(toWei(readableValue), conversionRate).toString();
-			}
+			const processedAmount = this.processValue(readableValue);
 			this.setState({ readableValue: processedAmount });
 		}
 		this.props.updateFillMax(false);
@@ -360,30 +343,54 @@ class EthInput extends Component {
 	};
 
 	/**
-	 * On value change, callback to props 'onChange' and update 'readableValue'
+	 * Handle value from eth input according to app 'primaryCurrency', transforming either Token or Fiat value to corresponding transaction object value.
+	 *
+	 * @returns {Object} - BN object containing the value for the transaction
 	 */
-	onChange = value => {
+	processValue = value => {
 		const {
 			transaction: { selectedAsset, assetType },
-			onChange,
 			conversionRate,
 			primaryCurrency,
 			contractExchangeRates
 		} = this.props;
 		let processedAmount;
-		// TODO update doc
-		const exchangeRate = selectedAsset && contractExchangeRates[selectedAsset.address];
-		if (assetType !== 'ETH' && primaryCurrency === 'Fiat' && exchangeRate && exchangeRate !== 0) {
-			processedAmount = isDecimal(value)
-				? fiatNumberToTokenMinimalUnit(value, conversionRate, exchangeRate, selectedAsset.decimals)
-				: undefined;
-		} else if (assetType !== 'ETH') {
-			processedAmount = isDecimal(value) ? toTokenMinimalUnit(value, selectedAsset.decimals) : undefined;
-		} else if (primaryCurrency === 'ETH') {
-			processedAmount = isDecimal(value) ? toWei(value) : undefined;
-		} else {
-			processedAmount = isDecimal(value) ? fiatNumberToWei(value, conversionRate) : undefined;
+		const decimal = isDecimal(value);
+		if (decimal) {
+			switch (assetType) {
+				case 'ETH':
+					if (primaryCurrency === 'ETH') {
+						processedAmount = toWei(value);
+					} else {
+						processedAmount = fiatNumberToWei(value, conversionRate);
+					}
+					break;
+				case 'ERC20': {
+					const exchangeRate =
+						selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+					if (primaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+						processedAmount = fiatNumberToTokenMinimalUnit(
+							value,
+							conversionRate,
+							exchangeRate,
+							selectedAsset.decimals
+						);
+					} else {
+						processedAmount = toTokenMinimalUnit(value, selectedAsset.decimals);
+					}
+				}
+			}
 		}
+		return processedAmount;
+	};
+
+	/**
+	 * On value change, callback to props 'onChange' and update 'readableValue'
+	 */
+	onChange = value => {
+		const { onChange } = this.props;
+		// TODO update doc
+		const processedAmount = this.processValue(value);
 		onChange && onChange(processedAmount, value);
 		this.setState({ readableValue: value });
 	};
