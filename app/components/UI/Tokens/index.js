@@ -102,7 +102,11 @@ export default class Tokens extends PureComponent {
 		/**
 		 * Array of transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	actionSheet = null;
@@ -129,14 +133,26 @@ export default class Tokens extends PureComponent {
 	);
 
 	renderItem = item => {
-		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
+		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency } = this.props;
 		const itemAddress = (item.address && toChecksumAddress(item.address)) || undefined;
 		const logo = item.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
 			item.balance ||
 			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], item.decimals) : 0);
+
 		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		const balanceValue = balance + ' ' + item.symbol;
+		// render balances according to primary currency
+		let mainBalance, secondaryBalance;
+		if (primaryCurrency === 'ETH') {
+			mainBalance = balanceValue;
+			secondaryBalance = balanceFiat;
+		} else {
+			mainBalance = !balanceFiat ? balanceValue : balanceFiat;
+			secondaryBalance = !balanceFiat ? balanceFiat : balanceValue;
+		}
+
 		item = { ...item, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement
@@ -152,11 +168,10 @@ export default class Tokens extends PureComponent {
 				) : (
 					<TokenImage asset={item} containerStyle={styles.ethLogo} />
 				)}
+
 				<View style={styles.balances}>
-					<Text style={styles.balance}>
-						{balance} {item.symbol}
-					</Text>
-					{balanceFiat ? <Text style={styles.balanceFiat}>{balanceFiat}</Text> : null}
+					<Text style={styles.balance}>{mainBalance}</Text>
+					{secondaryBalance ? <Text style={styles.balanceFiat}>{secondaryBalance}</Text> : null}
 				</View>
 			</AssetElement>
 		);

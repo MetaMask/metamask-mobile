@@ -11,6 +11,7 @@ exports[`AssetOverview should render correctly 1`] = `
       "symbol": "ETH",
     }
   }
+  primaryCurrency="ETH"
   setTokensTransaction={[Function]}
   toggleReceiveModal={[Function]}
 />
