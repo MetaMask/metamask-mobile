@@ -89,7 +89,6 @@ class SyncWithExtensionSuccess extends Component {
 			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.setOnboardingWizardStep(1);
-			await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
 			this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
 		}
 	};

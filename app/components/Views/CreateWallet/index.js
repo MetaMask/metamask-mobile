@@ -128,14 +128,11 @@ class CreateWallet extends Component {
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			this.props.seedphraseNotBackedUp();
-			if (!onboardingWizard) {
-				this.props.setOnboardingWizardStep(1);
-				await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
-			}
 			setTimeout(() => {
 				if (onboardingWizard) {
 					this.props.navigation.navigate('HomeNav');
 				} else {
+					this.props.setOnboardingWizardStep(1);
 					this.props.navigation.navigate(
 						'HomeNav',
 						{},

@@ -13,6 +13,7 @@ import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const styles = StyleSheet.create({
 	root: {
@@ -57,8 +58,9 @@ class OnboardingWizard extends Component {
 	/**
 	 * Close onboarding wizard setting step to 0 and closing drawer
 	 */
-	closeOnboardingWizard = () => {
+	closeOnboardingWizard = async () => {
 		const { setOnboardingWizardStep, navigation } = this.props;
+		await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
 		setOnboardingWizardStep && setOnboardingWizardStep(0);
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 	};

@@ -19,7 +19,6 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
-
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -231,7 +230,6 @@ class ImportFromSeed extends Component {
 					this.props.navigation.navigate('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
 					this.props.navigation.navigate(
 						'HomeNav',
 						{},
