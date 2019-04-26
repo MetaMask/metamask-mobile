@@ -1,0 +1,227 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Coachmark should render correctly 1`] = `
+<AnimatedComponent
+  style={
+    Array [
+      Object {},
+      Object {
+        "opacity": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "marginBottom": 10,
+        "marginLeft": 30,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "transparent",
+          "borderBottomColor": "#037dd6",
+          "borderBottomWidth": 10,
+          "borderLeftColor": "transparent",
+          "borderLeftWidth": 15,
+          "borderRightColor": "transparent",
+          "borderRightWidth": 15,
+          "borderStyle": "solid",
+          "height": 0,
+          "position": "absolute",
+          "width": 0,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#037dd6",
+          "borderRadius": 8,
+          "padding": 18,
+        },
+        Object {},
+      ]
+    }
+  >
+    <View>
+      <Text
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#FFFFFF",
+            "fontFamily": "Roboto",
+            "fontSize": 18,
+            "fontWeight": "600",
+          }
+        }
+      >
+        title
+      </Text>
+    </View>
+    content
+    <View
+      style={
+        Object {
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "height": 45,
+              "padding": 5,
+              "width": 75,
+            },
+            Object {
+              "left": 0,
+            },
+          ]
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="transparent"
+      >
+        Back
+      </StyledButton>
+      <View
+        style={
+          Object {
+            "alignSelf": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          key="1"
+          style={
+            Array [
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderRadius": 3.5,
+                "height": 7,
+                "margin": 5,
+                "opacity": 0.4,
+                "width": 7,
+              },
+              Object {
+                "opacity": 1,
+              },
+            ]
+          }
+        />
+        <View
+          key="2"
+          style={
+            Array [
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderRadius": 3.5,
+                "height": 7,
+                "margin": 5,
+                "opacity": 0.4,
+                "width": 7,
+              },
+              Object {},
+            ]
+          }
+        />
+        <View
+          key="3"
+          style={
+            Array [
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderRadius": 3.5,
+                "height": 7,
+                "margin": 5,
+                "opacity": 0.4,
+                "width": 7,
+              },
+              Object {},
+            ]
+          }
+        />
+        <View
+          key="4"
+          style={
+            Array [
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderRadius": 3.5,
+                "height": 7,
+                "margin": 5,
+                "opacity": 0.4,
+                "width": 7,
+              },
+              Object {},
+            ]
+          }
+        />
+        <View
+          key="5"
+          style={
+            Array [
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderRadius": 3.5,
+                "height": 7,
+                "margin": 5,
+                "opacity": 0.4,
+                "width": 7,
+              },
+              Object {},
+            ]
+          }
+        />
+      </View>
+      <StyledButton
+        containerStyle={
+          Array [
+            Object {
+              "height": 45,
+              "padding": 5,
+              "width": 75,
+            },
+            Object {
+              "right": 0,
+            },
+          ]
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Got it!
+      </StyledButton>
+    </View>
+  </View>
+</AnimatedComponent>
+`;

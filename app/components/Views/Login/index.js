@@ -22,6 +22,9 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -105,12 +108,16 @@ const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 /**
  * View where returning users can authenticate
  */
-export default class Login extends Component {
+class Login extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -173,9 +180,16 @@ export default class Login extends Component {
 				}
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			}
-
 			this.setState({ loading: false });
-			this.props.navigation.navigate('HomeNav');
+
+			// Get onboarding wizard state
+			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+			if (onboardingWizard) {
+				this.props.navigation.navigate('HomeNav');
+			} else {
+				this.props.setOnboardingWizardStep(1);
+				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+			}
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
 			if (error.toString() === WRONG_PASSWORD_ERROR) {
@@ -295,3 +309,12 @@ export default class Login extends Component {
 		</SafeAreaView>
 	);
 }
+
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(Login);
