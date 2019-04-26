@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Platform, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../../styles/common';
+import DeviceSize from '../../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	noTabs: {
@@ -55,21 +56,20 @@ const styles = StyleSheet.create({
 	tabActions: {
 		paddingHorizontal: 20,
 		flexDirection: 'row',
-		marginBottom: 30,
+		marginBottom: DeviceSize.isIphoneX() ? 30 : 5,
 		paddingVertical: 10
 	},
 	tabs: {
 		flex: 1
 	},
 	tabsContent: {
-		flex: 1,
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		justifyContent: 'space-between',
 		padding: 15
 	},
 	newTabIcon: {
-		marginTop: 3,
+		marginTop: Platform.OS === 'ios' ? 3 : 0,
 		color: colors.white,
 		fontSize: 24,
 		textAlign: 'center',

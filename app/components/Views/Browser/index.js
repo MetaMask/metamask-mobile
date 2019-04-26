@@ -65,6 +65,7 @@ import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import { captureScreen } from 'react-native-view-shot';
 import Tabs from './Tabs';
+import TabCountIcon from './Tabs/TabCountIcon';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -191,20 +192,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end'
 	},
 	tabIcon: {
-		borderWidth: 3,
-		borderColor: colors.grey500,
-		paddingVertical: 5,
-		paddingHorizontal: 10,
-		borderRadius: 8
-	},
-	tabCount: {
-		color: colors.grey500,
-		flex: 0,
-		lineHeight: 15,
-		marginRight: 10,
-		textAlign: 'center',
-		alignSelf: 'center',
-		...fontStyles.normal
+		width: 30,
+		height: 30
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -423,8 +412,7 @@ export class Browser extends Component {
 			forwardEnabled: false,
 			forceReload: false,
 			suggestedAssetMeta: undefined,
-			watchAsset: false,
-			showTabs: false
+			watchAsset: false
 		};
 	}
 
@@ -766,7 +754,8 @@ export class Browser extends Component {
 	};
 
 	updateTabInfo(url) {
-		if (this.state.showTabs) return false;
+		let showTabs = this.props.navigation.getParam('showTabs', false);
+		if (showTabs) return false;
 
 		const { activeTab, updateTab } = this.props;
 		if (this.snapshotTimer) {
@@ -774,7 +763,8 @@ export class Browser extends Component {
 		}
 
 		this.snapshotTimer = setTimeout(() => {
-			if (this.state.showTabs) {
+			showTabs = this.props.navigation.getParam('showTabs', false);
+			if (showTabs) {
 				this.updateTabInfo(url);
 				return false;
 			}
@@ -1399,7 +1389,10 @@ export class Browser extends Component {
 	}
 
 	showTabs = () => {
-		this.setState({ showTabs: true });
+		this.props.navigation.setParams({
+			...this.props.navigation.state.params,
+			showTabs: true
+		});
 	};
 
 	renderBottomBar = (canGoBack, canGoForward) => {
@@ -1430,9 +1423,7 @@ export class Browser extends Component {
 					/>
 				</View>
 				<View style={styles.iconsMiddle}>
-					<TouchableOpacity style={styles.tabIcon} onPress={this.showTabs}>
-						<Text styles={styles.tabCount}>{Math.max(this.props.tabs.length, 1)}</Text>
-					</TouchableOpacity>
+					<TabCountIcon onPress={this.showTabs} style={styles.tabIcon} />
 				</View>
 				<View style={styles.iconsRight}>
 					<IonIcon
@@ -1779,25 +1770,33 @@ export class Browser extends Component {
 
 	closeTabsView = () => {
 		if (this.props.tabs.length) {
-			this.setState({ showTabs: false });
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				showTabs: false
+			});
 			this.updateTabInfo(this.state.inputValue);
 		}
 	};
 
 	switchToTab = tab => {
 		this.props.setActiveTab(tab.id);
-		this.setState({ showTabs: false }, () => {
-			this.go(tab.url);
+		this.props.navigation.setParams({
+			...this.props.navigation.state.params,
+			showTabs: false
 		});
+		setTimeout(() => {
+			this.go(tab.url);
+		}, 100);
 	};
 
 	renderTabsView() {
 		const { tabs, activeTab, animateCurrentTab } = this.props;
+		const showTabs = this.props.navigation.getParam('showTabs', false);
 		return (
 			<Tabs
 				tabs={tabs}
 				activeTab={activeTab}
-				visible={this.state.showTabs}
+				visible={showTabs}
 				switchToTab={this.switchToTab}
 				newTab={this.newTab}
 				closeTab={this.closeTab}
