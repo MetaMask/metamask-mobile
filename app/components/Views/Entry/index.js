@@ -102,14 +102,10 @@ class Entry extends Component {
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 				if (onboardingWizard) {
-					this.props.navigation.animateAndGoTo('HomeNav');
+					this.animateAndGoTo('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.animateAndGoTo(
-						'HomeNav',
-						{},
-						NavigationActions.navigate({ routeName: 'WalletView' })
-					);
+					this.animateAndGoTo('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
 				}
 			} else {
 				this.animateAndGoTo('Login');
