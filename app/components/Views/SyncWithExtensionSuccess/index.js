@@ -6,6 +6,10 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import AsyncStorage from '@react-native-community/async-storage';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -46,12 +50,16 @@ const styles = StyleSheet.create({
  * View that shows the success message once
  * the sync with the extension is complete
  */
-export default class SyncWithExtensionSuccess extends Component {
+class SyncWithExtensionSuccess extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	static navigationOptions = ({ navigation }) => ({
@@ -74,8 +82,15 @@ export default class SyncWithExtensionSuccess extends Component {
 		}).start();
 	}
 
-	continue = () => {
-		this.props.navigation.navigate('HomeNav');
+	continue = async () => {
+		// Get onboarding wizard state
+		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		if (onboardingWizard) {
+			this.props.navigation.navigate('HomeNav');
+		} else {
+			this.props.setOnboardingWizardStep(1);
+			this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+		}
 	};
 
 	render = () => (
@@ -102,3 +117,12 @@ export default class SyncWithExtensionSuccess extends Component {
 		</SafeAreaView>
 	);
 }
+
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(SyncWithExtensionSuccess);

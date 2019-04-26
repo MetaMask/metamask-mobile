@@ -79,7 +79,7 @@ exports[`StyledButton should render correctly on Android the button with type or
           "padding": 15,
         },
         Object {
-          "backgroundColor": "#f66a0a",
+          "backgroundColor": undefined,
         },
         null,
         undefined,
@@ -203,7 +203,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "padding": 15,
       },
       Object {
-        "backgroundColor": "#f66a0a",
+        "backgroundColor": undefined,
       },
       undefined,
     ]

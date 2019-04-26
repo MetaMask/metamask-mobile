@@ -19,11 +19,12 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
-
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -127,7 +128,11 @@ class ImportFromSeed extends Component {
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -213,14 +218,24 @@ class ImportFromSeed extends Component {
 					}
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				}
-
+				// Get onboarding wizard state
+				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
-				this.props.navigation.navigate('HomeNav');
+				if (onboardingWizard) {
+					this.props.navigation.navigate('HomeNav');
+				} else {
+					this.props.setOnboardingWizardStep(1);
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
+				}
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -376,6 +391,7 @@ class ImportFromSeed extends Component {
 
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });
