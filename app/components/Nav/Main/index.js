@@ -46,8 +46,6 @@ import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import OnboardingWizard from '../../UI/OnboardingWizard';
-import AsyncStorage from '@react-native-community/async-storage';
-import setOnboardingWizardStep from '../../../actions/wizard';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -250,16 +248,11 @@ class Main extends Component {
 		/**
 		 * Current onboarding wizard step
 		 */
-		wizardStep: PropTypes.number,
-		/**
-		 * Dispatch set onboarding wizard step
-		 */
-		setOnboardingWizardStep: PropTypes.func
+		wizardStep: PropTypes.number
 	};
 
 	state = {
-		forceReload: false,
-		mounted: false
+		forceReload: false
 	};
 
 	backgroundMode = false;
@@ -276,18 +269,6 @@ class Main extends Component {
 	};
 
 	componentDidMount = async () => {
-		// Get onboarding wizard state
-		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
-		const { setOnboardingWizardStep, navigation } = this.props;
-		navigation && navigation.navigate('WalletView');
-		setOnboardingWizardStep && setOnboardingWizardStep(1);
-		if (!onboardingWizard) {
-			navigation && navigation.navigate('WalletView');
-			setOnboardingWizardStep && setOnboardingWizardStep(1);
-			await AsyncStorage.setItem('@MetaMask:onboardingWizard', 'explored');
-		}
-		this.setState({ mounted: true });
-
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -377,34 +358,21 @@ class Main extends Component {
 	};
 
 	render() {
-		const { forceReload, mounted } = this.state;
+		const { forceReload } = this.state;
 		return (
-			mounted && (
-				<View style={styles.flex}>
-					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-					{this.renderOnboardingWizard()}
-					<GlobalAlert />
-					<FlashMessage
-						position="bottom"
-						MessageComponent={TransactionNotification}
-						animationDuration={150}
-					/>
-				</View>
-			)
+			<View style={styles.flex}>
+				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+				{this.renderOnboardingWizard()}
+				<GlobalAlert />
+				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+			</View>
 		);
 	}
 }
-
-const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
-});
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	wizardStep: state.wizard.step
 });
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Main);
+export default connect(mapStateToProps)(Main);
