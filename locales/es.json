@@ -225,7 +225,7 @@
 		"show_hex_data": "Mostrar datos hexadecimales",
 		"show_hex_data_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"general_title": "General",
-		"general_desc": "Conversion, Moneda principal, lenguaje",
+		"general_desc": "Conversion, Moneda principal, lenguaje y motor de búsqueda",
 		"advanced_title": "Avanzado",
 		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",

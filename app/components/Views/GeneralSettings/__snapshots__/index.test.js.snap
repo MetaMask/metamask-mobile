@@ -419,7 +419,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Select native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.
+        Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.
       </Text>
       <View
         style={
