@@ -79,7 +79,7 @@ class Settings extends Component {
 		 */
 		setSearchEngine: PropTypes.func,
 		/**
-		 * Called to set the active search engine
+		 * Called to set primary currency
 		 */
 		setPrimaryCurrency: PropTypes.func,
 		/**
@@ -128,8 +128,8 @@ class Settings extends Component {
 			{ value: 'Google', label: 'Google', key: 'Google' }
 		];
 		this.primaryCurrencyOptions = [
-			{ value: 'ETH', label: 'Native', key: 'Native' },
-			{ value: 'Fiat', label: 'Fiat', key: 'Fiat' }
+			{ value: 'ETH', label: strings('app_settings.primary_currency_text_first'), key: 'Native' },
+			{ value: 'Fiat', label: strings('app_settings.primary_currency_text_second'), key: 'Fiat' }
 		];
 	};
 

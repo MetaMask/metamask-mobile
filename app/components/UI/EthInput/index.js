@@ -192,7 +192,6 @@ class EthInput extends Component {
 	 * Used to 'fillMax' feature. Will process value coming from parent to render corresponding values on input
 	 */
 	componentDidUpdate = () => {
-		// TODO update doc
 		const { fillMax, readableValue } = this.props;
 		if (fillMax) {
 			const { processedReadableValue } = this.processValue(readableValue);
@@ -411,7 +410,6 @@ class EthInput extends Component {
 	 */
 	onChange = value => {
 		const { onChange } = this.props;
-		// TODO update doc
 		const { processedValue } = this.processValue(value);
 		onChange && onChange(processedValue, value);
 		this.setState({ readableValue: value });
