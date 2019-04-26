@@ -1,0 +1,14 @@
+diff a/app/components/Views/ImportFromSeed/index.js b/app/components/Views/ImportFromSeed/index.js	(rejected hunks)
+@@ -27 +27 @@ import AppConstants from '../../../core/AppConstants';
+-import setOnboardingWizardStep from '../../../actions/wizard'
++import setOnboardingWizardStep from '../../../actions/wizard';
+@@ -233 +233 @@ class ImportFromSeed extends Component {
+-					this.props.setOnboardingWizardStep(1)
++					this.props.setOnboardingWizardStep(1);
+@@ -235 +235,5 @@ class ImportFromSeed extends Component {
+-					this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView'}));
++					this.props.navigation.navigate(
++						'HomeNav',
++						{},
++						NavigationActions.navigate({ routeName: 'WalletView' })
++					);
