@@ -45,6 +45,7 @@ import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
+import OnboardingWizard from '../../UI/OnboardingWizard';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TabModalAnimation from '../../Views/Browser/Tabs/TabModalAnimation';
 
@@ -247,6 +248,10 @@ class Main extends Component {
 		 */
 		lockTime: PropTypes.number,
 		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number,
+		/**
 		 * Object containing the information of the current tab
 		 */
 		tabToAnimate: PropTypes.object
@@ -269,7 +274,7 @@ class Main extends Component {
 		}
 	};
 
-	componentDidMount() {
+	componentDidMount = async () => {
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -297,7 +302,7 @@ class Main extends Component {
 				}
 			}
 		});
-	}
+	};
 
 	handleAppStateChange = appState => {
 		const newModeIsBackground = appState === 'background';
@@ -350,12 +355,29 @@ class Main extends Component {
 		this.lockManager.stopListening();
 	}
 
-	render = () => {
-		const { tabToAnimate } = this.props;
+	render = () => (
+		<View style={styles.flex}>
+			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+			<GlobalAlert />
+			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+			<FadeOutOverlay />
+		</View>
+	);
+	/**
+	 * Return current step of onboarding wizard if not step 5 nor 0
+	 */
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		return wizardStep !== 5 && wizardStep > 0 && <OnboardingWizard navigation={this.props.navigation} />;
+	};
 
+	render() {
+		const { tabToAnimate } = this.props;
+		const { forceReload } = this.state;
 		return (
 			<View style={styles.flex}>
-				{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+				{this.renderOnboardingWizard()}
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 				<FadeOutOverlay />
@@ -364,11 +386,12 @@ class Main extends Component {
 				)}
 			</View>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
+	wizardStep: state.wizard.step,
 	tabToAnimate: state.browser.tabToAnimate
 });
 

@@ -3,6 +3,7 @@ import AppConstants from '../../core/AppConstants';
 
 const initialState = {
 	searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
+	primaryCurrency: 'ETH',
 	lockTime: -1 // Disabled by default
 };
 
@@ -27,6 +28,11 @@ const settingsReducer = (state = initialState, action) => {
 			return {
 				...state,
 				showHexData: action.showHexData
+			};
+		case 'SET_PRIMARY_CURRENCY':
+			return {
+				...state,
+				primaryCurrency: action.primaryCurrency
 			};
 		default:
 			return state;

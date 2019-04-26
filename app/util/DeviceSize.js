@@ -55,4 +55,8 @@ export default class DeviceSize {
 	static isIpadLandscape12_9() {
 		return Dimensions.get('window').width === 1366 && Dimensions.get('window').height === 1024;
 	}
+
+	static getDeviceWidth() {
+		return Dimensions.get('window').width;
+	}
 }

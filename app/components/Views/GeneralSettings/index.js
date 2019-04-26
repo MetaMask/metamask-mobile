@@ -9,7 +9,8 @@ import SelectComponent from '../../UI/SelectComponent';
 import infuraCurrencies from '../../../util/infura-conversion.json';
 import { colors, fontStyles } from '../../../styles/common';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { setSearchEngine } from '../../../actions/settings';
+import { setSearchEngine, setPrimaryCurrency } from '../../../actions/settings';
+import PickComponent from '../PickComponent';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
@@ -46,6 +47,9 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		marginTop: 16
 	},
+	simplePicker: {
+		marginTop: 16
+	},
 	setting: {
 		marginTop: 50
 	},
@@ -75,9 +79,17 @@ class Settings extends Component {
 		 */
 		setSearchEngine: PropTypes.func,
 		/**
+		 * Called to set primary currency
+		 */
+		setPrimaryCurrency: PropTypes.func,
+		/**
 		 * Active search engine
 		 */
-		searchEngine: PropTypes.string
+		searchEngine: PropTypes.string,
+		/**
+		 * Active primary currency
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -103,6 +115,10 @@ class Settings extends Component {
 		this.props.setSearchEngine(searchEngine);
 	};
 
+	selectPrimaryCurrency = primaryCurrency => {
+		this.props.setPrimaryCurrency(primaryCurrency);
+	};
+
 	componentDidMount = () => {
 		const languages = getLanguages();
 		this.setState({ languages });
@@ -111,10 +127,14 @@ class Settings extends Component {
 			{ value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
 			{ value: 'Google', label: 'Google', key: 'Google' }
 		];
+		this.primaryCurrencyOptions = [
+			{ value: 'ETH', label: strings('app_settings.primary_currency_text_first'), key: 'Native' },
+			{ value: 'Fiat', label: strings('app_settings.primary_currency_text_second'), key: 'Fiat' }
+		];
 	};
 
-	render = () => {
-		const { currentCurrency } = this.props;
+	render() {
+		const { currentCurrency, primaryCurrency } = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -128,6 +148,22 @@ class Settings extends Component {
 								label={strings('app_settings.current_conversion')}
 								options={infuraCurrencyOptions}
 							/>
+						</View>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.primary_currency_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.primary_currency_desc')}</Text>
+						<View style={styles.simplePicker}>
+							{this.primaryCurrencyOptions && (
+								<PickComponent
+									pick={this.selectPrimaryCurrency}
+									textFirst={strings('app_settings.primary_currency_text_first')}
+									valueFirst={'ETH'}
+									textSecond={strings('app_settings.primary_currency_text_second')}
+									valueSecond={'Fiat'}
+									selectedValue={primaryCurrency}
+								/>
+							)}
 						</View>
 					</View>
 					<View style={styles.setting}>
@@ -161,16 +197,18 @@ class Settings extends Component {
 				</View>
 			</ScrollView>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	searchEngine: state.settings.searchEngine
+	searchEngine: state.settings.searchEngine,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
-	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine))
+	setSearchEngine: searchEngine => dispatch(setSearchEngine(searchEngine)),
+	setPrimaryCurrency: primaryCurrency => dispatch(setPrimaryCurrency(primaryCurrency))
 });
 
 export default connect(

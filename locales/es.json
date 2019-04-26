@@ -15,6 +15,50 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Saltar Tutorial",
+		"coachmark": {
+			"action_back": "No, Gracias",
+			"action_next": "Hacer un recorrido",
+			"progress_back": "Atrás",
+			"progress_next": "Perfecto!"
+		},
+		"step1": {
+			"title": "Bienvenido a tu Nueva Billetera!",
+			"content1": "Para usar aplicaciones blockchain (DAPPS) necesitas una billetera ya que las acciones en blockchain tienen un costo en Ether (ETH).",
+			"content2": "Puedes comprar unos cuantos dólares de ETH en una bolsa de valores como Coinbase o simplemente solicitar a un amigo."
+		},
+		"step2": {
+			"title": "Tus Cuentas",
+			"content1": "Esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).",
+			"content2": "Puedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+		},
+		"step3": {
+			"title": "Editar Nombre",
+			"content1": "'Account 1' no es muy memorable. Porque no nombrar tu cuenta con algo un poco más memorable.",
+			"content2": "Presiona",
+			"content3": "para editar el nombre de la cuenta."
+		},
+		"step4": {
+			"title": "Navegación Principal",
+			"content1": "Presiona acá",
+			"content2": "para acceder a tu Billetera, Navegador, e Historial de Transacciones.",
+			"content3": "Puedes realizzar más acciones con tus cuentas y acceder a configuraciones."
+		},
+		"step5": {
+			"title": "Explora el Navegador",
+			"content1": "Puedes exprolar aplicaciones blockchain (DAPPS) en el",
+			"content2": "Navegador."
+		},
+		"step6": {
+			"title": "Buscar Dapps",
+			"content": "Busca aplicaciones blockchain (DAPPS)!"
+		},
+		"step7": {
+			"title": "Dapps Destacadas",
+			"content": "Comienza a explorar las aplicaciones blockchain (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creando tu nueva billetera",
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
@@ -225,7 +269,7 @@
 		"show_hex_data": "Mostrar datos hexadecimales",
 		"show_hex_data_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"general_title": "General",
-		"general_desc": "Conversion, Moneda principal, lenguaje",
+		"general_desc": "Conversion, Moneda principal, lenguaje y motor de búsqueda",
 		"advanced_title": "Avanzado",
 		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
@@ -234,6 +278,10 @@
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
+		"primary_currency_title": "Moneda primaria",
+		"primary_currency_desc": "Seleccione nativo para priorizar la visualización de valores en la moneda nativa de la blockchain (por ejemplo, ETH). Seleccione Fiat para priorizar la visualización de valores en su moneda primaria seleccionada.",
+		"primary_currency_text_first": "Nativo",
+		"primary_currency_text_second": "Fiat",
 		"language_desc": "Traducir la aplicacion a un lenguaje soportado diferente.",
 		"engine_desc": "Cambiar el motor de búsqueda por defecto al realizar búsquedas en el navegador.",
 		"reset_desc": "Esta acción borrará tu historial de transacciones. Estos datos puede que no sean recuperables.",
