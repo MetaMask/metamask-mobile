@@ -221,7 +221,7 @@ export default class Coachmark extends Component {
 	};
 
 	/**
-	 * Returns progression bar, back and next buttons. According to currentStep
+	 * Returns progress bar, back and next buttons. According to currentStep
 	 *
 	 * @returns {Object} - Corresponding view object
 	 */

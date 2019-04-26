@@ -279,6 +279,8 @@ class Main extends Component {
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 		const { setOnboardingWizardStep, navigation } = this.props;
+		navigation && navigation.navigate('WalletView');
+		setOnboardingWizardStep && setOnboardingWizardStep(1);
 		if (!onboardingWizard) {
 			navigation && navigation.navigate('WalletView');
 			setOnboardingWizardStep && setOnboardingWizardStep(1);
@@ -371,7 +373,7 @@ class Main extends Component {
 	 */
 	renderOnboardingWizard = () => {
 		const { wizardStep } = this.props;
-		return wizardStep !== 5 && wizardStep !== 0 && <OnboardingWizard navigation={this.props.navigation} />;
+		return wizardStep !== 5 && wizardStep > 0 && <OnboardingWizard navigation={this.props.navigation} />;
 	};
 
 	render() {
