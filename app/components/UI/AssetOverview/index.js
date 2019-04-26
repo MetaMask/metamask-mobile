@@ -72,7 +72,11 @@ class AssetOverview extends Component {
 		/**
 		 * Action that toggles the receive modal
 		 */
-		toggleReceiveModal: PropTypes.func
+		toggleReceiveModal: PropTypes.func,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	onDeposit = () => {
@@ -107,16 +111,26 @@ class AssetOverview extends Component {
 
 	render() {
 		const {
-			asset: { symbol, balance, balanceFiat }
+			asset: { symbol, balance, balanceFiat },
+			primaryCurrency
 		} = this.props;
+		let mainBalance, secondaryBalance;
+
+		// choose balances depending on 'primaryCurrency'
+		if (primaryCurrency === 'ETH') {
+			mainBalance = balance + ' ' + symbol;
+			secondaryBalance = balanceFiat;
+		} else {
+			mainBalance = !balanceFiat ? balance + ' ' + symbol : balanceFiat;
+			secondaryBalance = !balanceFiat ? balanceFiat : balance + ' ' + symbol;
+		}
+
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.assetLogo}>{this.renderLogo()}</View>
 				<View style={styles.balance}>
-					<Text style={styles.amount}>
-						{balance} {symbol}
-					</Text>
-					<Text style={styles.amountFiat}>{balanceFiat}</Text>
+					<Text style={styles.amount}>{mainBalance}</Text>
+					<Text style={styles.amountFiat}>{secondaryBalance}</Text>
 				</View>
 
 				<AssetActionButtons
@@ -130,12 +144,16 @@ class AssetOverview extends Component {
 	}
 }
 
+const mapStateToProps = state => ({
+	primaryCurrency: state.settings.primaryCurrency
+});
+
 const mapDispatchToProps = dispatch => ({
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal())
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(AssetOverview);

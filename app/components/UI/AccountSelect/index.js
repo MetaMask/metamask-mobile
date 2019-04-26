@@ -122,7 +122,11 @@ class AccountSelect extends Component {
 		/**
 		 * Whether accounts dropdown is opened
 		 */
-		isOpen: PropTypes.bool
+		isOpen: PropTypes.bool,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	static defaultProps = {
@@ -149,8 +153,19 @@ class AccountSelect extends Component {
 	}
 
 	renderOption(account, onPress) {
-		const { conversionRate, currentCurrency } = this.props;
+		const { conversionRate, currentCurrency, primaryCurrency } = this.props;
 		const balance = hexToBN(account.balance);
+
+		// render balances according to selected 'primaryCurrency'
+		let mainBalance, secondaryBalance;
+		if (primaryCurrency === 'ETH') {
+			mainBalance = renderFromWei(balance) + ' ' + strings('unit.eth');
+			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency).toUpperCase();
+		} else {
+			mainBalance = weiToFiat(balance, conversionRate, currentCurrency).toUpperCase();
+			secondaryBalance = renderFromWei(balance) + ' ' + strings('unit.eth');
+		}
+
 		return (
 			<TouchableOpacity
 				key={account.address}
@@ -165,10 +180,8 @@ class AccountSelect extends Component {
 					<Text numberOfLines={1} style={styles.name}>
 						{account.name}
 					</Text>
-					<Text style={styles.info}>
-						{renderFromWei(balance)} {strings('unit.eth')}
-					</Text>
-					<Text style={styles.info}>{weiToFiat(balance, conversionRate, currentCurrency).toUpperCase()}</Text>
+					<Text style={styles.info}>{mainBalance}</Text>
+					<Text style={styles.info}>{secondaryBalance}</Text>
 				</View>
 			</TouchableOpacity>
 		);
@@ -199,16 +212,13 @@ class AccountSelect extends Component {
 	);
 }
 
-const mapStateToProps = ({
-	engine: {
-		backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
-	}
-}) => ({
-	accounts: AccountTrackerController.accounts,
-	conversionRate: CurrencyRateController.conversionRate,
-	currentCurrency: CurrencyRateController.currentCurrency,
-	identities: PreferencesController.identities,
-	selectedAddress: PreferencesController.selectedAddress
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 export default connect(mapStateToProps)(AccountSelect);

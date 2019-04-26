@@ -126,6 +126,25 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
 }
 
 /**
+ * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
+ *
+ * @param {number|string} fiat - Fiat number
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @param {number} decimals - Asset decimals
+ * @returns {Object} - The converted balance as BN instance
+ */
+export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate, decimals) {
+	const floatFiatConverted = parseFloat(fiat) / (conversionRate * exchangeRate);
+	const base = Math.pow(10, decimals);
+	let weiNumber = floatFiatConverted * base;
+	// avoid decimals
+	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false }).split('.');
+	const weiBN = numberToBN(weiNumber[0]);
+	return weiBN;
+}
+
+/**
  * Converts wei to render format string, showing 5 decimals
  *
  * @param {Number|String|BN} value - Wei to convert
@@ -266,6 +285,21 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 }
 
 /**
+ * Converts fiat number as human-readable fiat string to wei expressed as a BN
+ *
+ * @param {number|string} fiat - Fiat number
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @returns {Object} - The converted balance as BN instance
+ */
+export function fiatNumberToWei(fiat, conversionRate) {
+	const floatFiatConverted = parseFloat(fiat) / conversionRate;
+	const base = Math.pow(10, 18);
+	const weiNumber = Math.trunc(base * floatFiatConverted);
+	const weiBN = numberToBN(weiNumber);
+	return weiBN;
+}
+
+/**
  * Calculates fiat balance of an asset
  *
  * @param {number} balance - Number corresponding to a balance of an asset
@@ -275,7 +309,7 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
  * @returns {string} - Currency-formatted string
  */
 export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCode) {
-	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === null) {
+	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === 0) {
 		return undefined;
 	}
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
