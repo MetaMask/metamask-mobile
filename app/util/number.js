@@ -294,7 +294,7 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 export function fiatNumberToWei(fiat, conversionRate) {
 	const floatFiatConverted = parseFloat(fiat) / conversionRate;
 	const base = Math.pow(10, 18);
-	const weiNumber = floatFiatConverted * base;
+	const weiNumber = Math.trunc(base * floatFiatConverted);
 	const weiBN = numberToBN(weiNumber);
 	return weiBN;
 }
