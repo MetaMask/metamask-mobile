@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 4,
 		borderColor: colors.blue,
-		padding: Platform.OS === 'ios' ? 0 : -6,
+		paddingVertical: Platform.OS === 'ios' ? 2 : -4,
+		paddingHorizontal: Platform.OS === 'ios' ? 5 : 5,
 		top: Platform.OS === 'ios' ? 0 : -2
 	}
 });
