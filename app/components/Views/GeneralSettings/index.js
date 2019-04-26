@@ -10,6 +10,7 @@ import infuraCurrencies from '../../../util/infura-conversion.json';
 import { colors, fontStyles } from '../../../styles/common';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setSearchEngine, setPrimaryCurrency } from '../../../actions/settings';
+import PickComponent from '../PickComponent';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
@@ -44,6 +45,9 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 		borderRadius: 5,
 		borderWidth: 2,
+		marginTop: 16
+	},
+	simplePicker: {
 		marginTop: 16
 	},
 	setting: {
@@ -124,13 +128,13 @@ class Settings extends Component {
 			{ value: 'Google', label: 'Google', key: 'Google' }
 		];
 		this.primaryCurrencyOptions = [
-			{ value: 'ETH', label: 'ETH', key: 'ETH' },
+			{ value: 'ETH', label: 'Native', key: 'Native' },
 			{ value: 'Fiat', label: 'Fiat', key: 'Fiat' }
 		];
 	};
 
 	render() {
-		const { currentCurrency } = this.props;
+		const { currentCurrency, primaryCurrency } = this.props;
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -144,6 +148,22 @@ class Settings extends Component {
 								label={strings('app_settings.current_conversion')}
 								options={infuraCurrencyOptions}
 							/>
+						</View>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.primary_currency_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.primary_currency_desc')}</Text>
+						<View style={styles.simplePicker}>
+							{this.primaryCurrencyOptions && (
+								<PickComponent
+									pick={this.selectPrimaryCurrency}
+									textFirst={strings('app_settings.primary_currency_text_first')}
+									valueFirst={'ETH'}
+									textSecond={strings('app_settings.primary_currency_text_second')}
+									valueSecond={'Fiat'}
+									selectedValue={primaryCurrency}
+								/>
+							)}
 						</View>
 					</View>
 					<View style={styles.setting}>
@@ -170,20 +190,6 @@ class Settings extends Component {
 									onValueChange={this.selectSearchEngine}
 									label={strings('app_settings.search_engine')}
 									options={this.searchEngineOptions}
-								/>
-							)}
-						</View>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.search_engine')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.engine_desc')}</Text>
-						<View style={styles.picker}>
-							{this.primaryCurrencyOptions && (
-								<SelectComponent
-									selectedValue={this.props.primaryCurrency}
-									onValueChange={this.selectPrimaryCurrency}
-									label={strings('app_settings.search_engine')}
-									options={this.primaryCurrencyOptions}
 								/>
 							)}
 						</View>

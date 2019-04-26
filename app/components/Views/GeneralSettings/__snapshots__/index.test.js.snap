@@ -405,7 +405,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Current Language
+        Primary Currency
       </Text>
       <Text
         style={
@@ -419,14 +419,11 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Translate the application to a different supported language.
+        Select native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.
       </Text>
       <View
         style={
           Object {
-            "borderColor": "#bbc0c5",
-            "borderRadius": 5,
-            "borderWidth": 2,
             "marginTop": 16,
           }
         }
@@ -450,7 +447,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Search Engine
+        Current Language
       </Text>
       <Text
         style={
@@ -464,7 +461,7 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
-        Change the default search engine used when entering search terms in the URL bar.
+        Translate the application to a different supported language.
       </Text>
       <View
         style={
