@@ -18,3 +18,10 @@ export function setLockTime(lockTime) {
 		lockTime
 	};
 }
+
+export function setPrimaryCurrency(primaryCurrency) {
+	return {
+		type: 'SET_PRIMARY_CURRENCY',
+		primaryCurrency
+	};
+}

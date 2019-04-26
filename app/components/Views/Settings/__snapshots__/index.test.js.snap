@@ -12,7 +12,7 @@ exports[`Settings should render correctly 1`] = `
 >
   <View>
     <SettingsDrawer
-      description="Currency conversion, primary currency, language"
+      description="Currency conversion, primary currency, language and search engine"
       onPress={[Function]}
       title="General"
     />
