@@ -20,13 +20,13 @@ const styles = StyleSheet.create({
 		color: colors.white
 	},
 	orange: {
-		backgroundColor: colors.primaryFox
+		backgroundColor: colors.blueFox
 	},
 	orangeText: {
 		color: colors.white
 	},
 	infoText: {
-		color: colors.primaryFox
+		color: colors.blueFox
 	},
 	confirm: {
 		backgroundColor: colors.blue,
@@ -53,9 +53,9 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	transparent: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.transparent,
 		borderWidth: 0,
-		borderColor: colors.white
+		borderColor: colors.transparent
 	},
 	cancel: {
 		backgroundColor: colors.white,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
 	info: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.primaryFox
+		borderColor: colors.blueFox
 	},
 	warningText: {
 		color: colors.red
@@ -90,6 +90,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.red,
 		borderColor: colors.red,
 		borderWidth: 1
+	},
+	whiteText: {
+		...fontStyles.bold,
+		color: colors.white
 	}
 });
 
@@ -121,7 +125,7 @@ function getStyles(type) {
 			containerStyle = styles.cancel;
 			break;
 		case 'transparent':
-			fontStyle = styles.normalText;
+			fontStyle = styles.whiteText;
 			containerStyle = styles.transparent;
 			break;
 		case 'warning':

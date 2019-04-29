@@ -405,6 +405,48 @@ exports[`GeneralSettings should render correctly 1`] = `
           }
         }
       >
+        Primary Currency
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 16,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
         Current Language
       </Text>
       <Text
