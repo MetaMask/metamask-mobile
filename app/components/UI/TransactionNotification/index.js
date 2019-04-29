@@ -60,9 +60,9 @@ export const TransactionNotification = props => {
 			case 'pending':
 				return <AnimatedSpinner size={36} />;
 			case 'success':
-				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'received':
 				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
+			case 'cancelled':
 			case 'error':
 				return (
 					<MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />
@@ -82,6 +82,8 @@ export const TransactionNotification = props => {
 					amount: transaction.amount,
 					assetType: transaction.assetType
 				});
+			case 'cancelled':
+				return strings('notifications.cancelled_title');
 			case 'error':
 				return strings('notifications.error_title');
 		}
