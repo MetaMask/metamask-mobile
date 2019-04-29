@@ -355,14 +355,6 @@ class Main extends Component {
 		this.lockManager.stopListening();
 	}
 
-	render = () => (
-		<View style={styles.flex}>
-			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-			<GlobalAlert />
-			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
-			<FadeOutOverlay />
-		</View>
-	);
 	/**
 	 * Return current step of onboarding wizard if not step 5 nor 0
 	 */
@@ -374,6 +366,7 @@ class Main extends Component {
 	render() {
 		const { tabToAnimate } = this.props;
 		const { forceReload } = this.state;
+
 		return (
 			<View style={styles.flex}>
 				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}

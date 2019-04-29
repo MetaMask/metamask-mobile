@@ -136,9 +136,19 @@ export default class Tabs extends Component {
 
 	constructor(props) {
 		super(props);
-		props.tabs.forEach(tab => {
+		this.createTabsRef(props.tabs);
+	}
+
+	createTabsRef(tabs) {
+		tabs.forEach(tab => {
 			this.thumbnails[tab.id] = React.createRef();
 		});
+	}
+
+	componentDidUpdate(prevProps) {
+		if (prevProps.tabs.length !== Object.keys(this.thumbnails).length) {
+			this.createTabsRef(this.props.tabs);
+		}
 	}
 
 	onSwitch = async tab => {
