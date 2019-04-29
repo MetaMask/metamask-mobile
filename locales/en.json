@@ -387,7 +387,12 @@
 		"value_not_available": "Not Available",
 		"rate_not_available": "Conversion not available",
 		"optional": "Optional",
-		"no_address_for_ens": "No address for ENS name"
+		"no_address_for_ens": "No address for ENS name",
+		"lets_try": "Yes, let's try",
+		"cancel_tx_title": "Attempt to cancel?",
+		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the canellation attempt is successful, you will be charged the transaction fee above.",
+		"nevermind": "Nevermind",
+		"gasCancelFee": "Gas Cancellation Fee"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -677,12 +682,14 @@
 	},
 	"notifications": {
 		"pending_title": "Transaction submitted!",
+		"cancelled_title": "Transaction cancelled!",
 		"success_title": "Transaction #{{nonce}} Complete!",
 		"error_title": "Oops, something went wrong :/",
 		"received_title": "You received {{amount}} {{assetType}}!",
 		"pending_message": "Waiting for confirmation...",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
+		"cancelled_message": "Tap to view this transaction",
 		"received_message": "Tap to view this transaction",
 		"prompt_title": "Enable Push Notifications",
 		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
