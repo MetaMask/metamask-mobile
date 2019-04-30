@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
+import { Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import {
 	createNewTab,
@@ -209,27 +210,30 @@ class Browser extends PureComponent {
 			clearTimeout(this.snapshotTimer);
 		}
 
-		this.snapshotTimer = setTimeout(() => {
-			const showTabs = this.props.navigation.getParam('showTabs', false);
-			if (showTabs) {
-				this.updateTabInfo(url, tabID);
-				return false;
-			}
-			captureScreen({
-				format: 'jpg',
-				quality: 0.5
-			}).then(
-				uri => {
-					updateTab(tabID, {
-						url,
-						image: uri
-					});
-				},
-				error => {
-					Logger.error(`Error saving tab ${url}`, error);
+		this.snapshotTimer = setTimeout(
+			() => {
+				const showTabs = this.props.navigation.getParam('showTabs', false);
+				if (showTabs) {
+					this.updateTabInfo(url, tabID);
+					return false;
 				}
-			);
-		}, 1000);
+				captureScreen({
+					format: 'jpg',
+					quality: 0.5
+				}).then(
+					uri => {
+						updateTab(tabID, {
+							url,
+							image: uri
+						});
+					},
+					error => {
+						Logger.error(`Error saving tab ${url}`, error);
+					}
+				);
+			},
+			Platform.OS === 'ios' ? 1000 : 1500
+		);
 	};
 
 	renderBrowserTabs() {

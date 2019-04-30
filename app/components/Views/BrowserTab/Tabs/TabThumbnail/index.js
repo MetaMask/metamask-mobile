@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		width,
-		height: width * 1.77
+		height: Platform.OS === 'ios' ? width * 1.81 : width * 1.48
 	},
 	tab: {
 		backgroundColor: colors.white,
