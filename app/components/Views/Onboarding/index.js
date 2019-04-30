@@ -131,7 +131,8 @@ class Onboarding extends Component {
 
 	onPressCreate = () => {
 		const { existingUser } = this.state;
-		const action = () => this.props.navigation.push('CreateWallet');
+		//this.props.navigation.navigate('CreateWallet');
+		const action = () => this.props.navigation.push('OptinMetrics');
 		if (existingUser) {
 			this.alertExistingUser(action);
 		} else {

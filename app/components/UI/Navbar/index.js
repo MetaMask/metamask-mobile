@@ -25,6 +25,10 @@ const styles = StyleSheet.create({
 		width: 94,
 		height: 12
 	},
+	metamaskFox: {
+		width: 50,
+		height: 50
+	},
 	metamaskNameWrapper: {
 		marginLeft: Platform.OS === 'android' ? 20 : 0
 	},
@@ -90,10 +94,17 @@ const styles = StyleSheet.create({
 	},
 	disabled: {
 		opacity: 0.3
+	},
+	optinHeaderLeft: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginLeft: 20,
+		marginRight: 20
 	}
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -279,6 +290,27 @@ export function getOnboardingNavbarOptions() {
 	};
 }
 
+export function getOptinMetricsNavbarOptions() {
+	return {
+		headerStyle: {
+			shadowColor: 'transparent',
+			elevation: 0,
+			backgroundColor: 'white',
+			borderBottomWidth: 0,
+			height: 100
+		},
+		headerLeft: (
+			<View style={styles.optinHeaderLeft}>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
+				</View>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				</View>
+			</View>
+		)
+	};
+}
 /**
  * Function that returns the navigation options
  * for our closable screens,
