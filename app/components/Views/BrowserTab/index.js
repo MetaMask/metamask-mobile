@@ -1715,7 +1715,10 @@ export class BrowserTab extends PureComponent {
 		const isHidden = !this.isTabActive();
 
 		return (
-			<View style={[styles.wrapper, isHidden && styles.hide]}>
+			<View
+				style={[styles.wrapper, isHidden && styles.hide]}
+				{...(Platform.OS === 'android' ? { collapsable: false } : {})}
+			>
 				{activated && !forceReload && (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}

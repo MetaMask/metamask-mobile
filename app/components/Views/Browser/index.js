@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
-import { Platform } from 'react-native';
+import { Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { createNewTab, closeAllTabs, closeTab, setActiveTab, updateTab } from '../../../actions/browser';
 import Tabs from '../../UI/Tabs';
@@ -10,6 +10,14 @@ import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
 import BrowserTab from '../BrowserTab';
 
+const margin = 16;
+const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
+const THUMB_HEIGHT = Platform.OS === 'ios' ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
+
+/**
+ * Component that wraps all the browser
+ * individual tabs and the tabs view
+ */
 class Browser extends PureComponent {
 	static propTypes = {
 		/**
@@ -197,7 +205,6 @@ class Browser extends PureComponent {
 		if (this.snapshotTimer) {
 			clearTimeout(this.snapshotTimer);
 		}
-
 		this.snapshotTimer = setTimeout(
 			() => {
 				const showTabs = this.props.navigation.getParam('showTabs', false);
@@ -207,7 +214,9 @@ class Browser extends PureComponent {
 				}
 				captureScreen({
 					format: 'jpg',
-					quality: 0.5
+					quality: 0.2,
+					THUMB_WIDTH,
+					THUMB_HEIGHT
 				}).then(
 					uri => {
 						updateTab(tabID, {

@@ -8,7 +8,6 @@ import { colors, fontStyles } from '../../../../styles/common';
 
 const margin = 16;
 const width = Dimensions.get('window').width / 2 - margin * 2;
-const offset = v => (Platform.OS === 'android' ? v + 20 : v);
 
 const styles = StyleSheet.create({
 	tabFavicon: {
@@ -40,7 +39,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		width,
-		height: Platform.OS === 'ios' ? width * 1.81 : width * 1.48
+		height: Platform.OS === 'ios' ? width * 1.8 : width * 1.45
 	},
 	tab: {
 		backgroundColor: colors.white,
@@ -89,16 +88,8 @@ export default class TabThumbnail extends Component {
 		onSwitch: PropTypes.func
 	};
 
-	ref = React.createRef();
-
-	measure = async () =>
-		new Promise(resolve =>
-			this.ref.current.measureInWindow((x, y, width, height) => resolve({ x, y: offset(y), width, height }))
-		);
-
 	render() {
 		const { isActiveTab, tab, onClose, onSwitch } = this.props;
-		const { ref } = this;
 
 		return (
 			<View style={[styles.tabWrapper, isActiveTab && styles.activeTab]}>
@@ -124,7 +115,7 @@ export default class TabThumbnail extends Component {
 					// eslint-disable-next-line react/jsx-no-bind
 					onPress={() => onSwitch(tab)}
 				>
-					<Image source={{ uri: tab.image }} style={styles.tabImage} {...{ ref }} />
+					<Image source={{ uri: tab.image }} style={styles.tabImage} />
 				</TouchableOpacity>
 			</View>
 		);
