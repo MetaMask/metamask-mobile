@@ -47,7 +47,7 @@ import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import TabModalAnimation from '../../Views/Browser/Tabs/TabModalAnimation';
+import TabModalAnimation from '../../Views/BrowserTab/Tabs/TabModalAnimation';
 
 const styles = StyleSheet.create({
 	flex: {
