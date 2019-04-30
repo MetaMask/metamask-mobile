@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { Platform, View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
-import WebsiteIcon from '../../../../UI/WebsiteIcon';
-import { strings } from '../../../../../../locales/i18n';
+import WebsiteIcon from '../../WebsiteIcon';
+import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
-import { colors, fontStyles } from '../../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 
 const margin = 16;
 const width = Dimensions.get('window').width / 2 - margin * 2;
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 });
 
 const HOMEPAGE_URL = 'about:blank';
-const METAMASK_FOX = require('../../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
+const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 export default class TabThumbnail extends Component {
 	static propTypes = {

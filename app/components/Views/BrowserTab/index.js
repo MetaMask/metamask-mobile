@@ -53,7 +53,7 @@ import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
-import TabCountIcon from './Tabs/TabCountIcon';
+import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -393,7 +393,8 @@ export class BrowserTab extends PureComponent {
 			forwardEnabled: false,
 			forceReload: false,
 			suggestedAssetMeta: undefined,
-			watchAsset: false
+			watchAsset: false,
+			activated: props.id === props.activeTab
 		};
 	}
 
@@ -435,6 +436,9 @@ export class BrowserTab extends PureComponent {
 	}
 
 	async componentDidMount() {
+		if (this.state.url !== HOMEPAGE_URL && Platform.OS === 'android' && this.isTabActive()) {
+			this.reload();
+		}
 		this.mounted = true;
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
 			eth_requestAccounts: ({ hostname, params }) => {
@@ -572,13 +576,16 @@ export class BrowserTab extends PureComponent {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
 
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
+			if (!this.isTabActive()) return false;
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
 		});
 		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
+			if (!this.isTabActive()) return false;
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
 		});
 
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
+			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
 		});
 
@@ -605,6 +612,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	handleDeeplinks = async ({ error, params }) => {
+		if (!this.isTabActive()) return false;
 		if (error) {
 			Logger.error('Error from Branch: ', error);
 			return;
@@ -624,6 +632,8 @@ export class BrowserTab extends PureComponent {
 	};
 
 	handleAndroidBackPress = () => {
+		if (!this.isTabActive()) return false;
+
 		if (this.state.url === HOMEPAGE_URL && this.props.navigation.getParam('url', null) === null) {
 			return false;
 		}
@@ -632,6 +642,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onUnapprovedTransaction = transactionMeta => {
+		if (!this.isTabActive()) return false;
 		if (this.props.transaction.value || this.props.transaction.to) {
 			return;
 		}
@@ -661,9 +672,21 @@ export class BrowserTab extends PureComponent {
 		}
 	}
 
+	setTabActive() {
+		this.setState({ activated: true });
+	}
+
 	componentDidUpdate(prevProps) {
 		const prevNavigation = prevProps.navigation;
 		const { navigation } = this.props;
+
+		// If tab wasn't activated and we detect an tab change
+		// we need to check if it's time to activate the tab
+		if (!this.state.activated && prevProps.activeTab !== this.props.activeTab) {
+			if (this.props.id === this.props.activeTab) {
+				this.setTabActive();
+			}
+		}
 
 		if (prevNavigation && navigation) {
 			const prevUrl = prevNavigation.getParam('url', null);
@@ -693,6 +716,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	keyboardDidHide = () => {
+		if (!this.isTabActive()) return false;
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 		if (showUrlModal) {
 			this.hideUrlModal();
@@ -1396,6 +1420,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	showUrlModal = () => {
+		if (!this.isTabActive()) return false;
 		this.setState({ autocompleteInputValue: this.state.inputValue });
 		this.props.navigation.setParams({
 			...this.props.navigation.state.params,
@@ -1682,7 +1707,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	render() {
-		const { entryScriptWeb3, url } = this.state;
+		const { entryScriptWeb3, url, forceReload, activated } = this.state;
 
 		const canGoBack = this.canGoBack();
 		const canGoForward = this.canGoForward();
@@ -1691,7 +1716,7 @@ export class BrowserTab extends PureComponent {
 
 		return (
 			<View style={[styles.wrapper, isHidden && styles.hide]}>
-				{!this.state.forceReload && (
+				{activated && !forceReload && (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						onProgress={this.onLoadProgress}
@@ -1711,7 +1736,7 @@ export class BrowserTab extends PureComponent {
 					/>
 				)}
 				{this.renderProgressBar()}
-				{!isHidden && this.state.url === HOMEPAGE_URL ? (
+				{!isHidden && url === HOMEPAGE_URL ? (
 					<View style={styles.homepage}>
 						<BrowserHome goToUrl={this.onBrowserHomeGoToUrl} navigation={this.props.navigation} />
 					</View>

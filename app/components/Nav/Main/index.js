@@ -47,7 +47,6 @@ import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import TabModalAnimation from '../../Views/BrowserTab/Tabs/TabModalAnimation';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -250,11 +249,7 @@ class Main extends Component {
 		/**
 		 * Current onboarding wizard step
 		 */
-		wizardStep: PropTypes.number,
-		/**
-		 * Object containing the information of the current tab
-		 */
-		tabToAnimate: PropTypes.object
+		wizardStep: PropTypes.number
 	};
 
 	state = {
@@ -364,7 +359,6 @@ class Main extends Component {
 	};
 
 	render() {
-		const { tabToAnimate } = this.props;
 		const { forceReload } = this.state;
 
 		return (
@@ -374,9 +368,6 @@ class Main extends Component {
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
 				<FadeOutOverlay />
-				{tabToAnimate && tabToAnimate.tab && (
-					<TabModalAnimation tab={tabToAnimate.tab} {...{ position: tabToAnimate.position }} />
-				)}
 			</View>
 		);
 	}
@@ -384,8 +375,7 @@ class Main extends Component {
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
-	wizardStep: state.wizard.step,
-	tabToAnimate: state.browser.tabToAnimate
+	wizardStep: state.wizard.step
 });
 
 export default connect(mapStateToProps)(Main);

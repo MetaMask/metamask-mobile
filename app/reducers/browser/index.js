@@ -4,8 +4,7 @@ const initialState = {
 	history: [],
 	whitelist: [],
 	tabs: [],
-	activeTab: null,
-	tabToAnimate: null
+	activeTab: null
 };
 const browserReducer = (state = initialState, action) => {
 	switch (action.type) {
@@ -48,14 +47,6 @@ const browserReducer = (state = initialState, action) => {
 			return {
 				...state,
 				activeTab: action.id
-			};
-		case 'ANIMATE_CURRENT_TAB':
-			return {
-				...state,
-				tabToAnimate: {
-					tab: action.tab,
-					position: action.position
-				}
 			};
 		case 'UPDATE_TAB':
 			return {

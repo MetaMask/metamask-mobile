@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import { Platform, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
-import { colors, fontStyles } from '../../../../styles/common';
-import DeviceSize from '../../../../util/DeviceSize';
+import { colors, fontStyles } from '../../../styles/common';
+import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	noTabs: {
@@ -152,14 +152,7 @@ export default class Tabs extends Component {
 	}
 
 	onSwitch = async tab => {
-		// const position = await this.thumbnails[tab.id].current.measure();
-		// this.props.animateCurrentTab({ tab, position });
-		// setTimeout(() => {
 		this.props.switchToTab(tab);
-		// }, 800);
-		// setTimeout(() => {
-		// 	this.props.animateCurrentTab({ tab: null, position: null });
-		// }, 1500);
 	};
 
 	renderNoTabs() {

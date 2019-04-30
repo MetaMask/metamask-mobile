@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({

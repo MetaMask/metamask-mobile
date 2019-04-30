@@ -3,15 +3,8 @@ import { connect } from 'react-redux';
 import { withNavigation } from 'react-navigation';
 import { Platform } from 'react-native';
 import PropTypes from 'prop-types';
-import {
-	createNewTab,
-	closeAllTabs,
-	closeTab,
-	setActiveTab,
-	updateTab,
-	animateCurrentTab
-} from '../../../actions/browser';
-import Tabs from '../BrowserTab/Tabs';
+import { createNewTab, closeAllTabs, closeTab, setActiveTab, updateTab } from '../../../actions/browser';
+import Tabs from '../../UI/Tabs';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
@@ -50,11 +43,7 @@ class Browser extends PureComponent {
 		/**
 		 * ID of the active tab
 		 */
-		activeTab: PropTypes.number,
-		/**
-		 * Function that triggers the animation of the tab
-		 */
-		animateCurrentTab: PropTypes.func
+		activeTab: PropTypes.number
 	};
 	static navigationOptions = ({ navigation }) => getBrowserViewNavbarOptions(navigation);
 	tabs = {};
@@ -187,7 +176,7 @@ class Browser extends PureComponent {
 	};
 
 	renderTabsView() {
-		const { tabs, activeTab, animateCurrentTab } = this.props;
+		const { tabs, activeTab } = this.props;
 		const showTabs = this.props.navigation.getParam('showTabs', false);
 		return (
 			<Tabs
@@ -199,7 +188,6 @@ class Browser extends PureComponent {
 				closeTab={this.closeTab}
 				closeTabsView={this.closeTabsView}
 				closeAllTabs={this.closeAllTabs}
-				animateCurrentTab={animateCurrentTab}
 			/>
 		);
 	}
@@ -261,8 +249,7 @@ const mapDispatchToProps = dispatch => ({
 	closeAllTabs: () => dispatch(closeAllTabs()),
 	closeTab: id => dispatch(closeTab(id)),
 	setActiveTab: id => dispatch(setActiveTab(id)),
-	updateTab: (id, url) => dispatch(updateTab(id, url)),
-	animateCurrentTab: ({ tab, position }) => dispatch(animateCurrentTab({ tab, position }))
+	updateTab: (id, url) => dispatch(updateTab(id, url))
 });
 
 export default connect(
