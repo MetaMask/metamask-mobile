@@ -3,10 +3,13 @@
 exports[`Browser should render correctly 1`] = `
 <View
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
-    }
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      },
+      false,
+    ]
   }
 >
   <Web3Webview
@@ -35,7 +38,7 @@ exports[`Browser should render correctly 1`] = `
     showDefaultLoader={false}
     source={
       Object {
-        "uri": "about:blank",
+        "uri": "https://metamask.io",
       }
     }
     style={
@@ -60,27 +63,6 @@ exports[`Browser should render correctly 1`] = `
   >
     <WebviewProgressBar />
   </View>
-  <View
-    style={
-      Object {
-        "bottom": 0,
-        "flex": 1,
-        "left": 0,
-        "position": "absolute",
-        "right": 0,
-        "top": 0,
-      }
-    }
-  >
-    <Connect(BrowserHome)
-      goToUrl={[Function]}
-      navigation={
-        Object {
-          "getParam": [Function],
-        }
-      }
-    />
-  </View>
   <ReactNativeModal
     animationIn="slideInDown"
     animationInTiming={300}
@@ -95,11 +77,7 @@ exports[`Browser should render correctly 1`] = `
     deviceWidth={null}
     hasBackdrop={true}
     hideModalContentWhileAnimating={false}
-    isVisible={
-      Object {
-        "showTabs": false,
-      }
-    }
+    isVisible={false}
     onBackButtonPress={[Function]}
     onBackdropPress={[Function]}
     onModalHide={[Function]}
@@ -382,264 +360,6 @@ exports[`Browser should render correctly 1`] = `
       onConfirm={[Function]}
     />
   </ReactNativeModal>
-  <TouchableWithoutFeedback
-    onPress={[Function]}
-  >
-    <View
-      style={
-        Object {
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-          "zIndex": 99999998,
-        }
-      }
-    >
-      <View
-        style={
-          Array [
-            Object {
-              "backgroundColor": "#f2f3f4",
-              "borderColor": "#d6d9dc",
-              "borderWidth": 0.5,
-              "position": "absolute",
-              "width": 200,
-              "zIndex": 99999999,
-            },
-            Object {
-              "bottom": 70,
-              "right": 3,
-              "shadowColor": "#848c96",
-              "shadowOffset": Object {
-                "height": 2,
-                "width": 0,
-              },
-              "shadowOpacity": 0.5,
-              "shadowRadius": 3,
-            },
-          ]
-        }
-      >
-        <Button
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#f2f3f4",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "marginTop": -5,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="refresh"
-            size={15}
-            style={
-              Object {
-                "alignSelf": "center",
-                "color": "#6a737d",
-                "flex": 0,
-                "height": 15,
-                "lineHeight": 15,
-                "marginRight": 10,
-                "textAlign": "center",
-                "width": 18,
-              }
-            }
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 14,
-                "fontWeight": "400",
-              }
-            }
-          >
-            Reload
-          </Text>
-        </Button>
-        <Button
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#f2f3f4",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "marginTop": -5,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="home"
-            size={15}
-            style={
-              Object {
-                "alignSelf": "center",
-                "color": "#6a737d",
-                "flex": 0,
-                "height": 15,
-                "lineHeight": 15,
-                "marginRight": 10,
-                "textAlign": "center",
-                "width": 18,
-              }
-            }
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 14,
-                "fontWeight": "400",
-              }
-            }
-          >
-            Home
-          </Text>
-        </Button>
-        <Button
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#f2f3f4",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "marginTop": -5,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="star"
-            size={15}
-            style={
-              Object {
-                "alignSelf": "center",
-                "color": "#6a737d",
-                "flex": 0,
-                "height": 15,
-                "lineHeight": 15,
-                "marginRight": 10,
-                "textAlign": "center",
-                "width": 18,
-              }
-            }
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 14,
-                "fontWeight": "400",
-              }
-            }
-          >
-            Add to Favorites
-          </Text>
-        </Button>
-        <Button
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#f2f3f4",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "marginTop": -5,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="share"
-            size={15}
-            style={
-              Object {
-                "alignSelf": "center",
-                "color": "#6a737d",
-                "flex": 0,
-                "height": 15,
-                "lineHeight": 15,
-                "marginRight": 10,
-                "textAlign": "center",
-                "width": 18,
-              }
-            }
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 14,
-                "fontWeight": "400",
-              }
-            }
-          >
-            Share
-          </Text>
-        </Button>
-        <Button
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "flex-start",
-              "backgroundColor": "#f2f3f4",
-              "flexDirection": "row",
-              "justifyContent": "flex-start",
-              "marginTop": -5,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="expand"
-            size={15}
-            style={
-              Object {
-                "alignSelf": "center",
-                "color": "#6a737d",
-                "flex": 0,
-                "height": 15,
-                "lineHeight": 15,
-                "marginRight": 10,
-                "textAlign": "center",
-                "width": 18,
-              }
-            }
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 14,
-                "fontWeight": "400",
-              }
-            }
-          >
-            Open in browser
-          </Text>
-        </Button>
-      </View>
-    </View>
-  </TouchableWithoutFeedback>
   <AnimatedComponent
     style={
       Array [
@@ -784,18 +504,5 @@ exports[`Browser should render correctly 1`] = `
       />
     </View>
   </AnimatedComponent>
-  <Tabs
-    closeAllTabs={[Function]}
-    closeTab={[Function]}
-    closeTabsView={[Function]}
-    newTab={[Function]}
-    switchToTab={[Function]}
-    tabs={Array []}
-    visible={
-      Object {
-        "showTabs": false,
-      }
-    }
-  />
 </View>
 `;

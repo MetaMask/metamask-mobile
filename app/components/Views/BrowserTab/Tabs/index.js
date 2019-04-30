@@ -125,7 +125,7 @@ export default class Tabs extends Component {
 		/**
 		 * Sets the current tab used for the animation
 		 */
-		animateCurrentTab: PropTypes.func
+		animateCurrentTab: PropTypes.func // eslint-disable-line react/no-unused-prop-types
 	};
 
 	thumbnails = {};
@@ -152,14 +152,14 @@ export default class Tabs extends Component {
 	}
 
 	onSwitch = async tab => {
-		const position = await this.thumbnails[tab.id].current.measure();
-		this.props.animateCurrentTab({ tab, position });
-		setTimeout(() => {
-			this.props.switchToTab(tab);
-		}, 800);
-		setTimeout(() => {
-			this.props.animateCurrentTab({ tab: null, position: null });
-		}, 1500);
+		// const position = await this.thumbnails[tab.id].current.measure();
+		// this.props.animateCurrentTab({ tab, position });
+		// setTimeout(() => {
+		this.props.switchToTab(tab);
+		// }, 800);
+		// setTimeout(() => {
+		// 	this.props.animateCurrentTab({ tab: null, position: null });
+		// }, 1500);
 	};
 
 	renderTabs(tabs, activeTab) {
