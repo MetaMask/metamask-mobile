@@ -63,6 +63,10 @@ class TransactionsNotificationManager {
 					title = strings('notifications.error_title');
 					message = strings('notifications.error_message');
 					break;
+				case 'cancelled':
+					title = strings('notifications.cancelled_title');
+					message = strings('notifications.cancelled_message');
+					break;
 				case 'received':
 					title = strings('notifications.received_title', {
 						amount: data.message.transaction.amount,
@@ -228,7 +232,7 @@ class TransactionsNotificationManager {
 			setTimeout(() => {
 				// Then we show the error notification
 				this._showNotification({
-					type: 'error',
+					type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
 					autoHide: true,
 					message: {
 						transaction: transactionMeta,
