@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
-import { withNavigation } from 'react-navigation';
 import { Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { createNewTab, closeAllTabs, closeTab, setActiveTab, updateTab } from '../../../actions/browser';
@@ -81,7 +80,7 @@ class Browser extends PureComponent {
 		// Add new tabs
 		tabs.forEach(tab => {
 			if (!this.tabs[tab.id]) {
-				this.tabs[tab.id] = React.createElement(withNavigation(BrowserTab), {
+				this.tabs[tab.id] = React.createElement(BrowserTab, {
 					id: tab.id,
 					key: `tab_${tab.id}`,
 					initialUrl: tab.url || 'about:blank',

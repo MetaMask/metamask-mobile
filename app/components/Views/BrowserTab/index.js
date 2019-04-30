@@ -15,6 +15,7 @@ import {
 	Keyboard,
 	BackHandler
 } from 'react-native';
+import { withNavigation } from 'react-navigation';
 import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -1781,4 +1782,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(BrowserTab);
+)(withNavigation(BrowserTab));

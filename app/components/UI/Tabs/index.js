@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Platform, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Tabs extends Component {
+export default class Tabs extends PureComponent {
 	static propTypes = {
 		/**
 		 * Array of tabs
