@@ -16,6 +16,7 @@ import Entry from '../../Views/Entry';
 import LockScreen from '../../Views/LockScreen';
 import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
+import SimpleWebview from '../../Views/SimpleWebview';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -37,6 +38,10 @@ const OnboardingNav = createStackNavigator(
 		},
 		SyncWithExtension: {
 			screen: SyncWithExtension
+		},
+		Webview: {
+			screen: SimpleWebview,
+			mode: 'modal'
 		}
 	},
 	{
