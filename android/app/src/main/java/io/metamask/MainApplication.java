@@ -4,7 +4,6 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
-import com.swmansion.reanimated.ReanimatedPackage;
 import fr.greweb.reactnativeviewshot.RNViewShotPackage;
 import com.airbnb.android.react.lottie.LottiePackage;
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
@@ -51,7 +50,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            new ReanimatedPackage(),
             new RNViewShotPackage(),
             new LottiePackage(),
            		new AsyncStoragePackage(),

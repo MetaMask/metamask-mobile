@@ -87,6 +87,10 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * Component that wraps all the thumbnails
+ * representing all the open tabs
+ */
 export default class Tabs extends PureComponent {
 	static propTypes = {
 		/**

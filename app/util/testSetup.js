@@ -105,25 +105,4 @@ NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };
 
-jest.mock('react-native-reanimated', () => ({
-	Value: jest.fn(),
-	event: jest.fn(),
-	add: jest.fn(),
-	eq: jest.fn(),
-	set: jest.fn(),
-	cond: jest.fn(),
-	interpolate: jest.fn(),
-	View,
-	Extrapolate: { CLAMP: jest.fn() },
-	Clock: jest.fn(),
-	block: jest.fn(),
-	clockRunning: jest.fn(),
-	startClock: jest.fn(),
-	spring: jest.fn(),
-	stopClock: jest.fn(),
-	and: jest.fn(),
-	lessOrEq: jest.fn(),
-	greaterThan: jest.fn()
-}));
-
 jest.mock('NativeAnimatedHelper');

@@ -259,6 +259,7 @@ const styles = StyleSheet.create({
 
 /**
  * Complete Web browser component with URL entry and history management
+ * which represents an individual tab inside the <Browser /> component
  */
 export class BrowserTab extends PureComponent {
 	static defaultProps = {

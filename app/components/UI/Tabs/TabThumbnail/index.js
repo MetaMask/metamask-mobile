@@ -68,6 +68,10 @@ const styles = StyleSheet.create({
 const HOMEPAGE_URL = 'about:blank';
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
+/**
+ * Component that renders an a thumbnail
+ * that represents an existing tab
+ */
 export default class TabThumbnail extends Component {
 	static propTypes = {
 		/**

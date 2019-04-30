@@ -23,6 +23,10 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+ * Component that renders an icon showing
+ * the currentnumber of open tabs
+ */
 class TabCountIcon extends Component {
 	static propTypes = {
 		/**
