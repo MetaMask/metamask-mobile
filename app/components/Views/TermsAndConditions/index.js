@@ -39,10 +39,6 @@ export default class TermsAndConditions extends Component {
 		action: PropTypes.string
 	};
 
-	state = {
-		renderWebview: false
-	};
-
 	press = () => {
 		const { navigation } = this.props;
 		navigation.navigate('Webview', {
