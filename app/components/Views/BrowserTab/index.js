@@ -1711,7 +1711,7 @@ export class BrowserTab extends PureComponent {
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
 
-		const canGoBack = this.canGoBack();
+		const canGoBackIOS = Platform.OS === 'ios' && url === HOMEPAGE_URL ? false : this.canGoBack();
 		const canGoForward = this.canGoForward();
 
 		const isHidden = !this.isTabActive();
@@ -1752,7 +1752,7 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderPhishingModal()}
 				{!isHidden && this.renderWatchAssetModal()}
 				{!isHidden && this.renderOptions()}
-				{!isHidden && Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
+				{!isHidden && Platform.OS === 'ios' ? this.renderBottomBar(canGoBackIOS, canGoForward) : null}
 			</View>
 		);
 	}
