@@ -731,7 +731,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	updateTabInfo(url) {
-		this.props.updateTabInfo(url);
+		this.isTabActive() && this.props.updateTabInfo(url, this.props.id);
 	}
 
 	go = async url => {
@@ -1115,7 +1115,9 @@ export class BrowserTab extends PureComponent {
 			fullHostname !== this.state.fullHostname ||
 			url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) !== -1
 		) {
-			this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
+			if (this.isTabActive()) {
+				this.props.navigation.setParams({ url, silent: true, showUrlModal: false });
+			}
 		}
 		this.updateTabInfo(inputValue);
 		this.setState({ fullHostname, inputValue, hostname });

@@ -162,27 +162,30 @@ export default class Tabs extends Component {
 		// }, 1500);
 	};
 
+	renderNoTabs() {
+		return (
+			<View style={styles.noTabs}>
+				<Text style={styles.noTabsTitle}>{strings('browser.no_tabs_title')}</Text>
+				<Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
+			</View>
+		);
+	}
 	renderTabs(tabs, activeTab) {
-		if (tabs.length === 0) {
-			return (
-				<View style={styles.noTabs}>
-					<Text style={styles.noTabsTitle}>{strings('browser.no_tabs_title')}</Text>
-					<Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
-				</View>
-			);
-		}
-
-		return tabs.map(tab => (
-			// eslint-disable-next-line react/jsx-key
-			<TabThumbnail
-				ref={this.thumbnails[tab.id]}
-				key={tab.id}
-				tab={tab}
-				isActiveTab={activeTab === tab.id}
-				onClose={this.props.closeTab}
-				onSwitch={this.onSwitch}
-			/>
-		));
+		return (
+			<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent}>
+				{tabs.map(tab => (
+					// eslint-disable-next-line react/jsx-key
+					<TabThumbnail
+						ref={this.thumbnails[tab.id]}
+						key={tab.id}
+						tab={tab}
+						isActiveTab={activeTab === tab.id}
+						onClose={this.props.closeTab}
+						onSwitch={this.onSwitch}
+					/>
+				))}
+			</ScrollView>
+		);
 	}
 
 	render() {
@@ -191,9 +194,7 @@ export default class Tabs extends Component {
 
 		return (
 			<View style={styles.tabsView}>
-				<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent}>
-					{this.renderTabs(tabs, activeTab)}
-				</ScrollView>
+				{tabs.length === 0 ? this.renderNoTabs() : this.renderTabs(tabs, activeTab)}
 				<View style={styles.tabActions}>
 					<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={closeAllTabs}>
 						<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>

@@ -66,6 +66,11 @@ class Browser extends PureComponent {
 		this.createBrowserTabs(props.tabs);
 	}
 
+	componentDidMount() {
+		const activeTab = this.props.tabs.find(tab => tab.id === this.props.activeTab);
+		activeTab && this.switchToTab(activeTab);
+	}
+
 	createBrowserTabs(tabs) {
 		// Delete closed tabs
 		Object.keys(this.tabs).forEach(tabID => {
@@ -82,7 +87,7 @@ class Browser extends PureComponent {
 					id: tab.id,
 					key: `tab_${tab.id}`,
 					initialUrl: tab.url || 'about:blank',
-					updateTabInfo: url => this.updateTabInfo(url),
+					updateTabInfo: (url, tabID) => this.updateTabInfo(url, tabID),
 					showTabs: () => this.showTabs()
 				});
 			}
@@ -114,6 +119,11 @@ class Browser extends PureComponent {
 	closeAllTabs = () => {
 		if (this.props.tabs.length) {
 			this.props.closeAllTabs();
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: null,
+				silent: true
+			});
 		}
 	};
 
@@ -140,10 +150,18 @@ class Browser extends PureComponent {
 							newTab = tabs[i + 1];
 						}
 						this.props.setActiveTab(newTab.id);
-						// setTimeout(() => {
-						// 	this.go(newTab.url);
-						// }, 100);
+						this.props.navigation.setParams({
+							...this.props.navigation.state.params,
+							url: newTab.url,
+							silent: true
+						});
 					}
+				});
+			} else {
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					url: null,
+					silent: true
 				});
 			}
 		}
@@ -164,9 +182,7 @@ class Browser extends PureComponent {
 	switchToTab = tab => {
 		this.props.setActiveTab(tab.id);
 		this.hideTabsAndUpdateUrl(tab.url);
-		// setTimeout(() => {
-		// 	this.go(tab.url);
-		// }, 100);
+		this.updateTabInfo(tab.url, tab.id);
 	};
 
 	renderTabsView() {
@@ -187,19 +203,16 @@ class Browser extends PureComponent {
 		);
 	}
 
-	updateTabInfo = url => {
-		let showTabs = this.props.navigation.getParam('showTabs', false);
-		if (showTabs) return false;
-
-		const { activeTab, updateTab } = this.props;
+	updateTabInfo = (url, tabID) => {
+		const { updateTab } = this.props;
 		if (this.snapshotTimer) {
 			clearTimeout(this.snapshotTimer);
 		}
 
 		this.snapshotTimer = setTimeout(() => {
-			showTabs = this.props.navigation.getParam('showTabs', false);
+			const showTabs = this.props.navigation.getParam('showTabs', false);
 			if (showTabs) {
-				this.updateTabInfo(url);
+				this.updateTabInfo(url, tabID);
 				return false;
 			}
 			captureScreen({
@@ -207,7 +220,7 @@ class Browser extends PureComponent {
 				quality: 0.5
 			}).then(
 				uri => {
-					updateTab(activeTab, {
+					updateTab(tabID, {
 						url,
 						image: uri
 					});
