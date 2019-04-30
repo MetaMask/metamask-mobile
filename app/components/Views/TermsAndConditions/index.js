@@ -42,7 +42,7 @@ export default class TermsAndConditions extends Component {
 
 	press = () => {
 		const { navigation } = this.props;
-		navigation.push('Webview', {
+		navigation.navigate('Webview', {
 			url: 'https://metamask.io/terms.html',
 			title: 'Terms of Use'
 		});

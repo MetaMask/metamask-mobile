@@ -38,10 +38,6 @@ const OnboardingNav = createStackNavigator(
 		},
 		SyncWithExtension: {
 			screen: SyncWithExtension
-		},
-		Webview: {
-			screen: SimpleWebview,
-			mode: 'modal'
 		}
 	},
 	{
@@ -63,6 +59,18 @@ const OnboardingRootNav = createStackNavigator(
 		},
 		QRScanner: {
 			screen: QRScanner
+		},
+		Webview: {
+			screen: createStackNavigator(
+				{
+					SimpleWebview: {
+						screen: SimpleWebview
+					}
+				},
+				{
+					mode: 'modal'
+				}
+			)
 		}
 	},
 	{

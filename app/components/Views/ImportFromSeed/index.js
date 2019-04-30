@@ -387,8 +387,11 @@ class ImportFromSeed extends Component {
 							)}
 						</StyledButton>
 					</View>
-					<View style={[styles.termsAndConditions]}>
-						<TermsAndConditions navigation={this.props.navigation} action="Import" />
+					<View style={styles.termsAndConditions}>
+						<TermsAndConditions
+							navigation={this.props.navigation}
+							action={strings('import_from_seed.import_button')}
+						/>
 					</View>
 				</View>
 			</KeyboardAwareScrollView>

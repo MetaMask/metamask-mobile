@@ -200,7 +200,10 @@ class Onboarding extends Component {
 									</StyledButton>
 								</View>
 								<View style={[styles.ctaWrapper, styles.termsAndConditions]}>
-									<TermsAndConditions navigation={this.props.navigation} action="start exploring" />
+									<TermsAndConditions
+										navigation={this.props.navigation}
+										action={strings('onboarding.start_exploring_now')}
+									/>
 								</View>
 							</View>
 							{this.state.existingUser && (
