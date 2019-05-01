@@ -22,6 +22,9 @@ const styles = StyleSheet.create({
 	},
 	confirm: {
 		marginLeft: 8
+	},
+	stickyView: {
+		margin: 20
 	}
 });
 
@@ -42,6 +45,7 @@ export default function ActionView({
 	showConfirmButton,
 	confirmed,
 	confirmDisabled,
+	stickyView,
 	keyboardShouldPersistTaps = 'never'
 }) {
 	return (
@@ -64,6 +68,7 @@ export default function ActionView({
 					{children}
 				</TouchableWithoutFeedback>
 			</KeyboardAwareScrollView>
+			{stickyView && <View style={styles.stickyView}>{stickyView}</View>}
 			<View style={styles.actionContainer}>
 				{showCancelButton && (
 					<StyledButton
@@ -157,6 +162,10 @@ ActionView.propTypes = {
 	 * Whether confirm button is shown
 	 */
 	showConfirmButton: PropTypes.bool,
+	/**
+	 * Content to display in a sticky view above action buttons
+	 */
+	stickyView: PropTypes.object,
 	/**
 	 * Determines if the keyboard should stay visible after a tap
 	 */

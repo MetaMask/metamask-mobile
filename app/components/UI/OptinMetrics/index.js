@@ -6,6 +6,8 @@ import ActionView from '../../UI/ActionView';
 import AsyncStorage from '@react-native-community/async-storage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
@@ -36,14 +38,23 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		...fontStyles.normal,
-		fontSize: 16,
-		paddingVertical: 20
+		fontSize: 14,
+		paddingVertical: 10
 	},
 	wrapper: {
-		margin: 20
+		marginHorizontal: 20
+	},
+	privacyPolicy: {
+		...fontStyles.normal,
+		fontSize: 12,
+		color: colors.grey400
+	},
+	link: {
+		textDecorationLine: 'underline'
 	}
 });
 
+const PRIVACY_POLICY = 'https://metamask.io/privacy.html';
 /**
  * View that is displayed in the flow to agree to metrics
  */
@@ -60,27 +71,27 @@ export default class OptinMetrics extends Component {
 	actionsList = [
 		{
 			action: 0,
-			description: 'Always allow you to opt-out via Settings'
+			description: strings('privacy_policy.description_content_1')
 		},
 		{
 			action: 0,
-			description: 'Send anonymied click & pageview events'
+			description: strings('privacy_policy.description_content_2')
 		},
 		{
 			action: 0,
-			description: 'Maintain a public aggregate dashboard to educate the community'
+			description: strings('privacy_policy.description_content_3')
 		},
 		{
 			action: 1,
-			description: 'Never collect keys, addresses, transactions, balances, hashes, or any personal information'
+			description: strings('privacy_policy.description_content_4')
 		},
 		{
 			action: 1,
-			description: 'Never collect your IP address ??'
+			description: strings('privacy_policy.description_content_5')
 		},
 		{
 			action: 1,
-			description: 'Never sell data for profit. Ever!'
+			description: strings('privacy_policy.description_content_6')
 		}
 	];
 
@@ -102,23 +113,44 @@ export default class OptinMetrics extends Component {
 
 	onConfirm = async () => {
 		const { navigation } = this.props;
-		await AsyncStorage.setItem('@MetaMask:metricsAgreed', 'agreed');
+		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 		navigation.navigate('HomeNav');
 	};
+
+	pressPolicy = () => {
+		const { navigation } = this.props;
+		navigation.navigate('Webview', {
+			url: PRIVACY_POLICY,
+			title: strings('privacy_policy.title')
+		});
+	};
+
+	renderPrivacyPolicy = () => (
+		<TouchableOpacity onPress={this.pressPolicy}>
+			<Text style={styles.privacyPolicy}>
+				{strings('privacy_policy.description') + ' '}
+				<Text style={styles.link}>{strings('privacy_policy.here')}</Text>
+				{strings('unit.point')}
+			</Text>
+		</TouchableOpacity>
+	);
 
 	render() {
 		return (
 			<SafeAreaView style={styles.root}>
 				<ActionView
-					cancelText={'No, Thanks'}
-					confirmText={'I Agree'}
+					cancelText={strings('privacy_policy.decline')}
+					confirmText={strings('privacy_policy.agree')}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 					confirmButtonMode={'confirm'}
+					stickyView={this.renderPrivacyPolicy()}
 				>
 					<View style={styles.wrapper}>
-						<Text style={styles.title}>Help us improve MetaMask</Text>
-						<Text style={styles.content}>bla bla bla</Text>
+						<Text style={styles.title}>{strings('privacy_policy.description_title')}</Text>
+						<Text style={styles.content}>{strings('privacy_policy.description_content_1')}</Text>
+						<Text style={styles.content}>{strings('privacy_policy.description_content_2')}</Text>
+
 						{this.actionsList.map((action, i) => this.renderAction(action, i))}
 					</View>
 				</ActionView>

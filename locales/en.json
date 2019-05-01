@@ -192,6 +192,22 @@
 		"description": "By clicking \"{{action}}\" you agree to these ",
 		"terms": "Terms and Conditions"
 	},
+	"privacy_policy": {
+		"title": "Privacy Policy",
+		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"here": "here",
+		"agree": "I Agree",
+		"decline": "No, Thanks",
+		"description_title": "Help us improve MetaMask",
+		"description_content_1": "MetaMask would like to gather basic usage data to better understand how our users interact with the mobile app. This data will be used to continually improve the usability and user experience of our product.",
+		"description_content_2": "MetaMask will...",
+		"action_description_1": "Always allow you to opt-out via Settings",
+		"action_description_2": "Send anonymied click & pageview events",
+		"action_description_3": "Maintain a public aggregate dashboard to educate the community",
+		"action_description_4": "Never collect keys, addresses, transactions, balances, hashes, or any personal information",
+		"action_description_5": "Never collect your IP address",
+		"action_description_6": "Never sell data for profit. Ever!"
+	},
 	"token": {
 		"token_symbol": "Token Symbol",
 		"token_address": "Token Address",
@@ -537,7 +553,8 @@
 		"negative": "-",
 		"divisor": "/",
 		"token_id": "#",
-		"colon": ":"
+		"colon": ":",
+		"point": "."
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",

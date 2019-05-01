@@ -22,12 +22,13 @@ const styles = StyleSheet.create({
 		marginBottom: 12
 	},
 	metamaskName: {
-		width: 94,
-		height: 12
+		width: 122,
+		height: 15
 	},
 	metamaskFox: {
-		width: 50,
-		height: 50
+		width: 40,
+		height: 40,
+		marginRight: 10
 	},
 	metamaskNameWrapper: {
 		marginLeft: Platform.OS === 'android' ? 20 : 0
