@@ -25,6 +25,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
+import TermsAndConditions from '../TermsAndConditions';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -97,6 +98,9 @@ const styles = StyleSheet.create({
 	},
 	biometrySwitch: {
 		flex: 0
+	},
+	termsAndConditions: {
+		paddingTop: 30
 	}
 });
 
@@ -382,6 +386,12 @@ class ImportFromSeed extends Component {
 								strings('import_from_seed.import_button')
 							)}
 						</StyledButton>
+					</View>
+					<View style={styles.termsAndConditions}>
+						<TermsAndConditions
+							navigation={this.props.navigation}
+							action={strings('import_from_seed.import_button')}
+						/>
 					</View>
 				</View>
 			</KeyboardAwareScrollView>

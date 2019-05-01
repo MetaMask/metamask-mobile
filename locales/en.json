@@ -187,6 +187,11 @@
 			"add_collectible": "ADD"
 		}
 	},
+	"terms_and_conditions": {
+		"title": "Terms and Conditions",
+		"description": "By clicking \"{{action}}\" you agree to these ",
+		"terms": "Terms and Conditions"
+	},
 	"token": {
 		"token_symbol": "Token Symbol",
 		"token_address": "Token Address",
