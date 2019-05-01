@@ -236,6 +236,24 @@ exports[`ImportFromSeed should render correctly 1`] = `
           IMPORT
         </StyledButton>
       </View>
+      <View
+        style={
+          Object {
+            "paddingTop": 30,
+          }
+        }
+      >
+        <TermsAndConditions
+          action="IMPORT"
+          navigation={
+            Object {
+              "state": Object {
+                "params": Object {},
+              },
+            }
+          }
+        />
+      </View>
     </View>
   </KeyboardAwareScrollViewMock>
 </SafeAreaView>

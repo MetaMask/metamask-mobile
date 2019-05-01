@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import TermsAndConditions from '../TermsAndConditions';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -29,8 +30,11 @@ const styles = StyleSheet.create({
 	},
 	ctas: {
 		justifyContent: 'flex-end',
-		height: 190,
+		height: 250,
 		paddingBottom: 40
+	},
+	termsAndConditions: {
+		paddingTop: 30
 	},
 	foxWrapper: {
 		width: Platform.OS === 'ios' ? 100 : 66,
@@ -194,6 +198,12 @@ class Onboarding extends Component {
 									>
 										{strings('onboarding.import_wallet_button')}
 									</StyledButton>
+								</View>
+								<View style={[styles.ctaWrapper, styles.termsAndConditions]}>
+									<TermsAndConditions
+										navigation={this.props.navigation}
+										action={strings('onboarding.start_exploring_now')}
+									/>
 								</View>
 							</View>
 							{this.state.existingUser && (
