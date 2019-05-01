@@ -10,7 +10,7 @@ exports[`OptinMetrics should render correctly 1`] = `
 >
   <ActionView
     cancelTestID=""
-    cancelText="No, Thanks"
+    cancelText="No Thanks"
     confirmButtonMode="confirm"
     confirmTestID=""
     confirmText="I Agree"
