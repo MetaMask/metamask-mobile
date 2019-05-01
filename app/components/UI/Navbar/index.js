@@ -99,8 +99,8 @@ const styles = StyleSheet.create({
 	optinHeaderLeft: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginLeft: 20,
-		marginRight: 20
+		marginLeft: Platform.OS === 'ios' ? 20 : 0,
+		marginRight: Platform.OS === 'ios' ? 20 : 0
 	}
 });
 

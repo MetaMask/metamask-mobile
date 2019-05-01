@@ -33,15 +33,18 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		...fontStyles.bold,
+		color: colors.black,
 		fontSize: 22
 	},
 	description: {
 		...fontStyles.normal,
+		color: colors.black,
 		flex: 1
 	},
 	content: {
 		...fontStyles.normal,
 		fontSize: 14,
+		color: colors.black,
 		paddingVertical: 10
 	},
 	wrapper: {
