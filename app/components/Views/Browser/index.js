@@ -97,7 +97,14 @@ class Browser extends PureComponent {
 		}
 	}
 
-	showTabs = () => {
+	showTabs = async () => {
+		try {
+			const activeTab = this.props.tabs.find(tab => tab.id === this.props.activeTab);
+			await this.takeScreenshot(activeTab.url, activeTab.id);
+		} catch (e) {
+			Logger.error(e);
+		}
+
 		this.props.navigation.setParams({
 			...this.props.navigation.state.params,
 			showTabs: true
@@ -200,37 +207,42 @@ class Browser extends PureComponent {
 	}
 
 	updateTabInfo = (url, tabID) => {
-		const { updateTab } = this.props;
 		if (this.snapshotTimer) {
 			clearTimeout(this.snapshotTimer);
 		}
-		this.snapshotTimer = setTimeout(
-			() => {
-				const showTabs = this.props.navigation.getParam('showTabs', false);
-				if (showTabs) {
-					this.updateTabInfo(url, tabID);
-					return false;
-				}
-				captureScreen({
-					format: 'jpg',
-					quality: 0.2,
-					THUMB_WIDTH,
-					THUMB_HEIGHT
-				}).then(
-					uri => {
-						updateTab(tabID, {
-							url,
-							image: uri
-						});
-					},
-					error => {
-						Logger.error(`Error saving tab ${url}`, error);
-					}
-				);
-			},
-			Platform.OS === 'ios' ? 1000 : 1500
-		);
+		this.snapshotTimer = setTimeout(() => {
+			const showTabs = this.props.navigation.getParam('showTabs', false);
+			if (showTabs) {
+				this.updateTabInfo(url, tabID);
+				return false;
+			}
+			this.takeScreenshot(url, tabID);
+		}, 500);
 	};
+
+	takeScreenshot = (url, tabID) =>
+		new Promise((resolve, reject) => {
+			captureScreen({
+				format: 'jpg',
+				quality: 0.2,
+				THUMB_WIDTH,
+				THUMB_HEIGHT
+			}).then(
+				uri => {
+					const { updateTab } = this.props;
+
+					updateTab(tabID, {
+						url,
+						image: uri
+					});
+					resolve(true);
+				},
+				error => {
+					Logger.error(`Error saving tab ${url}`, error);
+					reject(error);
+				}
+			);
+		});
 
 	renderBrowserTabs() {
 		const tabs = Object.keys(this.tabs).map(tabID => this.tabs[tabID]);
