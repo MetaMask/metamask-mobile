@@ -101,6 +101,7 @@ class Entry extends Component {
 				await KeyringController.submitPassword(credentials.password);
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				// Check if user passed through metrics opt-in screen
 				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 				if (!metricsOptIn) {
 					this.props.navigation.navigate('OptinMetrics');
