@@ -24,7 +24,7 @@ export default [
 		name: 'Blockchain Cuties'
 	},
 	{
-		url: 'https://boutines.network/',
+		url: 'https://bounties.network/',
 		name: 'Bounties Network'
 	},
 	{
