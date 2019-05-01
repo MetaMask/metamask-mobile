@@ -48,7 +48,7 @@ class TabCountIcon extends Component {
 
 		return (
 			<TouchableOpacity style={[styles.tabIcon, style]} onPress={onPress}>
-				<Text styles={styles.tabCount}>{Math.max(tabCount, 1)}</Text>
+				<Text styles={styles.tabCount}>{tabCount}</Text>
 			</TouchableOpacity>
 		);
 	}
