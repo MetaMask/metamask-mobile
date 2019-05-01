@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
+import TermsAndConditions from '../TermsAndConditions';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -43,6 +44,9 @@ const styles = StyleSheet.create({
 	icon: {
 		color: colors.green500,
 		marginBottom: 30
+	},
+	termsAndConditions: {
+		padding: 30
 	}
 });
 
@@ -112,6 +116,12 @@ class SyncWithExtensionSuccess extends Component {
 					<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
 						{strings('sync_with_extension_success.button_continue')}
 					</StyledButton>
+				</View>
+				<View style={styles.termsAndConditions}>
+					<TermsAndConditions
+						navigation={this.props.navigation}
+						action={strings('sync_with_extension_success.button_continue')}
+					/>
 				</View>
 			</View>
 		</SafeAreaView>

@@ -17,6 +17,7 @@ import LockScreen from '../../Views/LockScreen';
 import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
+import SimpleWebview from '../../Views/SimpleWebview';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -62,6 +63,18 @@ const OnboardingRootNav = createStackNavigator(
 		},
 		QRScanner: {
 			screen: QRScanner
+		},
+		Webview: {
+			screen: createStackNavigator(
+				{
+					SimpleWebview: {
+						screen: SimpleWebview
+					}
+				},
+				{
+					mode: 'modal'
+				}
+			)
 		}
 	},
 	{
