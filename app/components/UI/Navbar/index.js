@@ -8,6 +8,8 @@ import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard } f
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
@@ -28,10 +30,16 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
-		color: colors.primary
+		color: colors.blue
 	},
 	backIcon: {
-		color: colors.primary
+		color: colors.blue
+	},
+	backIconIOS: {
+		marginHorizontal: 5
+	},
+	shareIconIOS: {
+		marginHorizontal: -5
 	},
 	backButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
@@ -44,7 +52,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	infoIcon: {
-		color: colors.primary
+		color: colors.blue
 	},
 	moreIcon: {
 		marginRight: 15,
@@ -57,7 +65,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 22
 	},
 	closeButtonText: {
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 14,
 		...fontStyles.normal
 	},
@@ -131,7 +139,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerTintColor: colors.primary,
+		headerTintColor: colors.blue,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
@@ -150,24 +158,23 @@ export function getNavigationOptionsTitle(title, navigation) {
  * This is used by views that confirms transactions, showing current network
  *
  * @param {string} title - Title in string format
- * @param {string} backButtonText - Back text in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(title, backButtonText, navigation) {
+export function getTransactionOptionsTitle(title, navigation) {
+	const transactionMode = navigation.getParam('mode', '');
+	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
+	const toEditLeftAction = navigation.getParam('dispatch', () => {
+		'';
+	});
+	const leftAction = transactionMode === 'edit' ? () => navigation.pop() : () => toEditLeftAction('edit');
 	return {
 		headerTitle: <NavbarTitle title={title} disableNetwork />,
-		headerLeft:
-			Platform.OS === 'ios' ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-					<Text style={styles.closeButtonText}>{backButtonText}</Text>
-				</TouchableOpacity>
-			) : (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-				</TouchableOpacity>
-			),
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+				<Text style={styles.closeButtonText}>{leftText}</Text>
+			</TouchableOpacity>
+		),
 		headerRight: <View />
 	};
 }
@@ -376,6 +383,9 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
  */
 export function getWebviewNavbar(navigation) {
 	const title = navigation.getParam('title', '');
+	const share = navigation.getParam('dispatch', () => {
+		'';
+	});
 	return {
 		title,
 		headerTitleStyle: {
@@ -390,16 +400,22 @@ export function getWebviewNavbar(navigation) {
 					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
-				<View />
-			),
-		headerRight:
-			Platform.OS === 'ios' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
-					<IonicIcon name="ios-close" size={38} style={styles.closeIcon} />
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			),
+		headerRight:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+					<MaterialCommunityIcon name="share-variant" size={24} style={styles.backIcon} />
 				</TouchableOpacity>
 			) : (
-				<View />
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => share()} style={styles.backButton}>
+					<EvilIcons name="share-apple" size={32} style={[styles.backIcon, styles.shareIconIOS]} />
+				</TouchableOpacity>
 			)
 	};
 }

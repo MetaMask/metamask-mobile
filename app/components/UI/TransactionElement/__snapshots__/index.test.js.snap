@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionElement should render correctly 1`] = `
-<AnimatedComponent
+<View
   accessible={true}
   isTVSelectable={true}
   onResponderGrant={[Function]}
@@ -11,17 +11,12 @@ exports[`TransactionElement should render correctly 1`] = `
   onResponderTerminationRequest={[Function]}
   onStartShouldSetResponder={[Function]}
   style={
-    Array [
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "borderBottomWidth": 0.5,
-        "borderColor": "#CCCCCC",
-        "flex": 1,
-      },
-      Object {
-        "opacity": 1,
-      },
-    ]
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderBottomWidth": 0.5,
+      "borderColor": "#d6d9dc",
+      "flex": 1,
+    }
   }
 >
   <View
@@ -60,7 +55,7 @@ exports[`TransactionElement should render correctly 1`] = `
           }
         }
       >
-        <IdenticonComponent
+        <Component
           address="0x0"
           diameter={24}
         />
@@ -86,8 +81,8 @@ exports[`TransactionElement should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "backgroundColor": "#f1f2f6",
-                  "color": "#7c7e84",
+                  "backgroundColor": "#f2f3f4",
+                  "color": "#848c96",
                   "fontFamily": "Roboto",
                   "fontSize": 9,
                   "fontWeight": "600",
@@ -141,5 +136,5 @@ exports[`TransactionElement should render correctly 1`] = `
       </View>
     </View>
   </View>
-</AnimatedComponent>
+</View>
 `;

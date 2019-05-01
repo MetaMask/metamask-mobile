@@ -29,10 +29,10 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	data: {
-		textAlign: 'center'
+		textAlign: 'center',
+		paddingTop: 7
 	},
 	label: {
-		paddingTop: 7,
 		fontSize: 24,
 		textAlign: 'center',
 		...fontStyles.normal
@@ -41,15 +41,16 @@ const styles = StyleSheet.create({
 		marginBottom: Platform.OS === 'android' ? -10 : 0
 	},
 	addressWrapper: {
-		backgroundColor: colors.blueishGrey,
+		backgroundColor: colors.blue000,
 		borderRadius: 40,
 		marginTop: 20,
+		marginBottom: 20,
 		paddingVertical: 7,
 		paddingHorizontal: 15
 	},
 	address: {
 		fontSize: 12,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal,
 		letterSpacing: 0.8
 	},
@@ -63,7 +64,15 @@ const styles = StyleSheet.create({
 		borderRadius: 80,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.primary
+		borderColor: colors.blue
+	},
+	onboardingWizardLabel: {
+		borderWidth: 2,
+		borderRadius: 4,
+		borderColor: colors.blue,
+		paddingVertical: Platform.OS === 'ios' ? 2 : -4,
+		paddingHorizontal: Platform.OS === 'ios' ? 5 : 5,
+		top: Platform.OS === 'ios' ? 0 : -2
 	}
 });
 
@@ -96,13 +105,30 @@ class AccountOverview extends Component {
 		/**
 		 * Action that toggles the accounts modal
 		 */
-		toggleAccountsModal: PropTypes.func
+		toggleAccountsModal: PropTypes.func,
+		/**
+		 * whether component is being rendered from onboarding wizard
+		 */
+		onboardingWizard: PropTypes.bool
 	};
 
 	state = {
-		accountLabelEditable: true,
+		accountLabelEditable: false,
 		accountLabel: '',
 		originalAccountLabel: ''
+	};
+
+	animatingAccountsModal = false;
+
+	toggleAccountsModal = () => {
+		const { onboardingWizard } = this.props;
+		if (!onboardingWizard && !this.animatingAccountsModal) {
+			this.animatingAccountsModal = true;
+			this.props.toggleAccountsModal();
+			setTimeout(() => {
+				this.animatingAccountsModal = false;
+			}, 500);
+		}
 	};
 
 	input = React.createRef();
@@ -154,10 +180,11 @@ class AccountOverview extends Component {
 	render() {
 		const {
 			account: { name, address },
-			currentCurrency
+			currentCurrency,
+			onboardingWizard
 		} = this.props;
 
-		const fiatBalance = `$${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
+		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel } = this.state;
@@ -171,13 +198,21 @@ class AccountOverview extends Component {
 				testID={'account-overview'}
 			>
 				<View style={styles.info}>
-					<TouchableOpacity style={styles.identiconBorder} onPress={this.props.toggleAccountsModal}>
-						<Identicon address={address} size="38" />
+					<TouchableOpacity
+						style={styles.identiconBorder}
+						disabled={onboardingWizard}
+						onPress={this.toggleAccountsModal}
+					>
+						<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
 					</TouchableOpacity>
 					<View style={styles.data}>
 						{accountLabelEditable ? (
 							<TextInput
-								style={[styles.label, styles.labelInput]}
+								style={[
+									styles.label,
+									styles.labelInput,
+									onboardingWizard ? styles.onboardingWizardLabel : {}
+								]}
 								editable={accountLabelEditable}
 								onChangeText={this.onAccountLabelChange}
 								onSubmitEditing={this.setAccountLabel}
@@ -193,7 +228,10 @@ class AccountOverview extends Component {
 							/>
 						) : (
 							<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-								<Text style={styles.label} numberOfLines={1}>
+								<Text
+									style={[styles.label, onboardingWizard ? styles.onboardingWizardLabel : {}]}
+									numberOfLines={1}
+								>
 									{name}
 								</Text>
 							</TouchableOpacity>

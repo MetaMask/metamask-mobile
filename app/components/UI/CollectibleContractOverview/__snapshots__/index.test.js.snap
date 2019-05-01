@@ -6,7 +6,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
     Object {
       "alignContent": "center",
       "alignItems": "center",
-      "borderBottomColor": "#CCCCCC",
+      "borderBottomColor": "#d6d9dc",
       "borderBottomWidth": 0.5,
       "flex": 1,
       "paddingBottom": 30,
@@ -35,6 +35,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
       Object {
         "flex": 1,
         "flexDirection": "row",
+        "marginBottom": 20,
         "marginTop": 10,
       }
     }

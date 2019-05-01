@@ -9,16 +9,6 @@ exports[`Browser should render correctly 1`] = `
     }
   }
 >
-  <View
-    style={
-      Object {
-        "height": 3,
-        "marginTop": 0,
-      }
-    }
-  >
-    <WebviewProgressBar />
-  </View>
   <Web3Webview
     injectedOnStartLoadingJavaScript={null}
     javaScriptEnabled={true}
@@ -56,6 +46,20 @@ exports[`Browser should render correctly 1`] = `
     thirdPartyCookiesEnabled={true}
     userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1"
   />
+  <View
+    style={
+      Object {
+        "height": 3,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": "100%",
+      }
+    }
+  >
+    <WebviewProgressBar />
+  </View>
   <View
     style={
       Object {
@@ -130,13 +134,13 @@ exports[`Browser should render correctly 1`] = `
         onChangeText={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Enter website address"
-        placeholderTextColor="#747d8c"
+        placeholderTextColor="#848c96"
         rejectResponderTermination={true}
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           Object {
-            "backgroundColor": "#dfe4ea",
+            "backgroundColor": "#f2f3f4",
             "borderRadius": 30,
             "flex": 1,
             "fontFamily": "Roboto",
@@ -164,7 +168,7 @@ exports[`Browser should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#008edf",
+              "color": "#037dd6",
               "fontFamily": "Roboto",
               "fontSize": 14,
               "fontWeight": "400",
@@ -282,7 +286,7 @@ exports[`Browser should render correctly 1`] = `
     animationOut="slideOutDown"
     animationOutTiming={300}
     avoidKeyboard={false}
-    backdropColor="#d95846"
+    backdropColor="#D73A49"
     backdropOpacity={1}
     backdropTransitionInTiming={300}
     backdropTransitionOutTiming={300}
@@ -320,6 +324,53 @@ exports[`Browser should render correctly 1`] = `
       goToETHPhishingDetector={[Function]}
       goToEtherscam={[Function]}
       goToFilePhishingIssue={[Function]}
+    />
+  </ReactNativeModal>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={600}
+    animationOut="slideOutDown"
+    animationOutTiming={600}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "justifyContent": "flex-end",
+        "margin": 0,
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <Connect(WatchAssetRequest)
+      onCancel={[Function]}
+      onConfirm={[Function]}
     />
   </ReactNativeModal>
 </View>

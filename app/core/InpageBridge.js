@@ -25,6 +25,13 @@ class InpageBridge {
 		if (!error && response.error) {
 			error = response.error;
 		}
+		if (!Array.isArray(response)) {
+			response = {
+				id: '',
+				jsonrpc: '2.0',
+				...response
+			};
+		}
 		callback && callback(error, response);
 		delete this._pending[`${__mmID}`];
 	}
@@ -158,7 +165,7 @@ class InpageBridge {
 	 * @returns - Standard Promise or legacy object containing RPC result
 	 */
 	send(action, meta) {
-		if ((typeof action === 'string' && !meta) || Array.isArray(meta)) {
+		if (typeof action === 'string') {
 			return this._sendStandard(action, meta);
 		}
 		return this._sendLegacy(action, meta);
@@ -172,7 +179,16 @@ class InpageBridge {
 	 */
 	sendAsync(payload, callback) {
 		const random = Math.floor(Math.random() * 100 + 1);
-		if (!Array.isArray(payload)) {
+		if (typeof payload === 'string') {
+			// Support dapps calling sendAsync('some_method') even though this is not
+			// compliant with EIP-1193 and should be send('some_method').
+			payload = {
+				method: payload,
+				params: callback || [],
+				__mmID: Date.now() * random,
+				hostname: window.location.hostname
+			};
+		} else if (!Array.isArray(payload)) {
 			payload = {
 				...payload,
 				__mmID: Date.now() * random,
@@ -280,4 +296,54 @@ class InpageBridge {
 }
 
 window.ethereum = new InpageBridge();
+
+/**
+ * Expose nonstandard convenience methods at an application-specific namespace.
+ * A Proxy is used so developers can be warned about the use of these methods.
+ */
+window.ethereum._metamask = new Proxy(
+	{
+		/**
+		 * Determines if user accounts are enabled for this domain
+		 *
+		 * @returns {boolean} - true if accounts are enabled for this domain
+		 */
+		isEnabled: () => !!window.ethereum._selectedAddress,
+
+		/**
+		 * Determines if user accounts have been previously enabled for this
+		 * domain in the past. This is useful for determining if a user has
+		 * previously whitelisted a given dapp.
+		 *
+		 * @returns {Promise<boolean>} - Promise resolving to true if accounts have been previously enabled for this domain
+		 */
+		isApproved: async () => {
+			const { isApproved } = await window.ethereum.send('metamask_isApproved');
+			return isApproved;
+		},
+
+		/**
+		 * Determines if MetaMask is unlocked by the user. The mobile application
+		 * is always unlocked, so this method exists only for symmetry with the
+		 * browser extension.
+		 *
+		 * @returns {Promise<boolean>} - Promise resolving to true
+		 */
+		isUnlocked: () => Promise.resolve(true)
+	},
+	{
+		get: (obj, prop) => {
+			!window.ethereum._warned &&
+				// eslint-disable-next-line no-console
+				console.warn(
+					'Heads up! ethereum._metamask exposes methods that have ' +
+						'not been standardized yet. This means that these methods may not be implemented ' +
+						'in other dapp browsers and may be removed from MetaMask in the future.'
+				);
+			window.ethereum._warned = true;
+			return obj[prop];
+		}
+	}
+);
+
 window.postMessage({ type: 'ETHEREUM_PROVIDER_SUCCESS' }, '*');

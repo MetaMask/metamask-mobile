@@ -12,11 +12,11 @@ const styles = StyleSheet.create({
 	},
 	page: {
 		height: 7,
-		backgroundColor: colors.pager,
+		backgroundColor: colors.grey100,
 		marginRight: defaultMargin
 	},
 	selected: {
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	}
 });
 

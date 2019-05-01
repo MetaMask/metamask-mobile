@@ -46,6 +46,7 @@ import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
+import OnboardingWizard from '../../UI/OnboardingWizard';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -226,7 +227,10 @@ const MainNavigator = createStackNavigator(
 						screen: AccountBackupStep5
 					},
 					AccountBackupStep6: {
-						screen: AccountBackupStep6
+						screen: AccountBackupStep6,
+						navigationOptions: {
+							gesturesEnabled: false
+						}
 					}
 				},
 				{
@@ -253,7 +257,11 @@ class Main extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		lockTime: PropTypes.number
+		lockTime: PropTypes.number,
+		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number
 	};
 
 	state = {
@@ -273,7 +281,7 @@ class Main extends Component {
 		}
 	};
 
-	componentDidMount() {
+	componentDidMount = async () => {
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -281,7 +289,7 @@ class Main extends Component {
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 
 		PushNotification.configure({
-			requestPermissions: true,
+			requestPermissions: false,
 			onNotification: notification => {
 				let data = null;
 				if (Platform.OS === 'android') {
@@ -301,7 +309,7 @@ class Main extends Component {
 				}
 			}
 		});
-	}
+	};
 
 	handleAppStateChange = appState => {
 		const newModeIsBackground = appState === 'background';
@@ -354,17 +362,30 @@ class Main extends Component {
 		this.lockManager.stopListening();
 	}
 
-	render = () => (
-		<View style={styles.flex}>
-			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-			<GlobalAlert />
-			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
-		</View>
-	);
+	/**
+	 * Return current step of onboarding wizard if not step 5 nor 0
+	 */
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		return wizardStep !== 5 && wizardStep > 0 && <OnboardingWizard navigation={this.props.navigation} />;
+	};
+
+	render() {
+		const { forceReload } = this.state;
+		return (
+			<View style={styles.flex}>
+				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+				{this.renderOnboardingWizard()}
+				<GlobalAlert />
+				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+			</View>
+		);
+	}
 }
 
 const mapStateToProps = state => ({
-	lockTime: state.settings.lockTime
+	lockTime: state.settings.lockTime,
+	wizardStep: state.wizard.step
 });
 
 export default connect(mapStateToProps)(Main);

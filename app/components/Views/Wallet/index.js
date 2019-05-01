@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 	},
 	tabUnderlineStyle: {
 		height: 2,
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	tabStyle: {
 		paddingBottom: 0
@@ -89,7 +89,11 @@ class Wallet extends Component {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func.isRequired
+		showAlert: PropTypes.func.isRequired,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -97,7 +101,6 @@ class Wallet extends Component {
 	};
 
 	mounted = false;
-	scrollableTabViewRef = React.createRef();
 
 	async init() {
 		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
@@ -112,28 +115,22 @@ class Wallet extends Component {
 		});
 	}
 
-	componentDidUpdate(prevProps) {
-		const prevNavigation = prevProps.navigation;
-		const { navigation } = this.props;
-		if (prevNavigation && navigation) {
-			const prevPage = prevNavigation.getParam('page', null);
-			const currentPage = navigation.getParam('page', null);
-			if (currentPage && currentPage !== prevPage) {
-				this.handleTabChange(currentPage);
-			}
-		}
-	}
-
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		const { AssetsDetectionController, AccountTrackerController } = Engine.context;
-		const actions = [AssetsDetectionController.detectAssets(), AccountTrackerController.refresh()];
+		const {
+			AssetsDetectionController,
+			AccountTrackerController,
+			CurrencyRateController,
+			TokenRatesController
+		} = Engine.context;
+		const actions = [
+			AssetsDetectionController.detectAssets(),
+			AccountTrackerController.refresh(),
+			CurrencyRateController.poll(),
+			TokenRatesController.poll()
+		];
 		await Promise.all(actions);
 		this.setState({ refreshing: false });
-	};
-
-	handleTabChange = page => {
-		this.scrollableTabViewRef && this.scrollableTabViewRef.current.goToPage(page);
 	};
 
 	componentWillUnmount() {
@@ -144,7 +141,7 @@ class Wallet extends Component {
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.primary}
+				activeTextColor={colors.blue}
 				inactiveTextColor={colors.fontTertiary}
 				backgroundColor={colors.white}
 				tabStyle={styles.tabStyle}
@@ -165,8 +162,10 @@ class Wallet extends Component {
 			tokenExchangeRates,
 			collectibles,
 			navigation,
-			showAlert
+			showAlert,
+			primaryCurrency
 		} = this.props;
+
 		let balance = 0;
 		let assets = tokens;
 		if (accounts[selectedAddress]) {
@@ -197,13 +196,14 @@ class Wallet extends Component {
 					showAlert={showAlert}
 					currentCurrency={currentCurrency}
 				/>
-				<ScrollableTabView ref={this.scrollableTabViewRef} renderTabBar={this.renderTabBar}>
+				<ScrollableTabView renderTabBar={this.renderTabBar}>
 					<Tokens
 						navigation={navigation}
 						tabLabel={strings('wallet.tokens')}
 						tokens={assets}
 						currentCurrency={currentCurrency}
 						conversionRate={conversionRate}
+						primaryCurrency={primaryCurrency}
 						tokenBalances={tokenBalances}
 						tokenExchangeRates={tokenExchangeRates}
 					/>
@@ -246,7 +246,8 @@ const mapStateToProps = state => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
-	networkType: state.engine.backgroundState.NetworkController.provider.type
+	networkType: state.engine.backgroundState.NetworkController.provider.type,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({

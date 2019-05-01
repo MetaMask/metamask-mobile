@@ -18,7 +18,10 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -47,7 +50,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		lineHeight: 23,
 		marginBottom: 20,
-		color: colors.copy,
+		color: colors.grey500,
 		textAlign: 'center',
 		...fontStyles.normal
 	},
@@ -91,9 +94,17 @@ class CreateWallet extends Component {
 		 */
 		passwordUnset: PropTypes.func,
 		/**
+		 * Action to set the locktime in redux
+		 */
+		setLockTime: PropTypes.func,
+		/**
 		 * Action to reset the flag seedphraseBackedUp in redux
 		 */
-		seedphraseNotBackedUp: PropTypes.func
+		seedphraseNotBackedUp: PropTypes.func,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	// Temporary disabling the back button so users can't go back
@@ -110,12 +121,24 @@ class CreateWallet extends Component {
 			await SecureKeychain.setGenericPassword('metamask-user', '');
 			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			// Get onboarding wizard state
+			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();
+			this.props.setLockTime(-1);
 			this.props.seedphraseNotBackedUp();
 			setTimeout(() => {
-				this.props.navigation.navigate('HomeNav');
+				if (onboardingWizard) {
+					this.props.navigation.navigate('HomeNav');
+				} else {
+					this.props.setOnboardingWizardStep(1);
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
+				}
 			}, 1000);
 		});
 	}
@@ -140,10 +163,7 @@ class CreateWallet extends Component {
 								<AnimatedFox />
 							)}
 						</View>
-						<ActivityIndicator
-							size="large"
-							color={Platform.OS === 'android' ? colors.primary : colors.grey}
-						/>
+						<ActivityIndicator size="large" color={Platform.OS === 'android' ? colors.blue : colors.grey} />
 						<Text style={styles.title}>{strings('create_wallet.title')}</Text>
 						<Text style={styles.subtitle}>{strings('create_wallet.subtitle')}</Text>
 					</View>
@@ -154,6 +174,8 @@ class CreateWallet extends Component {
 }
 
 const mapDispatchToProps = dispatch => ({
+	setLockTime: time => dispatch(setLockTime(time)),
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
 	passwordUnset: () => dispatch(passwordUnset()),
 	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp())
 });

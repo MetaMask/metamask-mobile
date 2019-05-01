@@ -15,6 +15,50 @@
 		"start_exploring_now": "Start exploring",
 		"login": "Login"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Skip Tutorial",
+		"coachmark": {
+			"action_back": "No, Thanks",
+			"action_next": "Take the tour",
+			"progress_back": "Back",
+			"progress_next": "Got it!"
+		},
+		"step1": {
+			"title": "Welcome to your new wallet!",
+			"content1": "To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH).",
+			"content2": "You can buy a few dollars worth of ETH from an exchange ike Coinbase or simply request a friend."
+		},
+		"step2": {
+			"title": "Your Accounts",
+			"content1": "This is your first account, total value, and its unique public address (0x...).",
+			"content2": "You can create multiple accounts within this wallet by typing on profile icon."
+		},
+		"step3": {
+			"title": "Edit Account Name",
+			"content1": "'Account 1' isn't that catchy. So why not name your account something a little more memorable.",
+			"content2": "Long tap",
+			"content3": "now to edit account name."
+		},
+		"step4": {
+			"title": "Main Navigation",
+			"content1": "Tap here",
+			"content2": "to access your Wallet, Browser, and Transaction history.",
+			"content3": "You can take more actions with your accounts & access MetaMask settings."
+		},
+		"step5": {
+			"title": "Explore the Browser",
+			"content1": "You can explore blockchain applications (DAPPS) in the",
+			"content2": "Browser."
+		},
+		"step6": {
+			"title": "Search Dapps",
+			"content": "Search directly blockchain applications (DAPPS)!"
+		},
+		"step7": {
+			"title": "Featured Dapps",
+			"content": "Start exploring featured blockchain applications (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creating your new wallet",
 		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
@@ -98,7 +142,9 @@
 		"public_address": "Public Address"
 	},
 	"send": {
-		"title": "Send"
+		"title": "Send",
+		"deeplink_failure": "Ooops! Something went wrong! Please try again",
+		"warn_network_change": "Network changed to "
 	},
 	"receive": {
 		"title": "Receive"
@@ -119,6 +165,10 @@
 		"copy_address": "Copy",
 		"remove_token_title": "Do you want to remove this token?",
 		"remove_collectible_title": "Do you want to remove this collectible?",
+		"token_removed_title": "Token removed!",
+		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
+		"collectible_removed_title": "Collectible removed!",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD COLLECTIBLES\"",
 		"remove": "Remove",
 		"cancel": "Cancel"
 	},
@@ -179,6 +229,9 @@
 		"title": "Settings",
 		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
+		"ipfs_gateway": "IPFS Gateway",
+		"ipfs_gateway_down": "Your current IPFS gateway is down",
+		"ipfs_gateway_desc": "Choose your preferred IPFS gateway.",
 		"search_engine": "Search Engine",
 		"new_RPC_URL": "New RPC Network",
 		"state_logs": "State Logs",
@@ -218,15 +271,19 @@
 		"show_hex_data": "Show Hex Data",
 		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
 		"general_title": "General",
-		"general_desc": "Currency conversion, primary currency, language",
+		"general_desc": "Currency conversion, primary currency, language and search engine",
 		"advanced_title": "Advanced",
-		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs and custom RPC",
+		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC",
 		"security_title": "Security & Privacy",
 		"security_desc": "Privacy settings, private key and wallet seed phrase",
 		"info_title": "About MetaMask",
 		"legal_title": "Legal",
 		"conversion_title": "Currency conversion",
 		"conversion_desc": "Display fiat values in using a specific currency throughout the application.",
+		"primary_currency_title": "Primary Currency",
+		"primary_currency_desc": "Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.",
+		"primary_currency_text_first": "Native",
+		"primary_currency_text_second": "Fiat",
 		"language_desc": "Translate the application to a different supported language.",
 		"engine_desc": "Change the default search engine used when entering search terms in the URL bar.",
 		"reset_desc": "This action will clear your transaction history. This data might not be retrievable.",
@@ -299,9 +356,11 @@
 	"transaction": {
 		"alert": "ALERT",
 		"amount": "Amount",
+		"next": "Next",
 		"confirm": "Confirm",
 		"reject": "Reject",
 		"edit": "Edit",
+		"cancel": "Cancel",
 		"from": "From",
 		"gas_fee": "Transaction Fee",
 		"gas_fee_fast": "FAST",
@@ -318,6 +377,7 @@
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
 		"invalid_collectible_ownership": "You don't own this collectible",
+		"known_asset_contract": "Known asset contract address",
 		"max": "Max",
 		"recipient_address": "Recipient Address",
 		"required": "Required",
@@ -328,7 +388,12 @@
 		"value_not_available": "Not Available",
 		"rate_not_available": "Conversion not available",
 		"optional": "Optional",
-		"no_address_for_ens": "No address for ENS name"
+		"no_address_for_ens": "No address for ENS name",
+		"lets_try": "Yes, let's try",
+		"cancel_tx_title": "Attempt to cancel?",
+		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the canellation attempt is successful, you will be charged the transaction fee above.",
+		"nevermind": "Nevermind",
+		"gasCancelFee": "Gas Cancellation Fee"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -386,6 +451,7 @@
 		"tx_review_contract_deployment": "CONTRACT DEPLOYMENT",
 		"tx_review_transfer_from": "TRANSFER FROM",
 		"tx_review_unknown": "UNKNOWN METHOD",
+		"tx_review_approve": "APPROVE",
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
@@ -395,6 +461,7 @@
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
 		"smart_contract_interaction": "Smart Contract Interaction",
+		"approve": "Approve",
 		"hash": "Hash",
 		"from": "From",
 		"to": "To",
@@ -404,7 +471,8 @@
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
-		"hash_copied_to_clipboard": "Transaction hash copied to clipboard"
+		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
+		"address_copied_to_clipboard": "Address copied to clipboard"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
@@ -422,7 +490,9 @@
 		"warning_title": "Warning!",
 		"warning_message": "This will override all your current accounts and transaction history in your mobile phone. Are you sure?",
 		"warning_ok_button": "YES",
-		"warning_cancel_button": "NO"
+		"warning_cancel_button": "NO",
+		"invalid_qr_code": "Invalid QR Code",
+		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to Settings --> Sync with Mobile in the browser extension and scan the QR there"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",
@@ -449,6 +519,14 @@
 		"account_title": "Account:",
 		"balance_title": "Balance:",
 		"message": "Message:"
+	},
+	"watch_asset_request": {
+		"title": "Add Suggested Token",
+		"cancel": "CANCEL",
+		"add": "ADD TOKEN",
+		"message": "Would you like to add this token?",
+		"token": "Token",
+		"balance": "Balance"
 	},
 	"unit": {
 		"eth": "ETH",
@@ -605,13 +683,19 @@
 	},
 	"notifications": {
 		"pending_title": "Transaction submitted!",
+		"cancelled_title": "Transaction cancelled!",
 		"success_title": "Transaction #{{nonce}} Complete!",
 		"error_title": "Oops, something went wrong :/",
 		"received_title": "You received {{amount}} {{assetType}}!",
 		"pending_message": "Waiting for confirmation...",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
-		"received_message": "Tap to view this transaction"
+		"cancelled_message": "Tap to view this transaction",
+		"received_message": "Tap to view this transaction",
+		"prompt_title": "Enable Push Notifications",
+		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
+		"prompt_ok": "Yes",
+		"prompt_cancel": "No, thanks"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",

@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'The network request was invalid',
 	'Require cycle',
 	'ListView is deprecated',
 	'WebView has been extracted from react-native core',

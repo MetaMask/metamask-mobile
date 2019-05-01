@@ -9,7 +9,7 @@ import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	warningIcon: {
-		color: colors.warningRed,
+		color: colors.red,
 		marginRight: 10
 	},
 	phishingModalWrapper: {
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	},
 	phishingModalTitle: {
 		...fontStyles.bold,
-		color: colors.warningRed,
+		color: colors.red,
 		textAlign: 'center'
 	},
 	phishingModalHeader: {
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	phishingModalInfo: {
-		backgroundColor: colors.lighterGray,
+		backgroundColor: colors.grey000,
 		paddingTop: 20,
 		paddingHorizontal: 20
 	},
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 		padding: 10
 	},
 	backToSafetyText: {
-		color: colors.warningRed,
+		color: colors.red,
 		fontSize: 12
 	},
 	foxImage: {
@@ -129,7 +129,8 @@ export default class PhishingModal extends Component {
 							{strings('phishing.reasons')}
 							<Text style={styles.link} onPress={this.props.goToETHPhishingDetector}>
 								{strings('phishing.ethereum_phishing_detector')}
-							</Text>. {strings('phishing.list_content')}
+							</Text>
+							. {strings('phishing.list_content')}
 						</Text>
 						<Text style={styles.phishingText}>
 							{strings('phishing.to_read_more')}

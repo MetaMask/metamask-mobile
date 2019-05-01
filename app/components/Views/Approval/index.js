@@ -4,7 +4,6 @@ import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
 import { newTransaction, setTransactionObject } from '../../../actions/transaction';
@@ -23,8 +22,7 @@ const styles = StyleSheet.create({
  * Component that manages transaction approval from the dapp browser
  */
 class Approval extends Component {
-	static navigationOptions = ({ navigation }) =>
-		getTransactionOptionsTitle('approval.title', strings('navigation.cancel'), navigation);
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('approval.title', navigation);
 
 	static propTypes = {
 		/**
@@ -42,7 +40,11 @@ class Approval extends Component {
 		/**
 		 * List of transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.array
 	};
 
 	state = {
@@ -56,7 +58,13 @@ class Approval extends Component {
 		if (!transactionHandled) {
 			Engine.context.TransactionController.cancelTransaction(transaction.id);
 		}
+		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
 		this.clear();
+	};
+
+	componentDidMount = () => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: 'review', dispatch: this.onModeChange });
 	};
 
 	/**
@@ -74,17 +82,29 @@ class Approval extends Component {
 	 * Callback on confirm transaction
 	 */
 	onConfirm = async () => {
-		const { TransactionController } = Engine.context;
-		const { transactions } = this.props;
+		const { TransactionController, AddressBookController } = Engine.context;
+		const { transactions, addressBook } = this.props;
 		let { transaction } = this.props;
 		try {
 			transaction = this.prepareTransaction(transaction);
 
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
+				// Add to the AddressBook if it's an unkonwn address
+				const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
+				const existingContact = addressBook.find(
+					({ address }) => toChecksumAddress(address) === checksummedAddress
+				);
+				if (!existingContact) {
+					AddressBookController.set(checksummedAddress, '');
+				}
+
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
-					TransactionsNotificationManager.watchSubmittedTransaction(transactionMeta);
+					TransactionsNotificationManager.watchSubmittedTransaction({
+						...transactionMeta,
+						assetType: transaction.assetType
+					});
 				} else {
 					throw transactionMeta.error;
 				}
@@ -95,12 +115,14 @@ class Approval extends Component {
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transaction.id);
 		} catch (error) {
-			Alert.alert('Transaction error', JSON.stringify(error), [{ text: 'OK' }]);
+			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
 	};
 
 	onModeChange = mode => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode });
 		this.setState({ mode });
 	};
 
@@ -141,10 +163,11 @@ class Approval extends Component {
 
 	render = () => {
 		const { transaction } = this.props;
+		const { mode } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<TransactionEditor
-					mode={this.state.mode}
+					mode={mode}
 					onCancel={this.onCancel}
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
@@ -158,7 +181,8 @@ class Approval extends Component {
 
 const mapStateToProps = state => ({
 	transaction: state.transaction,
-	transactions: state.engine.backgroundState.TransactionController.transactions
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook
 });
 
 const mapDispatchToProps = dispatch => ({

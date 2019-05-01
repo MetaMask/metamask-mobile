@@ -15,6 +15,50 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Saltar Tutorial",
+		"coachmark": {
+			"action_back": "No, Gracias",
+			"action_next": "Hacer un recorrido",
+			"progress_back": "Atrás",
+			"progress_next": "Perfecto!"
+		},
+		"step1": {
+			"title": "Bienvenido a tu Nueva Billetera!",
+			"content1": "Para usar aplicaciones blockchain (DAPPS) necesitas una billetera ya que las acciones en blockchain tienen un costo en Ether (ETH).",
+			"content2": "Puedes comprar unos cuantos dólares de ETH en una bolsa de valores como Coinbase o simplemente solicitar a un amigo."
+		},
+		"step2": {
+			"title": "Tus Cuentas",
+			"content1": "Esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).",
+			"content2": "Puedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+		},
+		"step3": {
+			"title": "Editar Nombre",
+			"content1": "'Account 1' no es muy memorable. Porque no nombrar tu cuenta con algo un poco más memorable.",
+			"content2": "Presiona",
+			"content3": "para editar el nombre de la cuenta."
+		},
+		"step4": {
+			"title": "Navegación Principal",
+			"content1": "Presiona acá",
+			"content2": "para acceder a tu Billetera, Navegador, e Historial de Transacciones.",
+			"content3": "Puedes realizzar más acciones con tus cuentas y acceder a configuraciones."
+		},
+		"step5": {
+			"title": "Explora el Navegador",
+			"content1": "Puedes exprolar aplicaciones blockchain (DAPPS) en el",
+			"content2": "Navegador."
+		},
+		"step6": {
+			"title": "Buscar Dapps",
+			"content": "Busca aplicaciones blockchain (DAPPS)!"
+		},
+		"step7": {
+			"title": "Dapps Destacadas",
+			"content": "Comienza a explorar las aplicaciones blockchain (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creando tu nueva billetera",
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
@@ -97,7 +141,9 @@
 		"public_address": "Public Address"
 	},
 	"send": {
-		"title": "Enviar"
+		"title": "Enviar",
+		"deeplink_failure": "Ooops! Algo ha salido mal, por favor intėntalo de nuevo",
+		"warn_network_change": "La red ha sido cambiada a "
 	},
 	"receive": {
 		"title": "Recibir"
@@ -118,6 +164,10 @@
 		"copy_address": "Copiar",
 		"remove_token_title": "Deseas eliminar este token?",
 		"remove_collectible_title": "Deseas eliminar este coleccionable?",
+		"token_removed_title": "Token eliminado!",
+		"token_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"+ AGREGAR TOKENS\"",
+		"collectible_removed_title": "Coleccionable eliminado!",
+		"collectible_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"Agregar Coleccionable\"",
 		"remove": "Eliminar",
 		"cancel": "Cancelar"
 	},
@@ -179,6 +229,9 @@
 		"current_conversion": "Conversión actual",
 		"current_language": "Lenguaje Actual",
 		"new_RPC_URL": "Nueva URL del RPC",
+		"ipfs_gateway": "IPFS Gateway",
+		"ipfs_gateway_down": "IPFS gateway actual está desconectado",
+		"ipfs_gateway_desc": "Elige tu IPFS gateway preferida.",
 		"state_logs": "Logs de Estado",
 		"reveal_seed_words": "Revelar Palabras de Semilla",
 		"reset_account": "Reiniciar Cuenta",
@@ -216,15 +269,19 @@
 		"show_hex_data": "Mostrar datos hexadecimales",
 		"show_hex_data_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"general_title": "General",
-		"general_desc": "Conversion, Moneda principal, lenguaje",
+		"general_desc": "Conversion, Moneda principal, lenguaje y motor de búsqueda",
 		"advanced_title": "Avanzado",
-		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba y RPC personalizados",
+		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
 		"security_desc": "Opciones de privacidad y frase semilla de la billetera",
 		"info_title": "Acerca de MetaMask",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
+		"primary_currency_title": "Moneda primaria",
+		"primary_currency_desc": "Seleccione nativo para priorizar la visualización de valores en la moneda nativa de la blockchain (por ejemplo, ETH). Seleccione Fiat para priorizar la visualización de valores en su moneda primaria seleccionada.",
+		"primary_currency_text_first": "Nativo",
+		"primary_currency_text_second": "Fiat",
 		"language_desc": "Traducir la aplicacion a un lenguaje soportado diferente.",
 		"engine_desc": "Cambiar el motor de búsqueda por defecto al realizar búsquedas en el navegador.",
 		"reset_desc": "Esta acción borrará tu historial de transacciones. Estos datos puede que no sean recuperables.",
@@ -296,9 +353,11 @@
 	"transaction": {
 		"alert": "ALERTA",
 		"amount": "Cantidad",
+		"next": "Siguiente",
 		"confirm": "Confirmar",
 		"reject": "Rechazar",
 		"edit": "Editar",
+		"cancel": "Cancelar",
 		"from": "De",
 		"gas_fee": "Tarifa de Transacción",
 		"gas_fee_fast": "RAPIDA",
@@ -321,6 +380,7 @@
 		"review_function_type": "TIPO DE FUNCIÓN",
 		"review_hex_data": "DATOS HEX ",
 		"invalid_collectible_ownership": "No eres el dueño de este coleccionable",
+		"known_asset_contract": "Dirección de contrato de un activo conocido",
 		"conversion_not_available": "Datos de conversión no disponibles",
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
@@ -383,6 +443,7 @@
 		"tx_review_contract_deployment": "CONTRATO DESPLEGADO",
 		"tx_review_transfer_from": "TRANSFERIR DESDE",
 		"tx_review_unknown": "MÉTODO DESCONOCIDO",
+		"tx_review_approve": "APROBAR",
 		"sent_ether": "Enviaste Ether",
 		"self_sent_ether": "Enviaste Ether a ti mismo",
 		"received_ether": "Recibiste Ether",
@@ -392,6 +453,7 @@
 		"contract_deploy": "Despliegue de contrato",
 		"to_contract": "Nuevo Contrato",
 		"smart_contract_interaction": "Interación con contrato inteligente ",
+		"approve": "Aprobar",
 		"hash": "Hash",
 		"from": "Desde",
 		"to": "Para",
@@ -401,7 +463,8 @@
 		"gas_price": "Precio del gas (GWEI)",
 		"total": "Total",
 		"view_on_etherscan": "VER EN ETHERSCAN",
-		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles"
+		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles",
+		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles"
 	},
 	"transaction_submitted": {
 		"title": "Transacción Enviada",
@@ -418,7 +481,9 @@
 		"warning_title": "Advertencia!",
 		"warning_message": "Esto eliminará todas tus cuentas y historial de transactiones en tu dispositivo. Estás seguro?",
 		"warning_ok_button": "SI",
-		"warning_cancel_button": "NO"
+		"warning_cancel_button": "NO",
+		"invalid_qr_code": "Código QR inválido",
+		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  Ajustes --> Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",
@@ -445,6 +510,14 @@
 		"account_title": "Cuenta:",
 		"balance_title": "Balance:",
 		"message": "Mensaje:"
+	},
+	"watch_asset_request": {
+		"title": "Agregar Token Sugerido",
+		"cancel": "CANCELar",
+		"add": "AGREGAR TOKEN",
+		"message": "Te gustaría agregar este token?",
+		"token": "Token",
+		"balance": "Balance"
 	},
 	"unit": {
 		"eth": "ETH",
@@ -606,7 +679,11 @@
 		"pending_message": "Tu transacción esta en proceso",
 		"error_message": "Presiona para ver esta transacción",
 		"success_message": "Presiona para ver esta transacción",
-		"received_message": "Presiona para ver esta transacción"
+		"received_message": "Presiona para ver esta transacción",
+		"prompt_title": "Habilitar Notificationes",
+		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
+		"prompt_ok": "Si",
+		"prompt_cancel": "No, gracias"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Protege tu billetera",

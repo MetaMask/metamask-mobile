@@ -50,7 +50,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           style={
             Array [
               Object {
-                "borderColor": "#CCCCCC",
+                "borderColor": "#d6d9dc",
                 "borderRadius": 4,
                 "borderWidth": 1,
                 "fontFamily": "Roboto",
@@ -67,7 +67,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#FF0000",
+              "color": "#D73A49",
               "fontFamily": "Roboto",
               "fontWeight": "400",
               "marginTop": 15,
@@ -104,7 +104,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
           style={
             Array [
               Object {
-                "borderColor": "#CCCCCC",
+                "borderColor": "#d6d9dc",
                 "borderRadius": 4,
                 "borderWidth": 1,
                 "fontFamily": "Roboto",
@@ -121,7 +121,7 @@ exports[`AddCustomCollectible should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#FF0000",
+              "color": "#D73A49",
               "fontFamily": "Roboto",
               "fontWeight": "400",
               "marginTop": 15,

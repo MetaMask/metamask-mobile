@@ -8,7 +8,8 @@ import {
 	getRenderableEthGasFee,
 	getRenderableFiatGasFee,
 	apiEstimateModifiedToWEI,
-	fetchBasicGasEstimates
+	fetchBasicGasEstimates,
+	convertApiValueToGWEI
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../../util/number';
@@ -16,7 +17,7 @@ import { fromWei } from '../../../util/number';
 const styles = StyleSheet.create({
 	selectors: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 		marginTop: 10
 	},
 	average: {
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRightWidth: 1,
 		borderLeftWidth: 1
 	},
@@ -60,12 +61,12 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	textAdvancedOptions: {
-		color: colors.primary
+		color: colors.blue
 	},
 	gasInput: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		fontSize: 16,
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	warningText: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	}
 });
@@ -106,7 +107,11 @@ class CustomGas extends Component {
 		/**
 		 * Object BN containing estimated gas limit
 		 */
-		gas: PropTypes.object
+		gas: PropTypes.object,
+		/**
+		 * Callback to modify state in parent state
+		 */
+		onPress: PropTypes.func
 	};
 
 	state = {
@@ -120,7 +125,7 @@ class CustomGas extends Component {
 		selected: 'average',
 		ready: false,
 		advancedCustomGas: false,
-		customGasPrice: '20',
+		customGasPrice: '10',
 		customGasLimit: this.props.gas.toNumber().toString(),
 		warningGasLimit: '',
 		warningGasPrice: ''
@@ -128,46 +133,50 @@ class CustomGas extends Component {
 
 	onPressGasFast = () => {
 		const { fastGwei } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		this.setState({
 			gasFastSelected: true,
 			gasAverageSelected: false,
 			gasSlowSelected: false,
 			selected: 'fast',
-			customGasPrice: fastGwei.toString()
+			customGasPrice: fastGwei
 		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(fastGwei));
 	};
 
 	onPressGasAverage = () => {
 		const { averageGwei } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: true,
 			gasSlowSelected: false,
 			selected: 'average',
-			customGasPrice: averageGwei.toString()
+			customGasPrice: averageGwei
 		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(averageGwei));
 	};
 
 	onPressGasSlow = () => {
 		const { safeLowGwei } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		this.setState({
 			gasFastSelected: false,
 			gasAverageSelected: false,
 			gasSlowSelected: true,
 			selected: 'slow',
-			customGasPrice: safeLowGwei.toString()
+			customGasPrice: safeLowGwei
 		});
 		this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(safeLowGwei));
 	};
 
 	onAdvancedOptions = () => {
 		const { advancedCustomGas, selected, fastGwei, averageGwei, safeLowGwei, customGasPrice } = this.state;
-		const { gas } = this.props;
+		const { gas, onPress } = this.props;
+		onPress && onPress();
 		if (advancedCustomGas) {
 			switch (selected) {
 				case 'slow':
@@ -197,9 +206,9 @@ class CustomGas extends Component {
 		const basicGasEstimates = await fetchBasicGasEstimates();
 		const { average, fast, safeLow } = basicGasEstimates;
 		this.setState({
-			averageGwei: average,
-			fastGwei: fast,
-			safeLowGwei: safeLow,
+			averageGwei: convertApiValueToGWEI(average),
+			fastGwei: convertApiValueToGWEI(fast),
+			safeLowGwei: convertApiValueToGWEI(safeLow),
 			ready: true
 		});
 	};
@@ -228,7 +237,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.slow,
-						{ backgroundColor: this.state.gasSlowSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasSlowSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
@@ -247,7 +256,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.average,
-						{ backgroundColor: this.state.gasAverageSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasAverageSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text
@@ -268,7 +277,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.fast,
-						{ backgroundColor: this.state.gasFastSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasFastSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
@@ -306,7 +315,7 @@ class CustomGas extends Component {
 					keyboardType="numeric"
 					style={styles.gasInput}
 					onChangeText={this.onGasPriceChange}
-					value={customGasPrice}
+					value={customGasPrice.toString()}
 				/>
 				<Text style={styles.text}>{warningGasPrice}</Text>
 			</View>

@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 	},
 	children: {
 		flex: 1,
-		borderTopColor: colors.lightGray,
+		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
 		height: '100%'
 	},

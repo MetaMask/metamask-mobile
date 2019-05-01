@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
 	permissions: {
 		alignItems: 'center',
 		borderBottomWidth: 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderTopWidth: 1,
 		display: 'flex',
 		flexDirection: 'row',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
 		width: '33%'
 	},
 	border: {
-		borderColor: colors.accentGray,
+		borderColor: colors.grey400,
 		borderStyle: 'dashed',
 		borderWidth: 1,
 		left: 0,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
 	},
 	checkWrapper: {
 		alignItems: 'center',
-		backgroundColor: colors.success,
+		backgroundColor: colors.green500,
 		borderRadius: 12,
 		height: 24,
 		position: 'relative',
@@ -228,7 +228,7 @@ class AccountApproval extends Component {
 								{strings('accountApproval.permission')}
 								<Text style={styles.permission}> {strings('accountApproval.address')}</Text>
 							</Text>
-							<Icon name="info-circle" color={colors.primary} size={22} />
+							<Icon name="info-circle" color={colors.blue} size={22} />
 						</View>
 						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
 					</View>

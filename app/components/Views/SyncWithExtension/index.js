@@ -4,6 +4,7 @@ import { Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from '
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { setLockTime } from '../../../actions/settings';
 import SecureKeychain from '../../../core/SecureKeychain';
 import PubNub from 'pubnub';
 import { colors, fontStyles } from '../../../styles/common';
@@ -12,6 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -76,7 +78,12 @@ class SyncWithExtension extends Component {
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * The action to update the locktime
+		 * in the redux store
+		 */
+		setLockTime: PropTypes.func
 	};
 
 	seedwords = null;
@@ -134,10 +141,17 @@ class SyncWithExtension extends Component {
 	showQrCode = () => {
 		this.props.navigation.push('QRScanner', {
 			onScanSuccess: data => {
-				const result = data.content.replace('metamask-sync:', '').split('|@|');
-				this.channelName = result[0];
-				this.cipherKey = result[1];
-				this.initWebsockets();
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
+					const result = data.content.replace('metamask-sync:', '').split('|@|');
+					this.channelName = result[0];
+					this.cipherKey = result[1];
+					this.initWebsockets();
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
+					);
+				}
 			}
 		});
 	};
@@ -285,6 +299,7 @@ class SyncWithExtension extends Component {
 			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
+			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.seedphraseBackedUp();
 			this.done = true;
 			this.dataToSync = null;
@@ -345,6 +360,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+	setLockTime: time => dispatch(setLockTime(time)),
 	passwordHasBeenSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });

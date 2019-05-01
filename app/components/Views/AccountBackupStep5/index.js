@@ -65,15 +65,15 @@ const styles = StyleSheet.create({
 	},
 	navbarLeftText: {
 		fontSize: 18,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	seedPhraseWrapper: {
-		backgroundColor: colors.lighterGray,
+		backgroundColor: colors.grey000,
 		borderRadius: 10,
 		marginBottom: 20,
 		flexDirection: 'row',
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1
 	},
 	colLeft: {
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 10,
 		flex: 1,
 		alignItems: 'center',
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderRightWidth: 1
 	},
 	colRight: {
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
 		lineHeight: 14,
 		color: colors.fontPrimary,
 		backgroundColor: colors.white,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 15,
 		borderRadius: 4
 	},
 	selectableWord: {
-		borderColor: colors.primary,
+		borderColor: colors.blue,
 		borderWidth: 1,
 		paddingHorizontal: 8,
 		paddingVertical: 5,
@@ -128,16 +128,16 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between'
 	},
 	selectedWord: {
-		backgroundColor: colors.another50ShadesOfGrey,
+		backgroundColor: colors.grey400,
 		borderWidth: 1,
-		borderColor: colors.another50ShadesOfGrey
+		borderColor: colors.grey400
 	},
 	selectedWordText: {
 		color: colors.white
 	},
 	currentWord: {
 		borderWidth: 1,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	},
 	succesModalText: {
 		textAlign: 'center',
@@ -196,15 +196,40 @@ class AccountBackupStep5 extends Component {
 	onSuccesModalAction = () => {
 		this.setState({ showSuccessModal: false });
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('AccountBackupStep6', { words: this.words });
+			const words = this.props.navigation.getParam('words', []);
+			this.props.navigation.navigate('AccountBackupStep6', { words });
+			// Clean up
+			setTimeout(() => {
+				this.setState({ confirmedWords: [] });
+				this.words = null;
+			}, 1000);
 		});
 	};
+
+	getIndexOfWord(word, index, words) {
+		const confirmedWordsOcurrences = this.getNumberOfOcurrences(word, words);
+		if (confirmedWordsOcurrences === 1) {
+			return words.indexOf(word);
+		}
+
+		let currentOccurence = 0;
+
+		for (let i = 0; i < words.length; i++) {
+			if (words[i] === word) {
+				currentOccurence++;
+				if (i === index && currentOccurence <= confirmedWordsOcurrences) {
+					return i;
+				}
+			}
+		}
+		return words.indexOf(word);
+	}
 
 	selectWord = (word, i) => {
 		const newConfirmedWords = this.state.confirmedWords.slice();
 		let newIndex;
-		if (newConfirmedWords.includes(word)) {
-			const matchIndex = newConfirmedWords.indexOf(word);
+		if (this.isSelectedWord(word, i)) {
+			const matchIndex = this.getIndexOfWord(word, i, this.state.confirmedWords);
 			newConfirmedWords[matchIndex] = undefined;
 			newIndex = matchIndex;
 		} else {
@@ -227,6 +252,37 @@ class AccountBackupStep5 extends Component {
 		newConfirmedWords[index] = undefined;
 		this.setState({ confirmedWords: newConfirmedWords, currentIndex: newIndex });
 	};
+
+	getNumberOfOcurrences(word, words) {
+		let ocurrences = 0;
+		for (let i = 0; i < words.length; i++) {
+			words[i] === word && ocurrences++;
+		}
+		return ocurrences;
+	}
+
+	isSelectedWord(word, index) {
+		if (!this.state.confirmedWords.includes(word)) {
+			return false;
+		}
+		const totalOcurrences = this.getNumberOfOcurrences(word, this.words);
+		const confirmedWordsOcurrences = this.getNumberOfOcurrences(word, this.state.confirmedWords);
+		if (totalOcurrences === confirmedWordsOcurrences) {
+			return true;
+		}
+
+		let currentOccurence = 0;
+
+		for (let i = 0; i < this.words.length; i++) {
+			if (this.words[i] === word) {
+				currentOccurence++;
+				if (i === index && currentOccurence <= confirmedWordsOcurrences) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	render() {
 		return (
@@ -257,7 +313,7 @@ class AccountBackupStep5 extends Component {
 													i === this.state.currentIndex ? styles.currentWord : null
 												]}
 											>
-												{word && `${i + 1}. ${word}`}
+												{(word && `${i + 1}. ${word}`) || ' '}
 											</Text>
 										</TouchableOpacity>
 									))}
@@ -275,7 +331,7 @@ class AccountBackupStep5 extends Component {
 													i + 6 === this.state.currentIndex ? styles.currentWord : null
 												]}
 											>
-												{word && `${i + 7}. ${word}`}
+												{(word && `${i + 7}. ${word}`) || ' '}
 											</Text>
 										</TouchableOpacity>
 									))}
@@ -284,9 +340,7 @@ class AccountBackupStep5 extends Component {
 
 							<View style={styles.words}>
 								{this.words.map((word, i) => {
-									const selected = this.state.confirmedWords.includes(word)
-										? styles.selectedWord
-										: null;
+									const selected = this.isSelectedWord(word, i) ? styles.selectedWord : null;
 									const selectedText = selected ? styles.selectedWordText : null;
 									return (
 										<TouchableOpacity
@@ -314,7 +368,7 @@ class AccountBackupStep5 extends Component {
 						</View>
 					</View>
 					<CustomAlert
-						headerStyle={{ backgroundColor: colors.success }}
+						headerStyle={{ backgroundColor: colors.green500 }}
 						headerContent={<Icon color={colors.white} name={'check'} size={100} />}
 						titleText={strings('account_backup_step_5.modal_title')}
 						buttonText={strings('account_backup_step_5.modal_button')}

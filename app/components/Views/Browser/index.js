@@ -47,12 +47,13 @@ import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
-import { hexToBN } from '../../../util/number';
+import { hexToBN, fromWei } from '../../../util/number';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
+import WatchAssetRequest from '../../UI/WatchAssetRequest';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white
 	},
 	icon: {
-		color: colors.copy,
+		color: colors.grey500,
 		height: 28,
 		lineHeight: 28,
 		textAlign: 'center',
@@ -72,11 +73,15 @@ const styles = StyleSheet.create({
 		alignSelf: 'center'
 	},
 	disabledIcon: {
-		color: colors.ash
+		color: colors.grey100
 	},
 	progressBarWrapper: {
 		height: 3,
-		marginTop: 0
+		width: '100%',
+		left: 0,
+		right: 0,
+		top: 0,
+		position: 'absolute'
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -97,8 +102,8 @@ const styles = StyleSheet.create({
 		zIndex: 99999999,
 		width: 200,
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
-		backgroundColor: colors.concrete
+		borderColor: colors.grey100,
+		backgroundColor: colors.grey000
 	},
 	optionsWrapperAndroid: {
 		top: 0,
@@ -106,7 +111,7 @@ const styles = StyleSheet.create({
 		elevation: 5
 	},
 	optionsWrapperIos: {
-		shadowColor: colors.gray,
+		shadowColor: colors.grey400,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
@@ -114,7 +119,7 @@ const styles = StyleSheet.create({
 		right: 3
 	},
 	option: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.grey000,
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		justifyContent: 'flex-start',
@@ -127,7 +132,7 @@ const styles = StyleSheet.create({
 	},
 	optionIcon: {
 		width: 18,
-		color: colors.copy,
+		color: colors.grey500,
 		flex: 0,
 		height: 15,
 		lineHeight: 15,
@@ -139,7 +144,7 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
-		backgroundColor: colors.concrete,
+		backgroundColor: colors.grey000,
 		position: 'absolute',
 		left: 0,
 		right: 0,
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
 	},
 	urlInput: {
 		...fontStyles.normal,
-		backgroundColor: Platform.OS === 'android' ? colors.white : colors.slate,
+		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
 		borderRadius: 30,
 		fontSize: Platform.OS === 'android' ? 16 : 14,
 		padding: 8,
@@ -195,7 +200,7 @@ const styles = StyleSheet.create({
 	},
 	cancelButtonText: {
 		fontSize: 14,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	iconCloseButton: {
@@ -256,6 +261,10 @@ export class Browser extends Component {
 		 * Protocol string to append to URLs that have none
 		 */
 		defaultProtocol: PropTypes.string,
+		/**
+		 * A string that of the chosen ipfs gateway
+		 */
+		ipfsGateway: PropTypes.string,
 		/**
 		 * Object containing the information for the current transaction
 		 */
@@ -346,7 +355,9 @@ export class Browser extends Component {
 			clampedScroll,
 			contentHeight: 0,
 			forwardEnabled: false,
-			forceReload: false
+			forceReload: false,
+			suggestedAssetMeta: undefined,
+			watchAsset: false
 		};
 	}
 
@@ -357,6 +368,7 @@ export class Browser extends Component {
 	goingBack = false;
 	forwardHistoryStack = [];
 	approvalRequest;
+	accountsRequest;
 
 	clampedScrollValue = 0;
 	offsetValue = 0;
@@ -407,6 +419,19 @@ export class Browser extends Component {
 				}
 				return promise;
 			},
+			eth_accounts: ({ id, jsonrpc, hostname }) => {
+				const { approvedHosts, privacyMode, selectedAddress } = this.props;
+				const isEnabled = !privacyMode || approvedHosts[hostname];
+				const promise = new Promise((resolve, reject) => {
+					this.accountsRequest = { resolve, reject };
+				});
+				if (isEnabled) {
+					this.accountsRequest.resolve({ id, jsonrpc, result: [selectedAddress] });
+				} else {
+					this.accountsRequest.resolve({ id, jsonrpc, result: [] });
+				}
+				return promise;
+			},
 			web3_clientVersion: payload =>
 				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id }),
 			wallet_scanQRCode: payload => {
@@ -427,7 +452,19 @@ export class Browser extends Component {
 					});
 				});
 				return promise;
-			}
+			},
+			wallet_watchAsset: async ({ params }) => {
+				const {
+					options: { address, decimals, image, symbol },
+					type
+				} = params;
+				const { AssetsController } = Engine.context;
+				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
+				return suggestionResult.result;
+			},
+			metamask_isApproved: async ({ hostname }) => ({
+				isApproved: !!this.props.approvedHosts[hostname]
+			})
 		});
 
 		const entryScriptWeb3 =
@@ -503,6 +540,10 @@ export class Browser extends Component {
 		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
 		});
+
+		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
+			this.setState({ watchAsset: true, suggestedAssetMeta });
+		});
 		this.loadUrl();
 
 		Branch.subscribe(this.handleDeeplinks);
@@ -562,10 +603,11 @@ export class Browser extends Component {
 			transaction: { value, gas, gasPrice }
 		} = transactionMeta;
 		transactionMeta.transaction.value = hexToBN(value);
+		transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
 		transactionMeta.transaction.gas = hexToBN(gas);
 		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 		this.props.setTransactionObject({
-			...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
+			...{ symbol: 'ETH', type: 'ETHER_TRANSACTION', assetType: 'ETH', id: transactionMeta.id },
 			...transactionMeta.transaction
 		});
 		this.props.navigation.push('ApprovalView');
@@ -601,6 +643,7 @@ export class Browser extends Component {
 		// Remove all Engine listeners
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
+		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
 		if (Platform.OS === 'ios') {
@@ -655,6 +698,7 @@ export class Browser extends Component {
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
+		const { ipfsGateway } = this.props;
 
 		let ipfsContent = null;
 		let currentEnsName = null;
@@ -667,7 +711,7 @@ export class Browser extends Component {
 				const urlObj = new URL(sanitizedURL);
 				currentEnsName = urlObj.hostname;
 				ipfsHash = ipfsContent
-					.replace(this.state.ipfsGateway, '')
+					.replace(ipfsGateway, '')
 					.split('/')
 					.shift();
 			}
@@ -721,6 +765,8 @@ export class Browser extends Component {
 
 	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
+		const { ipfsGateway } = this.props;
+
 		let ipfsHash;
 		try {
 			ipfsHash = await resolveEnsToIpfsContentId({ provider, name: hostname });
@@ -731,7 +777,7 @@ export class Browser extends Component {
 			return null;
 		}
 
-		const gatewayUrl = `${this.state.ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
+		const gatewayUrl = `${ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
 
 		try {
 			const response = await fetch(gatewayUrl, { method: 'HEAD' });
@@ -990,6 +1036,7 @@ export class Browser extends Component {
 	}
 
 	onPageChange = ({ url }) => {
+		const { ipfsGateway } = this.props;
 		if ((this.goingBack && url === 'about:blank') || (this.initialUrl === url && url === 'about:blank')) {
 			this.goBackToHomepage();
 			return;
@@ -1009,7 +1056,7 @@ export class Browser extends Component {
 			data.inputValue = url;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			data.inputValue = url.replace(
-				`${this.state.ipfsGateway}${this.state.ipfsHash}/`,
+				`${ipfsGateway}${this.state.ipfsHash}/`,
 				`https://${this.state.currentEnsName}/`
 			);
 		} else if (this.isENSUrl(url)) {
@@ -1328,6 +1375,12 @@ export class Browser extends Component {
 		});
 	};
 
+	renderProgressBar = () => (
+		<View style={styles.progressBarWrapper}>
+			<WebviewProgressBar progress={this.state.progress} />
+		</View>
+	);
+
 	renderUrlModal = () => {
 		const showUrlModal = (this.props.navigation && this.props.navigation.getParam('showUrlModal', false)) || false;
 
@@ -1361,7 +1414,7 @@ export class Browser extends Component {
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
-						placeholderTextColor={colors.asphalt}
+						placeholderTextColor={colors.grey400}
 						returnKeyType="go"
 						style={styles.urlInput}
 						value={this.state.autocompleteInputValue}
@@ -1423,6 +1476,35 @@ export class Browser extends Component {
 						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
 					/>
 				)}
+			</Modal>
+		);
+	};
+
+	onCancelWatchAsset = () => {
+		this.setState({ watchAsset: false });
+	};
+
+	renderWatchAssetModal = () => {
+		const { watchAsset, suggestedAssetMeta } = this.state;
+		return (
+			<Modal
+				isVisible={watchAsset}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onCancelWatchAsset}
+				onSwipeComplete={this.onCancelWatchAsset}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				<WatchAssetRequest
+					onCancel={this.onCancelWatchAsset}
+					onConfirm={this.onCancelWatchAsset}
+					suggestedAssetMeta={suggestedAssetMeta}
+				/>
 			</Modal>
 		);
 	};
@@ -1504,7 +1586,7 @@ export class Browser extends Component {
 				animationOut="slideOutDown"
 				style={styles.fullScreenModal}
 				backdropOpacity={1}
-				backdropColor={colors.warningRed}
+				backdropColor={colors.red}
 				animationInTiming={300}
 				animationOutTiming={300}
 				useNativeDriver
@@ -1551,9 +1633,6 @@ export class Browser extends Component {
 
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.progressBarWrapper}>
-					<WebviewProgressBar progress={this.state.progress} />
-				</View>
 				{!this.state.forceReload && (
 					<Web3Webview
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
@@ -1573,6 +1652,7 @@ export class Browser extends Component {
 						javascriptEnabled
 					/>
 				)}
+				{this.renderProgressBar()}
 				{this.state.url === HOMEPAGE_URL ? (
 					<View style={styles.homepage}>
 						<BrowserHome goToUrl={this.onBrowserHomeGoToUrl} navigation={this.props.navigation} />
@@ -1582,6 +1662,7 @@ export class Browser extends Component {
 				{this.renderSigningModal()}
 				{this.renderApprovalModal()}
 				{this.renderPhishingModal()}
+				{this.renderWatchAssetModal()}
 				{this.renderOptions()}
 				{Platform.OS === 'ios' ? this.renderBottomBar(canGoBack, canGoForward) : null}
 			</View>
@@ -1592,6 +1673,7 @@ export class Browser extends Component {
 const mapStateToProps = state => ({
 	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
+	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

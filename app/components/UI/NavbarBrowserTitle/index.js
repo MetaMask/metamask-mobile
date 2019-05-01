@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -42,7 +42,8 @@ const styles = StyleSheet.create({
 	currentUrl: {
 		...fontStyles.normal,
 		fontSize: 14,
-		textAlign: 'center'
+		textAlign: 'center',
+		paddingHorizontal: Platform.OS === 'android' ? 30 : 0
 	}
 });
 
@@ -82,7 +83,9 @@ class NavbarBrowserTitle extends Component {
 			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
 					{https ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
-					<Text style={styles.currentUrl}>{hostname}</Text>
+					<Text numberOfLines={1} style={styles.currentUrl}>
+						{hostname}
+					</Text>
 				</View>
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />

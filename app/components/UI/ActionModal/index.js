@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10
 	},
 	actionContainer: {
-		borderTopColor: colors.lightGray,
+		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
 		flex: 0,
 		flexDirection: 'row',
