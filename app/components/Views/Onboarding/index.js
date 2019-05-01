@@ -145,8 +145,7 @@ class Onboarding extends Component {
 	};
 
 	onPressImport = () => {
-		//this.props.navigation.push('ImportWallet');
-		this.props.navigation.push('OptinMetrics');
+		this.props.navigation.push('ImportWallet');
 	};
 
 	alertExistingUser = callback => {
