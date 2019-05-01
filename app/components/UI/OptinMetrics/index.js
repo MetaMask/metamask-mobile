@@ -8,6 +8,9 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { connect } from 'react-redux';
+import { NavigationActions } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	root: {
@@ -58,42 +61,57 @@ const PRIVACY_POLICY = 'https://metamask.io/privacy.html';
 /**
  * View that is displayed in the flow to agree to metrics
  */
-export default class OptinMetrics extends Component {
+class OptinMetrics extends Component {
 	static navigationOptions = () => getOptinMetricsNavbarOptions();
 
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	actionsList = [
 		{
 			action: 0,
-			description: strings('privacy_policy.description_content_1')
+			description: strings('privacy_policy.action_description_1')
 		},
 		{
 			action: 0,
-			description: strings('privacy_policy.description_content_2')
+			description: strings('privacy_policy.action_description_2')
 		},
 		{
 			action: 0,
-			description: strings('privacy_policy.description_content_3')
+			description: strings('privacy_policy.action_description_3')
 		},
 		{
 			action: 1,
-			description: strings('privacy_policy.description_content_4')
+			description: strings('privacy_policy.action_description_4')
 		},
 		{
 			action: 1,
-			description: strings('privacy_policy.description_content_5')
+			description: strings('privacy_policy.action_description_5')
 		},
 		{
 			action: 1,
-			description: strings('privacy_policy.description_content_6')
+			description: strings('privacy_policy.action_description_6')
 		}
 	];
+
+	continue = async () => {
+		// Get onboarding wizard state
+		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		if (onboardingWizard) {
+			this.props.navigation.navigate('HomeNav');
+		} else {
+			this.props.setOnboardingWizardStep(1);
+			this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+		}
+	};
 
 	renderAction = ({ action, description }, i) => (
 		<View style={styles.action} key={i}>
@@ -106,15 +124,14 @@ export default class OptinMetrics extends Component {
 		</View>
 	);
 
-	onCancel = () => {
-		const { navigation } = this.props;
-		navigation.navigate('HomeNav');
+	onCancel = async () => {
+		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+		this.continue();
 	};
 
 	onConfirm = async () => {
-		const { navigation } = this.props;
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
-		navigation.navigate('HomeNav');
+		this.continue();
 	};
 
 	pressPolicy = () => {
@@ -158,3 +175,12 @@ export default class OptinMetrics extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(OptinMetrics);
