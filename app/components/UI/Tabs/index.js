@@ -17,8 +17,12 @@ import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 
 const THUMB_HORIZONTAL_MARGIN = 16;
+const THUMB_VERTICAL_MARGIN = 20;
+const NAVBAR_SIZE = DeviceSize.isIphoneX() ? 88 : 64;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - THUMB_HORIZONTAL_MARGIN * 2;
-const THUMB_HEIGHT = Platform.OS === 'ios' ? THUMB_WIDTH * 1.8 : THUMB_WIDTH * 1.45;
+const THUMB_HEIGHT = (Platform.OS === 'ios' ? THUMB_WIDTH * 1.8 : THUMB_WIDTH * 1.45) + THUMB_VERTICAL_MARGIN;
+const ROWS_VISIBLE = Math.floor((Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) / THUMB_HEIGHT);
+const TABS_VISIBLE = ROWS_VISIBLE * 2;
 
 const styles = StyleSheet.create({
 	noTabs: {
@@ -154,7 +158,7 @@ export default class Tabs extends PureComponent {
 	}
 
 	componentDidMount() {
-		if (this.props.tabs.length > 4) {
+		if (this.props.tabs.length > TABS_VISIBLE) {
 			// Find the selected index
 			let index = 0;
 			this.props.tabs.forEach((tab, i) => {
@@ -168,7 +172,7 @@ export default class Tabs extends PureComponent {
 			const row = Math.ceil((index + 1) / 2);
 
 			// Scroll if needed
-			if (row > 2) {
+			if (row > ROWS_VISIBLE) {
 				const pos = (row - 1) * THUMB_HEIGHT;
 
 				InteractionManager.runAfterInteractions(() => {
