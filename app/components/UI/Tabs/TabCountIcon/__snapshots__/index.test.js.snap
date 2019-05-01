@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TabCountIcon should render correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={0.2}
+  onPress={[Function]}
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "borderColor": "#6a737d",
+        "borderRadius": 8,
+        "borderWidth": 3,
+        "justifyContent": "center",
+      },
+      undefined,
+    ]
+  }
+>
+  <Text
+    styles={
+      Object {
+        "alignSelf": "center",
+        "color": "#6a737d",
+        "flex": 0,
+        "fontFamily": "Roboto",
+        "fontSize": 15,
+        "fontWeight": "400",
+        "lineHeight": 15,
+        "textAlign": "center",
+      }
+    }
+  >
+    1
+  </Text>
+</TouchableOpacity>
+`;

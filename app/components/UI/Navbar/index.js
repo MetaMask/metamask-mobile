@@ -13,6 +13,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 const HOMEPAGE_URL = 'about:blank';
 
 const styles = StyleSheet.create({
@@ -83,15 +84,15 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	browserRightButtonAndroid: {
-		flex: 0,
+		flex: 1,
+		width: 95,
 		flexDirection: 'row'
 	},
 	browserRightButton: {
 		flex: 1
 	},
 	browserMoreIconAndroid: {
-		paddingTop: 10,
-		marginLeft: -10
+		paddingTop: 10
 	},
 	disabled: {
 		opacity: 0.3
@@ -101,6 +102,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginLeft: Platform.OS === 'ios' ? 20 : 0,
 		marginRight: Platform.OS === 'ios' ? 20 : 0
+	},
+	tabIconAndroid: {
+		marginTop: 13,
+		marginLeft: -10,
+		marginRight: 3,
+		width: 24,
+		height: 24
 	}
 });
 
@@ -238,16 +246,25 @@ export function getBrowserViewNavbarOptions(navigation) {
 			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
 				<AccountRightButton />
 				{Platform.OS === 'android' ? (
-					<TouchableOpacity
-						// eslint-disable-next-line
-						onPress={() => {
-							navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
-						}}
-						style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
-						disabled={optionsDisabled}
-					>
-						<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
-					</TouchableOpacity>
+					<React.Fragment>
+						<TabCountIcon
+							// eslint-disable-next-line
+							onPress={() => {
+								navigation.navigate('BrowserView', { ...navigation.state.params, showTabs: true });
+							}}
+							style={styles.tabIconAndroid}
+						/>
+						<TouchableOpacity
+							// eslint-disable-next-line
+							onPress={() => {
+								navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+							}}
+							style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
+							disabled={optionsDisabled}
+						>
+							<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
+						</TouchableOpacity>
+					</React.Fragment>
 				) : null}
 			</View>
 		)
