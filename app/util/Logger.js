@@ -1,6 +1,8 @@
 'use strict';
 import { Crashlytics } from 'react-native-fabric';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
+
 /**
  * Wrapper class that allows us to override
  * console.log and console.error and in the future
@@ -14,11 +16,14 @@ export default class Logger {
 	 * @param {object} args - data to be logged
 	 * @returns - void
 	 */
-	static log(...args) {
+	static async log(...args) {
+		// TODO use crashlytics opt-in
+		// Check if user passed accepted opt-in to metrics
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log(args); // eslint-disable-line no-console
-		} else {
+		} else if (metricsOptIn === 'agreed') {
 			Crashlytics.log(JSON.stringify(args));
 		}
 	}
@@ -29,14 +34,19 @@ export default class Logger {
 	 * @param {object} args - data to be logged
 	 * @returns - void
 	 */
-	static error(...args) {
+	static async error(...args) {
+		// TODO use crashlytics opt-in
+		// Check if user passed accepted opt-in to metrics
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.warn(args); // eslint-disable-line no-console
-		} else if (Platform.OS === 'android') {
-			Crashlytics.logException(JSON.stringify(args));
-		} else {
-			Crashlytics.recordError(JSON.stringify(args));
+		} else if (metricsOptIn === 'agreed') {
+			if (Platform.OS === 'android') {
+				Crashlytics.logException(JSON.stringify(args));
+			} else {
+				Crashlytics.recordError(JSON.stringify(args));
+			}
 		}
 	}
 }
