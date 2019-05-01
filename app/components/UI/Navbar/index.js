@@ -308,6 +308,12 @@ export function getOnboardingNavbarOptions() {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * for our metric opt-in screen
+ *
+ * @returns {Object} - Corresponding navbar options containing headerLeft
+ */
 export function getOptinMetricsNavbarOptions() {
 	return {
 		headerStyle: {
