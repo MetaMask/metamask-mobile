@@ -437,7 +437,12 @@
 		"my_favorites": "MY FAVORITES",
 		"search": "Search or type a URL",
 		"welcome": "Welcome!",
-		"remove": "Remove"
+		"remove": "Remove",
+		"new_tab": "New tab",
+		"tabs_close_all": "Close All",
+		"tabs_done": "Done",
+		"no_tabs_title": "No Open Tabs",
+		"no_tabs_desc": "To browse the decentralized web, add a new tab"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",

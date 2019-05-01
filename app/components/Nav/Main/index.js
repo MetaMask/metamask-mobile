@@ -46,6 +46,7 @@ import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import OnboardingWizard from '../../UI/OnboardingWizard';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -359,12 +360,14 @@ class Main extends Component {
 
 	render() {
 		const { forceReload } = this.state;
+
 		return (
 			<View style={styles.flex}>
 				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 				{this.renderOnboardingWizard()}
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+				<FadeOutOverlay />
 			</View>
 		);
 	}
