@@ -79,7 +79,7 @@ export default class TabThumbnail extends Component {
 		 */
 		tab: PropTypes.object,
 		/**
-		 * the
+		 * Flag that determines if this is the active tab
 		 */
 		isActiveTab: PropTypes.bool,
 		/**
