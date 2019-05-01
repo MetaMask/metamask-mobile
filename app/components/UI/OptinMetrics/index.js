@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
 import AsyncStorage from '@react-native-community/async-storage';
-import AntIcon from 'react-native-vector-icons/AntDesign';
+import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
@@ -105,6 +105,9 @@ class OptinMetrics extends Component {
 		}
 	];
 
+	/**
+	 * Action to be triggered when pressing any button
+	 */
 	continue = async () => {
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
@@ -116,28 +119,43 @@ class OptinMetrics extends Component {
 		}
 	};
 
+	/**
+	 * Render each action with corresponding icon
+	 *
+	 * @param {object} - Object containing action and description to be rendered
+	 * @param {number} i - Index key
+	 */
 	renderAction = ({ action, description }, i) => (
 		<View style={styles.action} key={i}>
 			{action === 0 ? (
-				<AntIcon name="check" size={24} style={[styles.icon, styles.checkIcon]} />
+				<Entypo name="check" size={20} style={[styles.icon, styles.checkIcon]} />
 			) : (
-				<AntIcon name="close" size={24} style={[styles.icon, styles.crossIcon]} />
+				<Entypo name="cross" size={24} style={[styles.icon, styles.crossIcon]} />
 			)}
 			<Text style={styles.description}>{description}</Text>
 		</View>
 	);
 
+	/**
+	 * Callback on press cancel
+	 */
 	onCancel = async () => {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
 		this.continue();
 	};
 
+	/**
+	 * Callback on press confirm
+	 */
 	onConfirm = async () => {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 		this.continue();
 	};
 
-	pressPolicy = () => {
+	/**
+	 * Callback on press policy
+	 */
+	onPressPolicy = () => {
 		const { navigation } = this.props;
 		navigation.navigate('Webview', {
 			url: PRIVACY_POLICY,
@@ -145,8 +163,13 @@ class OptinMetrics extends Component {
 		});
 	};
 
+	/**
+	 * Render privacy policy description
+	 *
+	 * @returns - Touchable opacity object to render with privacy policy information
+	 */
 	renderPrivacyPolicy = () => (
-		<TouchableOpacity onPress={this.pressPolicy}>
+		<TouchableOpacity onPress={this.onPressPolicy}>
 			<Text style={styles.privacyPolicy}>
 				{strings('privacy_policy.description') + ' '}
 				<Text style={styles.link}>{strings('privacy_policy.here')}</Text>
