@@ -1,11 +1,24 @@
 import React, { PureComponent } from 'react';
-import { Platform, View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+	InteractionManager,
+	Platform,
+	Dimensions,
+	View,
+	Text,
+	ScrollView,
+	TouchableOpacity,
+	StyleSheet
+} from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
+
+const THUMB_HORIZONTAL_MARGIN = 16;
+const THUMB_WIDTH = Dimensions.get('window').width / 2 - THUMB_HORIZONTAL_MARGIN * 2;
+const THUMB_HEIGHT = Platform.OS === 'ios' ? THUMB_WIDTH * 1.8 : THUMB_WIDTH * 1.45;
 
 const styles = StyleSheet.create({
 	noTabs: {
@@ -102,11 +115,6 @@ export default class Tabs extends PureComponent {
 		 */
 		activeTab: PropTypes.number,
 		/**
-		 * Flag that determines if the component
-		 * should be visible or not
-		 */
-		visible: PropTypes.bool,
-		/**
 		 * Opens a new tab
 		 */
 		newTab: PropTypes.func,
@@ -138,9 +146,36 @@ export default class Tabs extends PureComponent {
 		currentTab: null
 	};
 
+	scrollview = React.createRef();
+
 	constructor(props) {
 		super(props);
 		this.createTabsRef(props.tabs);
+	}
+
+	componentDidMount() {
+		if (this.props.tabs.length > 4) {
+			// Find the selected index
+			let index = 0;
+			this.props.tabs.forEach((tab, i) => {
+				if (tab.id === this.props.activeTab) {
+					index = i;
+				}
+			});
+
+			// Calculate the row
+
+			const row = Math.ceil((index + 1) / 2);
+
+			// Scroll if needed
+			if (row > 2) {
+				const pos = (row - 1) * THUMB_HEIGHT;
+
+				InteractionManager.runAfterInteractions(() => {
+					this.scrollview.current && this.scrollview.current.scrollTo({ x: 0, y: pos, animated: true });
+				});
+			}
+		}
 	}
 
 	createTabsRef(tabs) {
@@ -169,7 +204,7 @@ export default class Tabs extends PureComponent {
 	}
 	renderTabs(tabs, activeTab) {
 		return (
-			<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent}>
+			<ScrollView style={styles.tabs} contentContainerStyle={styles.tabsContent} ref={this.scrollview}>
 				{tabs.map(tab => (
 					// eslint-disable-next-line react/jsx-key
 					<TabThumbnail
@@ -186,8 +221,7 @@ export default class Tabs extends PureComponent {
 	}
 
 	render() {
-		const { tabs, activeTab, visible, closeAllTabs, newTab, closeTabsView } = this.props;
-		if (!visible) return null;
+		const { tabs, activeTab, closeAllTabs, newTab, closeTabsView } = this.props;
 
 		return (
 			<View style={styles.tabsView}>

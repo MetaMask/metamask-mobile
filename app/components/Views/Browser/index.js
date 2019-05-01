@@ -192,18 +192,20 @@ class Browser extends PureComponent {
 	renderTabsView() {
 		const { tabs, activeTab } = this.props;
 		const showTabs = this.props.navigation.getParam('showTabs', false);
-		return (
-			<Tabs
-				tabs={tabs}
-				activeTab={activeTab}
-				visible={showTabs}
-				switchToTab={this.switchToTab}
-				newTab={this.newTab}
-				closeTab={this.closeTab}
-				closeTabsView={this.closeTabsView}
-				closeAllTabs={this.closeAllTabs}
-			/>
-		);
+		if (showTabs) {
+			return (
+				<Tabs
+					tabs={tabs}
+					activeTab={activeTab}
+					switchToTab={this.switchToTab}
+					newTab={this.newTab}
+					closeTab={this.closeTab}
+					closeTabsView={this.closeTabsView}
+					closeAllTabs={this.closeAllTabs}
+				/>
+			);
+		}
+		return null;
 	}
 
 	updateTabInfo = (url, tabID) => {
