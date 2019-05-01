@@ -430,7 +430,12 @@
 		"my_favorites": "MIS FAVORITOS",
 		"search": "Busca o tipea una URL",
 		"welcome": "Bienvenido!",
-		"remove": "Eliminar"
+		"remove": "Eliminar",
+		"new_tab": "Nueva Pestaña",
+		"tabs_close_all": "Cerrar Todas",
+		"tabs_done": "Listo",
+		"no_tabs_title": "No hay pestañas abiertas",
+		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
