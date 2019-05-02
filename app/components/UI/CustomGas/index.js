@@ -13,6 +13,11 @@ import {
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../../util/number';
+import Logger from '../../../util/Logger';
+
+const AVERAGE_GAS = 20;
+const LOW_GAS = 10;
+const FAST_GAS = 40;
 
 const styles = StyleSheet.create({
 	selectors: {
@@ -203,7 +208,13 @@ class CustomGas extends Component {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await fetchBasicGasEstimates();
+		let basicGasEstimates;
+		try {
+			basicGasEstimates = await fetchBasicGasEstimates();
+		} catch (error) {
+			Logger.log('Error while trying to get gas limit estimates', error);
+			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
+		}
 		const { average, fast, safeLow } = basicGasEstimates;
 		this.setState({
 			averageGwei: convertApiValueToGWEI(average),
