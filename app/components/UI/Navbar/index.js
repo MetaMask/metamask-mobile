@@ -294,9 +294,9 @@ export function getModalNavbarOptions(title) {
 export function getOnboardingNavbarOptions() {
 	return {
 		headerStyle: {
-			shadowColor: 'transparent',
+			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: 'white',
+			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
 		headerTitle: (
@@ -317,9 +317,9 @@ export function getOnboardingNavbarOptions() {
 export function getOptinMetricsNavbarOptions() {
 	return {
 		headerStyle: {
-			shadowColor: 'transparent',
+			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: 'white',
+			backgroundColor: colors.white,
 			borderBottomWidth: 0,
 			height: 100
 		},
