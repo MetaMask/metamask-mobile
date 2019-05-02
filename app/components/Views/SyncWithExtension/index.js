@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -291,7 +291,16 @@ class SyncWithExtension extends Component {
 			if (!this.state.biometryChoice) {
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			} else {
-				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				// If the user enables biometrics, we're trying to read the password
+				// immediately so we get the permission prompt
+				try {
+					if (Platform.OS === 'ios') {
+						await SecureKeychain.getGenericPassword();
+					}
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				} catch (e) {
+					Logger.error('User cancelled biometrics permission', e);
+				}
 			}
 		}
 
