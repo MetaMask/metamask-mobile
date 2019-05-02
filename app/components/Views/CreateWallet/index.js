@@ -123,13 +123,17 @@ class CreateWallet extends Component {
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			// Get onboarding wizard state
 			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+			// Check if user passed through metrics opt-in screen
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 			// Making sure we reset the flag while going to
 			// the first time flow
 			this.props.passwordUnset();
 			this.props.setLockTime(-1);
 			this.props.seedphraseNotBackedUp();
 			setTimeout(() => {
-				if (onboardingWizard) {
+				if (!metricsOptIn) {
+					this.props.navigation.navigate('OptinMetrics');
+				} else if (onboardingWizard) {
 					this.props.navigation.navigate('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);

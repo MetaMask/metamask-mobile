@@ -192,6 +192,22 @@
 		"description": "By clicking \"{{action}}\" you agree to these ",
 		"terms": "Terms and Conditions"
 	},
+	"privacy_policy": {
+		"title": "Privacy Policy",
+		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"here": "here",
+		"agree": "I Agree",
+		"decline": "No Thanks",
+		"description_title": "Help us improve MetaMask",
+		"description_content_1": "MetaMask would like to gather basic usage data to better understand how our users interact with the mobile app. This data will be used to continually improve the usability and user experience of our product.",
+		"description_content_2": "MetaMask will...",
+		"action_description_1": "Always allow you to opt-out via Settings",
+		"action_description_2": "Send anonymied click & pageview events",
+		"action_description_3": "Maintain a public aggregate dashboard to educate the community",
+		"action_description_4": "Never collect keys, addresses, transactions, balances, hashes, or any personal information",
+		"action_description_5": "Never collect your IP address",
+		"action_description_6": "Never sell data for profit. Ever!"
+	},
 	"token": {
 		"token_symbol": "Token Symbol",
 		"token_address": "Token Address",
@@ -279,7 +295,7 @@
 		"advanced_title": "Advanced",
 		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC",
 		"security_title": "Security & Privacy",
-		"security_desc": "Privacy settings, private key and wallet seed phrase",
+		"security_desc": "Privacy settings, MetaMetrics, private key and wallet seed phrase",
 		"info_title": "About MetaMask",
 		"legal_title": "Legal",
 		"conversion_title": "Currency conversion",
@@ -295,7 +311,9 @@
 		"hex_desc": "Select this to show the hex data field on the send screen.",
 		"clear_privacy_title": "Clear privacy data",
 		"clear_privacy_desc": "Clear privacy data so all websites must request access to view account information again.",
-		"clear_history_desc": "Choose this option to clear your entire browsing history."
+		"clear_history_desc": "Choose this option to clear your entire browsing history.",
+		"metametrics_title": "Participate in MetaMetrics",
+		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better."
 	},
 	"app_information": {
 		"title": "Information",
@@ -542,7 +560,8 @@
 		"negative": "-",
 		"divisor": "/",
 		"token_id": "#",
-		"colon": ":"
+		"colon": ":",
+		"point": "."
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",
