@@ -132,17 +132,17 @@ export default class Tokens extends PureComponent {
 		</View>
 	);
 
-	renderItem = item => {
+	renderItem = asset => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency } = this.props;
-		const itemAddress = (item.address && toChecksumAddress(item.address)) || undefined;
-		const logo = item.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
+		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
+		const logo = asset.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
-			item.balance ||
-			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], item.decimals) : 0);
+			asset.balance ||
+			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals) : 0);
+		const balanceFiat = asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		const balanceValue = balance + ' ' + asset.symbol;
 
-		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-		const balanceValue = balance + ' ' + item.symbol;
 		// render balances according to primary currency
 		let mainBalance, secondaryBalance;
 		if (primaryCurrency === 'ETH') {
@@ -153,20 +153,20 @@ export default class Tokens extends PureComponent {
 			secondaryBalance = !balanceFiat ? balanceFiat : balanceValue;
 		}
 
-		item = { ...item, ...{ logo, balance, balanceFiat } };
+		asset = { ...asset, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement
 				key={itemAddress || '0x'}
 				onPress={this.onItemPress}
 				onLongPress={this.showRemoveMenu}
-				asset={item}
+				asset={asset}
 			>
-				{item.symbol === 'ETH' ? (
+				{asset.symbol === 'ETH' ? (
 					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 						<Image source={ethLogo} style={styles.ethLogo} />
 					</FadeIn>
 				) : (
-					<TokenImage asset={item} containerStyle={styles.ethLogo} />
+					<TokenImage asset={asset} containerStyle={styles.ethLogo} />
 				)}
 
 				<View style={styles.balances}>

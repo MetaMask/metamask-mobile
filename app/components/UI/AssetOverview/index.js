@@ -9,6 +9,8 @@ import AssetActionButtons from '../AssetActionButtons';
 import { setTokensTransaction } from '../../../actions/transaction';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
+import { renderFromTokenMinimalUnit, balanceToFiat, renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -57,6 +59,10 @@ const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 class AssetOverview extends Component {
 	static propTypes = {
 		/**
+		 * Map of accounts to information objects including balances
+		 */
+		accounts: PropTypes.object,
+		/**
 		/* navigation object required to access the props
 		/* passed by the parent component
 		*/
@@ -66,9 +72,29 @@ class AssetOverview extends Component {
 		 */
 		asset: PropTypes.object,
 		/**
+		 * ETH to current currency conversion rate
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code of the currently-active currency
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
 		 * Action that sets a tokens type transaction
 		 */
 		setTokensTransaction: PropTypes.func.isRequired,
+		/**
+		 * An object containing token balances for current account and network in the format address => balance
+		 */
+		tokenBalances: PropTypes.object,
+		/**
+		 * An object containing token exchange rates in the format address => exchangeRate
+		 */
+		tokenExchangeRates: PropTypes.object,
 		/**
 		 * Action that toggles the receive modal
 		 */
@@ -111,18 +137,40 @@ class AssetOverview extends Component {
 
 	render() {
 		const {
-			asset: { symbol, balance, balanceFiat },
-			primaryCurrency
+			accounts,
+			asset,
+			primaryCurrency,
+			selectedAddress,
+			tokenExchangeRates,
+			tokenBalances,
+			conversionRate,
+			currentCurrency
 		} = this.props;
 		let mainBalance, secondaryBalance;
-
+		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
+		let balance, balanceFiat;
+		if (asset.symbol === 'ETH') {
+			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
+			balanceFiat = weiToFiat(
+				hexToBN(accounts[selectedAddress].balance),
+				conversionRate,
+				currentCurrency.toUpperCase()
+			);
+		} else {
+			const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
+			balance =
+				itemAddress in tokenBalances
+					? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
+					: 0;
+			balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		}
 		// choose balances depending on 'primaryCurrency'
 		if (primaryCurrency === 'ETH') {
-			mainBalance = balance + ' ' + symbol;
+			mainBalance = balance + ' ' + asset.symbol;
 			secondaryBalance = balanceFiat;
 		} else {
-			mainBalance = !balanceFiat ? balance + ' ' + symbol : balanceFiat;
-			secondaryBalance = !balanceFiat ? balanceFiat : balance + ' ' + symbol;
+			mainBalance = !balanceFiat ? balance + ' ' + asset.symbol : balanceFiat;
+			secondaryBalance = !balanceFiat ? balanceFiat : balance + ' ' + asset.symbol;
 		}
 
 		return (
@@ -145,7 +193,13 @@ class AssetOverview extends Component {
 }
 
 const mapStateToProps = state => ({
-	primaryCurrency: state.settings.primaryCurrency
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	primaryCurrency: state.settings.primaryCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
 });
 
 const mapDispatchToProps = dispatch => ({
