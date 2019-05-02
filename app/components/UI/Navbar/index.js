@@ -13,6 +13,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 const HOMEPAGE_URL = 'about:blank';
 
 const styles = StyleSheet.create({
@@ -22,18 +23,23 @@ const styles = StyleSheet.create({
 		marginBottom: 12
 	},
 	metamaskName: {
-		width: 94,
-		height: 12
+		width: 122,
+		height: 15
+	},
+	metamaskFox: {
+		width: 40,
+		height: 40,
+		marginRight: 10
 	},
 	metamaskNameWrapper: {
 		marginLeft: Platform.OS === 'android' ? 20 : 0
 	},
 	closeIcon: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
-		color: colors.primary
+		color: colors.blue
 	},
 	backIcon: {
-		color: colors.primary
+		color: colors.blue
 	},
 	backIconIOS: {
 		marginHorizontal: 5
@@ -52,7 +58,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	infoIcon: {
-		color: colors.primary
+		color: colors.blue
 	},
 	moreIcon: {
 		marginRight: 15,
@@ -65,7 +71,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 22
 	},
 	closeButtonText: {
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 14,
 		...fontStyles.normal
 	},
@@ -78,22 +84,36 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	browserRightButtonAndroid: {
-		flex: 0,
+		flex: 1,
+		width: 95,
 		flexDirection: 'row'
 	},
 	browserRightButton: {
 		flex: 1
 	},
 	browserMoreIconAndroid: {
-		paddingTop: 10,
-		marginLeft: -10
+		paddingTop: 10
 	},
 	disabled: {
 		opacity: 0.3
+	},
+	optinHeaderLeft: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginLeft: Platform.OS === 'ios' ? 20 : 0,
+		marginRight: Platform.OS === 'ios' ? 20 : 0
+	},
+	tabIconAndroid: {
+		marginTop: 13,
+		marginLeft: -10,
+		marginRight: 3,
+		width: 24,
+		height: 24
 	}
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -139,7 +159,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 			color: colors.fontPrimary,
 			...fontStyles.normal
 		},
-		headerTintColor: colors.primary,
+		headerTintColor: colors.blue,
 		headerLeft: (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
@@ -226,16 +246,25 @@ export function getBrowserViewNavbarOptions(navigation) {
 			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
 				<AccountRightButton />
 				{Platform.OS === 'android' ? (
-					<TouchableOpacity
-						// eslint-disable-next-line
-						onPress={() => {
-							navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
-						}}
-						style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
-						disabled={optionsDisabled}
-					>
-						<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
-					</TouchableOpacity>
+					<React.Fragment>
+						<TabCountIcon
+							// eslint-disable-next-line
+							onPress={() => {
+								navigation.navigate('BrowserView', { ...navigation.state.params, showTabs: true });
+							}}
+							style={styles.tabIconAndroid}
+						/>
+						<TouchableOpacity
+							// eslint-disable-next-line
+							onPress={() => {
+								navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+							}}
+							style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
+							disabled={optionsDisabled}
+						>
+							<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
+						</TouchableOpacity>
+					</React.Fragment>
 				) : null}
 			</View>
 		)
@@ -265,9 +294,9 @@ export function getModalNavbarOptions(title) {
 export function getOnboardingNavbarOptions() {
 	return {
 		headerStyle: {
-			shadowColor: 'transparent',
+			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: 'white',
+			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
 		headerTitle: (
@@ -279,6 +308,33 @@ export function getOnboardingNavbarOptions() {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * for our metric opt-in screen
+ *
+ * @returns {Object} - Corresponding navbar options containing headerLeft
+ */
+export function getOptinMetricsNavbarOptions() {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0,
+			height: 100
+		},
+		headerLeft: (
+			<View style={styles.optinHeaderLeft}>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
+				</View>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				</View>
+			</View>
+		)
+	};
+}
 /**
  * Function that returns the navigation options
  * for our closable screens,

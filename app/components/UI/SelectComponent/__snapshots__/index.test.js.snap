@@ -112,7 +112,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <View
           style={
             Object {
-              "borderBottomColor": "#CCCCCC",
+              "borderBottomColor": "#d6d9dc",
               "borderBottomWidth": 1,
               "height": 50,
               "paddingTop": 5,

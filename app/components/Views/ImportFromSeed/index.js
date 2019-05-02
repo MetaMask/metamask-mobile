@@ -19,11 +19,13 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
-
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
+import TermsAndConditions from '../TermsAndConditions';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -38,7 +40,7 @@ const styles = StyleSheet.create({
 		fontSize: Platform.OS === 'android' ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title,
+		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold
@@ -53,7 +55,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 10,
 		borderRadius: 4,
 		fontSize: Platform.OS === 'android' ? 15 : 20,
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
 		marginTop: 20
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		textAlign: 'center',
 		...fontStyles.normal
 	},
@@ -80,7 +82,7 @@ const styles = StyleSheet.create({
 		minHeight: 110,
 		height: 'auto',
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		...fontStyles.normal
 	},
 	biometrics: {
@@ -96,6 +98,9 @@ const styles = StyleSheet.create({
 	},
 	biometrySwitch: {
 		flex: 0
+	},
+	termsAndConditions: {
+		paddingTop: 30
 	}
 });
 
@@ -127,7 +132,11 @@ class ImportFromSeed extends Component {
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -213,14 +222,28 @@ class ImportFromSeed extends Component {
 					}
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				}
-
+				// Get onboarding wizard state
+				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				// Check if user passed through metrics opt-in screen
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
-				this.props.navigation.navigate('HomeNav');
+				if (!metricsOptIn) {
+					this.props.navigation.navigate('OptinMetrics');
+				} else if (onboardingWizard) {
+					this.props.navigation.navigate('HomeNav');
+				} else {
+					this.props.setOnboardingWizardStep(1);
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
+				}
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -282,10 +305,8 @@ class ImportFromSeed extends Component {
 						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -298,10 +319,8 @@ class ImportFromSeed extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);
@@ -335,7 +354,7 @@ class ImportFromSeed extends Component {
 							onChangeText={this.onPasswordChange}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							testID={'input-password'}
 							onSubmitEditing={this.jumpToConfirmPassword}
 							returnKeyType={'next'}
@@ -351,7 +370,7 @@ class ImportFromSeed extends Component {
 							onChangeText={this.onPasswordConfirmChange}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							testID={'input-password-confirm'}
 							onSubmitEditing={this.onPressImport}
 							returnKeyType={'done'}
@@ -372,6 +391,12 @@ class ImportFromSeed extends Component {
 							)}
 						</StyledButton>
 					</View>
+					<View style={styles.termsAndConditions}>
+						<TermsAndConditions
+							navigation={this.props.navigation}
+							action={strings('import_from_seed.import_button')}
+						/>
+					</View>
 				</View>
 			</KeyboardAwareScrollView>
 		</SafeAreaView>
@@ -380,6 +405,7 @@ class ImportFromSeed extends Component {
 
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });

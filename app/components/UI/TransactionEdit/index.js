@@ -7,16 +7,7 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import {
-	toBN,
-	isBN,
-	hexToBN,
-	fromWei,
-	isDecimal,
-	toWei,
-	toTokenMinimalUnit,
-	fromTokenMinimalUnit
-} from '../../../util/number';
+import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
@@ -66,12 +57,12 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.bold,
-		color: colors.gray,
+		color: colors.grey400,
 		fontSize: 16
 	},
 	max: {
 		...fontStyles.bold,
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 12,
 		paddingTop: 6
 	},
@@ -84,7 +75,7 @@ const styles = StyleSheet.create({
 	},
 	warning: {
 		...fontStyles.bold,
-		color: colors.warning,
+		color: colors.orange300,
 		fontSize: 12,
 		lineHeight: 12,
 		paddingTop: 6
@@ -98,7 +89,7 @@ const styles = StyleSheet.create({
 	hexData: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,
@@ -291,16 +282,9 @@ class TransactionEdit extends Component {
 		return amountError || gasError || toAddressError;
 	};
 
-	updateAmount = async amount => {
-		const { selectedAsset, assetType } = this.props.transaction;
-		let processedAmount;
-		if (assetType !== 'ETH') {
-			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
-		} else {
-			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
-		}
-		await this.props.handleUpdateAmount(processedAmount);
-		this.props.handleUpdateReadableValue(amount);
+	updateAmount = async (amount, renderValue) => {
+		await this.props.handleUpdateAmount(amount);
+		this.props.handleUpdateReadableValue(renderValue);
 		const amountError = await this.props.validateAmount(true);
 		this.setState({ amountError });
 	};

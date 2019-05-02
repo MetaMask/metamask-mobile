@@ -15,6 +15,50 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Saltar Tutorial",
+		"coachmark": {
+			"action_back": "No, Gracias",
+			"action_next": "Hacer un recorrido",
+			"progress_back": "Atrás",
+			"progress_next": "Perfecto!"
+		},
+		"step1": {
+			"title": "Bienvenido a tu Nueva Billetera!",
+			"content1": "Para usar aplicaciones blockchain (DAPPS) necesitas una billetera ya que las acciones en blockchain tienen un costo en Ether (ETH).",
+			"content2": "Puedes comprar unos cuantos dólares de ETH en una bolsa de valores como Coinbase o simplemente solicitar a un amigo."
+		},
+		"step2": {
+			"title": "Tus Cuentas",
+			"content1": "Esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).",
+			"content2": "Puedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+		},
+		"step3": {
+			"title": "Editar Nombre",
+			"content1": "'Account 1' no es muy memorable. Porque no nombrar tu cuenta con algo un poco más memorable.",
+			"content2": "Presiona",
+			"content3": "para editar el nombre de la cuenta."
+		},
+		"step4": {
+			"title": "Navegación Principal",
+			"content1": "Presiona acá",
+			"content2": "para acceder a tu Billetera, Navegador, e Historial de Transacciones.",
+			"content3": "Puedes realizzar más acciones con tus cuentas y acceder a configuraciones."
+		},
+		"step5": {
+			"title": "Explora el Navegador",
+			"content1": "Puedes exprolar aplicaciones blockchain (DAPPS) en el",
+			"content2": "Navegador."
+		},
+		"step6": {
+			"title": "Buscar Dapps",
+			"content": "Busca aplicaciones blockchain (DAPPS)!"
+		},
+		"step7": {
+			"title": "Dapps Destacadas",
+			"content": "Comienza a explorar las aplicaciones blockchain (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creando tu nueva billetera",
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
@@ -143,6 +187,27 @@
 			"add_collectible": "AGREGAR COLECCIONABLE"
 		}
 	},
+	"terms_and_conditions": {
+		"title": "Términos y Condiciones",
+		"description": "Haciendo click en \"{{action}}\" estas de acuerdo con estos ",
+		"terms": "Términos y Condiciones"
+	},
+	"privacy_policy": {
+		"title": "Política de Privacidad",
+		"description": "Estos datos se agregan y, por lo tanto, son anónimos para los fines del Reglamento general de protección de datos (UE) 2016/679. Para obtener más información sobre nuestras prácticas de privacidad, consulte nuestra Política de Privacidad",
+		"here": "aquí",
+		"agree": "De Acuerdo",
+		"decline": "No, Gracias",
+		"description_title": "Ayúdanos a mejorar MetaMask",
+		"description_content_1": "A MetaMask le gustaría recopilar datos de uso básicos para comprender mejor cómo interactúan nuestros usuarios con la aplicación movil. Estos datos se utilizarán para mejorar continuamente la usabilidad y la experiencia de usuario de nuestro producto.",
+		"description_content_2": "MetaMask va a...",
+		"action_description_1": "Siempre permitir cancelar a través de Configuraciónes",
+		"action_description_2": "Enviar eventos anónimos de clics y páginas vistas",
+		"action_description_3": "Mantener un panel público agregado para educar a la comunidad.",
+		"action_description_4": "Nunca recopilar claves, direcciones, transacciones, saldos, hashes o cualquier información personal",
+		"action_description_5": "Nunca recopilar su dirección IP",
+		"action_description_6": "Nunca vender datos con fines de lucro. ¡Nunca!"
+	},
 	"token": {
 		"token_symbol": "Símbolo del Token",
 		"token_address": "Dirección del Token",
@@ -225,15 +290,19 @@
 		"show_hex_data": "Mostrar datos hexadecimales",
 		"show_hex_data_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"general_title": "General",
-		"general_desc": "Conversion, Moneda principal, lenguaje",
+		"general_desc": "Conversion, Moneda principal, lenguaje y motor de búsqueda",
 		"advanced_title": "Avanzado",
 		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
-		"security_desc": "Opciones de privacidad y frase semilla de la billetera",
+		"security_desc": "Opciones de privacidad, MetaMetrics y frase semilla de la billetera",
 		"info_title": "Acerca de MetaMask",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
+		"primary_currency_title": "Moneda primaria",
+		"primary_currency_desc": "Seleccione nativo para priorizar la visualización de valores en la moneda nativa de la blockchain (por ejemplo, ETH). Seleccione Fiat para priorizar la visualización de valores en su moneda primaria seleccionada.",
+		"primary_currency_text_first": "Nativo",
+		"primary_currency_text_second": "Fiat",
 		"language_desc": "Traducir la aplicacion a un lenguaje soportado diferente.",
 		"engine_desc": "Cambiar el motor de búsqueda por defecto al realizar búsquedas en el navegador.",
 		"reset_desc": "Esta acción borrará tu historial de transacciones. Estos datos puede que no sean recuperables.",
@@ -241,7 +310,9 @@
 		"hex_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"clear_privacy_title": "Borrar los datos de privacidad",
 		"clear_privacy_desc": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
-		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación."
+		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
+		"metametrics_title": "Participa en MetaMetrics",
+		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask."
 	},
 	"app_information": {
 		"title": "Información",
@@ -377,7 +448,12 @@
 		"my_favorites": "MIS FAVORITOS",
 		"search": "Busca o tipea una URL",
 		"welcome": "Bienvenido!",
-		"remove": "Eliminar"
+		"remove": "Eliminar",
+		"new_tab": "Nueva Pestaña",
+		"tabs_close_all": "Cerrar Todas",
+		"tabs_done": "Listo",
+		"no_tabs_title": "No hay pestañas abiertas",
+		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",

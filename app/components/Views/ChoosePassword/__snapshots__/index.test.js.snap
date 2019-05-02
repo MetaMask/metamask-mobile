@@ -141,7 +141,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             secureTextEntry={true}
             style={
               Object {
-                "borderBottomColor": "#CCCCCC",
+                "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
                 "fontFamily": "Roboto",
@@ -152,7 +152,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               }
             }
             testID="input-password"
-            underlineColorAndroid="#CCCCCC"
+            underlineColorAndroid="#d6d9dc"
             value=""
           />
           <TouchableOpacity
@@ -251,7 +251,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             secureTextEntry={true}
             style={
               Object {
-                "borderBottomColor": "#CCCCCC",
+                "borderBottomColor": "#d6d9dc",
                 "borderBottomWidth": 1,
                 "borderRadius": 4,
                 "fontFamily": "Roboto",
@@ -262,7 +262,7 @@ exports[`ChoosePassword should render correctly 1`] = `
               }
             }
             testID="input-password-confirm"
-            underlineColorAndroid="#CCCCCC"
+            underlineColorAndroid="#d6d9dc"
             value=""
           />
           <View
@@ -313,7 +313,7 @@ exports[`ChoosePassword should render correctly 1`] = `
             Remember me
           </Text>
           <Switch
-            ios_backgroundColor="#B3B3B3"
+            ios_backgroundColor="#9fa6ae"
             onValueChange={[Function]}
             style={
               Object {
@@ -323,8 +323,8 @@ exports[`ChoosePassword should render correctly 1`] = `
             }
             trackColor={
               Object {
-                "false": "#B3B3B3",
-                "true": "#4CD964",
+                "false": "#9fa6ae",
+                "true": "#86e29b",
               }
             }
             value={false}

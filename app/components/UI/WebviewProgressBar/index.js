@@ -52,7 +52,7 @@ export default class WebviewProgressBar extends Component {
 		<FadeView visible={this.state.visible}>
 			<ProgressBar
 				progress={this.props.progress}
-				color={colors.primary}
+				color={colors.blue}
 				width={null}
 				height={3}
 				borderRadius={0}

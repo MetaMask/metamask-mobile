@@ -81,6 +81,9 @@ class Collectible extends Component {
 			if (!collectible.name || collectible.name === '') {
 				collectible.name = collectibleContract.name;
 			}
+			if (!collectible.image && collectibleContract.logo) {
+				collectible.image = collectibleContract.logo;
+			}
 			return collectible;
 		});
 

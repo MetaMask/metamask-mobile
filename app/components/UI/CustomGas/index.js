@@ -13,11 +13,16 @@ import {
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../../util/number';
+import Logger from '../../../util/Logger';
+
+const AVERAGE_GAS = 20;
+const LOW_GAS = 10;
+const FAST_GAS = 40;
 
 const styles = StyleSheet.create({
 	selectors: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,
@@ -38,7 +43,7 @@ const styles = StyleSheet.create({
 		marginTop: 10
 	},
 	average: {
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRightWidth: 1,
 		borderLeftWidth: 1
 	},
@@ -61,12 +66,12 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	textAdvancedOptions: {
-		color: colors.primary
+		color: colors.blue
 	},
 	gasInput: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		fontSize: 16,
@@ -78,7 +83,7 @@ const styles = StyleSheet.create({
 		marginTop: 5
 	},
 	warningText: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	}
 });
@@ -203,7 +208,13 @@ class CustomGas extends Component {
 
 	handleFetchBasicEstimates = async () => {
 		this.setState({ ready: false });
-		const basicGasEstimates = await fetchBasicGasEstimates();
+		let basicGasEstimates;
+		try {
+			basicGasEstimates = await fetchBasicGasEstimates();
+		} catch (error) {
+			Logger.log('Error while trying to get gas limit estimates', error);
+			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
+		}
 		const { average, fast, safeLow } = basicGasEstimates;
 		this.setState({
 			averageGwei: convertApiValueToGWEI(average),
@@ -237,7 +248,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.slow,
-						{ backgroundColor: this.state.gasSlowSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasSlowSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
@@ -256,7 +267,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.average,
-						{ backgroundColor: this.state.gasAverageSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasAverageSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text
@@ -277,7 +288,7 @@ class CustomGas extends Component {
 					style={[
 						styles.selector,
 						styles.fast,
-						{ backgroundColor: this.state.gasFastSelected ? colors.primary : colors.white }
+						{ backgroundColor: this.state.gasFastSelected ? colors.blue : colors.white }
 					]}
 				>
 					<Text style={[styles.textTitle, { color: this.state.gasFastSelected ? colors.white : undefined }]}>

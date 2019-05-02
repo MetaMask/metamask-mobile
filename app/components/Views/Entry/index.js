@@ -6,6 +6,10 @@ import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
+import { connect } from 'react-redux';
+
 /**
  * Entry Screen that decides which screen to show
  * depending on the state of the user
@@ -47,12 +51,16 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Entry extends Component {
+class Entry extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -102,7 +110,22 @@ export default class Entry extends Component {
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;
 				await KeyringController.submitPassword(credentials.password);
-				this.animateAndGoTo('HomeNav');
+				// Get onboarding wizard state
+				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				// Check if user passed through metrics opt-in screen
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				if (!metricsOptIn) {
+					this.props.navigation.navigate('OptinMetrics');
+				} else if (onboardingWizard) {
+					this.props.navigation.navigate('HomeNav');
+				} else {
+					this.props.setOnboardingWizardStep(1);
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
+				}
 			} else {
 				this.animateAndGoTo('Login');
 			}
@@ -159,3 +182,12 @@ export default class Entry extends Component {
 		);
 	}
 }
+
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	null,
+	mapDispatchToProps
+)(Entry);

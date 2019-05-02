@@ -12,26 +12,28 @@ import { colors } from '../../../styles/common.js';
  */
 // eslint-disable-next-line react/display-name
 const Identicon = React.memo(props => {
-	const { diameter, address, customStyle } = props;
+	const { diameter, address, customStyle, noFadeIn } = props;
 	if (!address) return null;
-
 	const uri = toDataUrl(address);
 
-	return (
-		<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
-			<Image
-				source={{ uri }}
-				style={[
-					{
-						height: diameter,
-						width: diameter,
-						borderRadius: diameter / 2
-					},
-					customStyle
-				]}
-			/>
-		</FadeIn>
+	const image = (
+		<Image
+			source={{ uri }}
+			style={[
+				{
+					height: diameter,
+					width: diameter,
+					borderRadius: diameter / 2
+				},
+				customStyle
+			]}
+		/>
 	);
+
+	if (noFadeIn) {
+		return image;
+	}
+	return <FadeIn placeholderStyle={{ backgroundColor: colors.white }}>{image}</FadeIn>;
 });
 
 Identicon.propTypes = {
@@ -46,7 +48,11 @@ Identicon.propTypes = {
 	/**
 	 * Custom style to apply to image
 	 */
-	customStyle: PropTypes.object
+	customStyle: PropTypes.object,
+	/**
+	 * True if render is happening without fade in
+	 */
+	noFadeIn: PropTypes.bool
 };
 
 Identicon.defaultProps = {

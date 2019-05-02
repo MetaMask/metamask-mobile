@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	informationRow: {
-		borderBottomColor: colors.lightGray,
+		borderBottomColor: colors.grey200,
 		borderBottomWidth: 1,
 		padding: 20
 	},
