@@ -13,6 +13,7 @@ import {
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../../util/number';
+import Logger from '../../../util/Logger';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -210,7 +211,8 @@ class CustomGas extends Component {
 		let basicGasEstimates;
 		try {
 			basicGasEstimates = await fetchBasicGasEstimates();
-		} catch (e) {
+		} catch (error) {
+			Logger.log('Error while trying to get gas limit estimates', error);
 			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
 		}
 		const { average, fast, safeLow } = basicGasEstimates;
