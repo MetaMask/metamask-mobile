@@ -192,6 +192,22 @@
 		"description": "Haciendo click en \"{{action}}\" estas de acuerdo con estos ",
 		"terms": "Términos y Condiciones"
 	},
+	"privacy_policy": {
+		"title": "Política de Privacidad",
+		"description": "Estos datos se agregan y, por lo tanto, son anónimos para los fines del Reglamento general de protección de datos (UE) 2016/679. Para obtener más información sobre nuestras prácticas de privacidad, consulte nuestra Política de Privacidad",
+		"here": "aquí",
+		"agree": "De Acuerdo",
+		"decline": "No, Gracias",
+		"description_title": "Ayúdanos a mejorar MetaMask",
+		"description_content_1": "A MetaMask le gustaría recopilar datos de uso básicos para comprender mejor cómo interactúan nuestros usuarios con la aplicación movil. Estos datos se utilizarán para mejorar continuamente la usabilidad y la experiencia de usuario de nuestro producto.",
+		"description_content_2": "MetaMask va a...",
+		"action_description_1": "Siempre permitir cancelar a través de Configuraciónes",
+		"action_description_2": "Enviar eventos anónimos de clics y páginas vistas",
+		"action_description_3": "Mantener un panel público agregado para educar a la comunidad.",
+		"action_description_4": "Nunca recopilar claves, direcciones, transacciones, saldos, hashes o cualquier información personal",
+		"action_description_5": "Nunca recopilar su dirección IP",
+		"action_description_6": "Nunca vender datos con fines de lucro. ¡Nunca!"
+	},
 	"token": {
 		"token_symbol": "Símbolo del Token",
 		"token_address": "Dirección del Token",
@@ -278,7 +294,7 @@
 		"advanced_title": "Avanzado",
 		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
-		"security_desc": "Opciones de privacidad y frase semilla de la billetera",
+		"security_desc": "Opciones de privacidad, MetaMetrics y frase semilla de la billetera",
 		"info_title": "Acerca de MetaMask",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
@@ -294,7 +310,9 @@
 		"hex_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"clear_privacy_title": "Borrar los datos de privacidad",
 		"clear_privacy_desc": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
-		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación."
+		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
+		"metametrics_title": "Participa en MetaMetrics",
+		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask."
 	},
 	"app_information": {
 		"title": "Información",

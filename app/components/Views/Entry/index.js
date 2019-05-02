@@ -101,11 +101,19 @@ class Entry extends Component {
 				await KeyringController.submitPassword(credentials.password);
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
-				if (onboardingWizard) {
-					this.animateAndGoTo('HomeNav');
+				// Check if user passed through metrics opt-in screen
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				if (!metricsOptIn) {
+					this.props.navigation.navigate('OptinMetrics');
+				} else if (onboardingWizard) {
+					this.props.navigation.navigate('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.animateAndGoTo('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
 				}
 			} else {
 				this.animateAndGoTo('Login');

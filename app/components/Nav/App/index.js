@@ -16,6 +16,7 @@ import Entry from '../../Views/Entry';
 import LockScreen from '../../Views/LockScreen';
 import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
+import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
 
 /**
@@ -38,6 +39,9 @@ const OnboardingNav = createStackNavigator(
 		},
 		SyncWithExtension: {
 			screen: SyncWithExtension
+		},
+		OptinMetrics: {
+			screen: OptinMetrics
 		}
 	},
 	{
