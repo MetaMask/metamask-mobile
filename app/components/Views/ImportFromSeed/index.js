@@ -210,6 +210,11 @@ class ImportFromSeed extends Component {
 					if (!this.state.biometryChoice) {
 						await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 					} else {
+						// If the user enables biometrics, we're trying to read the password
+						// immediately so we get the permission prompt
+						if (Platform.OS === 'ios') {
+							await SecureKeychain.getGenericPassword();
+						}
 						await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
 					}
 				} else {
