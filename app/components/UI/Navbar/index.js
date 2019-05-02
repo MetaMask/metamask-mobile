@@ -23,8 +23,13 @@ const styles = StyleSheet.create({
 		marginBottom: 12
 	},
 	metamaskName: {
-		width: 94,
-		height: 12
+		width: 122,
+		height: 15
+	},
+	metamaskFox: {
+		width: 40,
+		height: 40,
+		marginRight: 10
 	},
 	metamaskNameWrapper: {
 		marginLeft: Platform.OS === 'android' ? 20 : 0
@@ -92,6 +97,12 @@ const styles = StyleSheet.create({
 	disabled: {
 		opacity: 0.3
 	},
+	optinHeaderLeft: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginLeft: Platform.OS === 'ios' ? 20 : 0,
+		marginRight: Platform.OS === 'ios' ? 20 : 0
+	},
 	tabIconAndroid: {
 		marginTop: 13,
 		marginLeft: -10,
@@ -102,6 +113,7 @@ const styles = StyleSheet.create({
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -282,9 +294,9 @@ export function getModalNavbarOptions(title) {
 export function getOnboardingNavbarOptions() {
 	return {
 		headerStyle: {
-			shadowColor: 'transparent',
+			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: 'white',
+			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
 		headerTitle: (
@@ -296,6 +308,33 @@ export function getOnboardingNavbarOptions() {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * for our metric opt-in screen
+ *
+ * @returns {Object} - Corresponding navbar options containing headerLeft
+ */
+export function getOptinMetricsNavbarOptions() {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0,
+			height: 100
+		},
+		headerLeft: (
+			<View style={styles.optinHeaderLeft}>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
+				</View>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				</View>
+			</View>
+		)
+	};
+}
 /**
  * Function that returns the navigation options
  * for our closable screens,

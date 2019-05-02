@@ -89,7 +89,11 @@ class SyncWithExtensionSuccess extends Component {
 	continue = async () => {
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
-		if (onboardingWizard) {
+		// Check if user passed through metrics opt-in screen
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		if (!metricsOptIn) {
+			this.props.navigation.navigate('OptinMetrics');
+		} else if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.setOnboardingWizardStep(1);

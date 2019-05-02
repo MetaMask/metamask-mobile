@@ -224,13 +224,17 @@ class ImportFromSeed extends Component {
 				}
 				// Get onboarding wizard state
 				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				// Check if user passed through metrics opt-in screen
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
-				if (onboardingWizard) {
+				if (!metricsOptIn) {
+					this.props.navigation.navigate('OptinMetrics');
+				} else if (onboardingWizard) {
 					this.props.navigation.navigate('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
