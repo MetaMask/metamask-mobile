@@ -150,7 +150,7 @@ class AssetOverview extends Component {
 		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
 		let balance, balanceFiat;
 		if (asset.symbol === 'ETH') {
-			balance = renderFromWei(accounts[selectedAddress].balance);
+			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 			balanceFiat = weiToFiat(
 				hexToBN(accounts[selectedAddress].balance),
 				conversionRate,
