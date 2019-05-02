@@ -2,15 +2,15 @@ import React, { Component } from 'react';
 import { View, SafeAreaView, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
-import ActionView from '../../UI/ActionView';
 import AsyncStorage from '@react-native-community/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { TouchableOpacity, ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { NavigationActions } from 'react-navigation';
+import StyledButton from '../StyledButton';
 
 const styles = StyleSheet.create({
 	root: {
@@ -52,11 +52,28 @@ const styles = StyleSheet.create({
 	},
 	privacyPolicy: {
 		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.grey400
+		fontSize: 14,
+		color: colors.grey400,
+		marginTop: 10
 	},
 	link: {
 		textDecorationLine: 'underline'
+	},
+	actionContainer: {
+		marginTop: 10,
+		flex: 0,
+		flexDirection: 'row',
+		padding: 16,
+		bottom: 0
+	},
+	button: {
+		flex: 1
+	},
+	cancel: {
+		marginRight: 8
+	},
+	confirm: {
+		marginLeft: 8
 	}
 });
 
@@ -181,22 +198,32 @@ class OptinMetrics extends Component {
 	render() {
 		return (
 			<SafeAreaView style={styles.root}>
-				<ActionView
-					cancelText={strings('privacy_policy.decline')}
-					confirmText={strings('privacy_policy.agree')}
-					onCancelPress={this.onCancel}
-					onConfirmPress={this.onConfirm}
-					confirmButtonMode={'confirm'}
-					stickyView={this.renderPrivacyPolicy()}
-				>
+				<ScrollView style={styles.root}>
 					<View style={styles.wrapper}>
 						<Text style={styles.title}>{strings('privacy_policy.description_title')}</Text>
 						<Text style={styles.content}>{strings('privacy_policy.description_content_1')}</Text>
 						<Text style={styles.content}>{strings('privacy_policy.description_content_2')}</Text>
-
 						{this.actionsList.map((action, i) => this.renderAction(action, i))}
+						{this.renderPrivacyPolicy()}
 					</View>
-				</ActionView>
+
+					<View style={styles.actionContainer}>
+						<StyledButton
+							containerStyle={[styles.button, styles.cancel]}
+							type={'cancel'}
+							onPress={this.onCancel}
+						>
+							{strings('privacy_policy.decline')}
+						</StyledButton>
+						<StyledButton
+							containerStyle={[styles.button, styles.confirm]}
+							type={'confirm'}
+							onPress={this.onConfirm}
+						>
+							{strings('privacy_policy.agree')}
+						</StyledButton>
+					</View>
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}
