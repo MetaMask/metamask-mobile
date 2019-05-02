@@ -1680,14 +1680,6 @@ export class BrowserTab extends PureComponent {
 		);
 	}
 
-	onBrowserHomeGoToUrl = url => {
-		this.props.navigation.setParams({
-			url,
-			silent: false,
-			showUrlModal: false
-		});
-	};
-
 	getUserAgent() {
 		if (Platform.OS === 'android') {
 			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
@@ -1743,7 +1735,7 @@ export class BrowserTab extends PureComponent {
 				{this.renderProgressBar()}
 				{!isHidden && url === HOMEPAGE_URL ? (
 					<View style={styles.homepage}>
-						<BrowserHome goToUrl={this.onBrowserHomeGoToUrl} navigation={this.props.navigation} />
+						<BrowserHome goToUrl={this.go} navigation={this.props.navigation} />
 					</View>
 				) : null}
 				{!isHidden && this.renderUrlModal()}
