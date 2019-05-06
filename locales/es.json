@@ -104,7 +104,7 @@
 	"import_from_seed": {
 		"title": "Importar con frase semilla",
 		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
-		"new_password": "Nueva Contraseña (min. 8 caracteres)",
+		"new_password": "Nueva Contraseña",
 		"confirm_password": "Confirmar Contraseña",
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar",
