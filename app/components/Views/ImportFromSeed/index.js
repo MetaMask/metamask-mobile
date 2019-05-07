@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		paddingHorizontal: 20
 	},
 	title: {
 		fontSize: Platform.OS === 'android' ? 20 : 25,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 		flex: 0
 	},
 	termsAndConditions: {
-		paddingTop: 30
+		paddingVertical: 30
 	},
 	passwordStrengthLabel: {
 		height: 20,
@@ -488,6 +488,7 @@ class ImportFromSeed extends Component {
 								{strings('import_from_seed.new_password')}
 							</Animated.Text>
 							<TextInput
+								ref={this.passwordInput}
 								style={styles.input}
 								value={this.state.password}
 								onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
