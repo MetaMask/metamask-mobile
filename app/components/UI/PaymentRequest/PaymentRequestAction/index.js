@@ -1,0 +1,66 @@
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
+import { fontStyles, colors } from '../../../../styles/common';
+
+const styles = StyleSheet.create({
+	wrapper: {
+		margin: 10,
+		borderWidth: 1,
+		borderColor: colors.blue,
+		borderRadius: 18,
+		padding: 10,
+		flexDirection: 'column',
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	title: {
+		...fontStyles.bold,
+		fontSize: 14,
+		padding: 5
+	},
+	description: {
+		...fontStyles.normal,
+		fontSize: 12,
+		padding: 5,
+		textAlign: 'center',
+		color: colors.grey500
+	},
+	row: {
+		alignSelf: 'center'
+	},
+	icon: {
+		marginBottom: 5
+	}
+});
+
+/**
+ * Component that renders scrollable content inside signature request user interface
+ */
+export default class PaymentRequestAction extends Component {
+	static propTypes = {
+		/**
+		 * The navigator object
+		 */
+		icon: PropTypes.object,
+		actionTitle: PropTypes.string,
+		actionDescription: PropTypes.string,
+		style: PropTypes.object,
+		onPress: PropTypes.func
+	};
+
+	render() {
+		const { icon, actionTitle, actionDescription, style, onPress } = this.props;
+		return (
+			<TouchableOpacity onPress={onPress} style={[styles.wrapper, style]}>
+				<View style={[styles.row, styles.icon]}>{icon}</View>
+				<View style={styles.row}>
+					<Text style={styles.title}>{actionTitle}</Text>
+				</View>
+				<View style={styles.row}>
+					<Text style={styles.description}>{actionDescription}</Text>
+				</View>
+			</TouchableOpacity>
+		);
+	}
+}

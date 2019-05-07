@@ -9,12 +9,10 @@ import {
 	StyleSheet,
 	Text,
 	ScrollView,
-	Dimensions,
 	InteractionManager
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
@@ -44,6 +42,7 @@ import DeviceInfo from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
+import PaymentRequest from '../PaymentRequest';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -229,40 +228,6 @@ const styles = StyleSheet.create({
 		marginBottom: 15,
 		textAlign: 'center',
 		...fontStyles.bold
-	},
-	detailsWrapper: {
-		padding: 10,
-		alignItems: 'center'
-	},
-	qrCode: {
-		marginVertical: 15,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 40,
-		backgroundColor: colors.grey000,
-		borderRadius: 8
-	},
-	addressWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		marginTop: 10,
-		marginBottom: 20,
-		marginRight: 10,
-		marginLeft: 10,
-		borderRadius: 5,
-		backgroundColor: colors.grey000
-	},
-	addressTitle: {
-		fontSize: 16,
-		marginBottom: 10,
-		...fontStyles.normal
-	},
-	address: {
-		fontSize: Platform.OS === 'ios' ? 17 : 20,
-		letterSpacing: 2,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
 	},
 	secureModalText: {
 		textAlign: 'center',
@@ -914,20 +879,9 @@ class DrawerView extends Component {
 					onSwipeComplete={this.toggleReceiveModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					style={styles.bottomModal}
 				>
-					<View style={styles.detailsWrapper}>
-						<View style={styles.qrCode}>
-							<QRCode value={`ethereum:${selectedAddress}`} size={Dimensions.get('window').width - 160} />
-						</View>
-						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-							<Text style={styles.addressTitle} testID={'public-address-text'}>
-								{strings('drawer.public_address')}
-							</Text>
-							<Text style={styles.address} testID={'public-address-text'}>
-								{selectedAddress}
-							</Text>
-						</TouchableOpacity>
-					</View>
+					<PaymentRequest navigation={this.props.navigation} />
 				</Modal>
 				{!this.props.passwordSet && (
 					<CustomAlert
