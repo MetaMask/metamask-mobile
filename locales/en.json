@@ -104,7 +104,7 @@
 	"import_from_seed": {
 		"title": "Import from seed",
 		"seed_phrase_placeholder": "Enter your seed phrase here",
-		"new_password": "New Password (min. 8 characters)",
+		"new_password": "New Password",
 		"confirm_password": "Confirm Password",
 		"import_button": "IMPORT",
 		"cancel_button": "Cancel",
