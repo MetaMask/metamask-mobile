@@ -42,7 +42,7 @@ import DeviceInfo from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
-import PaymentRequest from '../PaymentRequest';
+import ReceiveRequest from '../ReceiveRequest';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -881,7 +881,7 @@ class DrawerView extends Component {
 					propagateSwipe
 					style={styles.bottomModal}
 				>
-					<PaymentRequest navigation={this.props.navigation} showReceiveModal={this.showReceiveModal} />
+					<ReceiveRequest navigation={this.props.navigation} showReceiveModal={this.showReceiveModal} />
 				</Modal>
 				{!this.props.passwordSet && (
 					<CustomAlert

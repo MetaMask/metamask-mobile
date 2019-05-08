@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { SafeAreaView, Platform, TouchableOpacity, Dimensions, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
-import PaymentRequestAction from './PaymentRequestAction';
+import ReceiveRequestAction from './ReceiveRequestAction';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Logger from '../../../util/Logger';
@@ -69,9 +69,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders scrollable content inside signature request user interface
+ * Component that renders receive options
  */
-class PaymentRequest extends Component {
+class ReceiveRequest extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -152,14 +152,14 @@ class PaymentRequest extends Component {
 
 				<View style={styles.actionsWrapper}>
 					<View style={styles.row}>
-						<PaymentRequestAction
+						<ReceiveRequestAction
 							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
 							icon={this.actions[0].icon}
 							actionTitle={this.actions[0].title}
 							actionDescription={this.actions[0].description}
 							onPress={this.actions[0].onPress}
 						/>
-						<PaymentRequestAction
+						<ReceiveRequestAction
 							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
 							icon={this.actions[1].icon}
 							actionTitle={this.actions[1].title}
@@ -168,14 +168,14 @@ class PaymentRequest extends Component {
 						/>
 					</View>
 					<View style={styles.row}>
-						<PaymentRequestAction
+						<ReceiveRequestAction
 							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
 							icon={this.actions[2].icon}
 							actionTitle={this.actions[2].title}
 							actionDescription={this.actions[2].description}
 							onPress={this.actions[2].onPress}
 						/>
-						<PaymentRequestAction
+						<ReceiveRequestAction
 							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
 							icon={this.actions[3].icon}
 							actionTitle={this.actions[3].title}
@@ -224,4 +224,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(PaymentRequest);
+)(ReceiveRequest);

@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
 /**
  * Component that renders scrollable content inside signature request user interface
  */
-export default class PaymentRequestAction extends Component {
+export default class ReceiveRequestAction extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
