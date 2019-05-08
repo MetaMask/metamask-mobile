@@ -436,11 +436,11 @@ class DrawerView extends Component {
 	};
 
 	showReceiveModal = () => {
-		this.props.toggleReceiveModal();
+		this.toggleReceiveModal();
 	};
 
 	onReceive = () => {
-		this.props.toggleReceiveModal();
+		this.toggleReceiveModal();
 	};
 
 	onSend = async () => {
@@ -881,7 +881,7 @@ class DrawerView extends Component {
 					propagateSwipe
 					style={styles.bottomModal}
 				>
-					<PaymentRequest navigation={this.props.navigation} />
+					<PaymentRequest navigation={this.props.navigation} showReceiveModal={this.showReceiveModal} />
 				</Modal>
 				{!this.props.passwordSet && (
 					<CustomAlert

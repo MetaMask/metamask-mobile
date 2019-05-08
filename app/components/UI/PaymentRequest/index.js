@@ -1,10 +1,18 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Dimensions, StyleSheet, View, Text } from 'react-native';
+import { Platform, TouchableOpacity, Dimensions, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import PaymentRequestAction from './PaymentRequestAction';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Logger from '../../../util/Logger';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
+import { toChecksumAddress } from 'ethereumjs-util';
+import { connect } from 'react-redux';
+import { toggleReceiveModal } from '../../../actions/modals';
+import Modal from 'react-native-modal';
+import QRCode from 'react-native-qrcode-svg';
+import { strings } from '../../../../locales/i18n';
 
 const ACTION_WIDTH = (Dimensions.get('window').width - 60) / 2;
 
@@ -23,48 +31,119 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: 'row',
 		alignItems: 'center'
+	},
+	detailsWrapper: {
+		padding: 10,
+		alignItems: 'center'
+	},
+	qrCode: {
+		marginVertical: 15,
+		alignItems: 'center',
+		justifyContent: 'center',
+		padding: 40,
+		backgroundColor: colors.grey000,
+		borderRadius: 8
+	},
+	addressWrapper: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 15,
+		paddingVertical: 10,
+		marginTop: 10,
+		marginBottom: 20,
+		marginRight: 10,
+		marginLeft: 10,
+		borderRadius: 5,
+		backgroundColor: colors.grey000
+	},
+	addressTitle: {
+		fontSize: 16,
+		marginBottom: 10,
+		...fontStyles.normal
+	},
+	address: {
+		fontSize: Platform.OS === 'ios' ? 17 : 20,
+		letterSpacing: 2,
+		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
 	}
 });
 
 /**
  * Component that renders scrollable content inside signature request user interface
  */
-export default class PaymentRequest extends Component {
+class PaymentRequest extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Selected address as string
+		 */
+		selectedAddress: PropTypes.string,
+		toggleReceiveModal: PropTypes.func
+	};
+
+	state = {
+		qrModalVisible: false
+	};
+
+	onShare = () => {
+		const { selectedAddress } = this.props;
+		Share.open({
+			message: `ethereum:${selectedAddress}`
+		}).catch(err => {
+			Logger.log('Error while trying to share address', err);
+		});
 	};
 
 	actions = [
 		{
 			icon: <MaterialIcon name={'share-variant'} size={32} color={colors.black} />,
 			title: 'Share Address',
-			description: 'Email or text yout address',
-			onPress: () => this.props.navigation.navigate('WalletView')
+			description: 'Email or text your address',
+			onPress: () => {
+				this.onShare();
+			}
 		},
 		{
 			icon: <FontAwesome name={'qrcode'} size={32} color={colors.black} />,
 			title: 'QR Code',
-			description: 'Email or text yout address',
-			onPress: () => this.props.navigation.navigate('WalletView')
+			description: 'Email or text your address',
+			onPress: () => {
+				this.openQrModal();
+			}
 		},
 		{
 			icon: <MaterialIcon solid name={'hand-pointing-right'} size={32} color={colors.black} />,
 			title: 'Request',
-			description: 'Email or text yout address',
-			onPress: () => this.props.navigation.navigate('WalletView')
+			description: 'Email or text your address',
+			onPress: () => {
+				this.props.toggleReceiveModal();
+				this.props.navigation.navigate('WalletView');
+			}
 		},
 		{
 			icon: <FontAwesome name={'credit-card'} size={32} color={colors.black} />,
 			title: 'Buy',
-			description: 'Email or text yout address',
-			onPress: () => this.props.navigation.navigate('WalletView')
+			description: 'Email or text your address',
+			onPress: () => {
+				this.props.toggleReceiveModal();
+				this.props.navigation.navigate('WalletView');
+			}
 		}
 	];
 
+	closeQrModal = () => {
+		this.setState({ qrModalVisible: false });
+	};
+
+	openQrModal = () => {
+		this.setState({ qrModalVisible: true });
+	};
+
 	render() {
+		const { qrModalVisible } = this.state;
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.accountInformation}>
@@ -105,7 +184,44 @@ export default class PaymentRequest extends Component {
 						/>
 					</View>
 				</View>
+				<Modal
+					isVisible={qrModalVisible}
+					onBackdropPress={this.closeQrModal}
+					onSwipeComplete={this.closeQrModal}
+					swipeDirection={'down'}
+					propagateSwipe
+				>
+					<View style={styles.detailsWrapper}>
+						<View style={styles.qrCode}>
+							<QRCode
+								value={`ethereum:${this.props.selectedAddress}`}
+								size={Dimensions.get('window').width - 160}
+							/>
+						</View>
+						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+							<Text style={styles.addressTitle} testID={'public-address-text'}>
+								{strings('drawer.public_address')}
+							</Text>
+							<Text style={styles.address} testID={'public-address-text'}>
+								{this.props.selectedAddress}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</Modal>
 			</View>
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress)
+});
+
+const mapDispatchToProps = dispatch => ({
+	toggleReceiveModal: () => dispatch(toggleReceiveModal())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(PaymentRequest);
