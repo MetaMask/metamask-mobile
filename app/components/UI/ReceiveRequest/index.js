@@ -120,7 +120,7 @@ class ReceiveRequest extends Component {
 			description: 'Request assets from friends',
 			onPress: () => {
 				this.props.toggleReceiveModal();
-				this.props.navigation.navigate('WalletView');
+				this.props.navigation.navigate('PaymentRequestView');
 			}
 		},
 		{

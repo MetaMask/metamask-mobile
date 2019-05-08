@@ -52,6 +52,9 @@ const styles = StyleSheet.create({
 		paddingRight: Platform.OS === 'android' ? 22 : 18,
 		marginTop: 5
 	},
+	closeButton: {
+		paddingHorizontal: Platform.OS === 'android' ? 22 : 18
+	},
 	infoButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
 		paddingRight: Platform.OS === 'android' ? 22 : 18,
@@ -66,9 +69,6 @@ const styles = StyleSheet.create({
 	},
 	flex: {
 		flex: 1
-	},
-	closeButton: {
-		paddingHorizontal: 22
 	},
 	closeButtonText: {
 		color: colors.blue,
@@ -170,6 +170,40 @@ export function getNavigationOptionsTitle(title, navigation) {
 				/>
 			</TouchableOpacity>
 		)
+	};
+}
+
+export function getPaymentRequestOptionsTitle(title, navigation) {
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerTintColor: colors.blue,
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			)
 	};
 }
 
