@@ -5,10 +5,10 @@ import { fontStyles, colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		margin: 10,
+		margin: 8,
 		borderWidth: 1,
 		borderColor: colors.blue,
-		borderRadius: 18,
+		borderRadius: 8,
 		padding: 10,
 		flexDirection: 'column',
 		alignItems: 'center',

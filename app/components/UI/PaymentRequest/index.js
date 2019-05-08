@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableOpacity, Dimensions, StyleSheet, View, Text } from 'react-native';
+import { SafeAreaView, Platform, TouchableOpacity, Dimensions, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import PaymentRequestAction from './PaymentRequestAction';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,11 +21,11 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: 450
+		minHeight: 2 * ACTION_WIDTH + 100
 	},
 	actionsWrapper: {
 		flex: 1,
-		margin: 10
+		margin: 14
 	},
 	accountInformation: {},
 	row: {
@@ -109,7 +109,7 @@ class PaymentRequest extends Component {
 		{
 			icon: <FontAwesome name={'qrcode'} size={32} color={colors.black} />,
 			title: 'QR Code',
-			description: 'Email or text your address',
+			description: 'Scannable image that can read your address',
 			onPress: () => {
 				this.openQrModal();
 			}
@@ -117,7 +117,7 @@ class PaymentRequest extends Component {
 		{
 			icon: <MaterialIcon solid name={'hand-pointing-right'} size={32} color={colors.black} />,
 			title: 'Request',
-			description: 'Email or text your address',
+			description: 'Request assets from friends',
 			onPress: () => {
 				this.props.toggleReceiveModal();
 				this.props.navigation.navigate('WalletView');
@@ -126,7 +126,7 @@ class PaymentRequest extends Component {
 		{
 			icon: <FontAwesome name={'credit-card'} size={32} color={colors.black} />,
 			title: 'Buy',
-			description: 'Email or text your address',
+			description: 'Buy Crypto with Credit Card',
 			onPress: () => {
 				this.props.toggleReceiveModal();
 				this.props.navigation.navigate('WalletView');
@@ -145,7 +145,7 @@ class PaymentRequest extends Component {
 	render() {
 		const { qrModalVisible } = this.state;
 		return (
-			<View style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.accountInformation}>
 					<Text style={fontStyles.normal}>Receive</Text>
 				</View>
@@ -208,7 +208,7 @@ class PaymentRequest extends Component {
 						</TouchableOpacity>
 					</View>
 				</Modal>
-			</View>
+			</SafeAreaView>
 		);
 	}
 }
