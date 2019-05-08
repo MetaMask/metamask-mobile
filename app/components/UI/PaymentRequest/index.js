@@ -41,6 +41,49 @@ const styles = StyleSheet.create({
 		textAlignVertical: 'center',
 		marginTop: Platform.OS === 'android' ? 9 : 10,
 		marginLeft: 12
+	},
+	input: {
+		...fontStyles.bold,
+		backgroundColor: colors.white,
+		borderWidth: 0,
+		fontSize: 16,
+		paddingBottom: 0,
+		paddingRight: 0,
+		paddingLeft: 0,
+		paddingTop: 0,
+		maxWidth: '70%'
+	},
+	eth: {
+		...fontStyles.bold,
+		marginRight: 30,
+		fontSize: 16,
+		paddingTop: Platform.OS === 'android' ? 3 : 0,
+		paddingLeft: 10
+	},
+	fiatValue: {
+		...fontStyles.normal,
+		fontSize: 12
+	},
+	split: {
+		flex: 1,
+		flexDirection: 'row'
+	},
+	ethContainer: {
+		flex: 1,
+		paddingLeft: 6,
+		paddingRight: 10
+	},
+	container: {
+		flex: 1,
+		flexDirection: 'row',
+		paddingRight: 10,
+		paddingVertical: 10,
+		paddingLeft: 14,
+		position: 'relative',
+		backgroundColor: colors.white,
+		borderColor: colors.grey100,
+		borderRadius: 4,
+		borderWidth: 1
 	}
 });
 
@@ -88,7 +131,8 @@ class PaymentRequest extends Component {
 	state = {
 		searchInputValue: '',
 		results: [],
-		selectedAsset: undefined
+		selectedAsset: undefined,
+		step: 'select'
 	};
 
 	handleSearch = searchInputValue => {
@@ -100,8 +144,8 @@ class PaymentRequest extends Component {
 		this.setState({ searchInputValue, results });
 	};
 
-	handleSelectAsset = () => {
-		//
+	handleSelectAsset = asset => {
+		this.setState({ selectedAsset: asset, step: 'amount' });
 	};
 
 	renderSelectAssets() {
@@ -143,10 +187,53 @@ class PaymentRequest extends Component {
 		);
 	}
 
+	updateAmount = amount => {
+		this.setState({ amount });
+	};
+
+	renderEnterAmount() {
+		const { amount } = this.state;
+		return (
+			<View>
+				<View>
+					<Text style={styles.title}>Enter amount</Text>
+				</View>
+				<View style={styles.searchWrapper}>
+					<View style={styles.container}>
+						<View style={styles.ethContainer}>
+							<View style={styles.split}>
+								<TextInput
+									autoCapitalize="none"
+									autoCorrect={false}
+									keyboardType="numeric"
+									numberOfLines={1}
+									onChangeText={this.onChange}
+									placeholder={'0.00'}
+									spellCheck={false}
+									style={styles.input}
+									value={amount}
+								/>
+								<Text style={styles.eth} numberOfLines={1}>
+									{''}
+								</Text>
+							</View>
+							<Text style={styles.fiatValue} numberOfLines={1}>
+								{''}
+							</Text>
+						</View>
+					</View>
+				</View>
+			</View>
+		);
+	}
+
 	render() {
+		const { step } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
-				<ScrollView style={styles.contentWrapper}>{this.renderSelectAssets()}</ScrollView>
+				<ScrollView style={styles.contentWrapper}>
+					{step === 'select' ? this.renderSelectAssets() : this.renderEnterAmount()}
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}
