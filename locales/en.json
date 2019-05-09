@@ -577,6 +577,7 @@
 	},
 	"accountApproval": {
 		"title": "CONNECT REQUEST",
+		"walletconnect_title": "WALLETCONNECT REQUEST",
 		"action": "would like to",
 		"connect": "CONNECT",
 		"cancel": "CANCEL",

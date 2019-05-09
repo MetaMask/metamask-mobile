@@ -1,6 +1,10 @@
 import RNWalletConnect from '@walletconnect/react-native';
 import Engine from './Engine';
 import Logger from '../util/Logger';
+// eslint-disable-next-line import/no-nodejs-modules
+import { EventEmitter } from 'events';
+
+const hub = new EventEmitter();
 
 class WalletConnect {
 	selectedAddress = null;
@@ -36,23 +40,25 @@ class WalletConnect {
 			/**
 			 *  Subscribe to session requests
 			 */
-			this.walletConnector.on('session_request', (error, payload) => {
+			this.walletConnector.on('session_request', async (error, payload) => {
 				if (error) {
 					throw error;
 				}
 
-				Logger.log('WalletConnect request payload', payload);
-
-				const { network, selectedAddress } = Engine.datamodel.flatState;
-				this.selectedAddress = selectedAddress;
-				const approveData = {
-					chainId: parseInt(network, 10),
-					accounts: [selectedAddress]
-				};
 				try {
+					await this.sessionRequest(payload.params[0].peerMeta);
+
+					Logger.log('WalletConnect request payload', payload);
+
+					const { network, selectedAddress } = Engine.datamodel.flatState;
+					this.selectedAddress = selectedAddress;
+					const approveData = {
+						chainId: parseInt(network, 10),
+						accounts: [selectedAddress]
+					};
 					this.walletConnector.approveSession(approveData);
 				} catch (e) {
-					Logger.log('Walletconnect session approval failed', e.message);
+					this.walletConnector.rejectSession();
 				}
 			});
 
@@ -191,6 +197,18 @@ class WalletConnect {
 	killSession = () => {
 		this.walletConnector && this.walletConnector.killSession();
 	};
+
+	sessionRequest = meta =>
+		new Promise((resolve, reject) => {
+			hub.emit('walletconnectSessionRequest', meta);
+
+			hub.once('walletconnectSessionRequest::approved', () => {
+				resolve(true);
+			});
+			hub.once('walletconnectSessionRequest::rejected', () => {
+				reject(false);
+			});
+		});
 }
 
 let instance;
@@ -202,6 +220,7 @@ export default {
 		this.initialized = true;
 		return instance;
 	},
+	hub,
 	shutdown() {
 		if (this.initialized) {
 			Engine.context.TransactionController.hub.removeAllListeners();

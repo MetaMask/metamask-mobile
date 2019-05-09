@@ -53,6 +53,7 @@ import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
+import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -274,7 +275,9 @@ class Main extends Component {
 		forceReload: false,
 		signMessage: false,
 		signMessageParams: { data: '' },
-		signType: ''
+		signType: '',
+		walletConnectRequest: false,
+		walletConnectRequestMeta: {}
 	};
 
 	backgroundMode = false;
@@ -326,6 +329,10 @@ class Main extends Component {
 		});
 		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
+		});
+
+		WalletConnect.hub.on('walletconnectSessionRequest', meta => {
+			this.setState({ walletConnectRequest: true, walletConnectRequestMeta: meta });
 		});
 	};
 
@@ -450,6 +457,49 @@ class Main extends Component {
 		);
 	};
 
+	onWalletConnectSessionApproval = () => {
+		this.setState({
+			walletConnectRequest: false,
+			walletConnectRequestMeta: {}
+		});
+		WalletConnect.hub.emit('walletconnectSessionRequest::approved');
+	};
+
+	onWalletConnectSessionRejected = () => {
+		this.setState({
+			walletConnectRequest: false,
+			walletConnectRequestMeta: {}
+		});
+		WalletConnect.hub.emit('walletconnectSessionRequest::rejected');
+	};
+
+	renderWalletConnectSessionRequestModal = () => {
+		const { walletConnectRequest, walletConnectRequestMeta } = this.state;
+		return (
+			<Modal
+				isVisible={walletConnectRequest}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={300}
+				animationOutTiming={300}
+				onSwipeComplete={this.onWalletConnectSessionRejected}
+				swipeDirection={'down'}
+			>
+				<WalletConnectSessionApproval
+					onCancel={this.onWalletConnectSessionRejected}
+					onConfirm={this.onWalletConnectSessionApproval}
+					currentPageInformation={{
+						title: walletConnectRequestMeta.name,
+						url: walletConnectRequest.url,
+						icon: walletConnectRequest.icons && walletConnectRequest.icons[0]
+					}}
+				/>
+			</Modal>
+		);
+	};
+
 	render() {
 		const { forceReload } = this.state;
 
@@ -467,6 +517,7 @@ class Main extends Component {
 					<FadeOutOverlay />
 				</View>
 				{this.renderSigningModal()}
+				{this.renderWalletConnectSessionRequestModal()}
 			</React.Fragment>
 		);
 	}

@@ -567,6 +567,7 @@
 	},
 	"accountApproval": {
 		"title": "SOLICITUD DE CONEXIÓN ",
+		"walletconnect_title": "SOLICITUD DE CONEXIÓN VIA WALLETCONNECT ",
 		"action": "le gustaría",
 		"connect": "CONECTAR",
 		"cancel": "CANCELAR",
