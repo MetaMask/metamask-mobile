@@ -8,7 +8,8 @@ import contractMap from 'eth-contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';
-import { weiToFiat, toWei, balanceToFiat } from '../../../util/number';
+import { weiToFiat, toWei, balanceToFiat, renderFromWei, fiatNumberToWei } from '../../../util/number';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -45,10 +46,10 @@ const styles = StyleSheet.create({
 		marginLeft: 12
 	},
 	input: {
-		...fontStyles.bold,
+		...fontStyles.normal,
 		backgroundColor: colors.white,
 		borderWidth: 0,
-		fontSize: 16,
+		fontSize: 32,
 		paddingBottom: 0,
 		paddingRight: 0,
 		paddingLeft: 0,
@@ -56,15 +57,15 @@ const styles = StyleSheet.create({
 		maxWidth: '70%'
 	},
 	eth: {
-		...fontStyles.bold,
+		...fontStyles.normal,
 		marginRight: 30,
-		fontSize: 16,
+		fontSize: 32,
 		paddingTop: Platform.OS === 'android' ? 3 : 0,
 		paddingLeft: 10
 	},
 	fiatValue: {
 		...fontStyles.normal,
-		fontSize: 12
+		fontSize: 18
 	},
 	split: {
 		flex: 1,
@@ -149,7 +150,11 @@ class PaymentRequest extends Component {
 		/**
 		 * Object containing token exchange rates in the format address => exchangeRate
 		 */
-		contractExchangeRates: PropTypes.object
+		contractExchangeRates: PropTypes.object,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -224,16 +229,30 @@ class PaymentRequest extends Component {
 	};
 
 	renderEnterAmount() {
-		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
+		const { conversionRate, currentCurrency, contractExchangeRates, primaryCurrency } = this.props;
 		const { amount, selectedAsset } = this.state;
 
-		let fiatAmount;
-		if (selectedAsset.symbol === 'ETH') {
-			fiatAmount = weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase());
-		} else {
-			const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-			fiatAmount = balanceToFiat(amount || 0, conversionRate, exchangeRate, currentCurrency);
+		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+		let fiatAmount, symbol;
+		if (primaryCurrency === 'ETH') {
+			symbol = selectedAsset.symbol;
+			if (selectedAsset.symbol !== 'ETH') {
+				fiatAmount = exchangeRate
+					? balanceToFiat(amount || 0, conversionRate, exchangeRate, currentCurrency)
+					: 'conversion rate not available';
+			} else {
+				fiatAmount = weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase());
+			}
+		} else if (primaryCurrency !== 'ETH') {
+			symbol = currentCurrency.toUpperCase();
+
+			if (selectedAsset.symbol !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+				fiatAmount = balanceToFiat(amount || 0, conversionRate, exchangeRate, selectedAsset.symbol);
+			} else {
+				fiatAmount = renderFromWei(fiatNumberToWei(amount || 0, conversionRate)) + ' ' + strings('unit.eth');
+			}
 		}
+
 		return (
 			<View>
 				<View>
@@ -255,7 +274,7 @@ class PaymentRequest extends Component {
 									value={amount}
 								/>
 								<Text style={styles.eth} numberOfLines={1}>
-									{selectedAsset.symbol}
+									{symbol}
 								</Text>
 							</View>
 							<Text style={styles.fiatValue} numberOfLines={1}>
