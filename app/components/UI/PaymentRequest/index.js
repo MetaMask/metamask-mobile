@@ -8,8 +8,10 @@ import contractMap from 'eth-contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';
-import { weiToFiat, toWei, balanceToFiat, renderFromWei, fiatNumberToWei } from '../../../util/number';
+import { weiToFiat, toWei, balanceToFiat, renderFromWei, fiatNumberToWei, isDecimal } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -53,12 +55,10 @@ const styles = StyleSheet.create({
 		paddingBottom: 0,
 		paddingRight: 0,
 		paddingLeft: 0,
-		paddingTop: 0,
-		maxWidth: '70%'
+		paddingTop: 0
 	},
 	eth: {
 		...fontStyles.normal,
-		marginRight: 30,
 		fontSize: 32,
 		paddingTop: Platform.OS === 'android' ? 3 : 0,
 		paddingLeft: 10
@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
 	},
 	ethContainer: {
 		flex: 1,
+		flexDirection: 'row',
 		paddingLeft: 6,
 		paddingRight: 10
 	},
@@ -87,6 +88,20 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1
+	},
+	amounts: {
+		maxWidth: '70%'
+	},
+	switchContainer: {
+		flex: 1,
+		flexDirection: 'column',
+		alignSelf: 'center',
+		right: 0
+	},
+	switchTouchable: {
+		flexDirection: 'row',
+		alignSelf: 'flex-end',
+		right: 0
 	}
 });
 
@@ -161,7 +176,13 @@ class PaymentRequest extends Component {
 		searchInputValue: '',
 		results: [],
 		selectedAsset: undefined,
-		mode: MODE_SELECT
+		mode: MODE_SELECT,
+		internalPrimaryCurrency: ''
+	};
+
+	componentDidMount = () => {
+		const { primaryCurrency } = this.props;
+		this.setState({ internalPrimaryCurrency: primaryCurrency });
 	};
 
 	goToAssetSelection = () => {
@@ -228,28 +249,37 @@ class PaymentRequest extends Component {
 		this.setState({ amount });
 	};
 
-	renderEnterAmount() {
-		const { conversionRate, currentCurrency, contractExchangeRates, primaryCurrency } = this.props;
-		const { amount, selectedAsset } = this.state;
+	switchPrimaryCurrency = () => {
+		const { internalPrimaryCurrency } = this.state;
+		const primarycurrencies = {
+			ETH: 'Fiat',
+			Fiat: 'ETH'
+		};
+		this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
+	};
 
+	renderEnterAmount() {
+		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
+		const { selectedAsset, internalPrimaryCurrency } = this.state;
+		const amount = (isDecimal(this.state.amount) && this.state.amount) || 0;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let fiatAmount, symbol;
-		if (primaryCurrency === 'ETH') {
+		if (internalPrimaryCurrency === 'ETH') {
 			symbol = selectedAsset.symbol;
 			if (selectedAsset.symbol !== 'ETH') {
 				fiatAmount = exchangeRate
-					? balanceToFiat(amount || 0, conversionRate, exchangeRate, currentCurrency)
+					? balanceToFiat(amount, conversionRate, exchangeRate, currentCurrency)
 					: 'conversion rate not available';
 			} else {
-				fiatAmount = weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase());
+				fiatAmount = weiToFiat(toWei(amount), conversionRate, currentCurrency.toUpperCase());
 			}
-		} else if (primaryCurrency !== 'ETH') {
+		} else if (internalPrimaryCurrency !== 'ETH') {
 			symbol = currentCurrency.toUpperCase();
 
 			if (selectedAsset.symbol !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
-				fiatAmount = balanceToFiat(amount || 0, conversionRate, exchangeRate, selectedAsset.symbol);
+				fiatAmount = balanceToFiat(amount, conversionRate, exchangeRate, selectedAsset.symbol);
 			} else {
-				fiatAmount = renderFromWei(fiatNumberToWei(amount || 0, conversionRate)) + ' ' + strings('unit.eth');
+				fiatAmount = renderFromWei(fiatNumberToWei(amount, conversionRate)) + ' ' + strings('unit.eth');
 			}
 		}
 
@@ -261,25 +291,38 @@ class PaymentRequest extends Component {
 				<View style={styles.searchWrapper}>
 					<View style={styles.container}>
 						<View style={styles.ethContainer}>
-							<View style={styles.split}>
-								<TextInput
-									autoCapitalize="none"
-									autoCorrect={false}
-									keyboardType="numeric"
-									numberOfLines={1}
-									onChangeText={this.updateAmount}
-									placeholder={'0.00'}
-									spellCheck={false}
-									style={styles.input}
-									value={amount}
-								/>
-								<Text style={styles.eth} numberOfLines={1}>
-									{symbol}
+							<View style={styles.amounts}>
+								<View style={styles.split}>
+									<TextInput
+										autoCapitalize="none"
+										autoCorrect={false}
+										keyboardType="numeric"
+										numberOfLines={1}
+										onChangeText={this.updateAmount}
+										placeholder={'0.00'}
+										spellCheck={false}
+										style={styles.input}
+										value={amount}
+									/>
+									<Text style={styles.eth} numberOfLines={1}>
+										{symbol}
+									</Text>
+								</View>
+								<Text style={styles.fiatValue} numberOfLines={1}>
+									{fiatAmount}
 								</Text>
 							</View>
-							<Text style={styles.fiatValue} numberOfLines={1}>
-								{fiatAmount}
-							</Text>
+							<View style={styles.switchContainer}>
+								<TouchableOpacity onPress={this.switchPrimaryCurrency} style={styles.switchTouchable}>
+									<FontAwesome
+										onPress={this.focusInput}
+										name="exchange"
+										size={18}
+										color={colors.grey200}
+										style={{ transform: [{ rotate: '270deg' }] }}
+									/>
+								</TouchableOpacity>
+							</View>
 						</View>
 					</View>
 				</View>
