@@ -14,9 +14,11 @@ import {
 	balanceToFiat,
 	renderFromWei,
 	fiatNumberToWei,
-	balanceToFiatNumber,
 	fromWei,
-	isDecimal
+	isDecimal,
+	fiatNumberToTokenMinimalUnit,
+	renderFromTokenMinimalUnit,
+	fromTokenMinimalUnit
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -265,34 +267,58 @@ class PaymentRequest extends Component {
 		);
 	}
 
-	updateAmount = amount => {
+	handleETHPrimaryCurrency = amount => {
 		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
-		const { selectedAsset, internalPrimaryCurrency } = this.state;
-		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-		let cryptoAmount, secondaryAmount, symbol;
+		const { selectedAsset } = this.state;
+		let secondaryAmount;
+		const symbol = selectedAsset.symbol;
 		const undefAmount = (isDecimal(amount) && amount) || 0;
-		if (internalPrimaryCurrency === 'ETH') {
-			symbol = selectedAsset.symbol;
-			cryptoAmount = amount;
-			if (selectedAsset.symbol !== 'ETH') {
-				secondaryAmount = exchangeRate
-					? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
-					: 'conversion rate not available';
-			} else {
-				secondaryAmount = weiToFiat(toWei(undefAmount), conversionRate, currentCurrency.toUpperCase());
-			}
-		} else if (internalPrimaryCurrency !== 'ETH') {
-			symbol = currentCurrency.toUpperCase();
+		const cryptoAmount = amount;
+		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 
-			if (selectedAsset.symbol !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
-				secondaryAmount = balanceToFiat(undefAmount, conversionRate, exchangeRate, selectedAsset.symbol);
-				cryptoAmount = balanceToFiatNumber(undefAmount, conversionRate, exchangeRate);
-			} else {
-				secondaryAmount =
-					renderFromWei(fiatNumberToWei(undefAmount, conversionRate)) + ' ' + strings('unit.eth');
-				cryptoAmount = fromWei(fiatNumberToWei(undefAmount, conversionRate));
-			}
+		if (selectedAsset.symbol !== 'ETH') {
+			secondaryAmount = exchangeRate
+				? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
+				: 'conversion rate not available';
+		} else {
+			secondaryAmount = weiToFiat(toWei(undefAmount), conversionRate, currentCurrency.toUpperCase());
 		}
+		return { symbol, secondaryAmount, cryptoAmount };
+	};
+
+	handleFiatPrimaryCurrency = amount => {
+		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
+		const { selectedAsset } = this.state;
+		const symbol = currentCurrency.toUpperCase();
+		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+		const undefAmount = (isDecimal(amount) && amount) || 0;
+		let secondaryAmount, cryptoAmount;
+		if (selectedAsset.symbol !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+			const secondaryMinimalUnit = fiatNumberToTokenMinimalUnit(
+				undefAmount,
+				conversionRate,
+				exchangeRate,
+				selectedAsset.decimals
+			);
+			secondaryAmount =
+				renderFromTokenMinimalUnit(secondaryMinimalUnit, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
+			cryptoAmount = fromTokenMinimalUnit(secondaryMinimalUnit, selectedAsset.decimals);
+		} else {
+			secondaryAmount = renderFromWei(fiatNumberToWei(undefAmount, conversionRate)) + ' ' + strings('unit.eth');
+			cryptoAmount = fromWei(fiatNumberToWei(undefAmount, conversionRate));
+		}
+		return { symbol, secondaryAmount, cryptoAmount };
+	};
+
+	updateAmount = amount => {
+		const { internalPrimaryCurrency } = this.state;
+		let res;
+		if (internalPrimaryCurrency === 'ETH') {
+			res = this.handleETHPrimaryCurrency(amount);
+		} else if (internalPrimaryCurrency !== 'ETH') {
+			res = this.handleFiatPrimaryCurrency(amount);
+		}
+		const { cryptoAmount, secondaryAmount, symbol } = res;
 		this.setState({ amount, cryptoAmount, secondaryAmount, symbol });
 	};
 
