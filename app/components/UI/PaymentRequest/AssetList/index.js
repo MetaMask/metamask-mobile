@@ -8,7 +8,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 const styles = StyleSheet.create({
 	item: {
 		borderWidth: 1,
-		borderColor: colors.grey200,
+		borderColor: colors.grey100,
 		padding: 8,
 		marginVertical: 4,
 		borderRadius: 8
