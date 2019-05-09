@@ -14,6 +14,7 @@ import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
+import WalletConnect from '../../../core/WalletConnect';
 const HOMEPAGE_URL = 'about:blank';
 
 const styles = StyleSheet.create({
@@ -373,6 +374,8 @@ export function getWalletNavbarOptions(title, navigation) {
 	const onScanSuccess = data => {
 		if (data.target_address) {
 			navigation.navigate('SendView', { txMeta: data });
+		} else if (data.walletConnectURI) {
+			WalletConnect.init(data.walletConnectURI);
 		}
 	};
 

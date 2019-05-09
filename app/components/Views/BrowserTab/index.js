@@ -39,15 +39,12 @@ import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
-import PersonalSign from '../../UI/PersonalSign';
-import TypedSign from '../../UI/TypedSign';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import AccountApproval from '../../UI/AccountApproval';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
-import { hexToBN, fromWei } from '../../../util/number';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
@@ -383,9 +380,6 @@ export class BrowserTab extends PureComponent {
 			ipfsWebsite: false,
 			showApprovalDialog: false,
 			showPhishingModal: false,
-			signMessage: false,
-			signMessageParams: { data: '' },
-			signType: '',
 			timeout: false,
 			url: props.initialUrl || HOMEPAGE_URL,
 			scrollAnim,
@@ -575,17 +569,6 @@ export class BrowserTab extends PureComponent {
 
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
 
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
-
-		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-			if (!this.isTabActive()) return false;
-			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
-		});
-		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
-			if (!this.isTabActive()) return false;
-			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
-		});
-
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
@@ -643,25 +626,6 @@ export class BrowserTab extends PureComponent {
 		return true;
 	};
 
-	onUnapprovedTransaction = transactionMeta => {
-		if (!this.isTabActive()) return false;
-		if (this.props.transaction.value || this.props.transaction.to) {
-			return;
-		}
-		const {
-			transaction: { value, gas, gasPrice }
-		} = transactionMeta;
-		transactionMeta.transaction.value = hexToBN(value);
-		transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
-		transactionMeta.transaction.gas = hexToBN(gas);
-		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
-		this.props.setTransactionObject({
-			...{ symbol: 'ETH', type: 'ETHER_TRANSACTION', assetType: 'ETH', id: transactionMeta.id },
-			...transactionMeta.transaction
-		});
-		this.props.navigation.push('ApprovalView');
-	};
-
 	async loadUrl() {
 		if (!this.isTabActive()) return;
 		const { navigation } = this.props;
@@ -703,10 +667,7 @@ export class BrowserTab extends PureComponent {
 	componentWillUnmount() {
 		this.mounted = false;
 		// Remove all Engine listeners
-		Engine.context.PersonalMessageManager.hub.removeAllListeners();
-		Engine.context.TypedMessageManager.hub.removeAllListeners();
 		Engine.context.AssetsController.hub.removeAllListeners();
-		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
 		if (Platform.OS === 'ios') {
 			this.state.scrollAnim && this.state.scrollAnim.removeAllListeners();
@@ -920,9 +881,6 @@ export class BrowserTab extends PureComponent {
 			ipfsWebsite: false,
 			showApprovalDialog: false,
 			showPhishingModal: false,
-			signMessage: false,
-			signMessageParams: { data: '' },
-			signType: '',
 			timeout: false,
 			url: HOMEPAGE_URL,
 			scrollAnim,
@@ -1517,46 +1475,6 @@ export class BrowserTab extends PureComponent {
 		);
 	};
 
-	onSignAction = () => {
-		this.setState({ signMessage: false });
-	};
-
-	renderSigningModal = () => {
-		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
-		return (
-			<Modal
-				isVisible={signMessage}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={600}
-				animationOutTiming={600}
-				onBackdropPress={this.onSignAction}
-				onSwipeComplete={this.onSignAction}
-				swipeDirection={'down'}
-				propagateSwipe
-			>
-				{signType === 'personal' && (
-					<PersonalSign
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-					/>
-				)}
-				{signType === 'typed' && (
-					<TypedSign
-						messageParams={signMessageParams}
-						onCancel={this.onSignAction}
-						onConfirm={this.onSignAction}
-						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
-					/>
-				)}
-			</Modal>
-		);
-	};
-
 	onCancelWatchAsset = () => {
 		this.setState({ watchAsset: false });
 	};
@@ -1610,7 +1528,7 @@ export class BrowserTab extends PureComponent {
 				backdropOpacity={0.7}
 				animationInTiming={300}
 				animationOutTiming={300}
-				onSwipeComplete={this.onSignAction}
+				onSwipeComplete={this.onAccountsReject}
 				swipeDirection={'down'}
 			>
 				<AccountApproval
@@ -1739,7 +1657,6 @@ export class BrowserTab extends PureComponent {
 					</View>
 				) : null}
 				{!isHidden && this.renderUrlModal()}
-				{!isHidden && this.renderSigningModal()}
 				{!isHidden && this.renderApprovalModal()}
 				{!isHidden && this.renderPhishingModal()}
 				{!isHidden && this.renderWatchAssetModal()}
@@ -1760,7 +1677,6 @@ const mapStateToProps = state => ({
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
-	transaction: state.transaction,
 	activeTab: state.browser.activeTab
 });
 

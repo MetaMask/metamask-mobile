@@ -47,6 +47,12 @@ import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import { hexToBN, fromWei } from '../../../util/number';
+import { setTransactionObject } from '../../../actions/transaction';
+import PersonalSign from '../../UI/PersonalSign';
+import TypedSign from '../../UI/TypedSign';
+import Modal from 'react-native-modal';
+import WalletConnect from '../../../core/WalletConnect';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -57,6 +63,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
@@ -249,11 +259,22 @@ class Main extends Component {
 		/**
 		 * Current onboarding wizard step
 		 */
-		wizardStep: PropTypes.number
+		wizardStep: PropTypes.number,
+		/**
+		 * Action that sets a transaction
+		 */
+		setTransactionObject: PropTypes.func,
+		/**
+		 * Object containing the information for the current transaction
+		 */
+		transaction: PropTypes.object
 	};
 
 	state = {
-		forceReload: false
+		forceReload: false,
+		signMessage: false,
+		signMessageParams: { data: '' },
+		signType: ''
 	};
 
 	backgroundMode = false;
@@ -297,6 +318,33 @@ class Main extends Component {
 				}
 			}
 		});
+
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+
+		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
+			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
+		});
+		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
+			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
+		});
+	};
+
+	onUnapprovedTransaction = transactionMeta => {
+		if (this.props.transaction.value || this.props.transaction.to) {
+			return;
+		}
+		const {
+			transaction: { value, gas, gasPrice }
+		} = transactionMeta;
+		transactionMeta.transaction.value = hexToBN(value);
+		transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
+		transactionMeta.transaction.gas = hexToBN(gas);
+		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
+		this.props.setTransactionObject({
+			...{ symbol: 'ETH', type: 'ETHER_TRANSACTION', assetType: 'ETH', id: transactionMeta.id },
+			...transactionMeta.transaction
+		});
+		this.props.navigation.push('ApprovalView');
 	};
 
 	handleAppStateChange = appState => {
@@ -348,6 +396,10 @@ class Main extends Component {
 	componentWillUnmount() {
 		AppState.removeEventListener('change', this.handleAppStateChange);
 		this.lockManager.stopListening();
+		Engine.context.PersonalMessageManager.hub.removeAllListeners();
+		Engine.context.TypedMessageManager.hub.removeAllListeners();
+		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
+		WalletConnect.shutdown();
 	}
 
 	/**
@@ -358,24 +410,79 @@ class Main extends Component {
 		return wizardStep !== 5 && wizardStep > 0 && <OnboardingWizard navigation={this.props.navigation} />;
 	};
 
+	onSignAction = () => {
+		this.setState({ signMessage: false });
+	};
+
+	renderSigningModal = () => {
+		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
+		return (
+			<Modal
+				isVisible={signMessage}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onSignAction}
+				onSwipeComplete={this.onSignAction}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				{signType === 'personal' && (
+					<PersonalSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+				{signType === 'typed' && (
+					<TypedSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+			</Modal>
+		);
+	};
+
 	render() {
 		const { forceReload } = this.state;
 
 		return (
-			<View style={styles.flex}>
-				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-				{this.renderOnboardingWizard()}
-				<GlobalAlert />
-				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
-				<FadeOutOverlay />
-			</View>
+			<React.Fragment>
+				<View style={styles.flex}>
+					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+					{this.renderOnboardingWizard()}
+					<GlobalAlert />
+					<FlashMessage
+						position="bottom"
+						MessageComponent={TransactionNotification}
+						animationDuration={150}
+					/>
+					<FadeOutOverlay />
+				</View>
+				{this.renderSigningModal()}
+			</React.Fragment>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
-	wizardStep: state.wizard.step
+	wizardStep: state.wizard.step,
+	transaction: state.transaction
 });
 
-export default connect(mapStateToProps)(Main);
+const mapDispatchToProps = dispatch => ({
+	setTransactionObject: asset => dispatch(setTransactionObject(asset))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Main);
