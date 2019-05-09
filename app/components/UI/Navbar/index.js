@@ -174,6 +174,7 @@ export function getNavigationOptionsTitle(title, navigation) {
 }
 
 export function getPaymentRequestOptionsTitle(title, navigation) {
+	const goBack = navigation.getParam('dispatch', undefined);
 	return {
 		title,
 		headerTitleStyle: {
@@ -182,15 +183,17 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 			...fontStyles.normal
 		},
 		headerTintColor: colors.blue,
-		headerLeft: (
+		headerLeft: goBack ? (
 			// eslint-disable-next-line react/jsx-no-bind
-			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+			<TouchableOpacity onPress={() => goBack()} style={styles.backButton}>
 				<IonicIcon
 					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
 					size={Platform.OS === 'android' ? 24 : 28}
 					style={styles.backIcon}
 				/>
 			</TouchableOpacity>
+		) : (
+			<View />
 		),
 		headerRight:
 			Platform.OS === 'android' ? (

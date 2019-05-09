@@ -7,6 +7,7 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import contractMap from 'eth-contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -122,17 +123,39 @@ const defaultAssets = [
 	}
 ];
 
+const MODE_SELECT = 'select';
+const MODE_AMOUNT = 'amount';
+
 /**
  * Main view for general app configurations
  */
 class PaymentRequest extends Component {
 	static navigationOptions = ({ navigation }) => getPaymentRequestOptionsTitle('Request', navigation);
 
+	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
+	};
+
 	state = {
 		searchInputValue: '',
 		results: [],
 		selectedAsset: undefined,
-		step: 'select'
+		mode: 'select'
+	};
+
+	goToAssetSelection = () => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: MODE_SELECT, dispatch: undefined });
+		this.setState({ mode: MODE_SELECT });
+	};
+
+	goToAmountInput = selectedAsset => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: MODE_AMOUNT, dispatch: this.goToAssetSelection });
+		this.setState({ selectedAsset, mode: MODE_AMOUNT });
 	};
 
 	handleSearch = searchInputValue => {
@@ -142,10 +165,6 @@ class PaymentRequest extends Component {
 		);
 		const results = [...addressSearchResult, ...fuseSearchResult];
 		this.setState({ searchInputValue, results });
-	};
-
-	handleSelectAsset = asset => {
-		this.setState({ selectedAsset: asset, step: 'amount' });
 	};
 
 	renderSelectAssets() {
@@ -179,7 +198,7 @@ class PaymentRequest extends Component {
 				</View>
 				<AssetList
 					searchResults={results}
-					handleSelectAsset={this.handleSelectAsset}
+					handleSelectAsset={this.goToAmountInput}
 					selectedAsset={this.state.selectedAsset}
 					searchQuery={this.state.searchInputValue}
 				/>
@@ -228,11 +247,11 @@ class PaymentRequest extends Component {
 	}
 
 	render() {
-		const { step } = this.state;
+		const { mode } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<ScrollView style={styles.contentWrapper}>
-					{step === 'select' ? this.renderSelectAssets() : this.renderEnterAmount()}
+					{mode === MODE_SELECT ? this.renderSelectAssets() : this.renderEnterAmount()}
 				</ScrollView>
 			</SafeAreaView>
 		);
