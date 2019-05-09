@@ -8,7 +8,16 @@ import contractMap from 'eth-contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';
-import { weiToFiat, toWei, balanceToFiat, renderFromWei, fiatNumberToWei, isDecimal } from '../../../util/number';
+import {
+	weiToFiat,
+	toWei,
+	balanceToFiat,
+	renderFromWei,
+	fiatNumberToWei,
+	balanceToFiatNumber,
+	fromWei,
+	isDecimal
+} from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -177,7 +186,11 @@ class PaymentRequest extends Component {
 		results: [],
 		selectedAsset: undefined,
 		mode: MODE_SELECT,
-		internalPrimaryCurrency: ''
+		internalPrimaryCurrency: '',
+		cryptoAmount: undefined,
+		amount: undefined,
+		secondaryAmount: undefined,
+		symbol: undefined
 	};
 
 	componentDidMount = () => {
@@ -188,13 +201,20 @@ class PaymentRequest extends Component {
 	goToAssetSelection = () => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: MODE_SELECT, dispatch: undefined });
-		this.setState({ mode: MODE_SELECT, amount: undefined });
+		this.setState({
+			mode: MODE_SELECT,
+			amount: undefined,
+			cryptoAmount: undefined,
+			secondaryAmount: undefined,
+			symbol: undefined
+		});
 	};
 
-	goToAmountInput = selectedAsset => {
+	goToAmountInput = async selectedAsset => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: MODE_AMOUNT, dispatch: this.goToAssetSelection });
-		this.setState({ selectedAsset, mode: MODE_AMOUNT });
+		await this.setState({ selectedAsset, mode: MODE_AMOUNT });
+		this.updateAmount();
 	};
 
 	handleSearch = searchInputValue => {
@@ -246,43 +266,48 @@ class PaymentRequest extends Component {
 	}
 
 	updateAmount = amount => {
-		this.setState({ amount });
-	};
-
-	switchPrimaryCurrency = () => {
-		const { internalPrimaryCurrency } = this.state;
-		const primarycurrencies = {
-			ETH: 'Fiat',
-			Fiat: 'ETH'
-		};
-		this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
-	};
-
-	renderEnterAmount() {
 		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
 		const { selectedAsset, internalPrimaryCurrency } = this.state;
-		const amount = (isDecimal(this.state.amount) && this.state.amount) || 0;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-		let fiatAmount, symbol;
+		let cryptoAmount, secondaryAmount, symbol;
+		const undefAmount = (isDecimal(amount) && amount) || 0;
 		if (internalPrimaryCurrency === 'ETH') {
 			symbol = selectedAsset.symbol;
+			cryptoAmount = amount;
 			if (selectedAsset.symbol !== 'ETH') {
-				fiatAmount = exchangeRate
-					? balanceToFiat(amount, conversionRate, exchangeRate, currentCurrency)
+				secondaryAmount = exchangeRate
+					? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
 					: 'conversion rate not available';
 			} else {
-				fiatAmount = weiToFiat(toWei(amount), conversionRate, currentCurrency.toUpperCase());
+				secondaryAmount = weiToFiat(toWei(undefAmount), conversionRate, currentCurrency.toUpperCase());
 			}
 		} else if (internalPrimaryCurrency !== 'ETH') {
 			symbol = currentCurrency.toUpperCase();
 
 			if (selectedAsset.symbol !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
-				fiatAmount = balanceToFiat(amount, conversionRate, exchangeRate, selectedAsset.symbol);
+				secondaryAmount = balanceToFiat(undefAmount, conversionRate, exchangeRate, selectedAsset.symbol);
+				cryptoAmount = balanceToFiatNumber(undefAmount, conversionRate, exchangeRate);
 			} else {
-				fiatAmount = renderFromWei(fiatNumberToWei(amount, conversionRate)) + ' ' + strings('unit.eth');
+				secondaryAmount =
+					renderFromWei(fiatNumberToWei(undefAmount, conversionRate)) + ' ' + strings('unit.eth');
+				cryptoAmount = fromWei(fiatNumberToWei(undefAmount, conversionRate));
 			}
 		}
+		this.setState({ amount, cryptoAmount, secondaryAmount, symbol });
+	};
 
+	switchPrimaryCurrency = async () => {
+		const { internalPrimaryCurrency } = this.state;
+		const primarycurrencies = {
+			ETH: 'Fiat',
+			Fiat: 'ETH'
+		};
+		await this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
+		this.updateAmount();
+	};
+
+	renderEnterAmount() {
+		const { amount, secondaryAmount, symbol } = this.state;
 		return (
 			<View>
 				<View>
@@ -309,7 +334,7 @@ class PaymentRequest extends Component {
 									</Text>
 								</View>
 								<Text style={styles.fiatValue} numberOfLines={1}>
-									{fiatAmount}
+									{secondaryAmount}
 								</Text>
 							</View>
 							<View style={styles.switchContainer}>
