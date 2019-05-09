@@ -25,6 +25,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { generateETHLink, generateERC20Link } from '../../../util/eip681-link-generator';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -135,6 +136,15 @@ const styles = StyleSheet.create({
 	},
 	scrollViewContainer: {
 		flexGrow: 1
+	},
+	errorWrapper: {
+		backgroundColor: colors.red000,
+		borderRadius: 4,
+		marginTop: 8
+	},
+	errorText: {
+		color: colors.fontError,
+		alignSelf: 'center'
 	}
 });
 
@@ -202,7 +212,11 @@ class PaymentRequest extends Component {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -214,7 +228,8 @@ class PaymentRequest extends Component {
 		cryptoAmount: undefined,
 		amount: undefined,
 		secondaryAmount: undefined,
-		symbol: undefined
+		symbol: undefined,
+		showError: false
 	};
 
 	componentDidMount = () => {
@@ -341,7 +356,7 @@ class PaymentRequest extends Component {
 			res = this.handleFiatPrimaryCurrency(amount);
 		}
 		const { cryptoAmount, secondaryAmount, symbol } = res;
-		this.setState({ amount, cryptoAmount, secondaryAmount, symbol });
+		this.setState({ amount, cryptoAmount, secondaryAmount, symbol, showError: false });
 	};
 
 	switchPrimaryCurrency = async () => {
@@ -359,11 +374,24 @@ class PaymentRequest extends Component {
 	};
 
 	onNext = () => {
-		//
+		const { selectedAddress } = this.props;
+		const { cryptoAmount, selectedAsset } = this.state;
+
+		try {
+			let link;
+			if (selectedAsset.symbol === ' ETH') {
+				link = generateETHLink(selectedAddress, cryptoAmount);
+			} else {
+				link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount);
+			}
+			this.setState({ link });
+		} catch (e) {
+			this.setState({ showError: true });
+		}
 	};
 
 	renderEnterAmount() {
-		const { amount, secondaryAmount, symbol } = this.state;
+		const { amount, secondaryAmount, symbol, cryptoAmount, showError } = this.state;
 		return (
 			<View style={styles.enterAmountWrapper}>
 				<View>
@@ -406,13 +434,23 @@ class PaymentRequest extends Component {
 							</View>
 						</View>
 					</View>
+					{showError && (
+						<View style={styles.errorWrapper}>
+							<Text style={styles.errorText}>Invalid request, please try again</Text>
+						</View>
+					)}
 				</View>
 				<View style={styles.buttonsWrapper}>
 					<View style={styles.buttonsContainer}>
 						<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>
 							{'Reset'}
 						</StyledButton>
-						<StyledButton type={'blue'} onPress={this.onNext} containerStyle={[styles.button]}>
+						<StyledButton
+							type={'blue'}
+							onPress={this.onNext}
+							containerStyle={[styles.button]}
+							disabled={!cryptoAmount || cryptoAmount === '0'}
+						>
 							{'Next'}
 						</StyledButton>
 					</View>
@@ -441,6 +479,7 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	searchEngine: state.settings.searchEngine,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	primaryCurrency: state.settings.primaryCurrency
 });
 
