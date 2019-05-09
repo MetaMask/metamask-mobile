@@ -8,6 +8,7 @@ import contractMap from 'eth-contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';
+import { weiToFiat, toWei, balanceToFiat } from '../../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -136,20 +137,32 @@ class PaymentRequest extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * ETH-to-current currency conversion rate from CurrencyRateController
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Currency code for currently-selected currency from CurrencyRateController
+		 */
+		currentCurrency: PropTypes.string,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object
 	};
 
 	state = {
 		searchInputValue: '',
 		results: [],
 		selectedAsset: undefined,
-		mode: 'select'
+		mode: MODE_SELECT
 	};
 
 	goToAssetSelection = () => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: MODE_SELECT, dispatch: undefined });
-		this.setState({ mode: MODE_SELECT });
+		this.setState({ mode: MODE_SELECT, amount: undefined });
 	};
 
 	goToAmountInput = selectedAsset => {
@@ -211,7 +224,16 @@ class PaymentRequest extends Component {
 	};
 
 	renderEnterAmount() {
-		const { amount } = this.state;
+		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
+		const { amount, selectedAsset } = this.state;
+
+		let fiatAmount;
+		if (selectedAsset.symbol === 'ETH') {
+			fiatAmount = weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase());
+		} else {
+			const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+			fiatAmount = balanceToFiat(amount || 0, conversionRate, exchangeRate, currentCurrency);
+		}
 		return (
 			<View>
 				<View>
@@ -226,18 +248,18 @@ class PaymentRequest extends Component {
 									autoCorrect={false}
 									keyboardType="numeric"
 									numberOfLines={1}
-									onChangeText={this.onChange}
+									onChangeText={this.updateAmount}
 									placeholder={'0.00'}
 									spellCheck={false}
 									style={styles.input}
 									value={amount}
 								/>
 								<Text style={styles.eth} numberOfLines={1}>
-									{''}
+									{selectedAsset.symbol}
 								</Text>
 							</View>
 							<Text style={styles.fiatValue} numberOfLines={1}>
-								{''}
+								{fiatAmount}
 							</Text>
 						</View>
 					</View>
@@ -259,7 +281,9 @@ class PaymentRequest extends Component {
 }
 
 const mapStateToProps = state => ({
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	searchEngine: state.settings.searchEngine,
 	primaryCurrency: state.settings.primaryCurrency
 });
