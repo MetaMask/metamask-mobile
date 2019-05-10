@@ -21,6 +21,7 @@ import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
+import { renderNumber } from '../../../util/number';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -194,7 +195,7 @@ class PaymentRequestSuccess extends Component {
 						<Text style={styles.descriptionText}>Your request link is ready to send!</Text>
 						<Text style={styles.descriptionText}>
 							Send this link to a friend, and it will ask them to send
-							<Text style={fontStyles.bold}>{' ' + amount}</Text>
+							<Text style={fontStyles.bold}>{' ' + renderNumber(amount)}</Text>
 						</Text>
 					</View>
 					<View style={styles.linkWrapper}>
