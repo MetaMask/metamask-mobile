@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import StyledButton from '../../StyledButton';
 import AssetIcon from '../../AssetIcon';
 import { colors, fontStyles } from '../../../../styles/common';
+import Identicon from '../../Identicon';
 
 const styles = StyleSheet.create({
 	item: {
@@ -29,6 +30,7 @@ const styles = StyleSheet.create({
 	assetInfo: {
 		flex: 1,
 		flexDirection: 'column',
+		alignSelf: 'center',
 		padding: 4
 	},
 	assetIcon: {
@@ -57,13 +59,23 @@ export default class AssetList extends Component {
 		handleSelectAsset: PropTypes.func
 	};
 
+	renderLogo = asset => {
+		const { symbol, logo, address } = asset;
+		if (!logo) {
+			return <Identicon address={address} />;
+		} else if (symbol === 'ETH') {
+			return <Image source={logo} style={styles.ethLogo} />;
+		}
+		return <AssetIcon logo={logo} />;
+	};
+
 	render = () => {
 		const { searchResults, handleSelectAsset } = this.props;
 
 		return (
 			<View style={styles.rowWrapper} testID={'add-searched-token-screen'}>
 				{searchResults.slice(0, 6).map((_, i) => {
-					const { symbol, name, logo } = searchResults[i] || {};
+					const { symbol, name } = searchResults[i] || {};
 					return (
 						<StyledButton
 							type={'normal'}
@@ -72,16 +84,10 @@ export default class AssetList extends Component {
 							key={i}
 						>
 							<View style={styles.assetListElement}>
-								<View style={styles.assetIcon}>
-									{symbol === 'ETH' ? (
-										<Image source={logo} style={styles.ethLogo} />
-									) : (
-										<AssetIcon logo={logo} />
-									)}
-								</View>
+								<View style={styles.assetIcon}>{this.renderLogo(searchResults[i])}</View>
 								<View style={styles.assetInfo}>
 									<Text style={styles.textSymbol}>{symbol}</Text>
-									<Text style={styles.text}>{name}</Text>
+									{name && <Text style={styles.text}>{name}</Text>}
 								</View>
 							</View>
 						</StyledButton>

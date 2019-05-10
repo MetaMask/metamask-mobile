@@ -26,6 +26,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateETHLink, generateERC20Link } from '../../../util/eip681-link-generator';
+import NetworkList from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -176,13 +177,15 @@ const fuse = new Fuse(contractList, {
 });
 
 const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
-
-const defaultAssets = [
+const defaultEth = [
 	{
 		symbol: 'ETH',
 		name: 'Ether',
 		logo: ethLogo
-	},
+	}
+];
+const defaultAssets = [
+	...defaultEth,
 	{
 		address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
 		decimals: 18,
@@ -230,7 +233,8 @@ class PaymentRequest extends Component {
 		/**
 		 * Array of ERC20 assets
 		 */
-		tokens: PropTypes.array
+		tokens: PropTypes.array,
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -243,13 +247,15 @@ class PaymentRequest extends Component {
 		amount: undefined,
 		secondaryAmount: undefined,
 		symbol: undefined,
-		showError: false
+		showError: false,
+		chainId: ''
 	};
 
 	componentDidMount = () => {
-		const { primaryCurrency, navigation } = this.props;
+		const { primaryCurrency, navigation, networkType } = this.props;
 		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
-		this.setState({ internalPrimaryCurrency: primaryCurrency });
+		const chainId = Object.keys(NetworkList).indexOf(networkType) > -1 && NetworkList[networkType].networkId;
+		this.setState({ internalPrimaryCurrency: primaryCurrency, chainId });
 		if (receiveAsset) {
 			this.goToAmountInput(receiveAsset);
 		}
@@ -285,35 +291,49 @@ class PaymentRequest extends Component {
 
 	renderSelectAssets() {
 		const { tokens } = this.props;
-		const results = this.state.results.length ? this.state.results : defaultAssets;
-		const useTokens = tokens.map(({ address }) => contractList.find(token => token.address === address));
+		const { chainId } = this.state;
+		let results;
+		if (chainId === 1) {
+			results = this.state.results.length ? this.state.results : defaultAssets;
+		} else {
+			results = defaultEth;
+		}
+
+		const userTokens = tokens.map(token => {
+			const contract = contractList.find(contractToken => contractToken.address === token.address);
+			if (contract) return contract;
+			return token;
+		});
+
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View>
 					<Text style={styles.title}>Choose an asset to request</Text>
 				</View>
-				<View style={styles.searchWrapper}>
-					<TextInput
-						style={[styles.searchInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-						autoCapitalize="none"
-						autoCorrect={false}
-						clearButtonMode="while-editing"
-						onChangeText={this.handleSearch}
-						onSubmitEditing={this.handleSearch}
-						placeholder={'Search assets'}
-						placeholderTextColor={colors.grey400}
-						returnKeyType="go"
-						value={this.state.searchInputValue}
-						blurOnSubmit
-					/>
-					<FeatherIcon
-						onPress={this.focusInput}
-						name="search"
-						size={18}
-						color={colors.grey400}
-						style={styles.searchIcon}
-					/>
-				</View>
+				{chainId === 1 && (
+					<View style={styles.searchWrapper}>
+						<TextInput
+							style={[styles.searchInput, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							autoCapitalize="none"
+							autoCorrect={false}
+							clearButtonMode="while-editing"
+							onChangeText={this.handleSearch}
+							onSubmitEditing={this.handleSearch}
+							placeholder={'Search assets'}
+							placeholderTextColor={colors.grey400}
+							returnKeyType="go"
+							value={this.state.searchInputValue}
+							blurOnSubmit
+						/>
+						<FeatherIcon
+							onPress={this.focusInput}
+							name="search"
+							size={18}
+							color={colors.grey400}
+							style={styles.searchIcon}
+						/>
+					</View>
+				)}
 				<View style={styles.assetsWrapper}>
 					<Text style={styles.assetsTitle}>Top picks</Text>
 					<AssetList
@@ -326,7 +346,7 @@ class PaymentRequest extends Component {
 				<View style={styles.assetsWrapper}>
 					<Text style={styles.assetsTitle}>Your tokens</Text>
 					<AssetList
-						searchResults={useTokens}
+						searchResults={userTokens}
 						handleSelectAsset={this.goToAmountInput}
 						selectedAsset={this.state.selectedAsset}
 						searchQuery={this.state.searchInputValue}
@@ -407,13 +427,13 @@ class PaymentRequest extends Component {
 
 	onNext = () => {
 		const { selectedAddress, navigation } = this.props;
-		const { cryptoAmount, selectedAsset } = this.state;
+		const { cryptoAmount, selectedAsset, chainId } = this.state;
 		try {
 			let link;
 			if (selectedAsset.symbol === 'ETH') {
-				link = generateETHLink(selectedAddress, cryptoAmount);
+				link = generateETHLink(selectedAddress, cryptoAmount, chainId);
 			} else {
-				link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount);
+				link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount, chainId);
 			}
 			navigation &&
 				navigation.replace('PaymentRequestSuccess', {
@@ -516,7 +536,8 @@ const mapStateToProps = state => ({
 	searchEngine: state.settings.searchEngine,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(PaymentRequest);
