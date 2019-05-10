@@ -204,18 +204,12 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 		) : (
 			<View />
 		),
-		headerRight:
-			Platform.OS === 'android' ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-				</TouchableOpacity>
-			) : (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-				</TouchableOpacity>
-			)
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<IonicIcon name={'ios-close'} size={38} style={styles.backIcon} />
+			</TouchableOpacity>
+		)
 	};
 }
 
@@ -235,18 +229,12 @@ export function getPaymentRequestSuccessOptionsTitle(navigation) {
 		},
 		headerTintColor: colors.blue,
 		headerLeft: <View />,
-		headerRight:
-			Platform.OS === 'android' ? (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
-				</TouchableOpacity>
-			) : (
-				// eslint-disable-next-line react/jsx-no-bind
-				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
-					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
-				</TouchableOpacity>
-			)
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+			</TouchableOpacity>
+		)
 	};
 }
 
