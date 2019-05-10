@@ -81,6 +81,7 @@ class ReceiveRequest extends Component {
 		 * Selected address as string
 		 */
 		selectedAddress: PropTypes.string,
+		receiveAsset: PropTypes.object,
 		toggleReceiveModal: PropTypes.func
 	};
 
@@ -120,7 +121,7 @@ class ReceiveRequest extends Component {
 			description: 'Request assets from friends',
 			onPress: () => {
 				this.props.toggleReceiveModal();
-				this.props.navigation.navigate('PaymentRequestView');
+				this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
 			}
 		},
 		{
@@ -214,7 +215,8 @@ class ReceiveRequest extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress)
+	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
+	receiveAsset: state.modals.receiveAsset
 });
 
 const mapDispatchToProps = dispatch => ({

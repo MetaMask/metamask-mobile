@@ -247,8 +247,12 @@ class PaymentRequest extends Component {
 	};
 
 	componentDidMount = () => {
-		const { primaryCurrency } = this.props;
+		const { primaryCurrency, navigation } = this.props;
+		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
 		this.setState({ internalPrimaryCurrency: primaryCurrency });
+		if (receiveAsset) {
+			this.goToAmountInput(receiveAsset);
+		}
 	};
 
 	goToAssetSelection = () => {
