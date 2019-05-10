@@ -1,6 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { SafeAreaView, Platform, TouchableOpacity, Dimensions, StyleSheet, View, Text } from 'react-native';
+import {
+	InteractionManager,
+	SafeAreaView,
+	Platform,
+	TouchableOpacity,
+	Dimensions,
+	StyleSheet,
+	View,
+	Text
+} from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,6 +22,8 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
+import ElevatedView from 'react-native-elevated-view';
+import AntIcon from 'react-native-vector-icons/AntDesign';
 
 const ACTION_WIDTH = (Dimensions.get('window').width - 60) / 2;
 
@@ -91,6 +102,29 @@ const styles = StyleSheet.create({
 		fontSize: Platform.OS === 'ios' ? 17 : 20,
 		letterSpacing: 2,
 		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
+	},
+	modal: {
+		margin: 0,
+		width: '100%'
+	},
+	copyAlert: {
+		width: 180,
+		backgroundColor: colors.darkAlert,
+		padding: 20,
+		paddingTop: 30,
+		alignSelf: 'center',
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 8
+	},
+	copyAlertIcon: {
+		marginBottom: 20
+	},
+	copyAlertText: {
+		textAlign: 'center',
+		color: colors.white,
+		fontSize: 16,
+		...fontStyles.normal
 	}
 });
 
@@ -118,7 +152,8 @@ class ReceiveRequest extends Component {
 	};
 
 	state = {
-		qrModalVisible: false
+		qrModalVisible: false,
+		buyModalVisible: false
 	};
 
 	/**
@@ -133,42 +168,17 @@ class ReceiveRequest extends Component {
 		});
 	};
 
-	actions = [
-		{
-			icon: <MaterialIcon name={'share-variant'} size={32} color={colors.black} />,
-			title: strings('receive_request.share_title'),
-			description: strings('receive_request.share_description'),
-			onPress: () => {
-				this.onShare();
-			}
-		},
-		{
-			icon: <FontAwesome name={'qrcode'} size={32} color={colors.black} />,
-			title: strings('receive_request.qr_code_title'),
-			description: strings('receive_request.qr_code_description'),
-			onPress: () => {
-				this.openQrModal();
-			}
-		},
-		{
-			icon: <MaterialIcon solid name={'hand-pointing-right'} size={32} color={colors.black} />,
-			title: strings('receive_request.request_title'),
-			description: strings('receive_request.request_description'),
-			onPress: () => {
-				this.props.toggleReceiveModal();
-				this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
-			}
-		},
-		{
-			icon: <FontAwesome name={'credit-card'} size={32} color={colors.black} />,
-			title: strings('receive_request.buy_title'),
-			description: strings('receive_request.buy_description'),
-			onPress: () => {
-				this.props.toggleReceiveModal();
-				this.props.navigation.navigate('WalletView');
-			}
-		}
-	];
+	/**
+	 * Shows an alert message with a coming soon message
+	 */
+	onBuy = () => {
+		InteractionManager.runAfterInteractions(() => {
+			this.setState({ buyModalVisible: true });
+			setTimeout(() => {
+				this.setState({ buyModalVisible: false });
+			}, 1500);
+		});
+	};
 
 	/**
 	 * Closes QR code modal
@@ -184,8 +194,38 @@ class ReceiveRequest extends Component {
 		this.setState({ qrModalVisible: true });
 	};
 
+	actions = [
+		{
+			icon: <MaterialIcon name={'share-variant'} size={32} color={colors.black} />,
+			title: strings('receive_request.share_title'),
+			description: strings('receive_request.share_description'),
+			onPress: this.onShare
+		},
+		{
+			icon: <FontAwesome name={'qrcode'} size={32} color={colors.black} />,
+			title: strings('receive_request.qr_code_title'),
+			description: strings('receive_request.qr_code_description'),
+			onPress: this.openQrModal
+		},
+		{
+			icon: <MaterialIcon solid name={'hand-pointing-right'} size={32} color={colors.black} />,
+			title: strings('receive_request.request_title'),
+			description: strings('receive_request.request_description'),
+			onPress: () => {
+				this.props.toggleReceiveModal();
+				this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
+			}
+		},
+		{
+			icon: <FontAwesome name={'credit-card'} size={32} color={colors.black} />,
+			title: strings('receive_request.buy_title'),
+			description: strings('receive_request.buy_description'),
+			onPress: this.onBuy
+		}
+	];
+
 	render() {
-		const { qrModalVisible } = this.state;
+		const { qrModalVisible, buyModalVisible } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.draggerWrapper}>
@@ -225,7 +265,7 @@ class ReceiveRequest extends Component {
 							icon={this.actions[3].icon}
 							actionTitle={this.actions[3].title}
 							actionDescription={this.actions[3].description}
-							onPress={this.actions[2].onPress}
+							onPress={this.actions[3].onPress}
 						/>
 					</View>
 				</View>
@@ -249,6 +289,22 @@ class ReceiveRequest extends Component {
 							<Text style={styles.address}>{this.props.selectedAddress}</Text>
 						</TouchableOpacity>
 					</View>
+				</Modal>
+				<Modal
+					style={styles.modal}
+					isVisible={buyModalVisible}
+					onBackdropPress={this.onClose}
+					backdropOpacity={0}
+					animationIn={'fadeIn'}
+					animationOut={'fadeOut'}
+					useNativeDriver
+				>
+					<ElevatedView style={styles.copyAlert} elevation={5}>
+						<View style={styles.copyAlertIcon}>
+							<AntIcon name={'clockcircle'} size={64} color={colors.white} />
+						</View>
+						<Text style={styles.copyAlertText}>{strings('receive_request.coming_soon')}</Text>
+					</ElevatedView>
 				</Modal>
 			</SafeAreaView>
 		);
