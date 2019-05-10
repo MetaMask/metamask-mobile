@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
-import { Clipboard, SafeAreaView, View, ScrollView, Text, StyleSheet, InteractionManager } from 'react-native';
+import {
+	Dimensions,
+	Clipboard,
+	SafeAreaView,
+	View,
+	ScrollView,
+	Text,
+	StyleSheet,
+	InteractionManager
+} from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
@@ -10,6 +19,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { showAlert } from '../../../actions/alert';
 import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Modal from 'react-native-modal';
+import QRCode from 'react-native-qrcode-svg';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -89,6 +100,18 @@ const styles = StyleSheet.create({
 	buttonTextWrapper: {
 		flexDirection: 'column',
 		alignSelf: 'center'
+	},
+	detailsWrapper: {
+		padding: 10,
+		alignItems: 'center'
+	},
+	qrCode: {
+		marginVertical: 15,
+		alignItems: 'center',
+		justifyContent: 'center',
+		padding: 40,
+		backgroundColor: colors.grey000,
+		borderRadius: 8
 	}
 });
 
@@ -111,7 +134,8 @@ class PaymentRequestSuccess extends Component {
 
 	state = {
 		link: '',
-		amount: ''
+		amount: '',
+		qrModalVisible: false
 	};
 
 	componentDidMount = () => {
@@ -141,6 +165,14 @@ class PaymentRequestSuccess extends Component {
 		}).catch(err => {
 			Logger.log('Error while trying to share payment request', err);
 		});
+	};
+
+	showQRModal = () => {
+		this.setState({ qrModalVisible: true });
+	};
+
+	closeQRModal = () => {
+		this.setState({ qrModalVisible: false });
 	};
 
 	render() {
@@ -174,11 +206,7 @@ class PaymentRequestSuccess extends Component {
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton
-								type={'normal'}
-								onPress={this.copyAccountToClipboard}
-								containerStyle={styles.button}
-							>
+							<StyledButton type={'normal'} onPress={this.showQRModal} containerStyle={styles.button}>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
 										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />
@@ -201,6 +229,19 @@ class PaymentRequestSuccess extends Component {
 						</View>
 					</View>
 				</ScrollView>
+				<Modal
+					isVisible={this.state.qrModalVisible}
+					onBackdropPress={this.closeQRModal}
+					onSwipeComplete={this.closeQRModal}
+					swipeDirection={'down'}
+					propagateSwipe
+				>
+					<View style={styles.detailsWrapper}>
+						<View style={styles.qrCode}>
+							<QRCode value={this.state.link} size={Dimensions.get('window').width - 160} />
+						</View>
+					</View>
+				</Modal>
 			</SafeAreaView>
 		);
 	}
@@ -210,16 +251,7 @@ const mapDispatchToProps = dispatch => ({
 	showAlert: config => dispatch(showAlert(config))
 });
 
-const mapStateToProps = state => ({
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	searchEngine: state.settings.searchEngine,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	primaryCurrency: state.settings.primaryCurrency
-});
-
 export default connect(
-	mapStateToProps,
+	null,
 	mapDispatchToProps
 )(PaymentRequestSuccess);
