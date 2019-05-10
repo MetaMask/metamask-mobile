@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	contentWrapper: {
-		padding: 35
+		padding: 24
 	},
 	button: {
 		marginBottom: 16
@@ -112,6 +112,12 @@ const styles = StyleSheet.create({
 		padding: 40,
 		backgroundColor: colors.grey000,
 		borderRadius: 8
+	},
+	informationWrapper: {
+		paddingHorizontal: 40
+	},
+	linkWrapper: {
+		paddingHorizontal: 24
 	}
 });
 
@@ -183,12 +189,17 @@ class PaymentRequestSuccess extends Component {
 					<View style={styles.iconWrapper}>
 						<EvilIcons name="share-apple" size={54} style={styles.icon} />
 					</View>
-					<Text style={styles.titleText}>Send Link</Text>
-					<Text style={styles.descriptionText}>Your request link is ready to send!</Text>
-					<Text style={styles.descriptionText}>
-						Send this link to a friend, and it will ask them to send {amount}
-					</Text>
-					<Text style={styles.linkText}>{link}</Text>
+					<View style={styles.informationWrapper}>
+						<Text style={styles.titleText}>Send Link</Text>
+						<Text style={styles.descriptionText}>Your request link is ready to send!</Text>
+						<Text style={styles.descriptionText}>
+							Send this link to a friend, and it will ask them to send
+							<Text style={fontStyles.bold}>{' ' + amount}</Text>
+						</Text>
+					</View>
+					<View style={styles.linkWrapper}>
+						<Text style={styles.linkText}>{link}</Text>
+					</View>
 
 					<View style={styles.buttonsWrapper}>
 						<View style={styles.buttonsContainer}>

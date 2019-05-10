@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey100,
 		padding: 8,
-		marginVertical: 4,
+		marginBottom: 8,
 		borderRadius: 8
 	},
 	assetListElement: {

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, SafeAreaView, TextInput, Text, StyleSheet, View } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import contractMap from 'eth-contract-metadata';
@@ -33,26 +33,28 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	contentWrapper: {
-		padding: 35
+		paddingTop: 24,
+		paddingHorizontal: 24
 	},
 	title: {
 		...fontStyles.bold,
 		fontSize: 16
 	},
 	searchWrapper: {
-		marginTop: 12,
-		marginBottom: 24
+		marginVertical: 8
 	},
 	searchInput: {
 		flex: 1,
 		marginHorizontal: 0,
 		paddingTop: Platform.OS === 'android' ? 12 : 2,
-		borderRadius: 20,
+		borderRadius: 8,
 		paddingHorizontal: 38,
 		fontSize: 16,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.white,
 		height: 40,
-		color: colors.grey400,
+		color: colors.grey100,
+		borderColor: colors.grey100,
+		borderWidth: 1,
 		...fontStyles.normal
 	},
 	searchIcon: {
@@ -145,6 +147,14 @@ const styles = StyleSheet.create({
 	errorText: {
 		color: colors.fontError,
 		alignSelf: 'center'
+	},
+	assetsWrapper: {
+		marginTop: 16
+	},
+	assetsTitle: {
+		...fontStyles.normal,
+		fontSize: 16,
+		marginBottom: 8
 	}
 });
 
@@ -216,7 +226,11 @@ class PaymentRequest extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array
 	};
 
 	state = {
@@ -266,9 +280,11 @@ class PaymentRequest extends Component {
 	};
 
 	renderSelectAssets() {
+		const { tokens } = this.props;
 		const results = this.state.results.length ? this.state.results : defaultAssets;
+		const useTokens = tokens.map(({ address }) => contractList.find(token => token.address === address));
 		return (
-			<View>
+			<View style={baseStyles.flexGrow}>
 				<View>
 					<Text style={styles.title}>Choose an asset to request</Text>
 				</View>
@@ -294,12 +310,24 @@ class PaymentRequest extends Component {
 						style={styles.searchIcon}
 					/>
 				</View>
-				<AssetList
-					searchResults={results}
-					handleSelectAsset={this.goToAmountInput}
-					selectedAsset={this.state.selectedAsset}
-					searchQuery={this.state.searchInputValue}
-				/>
+				<View style={styles.assetsWrapper}>
+					<Text style={styles.assetsTitle}>Top picks</Text>
+					<AssetList
+						searchResults={results}
+						handleSelectAsset={this.goToAmountInput}
+						selectedAsset={this.state.selectedAsset}
+						searchQuery={this.state.searchInputValue}
+					/>
+				</View>
+				<View style={styles.assetsWrapper}>
+					<Text style={styles.assetsTitle}>Your tokens</Text>
+					<AssetList
+						searchResults={useTokens}
+						handleSelectAsset={this.goToAmountInput}
+						selectedAsset={this.state.selectedAsset}
+						searchQuery={this.state.searchInputValue}
+					/>
+				</View>
 			</View>
 		);
 	}
@@ -483,6 +511,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	searchEngine: state.settings.searchEngine,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	primaryCurrency: state.settings.primaryCurrency
 });
 
