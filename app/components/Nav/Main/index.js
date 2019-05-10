@@ -38,6 +38,7 @@ import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
+import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Engine from '../../../core/Engine';
@@ -196,6 +197,9 @@ const MainNavigator = createStackNavigator(
 				{
 					PaymentRequest: {
 						screen: PaymentRequest
+					},
+					PaymentRequestSuccess: {
+						screen: PaymentRequestSuccess
 					}
 				},
 				{

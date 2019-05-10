@@ -210,6 +210,31 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 	};
 }
 
+export function getPaymentRequestSuccessOptionsTitle(navigation) {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0
+		},
+		headerTintColor: colors.blue,
+		headerLeft: <View />,
+		headerRight:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			)
+	};
+}
+
 /**
  * Function that returns the navigation options
  * This is used by views that confirms transactions, showing current network

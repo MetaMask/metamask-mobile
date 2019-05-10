@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	contentWrapper: {
-		padding: 20
+		padding: 35
 	},
 	title: {
 		...fontStyles.bold,
@@ -374,17 +374,20 @@ class PaymentRequest extends Component {
 	};
 
 	onNext = () => {
-		const { selectedAddress } = this.props;
+		const { selectedAddress, navigation } = this.props;
 		const { cryptoAmount, selectedAsset } = this.state;
-
 		try {
 			let link;
-			if (selectedAsset.symbol === ' ETH') {
+			if (selectedAsset.symbol === 'ETH') {
 				link = generateETHLink(selectedAddress, cryptoAmount);
 			} else {
 				link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount);
 			}
-			this.setState({ link });
+			navigation &&
+				navigation.replace('PaymentRequestSuccess', {
+					link,
+					amount: cryptoAmount + ' ' + selectedAsset.symbol
+				});
 		} catch (e) {
 			this.setState({ showError: true });
 		}
