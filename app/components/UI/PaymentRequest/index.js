@@ -405,12 +405,23 @@ class PaymentRequest extends Component {
 	};
 
 	updateAmount = amount => {
-		const { internalPrimaryCurrency } = this.state;
+		const { conversionRate, contractExchangeRates } = this.props;
+		const { internalPrimaryCurrency, selectedAsset } = this.state;
 		let res;
-		if (internalPrimaryCurrency === 'ETH') {
+		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+
+		if (internalPrimaryCurrency !== 'ETH') {
+			if (selectedAsset.symbol === 'ETH' && !conversionRate) {
+				res = this.handleETHPrimaryCurrency(amount);
+			} else if (selectedAsset.symbol === 'ETH' && conversionRate) {
+				res = this.handleFiatPrimaryCurrency(amount);
+			} else if (selectedAsset.symbol !== 'ETH' && (!conversionRate || !exchangeRate)) {
+				res = this.handleETHPrimaryCurrency(amount);
+			} else if (selectedAsset.symbol !== 'ETH') {
+				res = this.handleFiatPrimaryCurrency(amount);
+			}
+		} else if (internalPrimaryCurrency === 'ETH') {
 			res = this.handleETHPrimaryCurrency(amount);
-		} else if (internalPrimaryCurrency !== 'ETH') {
-			res = this.handleFiatPrimaryCurrency(amount);
 		}
 		const { cryptoAmount, secondaryAmount, symbol } = res;
 		this.setState({ amount, cryptoAmount, secondaryAmount, symbol, showError: false });
