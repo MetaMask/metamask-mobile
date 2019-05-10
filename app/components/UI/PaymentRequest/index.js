@@ -373,7 +373,7 @@ class PaymentRequest extends Component {
 		if (selectedAsset.symbol !== 'ETH') {
 			secondaryAmount = exchangeRate
 				? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
-				: 'conversion rate not available';
+				: undefined;
 		} else {
 			secondaryAmount = weiToFiat(toWei(undefAmount), conversionRate, currentCurrency.toUpperCase());
 		}
@@ -451,7 +451,15 @@ class PaymentRequest extends Component {
 	};
 
 	renderEnterAmount() {
-		const { amount, secondaryAmount, symbol, cryptoAmount, showError } = this.state;
+		const { conversionRate, contractExchangeRates } = this.props;
+		const { amount, secondaryAmount, symbol, cryptoAmount, showError, selectedAsset } = this.state;
+		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+		let switchable = true;
+		if (!conversionRate) {
+			switchable = false;
+		} else if (selectedAsset.symbol !== 'ETH' && !exchangeRate) {
+			switchable = false;
+		}
 		return (
 			<View style={styles.enterAmountWrapper}>
 				<View>
@@ -477,21 +485,28 @@ class PaymentRequest extends Component {
 										{symbol}
 									</Text>
 								</View>
-								<Text style={styles.fiatValue} numberOfLines={1}>
-									{secondaryAmount}
-								</Text>
+								{secondaryAmount && (
+									<Text style={styles.fiatValue} numberOfLines={1}>
+										{secondaryAmount}
+									</Text>
+								)}
 							</View>
-							<View style={styles.switchContainer}>
-								<TouchableOpacity onPress={this.switchPrimaryCurrency} style={styles.switchTouchable}>
-									<FontAwesome
-										onPress={this.focusInput}
-										name="exchange"
-										size={18}
-										color={colors.grey200}
-										style={{ transform: [{ rotate: '270deg' }] }}
-									/>
-								</TouchableOpacity>
-							</View>
+							{switchable && (
+								<View style={styles.switchContainer}>
+									<TouchableOpacity
+										onPress={this.switchPrimaryCurrency}
+										style={styles.switchTouchable}
+									>
+										<FontAwesome
+											onPress={this.focusInput}
+											name="exchange"
+											size={18}
+											color={colors.grey200}
+											style={{ transform: [{ rotate: '270deg' }] }}
+										/>
+									</TouchableOpacity>
+								</View>
+							)}
 						</View>
 					</View>
 					{showError && (
