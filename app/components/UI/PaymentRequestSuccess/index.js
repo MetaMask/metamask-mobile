@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Main view for general app configurations
+ * View to interact with a previously generated payment request link
  */
 class PaymentRequestSuccess extends Component {
 	static navigationOptions = ({ navigation }) => getPaymentRequestSuccessOptionsTitle(navigation);
@@ -146,6 +146,9 @@ class PaymentRequestSuccess extends Component {
 		qrModalVisible: false
 	};
 
+	/**
+	 * Sets payment request link, amount and symbol of the asset to state
+	 */
 	componentDidMount = () => {
 		const { navigation } = this.props;
 		const link = navigation && navigation.getParam('link', '');
@@ -154,6 +157,9 @@ class PaymentRequestSuccess extends Component {
 		this.setState({ link, amount, symbol });
 	};
 
+	/**
+	 * Copies payment request link to clipboard
+	 */
 	copyAccountToClipboard = async () => {
 		const { link } = this.state;
 		await Clipboard.setString(link);
@@ -167,6 +173,9 @@ class PaymentRequestSuccess extends Component {
 		});
 	};
 
+	/**
+	 * Shows share native UI
+	 */
 	onShare = () => {
 		const { link } = this.state;
 		Share.open({
@@ -176,10 +185,16 @@ class PaymentRequestSuccess extends Component {
 		});
 	};
 
+	/**
+	 * Toggles payment request QR code modal on top
+	 */
 	showQRModal = () => {
 		this.setState({ qrModalVisible: true });
 	};
 
+	/**
+	 * Closes payment request QR code modal
+	 */
 	closeQRModal = () => {
 		this.setState({ qrModalVisible: false });
 	};

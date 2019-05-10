@@ -57,9 +57,17 @@ export default class AssetList extends Component {
 		 * Callback triggered when a token is selected
 		 */
 		handleSelectAsset: PropTypes.func,
+		/**
+		 * Message string to display when searchResults is empty
+		 */
 		emptyMessage: PropTypes.string
 	};
 
+	/**
+	 * Render logo according to asset. Could be ETH, Identicon or contractMap logo
+	 *
+	 * @param {object} asset - Asset to generate the logo to render
+	 */
 	renderLogo = asset => {
 		const { symbol, logo, address } = asset;
 		if (!logo) {

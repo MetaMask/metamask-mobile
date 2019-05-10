@@ -149,6 +149,7 @@ export default function getNavbarOptions(title, navigation) {
  * This is used by views that will show our custom navbar which contains Title
  *
  * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getNavigationOptionsTitle(title, navigation) {
@@ -173,6 +174,14 @@ export function getNavigationOptionsTitle(title, navigation) {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * This is used by payment request view showing close and back buttons
+ *
+ * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
+ */
 export function getPaymentRequestOptionsTitle(title, navigation) {
 	const goBack = navigation.getParam('dispatch', undefined);
 	return {
@@ -210,6 +219,12 @@ export function getPaymentRequestOptionsTitle(title, navigation) {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * This is used by payment request view showing close button
+ *
+ * @returns {Object} - Corresponding navbar options containing title, and headerRight
+ */
 export function getPaymentRequestSuccessOptionsTitle(navigation) {
 	return {
 		headerStyle: {

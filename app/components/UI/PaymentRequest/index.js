@@ -200,7 +200,7 @@ const MODE_SELECT = 'select';
 const MODE_AMOUNT = 'amount';
 
 /**
- * Main view for general app configurations
+ * View to generate a payment request link
  */
 class PaymentRequest extends Component {
 	static navigationOptions = ({ navigation }) => getPaymentRequestOptionsTitle('Request', navigation);
@@ -254,6 +254,9 @@ class PaymentRequest extends Component {
 		chainId: ''
 	};
 
+	/**
+	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
+	 */
 	componentDidMount = () => {
 		const { primaryCurrency, navigation, networkType } = this.props;
 		const receiveAsset = navigation && navigation.getParam('receiveAsset', undefined);
@@ -264,6 +267,9 @@ class PaymentRequest extends Component {
 		}
 	};
 
+	/**
+	 * Go to asset selection view and modify navbar accordingly
+	 */
 	goToAssetSelection = () => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: MODE_SELECT, dispatch: undefined });
@@ -276,6 +282,11 @@ class PaymentRequest extends Component {
 		});
 	};
 
+	/**
+	 * Go to enter amount view, with selectedAsset and modify navbar accordingly
+	 *
+	 * @param {object} selectedAsset - Asset selected to build the payment request
+	 */
 	goToAmountInput = async selectedAsset => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: MODE_AMOUNT, dispatch: this.goToAssetSelection });
@@ -283,6 +294,11 @@ class PaymentRequest extends Component {
 		this.updateAmount();
 	};
 
+	/**
+	 * Handle search input result
+	 *
+	 * @param {string} searchInputValue - String containing assets query
+	 */
 	handleSearch = searchInputValue => {
 		const fuseSearchResult = fuse.search(searchInputValue);
 		const addressSearchResult = contractList.filter(
@@ -292,7 +308,11 @@ class PaymentRequest extends Component {
 		this.setState({ searchInputValue, results });
 	};
 
-	renderSelectAssets() {
+	/**
+	 * Renders a view that allows user to select assets to build the payment request
+	 * Either top picks and user's assets are available to select
+	 */
+	renderSelectAssets = () => {
 		const { tokens } = this.props;
 		const { chainId } = this.state;
 		let results;
@@ -301,13 +321,11 @@ class PaymentRequest extends Component {
 		} else {
 			results = defaultEth;
 		}
-
 		const userTokens = tokens.map(token => {
 			const contract = contractList.find(contractToken => contractToken.address === token.address);
 			if (contract) return contract;
 			return token;
 		});
-
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View>
@@ -362,8 +380,14 @@ class PaymentRequest extends Component {
 				)}
 			</View>
 		);
-	}
+	};
 
+	/**
+	 * Handles payment request parameters for ETH as primaryCurrency
+	 *
+	 * @param {string} amount - String containing amount number from input, as token value
+	 * @returns {object} - Object containing respective symbol, secondaryAmount and cryptoAmount according to amount and selectedAsset
+	 */
 	handleETHPrimaryCurrency = amount => {
 		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
 		const { selectedAsset } = this.state;
@@ -383,6 +407,12 @@ class PaymentRequest extends Component {
 		return { symbol, secondaryAmount, cryptoAmount };
 	};
 
+	/**
+	 * Handles payment request parameters for Fiat as primaryCurrency
+	 *
+	 * @param {string} amount - String containing amount number from input, as fiat value
+	 * @returns {object} - Object containing respective symbol, secondaryAmount and cryptoAmount according to amount and selectedAsset
+	 */
 	handleFiatPrimaryCurrency = amount => {
 		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
 		const { selectedAsset } = this.state;
@@ -407,6 +437,11 @@ class PaymentRequest extends Component {
 		return { symbol, secondaryAmount, cryptoAmount };
 	};
 
+	/**
+	 * Handles amount update, setting amount related state parameters, it handles state according to internalPrimaryCurrency
+	 *
+	 * @param {string} amount - String containing amount number from input
+	 */
 	updateAmount = amount => {
 		const { internalPrimaryCurrency, selectedAsset } = this.state;
 		const { conversionRate, contractExchangeRates } = this.props;
@@ -423,6 +458,9 @@ class PaymentRequest extends Component {
 		this.setState({ amount, cryptoAmount, secondaryAmount, symbol, showError: false });
 	};
 
+	/**
+	 * Updates internalPrimaryCurrency
+	 */
 	switchPrimaryCurrency = async () => {
 		const { internalPrimaryCurrency } = this.state;
 		const primarycurrencies = {
@@ -433,10 +471,17 @@ class PaymentRequest extends Component {
 		this.updateAmount();
 	};
 
+	/**
+	 * Resets amount on payment request
+	 */
 	onReset = () => {
 		this.updateAmount();
 	};
 
+	/**
+	 * Generates payment request link and redirects to PaymentRequestSuccess view with it
+	 * If there is an error, an error message will be set to display on the view
+	 */
 	onNext = () => {
 		const { selectedAddress, navigation } = this.props;
 		const { cryptoAmount, selectedAsset, chainId } = this.state;
@@ -458,7 +503,10 @@ class PaymentRequest extends Component {
 		}
 	};
 
-	renderEnterAmount() {
+	/**
+	 * Renders a view that allows user to set payment request amount
+	 */
+	renderEnterAmount = () => {
 		const { conversionRate, contractExchangeRates } = this.props;
 		const { amount, secondaryAmount, symbol, cryptoAmount, showError, selectedAsset } = this.state;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
@@ -540,7 +588,7 @@ class PaymentRequest extends Component {
 				</View>
 			</View>
 		);
-	}
+	};
 
 	render() {
 		const { mode } = this.state;
