@@ -539,6 +539,7 @@ class PaymentRequest extends Component {
 										spellCheck={false}
 										style={styles.input}
 										value={amount}
+										onSubmitEditing={this.onNext}
 									/>
 									<Text style={styles.eth} numberOfLines={1}>
 										{symbol}
