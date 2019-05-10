@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, View, ScrollView, Text, StyleSheet } from 'react-native';
+import { Clipboard, SafeAreaView, View, ScrollView, Text, StyleSheet, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
@@ -7,6 +7,9 @@ import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import StyledButton from '../StyledButton';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { showAlert } from '../../../actions/alert';
+import Logger from '../../../util/Logger';
+import Share from 'react-native-share'; // eslint-disable-line  import/default
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -99,7 +102,11 @@ class PaymentRequestSuccess extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -112,6 +119,28 @@ class PaymentRequestSuccess extends Component {
 		const link = navigation && navigation.getParam('link', '');
 		const amount = navigation && navigation.getParam('amount', '');
 		this.setState({ link, amount });
+	};
+
+	copyAccountToClipboard = async () => {
+		const { link } = this.state;
+		await Clipboard.setString(link);
+		InteractionManager.runAfterInteractions(() => {
+			this.props.showAlert({
+				isVisible: true,
+				autodismiss: 1500,
+				content: 'clipboard-alert',
+				data: { msg: 'Link copied to clipboard' }
+			});
+		});
+	};
+
+	onShare = () => {
+		const { link } = this.state;
+		Share.open({
+			message: link
+		}).catch(err => {
+			Logger.log('Error while trying to share payment request', err);
+		});
 	};
 
 	render() {
@@ -131,7 +160,11 @@ class PaymentRequestSuccess extends Component {
 
 					<View style={styles.buttonsWrapper}>
 						<View style={styles.buttonsContainer}>
-							<StyledButton type={'normal'} onPress={this.onReset} containerStyle={styles.button}>
+							<StyledButton
+								type={'normal'}
+								onPress={this.copyAccountToClipboard}
+								containerStyle={styles.button}
+							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
 										<FontAwesome name={'copy'} size={18} color={colors.blue} />
@@ -141,7 +174,11 @@ class PaymentRequestSuccess extends Component {
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton type={'normal'} onPress={this.onReset} containerStyle={styles.button}>
+							<StyledButton
+								type={'normal'}
+								onPress={this.copyAccountToClipboard}
+								containerStyle={styles.button}
+							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
 										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />
@@ -151,7 +188,7 @@ class PaymentRequestSuccess extends Component {
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton type={'blue'} onPress={this.onReset} containerStyle={styles.button}>
+							<StyledButton type={'blue'} onPress={this.onShare} containerStyle={styles.button}>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
 										<EvilIcons name="share-apple" size={24} style={styles.blueIcon} />
@@ -169,6 +206,10 @@ class PaymentRequestSuccess extends Component {
 	}
 }
 
+const mapDispatchToProps = dispatch => ({
+	showAlert: config => dispatch(showAlert(config))
+});
+
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -178,4 +219,7 @@ const mapStateToProps = state => ({
 	primaryCurrency: state.settings.primaryCurrency
 });
 
-export default connect(mapStateToProps)(PaymentRequestSuccess);
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(PaymentRequestSuccess);
