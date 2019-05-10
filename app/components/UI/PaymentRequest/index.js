@@ -405,22 +405,15 @@ class PaymentRequest extends Component {
 	};
 
 	updateAmount = amount => {
-		const { conversionRate, contractExchangeRates } = this.props;
 		const { internalPrimaryCurrency, selectedAsset } = this.state;
-		let res;
+		const { conversionRate, contractExchangeRates } = this.props;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-
-		if (internalPrimaryCurrency !== 'ETH') {
-			if (selectedAsset.symbol === 'ETH' && !conversionRate) {
-				res = this.handleETHPrimaryCurrency(amount);
-			} else if (selectedAsset.symbol === 'ETH' && conversionRate) {
-				res = this.handleFiatPrimaryCurrency(amount);
-			} else if (selectedAsset.symbol !== 'ETH' && (!conversionRate || !exchangeRate)) {
-				res = this.handleETHPrimaryCurrency(amount);
-			} else if (selectedAsset.symbol !== 'ETH') {
-				res = this.handleFiatPrimaryCurrency(amount);
-			}
-		} else if (internalPrimaryCurrency === 'ETH') {
+		let res;
+		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle
+		// fiat conversion for the payment request
+		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.symbol !== 'ETH')) {
+			res = this.handleFiatPrimaryCurrency(amount);
+		} else {
 			res = this.handleETHPrimaryCurrency(amount);
 		}
 		const { cryptoAmount, secondaryAmount, symbol } = res;
@@ -454,7 +447,8 @@ class PaymentRequest extends Component {
 			navigation &&
 				navigation.replace('PaymentRequestSuccess', {
 					link,
-					amount: cryptoAmount + ' ' + selectedAsset.symbol
+					amount: cryptoAmount,
+					symbol: selectedAsset.symbol
 				});
 		} catch (e) {
 			this.setState({ showError: true });

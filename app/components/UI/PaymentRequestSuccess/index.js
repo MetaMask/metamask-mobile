@@ -142,6 +142,7 @@ class PaymentRequestSuccess extends Component {
 	state = {
 		link: '',
 		amount: '',
+		symbol: '',
 		qrModalVisible: false
 	};
 
@@ -149,7 +150,8 @@ class PaymentRequestSuccess extends Component {
 		const { navigation } = this.props;
 		const link = navigation && navigation.getParam('link', '');
 		const amount = navigation && navigation.getParam('amount', '');
-		this.setState({ link, amount });
+		const symbol = navigation && navigation.getParam('symbol', '');
+		this.setState({ link, amount, symbol });
 	};
 
 	copyAccountToClipboard = async () => {
@@ -183,7 +185,7 @@ class PaymentRequestSuccess extends Component {
 	};
 
 	render() {
-		const { link, amount } = this.state;
+		const { link, amount, symbol } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<ScrollView style={styles.contentWrapper} contentContainerStyle={styles.scrollViewContainer}>
@@ -195,7 +197,7 @@ class PaymentRequestSuccess extends Component {
 						<Text style={styles.descriptionText}>Your request link is ready to send!</Text>
 						<Text style={styles.descriptionText}>
 							Send this link to a friend, and it will ask them to send
-							<Text style={fontStyles.bold}>{' ' + renderNumber(amount)}</Text>
+							<Text style={fontStyles.bold}>{' ' + renderNumber(amount) + ' ' + symbol}</Text>
 						</Text>
 					</View>
 					<View style={styles.linkWrapper}>
