@@ -136,24 +136,24 @@ class ReceiveRequest extends Component {
 	actions = [
 		{
 			icon: <MaterialIcon name={'share-variant'} size={32} color={colors.black} />,
-			title: 'Share Address',
-			description: 'Email or text your address',
+			title: strings('receive_request.share_title'),
+			description: strings('receive_request.share_description'),
 			onPress: () => {
 				this.onShare();
 			}
 		},
 		{
 			icon: <FontAwesome name={'qrcode'} size={32} color={colors.black} />,
-			title: 'QR Code',
-			description: 'Scannable image that can read your address',
+			title: strings('receive_request.qr_code_title'),
+			description: strings('receive_request.qr_code_description'),
 			onPress: () => {
 				this.openQrModal();
 			}
 		},
 		{
 			icon: <MaterialIcon solid name={'hand-pointing-right'} size={32} color={colors.black} />,
-			title: 'Request',
-			description: 'Request assets from friends',
+			title: strings('receive_request.request_title'),
+			description: strings('receive_request.request_description'),
 			onPress: () => {
 				this.props.toggleReceiveModal();
 				this.props.navigation.navigate('PaymentRequestView', { receiveAsset: this.props.receiveAsset });
@@ -161,8 +161,8 @@ class ReceiveRequest extends Component {
 		},
 		{
 			icon: <FontAwesome name={'credit-card'} size={32} color={colors.black} />,
-			title: 'Buy',
-			description: 'Buy Crypto with Credit Card',
+			title: strings('receive_request.buy_title'),
+			description: strings('receive_request.buy_description'),
 			onPress: () => {
 				this.props.toggleReceiveModal();
 				this.props.navigation.navigate('WalletView');
@@ -192,7 +192,7 @@ class ReceiveRequest extends Component {
 					<View style={styles.dragger} />
 				</View>
 				<View style={styles.titleWrapper}>
-					<Text style={styles.title}>Receive</Text>
+					<Text style={styles.title}>{strings('receive_request.title')}</Text>
 				</View>
 
 				<View style={styles.actionsWrapper}>
@@ -238,19 +238,15 @@ class ReceiveRequest extends Component {
 				>
 					<View style={styles.detailsWrapper}>
 						<View style={styles.qrCode}>
-							<Text style={styles.addressTitle}>{'Public Address QR Code'}</Text>
+							<Text style={styles.addressTitle}>{strings('receive_request.public_address_qr_code')}</Text>
 							<QRCode
 								value={`ethereum:${this.props.selectedAddress}`}
 								size={Dimensions.get('window').width - 160}
 							/>
 						</View>
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-							<Text style={styles.addressTitle} testID={'public-address-text'}>
-								{strings('drawer.public_address')}
-							</Text>
-							<Text style={styles.address} testID={'public-address-text'}>
-								{this.props.selectedAddress}
-							</Text>
+							<Text style={styles.addressTitle}>{strings('receive_request.public_address')}</Text>
+							<Text style={styles.address}>{this.props.selectedAddress}</Text>
 						</TouchableOpacity>
 					</View>
 				</Modal>

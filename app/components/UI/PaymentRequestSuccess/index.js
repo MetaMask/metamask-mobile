@@ -22,6 +22,7 @@ import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -174,7 +175,7 @@ class PaymentRequestSuccess extends Component {
 				isVisible: true,
 				autodismiss: 1500,
 				content: 'clipboard-alert',
-				data: { msg: 'Link copied to clipboard' }
+				data: { msg: strings('payment_request.link_copied') }
 			});
 		});
 	};
@@ -214,10 +215,10 @@ class PaymentRequestSuccess extends Component {
 						<EvilIcons name="share-apple" size={54} style={styles.icon} />
 					</View>
 					<View style={styles.informationWrapper}>
-						<Text style={styles.titleText}>Send Link</Text>
-						<Text style={styles.descriptionText}>Your request link is ready to send!</Text>
+						<Text style={styles.titleText}>{strings('payment_request.send_link')}</Text>
+						<Text style={styles.descriptionText}>{strings('payment_request.description_1')}</Text>
 						<Text style={styles.descriptionText}>
-							Send this link to a friend, and it will ask them to send
+							{strings('payment_request.description_2')}
 							<Text style={fontStyles.bold}>{' ' + renderNumber(amount) + ' ' + symbol}</Text>
 						</Text>
 					</View>
@@ -237,7 +238,9 @@ class PaymentRequestSuccess extends Component {
 										<FontAwesome name={'copy'} size={18} color={colors.blue} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
-										<Text style={styles.buttonText}>{'Copy to Clipboard'}</Text>
+										<Text style={styles.buttonText}>
+											{strings('payment_request.copy_to_clipboard')}
+										</Text>
 									</View>
 								</View>
 							</StyledButton>
@@ -247,7 +250,7 @@ class PaymentRequestSuccess extends Component {
 										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
-										<Text style={styles.buttonText}>{'QR Code'}</Text>
+										<Text style={styles.buttonText}>{strings('payment_request.qr_code')}</Text>
 									</View>
 								</View>
 							</StyledButton>
@@ -257,7 +260,9 @@ class PaymentRequestSuccess extends Component {
 										<EvilIcons name="share-apple" size={24} style={styles.blueIcon} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
-										<Text style={styles.blueButtonText}>{'Send Link'}</Text>
+										<Text style={styles.blueButtonText}>
+											{strings('payment_request.send_link')}
+										</Text>
 									</View>
 								</View>
 							</StyledButton>
@@ -273,7 +278,7 @@ class PaymentRequestSuccess extends Component {
 				>
 					<View style={styles.detailsWrapper}>
 						<View style={styles.qrCode}>
-							<Text style={styles.addressTitle}>{'Payment Request QR Code'}</Text>
+							<Text style={styles.addressTitle}>{strings('payment_request.request_qr_code')}</Text>
 							<QRCode value={this.state.link} size={Dimensions.get('window').width - 160} />
 						</View>
 					</View>

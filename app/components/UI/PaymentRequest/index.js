@@ -203,7 +203,8 @@ const MODE_AMOUNT = 'amount';
  * View to generate a payment request link
  */
 class PaymentRequest extends Component {
-	static navigationOptions = ({ navigation }) => getPaymentRequestOptionsTitle('Request', navigation);
+	static navigationOptions = ({ navigation }) =>
+		getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation);
 
 	static propTypes = {
 		/**
@@ -329,7 +330,7 @@ class PaymentRequest extends Component {
 		return (
 			<View style={baseStyles.flexGrow}>
 				<View>
-					<Text style={styles.title}>Choose an asset to request</Text>
+					<Text style={styles.title}>{strings('payment_request.choose_asset')}</Text>
 				</View>
 				{chainId === 1 && (
 					<View style={styles.searchWrapper}>
@@ -340,7 +341,7 @@ class PaymentRequest extends Component {
 							clearButtonMode="while-editing"
 							onChangeText={this.handleSearch}
 							onSubmitEditing={this.handleSearch}
-							placeholder={'Search assets'}
+							placeholder={strings('payment_request.search_assets')}
 							placeholderTextColor={colors.grey400}
 							returnKeyType="go"
 							value={this.state.searchInputValue}
@@ -357,19 +358,21 @@ class PaymentRequest extends Component {
 				)}
 				<View style={styles.assetsWrapper}>
 					<Text style={styles.assetsTitle}>
-						{this.state.searchInputValue ? 'Search results' : 'Top picks'}
+						{this.state.searchInputValue
+							? strings('payment_request.search_results')
+							: strings('payment_request.search_top_picks')}
 					</Text>
 					<AssetList
 						searchResults={results}
 						handleSelectAsset={this.goToAmountInput}
 						selectedAsset={this.state.selectedAsset}
 						searchQuery={this.state.searchInputValue}
-						emptyMessage={'No tokens found'}
+						emptyMessage={strings('payment_request.search_no_tokens_found')}
 					/>
 				</View>
 				{userTokens.length > 0 && (
 					<View style={styles.assetsWrapper}>
-						<Text style={styles.assetsTitle}>Your tokens</Text>
+						<Text style={styles.assetsTitle}>{strings('payment_request.your_tokens')}</Text>
 						<AssetList
 							searchResults={userTokens}
 							handleSelectAsset={this.goToAmountInput}
@@ -519,7 +522,7 @@ class PaymentRequest extends Component {
 		return (
 			<View style={styles.enterAmountWrapper}>
 				<View>
-					<Text style={styles.title}>Enter amount</Text>
+					<Text style={styles.title}>{strings('payment_request.enter_amount')}</Text>
 				</View>
 				<View style={styles.searchWrapper}>
 					<View style={styles.container}>
@@ -532,7 +535,7 @@ class PaymentRequest extends Component {
 										keyboardType="numeric"
 										numberOfLines={1}
 										onChangeText={this.updateAmount}
-										placeholder={'0.00'}
+										placeholder={strings('payment_request.amount_placeholder')}
 										spellCheck={false}
 										style={styles.input}
 										value={amount}
@@ -567,14 +570,14 @@ class PaymentRequest extends Component {
 					</View>
 					{showError && (
 						<View style={styles.errorWrapper}>
-							<Text style={styles.errorText}>Invalid request, please try again</Text>
+							<Text style={styles.errorText}>{strings('payment_request.request_error')}</Text>
 						</View>
 					)}
 				</View>
 				<View style={styles.buttonsWrapper}>
 					<View style={styles.buttonsContainer}>
 						<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>
-							{'Reset'}
+							{strings('payment_request.reset')}
 						</StyledButton>
 						<StyledButton
 							type={'blue'}
@@ -582,7 +585,7 @@ class PaymentRequest extends Component {
 							containerStyle={[styles.button]}
 							disabled={!cryptoAmount || cryptoAmount === '0'}
 						>
-							{'Next'}
+							{strings('payment_request.next')}
 						</StyledButton>
 					</View>
 				</View>

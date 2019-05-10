@@ -70,7 +70,9 @@ export default class ReceiveRequestAction extends Component {
 					<Text style={styles.title}>{actionTitle}</Text>
 				</View>
 				<View style={styles.row}>
-					<Text style={styles.description}>{actionDescription}</Text>
+					<Text numberOfLines={2} style={styles.description}>
+						{actionDescription}
+					</Text>
 				</View>
 			</TouchableOpacity>
 		);
