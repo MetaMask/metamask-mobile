@@ -107,12 +107,18 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	qrCode: {
-		marginVertical: 15,
+		marginBottom: 16,
 		alignItems: 'center',
 		justifyContent: 'center',
 		padding: 40,
+		paddingTop: 16,
 		backgroundColor: colors.grey000,
 		borderRadius: 8
+	},
+	addressTitle: {
+		fontSize: 16,
+		marginBottom: 16,
+		...fontStyles.normal
 	},
 	informationWrapper: {
 		paddingHorizontal: 40
@@ -267,6 +273,7 @@ class PaymentRequestSuccess extends Component {
 				>
 					<View style={styles.detailsWrapper}>
 						<View style={styles.qrCode}>
+							<Text style={styles.addressTitle}>{'Payment Request QR Code'}</Text>
 							<QRCode value={this.state.link} size={Dimensions.get('window').width - 160} />
 						</View>
 					</View>

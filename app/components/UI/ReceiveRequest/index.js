@@ -52,18 +52,20 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	qrCode: {
-		marginVertical: 15,
+		marginBottom: 16,
 		alignItems: 'center',
 		justifyContent: 'center',
-		padding: 40,
+		paddingHorizontal: 36,
+		paddingBottom: 40,
+		paddingTop: 16,
 		backgroundColor: colors.grey000,
 		borderRadius: 8
 	},
 	addressWrapper: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
+		paddingHorizontal: 16,
+		paddingVertical: 16,
 		marginTop: 10,
 		marginBottom: 20,
 		marginRight: 10,
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
 	},
 	addressTitle: {
 		fontSize: 16,
-		marginBottom: 10,
+		marginBottom: 16,
 		...fontStyles.normal
 	},
 	address: {
@@ -236,6 +238,7 @@ class ReceiveRequest extends Component {
 				>
 					<View style={styles.detailsWrapper}>
 						<View style={styles.qrCode}>
+							<Text style={styles.addressTitle}>{'Public Address QR Code'}</Text>
 							<QRCode
 								value={`ethereum:${this.props.selectedAddress}`}
 								size={Dimensions.get('window').width - 160}
