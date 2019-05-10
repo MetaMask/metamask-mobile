@@ -56,7 +56,8 @@ export default class AssetList extends Component {
 		/**
 		 * Callback triggered when a token is selected
 		 */
-		handleSelectAsset: PropTypes.func
+		handleSelectAsset: PropTypes.func,
+		emptyMessage: PropTypes.string
 	};
 
 	renderLogo = asset => {
@@ -93,6 +94,7 @@ export default class AssetList extends Component {
 						</StyledButton>
 					);
 				})}
+				{searchResults.length === 0 && <Text style={styles.text}>{this.props.emptyMessage}</Text>}
 			</View>
 		);
 	};

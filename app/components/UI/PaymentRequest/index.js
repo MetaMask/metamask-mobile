@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		backgroundColor: colors.white,
 		height: 40,
-		color: colors.grey100,
+		color: colors.grey400,
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		...fontStyles.normal
@@ -294,7 +294,7 @@ class PaymentRequest extends Component {
 		const { chainId } = this.state;
 		let results;
 		if (chainId === 1) {
-			results = this.state.results.length ? this.state.results : defaultAssets;
+			results = this.state.searchInputValue ? this.state.results : defaultAssets;
 		} else {
 			results = defaultEth;
 		}
@@ -335,23 +335,28 @@ class PaymentRequest extends Component {
 					</View>
 				)}
 				<View style={styles.assetsWrapper}>
-					<Text style={styles.assetsTitle}>Top picks</Text>
+					<Text style={styles.assetsTitle}>
+						{this.state.searchInputValue ? 'Search results' : 'Top picks'}
+					</Text>
 					<AssetList
 						searchResults={results}
 						handleSelectAsset={this.goToAmountInput}
 						selectedAsset={this.state.selectedAsset}
 						searchQuery={this.state.searchInputValue}
+						emptyMessage={'No tokens found'}
 					/>
 				</View>
-				<View style={styles.assetsWrapper}>
-					<Text style={styles.assetsTitle}>Your tokens</Text>
-					<AssetList
-						searchResults={userTokens}
-						handleSelectAsset={this.goToAmountInput}
-						selectedAsset={this.state.selectedAsset}
-						searchQuery={this.state.searchInputValue}
-					/>
-				</View>
+				{userTokens.length > 0 && (
+					<View style={styles.assetsWrapper}>
+						<Text style={styles.assetsTitle}>Your tokens</Text>
+						<AssetList
+							searchResults={userTokens}
+							handleSelectAsset={this.goToAmountInput}
+							selectedAsset={this.state.selectedAsset}
+							searchQuery={this.state.searchInputValue}
+						/>
+					</View>
+				)}
 			</View>
 		);
 	}
