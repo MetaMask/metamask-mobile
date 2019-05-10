@@ -12,8 +12,6 @@ import {
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -24,6 +22,8 @@ import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import AntIcon from 'react-native-vector-icons/AntDesign';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const ACTION_WIDTH = (Dimensions.get('window').width - 60) / 2;
 
@@ -196,7 +196,7 @@ class ReceiveRequest extends Component {
 
 	actions = [
 		{
-			icon: <MaterialIcon name={'share-variant'} size={32} color={colors.black} />,
+			icon: <SimpleLineIcons name={'paper-plane'} size={28} color={colors.black} />,
 			title: strings('receive_request.share_title'),
 			description: strings('receive_request.share_description'),
 			onPress: this.onShare
@@ -208,7 +208,7 @@ class ReceiveRequest extends Component {
 			onPress: this.openQrModal
 		},
 		{
-			icon: <MaterialIcon solid name={'hand-pointing-right'} size={32} color={colors.black} />,
+			icon: <AntIcon solid name={'download'} size={30} color={colors.black} />,
 			title: strings('receive_request.request_title'),
 			description: strings('receive_request.request_description'),
 			onPress: () => {

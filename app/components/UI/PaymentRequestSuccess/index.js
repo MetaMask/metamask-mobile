@@ -16,6 +16,7 @@ import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import StyledButton from '../StyledButton';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { showAlert } from '../../../actions/alert';
 import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -235,7 +236,7 @@ class PaymentRequestSuccess extends Component {
 							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<FontAwesome name={'copy'} size={18} color={colors.blue} />
+										<Ionicons name={'ios-link'} size={18} color={colors.blue} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
 										<Text style={styles.buttonText}>
