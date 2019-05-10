@@ -234,6 +234,9 @@ class PaymentRequest extends Component {
 		 * Array of ERC20 assets
 		 */
 		tokens: PropTypes.array,
+		/**
+		 * A string representing the network name
+		 */
 		networkType: PropTypes.string
 	};
 
@@ -411,7 +414,7 @@ class PaymentRequest extends Component {
 		let res;
 		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle
 		// fiat conversion for the payment request
-		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.symbol !== 'ETH')) {
+		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.symbol === 'ETH')) {
 			res = this.handleFiatPrimaryCurrency(amount);
 		} else {
 			res = this.handleETHPrimaryCurrency(amount);
