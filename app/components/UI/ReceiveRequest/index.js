@@ -21,13 +21,28 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: 2 * ACTION_WIDTH + 100
+		minHeight: 2 * ACTION_WIDTH + 130
+	},
+	draggerWrapper: {
+		width: '100%',
+		height: 33,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderColor: colors.grey100
+	},
+	dragger: {
+		width: 48,
+		height: 5,
+		borderRadius: 4,
+		backgroundColor: colors.grey400,
+		opacity: Platform.OS === 'android' ? 0.6 : 0.5
 	},
 	actionsWrapper: {
 		flex: 1,
-		margin: 14
+		marginHorizontal: 16,
+		marginBottom: 8
 	},
-	accountInformation: {},
 	row: {
 		flexDirection: 'row',
 		alignItems: 'center'
@@ -56,6 +71,15 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		backgroundColor: colors.grey000
 	},
+	title: {
+		...fontStyles.normal,
+		fontSize: 18,
+		flexDirection: 'row',
+		alignSelf: 'center'
+	},
+	titleWrapper: {
+		marginVertical: 8
+	},
 	addressTitle: {
 		fontSize: 16,
 		marginBottom: 10,
@@ -81,7 +105,13 @@ class ReceiveRequest extends Component {
 		 * Selected address as string
 		 */
 		selectedAddress: PropTypes.string,
+		/**
+		 * Asset to receive, could be not defined
+		 */
 		receiveAsset: PropTypes.object,
+		/**
+		 * Action that toggles the receive modal
+		 */
 		toggleReceiveModal: PropTypes.func
 	};
 
@@ -89,6 +119,9 @@ class ReceiveRequest extends Component {
 		qrModalVisible: false
 	};
 
+	/**
+	 * Share current account public address
+	 */
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
@@ -135,10 +168,16 @@ class ReceiveRequest extends Component {
 		}
 	];
 
+	/**
+	 * Closes QR code modal
+	 */
 	closeQrModal = () => {
 		this.setState({ qrModalVisible: false });
 	};
 
+	/**
+	 * Opens QR code modal
+	 */
 	openQrModal = () => {
 		this.setState({ qrModalVisible: true });
 	};
@@ -147,8 +186,11 @@ class ReceiveRequest extends Component {
 		const { qrModalVisible } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
-				<View style={styles.accountInformation}>
-					<Text style={fontStyles.normal}>Receive</Text>
+				<View style={styles.draggerWrapper}>
+					<View style={styles.dragger} />
+				</View>
+				<View style={styles.titleWrapper}>
+					<Text style={styles.title}>Receive</Text>
 				</View>
 
 				<View style={styles.actionsWrapper}>

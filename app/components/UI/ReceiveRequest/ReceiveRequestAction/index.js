@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders scrollable content inside signature request user interface
+ * Component that renders a receive action
  */
 export default class ReceiveRequestAction extends Component {
 	static propTypes = {
@@ -43,9 +43,21 @@ export default class ReceiveRequestAction extends Component {
 		 * The navigator object
 		 */
 		icon: PropTypes.object,
+		/**
+		 * Action title
+		 */
 		actionTitle: PropTypes.string,
+		/**
+		 * Action description
+		 */
 		actionDescription: PropTypes.string,
+		/**
+		 * Custom style
+		 */
 		style: PropTypes.object,
+		/**
+		 * Callback on press action
+		 */
 		onPress: PropTypes.func
 	};
 
