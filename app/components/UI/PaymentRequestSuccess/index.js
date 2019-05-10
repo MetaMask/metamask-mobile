@@ -6,6 +6,7 @@ import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import StyledButton from '../StyledButton';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		alignSelf: 'center',
 		textAlign: 'center',
-		marginVertical: 8
+		marginVertical: 16
 	},
 	buttonsWrapper: {
 		flex: 1,
@@ -56,8 +57,35 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		marginBottom: 16
 	},
+	blueIcon: {
+		color: colors.white
+	},
 	iconWrapper: {
 		alignItems: 'center'
+	},
+	buttonText: {
+		...fontStyles.bold,
+		color: colors.blue,
+		fontSize: 14,
+		marginLeft: 8
+	},
+	blueButtonText: {
+		...fontStyles.bold,
+		color: colors.white,
+		fontSize: 14,
+		marginLeft: 8
+	},
+	buttonContent: {
+		flexDirection: 'row',
+		alignSelf: 'center'
+	},
+	buttonIconWrapper: {
+		flexDirection: 'column',
+		alignSelf: 'center'
+	},
+	buttonTextWrapper: {
+		flexDirection: 'column',
+		alignSelf: 'center'
 	}
 });
 
@@ -103,14 +131,35 @@ class PaymentRequestSuccess extends Component {
 
 					<View style={styles.buttonsWrapper}>
 						<View style={styles.buttonsContainer}>
-							<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>
-								{'Copy to Clipboard'}
+							<StyledButton type={'normal'} onPress={this.onReset} containerStyle={styles.button}>
+								<View style={styles.buttonContent}>
+									<View style={styles.buttonIconWrapper}>
+										<FontAwesome name={'copy'} size={18} color={colors.blue} />
+									</View>
+									<View style={styles.buttonTextWrapper}>
+										<Text style={styles.buttonText}>{'Copy to Clipboard'}</Text>
+									</View>
+								</View>
 							</StyledButton>
-							<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>
-								{'QR Code'}
+							<StyledButton type={'normal'} onPress={this.onReset} containerStyle={styles.button}>
+								<View style={styles.buttonContent}>
+									<View style={styles.buttonIconWrapper}>
+										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />
+									</View>
+									<View style={styles.buttonTextWrapper}>
+										<Text style={styles.buttonText}>{'QR Code'}</Text>
+									</View>
+								</View>
 							</StyledButton>
-							<StyledButton type={'blue'} onPress={this.onReset} containerStyle={[styles.button]}>
-								{'Send Link'}
+							<StyledButton type={'blue'} onPress={this.onReset} containerStyle={styles.button}>
+								<View style={styles.buttonContent}>
+									<View style={styles.buttonIconWrapper}>
+										<EvilIcons name="share-apple" size={24} style={styles.blueIcon} />
+									</View>
+									<View style={styles.buttonTextWrapper}>
+										<Text style={styles.blueButtonText}>{'Send Link'}</Text>
+									</View>
+								</View>
 							</StyledButton>
 						</View>
 					</View>
