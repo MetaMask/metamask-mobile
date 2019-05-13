@@ -7,7 +7,8 @@ import {
 	ScrollView,
 	Text,
 	StyleSheet,
-	InteractionManager
+	InteractionManager,
+	TouchableOpacity
 } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
@@ -16,7 +17,7 @@ import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import StyledButton from '../StyledButton';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { showAlert } from '../../../actions/alert';
 import Logger from '../../../util/Logger';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -108,15 +109,6 @@ const styles = StyleSheet.create({
 		padding: 10,
 		alignItems: 'center'
 	},
-	qrCode: {
-		marginBottom: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 40,
-		paddingTop: 16,
-		backgroundColor: colors.grey000,
-		borderRadius: 8
-	},
 	addressTitle: {
 		fontSize: 16,
 		marginBottom: 16,
@@ -127,6 +119,30 @@ const styles = StyleSheet.create({
 	},
 	linkWrapper: {
 		paddingHorizontal: 24
+	},
+	titleQr: {
+		flexDirection: 'row'
+	},
+	closeIcon: {
+		position: 'absolute',
+		right: -30,
+		bottom: 8
+	},
+	qrCode: {
+		marginBottom: 16,
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 36,
+		paddingBottom: 24,
+		paddingTop: 16,
+		backgroundColor: colors.grey000,
+		borderRadius: 8
+	},
+	qrCodeWrapper: {
+		borderColor: colors.grey300,
+		borderRadius: 8,
+		borderWidth: 1,
+		padding: 15
 	}
 });
 
@@ -236,7 +252,7 @@ class PaymentRequestSuccess extends Component {
 							>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
-										<Ionicons name={'ios-link'} size={18} color={colors.blue} />
+										<IonicIcon name={'ios-link'} size={18} color={colors.blue} />
 									</View>
 									<View style={styles.buttonTextWrapper}>
 										<Text style={styles.buttonText}>
@@ -279,8 +295,16 @@ class PaymentRequestSuccess extends Component {
 				>
 					<View style={styles.detailsWrapper}>
 						<View style={styles.qrCode}>
-							<Text style={styles.addressTitle}>{strings('payment_request.request_qr_code')}</Text>
-							<QRCode value={this.state.link} size={Dimensions.get('window').width - 160} />
+							<View style={styles.titleQr}>
+								<Text style={styles.addressTitle}>{strings('payment_request.request_qr_code')}</Text>
+
+								<TouchableOpacity style={styles.closeIcon} onPress={this.closeQRModal}>
+									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+								</TouchableOpacity>
+							</View>
+							<View style={styles.qrCodeWrapper}>
+								<QRCode value={this.state.link} size={Dimensions.get('window').width - 160} />
+							</View>
 						</View>
 					</View>
 				</Modal>

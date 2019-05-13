@@ -24,6 +24,7 @@ import ElevatedView from 'react-native-elevated-view';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const ACTION_WIDTH = (Dimensions.get('window').width - 60) / 2;
 
@@ -67,20 +68,23 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		paddingHorizontal: 36,
-		paddingBottom: 40,
+		paddingBottom: 24,
 		paddingTop: 16,
 		backgroundColor: colors.grey000,
 		borderRadius: 8
+	},
+	qrCodeWrapper: {
+		borderColor: colors.grey300,
+		borderRadius: 8,
+		borderWidth: 1,
+		padding: 15
 	},
 	addressWrapper: {
 		alignItems: 'center',
 		justifyContent: 'center',
 		paddingHorizontal: 16,
-		paddingVertical: 16,
+		paddingTop: 16,
 		marginTop: 10,
-		marginBottom: 20,
-		marginRight: 10,
-		marginLeft: 10,
 		borderRadius: 5,
 		backgroundColor: colors.grey000
 	},
@@ -89,6 +93,14 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		flexDirection: 'row',
 		alignSelf: 'center'
+	},
+	titleQr: {
+		flexDirection: 'row'
+	},
+	closeIcon: {
+		position: 'absolute',
+		right: -40,
+		bottom: 8
 	},
 	titleWrapper: {
 		marginVertical: 8
@@ -99,9 +111,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	address: {
-		fontSize: Platform.OS === 'ios' ? 17 : 20,
-		letterSpacing: 2,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
+		...fontStyles.normal,
+		fontSize: Platform.OS === 'ios' ? 14 : 20,
+		textAlign: 'center'
 	},
 	modal: {
 		margin: 0,
@@ -278,16 +290,24 @@ class ReceiveRequest extends Component {
 				>
 					<View style={styles.detailsWrapper}>
 						<View style={styles.qrCode}>
-							<Text style={styles.addressTitle}>{strings('receive_request.public_address_qr_code')}</Text>
-							<QRCode
-								value={`ethereum:${this.props.selectedAddress}`}
-								size={Dimensions.get('window').width - 160}
-							/>
+							<View style={styles.titleQr}>
+								<Text style={styles.addressTitle}>
+									{strings('receive_request.public_address_qr_code')}
+								</Text>
+								<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal}>
+									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+								</TouchableOpacity>
+							</View>
+							<View style={styles.qrCodeWrapper}>
+								<QRCode
+									value={`ethereum:${this.props.selectedAddress}`}
+									size={Dimensions.get('window').width - 160}
+								/>
+							</View>
+							<View style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+								<Text style={styles.address}>{this.props.selectedAddress}</Text>
+							</View>
 						</View>
-						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-							<Text style={styles.addressTitle}>{strings('receive_request.public_address')}</Text>
-							<Text style={styles.address}>{this.props.selectedAddress}</Text>
-						</TouchableOpacity>
 					</View>
 				</Modal>
 				<Modal
