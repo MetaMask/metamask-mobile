@@ -375,7 +375,7 @@ export function getWalletNavbarOptions(title, navigation) {
 		if (data.target_address) {
 			navigation.navigate('SendView', { txMeta: data });
 		} else if (data.walletConnectURI) {
-			WalletConnect.init(data.walletConnectURI);
+			WalletConnect.newSession(data.walletConnectURI);
 		}
 	};
 

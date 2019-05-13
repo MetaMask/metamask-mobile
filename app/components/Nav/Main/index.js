@@ -277,7 +277,7 @@ class Main extends Component {
 		signMessageParams: { data: '' },
 		signType: '',
 		walletConnectRequest: false,
-		walletConnectRequestMeta: {}
+		walletConnectRequestInfo: {}
 	};
 
 	backgroundMode = false;
@@ -297,6 +297,7 @@ class Main extends Component {
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
+		WalletConnect.init();
 
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 
@@ -327,12 +328,13 @@ class Main extends Component {
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
 		});
+
 		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
 			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
 		});
 
-		WalletConnect.hub.on('walletconnectSessionRequest', meta => {
-			this.setState({ walletConnectRequest: true, walletConnectRequestMeta: meta });
+		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
+			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
 		});
 	};
 
@@ -406,7 +408,6 @@ class Main extends Component {
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
-		WalletConnect.shutdown();
 	}
 
 	/**
@@ -458,23 +459,28 @@ class Main extends Component {
 	};
 
 	onWalletConnectSessionApproval = () => {
+		const peerId = this.state.walletConnectRequestInfo.peerId;
 		this.setState({
 			walletConnectRequest: false,
-			walletConnectRequestMeta: {}
+			walletConnectRequestInfo: {}
 		});
-		WalletConnect.hub.emit('walletconnectSessionRequest::approved');
+		WalletConnect.hub.emit('walletconnectSessionRequest::approved', peerId);
 	};
 
 	onWalletConnectSessionRejected = () => {
+		const peerId = this.state.walletConnectRequestInfo.peerId;
 		this.setState({
 			walletConnectRequest: false,
-			walletConnectRequestMeta: {}
+			walletConnectRequestInfo: {}
 		});
-		WalletConnect.hub.emit('walletconnectSessionRequest::rejected');
+		WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
 	};
 
 	renderWalletConnectSessionRequestModal = () => {
-		const { walletConnectRequest, walletConnectRequestMeta } = this.state;
+		const {
+			walletConnectRequest,
+			walletConnectRequestInfo: { peerMeta: meta }
+		} = this.state;
 		return (
 			<Modal
 				isVisible={walletConnectRequest}
@@ -491,9 +497,9 @@ class Main extends Component {
 					onCancel={this.onWalletConnectSessionRejected}
 					onConfirm={this.onWalletConnectSessionApproval}
 					currentPageInformation={{
-						title: walletConnectRequestMeta.name,
-						url: walletConnectRequest.url,
-						icon: walletConnectRequest.icons && walletConnectRequest.icons[0]
+						title: meta.name,
+						url: meta.url,
+						icon: meta.icons && meta.icons[0]
 					}}
 				/>
 			</Modal>
