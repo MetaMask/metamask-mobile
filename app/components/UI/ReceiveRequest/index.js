@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		position: 'absolute',
-		right: Platform.OS === 'ios' ? -40 : -40,
+		right: Platform.OS === 'ios' ? -40 : -50,
 		bottom: Platform.OS === 'ios' ? 8 : 10
 	},
 	titleWrapper: {
