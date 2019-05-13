@@ -781,7 +781,12 @@ class DrawerView extends Component {
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
 						>
-							<Icon name={'qrcode'} size={22} color={colors.blue} style={styles.buttonIcon} />
+							<MaterialIcon
+								name={'keyboard-tab'}
+								size={22}
+								color={colors.blue}
+								style={[styles.buttonIcon, { transform: [{ rotate: '90deg' }] }]}
+							/>
 							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>

@@ -187,6 +187,7 @@ class AssetOverview extends Component {
 					middleText={strings('asset_overview.receive_button').toUpperCase()}
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onReceive}
+					middleType={'receive'}
 				/>
 			</View>
 		);
