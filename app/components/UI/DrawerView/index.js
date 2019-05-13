@@ -44,6 +44,7 @@ import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 
+const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -167,6 +168,12 @@ const styles = StyleSheet.create({
 	},
 	buttonIcon: {
 		marginTop: 0
+	},
+	buttonReceive: {
+		transform:
+			Platform.OS === 'ios'
+				? [{ rotate: '90deg' }]
+				: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
 	},
 	menu: {},
 	noTopBorder: {
@@ -785,7 +792,7 @@ class DrawerView extends Component {
 								name={'keyboard-tab'}
 								size={22}
 								color={colors.blue}
-								style={[styles.buttonIcon, { transform: [{ rotate: '90deg' }] }]}
+								style={[styles.buttonIcon, styles.buttonReceive]}
 							/>
 							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>

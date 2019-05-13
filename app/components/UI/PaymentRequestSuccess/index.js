@@ -8,7 +8,8 @@ import {
 	Text,
 	StyleSheet,
 	InteractionManager,
-	TouchableOpacity
+	TouchableOpacity,
+	Platform
 } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../styles/common';
@@ -125,8 +126,8 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		position: 'absolute',
-		right: -30,
-		bottom: 8
+		right: Platform.OS === 'ios' ? -30 : -40,
+		bottom: Platform.OS === 'ios' ? 8 : 10
 	},
 	qrCode: {
 		marginBottom: 16,

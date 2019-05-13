@@ -213,77 +213,99 @@ exports[`ReceiveRequest should render correctly 1`] = `
             "borderRadius": 8,
             "justifyContent": "center",
             "marginBottom": 16,
-            "paddingBottom": 40,
+            "paddingBottom": 24,
             "paddingHorizontal": 36,
             "paddingTop": 16,
           }
         }
       >
-        <Text
+        <View
           style={
             Object {
-              "fontFamily": "Roboto",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "marginBottom": 16,
+              "flexDirection": "row",
             }
           }
         >
-          Public Address QR Code
-        </Text>
-        <QRCode
-          backgroundColor="white"
-          color="black"
-          ecl="M"
-          logoBackgroundColor="white"
-          logoBorderRadius={0}
-          logoMargin={2}
-          logoSize={20}
-          size={590}
-          value="ethereum:0x"
-        />
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "marginBottom": 16,
+              }
+            }
+          >
+            Public Address QR Code
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              Object {
+                "bottom": 8,
+                "position": "absolute",
+                "right": -40,
+              }
+            }
+          >
+            <Icon
+              allowFontScaling={false}
+              color="#000000"
+              name="ios-close"
+              size={28}
+            />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            Object {
+              "borderColor": "#9fa6ae",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "padding": 15,
+            }
+          }
+        >
+          <QRCode
+            backgroundColor="white"
+            color="black"
+            ecl="M"
+            logoBackgroundColor="white"
+            logoBorderRadius={0}
+            logoMargin={2}
+            logoSize={20}
+            size={590}
+            value="ethereum:0x"
+          />
+        </View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#f2f3f4",
+              "borderRadius": 5,
+              "justifyContent": "center",
+              "marginTop": 10,
+              "paddingHorizontal": 16,
+              "paddingTop": 16,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "textAlign": "center",
+              }
+            }
+          >
+            0x
+          </Text>
+        </View>
       </View>
-      <TouchableOpacity
-        activeOpacity={0.2}
-        style={
-          Object {
-            "alignItems": "center",
-            "backgroundColor": "#f2f3f4",
-            "borderRadius": 5,
-            "justifyContent": "center",
-            "marginBottom": 20,
-            "marginLeft": 10,
-            "marginRight": 10,
-            "marginTop": 10,
-            "paddingHorizontal": 16,
-            "paddingVertical": 16,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "fontFamily": "Roboto",
-              "fontSize": 16,
-              "fontWeight": "400",
-              "marginBottom": 16,
-            }
-          }
-        >
-          Public Address
-        </Text>
-        <Text
-          style={
-            Object {
-              "fontFamily": "Courier",
-              "fontSize": 17,
-              "letterSpacing": 2,
-            }
-          }
-        >
-          0x
-        </Text>
-      </TouchableOpacity>
     </View>
   </ReactNativeModal>
   <ReactNativeModal

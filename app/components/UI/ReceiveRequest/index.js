@@ -99,8 +99,8 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		position: 'absolute',
-		right: -40,
-		bottom: 8
+		right: Platform.OS === 'ios' ? -40 : -40,
+		bottom: Platform.OS === 'ios' ? 8 : 10
 	},
 	titleWrapper: {
 		marginVertical: 8
