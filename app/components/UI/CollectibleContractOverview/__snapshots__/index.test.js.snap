@@ -57,6 +57,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
   <AssetActionButtons
     leftText="Send"
     middleText="Add"
+    middleType="add"
     onLeftPress={[Function]}
     onMiddlePress={[Function]}
     onRightPress={[Function]}
