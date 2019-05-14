@@ -13,6 +13,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 const HOMEPAGE_URL = 'about:blank';
 
 const styles = StyleSheet.create({
@@ -22,8 +23,13 @@ const styles = StyleSheet.create({
 		marginBottom: 12
 	},
 	metamaskName: {
-		width: 94,
-		height: 12
+		width: 122,
+		height: 15
+	},
+	metamaskFox: {
+		width: 40,
+		height: 40,
+		marginRight: 10
 	},
 	metamaskNameWrapper: {
 		marginLeft: Platform.OS === 'android' ? 20 : 0
@@ -46,6 +52,9 @@ const styles = StyleSheet.create({
 		paddingRight: Platform.OS === 'android' ? 22 : 18,
 		marginTop: 5
 	},
+	closeButton: {
+		paddingHorizontal: Platform.OS === 'android' ? 22 : 18
+	},
 	infoButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
 		paddingRight: Platform.OS === 'android' ? 22 : 18,
@@ -61,9 +70,6 @@ const styles = StyleSheet.create({
 	flex: {
 		flex: 1
 	},
-	closeButton: {
-		paddingHorizontal: 22
-	},
 	closeButtonText: {
 		color: colors.blue,
 		fontSize: 14,
@@ -78,22 +84,36 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	browserRightButtonAndroid: {
-		flex: 0,
+		flex: 1,
+		width: 95,
 		flexDirection: 'row'
 	},
 	browserRightButton: {
 		flex: 1
 	},
 	browserMoreIconAndroid: {
-		paddingTop: 10,
-		marginLeft: -10
+		paddingTop: 10
 	},
 	disabled: {
 		opacity: 0.3
+	},
+	optinHeaderLeft: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginLeft: Platform.OS === 'ios' ? 20 : 0,
+		marginRight: Platform.OS === 'ios' ? 20 : 0
+	},
+	tabIconAndroid: {
+		marginTop: 13,
+		marginLeft: -10,
+		marginRight: 3,
+		width: 24,
+		height: 24
 	}
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -129,6 +149,7 @@ export default function getNavbarOptions(title, navigation) {
  * This is used by views that will show our custom navbar which contains Title
  *
  * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getNavigationOptionsTitle(title, navigation) {
@@ -148,6 +169,70 @@ export function getNavigationOptionsTitle(title, navigation) {
 					size={Platform.OS === 'android' ? 24 : 28}
 					style={styles.backIcon}
 				/>
+			</TouchableOpacity>
+		)
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * This is used by payment request view showing close and back buttons
+ *
+ * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
+ */
+export function getPaymentRequestOptionsTitle(title, navigation) {
+	const goBack = navigation.getParam('dispatch', undefined);
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerTintColor: colors.blue,
+		headerLeft: goBack ? (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => goBack()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		) : (
+			<View />
+		),
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<IonicIcon name={'ios-close'} size={38} style={styles.backIcon} />
+			</TouchableOpacity>
+		)
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * This is used by payment request view showing close button
+ *
+ * @returns {Object} - Corresponding navbar options containing title, and headerRight
+ */
+export function getPaymentRequestSuccessOptionsTitle(navigation) {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0
+		},
+		headerTintColor: colors.blue,
+		headerLeft: <View />,
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
 		)
 	};
@@ -226,16 +311,25 @@ export function getBrowserViewNavbarOptions(navigation) {
 			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
 				<AccountRightButton />
 				{Platform.OS === 'android' ? (
-					<TouchableOpacity
-						// eslint-disable-next-line
-						onPress={() => {
-							navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
-						}}
-						style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
-						disabled={optionsDisabled}
-					>
-						<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
-					</TouchableOpacity>
+					<React.Fragment>
+						<TabCountIcon
+							// eslint-disable-next-line
+							onPress={() => {
+								navigation.navigate('BrowserView', { ...navigation.state.params, showTabs: true });
+							}}
+							style={styles.tabIconAndroid}
+						/>
+						<TouchableOpacity
+							// eslint-disable-next-line
+							onPress={() => {
+								navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
+							}}
+							style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
+							disabled={optionsDisabled}
+						>
+							<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
+						</TouchableOpacity>
+					</React.Fragment>
 				) : null}
 			</View>
 		)
@@ -265,9 +359,9 @@ export function getModalNavbarOptions(title) {
 export function getOnboardingNavbarOptions() {
 	return {
 		headerStyle: {
-			shadowColor: 'transparent',
+			shadowColor: colors.transparent,
 			elevation: 0,
-			backgroundColor: 'white',
+			backgroundColor: colors.white,
 			borderBottomWidth: 0
 		},
 		headerTitle: (
@@ -279,6 +373,33 @@ export function getOnboardingNavbarOptions() {
 	};
 }
 
+/**
+ * Function that returns the navigation options
+ * for our metric opt-in screen
+ *
+ * @returns {Object} - Corresponding navbar options containing headerLeft
+ */
+export function getOptinMetricsNavbarOptions() {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0,
+			height: 100
+		},
+		headerLeft: (
+			<View style={styles.optinHeaderLeft}>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
+				</View>
+				<View style={styles.metamaskNameWrapper}>
+					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+				</View>
+			</View>
+		)
+	};
+}
 /**
  * Function that returns the navigation options
  * for our closable screens,

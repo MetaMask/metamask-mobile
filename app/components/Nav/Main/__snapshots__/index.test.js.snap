@@ -119,6 +119,19 @@ exports[`Main should render correctly 1`] = `
             "getStateForAction": [Function],
           },
           "LockScreen": null,
+          "PaymentRequestView": Object {
+            "childRouters": Object {
+              "PaymentRequest": null,
+              "PaymentRequestSuccess": null,
+            },
+            "getActionCreators": [Function],
+            "getActionForPathAndParams": [Function],
+            "getComponentForRouteName": [Function],
+            "getComponentForState": [Function],
+            "getPathAndParamsForState": [Function],
+            "getScreenOptions": [Function],
+            "getStateForAction": [Function],
+          },
           "QRScanner": null,
           "SendView": Object {
             "childRouters": Object {
@@ -366,6 +379,19 @@ exports[`Main should render correctly 1`] = `
               "getStateForAction": [Function],
             },
             "LockScreen": null,
+            "PaymentRequestView": Object {
+              "childRouters": Object {
+                "PaymentRequest": null,
+                "PaymentRequestSuccess": null,
+              },
+              "getActionCreators": [Function],
+              "getActionForPathAndParams": [Function],
+              "getComponentForRouteName": [Function],
+              "getComponentForState": [Function],
+              "getPathAndParamsForState": [Function],
+              "getScreenOptions": [Function],
+              "getStateForAction": [Function],
+            },
             "QRScanner": null,
             "SendView": Object {
               "childRouters": Object {

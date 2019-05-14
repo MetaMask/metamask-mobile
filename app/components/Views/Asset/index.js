@@ -69,6 +69,7 @@ class Asset extends Component {
 	txs = [];
 	txsPending = [];
 	isNormalizing = false;
+	networkType = '';
 
 	static navigationOptions = ({ navigation }) =>
 		getNetworkNavbarOptions(navigation.getParam('symbol', ''), false, navigation);
@@ -136,6 +137,7 @@ class Asset extends Component {
 			if (
 				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
 				this.txs.length !== txs.length ||
+				this.networkType !== networkType ||
 				this.didTxStatusesChange(newPendingTxs)
 			) {
 				this.txs = txs;
@@ -146,6 +148,7 @@ class Asset extends Component {
 			this.setState({ transactionsUpdated: true, loading: false });
 		}
 		this.isNormalizing = false;
+		this.networkType = networkType;
 	}
 
 	renderLoader = () => (

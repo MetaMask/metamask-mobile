@@ -37,6 +37,8 @@ import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import PaymentRequest from '../../UI/PaymentRequest';
+import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Engine from '../../../core/Engine';
@@ -46,6 +48,7 @@ import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import OnboardingWizard from '../../UI/OnboardingWizard';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -188,6 +191,21 @@ const MainNavigator = createStackNavigator(
 		},
 		LockScreen: {
 			screen: LockScreen
+		},
+		PaymentRequestView: {
+			screen: createStackNavigator(
+				{
+					PaymentRequest: {
+						screen: PaymentRequest
+					},
+					PaymentRequestSuccess: {
+						screen: PaymentRequestSuccess
+					}
+				},
+				{
+					mode: 'modal'
+				}
+			)
 		},
 		SetPasswordFlow: {
 			screen: createStackNavigator(
@@ -359,12 +377,14 @@ class Main extends Component {
 
 	render() {
 		const { forceReload } = this.state;
+
 		return (
 			<View style={styles.flex}>
 				{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
 				{this.renderOnboardingWizard()}
 				<GlobalAlert />
 				<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
+				<FadeOutOverlay />
 			</View>
 		);
 	}

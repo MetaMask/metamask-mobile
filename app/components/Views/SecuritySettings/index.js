@@ -144,7 +144,8 @@ class Settings extends Component {
 		approvalModalVisible: false,
 		biometryChoice: null,
 		biometryType: null,
-		browserHistoryModalVisible: false
+		browserHistoryModalVisible: false,
+		metricsOptIn: 'denied'
 	};
 
 	autolockOptions = [
@@ -192,14 +193,16 @@ class Settings extends Component {
 
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		let bioEnabled = false;
 		if (biometryType) {
 			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
-			let bioEnabled = false;
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
 				bioEnabled = true;
 			}
-			this.setState({ biometryType, biometryChoice: bioEnabled });
 		}
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		const optIn = metricsOptIn === 'agreed';
+		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn: optIn });
 	};
 
 	onBiometryChange = async enabled => {
@@ -252,6 +255,16 @@ class Settings extends Component {
 		this.props.setPrivacyMode(value);
 	};
 
+	toggleMetricsOptIn = async value => {
+		if (value) {
+			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
+			this.setState({ metricsOptIn: true });
+		} else {
+			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+			this.setState({ metricsOptIn: false });
+		}
+	};
+
 	goToRevealPrivateCredential = () => {
 		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
 	};
@@ -266,10 +279,9 @@ class Settings extends Component {
 
 	render = () => {
 		const { approvedHosts, browserHistory, privacyMode } = this.props;
-		const { approvalModalVisible, biometryType, browserHistoryModalVisible } = this.state;
+		const { approvalModalVisible, biometryType, browserHistoryModalVisible, metricsOptIn } = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -280,6 +292,18 @@ class Settings extends Component {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
+								trackColor={Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null}
+								ios_backgroundColor={colors.grey000}
+							/>
+						</View>
+					</View>
+					<View style={styles.setting}>
+						<Text style={styles.title}>{strings('app_settings.metametrics_title')}</Text>
+						<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
+						<View style={styles.switchElement}>
+							<Switch
+								value={metricsOptIn}
+								onValueChange={this.toggleMetricsOptIn}
 								trackColor={Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null}
 								ios_backgroundColor={colors.grey000}
 							/>
