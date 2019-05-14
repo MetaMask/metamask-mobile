@@ -10,21 +10,25 @@ const NetworkList = {
 	mainnet: {
 		name: 'Ethereum Main Network',
 		networkId: 1,
+		chanId: 1,
 		color: '#3cc29e'
 	},
 	ropsten: {
 		name: 'Ropsten Test Network',
 		networkId: 3,
+		chainId: 3,
 		color: '#ff4a8d'
 	},
 	kovan: {
 		name: 'Kovan Test Network',
 		networkId: 42,
+		chainId: 42,
 		color: '#7057ff'
 	},
 	rinkeby: {
 		name: 'Rinkeby Test Network',
 		networkId: 4,
+		chainId: 4,
 		color: '#f6c343'
 	},
 	rpc: {

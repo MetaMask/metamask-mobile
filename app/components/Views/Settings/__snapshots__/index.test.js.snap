@@ -27,6 +27,11 @@ exports[`Settings should render correctly 1`] = `
       title="Security & Privacy"
     />
     <SettingsDrawer
+      description="WalletConnect & more..."
+      onPress={[Function]}
+      title="Experimental"
+    />
+    <SettingsDrawer
       onPress={[Function]}
       title="About MetaMask"
     />
