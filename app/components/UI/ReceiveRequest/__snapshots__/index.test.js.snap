@@ -124,10 +124,12 @@ exports[`ReceiveRequest should render correctly 1`] = `
         actionDescription="Request assets from friends"
         actionTitle="Request"
         icon={
-          <Icon
-            allowFontScaling={false}
+          <IconClass
+            brand={false}
             color="#000000"
-            name="download"
+            light={false}
+            name="hand-holding"
+            regular={false}
             size={30}
             solid={true}
           />
