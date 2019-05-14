@@ -730,5 +730,41 @@
 		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
 		"required": "(required)",
 		"button": "PROCEED NOW"
+	},
+	"payment_request": {
+		"title": "Request",
+		"search_top_picks": "Top picks",
+		"search_assets": "Search assets",
+		"search_results": "Search results",
+		"search_no_tokens_found": "No tokens found",
+		"your_tokens": "Your tokens",
+		"enter_amount": "Enter amount",
+		"choose_asset": "Choose an asset to request",
+		"request_error": "Invalid request, please try again",
+		"reset": "Reset",
+		"next": "Next",
+		"amount_placeholder": "0.00",
+		"link_copied": "Link copied to clipboard",
+		"send_link_title": "Send Link",
+		"description_1": "Your request link is ready to send!",
+		"description_2": "Send this link to a friend, and it will ask them to send",
+		"copy_to_clipboard": "Copy to Clipboard",
+		"qr_code": "QR Code",
+		"send_link": "Send Link",
+		"request_qr_code": "Payment Request QR Code"
+	},
+	"receive_request": {
+		"title": "Receive",
+		"share_title": "Share Address",
+		"share_description": "Email or text your address",
+		"qr_code_title": "QR Code",
+		"qr_code_description": "Scannable image that can read your address",
+		"request_title": "Request",
+		"request_description": "Request assets from friends",
+		"buy_title": "Buy",
+		"buy_description": "Buy Crypto with Credit Card",
+		"public_address": "Public Address",
+		"public_address_qr_code": "Public Address QR Code",
+		"coming_soon": "Coming soon..."
 	}
 }
