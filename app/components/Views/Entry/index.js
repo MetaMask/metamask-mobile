@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, Dimensions, StyleSheet, Image, View } from 'react-native';
+import { Platform, Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { baseStyles } from '../../../styles/common';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
+import { colors } from '../../../styles/common';
 
 /**
  * Entry Screen that decides which screen to show
@@ -17,28 +17,44 @@ import { connect } from 'react-redux';
  * while showing the fox
  */
 const LOGO_SIZE = 194;
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
+const LOGO_PADDING = 25;
 const styles = StyleSheet.create({
+	main: {
+		flex: 1,
+		backgroundColor: colors.white
+	},
 	metamaskName: {
-		marginLeft: 6,
+		marginTop: 10,
 		height: 30,
 		width: 190,
-		alignSelf: 'center'
+		alignSelf: 'center',
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	logoWrapper: {
-		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2,
-		height: LOGO_SIZE
+		backgroundColor: colors.white,
+		paddingTop: 50,
+		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2 - LOGO_PADDING,
+		height: LOGO_SIZE + LOGO_PADDING * 2
+	},
+	foxAndName: {
+		alignSelf: 'center',
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	animation: {
-		width: 400,
-		height: 400
+		width: 125,
+		height: 125,
+		alignSelf: 'center',
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	fox: {
 		width: 125,
 		height: 125,
 		alignSelf: 'center',
-		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 
@@ -59,6 +75,7 @@ class Entry extends Component {
 	};
 
 	animation = React.createRef();
+	animationName = React.createRef();
 	opacity = new Animated.Value(1);
 
 	componentDidMount() {
@@ -69,12 +86,22 @@ class Entry extends Component {
 			} else {
 				this.animateAndGoTo('OnboardingRootNav');
 			}
-		}, 1900);
+		}, 100);
 	}
 
 	animateAndGoTo(view) {
 		this.setState({ viewToGo: view }, () => {
-			this.animation.play();
+			if (Platform.OS === 'android') {
+				setTimeout(() => {
+					this.animation.play(0, 25);
+					setTimeout(() => {
+						this.animationName.play();
+					}, 1);
+				}, 50);
+			} else {
+				this.animation.play();
+				this.animationName.play();
+			}
 		});
 	}
 
@@ -82,13 +109,21 @@ class Entry extends Component {
 		setTimeout(() => {
 			Animated.timing(this.opacity, {
 				toValue: 0,
-				duration: 400,
+				duration: 300,
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
-				this.props.navigation.navigate(this.state.viewToGo);
+				if (this.state.viewToGo !== 'WalletView') {
+					this.props.navigation.navigate(this.state.viewToGo);
+				} else {
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
+				}
 			});
-		}, 1750);
+		}, 100);
 	};
 
 	async unlockKeychain() {
@@ -104,16 +139,12 @@ class Entry extends Component {
 				// Check if user passed through metrics opt-in screen
 				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 				if (!metricsOptIn) {
-					this.props.navigation.navigate('OptinMetrics');
+					this.animateAndGoTo('OptinMetrics');
 				} else if (onboardingWizard) {
-					this.props.navigation.navigate('HomeNav');
+					this.animateAndGoTo('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate(
-						'HomeNav',
-						{},
-						NavigationActions.navigate({ routeName: 'WalletView' })
-					);
+					this.animateAndGoTo('WalletView');
 				}
 			} else {
 				this.animateAndGoTo('Login');
@@ -137,25 +168,35 @@ class Entry extends Component {
 		}
 
 		return (
-			<LottieView
-				// eslint-disable-next-line react/jsx-no-bind
-				ref={animation => {
-					this.animation = animation;
-				}}
-				style={styles.animation}
-				loop={false}
-				source={require('../../../animations/fox-in-out.json')}
-				onAnimationFinish={this.onAnimationFinished}
-			/>
+			<View style={styles.foxAndName}>
+				<LottieView
+					// eslint-disable-next-line react/jsx-no-bind
+					ref={animation => {
+						this.animation = animation;
+					}}
+					style={styles.animation}
+					loop={false}
+					source={require('../../../animations/fox-in.json')}
+					onAnimationFinish={this.onAnimationFinished}
+				/>
+				<LottieView
+					// eslint-disable-next-line react/jsx-no-bind
+					ref={animation => {
+						this.animationName = animation;
+					}}
+					style={styles.metamaskName}
+					loop={false}
+					source={require('../../../animations/wordmark.json')}
+				/>
+			</View>
 		);
 	}
 
 	render() {
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={styles.main}>
 				<Animated.View style={[styles.logoWrapper, { opacity: this.opacity }]}>
 					<View style={styles.fox}>{this.renderAnimations()}</View>
-					<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 				</Animated.View>
 			</View>
 		);
