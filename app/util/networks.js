@@ -27,6 +27,7 @@ const NetworkList = {
 	},
 	rinkeby: {
 		name: 'Rinkeby Test Network',
+		networkId: 4,
 		chainId: 4,
 		color: '#f6c343'
 	},

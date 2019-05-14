@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Account access approval component
+ * WalletConnect request approval component
  */
 class WalletConnectSessionApproval extends Component {
 	static propTypes = {
