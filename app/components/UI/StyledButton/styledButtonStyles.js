@@ -20,13 +20,13 @@ const styles = StyleSheet.create({
 		color: colors.white
 	},
 	orange: {
-		backgroundColor: colors.blueFox
+		backgroundColor: colors.blue
 	},
 	orangeText: {
 		color: colors.white
 	},
 	infoText: {
-		color: colors.blueFox
+		color: colors.blue
 	},
 	confirm: {
 		backgroundColor: colors.blue,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
 	info: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.blueFox
+		borderColor: colors.blue
 	},
 	warningText: {
 		color: colors.red
