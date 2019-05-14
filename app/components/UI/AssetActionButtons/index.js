@@ -45,6 +45,11 @@ const styles = StyleSheet.create({
 	sendIcon: {
 		paddingTop: 0,
 		paddingLeft: 0
+	},
+	receive: {
+		right: 1,
+		bottom: 1,
+		transform: [{ rotate: '90deg' }]
 	}
 });
 
@@ -74,13 +79,17 @@ export default class AssetActionButtons extends Component {
 		 */
 		middleText: PropTypes.string,
 		/**
+		 * Middle button type, receive or add
+		 */
+		middleType: PropTypes.oneOf(['add', 'receive']),
+		/**
 		 * String to display on left button
 		 */
 		rightText: PropTypes.string
 	};
 
 	render() {
-		const { onLeftPress, onMiddlePress, onRightPress, leftText, middleText, rightText } = this.props;
+		const { onLeftPress, onMiddlePress, onRightPress, leftText, middleText, rightText, middleType } = this.props;
 		return (
 			<View style={styles.buttons}>
 				{leftText && (
@@ -99,7 +108,16 @@ export default class AssetActionButtons extends Component {
 
 				<TouchableOpacity type={'normal'} onPress={onMiddlePress} style={styles.button}>
 					<View style={styles.buttonIconWrapper}>
-						<Ionicon name={'ios-add'} size={30} color={colors.white} style={styles.buttonIcon} />
+						{middleType === 'add' ? (
+							<Ionicon name={'ios-add'} size={30} color={colors.white} style={styles.buttonIcon} />
+						) : (
+							<MaterialCommunityIcon
+								name={'keyboard-tab'}
+								size={20}
+								color={colors.white}
+								style={[styles.buttonIcon, styles.receive]}
+							/>
+						)}
 					</View>
 					<Text style={styles.buttonText}>{middleText}</Text>
 				</TouchableOpacity>

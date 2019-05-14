@@ -105,8 +105,9 @@ class AssetOverview extends Component {
 		primaryCurrency: PropTypes.string
 	};
 
-	onDeposit = () => {
-		this.props.toggleReceiveModal();
+	onReceive = () => {
+		const { asset } = this.props;
+		this.props.toggleReceiveModal(asset);
 	};
 
 	onSend = async () => {
@@ -185,7 +186,8 @@ class AssetOverview extends Component {
 					leftText={strings('asset_overview.send_button').toUpperCase()}
 					middleText={strings('asset_overview.receive_button').toUpperCase()}
 					onLeftPress={this.onSend}
-					onMiddlePress={this.onDeposit}
+					onMiddlePress={this.onReceive}
+					middleType={'receive'}
 				/>
 			</View>
 		);
@@ -204,7 +206,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 	setTokensTransaction: asset => dispatch(setTokensTransaction(asset)),
-	toggleReceiveModal: () => dispatch(toggleReceiveModal())
+	toggleReceiveModal: asset => dispatch(toggleReceiveModal(asset))
 });
 
 export default connect(

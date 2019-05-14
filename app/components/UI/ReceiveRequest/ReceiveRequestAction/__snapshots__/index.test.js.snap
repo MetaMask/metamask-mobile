@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ReceiveRequestAction should render correctly 1`] = `
+<AnimatedComponent
+  accessible={true}
+  isTVSelectable={true}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    Array [
+      Array [
+        Object {
+          "alignItems": "center",
+          "borderColor": "#037dd6",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "margin": 8,
+          "padding": 10,
+        },
+        undefined,
+      ],
+      Object {
+        "opacity": 1,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "alignSelf": "center",
+        },
+        Object {
+          "marginBottom": 5,
+        },
+      ]
+    }
+  />
+  <View
+    style={
+      Object {
+        "alignSelf": "center",
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "fontFamily": "Roboto",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "padding": 5,
+        }
+      }
+    >
+      Title
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "alignSelf": "center",
+      }
+    }
+  >
+    <Text
+      numberOfLines={2}
+      style={
+        Object {
+          "color": "#6a737d",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "padding": 5,
+          "textAlign": "center",
+        }
+      }
+    >
+      Description
+    </Text>
+  </View>
+</AnimatedComponent>
+`;
