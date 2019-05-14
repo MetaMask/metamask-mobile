@@ -65,7 +65,7 @@ export default class AddAsset extends Component {
 		const {
 			navigation: {
 				state: {
-					params: { assetType }
+					params: { assetType, collectibleContract }
 				}
 			},
 			navigation
@@ -86,7 +86,11 @@ export default class AddAsset extends Component {
 						/>
 					</ScrollableTabView>
 				) : (
-					<AddCustomCollectible navigation={navigation} testID={'add-custom-collectible'} />
+					<AddCustomCollectible
+						navigation={navigation}
+						collectibleContract={collectibleContract}
+						testID={'add-custom-collectible'}
+					/>
 				)}
 			</SafeAreaView>
 		);

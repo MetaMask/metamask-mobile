@@ -70,7 +70,8 @@ class CollectibleContractOverview extends Component {
 	};
 
 	onAdd = () => {
-		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
+		const { navigation, collectibleContract } = this.props;
+		navigation.push('AddAsset', { assetType: 'collectible', collectibleContract });
 	};
 
 	onSend = () => {
