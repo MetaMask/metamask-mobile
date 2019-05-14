@@ -296,6 +296,8 @@
 		"security_title": "Seguridad y privacidad",
 		"security_desc": "Opciones de privacidad, MetaMetrics y frase semilla de la billetera",
 		"info_title": "Acerca de MetaMask",
+		"experimental_title": "Experimental",
+		"experimental_desc": "WalletConnect & más...",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
@@ -567,6 +569,7 @@
 	},
 	"accountApproval": {
 		"title": "SOLICITUD DE CONEXIÓN ",
+		"walletconnect_title": "SOLICITUD DE CONEXIÓN VIA WALLETCONNECT ",
 		"action": "le gustaría",
 		"connect": "CONECTAR",
 		"cancel": "CANCELAR",
@@ -754,5 +757,18 @@
 		"public_address": "Dirección Pública",
 		"public_address_qr_code": "Código QR de Dirección Pública",
 		"coming_soon": "Pronto..."
-	}
+	},
+  "experimental_settings": {
+		"wallet_connect_dapps": "Sesiones de WalletConnect",
+		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
+		"wallet_connect_dapps_cta": "VER SESIONES"
+	},
+	"walletconnect_sessions": {
+		"no_active_sessions": "No tienes sesiones activas",
+		"end_session_title": "Finalizar Sesión",
+		"end": "Finalizar",
+		"cancel": "Cancelar",
+		"session_ended_title": "Sesión Finalizada",
+		"session_ended_desc": "La sesión seleccionada ha sido terminada"
+  }
 }
