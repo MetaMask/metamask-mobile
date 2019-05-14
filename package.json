@@ -55,6 +55,7 @@
   "dependencies": {
     "@react-native-community/async-storage": "1.2.0",
     "@tradle/react-native-http": "2.0.1",
+    "@walletconnect/react-native": "1.0.0-beta.22",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "base-64": "0.1.0",
     "bignumber.js": "8.1.1",
