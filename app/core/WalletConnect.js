@@ -6,8 +6,8 @@ import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
 
 const hub = new EventEmitter();
-const connectors = [];
-const DEFAULT_OPTIONS = {
+let connectors = [];
+const CLIENT_OPTIONS = {
 	clientMeta: {
 		// Required
 		description: 'MetaMask Mobile app',
@@ -25,12 +25,12 @@ const DEFAULT_OPTIONS = {
 	// }
 };
 
-const persistSessions = () => {
+const persistSessions = async () => {
 	const sessions = connectors
-		.filter(connector => connector && connector.walletConnector)
+		.filter(connector => connector && connector.walletConnector && connector && connector.walletConnector.connected)
 		.map(connector => connector.walletConnector.session);
 
-	AsyncStorage.setItem('@MetaMask:walletconnectSessions', JSON.stringify(sessions));
+	await AsyncStorage.setItem('@MetaMask:walletconnectSessions', JSON.stringify(sessions));
 };
 
 class WalletConnect {
@@ -38,11 +38,7 @@ class WalletConnect {
 	chainId = null;
 
 	constructor(options) {
-		this.walletConnector = new RNWalletConnect({
-			...DEFAULT_OPTIONS,
-			...options
-		});
-
+		this.walletConnector = new RNWalletConnect(options, CLIENT_OPTIONS);
 		/**
 		 *  Subscribe to session requests
 		 */
@@ -54,13 +50,11 @@ class WalletConnect {
 			try {
 				await this.sessionRequest(payload.params[0]);
 
-				Logger.log('WalletConnect request payload', payload);
-
-				const { network, selectedAddress } = Engine.datamodel.flatState;
-				this.selectedAddress = selectedAddress;
+				const { network } = Engine.context.NetworkController.state;
+				this.selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
 				const approveData = {
 					chainId: parseInt(network, 10),
-					accounts: [selectedAddress]
+					accounts: [this.selectedAddress]
 				};
 				this.walletConnector.approveSession(approveData);
 				persistSessions();
@@ -76,6 +70,8 @@ class WalletConnect {
 			if (error) {
 				throw error;
 			}
+
+			const meta = this.walletConnector.session.peerMeta;
 
 			if (payload.method) {
 				if (payload.method === 'eth_sendTransaction') {
@@ -104,10 +100,16 @@ class WalletConnect {
 					}
 				} else if (payload.method === 'eth_sign' || payload.method === 'personal_sign') {
 					const { PersonalMessageManager } = Engine.context;
+
 					try {
 						const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 							data: payload.params[1],
-							from: payload.params[0]
+							from: payload.params[0],
+							meta: {
+								title: meta && meta.name,
+								url: meta && meta.url,
+								icon: meta && meta.icons && meta.icons[0]
+							}
 						});
 						this.walletConnector.approveRequest({
 							id: payload.id,
@@ -125,7 +127,12 @@ class WalletConnect {
 						const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 							{
 								data: payload.params[1],
-								from: payload.params[0]
+								from: payload.params[0],
+								meta: {
+									title: meta && meta.name,
+									url: meta && meta.url,
+									icon: meta && meta.icons && meta.icons[0]
+								}
 							},
 							'V3'
 						);
@@ -151,7 +158,7 @@ class WalletConnect {
 
 			// delete walletConnector
 			this.walletConnector = null;
-			this.removeSession();
+			persistSessions();
 		});
 
 		this.walletConnector.on('session_update', (error, payload) => {
@@ -200,7 +207,7 @@ class WalletConnect {
 
 	killSession = () => {
 		this.walletConnector && this.walletConnector.killSession();
-		this.removeSession();
+		this.walletConnector = null;
 	};
 
 	sessionRequest = peerInfo =>
@@ -208,21 +215,21 @@ class WalletConnect {
 			hub.emit('walletconnectSessionRequest', peerInfo);
 
 			hub.on('walletconnectSessionRequest::approved', peerId => {
-				if (this.peerId === peerId) {
+				if (peerInfo.peerId === peerId) {
 					resolve(true);
 				}
 			});
 			hub.on('walletconnectSessionRequest::rejected', peerId => {
-				if (this.peerId === peerId) {
+				if (peerInfo.peerId === peerId) {
 					reject(false);
 				}
 			});
 		});
 }
 
-export default {
-	init() {
-		const sessionData = AsyncStorage.getItem('@MetaMask:walletconnectSessions');
+const instance = {
+	async init() {
+		const sessionData = await AsyncStorage.getItem('@MetaMask:walletconnectSessions');
 		if (sessionData) {
 			const sessions = JSON.parse(sessionData);
 			sessions.forEach(session => {
@@ -230,13 +237,44 @@ export default {
 			});
 		}
 	},
+	connectors() {
+		return connectors;
+	},
 	newSession(uri) {
 		connectors.push(new WalletConnect({ uri }));
 	},
+	getSessions: async () => {
+		let sessions = [];
+		const sessionData = await AsyncStorage.getItem('@MetaMask:walletconnectSessions');
+		if (sessionData) {
+			sessions = JSON.parse(sessionData);
+		}
+		return sessions;
+	},
+	killSession: async id => {
+		// 1) First kill the session
+		const connectorToKill = connectors.find(
+			connector => connector && connector.walletConnector && connector.walletConnector.session.peerId === id
+		);
+		if (connectorToKill) {
+			await connectorToKill.killSession();
+		}
+		// 2) Remove from the list of connectors
+		connectors = connectors.filter(
+			connector =>
+				connector &&
+				connector.walletConnector &&
+				connector.walletConnector.connected &&
+				connector.walletConnector.session.peerId !== id
+		);
+		// 3) Persist the list
+		await persistSessions();
+	},
 	hub,
 	shutdown() {
-		//TO DO: Store connectors
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PreferencesController.unsubscribe();
 	}
 };
+
+export default instance;

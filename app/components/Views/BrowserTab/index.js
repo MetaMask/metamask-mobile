@@ -431,12 +431,79 @@ export class BrowserTab extends PureComponent {
 		return { scrollAnim, offsetAnim, clampedScroll };
 	}
 
+	getPageMeta() {
+		return {
+			meta: {
+				title: this.state.currentPageTitle,
+				url: this.state.currentPageUrl
+			}
+		};
+	}
+
 	async componentDidMount() {
 		if (this.state.url !== HOMEPAGE_URL && Platform.OS === 'android' && this.isTabActive()) {
 			this.reload();
 		}
 		this.mounted = true;
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
+			eth_sign: async payload => {
+				const { PersonalMessageManager } = Engine.context;
+				try {
+					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+						data: payload.params[1],
+						from: payload.params[0],
+						...this.getPageMeta()
+					});
+					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+				} catch (error) {
+					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+				}
+			},
+			personal_sign: async payload => {
+				const { PersonalMessageManager } = Engine.context;
+				try {
+					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+						data: payload.params[0],
+						from: payload.params[1],
+						...this.getPageMeta()
+					});
+					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+				} catch (error) {
+					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+				}
+			},
+			eth_signTypedData: async payload => {
+				const { TypedMessageManager } = Engine.context;
+				try {
+					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+						{
+							data: payload.params[0],
+							from: payload.params[1],
+							...this.getPageMeta()
+						},
+						'V1'
+					);
+					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+				} catch (error) {
+					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+				}
+			},
+			eth_signTypedData_v3: async payload => {
+				const { TypedMessageManager } = Engine.context;
+				try {
+					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
+						{
+							data: payload.params[1],
+							from: payload.params[0],
+							...this.getPageMeta()
+						},
+						'V3'
+					);
+					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+				} catch (error) {
+					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+				}
+			},
 			eth_requestAccounts: ({ hostname, params }) => {
 				const { approvedHosts, privacyMode, selectedAddress } = this.props;
 				const promise = new Promise((resolve, reject) => {

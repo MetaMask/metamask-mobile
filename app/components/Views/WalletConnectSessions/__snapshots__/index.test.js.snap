@@ -1,0 +1,142 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RevealPrivateCredential should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="reveal-private-credential-screen"
+>
+  <ActionView
+    cancelTestID=""
+    cancelText="Cancel"
+    confirmButtonMode="normal"
+    confirmTestID=""
+    confirmText="Next"
+    confirmed={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    showCancelButton={true}
+    showConfirmButton={true}
+  >
+    <View>
+      <View
+        style={
+          Array [
+            Object {
+              "padding": 20,
+            },
+            Object {
+              "borderBottomColor": "#848c96",
+              "borderBottomWidth": 1,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+            },
+          ]
+        }
+      >
+        <Text>
+          Save it somewhere safe and secret.
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "backgroundColor": "#fcf2f3",
+          }
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "padding": 20,
+              },
+              Object {
+                "alignContent": "center",
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+              },
+            ]
+          }
+        >
+          <Icon
+            allowFontScaling={false}
+            name="warning"
+            size={22}
+            style={
+              Object {
+                "color": "#D73A49",
+                "margin": 10,
+              }
+            }
+          />
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontWeight": "400",
+                "marginLeft": 10,
+                "marginRight": 40,
+              }
+            }
+          >
+            Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          Object {
+            "padding": 20,
+          }
+        }
+      >
+        <View>
+          <Text
+            style={
+              Object {
+                "marginBottom": 15,
+              }
+            }
+          >
+            Enter password to continue
+          </Text>
+          <TextInput
+            allowFontScaling={true}
+            onChangeText={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Password"
+            rejectResponderTermination={true}
+            secureTextEntry={true}
+            style={
+              Object {
+                "borderColor": "#f2f3f4",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "padding": 10,
+              }
+            }
+            testID="private-credential-password-text-input"
+            underlineColorAndroid="transparent"
+          />
+          <Text
+            style={
+              Object {
+                "color": "#D73A49",
+                "fontFamily": "Roboto",
+                "fontWeight": "400",
+                "marginTop": 10,
+              }
+            }
+          />
+        </View>
+      </View>
+    </View>
+  </ActionView>
+</SafeAreaView>
+`;

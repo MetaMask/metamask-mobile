@@ -16,6 +16,7 @@ import GeneralSettings from '../../Views/GeneralSettings';
 import AdvancedSettings from '../../Views/AdvancedSettings';
 import AppInformation from '../../UI/AppInformation';
 import SecuritySettings from '../../Views/SecuritySettings';
+import ExperimentalSettings from '../../Views/ExperimentalSettings';
 import Wallet from '../../Views/Wallet';
 import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
@@ -25,6 +26,7 @@ import Collectible from '../../Views/Collectible';
 import CollectibleView from '../../Views/CollectibleView';
 import Send from '../../Views/Send';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
+import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
 import ProtectYourAccount from '../../Views/ProtectYourAccount';
@@ -147,6 +149,9 @@ const MainNavigator = createStackNavigator(
 				SecuritySettings: {
 					screen: SecuritySettings
 				},
+				ExperimentalSettings: {
+					screen: ExperimentalSettings
+				},
 				CompanySettings: {
 					screen: AppInformation
 				},
@@ -155,6 +160,9 @@ const MainNavigator = createStackNavigator(
 				},
 				RevealPrivateCredentialView: {
 					screen: RevealPrivateCredential
+				},
+				WalletConnectSessionsView: {
+					screen: WalletConnectSessions
 				}
 			})
 		},
@@ -297,8 +305,6 @@ class Main extends Component {
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
-		WalletConnect.init();
-
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 
 		PushNotification.configure({
@@ -326,16 +332,33 @@ class Main extends Component {
 		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
 
 		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'personal' });
+			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+			delete messageParams.meta;
+			this.setState({
+				signMessage: true,
+				signMessageParams: messageParams,
+				signType: 'personal',
+				currentPageTitle,
+				currentPageUrl
+			});
 		});
 
 		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
-			this.setState({ signMessage: true, signMessageParams: messageParams, signType: 'typed' });
+			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+			delete messageParams.meta;
+			this.setState({
+				signMessage: true,
+				signMessageParams: messageParams,
+				signType: 'typed',
+				currentPageTitle,
+				currentPageUrl
+			});
 		});
 
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
 		});
+		WalletConnect.init();
 	};
 
 	onUnapprovedTransaction = transactionMeta => {
@@ -459,7 +482,7 @@ class Main extends Component {
 	};
 
 	onWalletConnectSessionApproval = () => {
-		const peerId = this.state.walletConnectRequestInfo.peerId;
+		const { peerId } = this.state.walletConnectRequestInfo;
 		this.setState({
 			walletConnectRequest: false,
 			walletConnectRequestInfo: {}
@@ -477,10 +500,10 @@ class Main extends Component {
 	};
 
 	renderWalletConnectSessionRequestModal = () => {
-		const {
-			walletConnectRequest,
-			walletConnectRequestInfo: { peerMeta: meta }
-		} = this.state;
+		const { walletConnectRequest, walletConnectRequestInfo } = this.state;
+
+		const meta = walletConnectRequestInfo.peerMeta || null;
+
 		return (
 			<Modal
 				isVisible={walletConnectRequest}
@@ -497,9 +520,8 @@ class Main extends Component {
 					onCancel={this.onWalletConnectSessionRejected}
 					onConfirm={this.onWalletConnectSessionApproval}
 					currentPageInformation={{
-						title: meta.name,
-						url: meta.url,
-						icon: meta.icons && meta.icons[0]
+						title: meta && meta.name,
+						url: meta && meta.url
 					}}
 				/>
 			</Modal>
