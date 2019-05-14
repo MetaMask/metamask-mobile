@@ -97,7 +97,15 @@ class Entry extends Component {
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
-				this.props.navigation.navigate(this.state.viewToGo);
+				if (this.state.viewToGo !== 'WalletView') {
+					this.props.navigation.navigate(this.state.viewToGo);
+				} else {
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
+				}
 			});
 		}, 100);
 	};
@@ -115,16 +123,12 @@ class Entry extends Component {
 				// Check if user passed through metrics opt-in screen
 				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 				if (!metricsOptIn) {
-					this.props.navigation.navigate('OptinMetrics');
+					this.animateAndGoTo('OptinMetrics');
 				} else if (onboardingWizard) {
-					this.props.navigation.navigate('HomeNav');
+					this.animateAndGoTo('HomeNav');
 				} else {
 					this.props.setOnboardingWizardStep(1);
-					this.props.navigation.navigate(
-						'HomeNav',
-						{},
-						NavigationActions.navigate({ routeName: 'WalletView' })
-					);
+					this.animateAndGoTo('WalletView');
 				}
 			} else {
 				this.animateAndGoTo('Login');
