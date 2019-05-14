@@ -49,7 +49,11 @@ class AddCustomCollectible extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Collectible contract object of collectible to add
+		 */
+		collectibleContract: PropTypes.object
 	};
 
 	componentDidMount = () => {
@@ -59,6 +63,8 @@ class AddCustomCollectible extends Component {
 			setTimeout(() => {
 				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
+		const { collectibleContract } = this.props;
+		collectibleContract && this.setState({ address: collectibleContract.address });
 	};
 
 	componentWillUnmount = () => {
