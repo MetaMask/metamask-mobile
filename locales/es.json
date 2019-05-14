@@ -138,7 +138,7 @@
 		"logout_cancel": "NO",
 		"feedback": "Feedback",
 		"metamask_support": "Soporte de MetaMask",
-		"public_address": "Public Address"
+		"public_address": "Dirección Pública"
 	},
 	"send": {
 		"title": "Enviar",
@@ -718,5 +718,41 @@
 		"body": "Ahora que tienes valor en tu billetera, crea la contraseña y guarda la frase semilla de tu billetera ",
 		"required": "(requerido)",
 		"button": "CONTINUAR"
+	},
+	"payment_request": {
+		"title": "Solicitud",
+		"search_top_picks": "Top tokens",
+		"search_assets": "Búsqueda de activo",
+		"search_results": "Resultados de búsqueda",
+		"search_no_tokens_found": "No se encontraron tokens",
+		"your_tokens": "Tus tokens",
+		"enter_amount": "Ingrese el monto",
+		"choose_asset": "Elija un activo para solicitar",
+		"request_error": "Solicitud no válida, inténtelo de nuevo",
+		"reset": "Resetear",
+		"next": "Siguiente",
+		"amount_placeholder": "0.00",
+		"link_copied": "Enlace copiado al portapapeles",
+		"send_link_title": "Enviar Enlace",
+		"description_1": "¡Tu enlace de solicitud está listo para enviar!",
+		"description_2": "Envíe este enlace a un amigo y le pedirá que lo envíe",
+		"copy_to_clipboard": "Copiar al Portapapeles",
+		"qr_code": "Código QR",
+		"send_link": "Enviar Enlace",
+		"request_qr_code": "Código QR de solicitud de pago"
+	},
+	"receive_request": {
+		"title": "Recibir",
+		"share_title": "Compartir Dirección",
+		"share_description": "Envíe por correo electrónico o envíe un mensaje de texto con su dirección",
+		"qr_code_title": "Código QR",
+		"qr_code_description": "Imagen escaneable que puede leer su dirección",
+		"request_title": "Solicitar",
+		"request_description": "Solicitar activos de amigos",
+		"buy_title": "Comprar",
+		"buy_description": "Compre con tarjeta de crédito",
+		"public_address": "Dirección Pública",
+		"public_address_qr_code": "Código QR de Dirección Pública",
+		"coming_soon": "Pronto..."
 	}
 }

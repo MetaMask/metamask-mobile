@@ -118,6 +118,7 @@ class CollectibleContractOverview extends Component {
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onAdd}
 					onRightPress={this.onInfo}
+					middleType={'add'}
 				/>
 			</View>
 		);

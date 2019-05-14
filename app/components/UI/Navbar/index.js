@@ -52,6 +52,9 @@ const styles = StyleSheet.create({
 		paddingRight: Platform.OS === 'android' ? 22 : 18,
 		marginTop: 5
 	},
+	closeButton: {
+		paddingHorizontal: Platform.OS === 'android' ? 22 : 18
+	},
 	infoButton: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
 		paddingRight: Platform.OS === 'android' ? 22 : 18,
@@ -66,9 +69,6 @@ const styles = StyleSheet.create({
 	},
 	flex: {
 		flex: 1
-	},
-	closeButton: {
-		paddingHorizontal: 22
 	},
 	closeButtonText: {
 		color: colors.blue,
@@ -149,6 +149,7 @@ export default function getNavbarOptions(title, navigation) {
  * This is used by views that will show our custom navbar which contains Title
  *
  * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getNavigationOptionsTitle(title, navigation) {
@@ -168,6 +169,70 @@ export function getNavigationOptionsTitle(title, navigation) {
 					size={Platform.OS === 'android' ? 24 : 28}
 					style={styles.backIcon}
 				/>
+			</TouchableOpacity>
+		)
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * This is used by payment request view showing close and back buttons
+ *
+ * @param {string} title - Title in string format
+ * @param {Object} navigation - Navigation object required to push new views
+ * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
+ */
+export function getPaymentRequestOptionsTitle(title, navigation) {
+	const goBack = navigation.getParam('dispatch', undefined);
+	return {
+		title,
+		headerTitleStyle: {
+			fontSize: 20,
+			color: colors.fontPrimary,
+			...fontStyles.normal
+		},
+		headerTintColor: colors.blue,
+		headerLeft: goBack ? (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => goBack()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		) : (
+			<View />
+		),
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<IonicIcon name={'ios-close'} size={38} style={styles.backIcon} />
+			</TouchableOpacity>
+		)
+	};
+}
+
+/**
+ * Function that returns the navigation options
+ * This is used by payment request view showing close button
+ *
+ * @returns {Object} - Corresponding navbar options containing title, and headerRight
+ */
+export function getPaymentRequestSuccessOptionsTitle(navigation) {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0
+		},
+		headerTintColor: colors.blue,
+		headerLeft: <View />,
+		headerRight: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.closeButton}>
+				<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
 		)
 	};

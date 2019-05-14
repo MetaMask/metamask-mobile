@@ -346,3 +346,15 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
+
+/**
+ * Formatc a string number in an string number with at most 5 decimal places
+ *
+ * @param {string} number - String containing a number
+ * @returns {string} - String number with none or at most 5 decimal places
+ */
+export function renderNumber(number) {
+	const index = number.indexOf('.');
+	if (index === 0) return number;
+	return number.substring(0, index + 6);
+}
