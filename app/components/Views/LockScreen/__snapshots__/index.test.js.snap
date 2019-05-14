@@ -71,6 +71,11 @@ exports[`LockScreen should render correctly 1`] = `
                         "ix": 2,
                         "k": Array [
                           Object {
+                            "e": Array [
+                              562.688,
+                              730.992,
+                              0,
+                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
@@ -97,6 +102,11 @@ exports[`LockScreen should render correctly 1`] = `
                             ],
                           },
                           Object {
+                            "e": Array [
+                              562.688,
+                              850.992,
+                              0,
+                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
@@ -123,11 +133,6 @@ exports[`LockScreen should render correctly 1`] = `
                             ],
                           },
                           Object {
-                            "s": Array [
-                              562.688,
-                              850.992,
-                              0,
-                            ],
                             "t": 22,
                           },
                         ],
@@ -164,6 +169,65 @@ exports[`LockScreen should render correctly 1`] = `
                               "ix": 2,
                               "k": Array [
                                 Object {
+                                  "e": Array [
+                                    Object {
+                                      "c": true,
+                                      "i": Array [
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                      ],
+                                      "o": Array [
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                      ],
+                                      "v": Array [
+                                        Array [
+                                          52.608,
+                                          -367.008,
+                                        ],
+                                        Array [
+                                          0.188,
+                                          -271.228,
+                                        ],
+                                        Array [
+                                          -52.232,
+                                          -367.008,
+                                        ],
+                                        Array [
+                                          0.188,
+                                          -462.788,
+                                        ],
+                                      ],
+                                    },
+                                  ],
                                   "i": Object {
                                     "x": 0.667,
                                     "y": 1,
@@ -234,6 +298,65 @@ exports[`LockScreen should render correctly 1`] = `
                                   "t": 0,
                                 },
                                 Object {
+                                  "e": Array [
+                                    Object {
+                                      "c": true,
+                                      "i": Array [
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                      ],
+                                      "o": Array [
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                        Array [
+                                          0,
+                                          0,
+                                        ],
+                                      ],
+                                      "v": Array [
+                                        Array [
+                                          52.608,
+                                          -367.008,
+                                        ],
+                                        Array [
+                                          0.188,
+                                          -271.228,
+                                        ],
+                                        Array [
+                                          51.768,
+                                          -367.008,
+                                        ],
+                                        Array [
+                                          0.188,
+                                          -462.788,
+                                        ],
+                                      ],
+                                    },
+                                  ],
                                   "i": Object {
                                     "x": 0.833,
                                     "y": 1,
@@ -304,65 +427,6 @@ exports[`LockScreen should render correctly 1`] = `
                                   "t": 10,
                                 },
                                 Object {
-                                  "s": Array [
-                                    Object {
-                                      "c": true,
-                                      "i": Array [
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                      ],
-                                      "o": Array [
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                        Array [
-                                          0,
-                                          0,
-                                        ],
-                                      ],
-                                      "v": Array [
-                                        Array [
-                                          52.608,
-                                          -367.008,
-                                        ],
-                                        Array [
-                                          0.188,
-                                          -271.228,
-                                        ],
-                                        Array [
-                                          51.768,
-                                          -367.008,
-                                        ],
-                                        Array [
-                                          0.188,
-                                          -462.788,
-                                        ],
-                                      ],
-                                    },
-                                  ],
                                   "t": 12,
                                 },
                               ],
@@ -480,6 +544,11 @@ exports[`LockScreen should render correctly 1`] = `
                         "ix": 2,
                         "k": Array [
                           Object {
+                            "e": Array [
+                              562.688,
+                              730.992,
+                              0,
+                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
@@ -506,6 +575,11 @@ exports[`LockScreen should render correctly 1`] = `
                             ],
                           },
                           Object {
+                            "e": Array [
+                              562.688,
+                              850.992,
+                              0,
+                            ],
                             "i": Object {
                               "x": 0.833,
                               "y": 0.833,
@@ -532,11 +606,6 @@ exports[`LockScreen should render correctly 1`] = `
                             ],
                           },
                           Object {
-                            "s": Array [
-                              562.688,
-                              850.992,
-                              0,
-                            ],
                             "t": 22,
                           },
                         ],
@@ -686,6 +755,9 @@ exports[`LockScreen should render correctly 1`] = `
                               "ix": 5,
                               "k": Array [
                                 Object {
+                                  "e": Array [
+                                    2,
+                                  ],
                                   "i": Object {
                                     "x": Array [
                                       0.833,
@@ -708,9 +780,6 @@ exports[`LockScreen should render correctly 1`] = `
                                   "t": 27,
                                 },
                                 Object {
-                                  "s": Array [
-                                    2,
-                                  ],
                                   "t": 30,
                                 },
                               ],
@@ -863,6 +932,9 @@ exports[`LockScreen should render correctly 1`] = `
                   "ix": 2,
                   "k": Array [
                     Object {
+                      "e": Array [
+                        0.4,
+                      ],
                       "i": Object {
                         "x": Array [
                           0,
@@ -885,6 +957,9 @@ exports[`LockScreen should render correctly 1`] = `
                       "t": 0,
                     },
                     Object {
+                      "e": Array [
+                        0.733,
+                      ],
                       "i": Object {
                         "x": Array [
                           1,
@@ -904,9 +979,12 @@ exports[`LockScreen should render correctly 1`] = `
                       "s": Array [
                         0.4,
                       ],
-                      "t": 10,
+                      "t": 8,
                     },
                     Object {
+                      "e": Array [
+                        0.733,
+                      ],
                       "i": Object {
                         "x": Array [
                           0.858,
@@ -926,9 +1004,12 @@ exports[`LockScreen should render correctly 1`] = `
                       "s": Array [
                         0.733,
                       ],
-                      "t": 20,
+                      "t": 16,
                     },
                     Object {
+                      "e": Array [
+                        10,
+                      ],
                       "i": Object {
                         "x": Array [
                           0.833,
@@ -951,9 +1032,6 @@ exports[`LockScreen should render correctly 1`] = `
                       "t": 102,
                     },
                     Object {
-                      "s": Array [
-                        10,
-                      ],
                       "t": 300,
                     },
                   ],
@@ -970,7 +1048,7 @@ exports[`LockScreen should render correctly 1`] = `
               },
             ],
             "nm": "Bounce",
-            "op": 20,
+            "op": 16,
             "v": "5.5.1",
             "w": 1120,
           }
