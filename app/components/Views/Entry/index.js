@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, Dimensions, StyleSheet, View } from 'react-native';
+import { Platform, Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { baseStyles } from '../../../styles/common';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
+import { colors } from '../../../styles/common';
 
 /**
  * Entry Screen that decides which screen to show
@@ -17,7 +17,12 @@ import { connect } from 'react-redux';
  * while showing the fox
  */
 const LOGO_SIZE = 194;
+const LOGO_PADDING = 25;
 const styles = StyleSheet.create({
+	main: {
+		flex: 1,
+		backgroundColor: colors.white
+	},
 	metamaskName: {
 		marginTop: 10,
 		height: 30,
@@ -27,8 +32,10 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	logoWrapper: {
-		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2,
-		height: LOGO_SIZE
+		backgroundColor: colors.white,
+		paddingTop: 50,
+		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2 - LOGO_PADDING,
+		height: LOGO_SIZE + LOGO_PADDING * 2
 	},
 	foxAndName: {
 		alignSelf: 'center',
@@ -79,13 +86,22 @@ class Entry extends Component {
 			} else {
 				this.animateAndGoTo('OnboardingRootNav');
 			}
-		}, 800);
+		}, 100);
 	}
 
 	animateAndGoTo(view) {
 		this.setState({ viewToGo: view }, () => {
-			this.animation.play();
-			this.animationName.play();
+			if (Platform.OS === 'android') {
+				setTimeout(() => {
+					this.animation.play(0, 25);
+					setTimeout(() => {
+						this.animationName.play();
+					}, 1);
+				}, 50);
+			} else {
+				this.animation.play();
+				this.animationName.play();
+			}
 		});
 	}
 
@@ -178,7 +194,7 @@ class Entry extends Component {
 
 	render() {
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={styles.main}>
 				<Animated.View style={[styles.logoWrapper, { opacity: this.opacity }]}>
 					<View style={styles.fox}>{this.renderAnimations()}</View>
 				</Animated.View>

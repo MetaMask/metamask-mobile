@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Dimensions, Animated, View, AppState } from 'react-native';
+import { StyleSheet, Dimensions, Animated, View, AppState, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import Engine from '../../../core/Engine';
@@ -99,8 +99,17 @@ export default class LockScreen extends Component {
 				await KeyringController.submitPassword(credentials.password);
 				this.locked = false;
 				this.setState({ ready: true }, () => {
-					this.secondAnimation.play();
-					this.animationName.play();
+					if (Platform.OS === 'android') {
+						setTimeout(() => {
+							this.secondAnimation.play(0, 25);
+							setTimeout(() => {
+								this.animationName.play();
+							}, 1);
+						}, 50);
+					} else {
+						this.secondAnimation.play();
+						this.animationName.play();
+					}
 				});
 			}
 		} catch (error) {
