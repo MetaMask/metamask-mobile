@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountApproval should render correctly 1`] = `
+exports[`WalletConnectSessionApproval should render correctly 1`] = `
 <View
   style={
     Object {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": "90%",
+      "minHeight": "70%",
       "paddingBottom": 20,
     }
   }
@@ -26,7 +26,7 @@ exports[`AccountApproval should render correctly 1`] = `
       }
     >
       <Text>
-        CONNECT REQUEST
+        WALLETCONNECT REQUEST
       </Text>
     </Text>
   </View>
