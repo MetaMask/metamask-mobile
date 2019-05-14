@@ -25,15 +25,16 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import DeviceSize from '../../../util/DeviceSize';
 
-const ACTION_WIDTH = (Dimensions.get('window').width - 60) / 2;
+const TOTAL_PADDING = 64;
+const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		minHeight: 2 * ACTION_WIDTH + 130
+		borderTopRightRadius: 10
 	},
 	draggerWrapper: {
 		width: '100%',
@@ -51,9 +52,8 @@ const styles = StyleSheet.create({
 		opacity: Platform.OS === 'android' ? 0.6 : 0.5
 	},
 	actionsWrapper: {
-		flex: 1,
 		marginHorizontal: 16,
-		marginBottom: 8
+		paddingBottom: DeviceSize.isIphoneX() ? 16 : 8
 	},
 	row: {
 		flexDirection: 'row',
@@ -137,6 +137,11 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		fontSize: 16,
 		...fontStyles.normal
+	},
+	receiveAction: {
+		flex: 1,
+		width: ACTION_WIDTH,
+		height: ACTION_WIDTH
 	}
 });
 
@@ -250,14 +255,14 @@ class ReceiveRequest extends Component {
 				<View style={styles.actionsWrapper}>
 					<View style={styles.row}>
 						<ReceiveRequestAction
-							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
+							style={styles.receiveAction}
 							icon={this.actions[0].icon}
 							actionTitle={this.actions[0].title}
 							actionDescription={this.actions[0].description}
 							onPress={this.actions[0].onPress}
 						/>
 						<ReceiveRequestAction
-							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
+							style={styles.receiveAction}
 							icon={this.actions[1].icon}
 							actionTitle={this.actions[1].title}
 							actionDescription={this.actions[1].description}
@@ -266,14 +271,14 @@ class ReceiveRequest extends Component {
 					</View>
 					<View style={styles.row}>
 						<ReceiveRequestAction
-							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
+							style={styles.receiveAction}
 							icon={this.actions[2].icon}
 							actionTitle={this.actions[2].title}
 							actionDescription={this.actions[2].description}
 							onPress={this.actions[2].onPress}
 						/>
 						<ReceiveRequestAction
-							style={{ width: ACTION_WIDTH, height: ACTION_WIDTH }}
+							style={styles.receiveAction}
 							icon={this.actions[3].icon}
 							actionTitle={this.actions[3].title}
 							actionDescription={this.actions[3].description}

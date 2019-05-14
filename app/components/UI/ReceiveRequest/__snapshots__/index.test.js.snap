@@ -7,7 +7,6 @@ exports[`ReceiveRequest should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": 820,
     }
   }
 >
@@ -59,9 +58,8 @@ exports[`ReceiveRequest should render correctly 1`] = `
   <View
     style={
       Object {
-        "flex": 1,
-        "marginBottom": 8,
         "marginHorizontal": 16,
+        "paddingBottom": 16,
       }
     }
   >
@@ -87,8 +85,9 @@ exports[`ReceiveRequest should render correctly 1`] = `
         onPress={[Function]}
         style={
           Object {
-            "height": 345,
-            "width": 345,
+            "flex": 1,
+            "height": 343,
+            "width": 343,
           }
         }
       />
@@ -106,8 +105,9 @@ exports[`ReceiveRequest should render correctly 1`] = `
         onPress={[Function]}
         style={
           Object {
-            "height": 345,
-            "width": 345,
+            "flex": 1,
+            "height": 343,
+            "width": 343,
           }
         }
       />
@@ -135,8 +135,9 @@ exports[`ReceiveRequest should render correctly 1`] = `
         onPress={[Function]}
         style={
           Object {
-            "height": 345,
-            "width": 345,
+            "flex": 1,
+            "height": 343,
+            "width": 343,
           }
         }
       />
@@ -154,8 +155,9 @@ exports[`ReceiveRequest should render correctly 1`] = `
         onPress={[Function]}
         style={
           Object {
-            "height": 345,
-            "width": 345,
+            "flex": 1,
+            "height": 343,
+            "width": 343,
           }
         }
       />
