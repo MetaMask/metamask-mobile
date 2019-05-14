@@ -135,7 +135,6 @@ export default class WalletConnectSessions extends Component {
 					<Text style={styles.url}>{session.peerMeta.url}</Text>
 					{this.renderDesc(session.peerMeta)}
 				</View>
-				{/* <Text style={styles.desc}>{JSON.stringify(session)}</Text> */}
 			</TouchableOpacity>
 		));
 	};
