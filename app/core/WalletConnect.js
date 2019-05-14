@@ -16,13 +16,6 @@ const CLIENT_OPTIONS = {
 		name: 'MetaMask',
 		ssl: true
 	}
-	// push: {                                                             // Optional
-	// 	url: "https://push.walletconnect.org",
-	// 	type: "fcm",
-	// 	token: token,
-	// 	peerMeta: true,
-	// 	language: language
-	// }
 };
 
 const persistSessions = async () => {
