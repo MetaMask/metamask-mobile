@@ -77,60 +77,6 @@ class Engine {
 										} catch (error) {
 											end(error);
 										}
-									},
-									eth_sign: async (payload, next, end) => {
-										const { PersonalMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-												data: payload.params[1],
-												from: payload.params[0]
-											});
-											end(undefined, rawSig);
-										} catch (error) {
-											end(error);
-										}
-									},
-									personal_sign: async (payload, next, end) => {
-										const { PersonalMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-												data: payload.params[0],
-												from: payload.params[1]
-											});
-											end(undefined, rawSig);
-										} catch (error) {
-											end(error);
-										}
-									},
-									eth_signTypedData: async (payload, next, end) => {
-										const { TypedMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-												{
-													data: payload.params[0],
-													from: payload.params[1]
-												},
-												'V1'
-											);
-											end(undefined, rawSig);
-										} catch (error) {
-											end(error);
-										}
-									},
-									eth_signTypedData_v3: async (payload, next, end) => {
-										const { TypedMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-												{
-													data: payload.params[1],
-													from: payload.params[0]
-												},
-												'V3'
-											);
-											end(undefined, rawSig);
-										} catch (error) {
-											end(error);
-										}
 									}
 								},
 								getAccounts: (end, payload) => {
