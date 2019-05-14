@@ -205,6 +205,7 @@ class EthInput extends Component {
 	 */
 	componentDidMount = () => {
 		const { transaction, collectibles } = this.props;
+		const { processedReadableValue } = this.processValue(transaction.readableValue);
 		switch (transaction.type) {
 			case 'TOKENS_TRANSACTION':
 				this.setState({
@@ -215,7 +216,7 @@ class EthInput extends Component {
 						},
 						...this.props.tokens
 					],
-					readableValue: transaction.readableValue
+					readableValue: processedReadableValue
 				});
 				break;
 			case 'ETHER_TRANSACTION':
@@ -226,19 +227,18 @@ class EthInput extends Component {
 							symbol: 'ETH'
 						}
 					],
-					readableValue: transaction.readableValue
+					readableValue: processedReadableValue
 				});
 				break;
 			case 'INDIVIDUAL_TOKEN_TRANSACTION':
 				this.setState({
 					assets: [transaction.selectedAsset],
-					readableValue: transaction.readableValue
+					readableValue: processedReadableValue
 				});
 				break;
 			case 'INDIVIDUAL_COLLECTIBLE_TRANSACTION':
 				this.setState({
-					assets: [transaction.selectedAsset],
-					readableValue: transaction.readableValue
+					assets: [transaction.selectedAsset]
 				});
 				break;
 			case 'CONTRACT_COLLECTIBLE_TRANSACTION': {
@@ -246,8 +246,7 @@ class EthInput extends Component {
 					collectible => collectible.address.toLowerCase() === transaction.selectedAsset.address.toLowerCase()
 				);
 				this.setState({
-					assets: collectiblesToShow,
-					readableValue: transaction.readableValue
+					assets: collectiblesToShow
 				});
 				break;
 			}
