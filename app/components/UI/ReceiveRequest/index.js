@@ -24,6 +24,7 @@ import ElevatedView from 'react-native-elevated-view';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DeviceSize from '../../../util/DeviceSize';
 
@@ -225,7 +226,7 @@ class ReceiveRequest extends Component {
 			onPress: this.openQrModal
 		},
 		{
-			icon: <AntIcon solid name={'download'} size={30} color={colors.black} />,
+			icon: <FontAwesome5 solid name={'hand-holding'} size={30} color={colors.black} />,
 			title: strings('receive_request.request_title'),
 			description: strings('receive_request.request_description'),
 			onPress: () => {
