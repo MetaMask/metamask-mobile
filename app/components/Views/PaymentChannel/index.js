@@ -24,7 +24,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 // eslint-disable-next-line import/no-namespace
-import * as Connext from "connext";
+import * as Connext from 'connext';
 
 import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
@@ -134,16 +134,16 @@ const styles = StyleSheet.create({
 });
 
 // eslint-disable-next-line import/no-commonjs
-const humanTokenAbi = require("../../../abi/humanToken.json");
+const humanTokenAbi = require('../../../abi/humanToken.json');
 
 const { Big } = Connext.big;
 const { CurrencyType, CurrencyConvertable } = Connext.types;
 const { getExchangeRates, hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
-const DEPOSIT_ESTIMATED_GAS = Big("700000"); // 700k gas
+const DEPOSIT_ESTIMATED_GAS = Big('700000'); // 700k gas
 const HUB_EXCHANGE_CEILING = ethers.constants.WeiPerEther.mul(Big(69)); // 69 TST
 const CHANNEL_DEPOSIT_MAX = ethers.constants.WeiPerEther.mul(Big(30)); // 30 TST
-const MAX_GAS_PRICE = Big("20000000000"); // 20 gWei
+const MAX_GAS_PRICE = Big('20000000000'); // 20 gWei
 
 const tokenAbi = humanTokenAbi;
 
@@ -226,11 +226,11 @@ class PaymentChannel extends Component {
 		let hubUrl;
 		let ethprovider;
 		switch (rpc) {
-			case "RINKEBY":
+			case 'RINKEBY':
 				hubUrl = `${publicUrl}/api/rinkeby/hub`;
-				ethprovider = new ethers.getDefaultProvider("rinkeby");
+				ethprovider = new ethers.getDefaultProvider('rinkeby');
 				break;
-			case "MAINNET":
+			case 'MAINNET':
 				hubUrl = `${publicUrl}/api/mainnet/hub`;
 				ethprovider = new ethers.getDefaultProvider();
 				break;
@@ -262,7 +262,6 @@ class PaymentChannel extends Component {
 				ethNetworkId: connext.opts.ethNetworkId,
 				ethprovider
 			});
-
 		} catch (e) {
 			console.log('error', e);
 		}
@@ -274,7 +273,7 @@ class PaymentChannel extends Component {
 			const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, ethprovider);
 			this.setState({ tokenContract });
 		} catch (e) {
-			console.log("Error setting token contract", e);
+			console.log('Error setting token contract', e);
 		}
 	}
 
@@ -287,7 +286,6 @@ class PaymentChannel extends Component {
 			await this.pollConnextState();
 			await this.setBrowserWalletMinimumBalance();
 			await this.poller();
-
 		});
 		this.mounted = true;
 	};
@@ -298,9 +296,9 @@ class PaymentChannel extends Component {
 	}
 
 	async pollConnextState() {
-		const { connext  } = this.state;
+		const { connext } = this.state;
 		// register connext listeners
-		connext.on("onStateChange", state => {
+		connext.on('onStateChange', state => {
 			this.setState({
 				channelState: state.persistent.channel,
 				connextState: state,
@@ -344,7 +342,9 @@ class PaymentChannel extends Component {
 		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(Big(2)).mul(providerGasPrice);
 
 		// add dai conversion
-		const minConvertable = new CurrencyConvertable(CurrencyType.WEI, totalDepositGasWei, () => getExchangeRates(connextState));
+		const minConvertable = new CurrencyConvertable(CurrencyType.WEI, totalDepositGasWei, () =>
+			getExchangeRates(connextState)
+		);
 		const browserMinimumBalance = {
 			wei: minConvertable.toWEI().amount,
 			dai: minConvertable.toUSD().amount
@@ -354,13 +354,21 @@ class PaymentChannel extends Component {
 	}
 
 	async autoDeposit() {
-		const { address, tokenContract, connextState, tokenAddress, connext, browserMinimumBalance, ethprovider } = this.state;
+		const {
+			address,
+			tokenContract,
+			connextState,
+			tokenAddress,
+			connext,
+			browserMinimumBalance,
+			ethprovider
+		} = this.state;
 
 		if (!connext || !browserMinimumBalance) return;
 
 		const balance = await ethprovider.getBalance(address);
 
-		let tokenBalance = "0";
+		let tokenBalance = '0';
 		try {
 			tokenBalance = await tokenContract.balanceOf(address);
 		} catch (e) {
@@ -387,7 +395,7 @@ class PaymentChannel extends Component {
 				return;
 			}
 			if (
-			// something was submitted
+				// something was submitted
 				connextState.runtime.deposit.submitted ||
 				connextState.runtime.withdrawal.submitted ||
 				connextState.runtime.collateral.submitted
@@ -401,7 +409,10 @@ class PaymentChannel extends Component {
 				amountToken: tokenBalance
 			};
 
-			if (channelDeposit.amountWei.eq(ethers.constants.Zero) && channelDeposit.amountToken.eq(ethers.constants.Zero)) {
+			if (
+				channelDeposit.amountWei.eq(ethers.constants.Zero) &&
+				channelDeposit.amountToken.eq(ethers.constants.Zero)
+			) {
 				return;
 			}
 
@@ -419,8 +430,8 @@ class PaymentChannel extends Component {
 		}
 		const weiBalance = Big(channelState.balanceWeiUser);
 		const tokenBalance = Big(channelState.balanceTokenUser);
-		if (channelState && weiBalance.gt(Big("0")) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
-			await this.state.connext.exchange(channelState.balanceWeiUser, "wei");
+		if (channelState && weiBalance.gt(Big('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
+			await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
 		}
 	}
 
@@ -433,20 +444,20 @@ class PaymentChannel extends Component {
 		if (runtime) {
 			console.log(`Hub Sync results: ${JSON.stringify(runtime.syncResultsFromHub[0], null, 2)}`);
 			if (runtime.deposit.submitted) {
-			if (!runtime.deposit.detected) {
-				newStatus.type = "DEPOSIT_PENDING";
-			} else {
-				newStatus.type = "DEPOSIT_SUCCESS";
-				newStatus.txHash = runtime.deposit.transactionHash;
-			}
+				if (!runtime.deposit.detected) {
+					newStatus.type = 'DEPOSIT_PENDING';
+				} else {
+					newStatus.type = 'DEPOSIT_SUCCESS';
+					newStatus.txHash = runtime.deposit.transactionHash;
+				}
 			}
 			if (runtime.withdrawal.submitted) {
-			if (!runtime.withdrawal.detected) {
-				newStatus.type = "WITHDRAWAL_PENDING";
-			} else {
-				newStatus.type = "WITHDRAWAL_SUCCESS";
-				newStatus.txHash = runtime.withdrawal.transactionHash;
-			}
+				if (!runtime.withdrawal.detected) {
+					newStatus.type = 'WITHDRAWAL_PENDING';
+				} else {
+					newStatus.type = 'WITHDRAWAL_SUCCESS';
+					newStatus.txHash = runtime.withdrawal.transactionHash;
+				}
 			}
 		}
 
