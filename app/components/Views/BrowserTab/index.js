@@ -974,35 +974,60 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
-	bookmark = () => {
+	addBookmark = async () => {
 		this.toggleOptionsIfNeeded();
 		// Check it doesn't exist already
 		if (this.props.bookmarks.filter(i => i.url === this.state.inputValue).length) {
 			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
 			return false;
 		}
+		if (!this.state.currentPageTitle) {
+			// We need to get the title to add bookmark
+			const { current } = this.webview;
+			const js = `
+				(function () {
+					const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
+					const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
 
-		this.props.navigation.push('AddBookmarkView', {
-			title: this.state.currentPageTitle || '',
-			url: this.state.inputValue,
-			onAddBookmark: async ({ name, url }) => {
-				this.props.addBookmark({ name, url });
-				if (Platform.OS === 'ios') {
-					const item = {
-						uniqueIdentifier: url,
-						title: name || url,
-						contentDescription: `Launch ${name || url} on MetaMask`,
-						keywords: [name.split(' '), url, 'dapp'],
-						thumbnail: { uri: `https://api.faviconkit.com/${getHost(url)}/256` }
-					};
-					try {
-						SearchApi.indexSpotlightItem(item);
-					} catch (e) {
-						Logger.error('Error adding to spotlight', e);
+					const siteName = document.querySelector('head > meta[property="og:site_name"]');
+					const title = siteName || document.querySelector('head > meta[name="title"]');
+						window.postMessageToNative(
+							{
+								type: 'GET_TITLE_FOR_BOOKMARK',
+								payload: {
+									title: title ? title.content : document.title,
+									url: location.href,
+									icon: icon && icon.href
+								}
+							}
+						)
+				})();
+			`;
+			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		}
+		await setTimeout(() => {
+			this.props.navigation.push('AddBookmarkView', {
+				title: this.state.currentPageTitle || '',
+				url: this.state.inputValue,
+				onAddBookmark: async ({ name, url }) => {
+					this.props.addBookmark({ name, url });
+					if (Platform.OS === 'ios') {
+						const item = {
+							uniqueIdentifier: url,
+							title: name || url,
+							contentDescription: `Launch ${name || url} on MetaMask`,
+							keywords: [name.split(' '), url, 'dapp'],
+							thumbnail: { uri: `https://api.faviconkit.com/${getHost(url)}/256` }
+						};
+						try {
+							SearchApi.indexSpotlightItem(item);
+						} catch (e) {
+							Logger.error('Error adding to spotlight', e);
+						}
 					}
 				}
-			}
-		});
+			});
+		}, 500);
 	};
 
 	share = () => {
@@ -1278,7 +1303,7 @@ export class BrowserTab extends PureComponent {
 									{strings('browser.home')}
 								</Text>
 							</Button>
-							<Button onPress={this.bookmark} style={styles.option}>
+							<Button onPress={this.addBookmark} style={styles.option}>
 								<Icon name="star" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText} numberOfLines={1}>
 									{strings('browser.add_to_favorites')}
