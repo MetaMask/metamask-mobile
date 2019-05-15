@@ -1,8 +1,3 @@
-// Import the required shims
-import 'ethers/dist/shims.js';
-
-// Import the ethers library
-import { ethers } from 'ethers';
 
 import React, { Component } from 'react';
 
@@ -23,8 +18,11 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
+
 // eslint-disable-next-line import/no-namespace
 import * as Connext from 'connext';
+import Eth from 'ethjs-query';
+import EthContract from 'ethjs-contract';
 
 import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
@@ -141,8 +139,10 @@ const { CurrencyType, CurrencyConvertable } = Connext.types;
 const { getExchangeRates, hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
 const DEPOSIT_ESTIMATED_GAS = Big('700000'); // 700k gas
-const HUB_EXCHANGE_CEILING = ethers.constants.WeiPerEther.mul(Big(69)); // 69 TST
-const CHANNEL_DEPOSIT_MAX = ethers.constants.WeiPerEther.mul(Big(30)); // 30 TST
+const ZERO = Big(0); // 700k gas
+const WEI_PER_ETHER = Big(1000000000000000000);
+const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(Big(69)); // 69 TST
+const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(Big(30)); // 30 TST
 const MAX_GAS_PRICE = Big('20000000000'); // 20 gWei
 
 const tokenAbi = humanTokenAbi;
@@ -221,21 +221,19 @@ class PaymentChannel extends Component {
 		});
 	}
 
-	async setConnext(rpc) {
+	async setConnext(provider) {
 		const publicUrl = 'https://daicard.io';
 		let hubUrl;
-		let ethprovider;
-		switch (rpc) {
+		const ethprovider = new Eth(provider);
+		switch (provider) {
 			case 'RINKEBY':
 				hubUrl = `${publicUrl}/api/rinkeby/hub`;
-				ethprovider = new ethers.getDefaultProvider('rinkeby');
 				break;
 			case 'MAINNET':
 				hubUrl = `${publicUrl}/api/mainnet/hub`;
-				ethprovider = new ethers.getDefaultProvider();
 				break;
 			default:
-				throw new Error(`Unrecognized rpc: ${rpc}`);
+				throw new Error(`Unrecognized provider: ${provider}`);
 		}
 		const opts = {
 			hubUrl
@@ -270,7 +268,9 @@ class PaymentChannel extends Component {
 	async setTokenContract() {
 		try {
 			const { tokenAddress, ethprovider } = this.state;
-			const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, ethprovider);
+
+			const contract = new EthContract(eth);
+			const tokenContract = contract(tokenAbi).at(tokenAddress);
 			this.setState({ tokenContract });
 		} catch (e) {
 			console.log('Error setting token contract', e);
@@ -380,7 +380,7 @@ class PaymentChannel extends Component {
 			return;
 		}
 
-		if (balance.gt(ethers.constants.Zero) || tokenBalance.gt(ethers.constants.Zero)) {
+		if (balance.gt(ZERO) || tokenBalance.gt(ZERO)) {
 			const minWei = Big(browserMinimumBalance.wei);
 			if (balance.lt(minWei)) {
 				// don't autodeposit anything under the threshold
@@ -410,8 +410,8 @@ class PaymentChannel extends Component {
 			};
 
 			if (
-				channelDeposit.amountWei.eq(ethers.constants.Zero) &&
-				channelDeposit.amountToken.eq(ethers.constants.Zero)
+				channelDeposit.amountWei.eq(ZERO) &&
+				channelDeposit.amountToken.eq(ZERO)
 			) {
 				return;
 			}
