@@ -53,10 +53,6 @@ export default class WebsiteIcon extends Component {
 		renderIconUrlError: false
 	};
 
-	componentDidMount = async () => {
-		this.getIconUrl(this.props.url);
-	};
-
 	/**
 	 * Get image url from favicon api
 	 */
