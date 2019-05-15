@@ -42,8 +42,10 @@ const styles = StyleSheet.create({
 	currentUrl: {
 		...fontStyles.normal,
 		fontSize: 14,
-		textAlign: 'center',
-		paddingHorizontal: Platform.OS === 'android' ? 30 : 0
+		textAlign: 'center'
+	},
+	currentUrlAndroid: {
+		maxWidth: '60%'
 	}
 });
 
@@ -83,7 +85,10 @@ class NavbarBrowserTitle extends Component {
 			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
 					{https ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
-					<Text numberOfLines={1} style={styles.currentUrl}>
+					<Text
+						numberOfLines={1}
+						style={[styles.currentUrl, Platform.OS === 'android' ? styles.currentUrlAndroid : {}]}
+					>
 						{hostname}
 					</Text>
 				</View>

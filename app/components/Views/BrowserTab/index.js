@@ -34,6 +34,11 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost } from '../../../util/browser';
+import {
+	SPA_urlChangeListener,
+	JS_WINDOW_INFORMATION,
+	JS_WINDOW_INFORMATION_HEIGHT
+} from '../../../util/browserSripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -582,60 +587,7 @@ export class BrowserTab extends PureComponent {
 				? `'${this.props.network}'`
 				: `'${Networks[this.props.networkType].networkId}'`
 		);
-
-		const SPA_urlChangeListener = `(function () {
-			var __mmHistory = window.history;
-			var __mmPushState = __mmHistory.pushState;
-			var __mmReplaceState = __mmHistory.replaceState;
-			function __mm__updateUrl(){
-				const siteName = document.querySelector('head > meta[property="og:site_name"]');
-				const title = siteName || document.querySelector('head > meta[name="title"]') || document.title;
-				const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
-
-				window.postMessageToNative(
-					{
-						type: 'NAV_CHANGE',
-						payload: {
-							url: location.href,
-							title: title,
-						}
-					}
-				);
-
-				setTimeout(() => {
-					const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
-					window.postMessageToNative(
-					{
-						type: 'GET_HEIGHT',
-						payload: {
-							height: height
-						}
-					})
-				}, 500);
-			}
-
-			__mmHistory.pushState = function(state) {
-				setTimeout(function () {
-					__mm__updateUrl();
-				}, 100);
-				return __mmPushState.apply(history, arguments);
-			};
-
-			__mmHistory.replaceState = function(state) {
-				setTimeout(function () {
-					__mm__updateUrl();
-				}, 100);
-				return __mmReplaceState.apply(history, arguments);
-			};
-
-			window.onpopstate = function(event) {
-				__mm__updateUrl();
-			};
-		  })();
-		`;
-
 		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
-
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
@@ -999,35 +951,43 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
-	bookmark = () => {
+	addBookmark = () => {
 		this.toggleOptionsIfNeeded();
 		// Check it doesn't exist already
 		if (this.props.bookmarks.filter(i => i.url === this.state.inputValue).length) {
 			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
 			return false;
 		}
-
-		this.props.navigation.push('AddBookmarkView', {
-			title: this.state.currentPageTitle || '',
-			url: this.state.inputValue,
-			onAddBookmark: async ({ name, url }) => {
-				this.props.addBookmark({ name, url });
-				if (Platform.OS === 'ios') {
-					const item = {
-						uniqueIdentifier: url,
-						title: name || url,
-						contentDescription: `Launch ${name || url} on MetaMask`,
-						keywords: [name.split(' '), url, 'dapp'],
-						thumbnail: { uri: `https://api.faviconkit.com/${getHost(url)}/256` }
-					};
-					try {
-						SearchApi.indexSpotlightItem(item);
-					} catch (e) {
-						Logger.error('Error adding to spotlight', e);
+		if (!this.state.currentPageTitle) {
+			// We need to get the title to add bookmark
+			const { current } = this.webview;
+			Platform.OS === 'ios'
+				? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
+				: current.injectJavaScript(JS_WINDOW_INFORMATION);
+		}
+		setTimeout(() => {
+			this.props.navigation.push('AddBookmarkView', {
+				title: this.state.currentPageTitle || '',
+				url: this.state.inputValue,
+				onAddBookmark: async ({ name, url }) => {
+					this.props.addBookmark({ name, url });
+					if (Platform.OS === 'ios') {
+						const item = {
+							uniqueIdentifier: url,
+							title: name || url,
+							contentDescription: `Launch ${name || url} on MetaMask`,
+							keywords: [name.split(' '), url, 'dapp'],
+							thumbnail: { uri: `https://api.faviconkit.com/${getHost(url)}/256` }
+						};
+						try {
+							SearchApi.indexSpotlightItem(item);
+						} catch (e) {
+							Logger.error('Error adding to spotlight', e);
+						}
 					}
 				}
-			}
-		});
+			});
+		}, 500);
 	};
 
 	share = () => {
@@ -1219,41 +1179,10 @@ export class BrowserTab extends PureComponent {
 
 		// We need to get the title of the page and the height
 		const { current } = this.webview;
-		const js = `
-			(function () {
-				const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
-				const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
 
-				const siteName = document.querySelector('head > meta[property="og:site_name"]');
-				const title = siteName || document.querySelector('head > meta[name="title"]');
-
-				window.postMessageToNative(
-					{
-						type: 'GET_TITLE_FOR_BOOKMARK',
-						payload: {
-							title: title ? title.content : document.title,
-							url: location.href,
-							icon: icon && icon.href
-						}
-					}
-				)
-				${
-					Platform.OS === 'ios'
-						? `setTimeout(() => {
-					const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
-					window.postMessageToNative(
-					{
-						type: 'GET_HEIGHT',
-						payload: {
-							height: height
-						}
-					})
-				}, 500)`
-						: ''
-				}
-			})();
-		`;
-		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		Platform.OS === 'ios'
+			? current.evaluateJavaScript(JS_WINDOW_INFORMATION_HEIGHT)
+			: current.injectJavaScript(JS_WINDOW_INFORMATION_HEIGHT);
 		clearTimeout(this.timeoutHandler);
 	};
 
@@ -1303,7 +1232,7 @@ export class BrowserTab extends PureComponent {
 									{strings('browser.home')}
 								</Text>
 							</Button>
-							<Button onPress={this.bookmark} style={styles.option}>
+							<Button onPress={this.addBookmark} style={styles.option}>
 								<Icon name="star" size={15} style={styles.optionIcon} />
 								<Text style={styles.optionText} numberOfLines={1}>
 									{strings('browser.add_to_favorites')}

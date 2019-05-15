@@ -101,8 +101,7 @@ const styles = StyleSheet.create({
 	optinHeaderLeft: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginLeft: Platform.OS === 'ios' ? 20 : 0,
-		marginRight: Platform.OS === 'ios' ? 20 : 0
+		marginHorizontal: Platform.OS === 'ios' ? 20 : 0
 	},
 	tabIconAndroid: {
 		marginTop: 13,
