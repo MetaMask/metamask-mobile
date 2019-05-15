@@ -58,7 +58,7 @@ export default function ActionView({
 						if (keyboardShouldPersistTaps === 'handled') {
 							Keyboard.dismiss();
 						}
-						onTouchablePress();
+						onTouchablePress && onTouchablePress();
 					}}
 				>
 					{children}

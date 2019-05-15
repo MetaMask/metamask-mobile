@@ -10,6 +10,11 @@ exports[`HomePage should render correctly 1`] = `
   }
 >
   <ScrollViewMock
+    contentContainerStyle={
+      Object {
+        "paddingBottom": 75,
+      }
+    }
     style={
       Object {
         "backgroundColor": undefined,

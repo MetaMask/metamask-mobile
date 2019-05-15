@@ -104,7 +104,7 @@
 	"import_from_seed": {
 		"title": "Importar con frase semilla",
 		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
-		"new_password": "Nueva Contraseña (min. 8 caracteres)",
+		"new_password": "Nueva Contraseña",
 		"confirm_password": "Confirmar Contraseña",
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar",
@@ -138,7 +138,7 @@
 		"logout_cancel": "NO",
 		"feedback": "Feedback",
 		"metamask_support": "Soporte de MetaMask",
-		"public_address": "Public Address"
+		"public_address": "Dirección Pública"
 	},
 	"send": {
 		"title": "Enviar",
@@ -186,6 +186,27 @@
 			"cancel_add_collectible": "CANCELAR",
 			"add_collectible": "AGREGAR COLECCIONABLE"
 		}
+	},
+	"terms_and_conditions": {
+		"title": "Términos y Condiciones",
+		"description": "Haciendo click en \"{{action}}\" estas de acuerdo con estos ",
+		"terms": "Términos y Condiciones"
+	},
+	"privacy_policy": {
+		"title": "Política de Privacidad",
+		"description": "Estos datos se agregan y, por lo tanto, son anónimos para los fines del Reglamento general de protección de datos (UE) 2016/679. Para obtener más información sobre nuestras prácticas de privacidad, consulte nuestra Política de Privacidad",
+		"here": "aquí",
+		"agree": "De Acuerdo",
+		"decline": "No, Gracias",
+		"description_title": "Ayúdanos a mejorar MetaMask",
+		"description_content_1": "A MetaMask le gustaría recopilar datos de uso básicos para comprender mejor cómo interactúan nuestros usuarios con la aplicación movil. Estos datos se utilizarán para mejorar continuamente la usabilidad y la experiencia de usuario de nuestro producto.",
+		"description_content_2": "MetaMask va a...",
+		"action_description_1": "Siempre permitir cancelar a través de Configuraciónes",
+		"action_description_2": "Enviar eventos anónimos de clics y páginas vistas",
+		"action_description_3": "Mantener un panel público agregado para educar a la comunidad.",
+		"action_description_4": "Nunca recopilar claves, direcciones, transacciones, saldos, hashes o cualquier información personal",
+		"action_description_5": "Nunca recopilar su dirección IP",
+		"action_description_6": "Nunca vender datos con fines de lucro. ¡Nunca!"
 	},
 	"token": {
 		"token_symbol": "Símbolo del Token",
@@ -273,8 +294,10 @@
 		"advanced_title": "Avanzado",
 		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
-		"security_desc": "Opciones de privacidad y frase semilla de la billetera",
+		"security_desc": "Opciones de privacidad, MetaMetrics y frase semilla de la billetera",
 		"info_title": "Acerca de MetaMask",
+		"experimental_title": "Experimental",
+		"experimental_desc": "WalletConnect & más...",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
@@ -289,7 +312,9 @@
 		"hex_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"clear_privacy_title": "Borrar los datos de privacidad",
 		"clear_privacy_desc": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
-		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación."
+		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
+		"metametrics_title": "Participa en MetaMetrics",
+		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask."
 	},
 	"app_information": {
 		"title": "Información",
@@ -425,7 +450,12 @@
 		"my_favorites": "MIS FAVORITOS",
 		"search": "Busca o tipea una URL",
 		"welcome": "Bienvenido!",
-		"remove": "Eliminar"
+		"remove": "Eliminar",
+		"new_tab": "Nueva Pestaña",
+		"tabs_close_all": "Cerrar Todas",
+		"tabs_done": "Listo",
+		"no_tabs_title": "No hay pestañas abiertas",
+		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
@@ -539,6 +569,7 @@
 	},
 	"accountApproval": {
 		"title": "SOLICITUD DE CONEXIÓN ",
+		"walletconnect_title": "SOLICITUD DE CONEXIÓN VIA WALLETCONNECT ",
 		"action": "le gustaría",
 		"connect": "CONECTAR",
 		"cancel": "CANCELAR",
@@ -690,5 +721,54 @@
 		"body": "Ahora que tienes valor en tu billetera, crea la contraseña y guarda la frase semilla de tu billetera ",
 		"required": "(requerido)",
 		"button": "CONTINUAR"
-	}
+	},
+	"payment_request": {
+		"title": "Solicitud",
+		"search_top_picks": "Top tokens",
+		"search_assets": "Búsqueda de activo",
+		"search_results": "Resultados de búsqueda",
+		"search_no_tokens_found": "No se encontraron tokens",
+		"your_tokens": "Tus tokens",
+		"enter_amount": "Ingrese el monto",
+		"choose_asset": "Elija un activo para solicitar",
+		"request_error": "Solicitud no válida, inténtelo de nuevo",
+		"reset": "Resetear",
+		"next": "Siguiente",
+		"amount_placeholder": "0.00",
+		"link_copied": "Enlace copiado al portapapeles",
+		"send_link_title": "Enviar Enlace",
+		"description_1": "¡Tu enlace de solicitud está listo para enviar!",
+		"description_2": "Envíe este enlace a un amigo y le pedirá que lo envíe",
+		"copy_to_clipboard": "Copiar al Portapapeles",
+		"qr_code": "Código QR",
+		"send_link": "Enviar Enlace",
+		"request_qr_code": "Código QR de solicitud de pago"
+	},
+	"receive_request": {
+		"title": "Recibir",
+		"share_title": "Compartir Dirección",
+		"share_description": "Envíe por correo electrónico o envíe un mensaje de texto con su dirección",
+		"qr_code_title": "Código QR",
+		"qr_code_description": "Imagen escaneable que puede leer su dirección",
+		"request_title": "Solicitar",
+		"request_description": "Solicitar activos de amigos",
+		"buy_title": "Comprar",
+		"buy_description": "Compre con tarjeta de crédito",
+		"public_address": "Dirección Pública",
+		"public_address_qr_code": "Código QR de Dirección Pública",
+		"coming_soon": "Pronto..."
+	},
+  "experimental_settings": {
+		"wallet_connect_dapps": "Sesiones de WalletConnect",
+		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
+		"wallet_connect_dapps_cta": "VER SESIONES"
+	},
+	"walletconnect_sessions": {
+		"no_active_sessions": "No tienes sesiones activas",
+		"end_session_title": "Finalizar Sesión",
+		"end": "Finalizar",
+		"cancel": "Cancelar",
+		"session_ended_title": "Sesión Finalizada",
+		"session_ended_desc": "La sesión seleccionada ha sido terminada"
+  }
 }

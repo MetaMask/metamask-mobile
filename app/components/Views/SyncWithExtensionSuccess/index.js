@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
+import TermsAndConditions from '../TermsAndConditions';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -43,6 +44,9 @@ const styles = StyleSheet.create({
 	icon: {
 		color: colors.green500,
 		marginBottom: 30
+	},
+	termsAndConditions: {
+		padding: 30
 	}
 });
 
@@ -85,7 +89,11 @@ class SyncWithExtensionSuccess extends Component {
 	continue = async () => {
 		// Get onboarding wizard state
 		const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
-		if (onboardingWizard) {
+		// Check if user passed through metrics opt-in screen
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+		if (!metricsOptIn) {
+			this.props.navigation.navigate('OptinMetrics');
+		} else if (onboardingWizard) {
 			this.props.navigation.navigate('HomeNav');
 		} else {
 			this.props.setOnboardingWizardStep(1);
@@ -112,6 +120,12 @@ class SyncWithExtensionSuccess extends Component {
 					<StyledButton type="blue" onPress={this.continue} containerStyle={styles.button}>
 						{strings('sync_with_extension_success.button_continue')}
 					</StyledButton>
+				</View>
+				<View style={styles.termsAndConditions}>
+					<TermsAndConditions
+						navigation={this.props.navigation}
+						action={strings('sync_with_extension_success.button_continue')}
+					/>
 				</View>
 			</View>
 		</SafeAreaView>

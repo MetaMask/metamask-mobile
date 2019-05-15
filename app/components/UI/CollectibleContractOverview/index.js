@@ -70,7 +70,8 @@ class CollectibleContractOverview extends Component {
 	};
 
 	onAdd = () => {
-		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
+		const { navigation, collectibleContract } = this.props;
+		navigation.push('AddAsset', { assetType: 'collectible', collectibleContract });
 	};
 
 	onSend = () => {
@@ -117,6 +118,7 @@ class CollectibleContractOverview extends Component {
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onAdd}
 					onRightPress={this.onInfo}
+					middleType={'add'}
 				/>
 			</View>
 		);

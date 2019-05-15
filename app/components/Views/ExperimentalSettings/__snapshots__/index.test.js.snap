@@ -1,0 +1,86 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ExperimentalSettings should render correctly 1`] = `
+<_class
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "padding": 24,
+      "paddingBottom": 48,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        Object {
+          "paddingBottom": 112,
+        }
+      }
+    >
+      <View
+        style={
+          Array [
+            Object {
+              "marginTop": 50,
+            },
+            Object {
+              "marginTop": 0,
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 20,
+              "fontWeight": "400",
+              "lineHeight": 20,
+            }
+          }
+        >
+          WalletConnect Sessions
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#6a737d",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+              "marginTop": 12,
+            }
+          }
+        >
+          View the list of active WalletConnect sessions
+        </Text>
+        <StyledButton
+          containerStyle={
+            Object {
+              "marginTop": 18,
+            }
+          }
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          type="normal"
+        >
+          VIEW SESSIONS
+        </StyledButton>
+      </View>
+    </View>
+  </View>
+</_class>
+`;

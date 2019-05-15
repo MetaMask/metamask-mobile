@@ -2,11 +2,11 @@ jest.useFakeTimers();
 
 import React from 'react';
 import { shallow } from 'enzyme';
-import { Browser } from './';
+import Tabs from './';
 
-describe('Browser', () => {
+describe('Tabs', () => {
 	it('should render correctly', () => {
-		const wrapper = shallow(<Browser url="https://metamask.io" />);
+		const wrapper = shallow(<Tabs tabs={[{ url: 'about:blank', image: '' }]} />);
 		expect(wrapper).toMatchSnapshot();
 	});
 });

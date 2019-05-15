@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, StyleSheet } from 'react-native';
+import { Platform, Animated, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -48,5 +48,5 @@ export default class FadeOutOverlay extends Component {
 
 FadeOutOverlay.defaultProps = {
 	style: null,
-	duration: 600
+	duration: Platform.OS === 'android' ? 300 : 300
 };
