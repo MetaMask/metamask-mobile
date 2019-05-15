@@ -1,4 +1,11 @@
+// Import the required shims
+import 'ethers/dist/shims.js';
+
+// Import the ethers library
+import { ethers } from 'ethers';
+
 import React, { Component } from 'react';
+
 import {
 	InteractionManager,
 	Platform,
@@ -16,13 +23,13 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { getConnextClient } from 'connext/dist/Connext';
+// eslint-disable-next-line import/no-namespace
+import * as Connext from "connext";
+
 import Engine from '../../../core/Engine';
-import Web3 from 'connext/node_modules/web3/src';
 import { connect } from 'react-redux';
 import { hexToBN, renderFromWei, toWei, toBN } from '../../../util/number';
 import { setTransactionObject } from '../../../actions/transaction';
-import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
@@ -36,18 +43,6 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		paddingBottom: 0
-	},
-	subtitle: {
-		fontSize: 14,
-		marginLeft: 20,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		...fontStyles.normal
-	},
-	row: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginBottom: 10
 	},
 	balance: {
 		flex: 1,
@@ -138,7 +133,21 @@ const styles = StyleSheet.create({
 	}
 });
 
-const HASH_PREAMBLE = 'SpankWallet authentication message:';
+// eslint-disable-next-line import/no-commonjs
+const humanTokenAbi = require("../../../abi/humanToken.json");
+
+const { Big } = Connext.big;
+const { CurrencyType, CurrencyConvertable } = Connext.types;
+const { getExchangeRates, hasPendingOps } = new Connext.Utils();
+// Constants for channel max/min - this is also enforced on the hub
+const DEPOSIT_ESTIMATED_GAS = Big("700000"); // 700k gas
+const HUB_EXCHANGE_CEILING = ethers.constants.WeiPerEther.mul(Big(69)); // 69 TST
+const CHANNEL_DEPOSIT_MAX = ethers.constants.WeiPerEther.mul(Big(30)); // 30 TST
+const MAX_GAS_PRICE = Big("20000000000"); // 20 gWei
+
+const tokenAbi = humanTokenAbi;
+
+//const HASH_PREAMBLE = 'SpankWallet authentication message:';
 
 class PaymentChannel extends Component {
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Payment channel`, navigation);
@@ -165,15 +174,18 @@ class PaymentChannel extends Component {
 	awaitingDeposit = false;
 
 	state = {
-		web3: new Web3(Engine.context.NetworkController.provider),
-		hubUrl: `https://daicard.io/api/rinkeby/hub`,
-		connext: null,
+		loadingConnext: true,
+		hubUrl: null,
 		tokenAddress: null,
-		channelManagerAddress: null,
+		contractAddress: null,
 		hubWalletAddress: null,
+		ethprovider: null,
+		tokenContract: null,
+		connext: null,
+		channelManagerAddress: null,
 		ethNetworkId: null,
 		authorized: false,
-		user: this.props.selectedAddress.toLowerCase(),
+		address: this.props.selectedAddress.toLowerCase(),
 		channelState: null,
 		connextState: null,
 		persistent: null,
@@ -181,12 +193,13 @@ class PaymentChannel extends Component {
 		exchangeRate: 0,
 		sendAmount: '',
 		sendRecipient: '',
-		depositAmount: ''
+		depositAmount: '',
+		browserMinimumBalance: null
 	};
 
-	metamaskSign = async (hash, user) => {
+	metamaskSign = async (hash, address) => {
 		const { KeyringController } = Engine.context;
-		return KeyringController.signPersonalMessage({ data: hash, from: user });
+		return KeyringController.signPersonalMessage({ data: hash, from: address });
 	};
 
 	initProviderListeners() {
@@ -208,126 +221,73 @@ class PaymentChannel extends Component {
 		});
 	}
 
-	initClient = async () => {
+	async setConnext(rpc) {
+		const publicUrl = 'https://daicard.io';
+		let hubUrl;
+		let ethprovider;
+		switch (rpc) {
+			case "RINKEBY":
+				hubUrl = `${publicUrl}/api/rinkeby/hub`;
+				ethprovider = new ethers.getDefaultProvider("rinkeby");
+				break;
+			case "MAINNET":
+				hubUrl = `${publicUrl}/api/mainnet/hub`;
+				ethprovider = new ethers.getDefaultProvider();
+				break;
+			default:
+				throw new Error(`Unrecognized rpc: ${rpc}`);
+		}
 		const opts = {
-			web3: this.state.web3,
-			hubUrl: this.state.hubUrl, //url of hub,
-			user: this.state.user
+			hubUrl
 		};
 
-		Logger.log('Setting up connext with opts:', opts);
+		console.log('Setting up connext with opts:', opts);
 
 		// *** Instantiate the connext client ***
 		try {
-			const connext = await getConnextClient(opts);
+			const connext = await Connext.getConnextClient(opts);
 			connext.sign = this.metamaskSign.bind(this);
 
-			Logger.log(`Successfully set up connext! Connext config:`);
-			Logger.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
-			Logger.log(`  - hubAddress: ${connext.opts.hubAddress}`);
-			Logger.log(`  - contractAddress: ${connext.opts.contractAddress}`);
-			Logger.log(`  - ethNetworkId: ${connext.opts.ethNetworkId}`);
+			console.log(`Successfully set up connext! Connext config:`);
+			console.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
+			console.log(`  - hubAddress: ${connext.opts.hubAddress}`);
+			console.log(`  - contractAddress: ${connext.opts.contractAddress}`);
+			console.log(`  - ethNetworkId: ${connext.opts.ethNetworkId}`);
 
 			this.setState({
 				connext,
 				tokenAddress: connext.opts.tokenAddress,
 				channelManagerAddress: connext.opts.contractAddress,
 				hubWalletAddress: connext.opts.hubAddress,
-				ethNetworkId: connext.opts.ethNetworkId
+				ethNetworkId: connext.opts.ethNetworkId,
+				ethprovider
 			});
+
 		} catch (e) {
-			Logger.log('error', e);
+			console.log('error', e);
 		}
-	};
+	}
 
-	async authorizeHandler() {
-		const { hubUrl, web3 } = this.state;
-		let challengeRes;
-		let signature;
-
+	async setTokenContract() {
 		try {
-			// 1 - Challenge
-			const challengeResponse = await fetch(`${hubUrl}/auth/challenge`, {
-				method: 'POST',
-				credentials: 'include'
-			});
-			challengeRes = await challengeResponse.json();
+			const { tokenAddress, ethprovider } = this.state;
+			const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, ethprovider);
+			this.setState({ tokenContract });
 		} catch (e) {
-			Logger.log('challenge failed', e);
-			return false;
-		}
-
-		try {
-			const { KeyringController } = Engine.context;
-			const hash = web3.utils.sha3(
-				`${HASH_PREAMBLE} ${web3.utils.sha3(challengeRes.nonce)} ${web3.utils.sha3('localhost')}`
-			);
-			signature = await KeyringController.signPersonalMessage({
-				data: hash,
-				from: this.props.selectedAddress.toLowerCase()
-			});
-		} catch (e) {
-			Logger.log('signing failed', e);
-			return false;
-		}
-
-		try {
-			// 2 - Response
-			const authResponse = await fetch(`${hubUrl}/auth/response`, {
-				method: 'POST',
-				credentials: 'include',
-				body: JSON.stringify({
-					nonce: challengeRes.nonce,
-					address: this.props.selectedAddress.toLowerCase(),
-					origin: 'localhost',
-					signature
-				}),
-				headers: {
-					'Content-Type': 'application/json; charset=utf-8',
-					Authorization: 'Bearer foo'
-				}
-			});
-
-			const authRes = await authResponse.json();
-			const token = authRes.token;
-			//document.cookie = `hub.sid=${token}`;
-			Logger.log(`hub authentication cookie set: ${token}`);
-		} catch (e) {
-			Logger.log('response failed', e);
-			return false;
-		}
-
-		try {
-			// 3 - Confirm status
-			const res = await fetch(`${hubUrl}/auth/status`, {
-				headers: {
-					'Content-Type': 'application/json; charset=utf-8',
-					Authorization: 'Bearer foo'
-				},
-				credentials: 'include'
-			});
-
-			const restStatus = await res.json();
-
-			if (restStatus.success) {
-				this.setState({ authorized: true });
-				return restStatus.success;
-			}
-
-			this.setState({ authorized: false });
-			Logger.log(`Auth status: ${JSON.stringify(restStatus)}`);
-		} catch (e) {
-			Logger.log('status failed', e);
-			return false;
+			console.log("Error setting token contract", e);
 		}
 	}
 
 	componentDidMount = () => {
 		InteractionManager.runAfterInteractions(async () => {
 			this.initProviderListeners();
-			await this.authorizeHandler();
-			await this.initClient();
-			this.pollConnextState();
+
+			await this.setConnext(Engine.context.NetworkController.provider.type.toUpperCase());
+			await this.setTokenContract();
+			await this.pollConnextState();
+			await this.setBrowserWalletMinimumBalance();
+			await this.poller();
+
 		});
 		this.mounted = true;
 	};
@@ -338,40 +298,163 @@ class PaymentChannel extends Component {
 	}
 
 	async pollConnextState() {
-		// Get connext object
-		const connext = this.state.connext;
-
-		// Register listeners
-		connext.on('onStateChange', state => {
-			if (
-				this.awaitingDeposit &&
-				this.state.channelState.balanceWeiUser === '0' &&
-				state.persistent.channel.balanceWeiUser !== '0'
-			) {
-				this.awaitingDeposit = false;
-				this.swapToDAI(state.persistent.channel.balanceWeiUser);
-			}
-
-			Logger.log('Connext state changed:', state);
+		const { connext  } = this.state;
+		// register connext listeners
+		connext.on("onStateChange", state => {
 			this.setState({
 				channelState: state.persistent.channel,
 				connextState: state,
 				runtime: state.runtime,
-				persistent: state.persistent,
 				exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.USD : 0
 			});
+			this.checkStatus();
 		});
-
 		// start polling
+		await connext.start();
+		this.setState({ loadingConnext: false });
+	}
+
+	async poller() {
+		await this.autoDeposit();
+		await this.autoSwap();
+
+		setInterval(async () => {
+			await this.autoDeposit();
+		}, 5000);
+
+		setInterval(async () => {
+			await this.autoSwap();
+		}, 1000);
+	}
+
+	async setBrowserWalletMinimumBalance() {
+		const { connextState, ethprovider } = this.state;
+		// let gasEstimateJson = await ethers.utils.fetchJson({ url: `https://ethgasstation.info/json/ethgasAPI.json` });
+		let providerGasPrice = await ethprovider.getGasPrice();
+		// let currentGasPrice = Math.round((gasEstimateJson.average / 10) * 2); // multiply gas price by two to be safe
+		// dont let gas price be any higher than the max
+		// currentGasPrice = ethers.utils.parseUnits(minBN(Big(currentGasPrice.toString()), MAX_GAS_PRICE).toString(), "gwei");
+		// unless it really needs to be: average eth gas station price w ethprovider's
+		// currentGasPrice = currentGasPrice.add(providerGasPrice).div(ethers.constants.Two);
+
+		providerGasPrice = MAX_GAS_PRICE; // hardcode for now
+		console.log(`Gas Price = ${providerGasPrice}`);
+
+		// default connext multiple is 1.5, leave 2x for safety
+		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(Big(2)).mul(providerGasPrice);
+
+		// add dai conversion
+		const minConvertable = new CurrencyConvertable(CurrencyType.WEI, totalDepositGasWei, () => getExchangeRates(connextState));
+		const browserMinimumBalance = {
+			wei: minConvertable.toWEI().amount,
+			dai: minConvertable.toUSD().amount
+		};
+		this.setState({ browserMinimumBalance });
+		return browserMinimumBalance;
+	}
+
+	async autoDeposit() {
+		const { address, tokenContract, connextState, tokenAddress, connext, browserMinimumBalance, ethprovider } = this.state;
+
+		if (!connext || !browserMinimumBalance) return;
+
+		const balance = await ethprovider.getBalance(address);
+
+		let tokenBalance = "0";
 		try {
-			await connext.start(fetch);
-			Logger.log('Polling started correctly');
-			Logger.log('Requesting collateral!');
-			await connext.requestCollateral();
-			Logger.log('Collateral requested succesfully!');
+			tokenBalance = await tokenContract.balanceOf(address);
 		} catch (e) {
-			Logger.log('polling error', e);
+			console.warn(
+				`Error fetching token balance, are you sure the token address (addr: ${tokenAddress}) is correct for the selected network (id: ${JSON.stringify(
+					await ethprovider.getNetwork()
+				)}))? Error: ${e.message}`
+			);
+			return;
 		}
+
+		if (balance.gt(ethers.constants.Zero) || tokenBalance.gt(ethers.constants.Zero)) {
+			const minWei = Big(browserMinimumBalance.wei);
+			if (balance.lt(minWei)) {
+				// don't autodeposit anything under the threshold
+				// update the refunding variable before returning
+				// We hit this repeatedly after first deposit & we have dust left over
+				// No need to clutter logs w the below
+				// console.log(`Current balance is ${balance.toString()}, less than minBalance of ${minWei.toString()}`);
+				return;
+			}
+			// only proceed with deposit request if you can deposit
+			if (!connextState) {
+				return;
+			}
+			if (
+			// something was submitted
+				connextState.runtime.deposit.submitted ||
+				connextState.runtime.withdrawal.submitted ||
+				connextState.runtime.collateral.submitted
+			) {
+				console.log(`Deposit or withdrawal transaction in progress, will not auto-deposit`);
+				return;
+			}
+
+			const channelDeposit = {
+				amountWei: balance.sub(minWei),
+				amountToken: tokenBalance
+			};
+
+			if (channelDeposit.amountWei.eq(ethers.constants.Zero) && channelDeposit.amountToken.eq(ethers.constants.Zero)) {
+				return;
+			}
+
+			await this.state.connext.deposit({
+				amountWei: channelDeposit.amountWei.toString(),
+				amountToken: channelDeposit.amountToken.toString()
+			});
+		}
+	}
+
+	async autoSwap() {
+		const { channelState, connextState } = this.state;
+		if (!connextState || hasPendingOps(channelState)) {
+			return;
+		}
+		const weiBalance = Big(channelState.balanceWeiUser);
+		const tokenBalance = Big(channelState.balanceTokenUser);
+		if (channelState && weiBalance.gt(Big("0")) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
+			await this.state.connext.exchange(channelState.balanceWeiUser, "wei");
+		}
+	}
+
+	async checkStatus() {
+		const { runtime, status } = this.state;
+		const newStatus = {
+			reset: status.reset
+		};
+
+		if (runtime) {
+			console.log(`Hub Sync results: ${JSON.stringify(runtime.syncResultsFromHub[0], null, 2)}`);
+			if (runtime.deposit.submitted) {
+			if (!runtime.deposit.detected) {
+				newStatus.type = "DEPOSIT_PENDING";
+			} else {
+				newStatus.type = "DEPOSIT_SUCCESS";
+				newStatus.txHash = runtime.deposit.transactionHash;
+			}
+			}
+			if (runtime.withdrawal.submitted) {
+			if (!runtime.withdrawal.detected) {
+				newStatus.type = "WITHDRAWAL_PENDING";
+			} else {
+				newStatus.type = "WITHDRAWAL_SUCCESS";
+				newStatus.txHash = runtime.withdrawal.transactionHash;
+			}
+			}
+		}
+
+		if (newStatus.type !== status.type) {
+			newStatus.reset = true;
+			console.log(`New channel status! ${JSON.stringify(newStatus)}`);
+		}
+		this.setState({ status: newStatus });
 	}
 
 	deposit = async () => {
@@ -392,13 +475,13 @@ class PaymentChannel extends Component {
 				amountWei: toWei(this.state.depositAmount).toString(),
 				amountToken: '0'
 			};
-			Logger.log('About to deposit', params);
+			console.log('About to deposit', params);
 			await connext.deposit(params);
 			this.setState({ depositAmount: '' });
-			Logger.log('Deposit succesful');
+			console.log('Deposit succesful');
 			this.awaitingDeposit = true;
 		} catch (e) {
-			Logger.log('Deposit error', e);
+			console.log('Deposit error', e);
 		}
 	};
 
@@ -436,33 +519,33 @@ class PaymentChannel extends Component {
 					}
 				]
 			};
-			Logger.log('Sending ', params);
+			console.log('Sending ', params);
 			await connext.buy(params);
-			Logger.log('Send succesful');
+			console.log('Send succesful');
 		} catch (e) {
-			Logger.log('buy error error', e);
+			console.log('buy error error', e);
 		}
 	};
 
 	swapToDAI = async amount => {
 		try {
 			const connext = this.state.connext;
-			Logger.log('swapping eth to dai');
+			console.log('swapping eth to dai');
 			await connext.exchange(amount, 'wei');
-			Logger.log('Swap to DAI succesful');
+			console.log('Swap to DAI succesful');
 		} catch (e) {
-			Logger.log('buy error error', e);
+			console.log('buy error error', e);
 		}
 	};
 
 	swapToETH = async () => {
 		try {
 			const connext = this.state.connext;
-			Logger.log('swapping DAI  to ETH');
+			console.log('swapping DAI  to ETH');
 			await connext.exchange(this.state.channelState.balanceTokenUser, 'token');
-			Logger.log('Swap to ETH succesful');
+			console.log('Swap to ETH succesful');
 		} catch (e) {
-			Logger.log('buy error error', e);
+			console.log('buy error error', e);
 		}
 	};
 
@@ -479,9 +562,9 @@ class PaymentChannel extends Component {
 			};
 
 			await connext.withdraw(withdrawalVal);
-			Logger.log('withdraw succesful');
+			console.log('withdraw succesful');
 		} catch (e) {
-			Logger.log('withdraw error', e);
+			console.log('withdraw error', e);
 		}
 	};
 
