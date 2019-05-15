@@ -53,24 +53,27 @@ export default class WebsiteIcon extends Component {
 		renderIconUrlError: false
 	};
 
-	componentDidMount = () => {
-		this.getIconUrl(this.props.url);
-	};
-
+	/**
+	 * Get image url from favicon api
+	 */
 	getIconUrl = url => {
 		const iconUrl = `https://api.faviconkit.com/${getHost(url)}/64`;
-		this.setState({ apiLogoUrl: { uri: iconUrl } });
+		return iconUrl;
 	};
 
+	/**
+	 * Sets component state to renderIconUrlError to render placeholder image
+	 */
 	onRenderIconUrlError = async () => {
 		await this.setState({ renderIconUrlError: true });
 	};
 
-	renderIconWithFallback = error => {
-		const { viewStyle, style, title, textStyle } = this.props;
-		const { apiLogoUrl } = this.state;
+	render = () => {
+		const { renderIconUrlError } = this.state;
+		const { url, viewStyle, style, title, textStyle } = this.props;
+		const apiLogoUrl = { uri: this.getIconUrl(url) };
 
-		if (error && title) {
+		if (renderIconUrlError && title) {
 			return (
 				<View style={viewStyle}>
 					<View style={[styles.fallback, style]}>
@@ -87,10 +90,5 @@ export default class WebsiteIcon extends Component {
 				</FadeIn>
 			</View>
 		);
-	};
-
-	render = () => {
-		const { renderIconUrlError } = this.state;
-		return <View>{this.renderIconWithFallback(renderIconUrlError)}</View>;
 	};
 }
