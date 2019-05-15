@@ -1596,6 +1596,7 @@ export class BrowserTab extends PureComponent {
 				animationInTiming={300}
 				animationOutTiming={300}
 				onSwipeComplete={this.onAccountsReject}
+				onBackdropPress={this.onAccountsReject}
 				swipeDirection={'down'}
 			>
 				<AccountApproval
