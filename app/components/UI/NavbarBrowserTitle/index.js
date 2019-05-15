@@ -41,9 +41,9 @@ const styles = StyleSheet.create({
 	},
 	currentUrl: {
 		...fontStyles.normal,
+		width: Platform.OS === 'android' ? '60%' : '100%',
 		fontSize: 14,
-		textAlign: 'center',
-		paddingHorizontal: Platform.OS === 'android' ? 30 : 0
+		textAlign: 'center'
 	}
 });
 
