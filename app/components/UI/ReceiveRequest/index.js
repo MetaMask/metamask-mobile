@@ -8,7 +8,8 @@ import {
 	Dimensions,
 	StyleSheet,
 	View,
-	Text
+	Text,
+	Clipboard
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
@@ -27,6 +28,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DeviceSize from '../../../util/DeviceSize';
+import { showAlert } from '../../../actions/alert';
+import GlobalAlert from '../GlobalAlert';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
@@ -166,7 +169,11 @@ class ReceiveRequest extends Component {
 		/**
 		 * Action that toggles the receive modal
 		 */
-		toggleReceiveModal: PropTypes.func
+		toggleReceiveModal: PropTypes.func,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -210,6 +217,17 @@ class ReceiveRequest extends Component {
 	 */
 	openQrModal = () => {
 		this.setState({ qrModalVisible: true });
+	};
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
 	};
 
 	actions = [
@@ -310,10 +328,11 @@ class ReceiveRequest extends Component {
 									size={Dimensions.get('window').width - 160}
 								/>
 							</View>
-							<View style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+							<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 								<Text style={styles.address}>{this.props.selectedAddress}</Text>
-							</View>
+							</TouchableOpacity>
 						</View>
+						<GlobalAlert />
 					</View>
 				</Modal>
 				<Modal
@@ -343,7 +362,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	toggleReceiveModal: () => dispatch(toggleReceiveModal())
+	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(
