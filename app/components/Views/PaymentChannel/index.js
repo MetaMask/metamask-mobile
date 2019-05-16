@@ -1,5 +1,9 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+
 
 import React, { Component } from 'react';
+const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider')
+import Web3 from 'connext/node_modules/web3/src';
 
 import {
 	InteractionManager,
@@ -21,14 +25,16 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 
 // eslint-disable-next-line import/no-namespace
 import * as Connext from 'connext';
-import Eth from 'ethjs-query';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import EthContract from 'ethjs-contract';
+import EthQuery from 'ethjs-query';
 
 import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
 import { hexToBN, renderFromWei, toWei, toBN } from '../../../util/number';
 import { setTransactionObject } from '../../../actions/transaction';
 import DeviceSize from '../../../util/DeviceSize';
+
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -142,10 +148,20 @@ const DEPOSIT_ESTIMATED_GAS = Big('700000'); // 700k gas
 const ZERO = Big(0); // 700k gas
 const WEI_PER_ETHER = Big(1000000000000000000);
 const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(Big(69)); // 69 TST
-const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(Big(30)); // 30 TST
+// const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(Big(30)); // 30 TST
 const MAX_GAS_PRICE = Big('20000000000'); // 20 gWei
 
 const tokenAbi = humanTokenAbi;
+
+function byteArrayToHex(value){
+	const HexCharacters = '0123456789abcdef';
+	const result = [];
+	for (let i = 0; i < value.length; i++) {
+		const v = value[i];
+		result.push(HexCharacters[(v & 0xf0) >> 4] + HexCharacters[v & 0x0f]);
+	}
+	return '0x' + result.join('');
+}
 
 //const HASH_PREAMBLE = 'SpankWallet authentication message:';
 
@@ -189,17 +205,17 @@ class PaymentChannel extends Component {
 		channelState: null,
 		connextState: null,
 		persistent: null,
-		runtime: { canBuy: false, canDeposit: false, canWithdraw: false },
+		runtime: null,
 		exchangeRate: 0,
 		sendAmount: '',
 		sendRecipient: '',
 		depositAmount: '',
+		status: {
+			txHash: "",
+			type: "",
+			reset: false
+		},
 		browserMinimumBalance: null
-	};
-
-	metamaskSign = async (hash, address) => {
-		const { KeyringController } = Engine.context;
-		return KeyringController.signPersonalMessage({ data: hash, from: address });
 	};
 
 	initProviderListeners() {
@@ -221,22 +237,43 @@ class PaymentChannel extends Component {
 		});
 	}
 
+	getExternalWallet(){
+		const { KeyringController } = Engine.context;
+		return {
+			external: true,
+			address: this.props.selectedAddress,
+			getAddress: () =>  Promise.resolve(this.props.selectedAddress),
+			getBalance: (block) => this.state.ethprovider.getBalance(this.props.selectedAddress, block),
+			signMessage: (message) => {
+				const hexMessage = byteArrayToHex(message);
+				return KeyringController.signPersonalMessage({ data: hexMessage, from: this.props.selectedAddress })
+			}
+		}
+	}
+
 	async setConnext(provider) {
+		const  { type } = provider;
+		const infuraProvider = createInfuraProvider({ network: type })
+
+
 		const publicUrl = 'https://daicard.io';
 		let hubUrl;
-		const ethprovider = new Eth(provider);
-		switch (provider) {
-			case 'RINKEBY':
+		const ethprovider = new EthQuery(infuraProvider);
+		switch (type) {
+			case 'rinkeby':
 				hubUrl = `${publicUrl}/api/rinkeby/hub`;
 				break;
-			case 'MAINNET':
+			case 'mainnet':
 				hubUrl = `${publicUrl}/api/mainnet/hub`;
 				break;
 			default:
-				throw new Error(`Unrecognized provider: ${provider}`);
+				throw new Error(`Unrecognized network: ${type}`);
 		}
 		const opts = {
-			hubUrl
+			hubUrl,
+			externalWallet: this.getExternalWallet(),
+			user: this.props.selectedAddress,
+			web3Provider: Engine.context.NetworkController.provider
 		};
 
 		console.log('Setting up connext with opts:', opts);
@@ -244,13 +281,14 @@ class PaymentChannel extends Component {
 		// *** Instantiate the connext client ***
 		try {
 			const connext = await Connext.getConnextClient(opts);
-			connext.sign = this.metamaskSign.bind(this);
+
 
 			console.log(`Successfully set up connext! Connext config:`);
 			console.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
 			console.log(`  - hubAddress: ${connext.opts.hubAddress}`);
 			console.log(`  - contractAddress: ${connext.opts.contractAddress}`);
 			console.log(`  - ethNetworkId: ${connext.opts.ethNetworkId}`);
+			console.log(`  - public address: ${this.state.address}`);
 
 			this.setState({
 				connext,
@@ -258,7 +296,7 @@ class PaymentChannel extends Component {
 				channelManagerAddress: connext.opts.contractAddress,
 				hubWalletAddress: connext.opts.hubAddress,
 				ethNetworkId: connext.opts.ethNetworkId,
-				ethprovider
+				ethprovider,
 			});
 		} catch (e) {
 			console.log('error', e);
@@ -269,7 +307,7 @@ class PaymentChannel extends Component {
 		try {
 			const { tokenAddress, ethprovider } = this.state;
 
-			const contract = new EthContract(eth);
+			const contract = new EthContract(ethprovider);
 			const tokenContract = contract(tokenAbi).at(tokenAddress);
 			this.setState({ tokenContract });
 		} catch (e) {
@@ -280,12 +318,13 @@ class PaymentChannel extends Component {
 	componentDidMount = () => {
 		InteractionManager.runAfterInteractions(async () => {
 			this.initProviderListeners();
+			const { provider } = Engine.context.NetworkController.state;
 
-			await this.setConnext(Engine.context.NetworkController.provider.type.toUpperCase());
+			await this.setConnext(provider);
 			await this.setTokenContract();
 			await this.pollConnextState();
 			await this.setBrowserWalletMinimumBalance();
-			await this.poller();
+			// await this.poller();
 		});
 		this.mounted = true;
 	};
@@ -299,6 +338,7 @@ class PaymentChannel extends Component {
 		const { connext } = this.state;
 		// register connext listeners
 		connext.on('onStateChange', state => {
+			console.log("STATE CHANGE!", state);
 			this.setState({
 				channelState: state.persistent.channel,
 				connextState: state,
@@ -326,16 +366,16 @@ class PaymentChannel extends Component {
 	}
 
 	async setBrowserWalletMinimumBalance() {
-		const { connextState, ethprovider } = this.state;
-		// let gasEstimateJson = await ethers.utils.fetchJson({ url: `https://ethgasstation.info/json/ethgasAPI.json` });
-		let providerGasPrice = await ethprovider.getGasPrice();
+		const { connextState } = this.state;
+		// let gasEstimateJson = await utils.fetchJson({ url: `https://ethgasstation.info/json/ethgasAPI.json` });
+		// let providerGasPrice = await ethprovider.getGasPrice();
 		// let currentGasPrice = Math.round((gasEstimateJson.average / 10) * 2); // multiply gas price by two to be safe
 		// dont let gas price be any higher than the max
-		// currentGasPrice = ethers.utils.parseUnits(minBN(Big(currentGasPrice.toString()), MAX_GAS_PRICE).toString(), "gwei");
+		// currentGasPrice = utils.parseUnits(minBN(Big(currentGasPrice.toString()), MAX_GAS_PRICE).toString(), "gwei");
 		// unless it really needs to be: average eth gas station price w ethprovider's
 		// currentGasPrice = currentGasPrice.add(providerGasPrice).div(ethers.constants.Two);
 
-		providerGasPrice = MAX_GAS_PRICE; // hardcode for now
+		const providerGasPrice = MAX_GAS_PRICE; // hardcode for now
 		console.log(`Gas Price = ${providerGasPrice}`);
 
 		// default connext multiple is 1.5, leave 2x for safety
@@ -366,11 +406,18 @@ class PaymentChannel extends Component {
 
 		if (!connext || !browserMinimumBalance) return;
 
-		const balance = await ethprovider.getBalance(address);
+		let tokenBalance = Big(ZERO);
+		let balance = Big(ZERO);
 
-		let tokenBalance = '0';
+		const balanceBN = await ethprovider.getBalance(address);
+		balance = Big(balanceBN.toString());
+		console.log('GOT BALANCE', balance);
+
 		try {
-			tokenBalance = await tokenContract.balanceOf(address);
+			const tokenBalanceRequest = await tokenContract.balanceOf(address);
+			const tokenBalanceBN = tokenBalanceRequest.balance;
+			tokenBalance = Big(tokenBalanceBN.toString());
+			console.log('GOT TOKEN BALANCE', tokenBalance);
 		} catch (e) {
 			console.warn(
 				`Error fetching token balance, are you sure the token address (addr: ${tokenAddress}) is correct for the selected network (id: ${JSON.stringify(
@@ -379,7 +426,6 @@ class PaymentChannel extends Component {
 			);
 			return;
 		}
-
 		if (balance.gt(ZERO) || tokenBalance.gt(ZERO)) {
 			const minWei = Big(browserMinimumBalance.wei);
 			if (balance.lt(minWei)) {
@@ -638,7 +684,7 @@ class PaymentChannel extends Component {
 
 	renderBalance(amount) {
 		const ret = renderFromWei(amount, 18);
-		if (ret === 0) {
+		if (parseInt(ret, 10) === 0) {
 			return '0.00';
 		}
 		return ret.toFixed(2).toString();
@@ -657,7 +703,7 @@ class PaymentChannel extends Component {
 							<ScrollableTabView>
 								<ScrollView tabLabel={'INFO'}>{this.renderInfo()}</ScrollView>
 								<ScrollView tabLabel={'PERSISTENT'}>
-									{this.renderData(this.state.persistent)}
+									{this.renderData(this.state.channelState)}
 								</ScrollView>
 								<ScrollView tabLabel={'RUNTIME'}>{this.renderData(this.state.runtime)}</ScrollView>
 							</ScrollableTabView>
@@ -685,7 +731,7 @@ class PaymentChannel extends Component {
 									type={'confirm'}
 									onPress={this.deposit}
 									testID={'submit-button'}
-									disabled={!this.state.runtime.canDeposit}
+									// disabled={!this.state.runtime.canDeposit}
 								>
 									DEPOSIT
 								</StyledButton>
@@ -722,7 +768,7 @@ class PaymentChannel extends Component {
 									type={'confirm'}
 									onPress={this.sendDAI}
 									testID={'submit-button'}
-									disabled={!this.state.runtime.canBuy}
+									// disabled={!this.state.runtime.canBuy}
 								>
 									SEND DAI
 								</StyledButton>
@@ -733,7 +779,7 @@ class PaymentChannel extends Component {
 								type={'confirm'}
 								onPress={this.withdraw}
 								testID={'submit-button'}
-								disabled={!this.state.runtime.canWithdraw}
+								// disabled={!this.state.runtime.canWithdraw}
 							>
 								CASH OUT
 							</StyledButton>

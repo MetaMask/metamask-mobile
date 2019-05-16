@@ -2,7 +2,7 @@
 echo "PostInstall script:"
 
 echo "1. React Native nodeify..."
-node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url' --hack
+node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs' --hack
 
 # We need to submit a PR for this one.
 echo "2. Fix react-native-os buildTools version..."
@@ -99,3 +99,8 @@ echo "" > ios/release.xcconfig
 
 echo "10. Fix react-native-push-notification ..."
 rm -rf node_modules/react-native-push-notification/.git
+
+echo "11. Fix xmlhttprequest"
+TARGET="node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
+sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
+
