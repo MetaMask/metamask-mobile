@@ -124,12 +124,10 @@ exports[`ReceiveRequest should render correctly 1`] = `
         actionDescription="Request assets from friends"
         actionTitle="Request"
         icon={
-          <IconClass
-            brand={false}
+          <FA5iconClass
             color="#000000"
             light={false}
             name="hand-holding"
-            regular={false}
             size={30}
             solid={true}
           />
@@ -283,7 +281,9 @@ exports[`ReceiveRequest should render correctly 1`] = `
             value="ethereum:0x"
           />
         </View>
-        <View
+        <TouchableOpacity
+          activeOpacity={0.2}
+          onPress={[Function]}
           style={
             Object {
               "alignItems": "center",
@@ -308,8 +308,9 @@ exports[`ReceiveRequest should render correctly 1`] = `
           >
             0x
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
+      <Connect(GlobalAlert) />
     </View>
   </ReactNativeModal>
   <ReactNativeModal
