@@ -1,8 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 
-
 import React, { Component } from 'react';
-const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider')
+const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
 import Web3 from 'connext/node_modules/web3/src';
 
 import {
@@ -34,7 +33,6 @@ import { connect } from 'react-redux';
 import { hexToBN, renderFromWei, toWei, toBN } from '../../../util/number';
 import { setTransactionObject } from '../../../actions/transaction';
 import DeviceSize from '../../../util/DeviceSize';
-
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -153,7 +151,7 @@ const MAX_GAS_PRICE = Big('20000000000'); // 20 gWei
 
 const tokenAbi = humanTokenAbi;
 
-function byteArrayToHex(value){
+function byteArrayToHex(value) {
 	const HexCharacters = '0123456789abcdef';
 	const result = [];
 	for (let i = 0; i < value.length; i++) {
@@ -211,8 +209,8 @@ class PaymentChannel extends Component {
 		sendRecipient: '',
 		depositAmount: '',
 		status: {
-			txHash: "",
-			type: "",
+			txHash: '',
+			type: '',
 			reset: false
 		},
 		browserMinimumBalance: null
@@ -237,24 +235,23 @@ class PaymentChannel extends Component {
 		});
 	}
 
-	getExternalWallet(){
+	getExternalWallet() {
 		const { KeyringController } = Engine.context;
 		return {
 			external: true,
 			address: this.props.selectedAddress,
-			getAddress: () =>  Promise.resolve(this.props.selectedAddress),
-			getBalance: (block) => this.state.ethprovider.getBalance(this.props.selectedAddress, block),
-			signMessage: (message) => {
+			getAddress: () => Promise.resolve(this.props.selectedAddress),
+			getBalance: block => this.state.ethprovider.getBalance(this.props.selectedAddress, block),
+			signMessage: message => {
 				const hexMessage = byteArrayToHex(message);
-				return KeyringController.signPersonalMessage({ data: hexMessage, from: this.props.selectedAddress })
+				return KeyringController.signPersonalMessage({ data: hexMessage, from: this.props.selectedAddress });
 			}
-		}
+		};
 	}
 
 	async setConnext(provider) {
-		const  { type } = provider;
-		const infuraProvider = createInfuraProvider({ network: type })
-
+		const { type } = provider;
+		const infuraProvider = createInfuraProvider({ network: type });
 
 		const publicUrl = 'https://daicard.io';
 		let hubUrl;
@@ -282,7 +279,6 @@ class PaymentChannel extends Component {
 		try {
 			const connext = await Connext.getConnextClient(opts);
 
-
 			console.log(`Successfully set up connext! Connext config:`);
 			console.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
 			console.log(`  - hubAddress: ${connext.opts.hubAddress}`);
@@ -296,7 +292,7 @@ class PaymentChannel extends Component {
 				channelManagerAddress: connext.opts.contractAddress,
 				hubWalletAddress: connext.opts.hubAddress,
 				ethNetworkId: connext.opts.ethNetworkId,
-				ethprovider,
+				ethprovider
 			});
 		} catch (e) {
 			console.log('error', e);
@@ -324,7 +320,7 @@ class PaymentChannel extends Component {
 			await this.setTokenContract();
 			await this.pollConnextState();
 			await this.setBrowserWalletMinimumBalance();
-			// await this.poller();
+			await this.pollAndSwap();
 		});
 		this.mounted = true;
 	};
@@ -338,7 +334,7 @@ class PaymentChannel extends Component {
 		const { connext } = this.state;
 		// register connext listeners
 		connext.on('onStateChange', state => {
-			console.log("STATE CHANGE!", state);
+			console.log('STATE CHANGE!', state);
 			this.setState({
 				channelState: state.persistent.channel,
 				connextState: state,
@@ -359,9 +355,12 @@ class PaymentChannel extends Component {
 		setInterval(async () => {
 			await this.autoDeposit();
 		}, 5000);
+	}
 
-		setInterval(async () => {
-			await this.autoSwap();
+	pollAndSwap = async () => {
+		await this.autoSwap()
+		setTimeout(()=>{
+			this.pollAndSwap();
 		}, 1000);
 	}
 
@@ -455,10 +454,7 @@ class PaymentChannel extends Component {
 				amountToken: tokenBalance
 			};
 
-			if (
-				channelDeposit.amountWei.eq(ZERO) &&
-				channelDeposit.amountToken.eq(ZERO)
-			) {
+			if (channelDeposit.amountWei.eq(ZERO) && channelDeposit.amountToken.eq(ZERO)) {
 				return;
 			}
 
@@ -476,8 +472,11 @@ class PaymentChannel extends Component {
 		}
 		const weiBalance = Big(channelState.balanceWeiUser);
 		const tokenBalance = Big(channelState.balanceTokenUser);
+		const hubTokenBalance = Big(channelState.balanceTokenHub);
 		if (channelState && weiBalance.gt(Big('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
-			await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
+			if(hubTokenBalance.gt(weiBalance)){
+				await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
+			}
 		}
 	}
 
@@ -520,9 +519,15 @@ class PaymentChannel extends Component {
 		}
 
 		const depositAmount = parseFloat(this.state.depositAmount);
-		const maxDepositAmount = 0.24;
+		const maxDepositAmount = 0.12;
+		const minDepositAmount = 0.03;
 		if (depositAmount > maxDepositAmount) {
-			Alert.alert('The max. deposit allowed for now it is 0.24 ETH. Try with a lower amount');
+			Alert.alert('The max. deposit allowed for now it is 0.12 ETH. Try with a lower amount');
+			return;
+		}
+
+		if (depositAmount > minDepositAmount) {
+			Alert.alert('The max. deposit allowed for now it is 0.03 ETH. Try with a lower amount');
 			return;
 		}
 
@@ -568,11 +573,8 @@ class PaymentChannel extends Component {
 				payments: [
 					{
 						recipient: this.state.sendRecipient.toLowerCase(),
-						amount: {
-							amountWei: '0',
-							amountToken: toWei(this.state.sendAmount).toString()
-						},
-						type: 'PT_CHANNEL'
+						amountWei: '0',
+						amountToken: toWei(this.state.sendAmount).toString(),
 					}
 				]
 			};
@@ -683,8 +685,8 @@ class PaymentChannel extends Component {
 	}
 
 	renderBalance(amount) {
-		const ret = renderFromWei(amount, 18);
-		if (parseInt(ret, 10) === 0) {
+		const ret = parseFloat(renderFromWei(amount, 18));
+		if (ret === 0) {
 			return '0.00';
 		}
 		return ret.toFixed(2).toString();
