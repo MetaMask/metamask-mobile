@@ -1,8 +1,10 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 
 import React, { Component } from 'react';
+// eslint-disable-next-line import/no-commonjs
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
-import Web3 from 'connext/node_modules/web3/src';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 import {
 	InteractionManager,
@@ -14,13 +16,18 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
-	ActivityIndicator
+	ActivityIndicator,
+	TouchableOpacity,
+	Dimensions,
+	Clipboard
 } from 'react-native';
 import PropTypes from 'prop-types';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import QRCode from 'react-native-qrcode-svg';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 
 // eslint-disable-next-line import/no-namespace
 import * as Connext from 'connext';
@@ -30,9 +37,12 @@ import EthQuery from 'ethjs-query';
 
 import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
-import { hexToBN, renderFromWei, toWei, toBN } from '../../../util/number';
+import { renderFromWei, toWei, toBN } from '../../../util/number';
 import { setTransactionObject } from '../../../actions/transaction';
-import DeviceSize from '../../../util/DeviceSize';
+import { showAlert } from '../../../actions/alert';
+import { strings } from '../../../../locales/i18n';
+import { hideMessage } from 'react-native-flash-message';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -55,83 +65,143 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		flex: 1,
-		marginTop: DeviceSize.isIphoneX() ? 60 : 30,
-		fontSize: 80,
+		marginTop: 10,
+		fontSize: 70,
 		...fontStyles.normal
 	},
 	info: {
+		flex: 1,
 		paddingVertical: 15,
 		paddingRight: 20
 	},
 	data: {
-		flex: 1,
 		marginTop: 10,
-		height: 200
+		height: 120
 	},
 	buttonWrapper: {
-		padding: 20,
+		paddingVertical: 20,
 		alignItems: 'flex-end',
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		justifyContent: 'space-between'
 	},
+	noPaddingTop: {
+		paddingTop: 0
+	},
 	button: {
+		flex: 0,
+		paddingVertical: 5,
 		width: 160,
-		height: 40
+		height: 30
 	},
 	fullButton: {
-		marginHorizontal: 20,
+		flex: 1,
 		marginBottom: 20,
-		height: 40
+		height: 30
 	},
 	buttonText: {
-		fontSize: 11
+		fontSize: 14
 	},
-	message: {
-		marginLeft: 20
-	},
-	msgKey: {
-		fontWeight: 'bold'
-	},
-	messageText: {
-		margin: 5,
-		fontSize: 12,
-		color: colors.black,
-		...fontStyles.normal,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'Roboto'
+	minLoader: {
+		minHeight: 50,
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	loader: {
 		backgroundColor: colors.white,
 		flex: 1,
-		minHeight: 200,
+		minHeight: 120,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
 	input: {
 		width: 160,
-		height: 40,
+		height: 50,
 		borderWidth: 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey200,
 		paddingHorizontal: 10
 	},
 	fullWidthInput: {
-		height: 40,
+		flex: 1,
+		height: 50,
 		borderWidth: 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey200,
 		paddingHorizontal: 10,
-		marginHorizontal: 20,
+		paddingRight: 50,
 		marginTop: 10
 	},
-	sectionTitleWrapper: {
-		paddingHorizontal: 20
-	},
 	sectionTitleText: {
+		fontSize: 20,
 		...fontStyles.bold
 	},
+	sectionTitleWrapper: {
+		marginBottom: 15
+	},
 	panel: {
-		borderTopWidth: 1,
-		borderColor: colors.borderColor,
-		paddingTop: 20
+		flex: 1
+	},
+	panelContent: {
+		paddingVertical: 20,
+		paddingHorizontal: 20
+	},
+	accountWrapper: {
+		flexDirection: 'row'
+	},
+	qrCodeButton: {
+		position: 'absolute',
+		right: 5,
+		top: 10,
+		minHeight: 50,
+		paddingRight: 8,
+		paddingLeft: 12,
+		flexDirection: 'row',
+		alignItems: 'center'
+	},
+	qrCodeWrapper: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingTop: 0,
+		padding: 15
+	},
+	addressWrapper: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 16,
+		paddingVertical: 15,
+		marginTop: 10,
+		borderRadius: 5,
+		backgroundColor: colors.grey000
+	},
+	address: {
+		...fontStyles.normal,
+		fontSize: Platform.OS === 'ios' ? 14 : 20,
+		textAlign: 'center'
+	},
+	explainerText: {
+		...fontStyles.normal,
+		color: colors.fontPrimary,
+		fontSize: 16,
+		marginBottom: 15
+	},
+	explainerTextWrapper: {
+		marginBottom: 20
+	},
+	tabUnderlineStyle: {
+		height: 2,
+		backgroundColor: colors.blue
+	},
+	tabStyle: {
+		paddingBottom: 0
+	},
+	tabTextStyle: {
+		fontSize: 12,
+		letterSpacing: 0.5,
+		...fontStyles.bold
+	},
+	bold: {
+		...fontStyles.bold
 	}
 });
 
@@ -146,9 +216,10 @@ const DEPOSIT_ESTIMATED_GAS = Big('700000'); // 700k gas
 const ZERO = Big(0); // 700k gas
 const WEI_PER_ETHER = Big(1000000000000000000);
 const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(Big(69)); // 69 TST
-// const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(Big(30)); // 30 TST
+//const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(Big(30)); // 30 TST
 const MAX_GAS_PRICE = Big('20000000000'); // 20 gWei
-
+const MIN_DEPOSIT_ETH = 0.03;
+const MAX_DEPOSIT_TOKEN = 30;
 const tokenAbi = humanTokenAbi;
 
 function byteArrayToHex(value) {
@@ -164,7 +235,7 @@ function byteArrayToHex(value) {
 //const HASH_PREAMBLE = 'SpankWallet authentication message:';
 
 class PaymentChannel extends Component {
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Payment channel`, navigation);
+	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Instant Payments`, navigation);
 
 	static propTypes = {
 		/**
@@ -176,19 +247,18 @@ class PaymentChannel extends Component {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
-		 * Action that sets transaction attributes from object to a transaction
-		 */
-		setTransactionObject: PropTypes.func,
-		/**
-		 * Transaction state
-		 */
-		transaction: PropTypes.object
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	awaitingDeposit = false;
+	awaitingWithdrawal = false;
+	tabView = React.createRef();
 
 	state = {
 		loadingConnext: true,
+		qrModalVisible: false,
 		hubUrl: null,
 		tokenAddress: null,
 		contractAddress: null,
@@ -215,25 +285,6 @@ class PaymentChannel extends Component {
 		},
 		browserMinimumBalance: null
 	};
-
-	initProviderListeners() {
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', transactionMeta => {
-			if (this.props.transaction.value || this.props.transaction.to) {
-				return;
-			}
-			const {
-				transaction: { value, gas, gasPrice }
-			} = transactionMeta;
-			transactionMeta.transaction.value = hexToBN(value);
-			transactionMeta.transaction.gas = hexToBN(gas);
-			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
-			this.props.setTransactionObject({
-				...{ symbol: 'ETH', assetType: 'ETH', id: transactionMeta.id },
-				...transactionMeta.transaction
-			});
-			this.props.navigation.push('ApprovalView');
-		});
-	}
 
 	getExternalWallet() {
 		const { KeyringController } = Engine.context;
@@ -273,18 +324,18 @@ class PaymentChannel extends Component {
 			web3Provider: Engine.context.NetworkController.provider
 		};
 
-		console.log('Setting up connext with opts:', opts);
+		Logger.log('Setting up connext with opts:', opts);
 
 		// *** Instantiate the connext client ***
 		try {
 			const connext = await Connext.getConnextClient(opts);
 
-			console.log(`Successfully set up connext! Connext config:`);
-			console.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
-			console.log(`  - hubAddress: ${connext.opts.hubAddress}`);
-			console.log(`  - contractAddress: ${connext.opts.contractAddress}`);
-			console.log(`  - ethNetworkId: ${connext.opts.ethNetworkId}`);
-			console.log(`  - public address: ${this.state.address}`);
+			Logger.log(`Successfully set up connext! Connext config:`);
+			Logger.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
+			Logger.log(`  - hubAddress: ${connext.opts.hubAddress}`);
+			Logger.log(`  - contractAddress: ${connext.opts.contractAddress}`);
+			Logger.log(`  - ethNetworkId: ${connext.opts.ethNetworkId}`);
+			Logger.log(`  - public address: ${this.state.address}`);
 
 			this.setState({
 				connext,
@@ -295,7 +346,7 @@ class PaymentChannel extends Component {
 				ethprovider
 			});
 		} catch (e) {
-			console.log('error', e);
+			Logger.log('error', e);
 		}
 	}
 
@@ -307,13 +358,12 @@ class PaymentChannel extends Component {
 			const tokenContract = contract(tokenAbi).at(tokenAddress);
 			this.setState({ tokenContract });
 		} catch (e) {
-			console.log('Error setting token contract', e);
+			Logger.log('Error setting token contract', e);
 		}
 	}
 
 	componentDidMount = () => {
 		InteractionManager.runAfterInteractions(async () => {
-			this.initProviderListeners();
 			const { provider } = Engine.context.NetworkController.state;
 
 			await this.setConnext(provider);
@@ -326,7 +376,6 @@ class PaymentChannel extends Component {
 	};
 
 	componentWillUnmount() {
-		Engine.context.TransactionController.hub.removeAllListeners();
 		this.mounted && this.state.connext.stop();
 	}
 
@@ -334,7 +383,7 @@ class PaymentChannel extends Component {
 		const { connext } = this.state;
 		// register connext listeners
 		connext.on('onStateChange', state => {
-			console.log('STATE CHANGE!', state);
+			Logger.log('NEW STATE', state);
 			this.setState({
 				channelState: state.persistent.channel,
 				connextState: state,
@@ -358,11 +407,11 @@ class PaymentChannel extends Component {
 	}
 
 	pollAndSwap = async () => {
-		await this.autoSwap()
-		setTimeout(()=>{
+		await this.autoSwap();
+		setTimeout(() => {
 			this.pollAndSwap();
 		}, 1000);
-	}
+	};
 
 	async setBrowserWalletMinimumBalance() {
 		const { connextState } = this.state;
@@ -375,7 +424,7 @@ class PaymentChannel extends Component {
 		// currentGasPrice = currentGasPrice.add(providerGasPrice).div(ethers.constants.Two);
 
 		const providerGasPrice = MAX_GAS_PRICE; // hardcode for now
-		console.log(`Gas Price = ${providerGasPrice}`);
+		Logger.log(`Gas Price = ${providerGasPrice}`);
 
 		// default connext multiple is 1.5, leave 2x for safety
 		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(Big(2)).mul(providerGasPrice);
@@ -410,15 +459,15 @@ class PaymentChannel extends Component {
 
 		const balanceBN = await ethprovider.getBalance(address);
 		balance = Big(balanceBN.toString());
-		console.log('GOT BALANCE', balance);
+		Logger.log('GOT BALANCE', balance);
 
 		try {
 			const tokenBalanceRequest = await tokenContract.balanceOf(address);
 			const tokenBalanceBN = tokenBalanceRequest.balance;
 			tokenBalance = Big(tokenBalanceBN.toString());
-			console.log('GOT TOKEN BALANCE', tokenBalance);
+			Logger.log('GOT TOKEN BALANCE', tokenBalance);
 		} catch (e) {
-			console.warn(
+			Logger.log(
 				`Error fetching token balance, are you sure the token address (addr: ${tokenAddress}) is correct for the selected network (id: ${JSON.stringify(
 					await ethprovider.getNetwork()
 				)}))? Error: ${e.message}`
@@ -432,7 +481,7 @@ class PaymentChannel extends Component {
 				// update the refunding variable before returning
 				// We hit this repeatedly after first deposit & we have dust left over
 				// No need to clutter logs w the below
-				// console.log(`Current balance is ${balance.toString()}, less than minBalance of ${minWei.toString()}`);
+				// Logger.log(`Current balance is ${balance.toString()}, less than minBalance of ${minWei.toString()}`);
 				return;
 			}
 			// only proceed with deposit request if you can deposit
@@ -445,7 +494,7 @@ class PaymentChannel extends Component {
 				connextState.runtime.withdrawal.submitted ||
 				connextState.runtime.collateral.submitted
 			) {
-				console.log(`Deposit or withdrawal transaction in progress, will not auto-deposit`);
+				Logger.log(`Deposit or withdrawal transaction in progress, will not auto-deposit`);
 				return;
 			}
 
@@ -474,7 +523,7 @@ class PaymentChannel extends Component {
 		const tokenBalance = Big(channelState.balanceTokenUser);
 		const hubTokenBalance = Big(channelState.balanceTokenHub);
 		if (channelState && weiBalance.gt(Big('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
-			if(hubTokenBalance.gt(weiBalance)){
+			if (hubTokenBalance.gt(weiBalance)) {
 				await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
 			}
 		}
@@ -487,7 +536,7 @@ class PaymentChannel extends Component {
 		};
 
 		if (runtime) {
-			console.log(`Hub Sync results: ${JSON.stringify(runtime.syncResultsFromHub[0], null, 2)}`);
+			// Logger.log(`Hub Sync results: ${JSON.stringify(runtime.syncResultsFromHub[0], null, 2)}`);
 			if (runtime.deposit.submitted) {
 				if (!runtime.deposit.detected) {
 					newStatus.type = 'DEPOSIT_PENDING';
@@ -508,13 +557,25 @@ class PaymentChannel extends Component {
 
 		if (newStatus.type !== status.type) {
 			newStatus.reset = true;
-			console.log(`New channel status! ${JSON.stringify(newStatus)}`);
+			Logger.log(`New channel status! ${JSON.stringify(newStatus)}`);
+			Logger.log(`STATUS TYPE!`, newStatus.type);
+			if (newStatus.type && newStatus.type !== 'DEPOSIT_PENDING') {
+				const notification_type = newStatus.type
+					.toLowerCase()
+					.split('_')
+					.reverse()
+					.join('_');
+				hideMessage();
+				setTimeout(() => {
+					TransactionsNotificationManager.showInstantPaymentNotification(notification_type);
+				}, 300);
+			}
 		}
 		this.setState({ status: newStatus });
 	}
 
 	deposit = async () => {
-		if (isNaN(this.state.depositAmount)) {
+		if (isNaN(this.state.depositAmount) || this.state.depositAmount.trim() === '') {
 			return;
 		}
 
@@ -526,7 +587,7 @@ class PaymentChannel extends Component {
 			return;
 		}
 
-		if (depositAmount > minDepositAmount) {
+		if (depositAmount < minDepositAmount) {
 			Alert.alert('The max. deposit allowed for now it is 0.03 ETH. Try with a lower amount');
 			return;
 		}
@@ -537,18 +598,18 @@ class PaymentChannel extends Component {
 				amountWei: toWei(this.state.depositAmount).toString(),
 				amountToken: '0'
 			};
-			console.log('About to deposit', params);
+			Logger.log('About to deposit', params);
 			await connext.deposit(params);
 			this.setState({ depositAmount: '' });
-			console.log('Deposit succesful');
-			this.awaitingDeposit = true;
+			Logger.log('Deposit succesful');
+			TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
 		} catch (e) {
-			console.log('Deposit error', e);
+			Logger.log('Deposit error', e);
 		}
 	};
 
 	sendDAI = async () => {
-		if (isNaN(this.state.sendAmount)) {
+		if (isNaN(this.state.sendAmount) || this.state.sendAmount.trim() === '') {
 			return;
 		}
 
@@ -574,37 +635,37 @@ class PaymentChannel extends Component {
 					{
 						recipient: this.state.sendRecipient.toLowerCase(),
 						amountWei: '0',
-						amountToken: toWei(this.state.sendAmount).toString(),
+						amountToken: toWei(this.state.sendAmount).toString()
 					}
 				]
 			};
-			console.log('Sending ', params);
+			Logger.log('Sending ', params);
 			await connext.buy(params);
-			console.log('Send succesful');
+			Logger.log('Send succesful');
 		} catch (e) {
-			console.log('buy error error', e);
+			Logger.log('buy error error', e);
 		}
 	};
 
 	swapToDAI = async amount => {
 		try {
 			const connext = this.state.connext;
-			console.log('swapping eth to dai');
+			Logger.log('swapping eth to dai');
 			await connext.exchange(amount, 'wei');
-			console.log('Swap to DAI succesful');
+			Logger.log('Swap to DAI succesful');
 		} catch (e) {
-			console.log('buy error error', e);
+			Logger.log('buy error error', e);
 		}
 	};
 
 	swapToETH = async () => {
 		try {
 			const connext = this.state.connext;
-			console.log('swapping DAI  to ETH');
+			Logger.log('swapping DAI  to ETH');
 			await connext.exchange(this.state.channelState.balanceTokenUser, 'token');
-			console.log('Swap to ETH succesful');
+			Logger.log('Swap to ETH succesful');
 		} catch (e) {
-			console.log('buy error error', e);
+			Logger.log('buy error error', e);
 		}
 	};
 
@@ -621,65 +682,20 @@ class PaymentChannel extends Component {
 			};
 
 			await connext.withdraw(withdrawalVal);
-			console.log('withdraw succesful');
+			Logger.log('withdraw succesful');
 		} catch (e) {
-			console.log('withdraw error', e);
+			Logger.log('withdraw error', e);
 		}
 	};
 
-	renderData = obj =>
-		obj &&
-		Object.keys(obj).map(key => (
-			<View style={styles.message} key={key}>
-				{typeof obj[key] === 'object' ? (
-					<View>
-						<Text style={[styles.messageText, styles.msgKey]}>{key}:</Text>
-						<View>{this.renderData(obj[key])}</View>
-					</View>
-				) : (
-					<Text style={styles.messageText}>
-						<Text style={styles.msgKey}>{key}:</Text> {JSON.stringify(obj[key])}
-					</Text>
-				)}
-			</View>
-		));
-
 	renderInfo() {
-		if (this.state.channelState) {
-			return (
-				<View style={styles.info}>
-					{/* <View style={styles.row}>
-						<Text style={styles.subtitle}>
-							STATUS: {this.state.authorized ? <Text style={styles.auth}>Authorized</Text> : null}{' '}
-						</Text>
-					</View> */}
-					{/* <View style={styles.row}>
-						<Text style={styles.subtitle}>ONCHAIN TX: {this.state.channelState.txCountChain}</Text>
-						<Text style={styles.subtitle}>GLOBAL TX: {this.state.channelState.txCountGlobal}</Text>
-					</View> */}
-
-					{/* <View style={styles.row}>
-						<Text style={styles.subtitle}>
-							ETH BALANCE: {renderFromWei(this.state.channelState.balanceWeiUser, 18)} ETH
-						</Text>
-					</View>
-					<View style={styles.row}>
-						<Text style={styles.subtitle}>
-							TOKEN BALANCE: {renderFromWei(this.state.channelState.balanceTokenUser, 18)} DAI
-						</Text>
-					</View> */}
-					<View style={styles.balance}>
-						<Text style={styles.balanceText}>
-							$ {this.renderBalance(this.state.channelState.balanceTokenUser)}
-						</Text>
-					</View>
-				</View>
-			);
-		}
-
 		return (
-			<View style={styles.loader}>
-				<ActivityIndicator size="small" />
+			<View style={styles.info}>
+				<View style={styles.balance}>
+					<Text style={styles.balanceText}>
+						$ {this.renderBalance(this.state.channelState.balanceTokenUser)}
+					</Text>
+				</View>
 			</View>
 		);
 	}
@@ -692,6 +708,286 @@ class PaymentChannel extends Component {
 		return ret.toFixed(2).toString();
 	}
 
+	scan = () => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: meta => {
+				if (meta.target_address) {
+					this.setState({ sendRecipient: meta.target_address });
+				}
+			}
+		});
+	};
+
+	/**
+	 * Closes QR code modal
+	 */
+	closeQrModal = () => {
+		this.setState({ qrModalVisible: false });
+	};
+
+	/**
+	 * Opens QR code modal
+	 */
+	openQrModal = () => {
+		this.setState({ qrModalVisible: true });
+	};
+
+	areButtonDisabled = () => {
+		if (this.state.status && this.state.status.type) {
+			return this.state.status.type.indexOf('_PENDING') !== -1;
+		}
+		return false;
+	};
+
+	getMinimumDepositFiat() {
+		if (this.state.runtime && this.state.runtime.exchangeRate && this.state.runtime.exchangeRate.rates) {
+			const ETH = parseFloat(this.state.runtime.exchangeRate.rates.USD);
+			return (ETH * MIN_DEPOSIT_ETH).toFixed(2).toString();
+		}
+		return '0.00';
+	}
+
+	getMaximiumDepositEth() {
+		if (this.state.runtime && this.state.runtime.exchangeRate && this.state.runtime.exchangeRate.rates) {
+			const ETH = parseFloat(this.state.runtime.exchangeRate.rates.USD);
+			return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
+		}
+		return '0.00';
+	}
+
+	renderMinimumsOrSpinner() {
+		if (!this.state.runtime || !this.state.runtime.exchangeRate || !this.state.runtime.exchangeRate.rates) {
+			return (
+				<View style={styles.minLoader}>
+					<ActivityIndicator size="small" />
+				</View>
+			);
+		}
+
+		return (
+			<React.Fragment>
+				<Text style={styles.explainerText}>
+					Min. deposit:{' '}
+					<Text style={styles.bold}>
+						{MIN_DEPOSIT_ETH} ETH (${this.getMinimumDepositFiat()})
+					</Text>
+				</Text>
+				<Text style={styles.explainerText}>
+					Max. deposit:{' '}
+					<Text style={styles.bold}>
+						{this.getMaximiumDepositEth()} ETH (${MAX_DEPOSIT_TOKEN.toFixed(2).toString()})
+					</Text>
+				</Text>
+			</React.Fragment>
+		);
+	}
+
+	renderDeposit() {
+		const isDisabled = this.areButtonDisabled();
+		return (
+			<React.Fragment>
+				<View style={styles.explainerTextWrapper}>
+					<Text style={styles.explainerText}>
+						In order to start sending instant payments,{' '}
+						<Text style={styles.bold}>you first need to deposit some ETH</Text>
+					</Text>
+					{this.renderMinimumsOrSpinner()}
+				</View>
+
+				<View style={styles.sectionTitleWrapper}>
+					<Text style={styles.sectionTitleText}>DEPOSIT ETH</Text>
+				</View>
+				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
+					<TextInput
+						autoCapitalize="none"
+						autoCorrect={false}
+						// eslint-disable-next-line react/jsx-no-bind
+						onChangeText={val => this.setState({ depositAmount: val })}
+						placeholder={`Enter ETH amount`}
+						spellCheck={false}
+						style={styles.input}
+						value={this.state.depositAmount}
+						onBlur={this.onBlur}
+						keyboardType="numeric"
+						numberOfLines={1}
+					/>
+					<StyledButton
+						containerStyle={styles.button}
+						style={styles.buttonText}
+						type={'confirm'}
+						onPress={this.deposit}
+						testID={'submit-button'}
+						disabled={isDisabled}
+					>
+						DEPOSIT
+					</StyledButton>
+				</View>
+			</React.Fragment>
+		);
+	}
+
+	renderSend() {
+		const isDisabled = this.areButtonDisabled();
+		return (
+			<React.Fragment>
+				<View style={styles.explainerTextWrapper}>
+					<Text style={styles.explainerText}>
+						Send instant payments completely free to any other Ethereum address!
+					</Text>
+				</View>
+				<View style={styles.sectionTitleWrapper}>
+					<Text style={styles.sectionTitleText}>SEND PAYMENT</Text>
+				</View>
+				<View style={styles.accountWrapper}>
+					<TextInput
+						autoCapitalize="none"
+						autoCorrect={false}
+						// eslint-disable-next-line react/jsx-no-bind
+						onChangeText={val => this.setState({ sendRecipient: val })}
+						placeholder={`Enter recipient: 0x...`}
+						spellCheck={false}
+						style={styles.fullWidthInput}
+						value={this.state.sendRecipient}
+						onBlur={this.onBlur}
+					/>
+					<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
+						<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
+					</TouchableOpacity>
+				</View>
+				<View style={styles.buttonWrapper}>
+					<TextInput
+						autoCapitalize="none"
+						autoCorrect={false}
+						// eslint-disable-next-line react/jsx-no-bind
+						onChangeText={val => this.setState({ sendAmount: val })}
+						placeholder={`Enter Amount`}
+						spellCheck={false}
+						style={styles.input}
+						value={this.state.sendAmount}
+						onBlur={this.onBlur}
+						keyboardType="numeric"
+						numberOfLines={1}
+					/>
+
+					<StyledButton
+						containerStyle={styles.button}
+						style={styles.buttonText}
+						type={'confirm'}
+						onPress={this.sendDAI}
+						testID={'submit-button'}
+						disabled={isDisabled}
+					>
+						SEND
+					</StyledButton>
+				</View>
+			</React.Fragment>
+		);
+	}
+
+	renderReceive() {
+		return (
+			<React.Fragment>
+				<View style={styles.explainerTextWrapper}>
+					<Text style={styles.explainerText}>
+						Receive payments by sharing your address or showing your QR code
+					</Text>
+				</View>
+				<View style={styles.qrCodeWrapper}>
+					<QRCode
+						value={`ethereum:${this.props.selectedAddress}`}
+						size={Dimensions.get('window').width - 160}
+					/>
+				</View>
+				<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+					<Text style={styles.address}>{this.props.selectedAddress}</Text>
+				</TouchableOpacity>
+			</React.Fragment>
+		);
+	}
+
+	renderWithdraw() {
+		const isDisabled = this.areButtonDisabled();
+		return (
+			<React.Fragment>
+				<View style={styles.explainerTextWrapper}>
+					<Text style={styles.explainerText}>Your funds will be sent to your normal Ethereum account</Text>
+					<Text
+						style={styles.explainerText}
+					>{`This process will take a few seconds because it's a normal ETH transaction`}</Text>
+					<Text style={styles.explainerText}>NOTE: The transaction fees will be paid with your funds</Text>
+				</View>
+				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
+					<StyledButton
+						containerStyle={styles.fullButton}
+						style={styles.buttonText}
+						type={'confirm'}
+						onPress={this.withdraw}
+						testID={'submit-button'}
+						disabled={isDisabled}
+					>
+						WITHDRAW
+					</StyledButton>
+				</View>
+			</React.Fragment>
+		);
+	}
+
+	renderTabBar() {
+		return (
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.blue}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.tabTextStyle}
+			/>
+		);
+	}
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
+	};
+
+	renderContent() {
+		if (!this.state.channelState) {
+			return (
+				<View style={styles.loader}>
+					<ActivityIndicator size="small" />
+				</View>
+			);
+		}
+
+		return (
+			<React.Fragment>
+				<View style={styles.data}>{this.renderInfo()}</View>
+				<View style={styles.panel}>
+					<ScrollableTabView renderTabBar={this.renderTabBar} ref={this.tabView}>
+						<ScrollView tabLabel={'DEPOSIT'}>
+							<View style={styles.panelContent}>{this.renderDeposit()}</View>
+						</ScrollView>
+						<ScrollView tabLabel={'SEND'}>
+							<View style={styles.panelContent}>{this.renderSend()}</View>
+						</ScrollView>
+						<ScrollView tabLabel={'RECEIVE'}>
+							<View style={styles.panelContent}>{this.renderReceive()}</View>
+						</ScrollView>
+						<ScrollView tabLabel={'WITHDRAW'}>
+							<View style={styles.panelContent}>{this.renderWithdraw()}</View>
+						</ScrollView>
+					</ScrollableTabView>
+				</View>
+			</React.Fragment>
+		);
+	}
+
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -701,91 +997,7 @@ class PaymentChannel extends Component {
 					testID={'account-backup-step-1-screen'}
 				>
 					<View style={styles.wrapper} testID={'test'}>
-						<View style={styles.data}>
-							<ScrollableTabView>
-								<ScrollView tabLabel={'INFO'}>{this.renderInfo()}</ScrollView>
-								<ScrollView tabLabel={'PERSISTENT'}>
-									{this.renderData(this.state.channelState)}
-								</ScrollView>
-								<ScrollView tabLabel={'RUNTIME'}>{this.renderData(this.state.runtime)}</ScrollView>
-							</ScrollableTabView>
-						</View>
-
-						<View style={styles.panel}>
-							<View style={styles.sectionTitleWrapper}>
-								<Text style={styles.sectionTitleText}>DEPOSIT ETH</Text>
-							</View>
-							<View style={styles.buttonWrapper}>
-								<TextInput
-									autoCapitalize="none"
-									autoCorrect={false}
-									// eslint-disable-next-line react/jsx-no-bind
-									onChangeText={val => this.setState({ depositAmount: val })}
-									placeholder={`Enter ETH amount`}
-									spellCheck={false}
-									style={styles.input}
-									value={this.state.depositAmount}
-									onBlur={this.onBlur}
-								/>
-								<StyledButton
-									containerStyle={styles.button}
-									style={styles.buttonText}
-									type={'confirm'}
-									onPress={this.deposit}
-									testID={'submit-button'}
-									// disabled={!this.state.runtime.canDeposit}
-								>
-									DEPOSIT
-								</StyledButton>
-							</View>
-							<View style={styles.sectionTitleWrapper}>
-								<Text style={styles.sectionTitleText}>SEND TOKENS</Text>
-							</View>
-							<TextInput
-								autoCapitalize="none"
-								autoCorrect={false}
-								// eslint-disable-next-line react/jsx-no-bind
-								onChangeText={val => this.setState({ sendRecipient: val })}
-								placeholder={`Enter recipient: 0x...`}
-								spellCheck={false}
-								style={styles.fullWidthInput}
-								value={this.state.sendRecipient}
-								onBlur={this.onBlur}
-							/>
-							<View style={styles.buttonWrapper}>
-								<TextInput
-									autoCapitalize="none"
-									autoCorrect={false}
-									// eslint-disable-next-line react/jsx-no-bind
-									onChangeText={val => this.setState({ sendAmount: val })}
-									placeholder={`Enter DAI amount`}
-									spellCheck={false}
-									style={styles.input}
-									value={this.state.sendAmount}
-									onBlur={this.onBlur}
-								/>
-								<StyledButton
-									containerStyle={styles.button}
-									style={styles.buttonText}
-									type={'confirm'}
-									onPress={this.sendDAI}
-									testID={'submit-button'}
-									// disabled={!this.state.runtime.canBuy}
-								>
-									SEND DAI
-								</StyledButton>
-							</View>
-							<StyledButton
-								containerStyle={styles.fullButton}
-								style={styles.buttonText}
-								type={'confirm'}
-								onPress={this.withdraw}
-								testID={'submit-button'}
-								// disabled={!this.state.runtime.canWithdraw}
-							>
-								CASH OUT
-							</StyledButton>
-						</View>
+						{this.renderContent()}
 					</View>
 				</ScrollView>
 			</SafeAreaView>
@@ -799,7 +1011,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTransactionObject: asset => dispatch(setTransactionObject(asset))
+	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(

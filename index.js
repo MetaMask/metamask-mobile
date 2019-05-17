@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Expected delta of 0 for the fields',
 	'The network request was invalid',
 	'Require cycle',
 	'ListView is deprecated',

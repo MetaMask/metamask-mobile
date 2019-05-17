@@ -55,9 +55,27 @@ class TransactionsNotificationManager {
 					title = strings('notifications.pending_title');
 					message = strings('notifications.pending_message');
 					break;
+				case 'pending_deposit':
+					title = strings('notifications.pending_deposit_title');
+					message = strings('notifications.pending_deposit_message');
+					break;
+				case 'pending_withdrawal':
+					title = strings('notifications.pending_withdrawal_title');
+					message = strings('notifications.pending_withdrawal_message');
+					break;
 				case 'success':
 					title = strings('notifications.success_title', { nonce: data.message.transaction.nonce });
 					message = strings('notifications.success_message');
+					break;
+				case 'success_withdrawal':
+					title = strings('notifications.success_withdrawal_title', {
+						nonce: data.message.transaction.nonce
+					});
+					message = strings('notifications.success_withdrawal_message');
+					break;
+				case 'success_deposit':
+					title = strings('notifications.success_deposit_title', { nonce: data.message.transaction.nonce });
+					message = strings('notifications.success_deposit_message');
 					break;
 				case 'error':
 					title = strings('notifications.error_title');
@@ -73,6 +91,13 @@ class TransactionsNotificationManager {
 						assetType: data.message.transaction.assetType
 					});
 					message = strings('notifications.received_message');
+					break;
+				case 'received_payment':
+					title = strings('notifications.received_payment_title', {
+						amount: data.message.transaction.amount,
+						assetType: data.message.transaction.assetType
+					});
+					message = strings('notifications.received_payment_message');
 					break;
 			}
 
@@ -322,5 +347,34 @@ export default {
 	},
 	requestPushNotificationsPermission() {
 		return instance.requestPushNotificationsPermission();
+	},
+	showInstantPaymentNotification(type) {
+		const notification = {
+			type,
+			autoHide: type.indexOf('success') !== -1,
+			message: {
+				transaction: null,
+				callback: () => null
+			}
+		};
+		if (notification.autoHide) {
+			notification.duration = 5000;
+		}
+
+		return instance._showNotification(notification);
+	},
+	showIncomingPaymentNotification: amount => {
+		this._showNotification({
+			type: 'received_payment',
+			message: {
+				transaction: {
+					amount,
+					assetType: 'USD'
+				},
+				callback: () => null
+			},
+			autoHide: true,
+			duration: 5000
+		});
 	}
 };

@@ -58,7 +58,11 @@ export const TransactionNotification = props => {
 	_getIcon = () => {
 		switch (type) {
 			case 'pending':
+			case 'pending_withdrawal':
+			case 'pending_deposit':
 				return <AnimatedSpinner size={36} />;
+			case 'success_deposit':
+			case 'success_withdrawal':
 			case 'success':
 			case 'received':
 				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
@@ -75,13 +79,23 @@ export const TransactionNotification = props => {
 		switch (type) {
 			case 'pending':
 				return strings('notifications.pending_title');
+			case 'pending_deposit':
+				return strings('notifications.pending_deposit_title');
+			case 'pending_withdrawal':
+				return strings('notifications.pending_withdrawal_title');
 			case 'success':
 				return strings('notifications.success_title', { nonce: transaction.nonce });
+			case 'success_deposit':
+				return strings('notifications.success_deposit_title');
+			case 'success_withdrawal':
+				return strings('notifications.success_withdrawal_title');
 			case 'received':
 				return strings('notifications.received_title', {
 					amount: transaction.amount,
 					assetType: transaction.assetType
 				});
+			case 'received_payment':
+				return strings('notifications.received_payment_title');
 			case 'cancelled':
 				return strings('notifications.cancelled_title');
 			case 'error':
@@ -90,7 +104,12 @@ export const TransactionNotification = props => {
 	};
 
 	// eslint-disable-next-line no-undef
-	_getDescription = () => strings(`notifications.${type}_message`);
+	_getDescription = () => {
+		if (transaction && transaction.amount) {
+			return strings(`notifications.${type}_message`, { amount: transaction.amount });
+		}
+		return strings(`notifications.${type}_message`);
+	};
 
 	// eslint-disable-next-line
 	_getContent = () => (
