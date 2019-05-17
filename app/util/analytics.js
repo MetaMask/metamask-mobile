@@ -7,7 +7,7 @@ const NAMES = {
 	ONBOARDING_SELECTED_CREATE_NEW_WALLET: 'Selected Create New Wallet',
 	ONBOARDING_SELECTED_IMPORT_WALLET: 'Selected Import Wallet',
 	// Navigation Drawer
-	NAVIGATION_TAPS_ACCOUNT_NAME: 'Tapped Account Name / Profile ',
+	NAVIGATION_TAPS_ACCOUNT_NAME: 'Tapped Account Name / Profile',
 	NAVIGATION_TAPS_SEND: "Taps on 'Send'",
 	NAVIGATION_TAPS_RECEIVE: "Taps on 'Receive'",
 	NAVIGATION_TAPS_BROWSER: 'Taps Browser',
