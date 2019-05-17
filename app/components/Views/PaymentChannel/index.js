@@ -202,7 +202,6 @@ const styles = StyleSheet.create({
 	}
 });
 
-
 class PaymentChannel extends Component {
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Instant Payments`, navigation);
 
@@ -221,14 +220,12 @@ class PaymentChannel extends Component {
 		showAlert: PropTypes.func
 	};
 
-
 	state = {
 		qrModalVisible: false,
 		sendAmount: '',
 		sendRecipient: '',
-		depositAmount: '',
+		depositAmount: ''
 	};
-
 
 	componentDidMount = () => {
 		InteractionManager.runAfterInteractions(async () => {
@@ -240,8 +237,6 @@ class PaymentChannel extends Component {
 	componentWillUnmount() {
 		this.mounted && this.client.stop();
 	}
-
-
 
 	deposit = async () => {
 		if (isNaN(this.state.depositAmount) || this.state.depositAmount.trim() === '') {

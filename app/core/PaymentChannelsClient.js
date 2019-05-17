@@ -1,12 +1,12 @@
-import Engine from "./Engine";
-import Logger from "../util/Logger";
+import Engine from './Engine';
+import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-namespace
 import * as Connext from 'connext';
 import EthContract from 'ethjs-contract';
 import EthQuery from 'ethjs-query';
-import TransactionsNotificationManager from "./TransactionsNotificationManager";
-import { hideMessage } from "react-native-flash-message";
-import { toWei, toBN } from "../util/number";
+import TransactionsNotificationManager from './TransactionsNotificationManager';
+import { hideMessage } from 'react-native-flash-message';
+import { toWei, toBN } from '../util/number';
 // eslint-disable-next-line
 const tokenAbi = require('../../abi/humanToken.json');
 
@@ -32,10 +32,8 @@ function byteArrayToHex(value) {
 	return '0x' + result.join('');
 }
 
-
 class PaymentChannelClient {
-
-	constructor(){
+	constructor() {
 		const { provider } = Engine.context.NetworkController.state;
 
 		this.state = {
@@ -69,8 +67,8 @@ class PaymentChannelClient {
 		};
 	}
 
-	setState(data){
-		Object.keys(data).forEach((key)=>{
+	setState(data) {
+		Object.keys(data).forEach(key => {
 			this[key] = data[key];
 		});
 	}
@@ -204,8 +202,6 @@ class PaymentChannelClient {
 		return browserMinimumBalance;
 	}
 
-
-
 	async autoSwap() {
 		const { channelState, connextState } = this.state;
 		if (!connextState || hasPendingOps(channelState)) {
@@ -298,7 +294,7 @@ class PaymentChannelClient {
 		}
 	};
 
-	send = async (params) => {
+	send = async params => {
 		if (isNaN(this.state.sendAmount) || this.state.sendAmount.trim() === '') {
 			return;
 		}
@@ -358,14 +354,14 @@ class PaymentChannelClient {
 		}
 	};
 
-	withdraw = async (params) => {
+	withdraw = async params => {
 		try {
 			const connext = this.state.connext;
 			const withdrawalVal = {
 				exchangeRate: this.state.runtime.exchangeRate.rates.USD,
 				withdrawalWeiUser: this.state.channelState.balanceWeiUser,
 				tokensToSell: this.state.channelState.balanceTokenUser,
-				...params,
+				...params
 			};
 
 			await connext.withdraw(withdrawalVal);
@@ -375,10 +371,9 @@ class PaymentChannelClient {
 		}
 	};
 
-	stop(){
+	stop() {
 		this.state.connext.stop();
 	}
-
 }
 
 const instance = {
@@ -390,13 +385,11 @@ const instance = {
 		await this.client.setBrowserWalletMinimumBalance();
 		await this.client.pollAndSwap();
 	},
-	maxAmount: this.client.state &&
-				this.client.state.channelState &&
-				this.client.state.channelState.balanceTokenUser,
+	maxAmount: this.client.state && this.client.state.channelState && this.client.state.channelState.balanceTokenUser,
 	stop: () => this.client.stop(),
-	deposit: (params) => this.client.deposit(params),
-	withdraw: (params) => this.client.withdraw(params),
-	send: (params) => this.client.buy(params),
-}
+	deposit: params => this.client.deposit(params),
+	withdraw: params => this.client.withdraw(params),
+	send: params => this.client.buy(params)
+};
 
 export default instance;
