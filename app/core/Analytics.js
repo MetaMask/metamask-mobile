@@ -57,6 +57,86 @@ class Analytics {
 	subscribe = listener => {
 		this.listeners.push(listener);
 	};
+
+	/**
+	 * Track event
+	 *
+	 * @param {object} event - Object containing event category, action and name
+	 */
+	trackEvent = event => {
+		if (!this.enabled) return;
+		console.log(`Analytics 'trackEvent' - ${event}`); // eslint-disable-line no-console
+	};
+
+	/**
+	 * Track event with value
+	 *
+	 * @param {object} event - Object containing event category, action and name
+	 * @param {number} value - Value number to send with event
+	 */
+	trackEventWithValue = (event, value) => {
+		if (!this.enabled) return;
+		console.log(`Analytics 'trackEventWithValue' - ${(event, value)}`); // eslint-disable-line no-console
+	};
+
+	/**
+	 * Track event with information
+	 *
+	 * @param {object} event - Object containing event category, action and name
+	 * @param {string} info - Information string to send with event
+	 */
+	trackEventWithInfo = (event, info) => {
+		if (!this.enabled) return;
+		console.log(`Analytics 'trackEventWithInfo' - ${(event, info)}`); // eslint-disable-line no-console
+	};
+
+	/**
+	 * Track event with value and information
+	 *
+	 * @param {object} event - Object containing event category, action and name
+	 * @param {number} value - Value number to send with event
+	 * @param {string} info - Information string to send with event
+	 */
+	trackEventWithValueAndInfo = (event, value, info) => {
+		if (!this.enabled) return;
+		console.log(`Analytics 'trackEventWithValueAndInfo' - ${(event, value, info)}`); // eslint-disable-line no-console
+	};
+
+	/**
+	 * Track event with parameters
+	 *
+	 * @param {object} event - Object containing event category, action and name
+	 * @param {object} params - Object containing other params to send with event
+	 */
+	trackEventWithParameters = (event, params) => {
+		if (!this.enabled) return;
+		console.log(`Analytics 'trackEventWithParameters' - ${(event, params)}`); // eslint-disable-line no-console
+	};
+
+	/**
+	 * Track event with value and parameters
+	 *
+	 * @param {object} event - Object containing event category, action and name
+	 * @param {number} value - Value number to send with event
+	 * @param {object} params - Object containing other params to send with event
+	 */
+	trackEventWithValueAndParameters = (event, value, params) => {
+		if (!this.enabled) return;
+		console.log(`Analytics 'trackEventWithValueAndParameters' - ${(event, value, params)}`); // eslint-disable-line no-console
+	};
+
+	/**
+	 * Track event with value and parameters
+	 *
+	 * @param {object} event - Object containing event category, action and name
+	 * @param {number} value - Value number to send with event
+	 * @param {string} info - Information string to send with event
+	 * @param {object} params - Object containing other params to send with event
+	 */
+	trackEventWithValueAndInfoAndParameters = (event, value, info, params) => {
+		if (!this.enabled) return;
+		console.log(`Analytics 'trackEventWithValueAndParameters' - ${(event, value, info, params)}`); // eslint-disable-line no-console
+	};
 }
 
 let instance;
