@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 		fontSize: 14
 	},
 	minLoader: {
-		minHeight: 50,
+		minHeight: 70,
 		backgroundColor: colors.white,
 		flex: 1,
 		justifyContent: 'center',
@@ -732,7 +732,7 @@ class PaymentChannel extends Component {
 		this.setState({ qrModalVisible: true });
 	};
 
-	areButtonDisabled = () => {
+	areButtonsDisabled = () => {
 		if (this.state.status && this.state.status.type) {
 			return this.state.status.type.indexOf('_PENDING') !== -1;
 		}
@@ -783,7 +783,7 @@ class PaymentChannel extends Component {
 	}
 
 	renderDeposit() {
-		const isDisabled = this.areButtonDisabled();
+		const isDisabled = this.areButtonsDisabled();
 		return (
 			<React.Fragment>
 				<View style={styles.explainerTextWrapper}>
@@ -827,7 +827,7 @@ class PaymentChannel extends Component {
 	}
 
 	renderSend() {
-		const isDisabled = this.areButtonDisabled();
+		const isDisabled = this.areButtonsDisabled();
 		return (
 			<React.Fragment>
 				<View style={styles.explainerTextWrapper}>
@@ -906,7 +906,7 @@ class PaymentChannel extends Component {
 	}
 
 	renderWithdraw() {
-		const isDisabled = this.areButtonDisabled();
+		const isDisabled = this.areButtonsDisabled();
 		return (
 			<React.Fragment>
 				<View style={styles.explainerTextWrapper}>
