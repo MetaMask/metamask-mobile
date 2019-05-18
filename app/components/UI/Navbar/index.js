@@ -452,6 +452,13 @@ export function getWalletNavbarOptions(title, navigation) {
 		navigation.openDrawer();
 	}
 
+	function openQRScanner() {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_QR_SCANNER);
+		navigation.navigate('QRScanner', {
+			onScanSuccess
+		});
+	}
+
 	return {
 		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
@@ -467,11 +474,7 @@ export function getWalletNavbarOptions(title, navigation) {
 			<TouchableOpacity
 				style={styles.infoButton}
 				// eslint-disable-next-line
-				onPress={() => {
-					navigation.navigate('QRScanner', {
-						onScanSuccess
-					});
-				}}
+				onPress={openQRScanner}
 			>
 				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
