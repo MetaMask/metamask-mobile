@@ -882,6 +882,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	goBackToHomepage = () => {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		this.toggleOptionsIfNeeded();
 		this.props.navigation.setParams({
 			url: null
@@ -955,6 +956,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	addBookmark = () => {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
 		this.toggleOptionsIfNeeded();
 		// Check it doesn't exist already
 		if (this.props.bookmarks.filter(i => i.url === this.state.inputValue).length) {
@@ -1010,6 +1012,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	openInBrowser = () => {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
 		this.toggleOptionsIfNeeded();
 		Linking.openURL(this.state.inputValue).catch(error =>
 			Logger.log('Error while trying to open external link: ${url}', error)
@@ -1027,6 +1030,8 @@ export class BrowserTab extends PureComponent {
 	}
 
 	toggleOptions = () => {
+		!this.props.navigation.state.params.showOptions &&
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
 		this.props.navigation &&
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
