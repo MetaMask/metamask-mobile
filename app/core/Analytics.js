@@ -160,5 +160,8 @@ export default {
 	},
 	trackEvent(event) {
 		return instance.trackEvent(event);
+	},
+	trackEventWithParameters(event, parameters) {
+		return instance.trackEventWithParameters(event, parameters);
 	}
 };

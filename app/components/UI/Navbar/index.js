@@ -15,6 +15,8 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import WalletConnect from '../../../core/WalletConnect';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 const HOMEPAGE_URL = 'about:blank';
 
 const styles = StyleSheet.create({
@@ -125,6 +127,7 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
  */
 export default function getNavbarOptions(title, navigation) {
 	function onPress() {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 		Keyboard.dismiss();
 		navigation.openDrawer();
 	}
@@ -290,6 +293,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 	}
 
 	function onPress() {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 		Keyboard.dismiss();
 		navigation.openDrawer();
 	}
@@ -444,6 +448,7 @@ export function getWalletNavbarOptions(title, navigation) {
 	};
 
 	function openDrawer() {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 		navigation.openDrawer();
 	}
 
