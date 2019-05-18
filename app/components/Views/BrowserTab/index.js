@@ -57,6 +57,8 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -844,6 +846,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	onUrlInputSubmit = async (input = null) => {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_SEARCH);
 		this.toggleOptionsIfNeeded();
 		const inputValue = (typeof input === 'string' && input) || this.state.autocompleteInputValue;
 		const { defaultProtocol, searchEngine } = this.props;
