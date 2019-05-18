@@ -14,6 +14,8 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import { renderAccountName } from '../../../util/address';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const FONT_SIZE = PixelRatio.get() < 2 ? 12 : 16;
 const styles = StyleSheet.create({
@@ -163,6 +165,7 @@ class TransactionReview extends Component {
 			transaction: { data }
 		} = this.props;
 		let { showHexData } = this.props;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
 		showHexData = showHexData || data;
 		const error = validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction);
@@ -171,6 +174,7 @@ class TransactionReview extends Component {
 
 	edit = () => {
 		const { onModeChange } = this.props;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION);
 		onModeChange && onModeChange('edit');
 	};
 

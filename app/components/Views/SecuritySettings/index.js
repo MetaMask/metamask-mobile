@@ -15,7 +15,6 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
-import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -205,7 +204,6 @@ class Settings extends Component {
 		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		const optIn = metricsOptIn === 'agreed';
 		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn: optIn });
-		Logger.log('seettttings');
 	};
 
 	onBiometryChange = async enabled => {
