@@ -160,16 +160,25 @@ class SignatureRequest extends Component {
 		);
 	};
 
+	/**
+	 * Calls trackCancelSignature and onCancel callback
+	 */
 	onCancel = () => {
 		this.trackCancelSignature();
 		this.props.onCancel();
 	};
 
+	/**
+	 * Calls trackConfirmSignature and onConfirm callback
+	 */
 	onConfirm = () => {
 		this.trackConfirmSignature();
 		this.props.onConfirm();
 	};
 
+	/**
+	 * Calls analytics to track confirm signature event
+	 */
 	trackConfirmSignature = () => {
 		const { networkType, type } = this.props;
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE, {
@@ -178,6 +187,9 @@ class SignatureRequest extends Component {
 		});
 	};
 
+	/**
+	 * Calls analytics to track cancel signature event
+	 */
 	trackCancelSignature = () => {
 		const { networkType, type } = this.props;
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE, {
