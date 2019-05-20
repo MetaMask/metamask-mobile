@@ -2,16 +2,12 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-namespace
 import * as Connext from 'connext';
-import EthContract from 'ethjs-contract';
 import EthQuery from 'ethjs-query';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
 import { toWei, toBN, renderFromWei } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-
-// eslint-disable-next-line
-const tokenAbi = require('../abi/humanToken.json');
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
@@ -138,18 +134,6 @@ class PaymentChannelClient {
 			});
 		} catch (e) {
 			Logger.log('error', e);
-		}
-	}
-
-	async setTokenContract() {
-		try {
-			const { tokenAddress, ethprovider } = this.state;
-
-			const contract = new EthContract(ethprovider);
-			const tokenContract = contract(tokenAbi).at(tokenAddress);
-			this.setState({ tokenContract });
-		} catch (e) {
-			Logger.log('Error setting token contract', e);
 		}
 	}
 
@@ -382,10 +366,9 @@ const instance = {
 		client = new PaymentChannelClient(address);
 		const { provider } = Engine.context.NetworkController.state;
 		await client.setConnext(provider);
-		await client.setTokenContract();
 		await client.pollConnextState();
-		// await client.setBrowserWalletMinimumBalance();
-		// await client.pollAndSwap();
+		await client.setBrowserWalletMinimumBalance();
+		await client.pollAndSwap();
 	},
 	getInstance: () => this,
 	getState: () => ({
