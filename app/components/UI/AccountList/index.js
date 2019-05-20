@@ -20,6 +20,8 @@ import { renderFromWei } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -186,6 +188,7 @@ export default class AccountList extends Component {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
 
