@@ -179,6 +179,8 @@ exports[`SignatureRequest should render correctly 1`] = `
     confirmTestID="request-signature-confirm-button"
     confirmText="SIGN"
     confirmed={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}
   >
