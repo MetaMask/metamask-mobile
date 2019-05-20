@@ -146,7 +146,7 @@ class Settings extends Component {
 		biometryChoice: null,
 		biometryType: null,
 		browserHistoryModalVisible: false,
-		metricsOptIn: 'denied'
+		metricsOptIn: false
 	};
 
 	autolockOptions = [
@@ -201,9 +201,8 @@ class Settings extends Component {
 				bioEnabled = true;
 			}
 		}
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-		const optIn = metricsOptIn === 'agreed';
-		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn: optIn });
+		const metricsOptIn = Analytics.getEnabled();
+		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn });
 	};
 
 	onBiometryChange = async enabled => {
@@ -258,11 +257,9 @@ class Settings extends Component {
 
 	toggleMetricsOptIn = async value => {
 		if (value) {
-			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 			Analytics.enable();
 			this.setState({ metricsOptIn: true });
 		} else {
-			await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
 			Analytics.disable();
 			this.setState({ metricsOptIn: false });
 		}
