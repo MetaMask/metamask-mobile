@@ -1,5 +1,6 @@
+'use strict';
 /**
- * Singleton class to handle analytics through the app
+ * Class to handle analytics through the app
  */
 class Analytics {
 	/**
@@ -65,7 +66,9 @@ class Analytics {
 	 */
 	trackEvent = event => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
+		}
 	};
 
 	/**
@@ -76,7 +79,9 @@ class Analytics {
 	 */
 	trackEventWithValue = (event, value) => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
+		}
 	};
 
 	/**
@@ -87,7 +92,9 @@ class Analytics {
 	 */
 	trackEventWithInfo = (event, info) => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEventWithInfo' -`, event, info); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEventWithInfo' -`, event, info); // eslint-disable-line no-console
+		}
 	};
 
 	/**
@@ -99,7 +106,9 @@ class Analytics {
 	 */
 	trackEventWithValueAndInfo = (event, value, info) => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEventWithValueAndInfo' - `, event, value, info); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEventWithValueAndInfo' - `, event, value, info); // eslint-disable-line no-console
+		}
 	};
 
 	/**
@@ -110,7 +119,9 @@ class Analytics {
 	 */
 	trackEventWithParameters = (event, params) => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEventWithParameters' -`, event, params); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEventWithParameters' -`, event, params); // eslint-disable-line no-console
+		}
 	};
 
 	/**
@@ -122,7 +133,9 @@ class Analytics {
 	 */
 	trackEventWithValueAndParameters = (event, value, params) => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEventWithValueAndParameters' -`, event, value, params); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEventWithValueAndParameters' -`, event, value, params); // eslint-disable-line no-console
+		}
 	};
 
 	/**
@@ -135,7 +148,9 @@ class Analytics {
 	 */
 	trackEventWithValueAndInfoAndParameters = (event, value, info, params) => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEventWithValueAndParameters' - `, event, value, info, params); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEventWithValueAndParameters' - `, event, value, info, params); // eslint-disable-line no-console
+		}
 	};
 }
 
