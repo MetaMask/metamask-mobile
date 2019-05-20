@@ -58,7 +58,10 @@ import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
+import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
+import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -306,7 +309,11 @@ class Main extends Component {
 		/**
 		 * Object containing the information for the current transaction
 		 */
-		transaction: PropTypes.object
+		transaction: PropTypes.object,
+		/**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -315,7 +322,10 @@ class Main extends Component {
 		signMessageParams: { data: '' },
 		signType: '',
 		walletConnectRequest: false,
-		walletConnectRequestInfo: {}
+		walletConnectRequestInfo: {},
+		paymentChannelRequest: false,
+		paymentChannelRequestLoading: false,
+		paymentChannelRequestInfo: {}
 	};
 
 	backgroundMode = false;
@@ -389,6 +399,21 @@ class Main extends Component {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
 		});
 		WalletConnect.init();
+
+		PaymentChannelsClient.hub.on('payment::request', request => {
+			this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
+		});
+
+		PaymentChannelsClient.hub.on('payment::complete', () => {
+			this.setState({
+				paymentChannelRequest: false,
+				paymentChannelRequestLoading: false,
+				paymentChannelRequestInfo: {}
+			});
+		});
+
+		await PaymentChannelsClient.init(this.props.selectedAddress);
+		Logger.log('CLIENT CREATED', PaymentChannelsClient);
 	};
 
 	onUnapprovedTransaction = transactionMeta => {
@@ -416,6 +441,7 @@ class Main extends Component {
 		if (this.backgroundMode && !newModeIsBackground) {
 			BackgroundTimer.stop();
 			this.pollForIncomingTransactions();
+			WalletConnect.init();
 		}
 
 		this.backgroundMode = newModeIsBackground;
@@ -529,10 +555,25 @@ class Main extends Component {
 		WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
 	};
 
+	onPaymentChannelRequestApproval = () => {
+		PaymentChannelsClient.hub.emit('payment::confirm', this.state.paymentChannelRequestInfo);
+		this.setState({
+			paymentChannelRequestLoading: true
+		});
+	};
+
+	onPaymentChannelRequestRejected = () => {
+		this.setState({
+			paymentChannelRequest: false,
+			paymentChannelRequestInfo: {}
+		});
+	};
+
 	renderWalletConnectSessionRequestModal = () => {
 		const { walletConnectRequest, walletConnectRequestInfo } = this.state;
 
 		const meta = walletConnectRequestInfo.peerMeta || null;
+		const autosign = walletConnectRequestInfo.autosign;
 
 		return (
 			<Modal
@@ -553,6 +594,32 @@ class Main extends Component {
 						title: meta && meta.name,
 						url: meta && meta.url
 					}}
+					autosign={autosign}
+				/>
+			</Modal>
+		);
+	};
+
+	renderPaymentChannelRequestApproval = () => {
+		const { paymentChannelRequest, paymentChannelRequestInfo, paymentChannelRequestLoading } = this.state;
+
+		return (
+			<Modal
+				isVisible={paymentChannelRequest}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={300}
+				animationOutTiming={300}
+				onSwipeComplete={this.onPaymentChannelRequestRejected}
+				swipeDirection={'down'}
+			>
+				<PaymentChannelApproval
+					onCancel={this.onPaymentChannelRequestRejected}
+					onConfirm={this.onPaymentChannelRequestApproval}
+					info={paymentChannelRequestInfo}
+					loading={paymentChannelRequestLoading}
 				/>
 			</Modal>
 		);
@@ -576,6 +643,7 @@ class Main extends Component {
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
+				{this.renderPaymentChannelRequestApproval()}
 			</React.Fragment>
 		);
 	}
@@ -584,7 +652,8 @@ class Main extends Component {
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	wizardStep: state.wizard.step,
-	transaction: state.transaction
+	transaction: state.transaction,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({

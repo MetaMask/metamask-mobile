@@ -37,10 +37,23 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		marginVertical: 24
 	},
-	dappTitle: {
+	total: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		marginTop: 25
+	},
+	totalText: {
+		textAlign: 'left',
 		...fontStyles.bold,
 		color: colors.fontPrimary,
-		fontSize: 20
+		fontSize: 25
+	},
+	totalPrice: {
+		textAlign: 'right',
+		...fontStyles.bold,
+		color: colors.fontPrimary,
+		fontSize: 25
 	},
 	permissions: {
 		alignItems: 'center',
@@ -64,12 +77,6 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 14
 	},
-	warning: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 14,
-		marginTop: 24
-	},
 	header: {
 		alignItems: 'flex-start',
 		display: 'flex',
@@ -87,12 +94,6 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		fontSize: 16,
 		marginTop: 12,
-		textAlign: 'center'
-	},
-	headerUrl: {
-		...fontStyles.normal,
-		color: colors.fontSecondary,
-		fontSize: 12,
 		textAlign: 'center'
 	},
 	dapp: {
@@ -145,14 +146,14 @@ const styles = StyleSheet.create({
 });
 
 /**
- * WalletConnect request approval component
+ * Payment channel request approval component
  */
-class WalletConnectSessionApproval extends Component {
+class PaymentChannelApproval extends Component {
 	static propTypes = {
 		/**
 		 * Object containing current page title, url, and icon href
 		 */
-		currentPageInformation: PropTypes.object,
+		info: PropTypes.object,
 		/**
 		 * Callback triggered on account access approval
 		 */
@@ -168,77 +169,73 @@ class WalletConnectSessionApproval extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * A bool that determines when the payment is in progress
+		 */
+		loading: PropTypes.bool
 	};
 
 	render = () => {
 		const {
-			currentPageInformation: { title, url },
+			info: { title, amount, detail },
 			onConfirm,
 			onCancel,
 			selectedAddress,
-			identities
+			identities,
+			loading
 		} = this.props;
+		const formattedAmount = parseFloat(amount)
+			.toFixed(2)
+			.toString();
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
 					<Text style={styles.title} onPress={this.cancelSignature}>
-						<Text>{strings('accountApproval.walletconnect_title')}</Text>
+						<Text>PAYMENT REQUEST</Text>
 					</Text>
 				</View>
 				<ActionView
 					cancelText={strings('accountApproval.cancel')}
-					confirmText={strings('accountApproval.connect')}
+					confirmText={'CONFIRM'}
 					onCancelPress={onCancel}
 					onConfirmPress={onConfirm}
 					confirmButtonMode={'confirm'}
+					confirmed={loading}
 				>
 					<View style={styles.wrapper}>
 						<View style={styles.header}>
-							<View style={styles.dapp}>
-								<WebsiteIcon style={styles.icon} title={title} url={url} />
-								<Text style={styles.headerTitle} numberOfLines={1}>
-									{title}
-								</Text>
-								<Text style={styles.headerUrl} numberOfLines={1}>
-									{url}
-								</Text>
-							</View>
-							<View style={styles.graphic}>
-								<View style={styles.check}>
-									<ElevatedView style={styles.checkWrapper} elevation={8}>
-										<Icon name="check" style={styles.checkIcon} />
-									</ElevatedView>
-									<View style={styles.border} />
-								</View>
-							</View>
 							<View style={styles.dapp}>
 								<Identicon address={selectedAddress} diameter={54} />
 								<Text style={styles.selectedAddress}>
 									{renderAccountName(selectedAddress, identities)}
 								</Text>
 							</View>
+							<View style={styles.graphic}>
+								<View style={styles.check}>
+									<ElevatedView style={styles.checkWrapper} elevation={8}>
+										<Icon name="dollar" style={styles.checkIcon} />
+									</ElevatedView>
+									<View style={styles.border} />
+								</View>
+							</View>
+							<View style={styles.dapp}>
+								<WebsiteIcon style={styles.icon} title={title} />
+								<Text style={styles.headerTitle} numberOfLines={1}>
+									{title}
+								</Text>
+							</View>
 						</View>
-						<Text style={styles.intro}>
-							<Text style={styles.dappTitle}>{title} </Text>
-							{strings('accountApproval.action')}:
-						</Text>
+						<Text style={styles.intro}>Complete your payment for:</Text>
 						<View style={styles.permissions}>
 							<Text style={styles.permissionText} numberOfLines={1}>
-								{strings('accountApproval.permission')}
-								<Text style={styles.permission}> {strings('accountApproval.address')}</Text>
+								<Text style={styles.permission}> {detail}</Text>
 							</Text>
-							<Icon name="info-circle" color={colors.blue} size={22} />
 						</View>
-						<View style={styles.permissions}>
-							<Text style={styles.permissionText} numberOfLines={1}>
-								<Text style={styles.permission}> {strings('accountApproval.sign_messages')}</Text>
-								{` `}
-								{strings('accountApproval.on_your_behalf')}
-							</Text>
-							<Icon name="info-circle" color={colors.blue} size={22} />
+						<View style={styles.total}>
+							<Text style={styles.totalText}>TOTAL:</Text>
+							<Text style={styles.totalPrice}> ${formattedAmount}</Text>
 						</View>
-						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
 					</View>
 				</ActionView>
 			</View>
@@ -251,4 +248,4 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
-export default connect(mapStateToProps)(WalletConnectSessionApproval);
+export default connect(mapStateToProps)(PaymentChannelApproval);

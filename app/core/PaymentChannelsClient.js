@@ -6,21 +6,27 @@ import EthContract from 'ethjs-contract';
 import EthQuery from 'ethjs-query';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
-import { toWei, toBN } from '../util/number';
+import { toWei, toBN, renderFromWei } from '../util/number';
+// eslint-disable-next-line import/no-nodejs-modules
+import { EventEmitter } from 'events';
+
 // eslint-disable-next-line
-const tokenAbi = require('../../abi/humanToken.json');
+const tokenAbi = require('../abi/humanToken.json');
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
-const { Big } = Connext.big;
-const { CurrencyType, CurrencyConvertable } = Connext.types;
+
+const { CurrencyType, CurrencyConvertable } = Connext;
 const { getExchangeRates, hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
-const DEPOSIT_ESTIMATED_GAS = Big('700000'); // 700k gas
-const WEI_PER_ETHER = Big(1000000000000000000);
-const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(Big(69)); // 69 TST
-//const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(Big(30)); // 30 TST
-const MAX_GAS_PRICE = Big('20000000000'); // 20 gWei
+const DEPOSIT_ESTIMATED_GAS = toBN('700000'); // 700k gas
+const WEI_PER_ETHER = toBN('1000000000000000000');
+const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(toBN(69)); // 69 TST
+//const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(toBN(30)); // 30 TST
+const MAX_GAS_PRICE = toBN('20000000000'); // 20 gWei
+const MIN_DEPOSIT_ETH = 0.3;
+const MAX_DEPOSIT_TOKEN = 30;
+const hub = new EventEmitter();
 
 function byteArrayToHex(value) {
 	const HexCharacters = '0123456789abcdef';
@@ -33,10 +39,11 @@ function byteArrayToHex(value) {
 }
 
 class PaymentChannelClient {
-	constructor() {
+	constructor(address) {
 		const { provider } = Engine.context.NetworkController.state;
-
+		this.selectedAddress = address;
 		this.state = {
+			ready: false,
 			provider,
 			loadingConnext: true,
 			hubUrl: null,
@@ -67,25 +74,11 @@ class PaymentChannelClient {
 		};
 	}
 
-	setState(data) {
+	setState = data => {
 		Object.keys(data).forEach(key => {
-			this[key] = data[key];
+			this.state[key] = data[key];
 		});
-	}
-
-	getExternalWallet() {
-		const { KeyringController } = Engine.context;
-		return {
-			external: true,
-			address: this.props.selectedAddress,
-			getAddress: () => Promise.resolve(this.props.selectedAddress),
-			getBalance: block => this.state.ethprovider.getBalance(this.props.selectedAddress, block),
-			signMessage: message => {
-				const hexMessage = byteArrayToHex(message);
-				return KeyringController.signPersonalMessage({ data: hexMessage, from: this.props.selectedAddress });
-			}
-		};
-	}
+	};
 
 	async setConnext(provider) {
 		const { type } = provider;
@@ -104,10 +97,21 @@ class PaymentChannelClient {
 			default:
 				throw new Error(`Unrecognized network: ${type}`);
 		}
+
+		const { KeyringController } = Engine.context;
 		const opts = {
 			hubUrl,
-			externalWallet: this.getExternalWallet(),
-			user: this.props.selectedAddress,
+			externalWallet: {
+				external: true,
+				address: this.selectedAddress,
+				getAddress: () => Promise.resolve(this.selectedAddress),
+				getBalance: block => this.state.ethprovider.getBalance(this.selectedAddress, block),
+				signMessage: message => {
+					const hexMessage = byteArrayToHex(message);
+					return KeyringController.signPersonalMessage({ data: hexMessage, from: this.selectedAddress });
+				}
+			},
+			user: this.selectedAddress,
 			web3Provider: Engine.context.NetworkController.provider
 		};
 
@@ -115,14 +119,14 @@ class PaymentChannelClient {
 
 		// *** Instantiate the connext client ***
 		try {
-			const connext = await Connext.getConnextClient(opts);
+			const connext = await Connext.createClient(opts);
 
 			Logger.log(`Successfully set up connext! Connext config:`);
 			Logger.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
 			Logger.log(`  - hubAddress: ${connext.opts.hubAddress}`);
 			Logger.log(`  - contractAddress: ${connext.opts.contractAddress}`);
 			Logger.log(`  - ethNetworkId: ${connext.opts.ethNetworkId}`);
-			Logger.log(`  - public address: ${this.state.address}`);
+			Logger.log(`  - public address: ${this.selectedAddress}`);
 
 			this.setState({
 				connext,
@@ -149,18 +153,34 @@ class PaymentChannelClient {
 		}
 	}
 
+	getBalance = () => {
+		const amount = (this.state && this.state.channelState && this.state.channelState.balanceTokenUser) || '0';
+		const ret = parseFloat(renderFromWei(amount, 18));
+		if (ret === 0) {
+			return '0.00';
+		}
+		return ret.toFixed(2).toString();
+	};
+
 	async pollConnextState() {
 		const { connext } = this.state;
 		// register connext listeners
 		connext.on('onStateChange', state => {
 			Logger.log('NEW STATE', state);
 			this.setState({
+				ready: true,
 				channelState: state.persistent.channel,
 				connextState: state,
 				runtime: state.runtime,
 				exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.USD : 0
 			});
 			this.checkStatus();
+			Logger.log('EMITTING STATE UPDATE');
+			hub.emit('state::change', {
+				balance: this.getBalance(),
+				status: this.state.status,
+				ready: true
+			});
 		});
 		// start polling
 		await connext.start();
@@ -180,7 +200,7 @@ class PaymentChannelClient {
 		// let providerGasPrice = await ethprovider.getGasPrice();
 		// let currentGasPrice = Math.round((gasEstimateJson.average / 10) * 2); // multiply gas price by two to be safe
 		// dont let gas price be any higher than the max
-		// currentGasPrice = utils.parseUnits(minBN(Big(currentGasPrice.toString()), MAX_GAS_PRICE).toString(), "gwei");
+		// currentGasPrice = utils.parseUnits(minBN(toBN(currentGasPrice.toString()), MAX_GAS_PRICE).toString(), "gwei");
 		// unless it really needs to be: average eth gas station price w ethprovider's
 		// currentGasPrice = currentGasPrice.add(providerGasPrice).div(ethers.constants.Two);
 
@@ -188,7 +208,7 @@ class PaymentChannelClient {
 		Logger.log(`Gas Price = ${providerGasPrice}`);
 
 		// default connext multiple is 1.5, leave 2x for safety
-		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(Big(2)).mul(providerGasPrice);
+		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(providerGasPrice);
 
 		// add dai conversion
 		const minConvertable = new CurrencyConvertable(CurrencyType.WEI, totalDepositGasWei, () =>
@@ -207,10 +227,10 @@ class PaymentChannelClient {
 		if (!connextState || hasPendingOps(channelState)) {
 			return;
 		}
-		const weiBalance = Big(channelState.balanceWeiUser);
-		const tokenBalance = Big(channelState.balanceTokenUser);
-		const hubTokenBalance = Big(channelState.balanceTokenHub);
-		if (channelState && weiBalance.gt(Big('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
+		const weiBalance = toBN(channelState.balanceWeiUser);
+		const tokenBalance = toBN(channelState.balanceTokenUser);
+		const hubTokenBalance = toBN(channelState.balanceTokenHub);
+		if (channelState && weiBalance.gt(toBN('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
 			if (hubTokenBalance.gt(weiBalance)) {
 				await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
 			}
@@ -262,12 +282,12 @@ class PaymentChannelClient {
 		this.setState({ status: newStatus });
 	}
 
-	deposit = async () => {
-		if (isNaN(this.state.depositAmount) || this.state.depositAmount.trim() === '') {
-			return;
+	deposit = async params => {
+		if (isNaN(params.depositAmount) || params.depositAmount.trim() === '') {
+			throw new Error('Invalid amount');
 		}
 
-		const depositAmount = parseFloat(this.state.depositAmount);
+		const depositAmount = parseFloat(params.depositAmount);
 		const maxDepositAmount = 0.12;
 		const minDepositAmount = 0.03;
 		if (depositAmount > maxDepositAmount) {
@@ -280,13 +300,12 @@ class PaymentChannelClient {
 
 		try {
 			const connext = this.state.connext;
-			const params = {
-				amountWei: toWei(this.state.depositAmount).toString(),
+			const data = {
+				amountWei: toWei(params.depositAmount).toString(),
 				amountToken: '0'
 			};
-			Logger.log('About to deposit', params);
-			await connext.deposit(params);
-			this.setState({ depositAmount: '' });
+			Logger.log('About to deposit', data);
+			await connext.deposit(data);
 			Logger.log('Deposit succesful');
 			TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
 		} catch (e) {
@@ -295,15 +314,15 @@ class PaymentChannelClient {
 	};
 
 	send = async params => {
-		if (isNaN(this.state.sendAmount) || this.state.sendAmount.trim() === '') {
-			return;
+		if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
+			throw new Error('You need to enter the amount');
 		}
 
-		if (!this.state.sendRecipient) {
-			return;
+		if (!params.sendRecipient) {
+			throw new Error('You need to enter a recepient');
 		}
 
-		const amount = toWei(this.state.sendAmount).toString();
+		const amount = toWei(params.sendAmount).toString();
 		const maxAmount = this.state.channelState.balanceTokenUser;
 
 		if (toBN(amount).gt(toBN(maxAmount))) {
@@ -312,56 +331,36 @@ class PaymentChannelClient {
 
 		try {
 			const connext = this.state.connext;
-			const params = {
+			const data = {
 				meta: {
 					purchaseId: 'payment'
 				},
 				payments: [
 					{
-						recipient: this.state.sendRecipient.toLowerCase(),
+						recipient: params.sendRecipient.toLowerCase(),
 						amountWei: '0',
-						amountToken: toWei(this.state.sendAmount).toString()
+						amountToken: toWei(params.sendAmount).toString()
 					}
 				]
 			};
-			Logger.log('Sending ', params);
-			await connext.buy(params);
+			Logger.log('Sending ', data);
+			await connext.buy(data);
 			Logger.log('Send succesful');
 		} catch (e) {
 			Logger.log('buy error error', e);
 		}
 	};
 
-	swapToDAI = async amount => {
-		try {
-			const connext = this.state.connext;
-			Logger.log('swapping eth to dai');
-			await connext.exchange(amount, 'wei');
-			Logger.log('Swap to DAI succesful');
-		} catch (e) {
-			Logger.log('buy error error', e);
-		}
-	};
-
-	swapToETH = async () => {
-		try {
-			const connext = this.state.connext;
-			Logger.log('swapping DAI  to ETH');
-			await connext.exchange(this.state.channelState.balanceTokenUser, 'token');
-			Logger.log('Swap to ETH succesful');
-		} catch (e) {
-			Logger.log('buy error error', e);
-		}
-	};
-
-	withdraw = async params => {
+	withdrawAll = async () => {
 		try {
 			const connext = this.state.connext;
 			const withdrawalVal = {
 				exchangeRate: this.state.runtime.exchangeRate.rates.USD,
 				withdrawalWeiUser: this.state.channelState.balanceWeiUser,
 				tokensToSell: this.state.channelState.balanceTokenUser,
-				...params
+				withdrawalTokenUser: '0',
+				weiToSell: '0',
+				recipient: this.selectedAddress.toLowerCase()
 			};
 
 			await connext.withdraw(withdrawalVal);
@@ -376,20 +375,54 @@ class PaymentChannelClient {
 	}
 }
 
+let client = null;
+
 const instance = {
-	async init() {
-		this.client = new PaymentChannelClient();
-		await this.client.setConnext();
-		await this.client.setTokenContract();
-		await this.client.pollConnextState();
-		await this.client.setBrowserWalletMinimumBalance();
-		await this.client.pollAndSwap();
+	async init(address) {
+		client = new PaymentChannelClient(address);
+		const { provider } = Engine.context.NetworkController.state;
+		await client.setConnext(provider);
+		await client.setTokenContract();
+		await client.pollConnextState();
+		// await client.setBrowserWalletMinimumBalance();
+		// await client.pollAndSwap();
 	},
-	maxAmount: this.client.state && this.client.state.channelState && this.client.state.channelState.balanceTokenUser,
-	stop: () => this.client.stop(),
-	deposit: params => this.client.deposit(params),
-	withdraw: params => this.client.withdraw(params),
-	send: params => this.client.buy(params)
+	getInstance: () => this,
+	getState: () => ({
+		balance: client.getBalance(),
+		status: client.state.status,
+		ready: true
+	}),
+	stop: () => client.stop(),
+	deposit: params => client.deposit(params),
+	withdrawAll: () => client.withdrawAll(),
+	send: params => {
+		client.send(params);
+	},
+	getStatus: () => client.state && client.state.status,
+	getMinimumDepositFiat: () => {
+		if (client.state.runtime && client.state.runtime.exchangeRate && client.state.runtime.exchangeRate.rates) {
+			const ETH = parseFloat(client.state.runtime.exchangeRate.rates.USD);
+			return (ETH * MIN_DEPOSIT_ETH).toFixed(2).toString();
+		}
+		return '0.00';
+	},
+	getMaximumDepositEth: () => {
+		if (client.state.runtime && client.state.runtime.exchangeRate && client.state.runtime.exchangeRate.rates) {
+			const ETH = parseFloat(client.state.runtime.exchangeRate.rates.USD);
+			return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
+		}
+		return '0.00';
+	},
+	MIN_DEPOSIT_ETH,
+	MAX_DEPOSIT_TOKEN,
+	hub
 };
+
+hub.on('payment::confirm', async request => {
+	Logger.log(instance, instance.send, request);
+	await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
+	hub.emit('payment::complete', request);
+});
 
 export default instance;

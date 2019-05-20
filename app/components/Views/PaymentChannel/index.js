@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 // eslint-disable-next-line import/no-commonjs
-const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
 import Icon from 'react-native-vector-icons/FontAwesome';
-import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import {
 	InteractionManager,
@@ -27,18 +25,9 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import QRCode from 'react-native-qrcode-svg';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 
-// eslint-disable-next-line import/no-namespace
-import * as Connext from 'connext';
-import EthContract from 'ethjs-contract';
-import EthQuery from 'ethjs-query';
-
-import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
-import { renderFromWei, toWei, toBN } from '../../../util/number';
-import { setTransactionObject } from '../../../actions/transaction';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
-import { hideMessage } from 'react-native-flash-message';
 import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
@@ -98,13 +87,6 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		fontSize: 14
-	},
-	minLoader: {
-		minHeight: 70,
-		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
 	},
 	loader: {
 		backgroundColor: colors.white,
@@ -221,123 +203,76 @@ class PaymentChannel extends Component {
 	};
 
 	state = {
+		balance: '0.00',
+		status: { type: null },
 		qrModalVisible: false,
 		sendAmount: '',
 		sendRecipient: '',
 		depositAmount: ''
 	};
 
-	componentDidMount = () => {
-		InteractionManager.runAfterInteractions(async () => {
-			this.client = PaymentChannelsClient.init();
+	client = null;
+
+	componentDidMount = async () => {
+		InteractionManager.runAfterInteractions(() => {
+			const state = PaymentChannelsClient.getState();
+			this.setState({
+				balance: state.balance,
+				status: state.status,
+				ready: true
+			});
 		});
+
+		PaymentChannelsClient.hub.on('state::change', state => {
+			Logger.log('GOT STATE UPDATE', state);
+			this.setState({
+				balance: state.balance,
+				status: state.status
+			});
+		});
+
 		this.mounted = true;
 	};
 
 	componentWillUnmount() {
-		this.mounted && this.client.stop();
+		PaymentChannelsClient.hub.removeAllListeners();
+		this.mounted && PaymentChannelsClient.stop();
 	}
 
 	deposit = async () => {
-		if (isNaN(this.state.depositAmount) || this.state.depositAmount.trim() === '') {
-			return;
-		}
-
-		const depositAmount = parseFloat(this.state.depositAmount);
-		const maxDepositAmount = 0.12;
-		const minDepositAmount = 0.03;
-		if (depositAmount > maxDepositAmount) {
-			Alert.alert('The max. deposit allowed for now it is 0.12 ETH. Try with a lower amount');
-			return;
-		}
-
-		if (depositAmount < minDepositAmount) {
-			Alert.alert('The max. deposit allowed for now it is 0.03 ETH. Try with a lower amount');
-			return;
-		}
-
 		try {
 			const params = {
-				amountWei: toWei(this.state.depositAmount).toString(),
-				amountToken: '0'
+				depositAmount: this.state.depositAmount
 			};
 			Logger.log('About to deposit', params);
-			await this.client.deposit(params);
+			await PaymentChannelsClient.deposit(params);
 			this.setState({ depositAmount: '' });
 			Logger.log('Deposit succesful');
 		} catch (e) {
+			Alert.alert('Error', e.message);
 			Logger.log('Deposit error', e);
 		}
 	};
 
 	send = async () => {
-		if (isNaN(this.state.sendAmount) || this.state.sendAmount.trim() === '') {
-			return;
-		}
-
-		if (!this.state.sendRecipient) {
-			return;
-		}
-
-		const amount = toWei(this.state.sendAmount).toString();
-
-		if (toBN(amount).gt(toBN(this.client.maxAmount))) {
-			Alert.alert('Insufficient balance');
-			return;
-		}
-
 		try {
 			const params = {
-				meta: {
-					purchaseId: 'payment'
-				},
-				payments: [
-					{
-						recipient: this.state.sendRecipient.toLowerCase(),
-						amountWei: '0',
-						amountToken: toWei(this.state.sendAmount).toString()
-					}
-				]
+				sendRecipient: this.state.sendRecipient,
+				sendAmount: this.state.sendAmount
 			};
 			Logger.log('Sending ', params);
-			await this.client.send(params);
+			await PaymentChannelsClient.send(params);
+
 			Logger.log('Send succesful');
 		} catch (e) {
+			Alert.alert('Error', e.message);
 			Logger.log('buy error error', e);
 		}
 	};
 
-	// swapToDAI = async amount => {
-	// 	try {
-	// 		const connext = this.state.connext;
-	// 		Logger.log('swapping eth to dai');
-	// 		await connext.exchange(amount, 'wei');
-	// 		Logger.log('Swap to DAI succesful');
-	// 	} catch (e) {
-	// 		Logger.log('buy error error', e);
-	// 	}
-	// };
-
-	// swapToETH = async () => {
-	// 	try {
-	// 		const connext = this.state.connext;
-	// 		Logger.log('swapping DAI  to ETH');
-	// 		await connext.exchange(this.state.channelState.balanceTokenUser, 'token');
-	// 		Logger.log('Swap to ETH succesful');
-	// 	} catch (e) {
-	// 		Logger.log('buy error error', e);
-	// 	}
-	// };
-
 	withdraw = async () => {
 		try {
-			const withdrawalVal = {
-				withdrawalTokenUser: '0',
-				weiToSell: '0',
-				recipient: this.props.selectedAddress.toLowerCase()
-			};
-
-			await this.client.withdraw(withdrawalVal);
+			await PaymentChannelsClient.withdrawAll();
 			Logger.log('withdraw succesful');
 		} catch (e) {
 			Logger.log('withdraw error', e);
@@ -348,20 +283,10 @@ class PaymentChannel extends Component {
 		return (
 			<View style={styles.info}>
 				<View style={styles.balance}>
-					<Text style={styles.balanceText}>
-						$ {this.renderBalance(this.state.channelState.balanceTokenUser)}
-					</Text>
+					<Text style={styles.balanceText}>$ {this.state.balance}</Text>
 				</View>
 			</View>
 		);
-	}
-
-	renderBalance(amount) {
-		const ret = parseFloat(renderFromWei(amount, 18));
-		if (ret === 0) {
-			return '0.00';
-		}
-		return ret.toFixed(2).toString();
 	}
 
 	scan = () => {
@@ -389,49 +314,29 @@ class PaymentChannel extends Component {
 	};
 
 	areButtonsDisabled = () => {
-		if (this.state.status && this.state.status.type) {
-			return this.state.status.type.indexOf('_PENDING') !== -1;
+		const { status } = this.state;
+		if (status && status.type) {
+			return status.type.indexOf('_PENDING') !== -1;
 		}
 		return false;
 	};
 
-	getMinimumDepositFiat() {
-		if (this.state.runtime && this.state.runtime.exchangeRate && this.state.runtime.exchangeRate.rates) {
-			const ETH = parseFloat(this.state.runtime.exchangeRate.rates.USD);
-			return (ETH * MIN_DEPOSIT_ETH).toFixed(2).toString();
-		}
-		return '0.00';
-	}
-
-	getMaximiumDepositEth() {
-		if (this.state.runtime && this.state.runtime.exchangeRate && this.state.runtime.exchangeRate.rates) {
-			const ETH = parseFloat(this.state.runtime.exchangeRate.rates.USD);
-			return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
-		}
-		return '0.00';
-	}
-
 	renderMinimumsOrSpinner() {
-		if (!this.state.runtime || !this.state.runtime.exchangeRate || !this.state.runtime.exchangeRate.rates) {
-			return (
-				<View style={styles.minLoader}>
-					<ActivityIndicator size="small" />
-				</View>
-			);
-		}
-
+		const minFiat = PaymentChannelsClient.getMinimumDepositFiat();
+		const maxFiat = PaymentChannelsClient.MAX_DEPOSIT_TOKEN.toFixed(2).toString();
+		const maxETH = PaymentChannelsClient.getMaximumDepositEth();
 		return (
 			<React.Fragment>
 				<Text style={styles.explainerText}>
 					Min. deposit:{' '}
 					<Text style={styles.bold}>
-						{MIN_DEPOSIT_ETH} ETH (${this.getMinimumDepositFiat()})
+						{PaymentChannelsClient.MIN_DEPOSIT_ETH} ETH (${minFiat})
 					</Text>
 				</Text>
 				<Text style={styles.explainerText}>
 					Max. deposit:{' '}
 					<Text style={styles.bold}>
-						{this.getMaximiumDepositEth()} ETH (${MAX_DEPOSIT_TOKEN.toFixed(2).toString()})
+						{maxETH} ETH (${maxFiat})
 					</Text>
 				</Text>
 			</React.Fragment>
@@ -613,7 +518,7 @@ class PaymentChannel extends Component {
 	};
 
 	renderContent() {
-		if (!this.state.channelState) {
+		if (!this.state.ready) {
 			return (
 				<View style={styles.loader}>
 					<ActivityIndicator size="small" />
@@ -662,12 +567,10 @@ class PaymentChannel extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	transaction: state.transaction
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
 	showAlert: config => dispatch(showAlert(config))
 });
 

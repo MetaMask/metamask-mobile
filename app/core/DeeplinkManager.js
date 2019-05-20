@@ -1,7 +1,11 @@
 'use strict';
 
 import URL from 'url-parse';
+import qs from 'qs';
 import { parse } from 'eth-url-parser';
+import WalletConnect from '../core/WalletConnect';
+import PaymentChannelsClient from '../core/PaymentChannelsClient';
+
 export default class DeeplinkManager {
 	constructor(_navigation) {
 		this.navigation = _navigation;
@@ -13,6 +17,24 @@ export default class DeeplinkManager {
 		switch (urlObj.protocol.replace(':', '')) {
 			// ethereum related deeplinks
 			// address, transactions, etc
+			case 'wc':
+				// eslint-disable-next-line no-case-declarations
+				const params = qs.parse(urlObj.query.substring(1));
+				// eslint-disable-next-line no-case-declarations
+				const redirect = params && params.redirect;
+				// eslint-disable-next-line no-case-declarations
+				const autosign = params && params.autosign;
+				if (urlObj.hostname === 'sign' || urlObj.hostname === 'sign') {
+					WalletConnect.setRedirectUri(redirect);
+				} else if (urlObj.hostname === 'payment') {
+					PaymentChannelsClient.hub.emit('payment::request', {
+						to: urlObj.pathname.replace('/', ''),
+						...params
+					});
+				} else {
+					WalletConnect.newSession(url, redirect, autosign);
+				}
+				break;
 			case 'ethereum':
 				ethUrl = parse(url);
 				action = 'send-eth';

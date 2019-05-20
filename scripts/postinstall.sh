@@ -104,3 +104,7 @@ echo "11. Fix xmlhttprequest"
 TARGET="node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
 sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
 
+echo "12. Fix connext client warnings"
+TARGET="node_modules/connext/dist/Connext.js"
+sed -i'' -e 's/timeoutPromise(result/timeoutPromise((result || Promise.resolve())/' $TARGET;
+

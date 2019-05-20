@@ -1,5 +1,6 @@
 import RNWalletConnect from '@walletconnect/react-native';
 import Engine from './Engine';
+import { Linking } from 'react-native';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
@@ -7,6 +8,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 const hub = new EventEmitter();
 let connectors = [];
+let pendingRedirect = null;
+
 const CLIENT_OPTIONS = {
 	clientMeta: {
 		// Required
@@ -29,8 +32,17 @@ const persistSessions = async () => {
 class WalletConnect {
 	selectedAddress = null;
 	chainId = null;
+	redirect = null;
+	autosign = false;
 
 	constructor(options) {
+		if (options.redirect) {
+			pendingRedirect = options.redirect;
+		}
+
+		if (options.autosign) {
+			this.autosign = true;
+		}
 		this.walletConnector = new RNWalletConnect(options, CLIENT_OPTIONS);
 		/**
 		 *  Subscribe to session requests
@@ -41,7 +53,12 @@ class WalletConnect {
 			}
 
 			try {
-				await this.sessionRequest(payload.params[0]);
+				const sessionData = {
+					...payload.params[0],
+					autosign: this.autosign
+				};
+				Logger.log('requesting session with', sessionData);
+				await this.sessionRequest(sessionData);
 
 				const { network } = Engine.context.NetworkController.state;
 				this.selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
@@ -49,8 +66,9 @@ class WalletConnect {
 					chainId: parseInt(network, 10),
 					accounts: [this.selectedAddress]
 				};
-				this.walletConnector.approveSession(approveData);
+				await this.walletConnector.approveSession(approveData);
 				persistSessions();
+				this.redirectIfNeeded();
 			} catch (e) {
 				this.walletConnector.rejectSession();
 			}
@@ -60,6 +78,7 @@ class WalletConnect {
 		 *  Subscribe to call requests
 		 */
 		this.walletConnector.on('call_request', async (error, payload) => {
+			Logger.log('CALL_REQUEST', error, payload);
 			if (error) {
 				throw error;
 			}
@@ -85,6 +104,7 @@ class WalletConnect {
 							id: payload.id,
 							result: hash
 						});
+						this.redirectIfNeeded();
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
@@ -92,22 +112,32 @@ class WalletConnect {
 						});
 					}
 				} else if (payload.method === 'eth_sign' || payload.method === 'personal_sign') {
-					const { PersonalMessageManager } = Engine.context;
-
+					const { KeyringController, PersonalMessageManager } = Engine.context;
+					let rawSig = null;
 					try {
-						const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-							data: payload.params[1],
-							from: payload.params[0],
-							meta: {
-								title: meta && meta.name,
-								url: meta && meta.url,
-								icon: meta && meta.icons && meta.icons[0]
-							}
-						});
+						if (payload.params[2]) {
+							rawSig = await KeyringController.signPersonalMessage({
+								data: payload.params[1],
+								from: payload.params[0]
+							});
+						} else {
+							rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
+								data: payload.params[1],
+								from: payload.params[0],
+								meta: {
+									title: meta && meta.name,
+									url: meta && meta.url,
+									icon: meta && meta.icons && meta.icons[0]
+								}
+							});
+						}
+						Logger.log('ABOUT TO AUTOSIGN');
+						Logger.log('AUTOSIGNED!', rawSig);
 						this.walletConnector.approveRequest({
 							id: payload.id,
 							result: rawSig
 						});
+						this.redirectIfNeeded();
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
@@ -134,6 +164,7 @@ class WalletConnect {
 							id: payload.id,
 							result: rawSig
 						});
+						this.redirectIfNeeded();
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
@@ -195,7 +226,11 @@ class WalletConnect {
 			chainId: parseInt(network, 10),
 			accounts: [selectedAddress]
 		};
-		this.walletConnector.updateSession(sessionData);
+		try {
+			this.walletConnector.updateSession(sessionData);
+		} catch (e) {
+			Logger.log('Error while updating session', e);
+		}
 	};
 
 	killSession = () => {
@@ -218,10 +253,20 @@ class WalletConnect {
 				}
 			});
 		});
+
+	redirectIfNeeded = () => {
+		if (pendingRedirect) {
+			setTimeout(() => {
+				Linking.openURL(pendingRedirect);
+				pendingRedirect = null;
+			}, 500);
+		}
+	};
 }
 
 const instance = {
 	async init() {
+		await AsyncStorage.removeItem('@MetaMask:walletconnectSessions');
 		const sessionData = await AsyncStorage.getItem('@MetaMask:walletconnectSessions');
 		if (sessionData) {
 			const sessions = JSON.parse(sessionData);
@@ -233,8 +278,15 @@ const instance = {
 	connectors() {
 		return connectors;
 	},
-	newSession(uri) {
-		connectors.push(new WalletConnect({ uri }));
+	newSession(uri, redirect, autosign) {
+		const data = { uri };
+		if (redirect) {
+			data.redirect = redirect;
+		}
+		if (autosign) {
+			data.autosign = autosign;
+		}
+		connectors.push(new WalletConnect(data));
 	},
 	getSessions: async () => {
 		let sessions = [];
@@ -267,6 +319,9 @@ const instance = {
 	shutdown() {
 		Engine.context.TransactionController.hub.removeAllListeners();
 		Engine.context.PreferencesController.unsubscribe();
+	},
+	setRedirectUri: uri => {
+		pendingRedirect = uri;
 	}
 };
 
