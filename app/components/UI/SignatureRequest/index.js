@@ -164,7 +164,10 @@ class SignatureRequest extends Component {
 	 * Calls trackCancelSignature and onCancel callback
 	 */
 	onCancel = () => {
-		this.trackCancelSignature();
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE,
+			this.getTrackingParams()
+		);
 		this.props.onCancel();
 	};
 
@@ -172,30 +175,24 @@ class SignatureRequest extends Component {
 	 * Calls trackConfirmSignature and onConfirm callback
 	 */
 	onConfirm = () => {
-		this.trackConfirmSignature();
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE,
+			this.getTrackingParams()
+		);
 		this.props.onConfirm();
 	};
 
 	/**
-	 * Calls analytics to track confirm signature event
+	 * Returns corresponding tracking params to send
+	 *
+	 * @return {object} - Object containing network and functionType
 	 */
-	trackConfirmSignature = () => {
-		const { networkType, type } = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE, {
+	getTrackingParams = () => {
+		const { type, networkType } = this.props;
+		return {
 			network: networkType,
 			functionType: type
-		});
-	};
-
-	/**
-	 * Calls analytics to track cancel signature event
-	 */
-	trackCancelSignature = () => {
-		const { networkType, type } = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE, {
-			network: networkType,
-			functionType: type
-		});
+		};
 	};
 
 	render() {
