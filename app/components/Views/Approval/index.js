@@ -114,6 +114,38 @@ class Approval extends Component {
 	};
 
 	/**
+	 * Call Analytics to track cancel pressed
+	 */
+	trackOnCancel = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION, {
+			view: 'Approval',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			assetType
+		});
+	};
+
+	/**
+	 * Call Analytics to track confirm pressed
+	 */
+	trackOnConfirm = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION, {
+			view: 'Approval',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			assetType
+		});
+	};
+
+	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
@@ -121,6 +153,7 @@ class Approval extends Component {
 	};
 
 	onCancel = () => {
+		this.state.mode === REVIEW && this.trackOnCancel();
 		this.props.navigation.pop();
 	};
 
@@ -131,6 +164,7 @@ class Approval extends Component {
 		const { TransactionController, AddressBookController } = Engine.context;
 		const { transactions, addressBook } = this.props;
 		let { transaction } = this.props;
+		this.trackOnConfirm();
 		try {
 			transaction = this.prepareTransaction(transaction);
 

@@ -345,6 +345,7 @@ class Send extends Component {
 	 * @param if - Transaction id
 	 */
 	onCancel = id => {
+		this.state.mode === REVIEW && this.trackOnCancel();
 		Engine.context.TransactionController.cancelTransaction(id);
 		this.props.navigation.pop();
 		this.unmountHandled = true;
@@ -363,6 +364,7 @@ class Send extends Component {
 			transaction: { selectedAsset, assetType },
 			addressBook
 		} = this.props;
+		this.trackOnConfirm();
 		let { transaction } = this.props;
 		try {
 			if (assetType === 'ETH') {
@@ -406,7 +408,7 @@ class Send extends Component {
 	};
 
 	/**
-	 * Call Analytics to track confirm started event for approval screen
+	 * Call Analytics to track confirm started event for send screen
 	 */
 	trackConfirmScreen = () => {
 		const {
@@ -422,7 +424,7 @@ class Send extends Component {
 	};
 
 	/**
-	 * Call Analytics to track confirm started event for approval screen
+	 * Call Analytics to track confirm started event for send screen
 	 */
 	trackEditScreen = async () => {
 		const {
@@ -436,6 +438,38 @@ class Send extends Component {
 			network: networkType,
 			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
 			functionType: actionKey,
+			assetType
+		});
+	};
+
+	/**
+	 * Call Analytics to track cancel pressed
+	 */
+	trackOnCancel = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION, {
+			view: 'Send',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			assetType
+		});
+	};
+
+	/**
+	 * Call Analytics to track confirm pressed
+	 */
+	trackOnConfirm = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION, {
+			view: 'Send',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
 			assetType
 		});
 	};
