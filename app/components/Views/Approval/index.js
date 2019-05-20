@@ -10,6 +10,12 @@ import { newTransaction, setTransactionObject } from '../../../actions/transacti
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTransactionReviewActionKey } from '../../../util/transactions';
+
+const REVIEW = 'review';
+const EDIT = 'edit';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,11 +50,15 @@ class Approval extends Component {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array
+		addressBook: PropTypes.array,
+		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
-		mode: 'review',
+		mode: REVIEW,
 		transactionHandled: false
 	};
 
@@ -64,7 +74,43 @@ class Approval extends Component {
 
 	componentDidMount = () => {
 		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: 'review', dispatch: this.onModeChange });
+		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
+		this.trackConfirmScreen();
+	};
+
+	/**
+	 * Call Analytics to track confirm started event for approval screen
+	 */
+	trackConfirmScreen = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, {
+			view: 'Approval',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol,
+			assetType
+		});
+	};
+
+	/**
+	 * Call Analytics to track confirm started event for approval screen
+	 */
+	trackEditScreen = async () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType },
+			transaction
+		} = this.props;
+		const actionKey = await getTransactionReviewActionKey(transaction);
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION, {
+			view: 'Send',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			functionType: actionKey,
+			assetType
+		});
 	};
 
 	/**
@@ -120,10 +166,18 @@ class Approval extends Component {
 		}
 	};
 
+	/**
+	 * Handle approval mode change
+	 * If changed to 'review' sends an Analytics track event
+	 *
+	 * @param mode - Transaction mode, review or edit
+	 */
 	onModeChange = mode => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode });
 		this.setState({ mode });
+		mode === REVIEW && this.trackConfirmScreen();
+		mode === EDIT && this.trackEditScreen();
 	};
 
 	/**
@@ -182,7 +236,8 @@ class Approval extends Component {
 const mapStateToProps = state => ({
 	transaction: state.transaction,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({

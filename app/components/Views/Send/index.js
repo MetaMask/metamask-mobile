@@ -14,6 +14,12 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTransactionReviewActionKey } from '../../../util/transactions';
+
+const REVIEW = 'review';
+const EDIT = 'edit';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -70,7 +76,7 @@ class Send extends Component {
 	};
 
 	state = {
-		mode: 'edit',
+		mode: EDIT,
 		transactionKey: undefined,
 		ready: false,
 		transactionConfirmed: false,
@@ -90,8 +96,8 @@ class Send extends Component {
 			gas: hexToBN(gas),
 			gasPrice: hexToBN(gasPrice)
 		});
-		navigation && navigation.setParams({ mode: 'edit' });
-		return this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
+		navigation && navigation.setParams({ mode: EDIT });
+		return this.mounted && this.setState({ mode: EDIT, transactionKey: Date.now() });
 	}
 
 	/**
@@ -130,7 +136,7 @@ class Send extends Component {
 	 */
 	async componentDidMount() {
 		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: 'edit', dispatch: this.onModeChange });
+		navigation && navigation.setParams({ mode: EDIT, dispatch: this.onModeChange });
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -229,7 +235,7 @@ class Send extends Component {
 		}
 
 		this.props.setTransactionObject(newTxMeta);
-		this.mounted && this.setState({ ready: true, mode: 'edit', transactionKey: Date.now() });
+		this.mounted && this.setState({ ready: true, mode: EDIT, transactionKey: Date.now() });
 	};
 
 	/**
@@ -400,7 +406,43 @@ class Send extends Component {
 	};
 
 	/**
+	 * Call Analytics to track confirm started event for approval screen
+	 */
+	trackConfirmScreen = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, {
+			view: 'Send',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			assetType
+		});
+	};
+
+	/**
+	 * Call Analytics to track confirm started event for approval screen
+	 */
+	trackEditScreen = async () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType },
+			transaction
+		} = this.props;
+		const actionKey = await getTransactionReviewActionKey(transaction);
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION, {
+			view: 'Send',
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			functionType: actionKey,
+			assetType
+		});
+	};
+
+	/**
 	 * Change transaction mode
+	 * If changed to 'review' sends an Analytics track event
 	 *
 	 * @param mode - Transaction mode, review or edit
 	 */
@@ -408,6 +450,8 @@ class Send extends Component {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode });
 		this.mounted && this.setState({ mode });
+		mode === REVIEW && this.trackConfirmScreen();
+		mode === EDIT && this.trackEditScreen();
 	};
 
 	renderLoader() {
