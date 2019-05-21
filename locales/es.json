@@ -118,6 +118,7 @@
 		"transfer": "Transferir"
 	},
 	"drawer": {
+		"payment_channel": "Pagos Instantáneos",
 		"send_button": "Enviar",
 		"receive_button": "Recibir",
 		"coming_soon": "Disponible muy pronto...",
@@ -574,6 +575,8 @@
 		"connect": "CONECTAR",
 		"cancel": "CANCELAR",
 		"permission": "Ver tu",
+		"sign_messages": "Firmar mensajes",
+		"on_your_behalf": "en tu nombre",
 		"address": "dirección pública",
 		"warning": "Al elegir Conectar, habilitarás a esta dapp to a ver tu dirección pública. Este es un paso importante para proteger tus datos de potenciales estafas."
 	},
@@ -704,13 +707,23 @@
 	},
 	"notifications": {
 		"pending_title": "Transacción enviada!",
+		"pending_deposit_title": "Depósito en progreso!",
+		"pending_withdrawal_title": "Retiro en progreso!",
 		"success_title": "Transacción #{{nonce}} Completa!",
+		"success_deposit_title": "Depósito Completo!",
+		"success_withdrawal_title": "Retiro Completo!",
 		"error_title": "Oops, algo ha salido mal :/",
 		"received_title": "Has recibido {{amount}} {{assetType}}!",
+		"received_payment_title": "Pago instantáneo recibido",
 		"pending_message": "Tu transacción esta en proceso",
+		"pending_deposit_message": "Esperando que el deposito sea compleado",
+		"pending_withdrawal_message": "Esperando que el retiro sea completado",
 		"error_message": "Presiona para ver esta transacción",
 		"success_message": "Presiona para ver esta transacción",
+		"success_deposit_message": "Tus fondos están listos para ser utilizados",
+		"success_withdrawal_message": "Tus fondos han sido transferidos a tu billetera",
 		"received_message": "Presiona para ver esta transacción",
+		"received_payment_message": "Has recibido ${{amount}}!",
 		"prompt_title": "Habilitar Notificationes",
 		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
 		"prompt_ok": "Si",
@@ -758,7 +771,7 @@
 		"public_address_qr_code": "Código QR de Dirección Pública",
 		"coming_soon": "Pronto..."
 	},
-  "experimental_settings": {
+	"experimental_settings": {
 		"wallet_connect_dapps": "Sesiones de WalletConnect",
 		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
 		"wallet_connect_dapps_cta": "VER SESIONES"
@@ -770,5 +783,32 @@
 		"cancel": "Cancelar",
 		"session_ended_title": "Sesión Finalizada",
 		"session_ended_desc": "La sesión seleccionada ha sido terminada"
-  }
+	},
+	"paymentRequest": {
+		"title": "SOLICITUD DE PAGO",
+		"confirm": "CONFIRMAR",
+		"cancel": "RECHAZAR",
+		"complete_payment_for": "Completa tu pago por:",
+		"total": "TOTAL:"
+	},
+	"paymentChannels": {
+		"min_deposit": "Depósito Min.:",
+		"max_deposit": "Depósito Max.:",
+		"in_order_to_use": "Para empezar a utilizar los pagos instantáneos, ",
+		"you_need_to_deposit": "primero debes depositar algo de ETH",
+		"deposit_eth": "DEPOSITAR ETH",
+		"enter_eth_amount": "Ingresa el monto de ETH",
+		"deposit": "DEPOSITAR",
+		"send_intro": "Envia pagos instantáneos de manera gratuita a cualquier otra dirección de Ethereum!",
+		"send_payment": "ENVIAR PAGO",
+		"enter_recipient": "Ingresa el destinatario: 0x...",
+		"enter_amount": "Ingresa el Monto",
+		"send": "ENVIAR",
+		"receive": "RECIBIR",
+		"receive_intro": "Recibe pagos al compartir tu dirección o mostrando to código QR",
+		"withdraw_intro": "Tus fondos sera transferidos a tu cuenta de ethereum",
+		"withdraw_info": "Este proceso puede tardar algunos segundos ya que es una transacción de ETH normal.",
+		"withdraw_note": "NOTA: las tarifas de la transacción serán pagas con tu saldo",
+		"withdraw": "RETIRAR"
+	}
 }

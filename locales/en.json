@@ -802,5 +802,25 @@
 		"cancel": "REJECT",
 		"complete_payment_for": "Complete your payment for:",
 		"total": "TOTAL:"
+	},
+	"paymentChannels": {
+		"min_deposit": "Min. deposit:",
+		"max_deposit": "Max. deposit:",
+		"in_order_to_use": "In order to start sending instant payments, ",
+		"you_need_to_deposit": "you first need to deposit some ETH",
+		"deposit_eth": "DEPOSIT ETH",
+		"enter_eth_amount": "Enter ETH amount",
+		"deposit": "DEPOSIT",
+		"send_intro": "Send instant payments completely free to any other Ethereum address!",
+		"send_payment": "SEND PAYMENT",
+		"enter_recipient": "Enter recipient: 0x...",
+		"enter_amount": "Enter Amount",
+		"send": "SEND",
+		"receive": "RECEIVE",
+		"receive_intro": "Receive payments by sharing your address or showing your QR code",
+		"withdraw_intro": "Your funds will be sent to your normal Ethereum account",
+		"withdraw_info": "This process will take a few seconds because it's a normal ETH transaction",
+		"withdraw_note": "NOTE: The transaction fees will be paid with your funds",
+		"withdraw": "WITHDRAW"
 	}
 }
