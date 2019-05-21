@@ -15,7 +15,7 @@ export default class DeeplinkManager {
 		const urlObj = new URL(url);
 		let ethUrl, action;
 		switch (urlObj.protocol.replace(':', '')) {
-			// ethereum related deeplinks
+			// walletconnect related deeplinks
 			// address, transactions, etc
 			case 'wc':
 				// eslint-disable-next-line no-case-declarations
@@ -26,11 +26,6 @@ export default class DeeplinkManager {
 				const autosign = params && params.autosign;
 				if (urlObj.hostname === 'sign' || urlObj.hostname === 'sign') {
 					WalletConnect.setRedirectUri(redirect);
-				} else if (urlObj.hostname === 'payment') {
-					PaymentChannelsClient.hub.emit('payment::request', {
-						to: urlObj.pathname.replace('/', ''),
-						...params
-					});
 				} else {
 					WalletConnect.newSession(url, redirect, autosign);
 				}
@@ -64,6 +59,12 @@ export default class DeeplinkManager {
 			// Specific to the MetaMask app
 			// For ex. go to settings
 			case 'metamask':
+				if (urlObj.hostname === 'payment') {
+					PaymentChannelsClient.hub.emit('payment::request', {
+						to: urlObj.pathname.replace('/', ''),
+						...params
+					});
+				}
 				break;
 		}
 	}

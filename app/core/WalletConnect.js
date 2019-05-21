@@ -112,14 +112,17 @@ class WalletConnect {
 						});
 					}
 				} else if (payload.method === 'eth_sign' || payload.method === 'personal_sign') {
-					const { KeyringController, PersonalMessageManager } = Engine.context;
+					const { PersonalMessageManager } = Engine.context;
 					let rawSig = null;
 					try {
 						if (payload.params[2]) {
-							rawSig = await KeyringController.signPersonalMessage({
-								data: payload.params[1],
-								from: payload.params[0]
-							});
+							throw new Error('Autosign is not currently supported');
+							// Leaving this in case we want to enable it in the future
+							// once WCIP-4 is defined: https://github.com/WalletConnect/WCIPs/issues/4
+							// rawSig = await KeyringController.signPersonalMessage({
+							// 	data: payload.params[1],
+							// 	from: payload.params[0]
+							// });
 						} else {
 							rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 								data: payload.params[1],
@@ -131,8 +134,6 @@ class WalletConnect {
 								}
 							});
 						}
-						Logger.log('ABOUT TO AUTOSIGN');
-						Logger.log('AUTOSIGNED!', rawSig);
 						this.walletConnector.approveRequest({
 							id: payload.id,
 							result: rawSig
@@ -186,10 +187,10 @@ class WalletConnect {
 		});
 
 		this.walletConnector.on('session_update', (error, payload) => {
+			Logger.log('WC: Session update', payload);
 			if (error) {
 				throw error;
 			}
-			Logger.log('session_update FROM WC:', error, payload);
 		});
 
 		Engine.context.TransactionController.hub.on('networkChange', this.onNetworkChange);

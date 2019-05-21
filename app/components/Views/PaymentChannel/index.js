@@ -30,6 +30,8 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 
+const QR_PADDING = 160;
+
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.white,
@@ -184,6 +186,11 @@ const styles = StyleSheet.create({
 	}
 });
 
+/**
+/* View that contains all the UI to
+/* deposit, send, receive and withdraw
+/* instant payments
+*/
 class PaymentChannel extends Component {
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Instant Payments`, navigation);
 
@@ -299,16 +306,10 @@ class PaymentChannel extends Component {
 		});
 	};
 
-	/**
-	 * Closes QR code modal
-	 */
 	closeQrModal = () => {
 		this.setState({ qrModalVisible: false });
 	};
 
-	/**
-	 * Opens QR code modal
-	 */
 	openQrModal = () => {
 		this.setState({ qrModalVisible: true });
 	};
@@ -328,13 +329,13 @@ class PaymentChannel extends Component {
 		return (
 			<React.Fragment>
 				<Text style={styles.explainerText}>
-					Min. deposit:{' '}
+					{`${strings('paymentChannels.min_deposit')}`}
 					<Text style={styles.bold}>
 						{PaymentChannelsClient.MIN_DEPOSIT_ETH} ETH (${minFiat})
 					</Text>
 				</Text>
 				<Text style={styles.explainerText}>
-					Max. deposit:{' '}
+					{`${strings('paymentChannels.max_deposit')}`}
 					<Text style={styles.bold}>
 						{maxETH} ETH (${maxFiat})
 					</Text>
@@ -349,14 +350,14 @@ class PaymentChannel extends Component {
 			<React.Fragment>
 				<View style={styles.explainerTextWrapper}>
 					<Text style={styles.explainerText}>
-						In order to start sending instant payments,{' '}
-						<Text style={styles.bold}>you first need to deposit some ETH</Text>
+						{strings('paymentChannels.in_order_to_use')}
+						<Text style={styles.bold}>{strings('paymentChannels.you_need_to_deposit')}</Text>
 					</Text>
 					{this.renderMinimumsOrSpinner()}
 				</View>
 
 				<View style={styles.sectionTitleWrapper}>
-					<Text style={styles.sectionTitleText}>DEPOSIT ETH</Text>
+					<Text style={styles.sectionTitleText}>{strings('paymentChannels.deposit_eth')}</Text>
 				</View>
 				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
 					<TextInput
@@ -364,7 +365,7 @@ class PaymentChannel extends Component {
 						autoCorrect={false}
 						// eslint-disable-next-line react/jsx-no-bind
 						onChangeText={val => this.setState({ depositAmount: val })}
-						placeholder={`Enter ETH amount`}
+						placeholder={strings('paymentChannels.enter_eth_amount')}
 						spellCheck={false}
 						style={styles.input}
 						value={this.state.depositAmount}
@@ -380,7 +381,7 @@ class PaymentChannel extends Component {
 						testID={'submit-button'}
 						disabled={isDisabled}
 					>
-						DEPOSIT
+						{strings('paymentChannels.deposit')}
 					</StyledButton>
 				</View>
 			</React.Fragment>
@@ -392,12 +393,10 @@ class PaymentChannel extends Component {
 		return (
 			<React.Fragment>
 				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>
-						Send instant payments completely free to any other Ethereum address!
-					</Text>
+					<Text style={styles.explainerText}>{strings('paymentChannels.send_intro')}</Text>
 				</View>
 				<View style={styles.sectionTitleWrapper}>
-					<Text style={styles.sectionTitleText}>SEND PAYMENT</Text>
+					<Text style={styles.sectionTitleText}>{strings('paymentChannels.send_payment')}</Text>
 				</View>
 				<View style={styles.accountWrapper}>
 					<TextInput
@@ -405,7 +404,7 @@ class PaymentChannel extends Component {
 						autoCorrect={false}
 						// eslint-disable-next-line react/jsx-no-bind
 						onChangeText={val => this.setState({ sendRecipient: val })}
-						placeholder={`Enter recipient: 0x...`}
+						placeholder={strings('paymentChannels.enter_recipient')}
 						spellCheck={false}
 						style={styles.fullWidthInput}
 						value={this.state.sendRecipient}
@@ -421,7 +420,7 @@ class PaymentChannel extends Component {
 						autoCorrect={false}
 						// eslint-disable-next-line react/jsx-no-bind
 						onChangeText={val => this.setState({ sendAmount: val })}
-						placeholder={`Enter Amount`}
+						placeholder={strings('paymentChannels.enter_amount')}
 						spellCheck={false}
 						style={styles.input}
 						value={this.state.sendAmount}
@@ -438,7 +437,7 @@ class PaymentChannel extends Component {
 						testID={'submit-button'}
 						disabled={isDisabled}
 					>
-						SEND
+						{strings('paymentChannels.send')}
 					</StyledButton>
 				</View>
 			</React.Fragment>
@@ -449,14 +448,12 @@ class PaymentChannel extends Component {
 		return (
 			<React.Fragment>
 				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>
-						Receive payments by sharing your address or showing your QR code
-					</Text>
+					<Text style={styles.explainerText}>{strings('paymentChannels.receive_intro')}</Text>
 				</View>
 				<View style={styles.qrCodeWrapper}>
 					<QRCode
 						value={`ethereum:${this.props.selectedAddress}`}
-						size={Dimensions.get('window').width - 160}
+						size={Dimensions.get('window').width - QR_PADDING}
 					/>
 				</View>
 				<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
@@ -471,11 +468,9 @@ class PaymentChannel extends Component {
 		return (
 			<React.Fragment>
 				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>Your funds will be sent to your normal Ethereum account</Text>
-					<Text
-						style={styles.explainerText}
-					>{`This process will take a few seconds because it's a normal ETH transaction`}</Text>
-					<Text style={styles.explainerText}>NOTE: The transaction fees will be paid with your funds</Text>
+					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_intro')}</Text>
+					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_info')}</Text>
+					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_note')}</Text>
 				</View>
 				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
 					<StyledButton
@@ -486,7 +481,7 @@ class PaymentChannel extends Component {
 						testID={'submit-button'}
 						disabled={isDisabled}
 					>
-						WITHDRAW
+						{strings('paymentChannels.withdraw')}
 					</StyledButton>
 				</View>
 			</React.Fragment>
@@ -531,16 +526,16 @@ class PaymentChannel extends Component {
 				<View style={styles.data}>{this.renderInfo()}</View>
 				<View style={styles.panel}>
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						<ScrollView tabLabel={'DEPOSIT'}>
+						<ScrollView tabLabel={strings('paymentChannels.deposit')}>
 							<View style={styles.panelContent}>{this.renderDeposit()}</View>
 						</ScrollView>
-						<ScrollView tabLabel={'SEND'}>
+						<ScrollView tabLabel={strings('paymentChannels.send')}>
 							<View style={styles.panelContent}>{this.renderSend()}</View>
 						</ScrollView>
-						<ScrollView tabLabel={'RECEIVE'}>
+						<ScrollView tabLabel={strings('paymentChannels.receive')}>
 							<View style={styles.panelContent}>{this.renderReceive()}</View>
 						</ScrollView>
-						<ScrollView tabLabel={'WITHDRAW'}>
+						<ScrollView tabLabel={strings('paymentChannels.withdraw')}>
 							<View style={styles.panelContent}>{this.renderWithdraw()}</View>
 						</ScrollView>
 					</ScrollableTabView>
@@ -555,11 +550,9 @@ class PaymentChannel extends Component {
 				<ScrollView
 					contentContainerStyle={styles.scrollviewWrapper}
 					style={styles.mainWrapper}
-					testID={'account-backup-step-1-screen'}
+					testID={'payment-channels-screen'}
 				>
-					<View style={styles.wrapper} testID={'test'}>
-						{this.renderContent()}
-					</View>
+					<View style={styles.wrapper}>{this.renderContent()}</View>
 				</ScrollView>
 			</SafeAreaView>
 		);

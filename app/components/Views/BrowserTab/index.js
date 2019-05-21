@@ -622,7 +622,7 @@ export class BrowserTab extends PureComponent {
 			return;
 		}
 		if (params['+non_branch_link']) {
-			Logger.log('DEEPLINK', params);
+			Logger.log('Deeplink detected!', params);
 			const dm = new DeeplinkManager(this.props.navigation);
 			dm.parse(params['+non_branch_link']);
 		} else if (params.spotlight_identifier) {

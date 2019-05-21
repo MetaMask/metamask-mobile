@@ -795,5 +795,12 @@
 		"cancel": "Cancel",
 		"session_ended_title": "Session Ended",
 		"session_ended_desc": "The selected session has been terminated"
+	},
+	"paymentRequest": {
+		"title": "PAYMENT REQUEST",
+		"confirm": "CONFIRM",
+		"cancel": "REJECT",
+		"complete_payment_for": "Complete your payment for:",
+		"total": "TOTAL:"
 	}
 }

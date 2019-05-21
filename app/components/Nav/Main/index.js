@@ -61,7 +61,6 @@ import WalletConnect from '../../../core/WalletConnect';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
-import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -413,7 +412,6 @@ class Main extends Component {
 		});
 
 		await PaymentChannelsClient.init(this.props.selectedAddress);
-		Logger.log('CLIENT CREATED', PaymentChannelsClient);
 	};
 
 	onUnapprovedTransaction = transactionMeta => {
@@ -441,7 +439,6 @@ class Main extends Component {
 		if (this.backgroundMode && !newModeIsBackground) {
 			BackgroundTimer.stop();
 			this.pollForIncomingTransactions();
-			WalletConnect.init();
 		}
 
 		this.backgroundMode = newModeIsBackground;
@@ -571,9 +568,7 @@ class Main extends Component {
 
 	renderWalletConnectSessionRequestModal = () => {
 		const { walletConnectRequest, walletConnectRequestInfo } = this.state;
-
 		const meta = walletConnectRequestInfo.peerMeta || null;
-		const autosign = walletConnectRequestInfo.autosign;
 
 		return (
 			<Modal
@@ -594,7 +589,7 @@ class Main extends Component {
 						title: meta && meta.name,
 						url: meta && meta.url
 					}}
-					autosign={autosign}
+					autosign={false}
 				/>
 			</Modal>
 		);

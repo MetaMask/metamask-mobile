@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
 class PaymentChannelApproval extends Component {
 	static propTypes = {
 		/**
-		 * Object containing current page title, url, and icon href
+		 * Object containing current title, amount and detail
 		 */
 		info: PropTypes.object,
 		/**
@@ -176,28 +176,31 @@ class PaymentChannelApproval extends Component {
 		loading: PropTypes.bool
 	};
 
+	getFormattedAmount = () =>
+		parseFloat(this.props.info.amount)
+			.toFixed(2)
+			.toString();
+
 	render = () => {
 		const {
-			info: { title, amount, detail },
+			info: { title, detail },
 			onConfirm,
 			onCancel,
 			selectedAddress,
 			identities,
 			loading
 		} = this.props;
-		const formattedAmount = parseFloat(amount)
-			.toFixed(2)
-			.toString();
+		const formattedAmount = this.getFormattedAmount();
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
 					<Text style={styles.title} onPress={this.cancelSignature}>
-						<Text>PAYMENT REQUEST</Text>
+						<Text>{strings('paymentRequest.title')}</Text>
 					</Text>
 				</View>
 				<ActionView
-					cancelText={strings('accountApproval.cancel')}
-					confirmText={'CONFIRM'}
+					cancelText={strings('paymentRequest.cancel')}
+					confirmText={strings('paymentRequest.cancel')}
 					onCancelPress={onCancel}
 					onConfirmPress={onConfirm}
 					confirmButtonMode={'confirm'}
@@ -226,14 +229,14 @@ class PaymentChannelApproval extends Component {
 								</Text>
 							</View>
 						</View>
-						<Text style={styles.intro}>Complete your payment for:</Text>
+						<Text style={styles.intro}>{strings('paymentRequest.complete_your_payment_for')}</Text>
 						<View style={styles.permissions}>
 							<Text style={styles.permissionText} numberOfLines={1}>
 								<Text style={styles.permission}> {detail}</Text>
 							</Text>
 						</View>
 						<View style={styles.total}>
-							<Text style={styles.totalText}>TOTAL:</Text>
+							<Text style={styles.totalText}>{strings('paymentRequest.total')}</Text>
 							<Text style={styles.totalPrice}> ${formattedAmount}</Text>
 						</View>
 					</View>
