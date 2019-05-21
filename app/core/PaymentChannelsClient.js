@@ -10,6 +10,7 @@ import { toWei, toBN, renderFromWei } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
+import byteArrayToHex from '../util/bytes';
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
@@ -23,16 +24,10 @@ const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(toBN(HUB_EXCHANGE_CEILING_TOKEN))
 
 const hub = new EventEmitter();
 
-function byteArrayToHex(value) {
-	const HexCharacters = '0123456789abcdef';
-	const result = [];
-	for (let i = 0; i < value.length; i++) {
-		const v = value[i];
-		result.push(HexCharacters[(v & 0xf0) >> 4] + HexCharacters[v & 0x0f]);
-	}
-	return '0x' + result.join('');
-}
-
+/**
+ * Class that wraps the connext client for
+ * payment channels
+ */
 class PaymentChannelsClient {
 	constructor(address) {
 		const { provider } = Engine.context.NetworkController.state;
