@@ -159,8 +159,11 @@ export class NetworkList extends Component {
 	};
 
 	onSetRpcTarget = async rpcTarget => {
+		const { frequentRpcList } = this.props;
 		const { NetworkController } = Engine.context;
-		NetworkController.setRpcTarget(rpcTarget);
+		const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
+		const { rpcUrl, chainId, ticker, nickname } = rpc;
+		NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 		this.props.onClose(false);
 	};
 
@@ -195,20 +198,20 @@ export class NetworkList extends Component {
 
 	renderRpcNetworks = () => {
 		const { frequentRpcList, provider } = this.props;
-		return frequentRpcList.map((network, i) => {
-			const { color, name } = { name: network, color: null };
+		return frequentRpcList.map(({ rpcUrl }, i) => {
+			const { color, name } = { name: rpcUrl, color: null };
 			const selected =
-				provider.rpcTarget === network && provider.type === 'rpc' ? (
+				provider.rpcTarget === rpcUrl && provider.type === 'rpc' ? (
 					<Icon name="check" size={20} color={colors.fontSecondary} />
 				) : (
 					<Icon
 						name="minus-circle"
 						size={20}
 						color={colors.fontTertiary}
-						onPress={() => this.removeRpcTarget(network)} // eslint-disable-line
+						onPress={() => this.removeRpcTarget(rpcUrl)} // eslint-disable-line
 					/>
 				);
-			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, network);
+			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, rpcUrl);
 		});
 	};
 
