@@ -220,6 +220,13 @@ class PaymentChannel extends Component {
 
 	client = null;
 
+	onStateChange = state => {
+		this.setState({
+			balance: state.balance,
+			status: state.status
+		});
+	};
+
 	componentDidMount = async () => {
 		InteractionManager.runAfterInteractions(() => {
 			const state = PaymentChannelsClient.getState();
@@ -230,20 +237,13 @@ class PaymentChannel extends Component {
 			});
 		});
 
-		PaymentChannelsClient.hub.on('state::change', state => {
-			Logger.log('GOT STATE UPDATE', state);
-			this.setState({
-				balance: state.balance,
-				status: state.status
-			});
-		});
+		PaymentChannelsClient.hub.on('state::change', this.onStateChange);
 
 		this.mounted = true;
 	};
 
 	componentWillUnmount() {
-		PaymentChannelsClient.hub.removeAllListeners();
-		this.mounted && PaymentChannelsClient.stop();
+		PaymentChannelsClient.hub.removeListener('state::change', this.onStateChange);
 	}
 
 	deposit = async () => {

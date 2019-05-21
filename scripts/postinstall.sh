@@ -107,4 +107,5 @@ sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
 echo "12. Fix connext client warnings"
 TARGET="node_modules/connext/dist/Connext.js"
 sed -i'' -e 's/timeoutPromise(result/timeoutPromise((result || Promise.resolve())/' $TARGET;
+sed -i'' -e 's/merged.saveState || console.log/merged.saveState || (() => undefined)/' $TARGET;
 

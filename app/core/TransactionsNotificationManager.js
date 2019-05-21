@@ -37,7 +37,7 @@ class TransactionsNotificationManager {
 
 	_viewTransaction = id => {
 		this._transactionToView.push(id);
-		this._navigation.navigate('TransactionsHome');
+		this.goTo('TransactionsHome');
 	};
 
 	_removeListeners = transactionId => {
@@ -135,6 +135,13 @@ class TransactionsNotificationManager {
 		}
 
 		return TransactionsNotificationManager.instance;
+	}
+
+	/**
+	 * Navigates to a specific view
+	 */
+	goTo(view) {
+		this._navigation.navigate(view);
 	}
 
 	/**
@@ -363,18 +370,17 @@ export default {
 
 		return instance._showNotification(notification);
 	},
-	showIncomingPaymentNotification: amount => {
-		this._showNotification({
+	showIncomingPaymentNotification: amount =>
+		instance._showNotification({
 			type: 'received_payment',
 			message: {
 				transaction: {
 					amount,
-					assetType: 'USD'
+					assetType: ''
 				},
-				callback: () => null
+				callback: () => instance.goTo('PaymentChannelView')
 			},
 			autoHide: true,
 			duration: 5000
-		});
-	}
+		})
 };

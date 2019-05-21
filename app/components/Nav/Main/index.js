@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
-// eslint-disable-next-line react-native/split-platform-components
-import { ActivityIndicator, AppState, StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
+import {
+	InteractionManager,
+	ActivityIndicator,
+	AppState,
+	StyleSheet,
+	View,
+	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
+	Platform
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
@@ -341,77 +348,81 @@ class Main extends Component {
 	};
 
 	componentDidMount = async () => {
-		TransactionsNotificationManager.init(this.props.navigation);
-		this.pollForIncomingTransactions();
-		AppState.addEventListener('change', this.handleAppStateChange);
-		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
+		InteractionManager.runAfterInteractions(() => {
+			AppState.addEventListener('change', this.handleAppStateChange);
+			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 
-		PushNotification.configure({
-			requestPermissions: false,
-			onNotification: notification => {
-				let data = null;
-				if (Platform.OS === 'android') {
-					if (notification.tag) {
-						data = JSON.parse(notification.tag);
+			PushNotification.configure({
+				requestPermissions: false,
+				onNotification: notification => {
+					let data = null;
+					if (Platform.OS === 'android') {
+						if (notification.tag) {
+							data = JSON.parse(notification.tag);
+						}
+					} else if (notification.data) {
+						data = notification.data;
 					}
-				} else if (notification.data) {
-					data = notification.data;
+					if (data && data.action === 'tx') {
+						TransactionsNotificationManager.setTransactionToView(data.id);
+						this.props.navigation.navigate('TransactionsHome');
+					}
+
+					if (Platform.OS === 'ios') {
+						notification.finish(PushNotificationIOS.FetchResult.NoData);
+					}
 				}
-				if (data && data.action === 'tx') {
-					TransactionsNotificationManager.setTransactionToView(data.id);
-					this.props.navigation.navigate('TransactionsHome');
-				}
-
-				if (Platform.OS === 'ios') {
-					notification.finish(PushNotificationIOS.FetchResult.NoData);
-				}
-			}
-		});
-
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
-
-		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
-			delete messageParams.meta;
-			this.setState({
-				signMessage: true,
-				signMessageParams: messageParams,
-				signType: 'personal',
-				currentPageTitle,
-				currentPageUrl
 			});
-		});
 
-		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
-			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
-			delete messageParams.meta;
-			this.setState({
-				signMessage: true,
-				signMessageParams: messageParams,
-				signType: 'typed',
-				currentPageTitle,
-				currentPageUrl
+			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+
+			Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'personal',
+					currentPageTitle,
+					currentPageUrl
+				});
 			});
-		});
 
-		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
-			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
-		});
-		WalletConnect.init();
-
-		PaymentChannelsClient.hub.on('payment::request', request => {
-			this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
-		});
-
-		PaymentChannelsClient.hub.on('payment::complete', () => {
-			this.setState({
-				paymentChannelRequest: false,
-				paymentChannelRequestLoading: false,
-				paymentChannelRequestInfo: {}
+			Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'typed',
+					currentPageTitle,
+					currentPageUrl
+				});
 			});
-		});
 
-		await PaymentChannelsClient.init(this.props.selectedAddress);
+			setTimeout(() => {
+				TransactionsNotificationManager.init(this.props.navigation);
+				this.pollForIncomingTransactions();
+
+				PaymentChannelsClient.init(this.props.selectedAddress);
+				WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
+					this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
+				});
+				WalletConnect.init();
+
+				PaymentChannelsClient.hub.on('payment::request', request => {
+					this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
+				});
+
+				PaymentChannelsClient.hub.on('payment::complete', () => {
+					this.setState({
+						paymentChannelRequest: false,
+						paymentChannelRequestLoading: false,
+						paymentChannelRequestInfo: {}
+					});
+				});
+			}, 1000);
+		});
 	};
 
 	onUnapprovedTransaction = transactionMeta => {

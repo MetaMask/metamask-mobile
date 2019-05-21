@@ -1,5 +1,6 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
+import AsyncStorage from '@react-native-community/async-storage';
 // eslint-disable-next-line import/no-namespace
 import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
@@ -8,20 +9,18 @@ import { hideMessage } from 'react-native-flash-message';
 import { toWei, toBN, renderFromWei } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
+import AppConstants from './AppConstants';
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
 
-const { CurrencyType, CurrencyConvertable } = Connext;
-const { getExchangeRates, hasPendingOps } = new Connext.Utils();
+const { hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
-const DEPOSIT_ESTIMATED_GAS = toBN('700000'); // 700k gas
 const WEI_PER_ETHER = toBN('1000000000000000000');
-const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(toBN(69)); // 69 TST
-//const CHANNEL_DEPOSIT_MAX = WEI_PER_ETHER.mul(toBN(30)); // 30 TST
-const MAX_GAS_PRICE = toBN('20000000000'); // 20 gWei
-const MIN_DEPOSIT_ETH = 0.3;
-const MAX_DEPOSIT_TOKEN = 30;
+const { HUB_EXCHANGE_CEILING_TOKEN, MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN } = AppConstants.CONNEXT;
+
+const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(toBN(HUB_EXCHANGE_CEILING_TOKEN));
+
 const hub = new EventEmitter();
 
 function byteArrayToHex(value) {
@@ -34,7 +33,7 @@ function byteArrayToHex(value) {
 	return '0x' + result.join('');
 }
 
-class PaymentChannelClient {
+class PaymentChannelsClient {
 	constructor(address) {
 		const { provider } = Engine.context.NetworkController.state;
 		this.selectedAddress = address;
@@ -65,8 +64,7 @@ class PaymentChannelClient {
 				txHash: '',
 				type: '',
 				reset: false
-			},
-			browserMinimumBalance: null
+			}
 		};
 	}
 
@@ -150,7 +148,7 @@ class PaymentChannelClient {
 		const { connext } = this.state;
 		// register connext listeners
 		connext.on('onStateChange', state => {
-			Logger.log('NEW STATE', state);
+			this.checkForBalanceChange(state);
 			this.setState({
 				ready: true,
 				channelState: state.persistent.channel,
@@ -159,7 +157,6 @@ class PaymentChannelClient {
 				exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.USD : 0
 			});
 			this.checkStatus();
-			Logger.log('EMITTING STATE UPDATE');
 			hub.emit('state::change', {
 				balance: this.getBalance(),
 				status: this.state.status,
@@ -171,40 +168,41 @@ class PaymentChannelClient {
 		this.setState({ loadingConnext: false });
 	}
 
+	checkPaymentHistory = async () => {
+		const paymentHistory = await this.state.connext.getPaymentHistory();
+		const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
+		let lastKnownPaymentID = 0;
+
+		const latestPayment = paymentHistory.find(
+			payment => payment.recipient.toLowerCase() === this.selectedAddress.toLowerCase()
+		);
+		if (latestPayment) {
+			const latestPaymentID = parseInt(latestPayment.id, 10);
+			if (lastKnownPaymentIDStr) {
+				lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
+				if (lastKnownPaymentID < latestPaymentID) {
+					const ret = toBN(latestPayment.amount.amountToken).div(WEI_PER_ETHER);
+					const amountToken = ret
+						.toNumber()
+						.toFixed(2)
+						.toString();
+					Logger.log('PAYMENT TOKEN IN USD', amountToken);
+					hideMessage();
+					setTimeout(() => {
+						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
+					}, 300);
+				}
+			}
+			await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
+		}
+	};
+
 	pollAndSwap = async () => {
 		await this.autoSwap();
 		setTimeout(() => {
 			this.pollAndSwap();
 		}, 1000);
 	};
-
-	async setBrowserWalletMinimumBalance() {
-		const { connextState } = this.state;
-		// let gasEstimateJson = await utils.fetchJson({ url: `https://ethgasstation.info/json/ethgasAPI.json` });
-		// let providerGasPrice = await ethprovider.getGasPrice();
-		// let currentGasPrice = Math.round((gasEstimateJson.average / 10) * 2); // multiply gas price by two to be safe
-		// dont let gas price be any higher than the max
-		// currentGasPrice = utils.parseUnits(minBN(toBN(currentGasPrice.toString()), MAX_GAS_PRICE).toString(), "gwei");
-		// unless it really needs to be: average eth gas station price w ethprovider's
-		// currentGasPrice = currentGasPrice.add(providerGasPrice).div(ethers.constants.Two);
-
-		const providerGasPrice = MAX_GAS_PRICE; // hardcode for now
-		Logger.log(`Gas Price = ${providerGasPrice}`);
-
-		// default connext multiple is 1.5, leave 2x for safety
-		const totalDepositGasWei = DEPOSIT_ESTIMATED_GAS.mul(toBN(2)).mul(providerGasPrice);
-
-		// add dai conversion
-		const minConvertable = new CurrencyConvertable(CurrencyType.WEI, totalDepositGasWei, () =>
-			getExchangeRates(connextState)
-		);
-		const browserMinimumBalance = {
-			wei: minConvertable.toWEI().amount,
-			dai: minConvertable.toUSD().amount
-		};
-		this.setState({ browserMinimumBalance });
-		return browserMinimumBalance;
-	}
 
 	async autoSwap() {
 		const { channelState, connextState } = this.state;
@@ -221,7 +219,17 @@ class PaymentChannelClient {
 		}
 	}
 
-	async checkStatus() {
+	checkForBalanceChange = async newState => {
+		// Check for balance changes
+		const prevBalance = (this.state && this.state.channelState && this.state.channelState.balanceTokenUser) || '0';
+		const currentBalance =
+			(newState && newState.persistent.channel && newState.persistent.channel.balanceTokenUser) || '0';
+		if (toBN(prevBalance).lt(toBN(currentBalance))) {
+			this.checkPaymentHistory();
+		}
+	};
+
+	checkStatus() {
 		const { runtime, status } = this.state;
 		const newStatus = {
 			reset: status.reset
@@ -363,11 +371,10 @@ let client = null;
 
 const instance = {
 	async init(address) {
-		client = new PaymentChannelClient(address);
+		client = new PaymentChannelsClient(address);
 		const { provider } = Engine.context.NetworkController.state;
 		await client.setConnext(provider);
 		await client.pollConnextState();
-		await client.setBrowserWalletMinimumBalance();
 		await client.pollAndSwap();
 	},
 	getInstance: () => this,
