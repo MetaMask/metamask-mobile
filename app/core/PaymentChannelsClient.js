@@ -6,7 +6,7 @@ import * as Connext from 'indra/modules/client';
 import EthQuery from 'ethjs-query';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
-import { toWei, toBN, renderFromWei } from '../util/number';
+import { toWei, toBN, renderFromWei, weiToFiatNumber } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
@@ -122,7 +122,8 @@ class PaymentChannelsClient {
 				channelManagerAddress: connext.opts.contractAddress,
 				hubWalletAddress: connext.opts.hubAddress,
 				ethNetworkId: connext.opts.ethNetworkId,
-				ethprovider
+				ethprovider,
+				exchangeRate: this.getExchangeRate()
 			});
 		} catch (e) {
 			Logger.log('error', e);
@@ -138,6 +139,15 @@ class PaymentChannelsClient {
 		return ret.toFixed(2).toString();
 	};
 
+	getExchangeRate() {
+		const { CurrencyRateController } = Engine.context;
+		const { conversionRate } = CurrencyRateController.state;
+		if (conversionRate) {
+			return weiToFiatNumber(WEI_PER_ETHER, conversionRate).toString();
+		}
+		return 0;
+	}
+
 	async pollConnextState() {
 		const { connext } = this.state;
 		// register connext listeners
@@ -148,7 +158,7 @@ class PaymentChannelsClient {
 				channelState: state.persistent.channel,
 				connextState: state,
 				runtime: state.runtime,
-				exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.USD : 0
+				exchangeRate: this.getExchangeRate()
 			});
 			this.checkStatus();
 			hub.emit('state::change', {
@@ -285,7 +295,7 @@ class PaymentChannelsClient {
 		}
 
 		try {
-			const connext = this.state.connext;
+			const { connext } = this.state;
 			const data = {
 				amountWei: toWei(params.depositAmount).toString(),
 				amountToken: '0'
@@ -309,14 +319,19 @@ class PaymentChannelsClient {
 		}
 
 		const amount = toWei(params.sendAmount).toString();
-		const maxAmount = this.state.channelState.balanceTokenUser;
+
+		const {
+			connext,
+			channelState: { balanceTokenUser }
+		} = this.state;
+
+		const maxAmount = balanceTokenUser;
 
 		if (toBN(amount).gt(toBN(maxAmount))) {
 			throw new Error('Insufficient balance');
 		}
 
 		try {
-			const connext = this.state.connext;
 			const data = {
 				meta: {
 					purchaseId: 'payment'
@@ -339,11 +354,15 @@ class PaymentChannelsClient {
 
 	withdrawAll = async () => {
 		try {
-			const connext = this.state.connext;
+			const {
+				connext,
+				exchangeRate,
+				channelState: { balanceWeiUser, balanceTokenUser }
+			} = this.state;
 			const withdrawalVal = {
-				exchangeRate: this.state.runtime.exchangeRate.rates.USD,
-				withdrawalWeiUser: this.state.channelState.balanceWeiUser,
-				tokensToSell: this.state.channelState.balanceTokenUser,
+				exchangeRate,
+				withdrawalWeiUser: balanceWeiUser,
+				tokensToSell: balanceTokenUser,
 				withdrawalTokenUser: '0',
 				weiToSell: '0',
 				recipient: this.selectedAddress.toLowerCase()
@@ -387,16 +406,22 @@ const instance = {
 	},
 	getStatus: () => client.state && client.state.status,
 	getMinimumDepositFiat: () => {
-		if (client.state.runtime && client.state.runtime.exchangeRate && client.state.runtime.exchangeRate.rates) {
-			const ETH = parseFloat(client.state.runtime.exchangeRate.rates.USD);
-			return (ETH * MIN_DEPOSIT_ETH).toFixed(2).toString();
+		if (client.state) {
+			const { exchangeRate } = client.state;
+			if (exchangeRate) {
+				const ETH = parseFloat(exchangeRate);
+				return (ETH * MIN_DEPOSIT_ETH).toFixed(2).toString();
+			}
 		}
 		return '0.00';
 	},
 	getMaximumDepositEth: () => {
-		if (client.state.runtime && client.state.runtime.exchangeRate && client.state.runtime.exchangeRate.rates) {
-			const ETH = parseFloat(client.state.runtime.exchangeRate.rates.USD);
-			return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
+		if (client.state) {
+			const { exchangeRate } = client.state;
+			if (exchangeRate) {
+				const ETH = parseFloat(exchangeRate);
+				return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
+			}
 		}
 		return '0.00';
 	},
