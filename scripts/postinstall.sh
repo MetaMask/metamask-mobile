@@ -104,8 +104,31 @@ echo "11. Fix xmlhttprequest"
 TARGET="node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
 sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
 
-echo "12. Fix connext client warnings"
-TARGET="node_modules/connext/dist/Connext.js"
+# Temporary until https://github.com/ConnextProject/indra/pull/211 gets merged
+echo "12. Fix connext client"
+
+TARGET="node_modules/indra/modules/client/src/controllers/ExchangeController.ts"
+sed -i'' -e 's/export const validateExchangeRate /export const validateExchangeRate:any /' $TARGET;
+
+TARGET="node_modules/indra/modules/client/src/controllers/StateUpdateController.ts"
+sed -i'' -e 's/export const watchStore /export const watchStore:any /' $TARGET;
+
+TARGET="node_modules/indra/modules/client/src/lib/timestamp.ts"
+sed -i'' -e 's/export const validateTimestamp /export const validateTimestamp:any /' $TARGET;
+
+TARGET="node_modules/indra/modules/client/src/state/actions.ts"
+sed -i'' -e 's/export const setChannelAndUpdate /export const setChannelAndUpdate:any /' $TARGET;
+
+cd node_modules/indra/modules/client && npm i && cd ../../../../
+
+TARGET="node_modules/indra/modules/client/dist/Connext.js"
 sed -i'' -e 's/timeoutPromise(result/timeoutPromise((result || Promise.resolve())/' $TARGET;
 sed -i'' -e 's/merged.saveState || console.log/merged.saveState || (() => undefined)/' $TARGET;
 
+TARGET="node_modules/indra/modules/client/dist/Hub.js"
+sed -i'' -e 's/auth\/response`, {/auth\/response`, {origin:"unknown",/' $TARGET;
+
+TARGET="node_modules/indra/modules/client/node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
+sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
+
+cp node_modules/indra/modules/client/src/contract/ChannelManagerAbi.json node_modules/indra/modules/client/dist/contract/

@@ -1,8 +1,8 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
 import AsyncStorage from '@react-native-community/async-storage';
-// eslint-disable-next-line import/no-namespace
-import * as Connext from 'connext';
+// eslint-disable-next-line
+import * as Connext from 'indra/modules/client';
 import EthQuery from 'ethjs-query';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
@@ -105,7 +105,6 @@ class PaymentChannelsClient {
 					return KeyringController.signPersonalMessage({ data: hexMessage, from: this.selectedAddress });
 				}
 			},
-			user: this.selectedAddress,
 			web3Provider: Engine.context.NetworkController.provider
 		};
 
@@ -368,9 +367,11 @@ class PaymentChannelsClient {
 }
 
 let client = null;
+let reloading = false;
 
 const instance = {
 	async init(address) {
+		initListeners();
 		client = new PaymentChannelsClient(address);
 		const { provider } = Engine.context.NetworkController.state;
 		await client.setConnext(provider);
@@ -414,5 +415,23 @@ hub.on('payment::confirm', async request => {
 	await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
 	hub.emit('payment::complete', request);
 });
+
+const reloadClient = () => {
+	if (!reloading) {
+		reloading = true;
+		instance.stop();
+		setTimeout(() => {
+			instance.init(Engine.context.PreferencesController.state.selectedAddress);
+			setTimeout(() => {
+				reloading = false;
+			}, 1000);
+		}, 1000);
+	}
+};
+
+function initListeners() {
+	Engine.context.TransactionController.hub.on('networkChange', reloadClient);
+	Engine.context.PreferencesController.subscribe(reloadClient);
+}
 
 export default instance;
