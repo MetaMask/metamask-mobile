@@ -1,16 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import {
-	SafeAreaView,
-	InputAccessoryView,
-	Button,
-	StyleSheet,
-	Switch,
-	TextInput,
-	Text,
-	Platform,
-	View
-} from 'react-native';
+import { SafeAreaView, StyleSheet, Switch, TextInput, Text, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { isWebUri } from 'valid-url';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -120,10 +110,6 @@ const styles = StyleSheet.create({
 	},
 	syncConfirm: {
 		marginTop: 18
-	},
-	inputAccessoryView: {
-		alignItems: 'flex-end',
-		paddingRight: 10
 	}
 });
 
@@ -160,6 +146,9 @@ class AdvancedSettings extends Component {
 	state = {
 		resetModalVisible: false,
 		rpcUrl: undefined,
+		chainId: undefined,
+		ticker: undefined,
+		nickname: undefined,
 		warningRpcUrl: '',
 		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
 		onlineIpfsGateways: []
@@ -216,13 +205,13 @@ class AdvancedSettings extends Component {
 
 	addRpcUrl = () => {
 		const { PreferencesController, NetworkController } = Engine.context;
-		const { rpcUrl } = this.state;
+		const { rpcUrl, chainId, ticker, nickname } = this.state;
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-			PreferencesController.addToFrequentRpcList(url.href);
-			NetworkController.setRpcTarget(url.href);
+			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname);
+			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
 			navigation.navigate('WalletView');
 		}
 	};
@@ -249,6 +238,18 @@ class AdvancedSettings extends Component {
 
 	onRpcUrlChange = url => {
 		this.setState({ rpcUrl: url });
+	};
+
+	onNicknameChange = nickname => {
+		this.setState({ nickname });
+	};
+
+	onChainIDChange = chainId => {
+		this.setState({ chainId });
+	};
+
+	onTickerChange = ticker => {
+		this.setState({ ticker });
 	};
 
 	toggleShowHexData = showHexData => {
@@ -350,28 +351,52 @@ class AdvancedSettings extends Component {
 						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
+
 							<TextInput
 								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 								autoCapitalize={'none'}
 								autoCorrect={false}
 								value={this.state.rpcUrl}
-								onBlur={this.addRpcUrl}
 								onChangeText={this.onRpcUrlChange}
 								placeholder={strings('app_settings.new_RPC_URL')}
-								inputAccessoryViewID={'rpc_url_accesory_view'}
 							/>
-							{Platform.OS === 'ios' && (
-								<InputAccessoryView nativeID={'rpc_url_accesory_view'}>
-									<View style={styles.inputAccessoryView} backgroundColor={colors.grey000}>
-										<Button onPress={this.addRpcUrl} title="Done" />
-									</View>
-								</InputAccessoryView>
-							)}
+
+							<TextInput
+								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+								autoCapitalize={'none'}
+								autoCorrect={false}
+								value={this.state.chainId}
+								onChangeText={this.onChainIDChange}
+								placeholder={'Chain ID (optional)'}
+							/>
+
+							<TextInput
+								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+								autoCapitalize={'none'}
+								autoCorrect={false}
+								value={this.state.ticker}
+								onChangeText={this.onTickerChange}
+								placeholder={'Symbol (optional)'}
+							/>
+
+							<TextInput
+								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+								autoCapitalize={'none'}
+								autoCorrect={false}
+								value={this.state.nickname}
+								onChangeText={this.onNicknameChange}
+								placeholder={'Nickname (optional)'}
+							/>
+
 							<View style={styles.rpcConfirmContainer}>
 								<View style={styles.warningContainer}>
 									<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
 								</View>
 							</View>
+
+							<StyledButton type="info" onPress={this.addRpcUrl} containerStyle={styles.syncConfirm}>
+								{'Add'}
+							</StyledButton>
 						</View>
 
 						<View style={[styles.setting]}>
