@@ -7,7 +7,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": "70%",
+      "minHeight": "62%",
       "paddingBottom": 20,
     }
   }
@@ -32,10 +32,10 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
   </View>
   <ActionView
     cancelTestID=""
-    cancelText="REJECT"
+    cancelText="DECLINE"
     confirmButtonMode="confirm"
     confirmTestID=""
-    confirmText="REJECT"
+    confirmText="PAY"
     confirmed={false}
     showCancelButton={true}
     showConfirmButton={true}
@@ -196,56 +196,14 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
           }
         }
       >
-        [missing "en.paymentRequest.complete_your_payment_for" translation]
+        is requesting you to pay
       </Text>
       <View
         style={
           Object {
-            "alignItems": "center",
-            "borderBottomWidth": 1,
-            "borderColor": "#d6d9dc",
-            "borderTopWidth": 1,
-            "display": "flex",
-            "flexDirection": "row",
-            "paddingHorizontal": 8,
-            "paddingVertical": 16,
-          }
-        }
-      >
-        <Text
-          numberOfLines={1}
-          style={
-            Object {
-              "color": "#000000",
-              "flexGrow": 1,
-              "flexShrink": 1,
-              "fontFamily": "Roboto",
-              "fontSize": 14,
-              "fontWeight": "400",
-            }
-          }
-        >
-          <Text
-            style={
-              Object {
-                "color": "#000000",
-                "fontFamily": "Roboto",
-                "fontSize": 14,
-                "fontWeight": "600",
-              }
-            }
-          >
-             
-          </Text>
-        </Text>
-      </View>
-      <View
-        style={
-          Object {
             "flex": 1,
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "marginTop": 25,
+            "marginBottom": 30,
+            "marginTop": 15,
           }
         }
       >
@@ -254,22 +212,9 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
             Object {
               "color": "#000000",
               "fontFamily": "Roboto",
-              "fontSize": 25,
+              "fontSize": 55,
               "fontWeight": "600",
-              "textAlign": "left",
-            }
-          }
-        >
-          TOTAL:
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "Roboto",
-              "fontSize": 25,
-              "fontWeight": "600",
-              "textAlign": "right",
+              "textAlign": "center",
             }
           }
         >

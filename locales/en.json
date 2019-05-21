@@ -798,9 +798,10 @@
 	},
 	"paymentRequest": {
 		"title": "PAYMENT REQUEST",
-		"confirm": "CONFIRM",
-		"cancel": "REJECT",
-		"complete_payment_for": "Complete your payment for:",
+		"title_complete": "PAYMENT COMPLETE",
+		"confirm": "PAY",
+		"cancel": "DECLINE",
+		"is_requesting_you_to_pay": "is requesting you to pay",
 		"total": "TOTAL:"
 	},
 	"paymentChannels": {

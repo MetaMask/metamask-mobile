@@ -13,13 +13,18 @@ export default class DeeplinkManager {
 
 	parse(url) {
 		const urlObj = new URL(url);
-		let ethUrl, action;
+		let ethUrl, action, params;
+
+		if (urlObj.query.length) {
+			params = qs.parse(urlObj.query.substring(1));
+		}
+
 		switch (urlObj.protocol.replace(':', '')) {
 			// walletconnect related deeplinks
 			// address, transactions, etc
 			case 'wc':
 				// eslint-disable-next-line no-case-declarations
-				const params = qs.parse(urlObj.query.substring(1));
+
 				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations

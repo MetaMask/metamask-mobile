@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import ElevatedView from 'react-native-elevated-view';
@@ -10,18 +10,23 @@ import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 import WebsiteIcon from '../WebsiteIcon';
-import { renderAccountName } from '../../../util/address';
+import { renderAccountName, renderShortAddress } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: '70%',
+		minHeight: '62%',
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	wrapper: {
 		paddingHorizontal: 25
+	},
+	iconWrapper: {
+		marginTop: 60,
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	title: {
 		...fontStyles.bold,
@@ -39,37 +44,28 @@ const styles = StyleSheet.create({
 	},
 	total: {
 		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginTop: 25
-	},
-	totalText: {
-		textAlign: 'left',
-		...fontStyles.bold,
-		color: colors.fontPrimary,
-		fontSize: 25
+		marginTop: 15,
+		marginBottom: 30
 	},
 	totalPrice: {
-		textAlign: 'right',
+		textAlign: 'center',
 		...fontStyles.bold,
 		color: colors.fontPrimary,
-		fontSize: 25
+		fontSize: 55
 	},
 	permissions: {
-		alignItems: 'center',
-		borderBottomWidth: 1,
+		alignItems: 'flex-start',
 		borderColor: colors.grey100,
 		borderTopWidth: 1,
 		display: 'flex',
 		flexDirection: 'row',
-		paddingHorizontal: 8,
 		paddingVertical: 16
 	},
 	permissionText: {
+		textAlign: 'left',
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		flexGrow: 1,
-		flexShrink: 1,
 		fontSize: 14
 	},
 	permission: {
@@ -142,6 +138,10 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 		height: 54,
 		width: 54
+	},
+	successIcon: {
+		color: colors.green500,
+		marginBottom: 30
 	}
 });
 
@@ -173,8 +173,29 @@ class PaymentChannelApproval extends Component {
 		/**
 		 * A bool that determines when the payment is in progress
 		 */
-		loading: PropTypes.bool
+		loading: PropTypes.bool,
+		/**
+		 * A bool that determines when the payment is in progress
+		 */
+		complete: PropTypes.bool
 	};
+
+	iconSpringVal = new Animated.Value(0.4);
+
+	animateIcon() {
+		Animated.spring(this.iconSpringVal, {
+			toValue: 1,
+			friction: 2,
+			useNativeDriver: true,
+			isInteraction: false
+		}).start();
+	}
+
+	componentDidUpdate(prevProps) {
+		if (!prevProps.complete && this.props.complete) {
+			this.animateIcon();
+		}
+	}
 
 	getFormattedAmount = () =>
 		parseFloat(this.props.info.amount)
@@ -183,14 +204,38 @@ class PaymentChannelApproval extends Component {
 
 	render = () => {
 		const {
-			info: { title, detail },
+			info: { title, detail, to },
 			onConfirm,
 			onCancel,
 			selectedAddress,
 			identities,
-			loading
+			loading,
+			complete
 		} = this.props;
 		const formattedAmount = this.getFormattedAmount();
+
+		if (complete) {
+			return (
+				<View style={styles.root}>
+					<View style={styles.titleWrapper}>
+						<Text style={styles.title} onPress={this.cancelSignature}>
+							<Text>{strings('paymentRequest.title_complete')}</Text>
+						</Text>
+					</View>
+					<Animated.View
+						style={[
+							styles.iconWrapper,
+							{
+								transform: [{ scale: this.iconSpringVal }]
+							}
+						]}
+					>
+						<Icon name="check-circle" size={160} style={styles.successIcon} />
+					</Animated.View>
+				</View>
+			);
+		}
+
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -200,7 +245,7 @@ class PaymentChannelApproval extends Component {
 				</View>
 				<ActionView
 					cancelText={strings('paymentRequest.cancel')}
-					confirmText={strings('paymentRequest.cancel')}
+					confirmText={strings('paymentRequest.confirm')}
 					onCancelPress={onCancel}
 					onConfirmPress={onConfirm}
 					confirmButtonMode={'confirm'}
@@ -223,22 +268,31 @@ class PaymentChannelApproval extends Component {
 								</View>
 							</View>
 							<View style={styles.dapp}>
-								<WebsiteIcon style={styles.icon} title={title} />
-								<Text style={styles.headerTitle} numberOfLines={1}>
-									{title}
-								</Text>
+								{title ? (
+									<WebsiteIcon style={styles.icon} title={title} />
+								) : (
+									<Identicon address={to} diameter={54} />
+								)}
+								{title ? (
+									<Text style={styles.headerTitle} numberOfLines={1}>
+										{title}
+									</Text>
+								) : (
+									<Text style={styles.selectedAddress}>{renderShortAddress(to)}</Text>
+								)}
 							</View>
 						</View>
-						<Text style={styles.intro}>{strings('paymentRequest.complete_your_payment_for')}</Text>
-						<View style={styles.permissions}>
-							<Text style={styles.permissionText} numberOfLines={1}>
-								<Text style={styles.permission}> {detail}</Text>
-							</Text>
-						</View>
+						<Text style={styles.intro}>{strings('paymentRequest.is_requesting_you_to_pay')}</Text>
 						<View style={styles.total}>
-							<Text style={styles.totalText}>{strings('paymentRequest.total')}</Text>
 							<Text style={styles.totalPrice}> ${formattedAmount}</Text>
 						</View>
+						{detail && (
+							<View style={styles.permissions}>
+								<Text style={styles.permissionText} numberOfLines={1}>
+									<Text style={styles.permission}> {detail}</Text>
+								</Text>
+							</View>
+						)}
 					</View>
 				</ActionView>
 			</View>

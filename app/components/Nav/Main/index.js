@@ -331,6 +331,7 @@ class Main extends Component {
 		walletConnectRequestInfo: {},
 		paymentChannelRequest: false,
 		paymentChannelRequestLoading: false,
+		paymentChannelRequestCompleted: false,
 		paymentChannelRequestInfo: {}
 	};
 
@@ -415,11 +416,23 @@ class Main extends Component {
 				});
 
 				PaymentChannelsClient.hub.on('payment::complete', () => {
-					this.setState({
-						paymentChannelRequest: false,
-						paymentChannelRequestLoading: false,
-						paymentChannelRequestInfo: {}
-					});
+					// show the success screen
+					this.setState({ paymentChannelRequestCompleted: true });
+					// hide the modal and reset state
+					setTimeout(() => {
+						setTimeout(() => {
+							this.setState({
+								paymentChannelRequest: false,
+								paymentChannelRequestLoading: false,
+								paymentChannelRequestInfo: {}
+							});
+							setTimeout(() => {
+								this.setState({
+									paymentChannelRequestCompleted: false
+								});
+							});
+						}, 800);
+					}, 800);
 				});
 			}, 1000);
 		});
@@ -572,9 +585,9 @@ class Main extends Component {
 
 	onPaymentChannelRequestRejected = () => {
 		this.setState({
-			paymentChannelRequest: false,
-			paymentChannelRequestInfo: {}
+			paymentChannelRequest: false
 		});
+		setTimeout(() => this.setState({ paymentChannelRequestInfo: {} }), 1000);
 	};
 
 	renderWalletConnectSessionRequestModal = () => {
@@ -607,7 +620,12 @@ class Main extends Component {
 	};
 
 	renderPaymentChannelRequestApproval = () => {
-		const { paymentChannelRequest, paymentChannelRequestInfo, paymentChannelRequestLoading } = this.state;
+		const {
+			paymentChannelRequest,
+			paymentChannelRequestInfo,
+			paymentChannelRequestLoading,
+			paymentChannelRequestCompleted
+		} = this.state;
 
 		return (
 			<Modal
@@ -626,6 +644,7 @@ class Main extends Component {
 					onConfirm={this.onPaymentChannelRequestApproval}
 					info={paymentChannelRequestInfo}
 					loading={paymentChannelRequestLoading}
+					complete={paymentChannelRequestCompleted}
 				/>
 			</Modal>
 		);
