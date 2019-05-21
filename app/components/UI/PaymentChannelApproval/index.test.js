@@ -18,9 +18,12 @@ describe('PaymentChannelApproval', () => {
 			}
 		};
 
-		const wrapper = shallow(<PaymentChannelApproval currentPageInformation={{ icon: '', url: '', title: '' }} />, {
-			context: { store: mockStore(initialState) }
-		});
+		const wrapper = shallow(
+			<PaymentChannelApproval info={{ amount: '1', item: 'coffee', title: 'Coffe Shop' }} />,
+			{
+				context: { store: mockStore(initialState) }
+			}
+		);
 		expect(wrapper.dive()).toMatchSnapshot();
 	});
 });

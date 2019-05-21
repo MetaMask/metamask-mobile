@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`WalletConnectSessionApproval should render correctly 1`] = `
+exports[`PaymentChannelApproval should render correctly 1`] = `
 <View
   style={
     Object {
@@ -26,16 +26,16 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
       }
     >
       <Text>
-        WALLETCONNECT REQUEST
+        PAYMENT REQUEST
       </Text>
     </Text>
   </View>
   <ActionView
     cancelTestID=""
-    cancelText="CANCEL"
+    cancelText="REJECT"
     confirmButtonMode="confirm"
     confirmTestID=""
-    confirmText="CONNECT"
+    confirmText="REJECT"
     confirmed={false}
     showCancelButton={true}
     showConfirmButton={true}
@@ -66,42 +66,24 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
             }
           }
         >
-          <WebsiteIcon
-            style={
-              Object {
-                "borderRadius": 27,
-                "height": 54,
-                "marginBottom": 12,
-                "width": 54,
-              }
-            }
-            title=""
-            url=""
+          <Component
+            address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+            diameter={54}
           />
           <Text
-            numberOfLines={1}
             style={
               Object {
                 "color": "#000000",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
+                "marginTop": 12,
                 "textAlign": "center",
               }
             }
-          />
-          <Text
-            numberOfLines={1}
-            style={
-              Object {
-                "color": "#999999",
-                "fontFamily": "Roboto",
-                "fontSize": 12,
-                "fontWeight": "400",
-                "textAlign": "center",
-              }
-            }
-          />
+          >
+            Account 1
+          </Text>
         </View>
         <View
           style={
@@ -138,7 +120,7 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
             >
               <Icon
                 allowFontScaling={false}
-                name="check"
+                name="dollar"
                 size={12}
                 style={
                   Object {
@@ -175,23 +157,30 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
             }
           }
         >
-          <Component
-            address="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-            diameter={54}
+          <WebsiteIcon
+            style={
+              Object {
+                "borderRadius": 27,
+                "height": 54,
+                "marginBottom": 12,
+                "width": 54,
+              }
+            }
+            title="Coffe Shop"
           />
           <Text
+            numberOfLines={1}
             style={
               Object {
                 "color": "#000000",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "marginTop": 12,
                 "textAlign": "center",
               }
             }
           >
-            Account 1
+            Coffe Shop
           </Text>
         </View>
       </View>
@@ -207,20 +196,7 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
           }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "Roboto",
-              "fontSize": 20,
-              "fontWeight": "600",
-            }
-          }
-        >
-           
-        </Text>
-        would like to
-        :
+        [missing "en.paymentRequest.complete_your_payment_for" translation]
       </Text>
       <View
         style={
@@ -249,7 +225,6 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
             }
           }
         >
-          View your
           <Text
             style={
               Object {
@@ -261,29 +236,47 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
             }
           >
              
-            public address
           </Text>
         </Text>
-        <Icon
-          allowFontScaling={false}
-          color="#037dd6"
-          name="info-circle"
-          size={22}
-        />
       </View>
-      <Text
+      <View
         style={
           Object {
-            "color": "#000000",
-            "fontFamily": "Roboto",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "marginTop": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginTop": 25,
           }
         }
       >
-        By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.
-      </Text>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 25,
+              "fontWeight": "600",
+              "textAlign": "left",
+            }
+          }
+        >
+          TOTAL:
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 25,
+              "fontWeight": "600",
+              "textAlign": "right",
+            }
+          }
+        >
+           $
+          1.00
+        </Text>
+      </View>
     </View>
   </ActionView>
 </View>
