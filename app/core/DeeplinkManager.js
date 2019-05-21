@@ -24,11 +24,10 @@ export default class DeeplinkManager {
 			// address, transactions, etc
 			case 'wc':
 				// eslint-disable-next-line no-case-declarations
-
-				// eslint-disable-next-line no-case-declarations
 				const redirect = params && params.redirect;
 				// eslint-disable-next-line no-case-declarations
 				const autosign = params && params.autosign;
+
 				if (urlObj.hostname === 'sign' || urlObj.hostname === 'sign') {
 					WalletConnect.setRedirectUri(redirect);
 				} else {
