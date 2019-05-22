@@ -305,6 +305,10 @@ class Main extends Component {
 		 */
 		lockTime: PropTypes.number,
 		/**
+		 * Flag that determines if payment channels are enabled
+		 */
+		paymentChannelsEnabled: PropTypes.bool,
+		/**
 		 * Current onboarding wizard step
 		 */
 		wizardStep: PropTypes.number,
@@ -405,36 +409,47 @@ class Main extends Component {
 				TransactionsNotificationManager.init(this.props.navigation);
 				this.pollForIncomingTransactions();
 
-				PaymentChannelsClient.init(this.props.selectedAddress);
-				WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
-					this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
-				});
-				WalletConnect.init();
+				this.initializeWalletConnect();
 
-				PaymentChannelsClient.hub.on('payment::request', request => {
-					this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
-				});
-
-				PaymentChannelsClient.hub.on('payment::complete', () => {
-					// show the success screen
-					this.setState({ paymentChannelRequestCompleted: true });
-					// hide the modal and reset state
-					setTimeout(() => {
-						setTimeout(() => {
-							this.setState({
-								paymentChannelRequest: false,
-								paymentChannelRequestLoading: false,
-								paymentChannelRequestInfo: {}
-							});
-							setTimeout(() => {
-								this.setState({
-									paymentChannelRequestCompleted: false
-								});
-							});
-						}, 800);
-					}, 800);
-				});
+				// Only if enabled under settings
+				if (this.props.paymentChannelsEnabled) {
+					this.initializePaymentChannels();
+				}
 			}, 1000);
+		});
+	};
+
+	initializeWalletConnect = () => {
+		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
+			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
+		});
+		WalletConnect.init();
+	};
+
+	initializePaymentChannels = () => {
+		PaymentChannelsClient.init(this.props.selectedAddress);
+		PaymentChannelsClient.hub.on('payment::request', request => {
+			this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
+		});
+
+		PaymentChannelsClient.hub.on('payment::complete', () => {
+			// show the success screen
+			this.setState({ paymentChannelRequestCompleted: true });
+			// hide the modal and reset state
+			setTimeout(() => {
+				setTimeout(() => {
+					this.setState({
+						paymentChannelRequest: false,
+						paymentChannelRequestLoading: false,
+						paymentChannelRequestInfo: {}
+					});
+					setTimeout(() => {
+						this.setState({
+							paymentChannelRequestCompleted: false
+						});
+					});
+				}, 800);
+			}, 800);
 		});
 	};
 
@@ -485,6 +500,13 @@ class Main extends Component {
 		if (this.props.lockTime !== prevProps.lockTime) {
 			this.lockManager.updateLockTime(this.props.lockTime);
 		}
+		if (this.props.paymentChannelsEnabled !== prevProps.paymentChannelsEnabled) {
+			if (this.props.paymentChannelsEnabled) {
+				this.initializePaymentChannels();
+			} else {
+				PaymentChannelsClient.stop();
+			}
+		}
 	}
 
 	forceReload() {
@@ -508,6 +530,9 @@ class Main extends Component {
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
+		WalletConnect.hub.removeAllListeners();
+		PaymentChannelsClient.hub.removeAllListeners();
+		PaymentChannelsClient.stop();
 	}
 
 	/**
@@ -678,7 +703,8 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	wizardStep: state.wizard.step,
 	transaction: state.transaction,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
 });
 
 const mapDispatchToProps = dispatch => ({

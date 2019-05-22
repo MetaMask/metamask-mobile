@@ -298,7 +298,7 @@
 		"security_desc": "Opciones de privacidad, MetaMetrics y frase semilla de la billetera",
 		"info_title": "Acerca de MetaMask",
 		"experimental_title": "Experimental",
-		"experimental_desc": "WalletConnect & más...",
+		"experimental_desc": "Canales de Pago, WalletConnect & más...",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
@@ -772,6 +772,11 @@
 		"coming_soon": "Pronto..."
 	},
 	"experimental_settings": {
+		"payment_channels": "Canales de Pago",
+		"enable_payment_channels": "Habilitar Canales de Pago",
+		"enable_payment_channels_desc": "Esta opción habilitara el cliente de canales de pago de Connext en la app",
+		"payment_channels_desc": "Accede a tu billetera de canales de pago",
+		"payment_channels_cta": "VER BILLETERA",
 		"wallet_connect_dapps": "Sesiones de WalletConnect",
 		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
 		"wallet_connect_dapps_cta": "VER SESIONES"

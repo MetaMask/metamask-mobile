@@ -35,7 +35,6 @@ class PaymentChannelsClient {
 		this.state = {
 			ready: false,
 			provider,
-			loadingConnext: true,
 			hubUrl: null,
 			tokenAddress: null,
 			contractAddress: null,
@@ -169,7 +168,6 @@ class PaymentChannelsClient {
 		});
 		// start polling
 		await connext.start();
-		this.setState({ loadingConnext: false });
 	}
 
 	checkPaymentHistory = async () => {
@@ -284,14 +282,17 @@ class PaymentChannelsClient {
 		}
 
 		const depositAmount = parseFloat(params.depositAmount);
-		const maxDepositAmount = 0.12;
-		const minDepositAmount = 0.03;
+
+		const ETH = parseFloat(this.state.exchangeRate);
+		const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
+		const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
+
 		if (depositAmount > maxDepositAmount) {
-			throw new Error('The max. deposit allowed for now it is 0.12 ETH. Try with a lower amount');
+			throw new Error(`The max. deposit allowed for now it is ${maxDepositAmount} ETH. Try with a lower amount`);
 		}
 
 		if (depositAmount < minDepositAmount) {
-			throw new Error('The max. deposit allowed for now it is 0.03 ETH. Try with a lower amount');
+			throw new Error(`The max. deposit allowed for now it is ${minDepositAmount} ETH. Try with a lower amount`);
 		}
 
 		try {
@@ -376,7 +377,7 @@ class PaymentChannelsClient {
 	};
 
 	stop() {
-		this.state.connext.stop();
+		this.state && this.state.connext && this.state.connext.stop();
 	}
 }
 
@@ -391,6 +392,7 @@ const instance = {
 		await client.setConnext(provider);
 		await client.pollConnextState();
 		await client.pollAndSwap();
+		Logger.log('PAYMENT-CHANNELS::initialized payment channels for address', address);
 	},
 	getInstance: () => this,
 	getState: () => ({
@@ -398,7 +400,16 @@ const instance = {
 		status: client.state.status,
 		ready: true
 	}),
-	stop: () => client.stop(),
+	stop: () => {
+		if (client) {
+			client.stop();
+			removeListeners();
+			hub.removeAllListeners();
+			Logger.log('PAYMENT-CHANNELS::stopped the client completely');
+		} else {
+			Logger.log('PAYMENT-CHANNELS::client was not running...');
+		}
+	},
 	deposit: params => client.deposit(params),
 	withdrawAll: () => client.withdrawAll(),
 	send: params => {
@@ -430,12 +441,6 @@ const instance = {
 	hub
 };
 
-hub.on('payment::confirm', async request => {
-	Logger.log(instance, instance.send, request);
-	await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
-	hub.emit('payment::complete', request);
-});
-
 const reloadClient = () => {
 	if (!reloading) {
 		reloading = true;
@@ -449,9 +454,22 @@ const reloadClient = () => {
 	}
 };
 
+const onPaymentConfirm = async request => {
+	Logger.log(instance, instance.send, request);
+	await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
+	hub.emit('payment::complete', request);
+};
+
 function initListeners() {
 	Engine.context.TransactionController.hub.on('networkChange', reloadClient);
 	Engine.context.PreferencesController.subscribe(reloadClient);
+	hub.on('payment::confirm', onPaymentConfirm);
+}
+
+function removeListeners() {
+	Engine.context.TransactionController.hub.removeListener('networkChange', reloadClient);
+	Engine.context.PreferencesController.unsubscribe(reloadClient);
+	hub.removeListener('payment::confirm', onPaymentConfirm);
 }
 
 export default instance;

@@ -633,12 +633,6 @@ class DrawerView extends Component {
 				selectedIcon: this.getSelectedFeatherIcon('list'),
 				action: this.goToTransactionHistory,
 				routeNames: ['TransactionsView']
-			},
-			{
-				name: strings('drawer.payment_channel'),
-				icon: this.getIcon('dollar'),
-				action: this.goToPaymentChannel,
-				routeNames: ['PaymentChannelsView']
 			}
 		],
 		[
