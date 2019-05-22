@@ -27,7 +27,7 @@ exports[`Settings should render correctly 1`] = `
       title="Security & Privacy"
     />
     <SettingsDrawer
-      description="WalletConnect & more..."
+      description="Payment Channels, WalletConnect & more..."
       onPress={[Function]}
       title="Experimental"
     />

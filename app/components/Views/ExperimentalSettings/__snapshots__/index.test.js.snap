@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExperimentalSettings should render correctly 1`] = `
-<_class
+<ScrollViewMock
   style={
     Object {
       "backgroundColor": "#FFFFFF",
@@ -11,76 +11,163 @@ exports[`ExperimentalSettings should render correctly 1`] = `
     }
   }
 >
-  <View>
+  <View
+    style={
+      Object {
+        "paddingBottom": 112,
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "marginTop": 50,
+          },
+          Object {
+            "marginTop": 0,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Payment Channels
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        This option will run the Connext Payment Channels client in the app
+      </Text>
+      <View
+        style={
+          Object {
+            "marginVertical": 20,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+        />
+      </View>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        View your payment channels wallet
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        VIEW WALLET
+      </StyledButton>
+    </View>
     <View
       style={
         Object {
-          "paddingBottom": 112,
+          "marginTop": 50,
         }
       }
     >
-      <View
+      <Text
         style={
-          Array [
-            Object {
-              "marginTop": 50,
-            },
-            Object {
-              "marginTop": 0,
-            },
-          ]
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
         }
       >
-        <Text
-          style={
-            Object {
-              "color": "#000000",
-              "fontFamily": "Roboto",
-              "fontSize": 20,
-              "fontWeight": "400",
-              "lineHeight": 20,
-            }
+        WalletConnect Sessions
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
           }
-        >
-          WalletConnect Sessions
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#6a737d",
-              "fontFamily": "Roboto",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 20,
-              "marginTop": 12,
-            }
+        }
+      >
+        View the list of active WalletConnect sessions
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
           }
-        >
-          View the list of active WalletConnect sessions
-        </Text>
-        <StyledButton
-          containerStyle={
-            Object {
-              "marginTop": 18,
-            }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
           }
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
-            }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
           }
-          onPress={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          type="normal"
-        >
-          VIEW SESSIONS
-        </StyledButton>
-      </View>
+        }
+        type="normal"
+      >
+        VIEW SESSIONS
+      </StyledButton>
     </View>
   </View>
-</_class>
+</ScrollViewMock>
 `;
