@@ -183,7 +183,11 @@ class EthInput extends Component {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = { readableValue: undefined, assets: undefined };
@@ -283,12 +287,12 @@ class EthInput extends Component {
 	 * @returns {object} - 'SelectableAsset' object with corresponding asset information
 	 */
 	renderAsset = (asset, onPress) => {
-		const { tokenBalances, accounts, selectedAddress } = this.props;
+		const { tokenBalances, accounts, selectedAddress, ticker } = this.props;
 		const assetsObject = {
 			ETH: () => {
-				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + strings('unit.eth');
+				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + ticker;
 				const icon = <Image source={ethLogo} style={styles.logo} />;
-				return { title: strings('unit.eth'), subTitle, icon };
+				return { title: ticker, subTitle, icon };
 			},
 			ERC20: () => {
 				const title = asset.symbol;
@@ -465,7 +469,8 @@ class EthInput extends Component {
 			contractExchangeRates,
 			conversionRate,
 			transaction: { assetType, selectedAsset, value },
-			primaryCurrency
+			primaryCurrency,
+			ticker
 		} = this.props;
 		// Depending on 'assetType' return object with corresponding 'convertedAmount', 'currency' and 'image'
 		const inputs = {
@@ -473,9 +478,9 @@ class EthInput extends Component {
 				let convertedAmount, currency;
 				if (primaryCurrency === 'ETH') {
 					convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
-					currency = strings('unit.eth');
+					currency = ticker;
 				} else {
-					convertedAmount = renderFromWei(value) + ' ' + strings('unit.eth');
+					convertedAmount = renderFromWei(value) + ' ' + ticker;
 					currency = currentCurrency.toUpperCase();
 				}
 				const image = <Image source={ethLogo} style={styles.logo} />;
@@ -547,7 +552,8 @@ const mapStateToProps = state => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	transaction: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(EthInput);

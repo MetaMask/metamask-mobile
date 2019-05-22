@@ -93,7 +93,11 @@ class Wallet extends Component {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -163,7 +167,8 @@ class Wallet extends Component {
 			collectibles,
 			navigation,
 			showAlert,
-			primaryCurrency
+			primaryCurrency,
+			ticker
 		} = this.props;
 
 		let balance = 0;
@@ -173,7 +178,7 @@ class Wallet extends Component {
 			assets = [
 				{
 					name: 'Ether',
-					symbol: 'ETH',
+					symbol: ticker,
 					isETH: true,
 					balance,
 					balanceFiat: weiToFiat(
@@ -248,7 +253,8 @@ const mapStateToProps = state => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 const mapDispatchToProps = dispatch => ({

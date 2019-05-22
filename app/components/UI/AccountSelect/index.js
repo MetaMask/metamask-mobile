@@ -8,7 +8,6 @@ import { connect } from 'react-redux';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
 import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
@@ -126,7 +125,11 @@ class AccountSelect extends Component {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	static defaultProps = {
@@ -153,17 +156,17 @@ class AccountSelect extends Component {
 	}
 
 	renderOption(account, onPress) {
-		const { conversionRate, currentCurrency, primaryCurrency } = this.props;
+		const { conversionRate, currentCurrency, primaryCurrency, ticker } = this.props;
 		const balance = hexToBN(account.balance);
 
 		// render balances according to selected 'primaryCurrency'
 		let mainBalance, secondaryBalance;
 		if (primaryCurrency === 'ETH') {
-			mainBalance = renderFromWei(balance) + ' ' + strings('unit.eth');
+			mainBalance = renderFromWei(balance) + ' ' + ticker;
 			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency).toUpperCase();
 		} else {
 			mainBalance = weiToFiat(balance, conversionRate, currentCurrency).toUpperCase();
-			secondaryBalance = renderFromWei(balance) + ' ' + strings('unit.eth');
+			secondaryBalance = renderFromWei(balance) + ' ' + ticker;
 		}
 
 		return (
@@ -218,7 +221,8 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(AccountSelect);

@@ -352,7 +352,11 @@ class DrawerView extends Component {
 		/**
 		 * Wizard onboarding state
 		 */
-		wizard: PropTypes.object
+		wizard: PropTypes.object,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -711,7 +715,7 @@ class DrawerView extends Component {
 	};
 
 	render() {
-		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
+		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -867,6 +871,7 @@ class DrawerView extends Component {
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
 						onImportAccount={this.onImportAccount}
+						ticker={ticker}
 					/>
 				</Modal>
 				{this.renderOnboardingWizard()}
@@ -932,7 +937,8 @@ const mapStateToProps = state => ({
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
-	wizard: state.wizard
+	wizard: state.wizard,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 const mapDispatchToProps = dispatch => ({
