@@ -296,6 +296,8 @@
 		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC",
 		"security_title": "Security & Privacy",
 		"security_desc": "Privacy settings, MetaMetrics, private key and wallet seed phrase",
+		"networks_title": "Networks",
+		"networks_desc": "Add and edit custom RPC networks",
 		"info_title": "About MetaMask",
 		"experimental_title": "Experimental",
 		"experimental_desc": "WalletConnect & more...",
@@ -770,7 +772,7 @@
 		"public_address_qr_code": "Public Address QR Code",
 		"coming_soon": "Coming soon..."
 	},
-  "experimental_settings": {
+	"experimental_settings": {
 		"wallet_connect_dapps": "WalletConnect Sessions",
 		"wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
 		"wallet_connect_dapps_cta": "VIEW SESSIONS"
@@ -782,5 +784,5 @@
 		"cancel": "Cancel",
 		"session_ended_title": "Session Ended",
 		"session_ended_desc": "The selected session has been terminated"
-  }
+	}
 }

@@ -1,0 +1,149 @@
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
+import { StyleSheet, Text, ScrollView, TouchableOpacity, View } from 'react-native';
+import { connect } from 'react-redux';
+import { colors, fontStyles } from '../../../../styles/common';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { strings } from '../../../../../locales/i18n';
+import Networks from '../../../../util/networks';
+
+const styles = StyleSheet.create({
+	wrapper: {
+		backgroundColor: colors.white,
+		flex: 1,
+		padding: 24,
+		paddingBottom: 48
+	},
+	networkIcon: {
+		width: 15,
+		height: 15,
+		borderRadius: 100,
+		marginTop: 2,
+		marginRight: 16
+	},
+	otherNetworkIcon: {
+		width: 15,
+		height: 15,
+		borderRadius: 100,
+		marginTop: 2,
+		backgroundColor: colors.grey100
+	},
+	network: {
+		flex: 1,
+		flexDirection: 'row',
+		paddingVertical: 12
+	},
+	networkWrapper: {
+		flex: 0,
+		flexDirection: 'row'
+	},
+	networkLabel: {
+		fontSize: 16,
+		color: colors.fontPrimary,
+		...fontStyles.normal
+	},
+	sectionLabel: {
+		fontSize: 14,
+		paddingVertical: 12,
+		color: colors.fontPrimary,
+		...fontStyles.bold
+	}
+});
+
+/**
+ * Main view for app configurations
+ */
+class NetworksSettings extends Component {
+	static propTypes = {
+		/**
+		 * A list of custom RPCs to provide the user
+		 */
+		frequentRpcList: PropTypes.array
+	};
+
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
+
+	state = {};
+
+	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
+
+	getOtherNetworks = () => this.getAllNetworks().slice(1);
+
+	onPress = () => {
+		//
+	};
+
+	networkElement(name, color, i, network) {
+		return (
+			<TouchableOpacity
+				key={`network-${i}`}
+				onPress={() => this.onPress(network)} // eslint-disable-line
+			>
+				<View style={styles.network}>
+					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
+					<View style={styles.networkInfo}>
+						<Text style={styles.networkLabel}>{name}</Text>
+					</View>
+				</View>
+			</TouchableOpacity>
+		);
+	}
+
+	renderOtherNetworks() {
+		return this.getOtherNetworks().map((network, i) => {
+			const { color, name } = Networks[network];
+			return this.networkElement(name, color, i, network);
+		});
+	}
+
+	renderRpcNetworks = () => {
+		const { frequentRpcList } = this.props;
+		return frequentRpcList.map(({ rpcUrl, nickname }, i) => {
+			const { color, name } = { name: nickname || rpcUrl, color: null };
+
+			return this.networkElement(name, color, i, rpcUrl);
+		});
+	};
+
+	renderMainnet() {
+		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
+		return (
+			<View style={styles.mainnetHeader}>
+				<TouchableOpacity
+					style={styles.network}
+					key={`network-mainnet`}
+					onPress={() => this.onPress('mainnet')} // eslint-disable-line
+				>
+					<View style={styles.networkWrapper}>
+						<View style={[styles.networkIcon, { backgroundColor: mainnetColor }]} />
+						<View style={styles.networkInfo}>
+							<Text style={styles.networkLabel}>{mainnetName}</Text>
+						</View>
+					</View>
+				</TouchableOpacity>
+			</View>
+		);
+	}
+
+	render() {
+		return (
+			<View style={styles.wrapper}>
+				<ScrollView style={styles.networksWrapper}>
+					{this.renderMainnet()}
+					<Text style={styles.sectionLabel}>Other Networks</Text>
+
+					{this.renderOtherNetworks()}
+					<Text style={styles.sectionLabel}>RPC Networks</Text>
+					{this.renderRpcNetworks()}
+				</ScrollView>
+			</View>
+		);
+	}
+}
+
+const mapStateToProps = state => ({
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+});
+
+export default connect(mapStateToProps)(NetworksSettings);

@@ -64,6 +64,13 @@ export default class Settings extends Component {
 					}}
 				/>
 				<SettingsDrawer
+					title={strings('app_settings.networks_title')}
+					description={strings('app_settings.networks_desc')}
+					onPress={() => {
+						navigation.push('NetworksSettings');
+					}}
+				/>
+				<SettingsDrawer
 					title={strings('app_settings.info_title')}
 					onPress={() => {
 						navigation.push('CompanySettings');

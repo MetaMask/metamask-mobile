@@ -295,6 +295,8 @@
 		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
 		"security_desc": "Opciones de privacidad, MetaMetrics y frase semilla de la billetera",
+		"networks_title": "Redes",
+		"networks_desc": "Agregar y editar redes RPC personalizadas",
 		"info_title": "Acerca de MetaMask",
 		"experimental_title": "Experimental",
 		"experimental_desc": "WalletConnect & más...",
@@ -758,7 +760,7 @@
 		"public_address_qr_code": "Código QR de Dirección Pública",
 		"coming_soon": "Pronto..."
 	},
-  "experimental_settings": {
+	"experimental_settings": {
 		"wallet_connect_dapps": "Sesiones de WalletConnect",
 		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
 		"wallet_connect_dapps_cta": "VER SESIONES"
@@ -770,5 +772,5 @@
 		"cancel": "Cancelar",
 		"session_ended_title": "Sesión Finalizada",
 		"session_ended_desc": "La sesión seleccionada ha sido terminada"
-  }
+	}
 }
