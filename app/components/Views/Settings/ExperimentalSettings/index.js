@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { StyleSheet, Text, ScrollView, View } from 'react-native';
-import StyledButton from '../../UI/StyledButton';
-import { colors, fontStyles } from '../../../styles/common';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { strings } from '../../../../locales/i18n';
+import StyledButton from '../../../UI/StyledButton';
+import { colors, fontStyles } from '../../../../styles/common';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {

@@ -4,24 +4,24 @@ import { SafeAreaView, StyleSheet, Switch, TextInput, Text, Platform, View } fro
 import { connect } from 'react-redux';
 import { isWebUri } from 'valid-url';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import ActionModal from '../../UI/ActionModal';
-import Engine from '../../../core/Engine';
-import StyledButton from '../../UI/StyledButton';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { setShowHexData } from '../../../actions/settings';
-import { strings } from '../../../../locales/i18n';
+import ActionModal from '../../../UI/ActionModal';
+import Engine from '../../../../core/Engine';
+import StyledButton from '../../../UI/StyledButton';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { setShowHexData } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
 import DeviceInfo from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
-import Logger from '../../../util/Logger';
-import { isprivateConnection } from '../../../util/networks';
+import Logger from '../../../../util/Logger';
+import { isprivateConnection } from '../../../../util/networks';
 import URL from 'url-parse';
-import ipfsGateways from '../../../util/ipfs-gateways.json';
-import SelectComponent from '../../UI/SelectComponent';
-import timeoutFetch from '../../../util/general';
+import ipfsGateways from '../../../../util/ipfs-gateways.json';
+import SelectComponent from '../../../UI/SelectComponent';
+import timeoutFetch from '../../../../util/general';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
