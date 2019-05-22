@@ -15,7 +15,6 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import DeeplinkManager from '../../../core/DeeplinkManager';
-import WalletConnect from '../../../core/WalletConnect';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 const HOMEPAGE_URL = 'about:blank';
