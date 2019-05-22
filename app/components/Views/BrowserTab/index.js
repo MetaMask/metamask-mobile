@@ -847,7 +847,6 @@ export class BrowserTab extends PureComponent {
 	}
 
 	onUrlInputSubmit = async (input = null) => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_SEARCH);
 		this.toggleOptionsIfNeeded();
 		const inputValue = (typeof input === 'string' && input) || this.state.autocompleteInputValue;
 		const { defaultProtocol, searchEngine } = this.props;
@@ -858,6 +857,7 @@ export class BrowserTab extends PureComponent {
 		} else {
 			this.hideUrlModal();
 		}
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_SEARCH);
 	};
 
 	goBack = () => {
