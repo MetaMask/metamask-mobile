@@ -228,12 +228,12 @@ class HomePage extends Component {
 	actionSheet = null;
 
 	handleTabHeight(obj) {
-		if (obj.ref.ref === 'featuredTab') {
+		const refName = obj.ref.ref;
+		if (refName === 'featuredTab') {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_FEATURED_APPS);
 		} else {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_FAVORITES);
 		}
-		const refName = obj.ref.ref;
 		setTimeout(() => {
 			// eslint-disable-next-line
 			this.refs[refName].measureMyself((x, y, w, h, l, t) => {

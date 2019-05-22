@@ -188,7 +188,6 @@ export default class AccountList extends Component {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
 		try {
 			this.setState({ selectedAccountIndex: newIndex });
 
@@ -210,6 +209,11 @@ export default class AccountList extends Component {
 			this.setState({ selectedAccountIndex: previousIndex });
 			Logger.error('error while trying change the selected account', e); // eslint-disable-line
 		}
+		InteractionManager.runAfterInteractions(() => {
+			setTimeout(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
+			}, 1000);
+		});
 	};
 
 	importAccount = () => {

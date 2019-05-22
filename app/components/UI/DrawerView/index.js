@@ -408,7 +408,6 @@ class DrawerView extends Component {
 	}
 
 	toggleAccountsModal = () => {
-		!this.props.accountsModalVisible && Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
 		if (!this.animatingAccountsModal) {
 			this.animatingAccountsModal = true;
 			this.props.toggleAccountsModal();
@@ -416,6 +415,7 @@ class DrawerView extends Component {
 				this.animatingAccountsModal = false;
 			}, 500);
 		}
+		!this.props.accountsModalVisible && this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
 	};
 
 	toggleReceiveModal = () => {
@@ -449,44 +449,49 @@ class DrawerView extends Component {
 		this.toggleReceiveModal();
 	};
 
+	trackEvent = event => {
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(event);
+		});
+	};
+
 	onReceive = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
 		this.toggleReceiveModal();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
 	};
 
 	onSend = async () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
 		this.props.setTokensTransaction({ symbol: 'ETH' });
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
 	};
 
 	goToBrowser = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
 		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
 	};
 
 	showWallet = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_WALLET);
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_WALLET);
 	};
 
 	goToTransactionHistory = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
 		this.props.navigation.navigate('TransactionsHome');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
 	};
 
 	showSettings = async () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 		this.props.navigation.navigate('SettingsView');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
 	logout = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
 		const { passwordSet } = this.props;
 		Alert.alert(
 			strings('drawer.logout_title'),
@@ -511,14 +516,15 @@ class DrawerView extends Component {
 			],
 			{ cancelable: false }
 		);
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
 	};
 
 	viewInEtherscan = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
 		const { selectedAddress, network } = this.props;
 		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 		const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
 		this.goToBrowserUrl(url, etherscan_url);
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
 	};
 
 	submitFeedback = () => {
@@ -552,8 +558,8 @@ class DrawerView extends Component {
 	};
 
 	showHelp = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_GET_HELP);
 		this.goToBrowserUrl('https://support.metamask.io', strings('drawer.metamask_support'));
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_GET_HELP);
 	};
 
 	goToBrowserUrl(url, title) {
@@ -685,13 +691,13 @@ class DrawerView extends Component {
 	};
 
 	onShare = () => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
 		const { selectedAddress } = this.props;
 		Share.open({
 			message: `ethereum:${selectedAddress}`
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
 	};
 
 	onSecureWalletModalAction = () => {

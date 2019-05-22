@@ -20,6 +20,7 @@ import { getTransactionReviewActionKey } from '../../../util/transactions';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
+const SEND = 'Send';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -411,34 +412,18 @@ class Send extends Component {
 	 * Call Analytics to track confirm started event for send screen
 	 */
 	trackConfirmScreen = () => {
-		const {
-			networkType,
-			transaction: { selectedAsset, assetType }
-		} = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, {
-			view: 'Send',
-			network: networkType,
-			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
-			assetType
-		});
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, this.getTrackingParams());
 	};
 
 	/**
 	 * Call Analytics to track confirm started event for send screen
 	 */
 	trackEditScreen = async () => {
-		const {
-			networkType,
-			transaction: { selectedAsset, assetType },
-			transaction
-		} = this.props;
+		const { transaction } = this.props;
 		const actionKey = await getTransactionReviewActionKey(transaction);
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION, {
-			view: 'Send',
-			network: networkType,
-			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
-			functionType: actionKey,
-			assetType
+			...this.getTrackingParams(),
+			actionKey
 		});
 	};
 
@@ -446,32 +431,38 @@ class Send extends Component {
 	 * Call Analytics to track cancel pressed
 	 */
 	trackOnCancel = () => {
-		const {
-			networkType,
-			transaction: { selectedAsset, assetType }
-		} = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION, {
-			view: 'Send',
-			network: networkType,
-			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
-			assetType
-		});
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+			this.getTrackingParams()
+		);
 	};
 
 	/**
 	 * Call Analytics to track confirm pressed
 	 */
 	trackOnConfirm = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Returns corresponding tracking params to send
+	 *
+	 * @return {object} - Object containing view, network, activeCurrency and assetType
+	 */
+	getTrackingParams = () => {
 		const {
 			networkType,
 			transaction: { selectedAsset, assetType }
 		} = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION, {
-			view: 'Send',
+		return {
+			view: SEND,
 			network: networkType,
 			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
 			assetType
-		});
+		};
 	};
 
 	/**
@@ -484,8 +475,10 @@ class Send extends Component {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode });
 		this.mounted && this.setState({ mode });
-		mode === REVIEW && this.trackConfirmScreen();
-		mode === EDIT && this.trackEditScreen();
+		InteractionManager.runAfterInteractions(() => {
+			mode === REVIEW && this.trackConfirmScreen();
+			mode === EDIT && this.trackEditScreen();
+		});
 	};
 
 	renderLoader() {

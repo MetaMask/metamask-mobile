@@ -36,8 +36,8 @@ export default class BrowserFeatured extends Component {
 	self = React.createRef();
 
 	onPress = url => {
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_FEATURED_APPS_OPEN);
 		this.props.goTo(url);
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_FEATURED_APPS_OPEN);
 	};
 
 	measureMyself(cb) {

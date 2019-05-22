@@ -164,22 +164,22 @@ class SignatureRequest extends Component {
 	 * Calls trackCancelSignature and onCancel callback
 	 */
 	onCancel = () => {
+		this.props.onCancel();
 		Analytics.trackEventWithParameters(
 			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE,
 			this.getTrackingParams()
 		);
-		this.props.onCancel();
 	};
 
 	/**
 	 * Calls trackConfirmSignature and onConfirm callback
 	 */
 	onConfirm = () => {
+		this.props.onConfirm();
 		Analytics.trackEventWithParameters(
 			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE,
 			this.getTrackingParams()
 		);
-		this.props.onConfirm();
 	};
 
 	/**

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -16,6 +16,7 @@ import { getTransactionReviewActionKey } from '../../../util/transactions';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
+const APPROVAL = 'Approval';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -82,34 +83,18 @@ class Approval extends Component {
 	 * Call Analytics to track confirm started event for approval screen
 	 */
 	trackConfirmScreen = () => {
-		const {
-			networkType,
-			transaction: { selectedAsset, assetType }
-		} = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, {
-			view: 'Approval',
-			network: networkType,
-			activeCurrency: selectedAsset.symbol,
-			assetType
-		});
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, this.getTrackingParams());
 	};
 
 	/**
 	 * Call Analytics to track confirm started event for approval screen
 	 */
 	trackEditScreen = async () => {
-		const {
-			networkType,
-			transaction: { selectedAsset, assetType },
-			transaction
-		} = this.props;
+		const { transaction } = this.props;
 		const actionKey = await getTransactionReviewActionKey(transaction);
 		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION, {
-			view: 'Send',
-			network: networkType,
-			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
-			functionType: actionKey,
-			assetType
+			...this.getTrackingParams(),
+			actionKey
 		});
 	};
 
@@ -117,32 +102,38 @@ class Approval extends Component {
 	 * Call Analytics to track cancel pressed
 	 */
 	trackOnCancel = () => {
-		const {
-			networkType,
-			transaction: { selectedAsset, assetType }
-		} = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION, {
-			view: 'Approval',
-			network: networkType,
-			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
-			assetType
-		});
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+			this.getTrackingParams()
+		);
 	};
 
 	/**
 	 * Call Analytics to track confirm pressed
 	 */
 	trackOnConfirm = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Returns corresponding tracking params to send
+	 *
+	 * @return {object} - Object containing view, network, activeCurrency and assetType
+	 */
+	getTrackingParams = () => {
 		const {
 			networkType,
 			transaction: { selectedAsset, assetType }
 		} = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION, {
-			view: 'Approval',
+		return {
+			view: APPROVAL,
 			network: networkType,
 			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
 			assetType
-		});
+		};
 	};
 
 	/**
@@ -153,8 +144,8 @@ class Approval extends Component {
 	};
 
 	onCancel = () => {
-		this.state.mode === REVIEW && this.trackOnCancel();
 		this.props.navigation.pop();
+		this.state.mode === REVIEW && this.trackOnCancel();
 	};
 
 	/**
@@ -164,7 +155,6 @@ class Approval extends Component {
 		const { TransactionController, AddressBookController } = Engine.context;
 		const { transactions, addressBook } = this.props;
 		let { transaction } = this.props;
-		this.trackOnConfirm();
 		try {
 			transaction = this.prepareTransaction(transaction);
 
@@ -198,6 +188,7 @@ class Approval extends Component {
 			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
+		this.trackOnConfirm();
 	};
 
 	/**
@@ -210,8 +201,10 @@ class Approval extends Component {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode });
 		this.setState({ mode });
-		mode === REVIEW && this.trackConfirmScreen();
-		mode === EDIT && this.trackEditScreen();
+		InteractionManager.runAfterInteractions(() => {
+			mode === REVIEW && this.trackConfirmScreen();
+			mode === EDIT && this.trackEditScreen();
+		});
 	};
 
 	/**

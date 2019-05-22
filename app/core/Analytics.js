@@ -66,9 +66,7 @@ class Analytics {
 	 */
 	trackEvent = event => {
 		if (!this.enabled) return;
-		if (__DEV__) {
-			console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
-		}
+		console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
 	};
 
 	/**
@@ -79,9 +77,7 @@ class Analytics {
 	 */
 	trackEventWithValue = (event, value) => {
 		if (!this.enabled) return;
-		if (__DEV__) {
-			console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
-		}
+		console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
 	};
 
 	/**

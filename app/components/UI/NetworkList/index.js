@@ -147,10 +147,6 @@ export class NetworkList extends Component {
 
 	onNetworkChange = async type => {
 		const { provider } = this.props;
-		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
-			'From Network': provider.type,
-			'To Network': type
-		});
 		this.props.onClose(false);
 		InteractionManager.runAfterInteractions(() => {
 			const { NetworkController } = Engine.context;
@@ -158,6 +154,10 @@ export class NetworkList extends Component {
 			setTimeout(() => {
 				Engine.refreshTransactionHistory();
 			}, 1000);
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
+				'From Network': provider.type,
+				'To Network': type
+			});
 		});
 	};
 

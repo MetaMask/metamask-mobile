@@ -153,11 +153,13 @@ class Wallet extends Component {
 	}
 
 	onChangeTab = obj => {
-		if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_TOKENS);
-		} else {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COLLECTIBLES);
-		}
+		InteractionManager.runAfterInteractions(() => {
+			if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_TOKENS);
+			} else {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COLLECTIBLES);
+			}
+		});
 	};
 
 	renderContent() {
