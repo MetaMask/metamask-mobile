@@ -27,10 +27,10 @@ class Analytics {
 	 */
 	constructor(enabled) {
 		if (!Analytics.instance) {
+			this.enabled = enabled;
+			this.listeners = [];
 			Analytics.instance = this;
 		}
-		this.enabled = enabled;
-		this.listeners = [];
 		return Analytics.instance;
 	}
 
@@ -66,7 +66,9 @@ class Analytics {
 	 */
 	trackEvent = event => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
+		}
 	};
 
 	/**
@@ -77,7 +79,9 @@ class Analytics {
 	 */
 	trackEventWithValue = (event, value) => {
 		if (!this.enabled) return;
-		console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
+		if (__DEV__) {
+			console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
+		}
 	};
 
 	/**
