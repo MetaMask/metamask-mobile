@@ -157,7 +157,7 @@ class PaymentChannelsClient {
 				channelState: state.persistent.channel,
 				connextState: state,
 				runtime: state.runtime,
-				exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.USD : this.getExchangeRate()
+				exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.DAI : this.getExchangeRate()
 			});
 			this.checkStatus();
 			hub.emit('state::change', {
