@@ -16,6 +16,11 @@ describe('SignatureRequest', () => {
 					PreferencesController: {
 						selectedAddress: '0x2',
 						identities: { '0x2': { address: '0x2', name: 'Account 1' } }
+					},
+					NetworkController: {
+						provider: {
+							type: 'ropsten'
+						}
 					}
 				}
 			}

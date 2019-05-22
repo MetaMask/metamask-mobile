@@ -21,7 +21,9 @@ exports[`Approval should render correctly 1`] = `
         "from": "0x1",
         "gas": "",
         "gasPrice": "",
-        "selectedAsset": undefined,
+        "selectedAsset": Object {
+          "symbol": "ETH",
+        },
         "to": "0x2",
         "value": "",
       }

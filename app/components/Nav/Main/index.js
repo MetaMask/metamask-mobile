@@ -323,7 +323,6 @@ class Main extends Component {
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-
 		PushNotification.configure({
 			requestPermissions: false,
 			onNotification: notification => {

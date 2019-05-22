@@ -13,6 +13,8 @@ import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import CollectibleContracts from '../../UI/CollectibleContracts';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -150,6 +152,16 @@ class Wallet extends Component {
 		);
 	}
 
+	onChangeTab = obj => {
+		InteractionManager.runAfterInteractions(() => {
+			if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_TOKENS);
+			} else {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COLLECTIBLES);
+			}
+		});
+	};
+
 	renderContent() {
 		const {
 			accounts,
@@ -196,7 +208,11 @@ class Wallet extends Component {
 					showAlert={showAlert}
 					currentCurrency={currentCurrency}
 				/>
-				<ScrollableTabView renderTabBar={this.renderTabBar}>
+				<ScrollableTabView
+					renderTabBar={this.renderTabBar}
+					// eslint-disable-next-line react/jsx-no-bind
+					onChangeTab={obj => this.onChangeTab(obj)}
+				>
 					<Tokens
 						navigation={navigation}
 						tabLabel={strings('wallet.tokens')}

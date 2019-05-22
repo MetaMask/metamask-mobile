@@ -110,6 +110,7 @@ export default class PersonalSign extends Component {
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
+					type="personalSign"
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>

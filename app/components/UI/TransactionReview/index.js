@@ -3,7 +3,7 @@ import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, PixelRatio } from 'react-native';
+import { StyleSheet, Text, View, PixelRatio, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -14,6 +14,8 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import { renderAccountName } from '../../../util/address';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const FONT_SIZE = PixelRatio.get() < 2 ? 12 : 16;
 const styles = StyleSheet.create({
@@ -167,10 +169,14 @@ class TransactionReview extends Component {
 		const error = validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction);
 		this.setState({ error, actionKey, showHexData });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
+		});
 	};
 
 	edit = () => {
 		const { onModeChange } = this.props;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION);
 		onModeChange && onModeChange('edit');
 	};
 
