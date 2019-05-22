@@ -20,6 +20,8 @@ import { renderFromWei } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -207,6 +209,11 @@ export default class AccountList extends Component {
 			this.setState({ selectedAccountIndex: previousIndex });
 			Logger.error('error while trying change the selected account', e); // eslint-disable-line
 		}
+		InteractionManager.runAfterInteractions(() => {
+			setTimeout(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
+			}, 1000);
+		});
 	};
 
 	importAccount = () => {
