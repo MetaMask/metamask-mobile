@@ -3,7 +3,7 @@ import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, PixelRatio } from 'react-native';
+import { StyleSheet, Text, View, PixelRatio, InteractionManager } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -165,11 +165,13 @@ class TransactionReview extends Component {
 			transaction: { data }
 		} = this.props;
 		let { showHexData } = this.props;
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
 		showHexData = showHexData || data;
 		const error = validate && (await validate());
 		const actionKey = await getTransactionReviewActionKey(transaction);
 		this.setState({ error, actionKey, showHexData });
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
+		});
 	};
 
 	edit = () => {
