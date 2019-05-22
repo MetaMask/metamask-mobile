@@ -39,6 +39,7 @@ exports[`PersonalSign should render correctly 1`] = `
     }
     onCancel={[Function]}
     onConfirm={[Function]}
+    type="personalSign"
   >
     <View
       style={

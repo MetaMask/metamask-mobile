@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -10,6 +10,13 @@ import { newTransaction, setTransactionObject } from '../../../actions/transacti
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTransactionReviewActionKey } from '../../../util/transactions';
+
+const REVIEW = 'review';
+const EDIT = 'edit';
+const APPROVAL = 'Approval';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -44,11 +51,15 @@ class Approval extends Component {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array
+		addressBook: PropTypes.array,
+		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
-		mode: 'review',
+		mode: REVIEW,
 		transactionHandled: false
 	};
 
@@ -64,7 +75,65 @@ class Approval extends Component {
 
 	componentDidMount = () => {
 		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: 'review', dispatch: this.onModeChange });
+		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
+		this.trackConfirmScreen();
+	};
+
+	/**
+	 * Call Analytics to track confirm started event for approval screen
+	 */
+	trackConfirmScreen = () => {
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, this.getTrackingParams());
+	};
+
+	/**
+	 * Call Analytics to track confirm started event for approval screen
+	 */
+	trackEditScreen = async () => {
+		const { transaction } = this.props;
+		const actionKey = await getTransactionReviewActionKey(transaction);
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION, {
+			...this.getTrackingParams(),
+			actionKey
+		});
+	};
+
+	/**
+	 * Call Analytics to track cancel pressed
+	 */
+	trackOnCancel = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Call Analytics to track confirm pressed
+	 */
+	trackOnConfirm = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Returns corresponding tracking params to send
+	 *
+	 * @return {object} - Object containing view, network, activeCurrency and assetType
+	 */
+	getTrackingParams = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		return {
+			view: APPROVAL,
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			assetType
+		};
 	};
 
 	/**
@@ -76,6 +145,7 @@ class Approval extends Component {
 
 	onCancel = () => {
 		this.props.navigation.pop();
+		this.state.mode === REVIEW && this.trackOnCancel();
 	};
 
 	/**
@@ -118,12 +188,23 @@ class Approval extends Component {
 			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
+		this.trackOnConfirm();
 	};
 
+	/**
+	 * Handle approval mode change
+	 * If changed to 'review' sends an Analytics track event
+	 *
+	 * @param mode - Transaction mode, review or edit
+	 */
 	onModeChange = mode => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode });
 		this.setState({ mode });
+		InteractionManager.runAfterInteractions(() => {
+			mode === REVIEW && this.trackConfirmScreen();
+			mode === EDIT && this.trackEditScreen();
+		});
 	};
 
 	/**
@@ -182,7 +263,8 @@ class Approval extends Component {
 const mapStateToProps = state => ({
 	transaction: state.transaction,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
-	addressBook: state.engine.backgroundState.AddressBookController.addressBook
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
