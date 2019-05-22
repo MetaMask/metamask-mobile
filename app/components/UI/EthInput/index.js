@@ -310,7 +310,7 @@ class EthInput extends Component {
 			}
 		};
 		let assetType;
-		if (asset.symbol === 'ETH') {
+		if (asset.isETH) {
 			assetType = 'ETH';
 		} else if (asset.decimals) {
 			assetType = 'ERC20';

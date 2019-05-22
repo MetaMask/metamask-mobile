@@ -174,6 +174,7 @@ class Wallet extends Component {
 				{
 					name: 'Ether',
 					symbol: 'ETH',
+					isETH: true,
 					balance,
 					balanceFiat: weiToFiat(
 						hexToBN(accounts[selectedAddress].balance),
