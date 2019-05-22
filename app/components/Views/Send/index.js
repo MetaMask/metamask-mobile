@@ -346,10 +346,10 @@ class Send extends Component {
 	 * @param if - Transaction id
 	 */
 	onCancel = id => {
-		this.state.mode === REVIEW && this.trackOnCancel();
 		Engine.context.TransactionController.cancelTransaction(id);
 		this.props.navigation.pop();
 		this.unmountHandled = true;
+		this.state.mode === REVIEW && this.trackOnCancel();
 	};
 
 	/**
@@ -365,7 +365,6 @@ class Send extends Component {
 			transaction: { selectedAsset, assetType },
 			addressBook
 		} = this.props;
-		this.trackOnConfirm();
 		let { transaction } = this.props;
 		try {
 			if (assetType === 'ETH') {
@@ -406,6 +405,9 @@ class Send extends Component {
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}
+		InteractionManager.runAfterInteractions(() => {
+			this.trackOnConfirm();
+		});
 	};
 
 	/**
