@@ -14,6 +14,13 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import NetworkList, { getNetworkTypeById } from '../../../util/networks';
 import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTransactionReviewActionKey } from '../../../util/transactions';
+
+const REVIEW = 'review';
+const EDIT = 'edit';
+const SEND = 'Send';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -70,7 +77,7 @@ class Send extends Component {
 	};
 
 	state = {
-		mode: 'edit',
+		mode: EDIT,
 		transactionKey: undefined,
 		ready: false,
 		transactionConfirmed: false,
@@ -90,8 +97,8 @@ class Send extends Component {
 			gas: hexToBN(gas),
 			gasPrice: hexToBN(gasPrice)
 		});
-		navigation && navigation.setParams({ mode: 'edit' });
-		return this.mounted && this.setState({ mode: 'edit', transactionKey: Date.now() });
+		navigation && navigation.setParams({ mode: EDIT });
+		return this.mounted && this.setState({ mode: EDIT, transactionKey: Date.now() });
 	}
 
 	/**
@@ -130,7 +137,7 @@ class Send extends Component {
 	 */
 	async componentDidMount() {
 		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode: 'edit', dispatch: this.onModeChange });
+		navigation && navigation.setParams({ mode: EDIT, dispatch: this.onModeChange });
 		this.mounted = true;
 		await this.reset();
 		this.checkForDeeplinks();
@@ -229,7 +236,7 @@ class Send extends Component {
 		}
 
 		this.props.setTransactionObject(newTxMeta);
-		this.mounted && this.setState({ ready: true, mode: 'edit', transactionKey: Date.now() });
+		this.mounted && this.setState({ ready: true, mode: EDIT, transactionKey: Date.now() });
 	};
 
 	/**
@@ -342,6 +349,7 @@ class Send extends Component {
 		Engine.context.TransactionController.cancelTransaction(id);
 		this.props.navigation.pop();
 		this.unmountHandled = true;
+		this.state.mode === REVIEW && this.trackOnCancel();
 	};
 
 	/**
@@ -397,10 +405,71 @@ class Send extends Component {
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}
+		InteractionManager.runAfterInteractions(() => {
+			this.trackOnConfirm();
+		});
+	};
+
+	/**
+	 * Call Analytics to track confirm started event for send screen
+	 */
+	trackConfirmScreen = () => {
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED, this.getTrackingParams());
+	};
+
+	/**
+	 * Call Analytics to track confirm started event for send screen
+	 */
+	trackEditScreen = async () => {
+		const { transaction } = this.props;
+		const actionKey = await getTransactionReviewActionKey(transaction);
+		Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION, {
+			...this.getTrackingParams(),
+			actionKey
+		});
+	};
+
+	/**
+	 * Call Analytics to track cancel pressed
+	 */
+	trackOnCancel = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_TRANSACTION,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Call Analytics to track confirm pressed
+	 */
+	trackOnConfirm = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_COMPLETED_TRANSACTION,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Returns corresponding tracking params to send
+	 *
+	 * @return {object} - Object containing view, network, activeCurrency and assetType
+	 */
+	getTrackingParams = () => {
+		const {
+			networkType,
+			transaction: { selectedAsset, assetType }
+		} = this.props;
+		return {
+			view: SEND,
+			network: networkType,
+			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			assetType
+		};
 	};
 
 	/**
 	 * Change transaction mode
+	 * If changed to 'review' sends an Analytics track event
 	 *
 	 * @param mode - Transaction mode, review or edit
 	 */
@@ -408,6 +477,10 @@ class Send extends Component {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode });
 		this.mounted && this.setState({ mode });
+		InteractionManager.runAfterInteractions(() => {
+			mode === REVIEW && this.trackConfirmScreen();
+			mode === EDIT && this.trackEditScreen();
+		});
 	};
 
 	renderLoader() {

@@ -11,6 +11,8 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { NavigationActions } from 'react-navigation';
 import StyledButton from '../StyledButton';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	root: {
@@ -158,6 +160,8 @@ class OptinMetrics extends Component {
 	 */
 	onCancel = async () => {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+		Analytics.disable();
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
 		this.continue();
 	};
 
@@ -166,6 +170,8 @@ class OptinMetrics extends Component {
 	 */
 	onConfirm = async () => {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
+		Analytics.enable();
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
 		this.continue();
 	};
 

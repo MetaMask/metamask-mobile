@@ -7,6 +7,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Networks from '../../../util/networks';
 import { connect } from 'react-redux';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -144,6 +146,7 @@ export class NetworkList extends Component {
 	getOtherNetworks = () => this.getAllNetworks().slice(1);
 
 	onNetworkChange = async type => {
+		const { provider } = this.props;
 		this.props.onClose(false);
 		InteractionManager.runAfterInteractions(() => {
 			const { NetworkController } = Engine.context;
@@ -151,6 +154,10 @@ export class NetworkList extends Component {
 			setTimeout(() => {
 				Engine.refreshTransactionHistory();
 			}, 1000);
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
+				'From Network': provider.type,
+				'To Network': type
+			});
 		});
 	};
 

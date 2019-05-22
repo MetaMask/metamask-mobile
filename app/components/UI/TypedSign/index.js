@@ -159,6 +159,7 @@ export default class TypedSign extends Component {
 					onConfirm={this.confirmSignature}
 					domain={domain}
 					currentPageInformation={currentPageInformation}
+					type="typedSign"
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>

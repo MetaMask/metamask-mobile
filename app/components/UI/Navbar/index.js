@@ -4,7 +4,7 @@ import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard } from 'react-native';
+import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard, InteractionManager } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -15,7 +15,15 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import WalletConnect from '../../../core/WalletConnect';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 const HOMEPAGE_URL = 'about:blank';
+
+const trackEvent = event => {
+	InteractionManager.runAfterInteractions(() => {
+		Analytics.trackEvent(event);
+	});
+};
 
 const styles = StyleSheet.create({
 	rightButton: {
@@ -127,6 +135,7 @@ export default function getNavbarOptions(title, navigation) {
 	function onPress() {
 		Keyboard.dismiss();
 		navigation.openDrawer();
+		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
 	return {
@@ -292,6 +301,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 	function onPress() {
 		Keyboard.dismiss();
 		navigation.openDrawer();
+		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
 	const optionsDisabled = hostname === strings('browser.title');
@@ -445,6 +455,14 @@ export function getWalletNavbarOptions(title, navigation) {
 
 	function openDrawer() {
 		navigation.openDrawer();
+		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+	}
+
+	function openQRScanner() {
+		navigation.navigate('QRScanner', {
+			onScanSuccess
+		});
+		trackEvent(ANALYTICS_EVENT_OPTS.WALLET_QR_SCANNER);
 	}
 
 	return {
@@ -462,11 +480,7 @@ export function getWalletNavbarOptions(title, navigation) {
 			<TouchableOpacity
 				style={styles.infoButton}
 				// eslint-disable-next-line
-				onPress={() => {
-					navigation.navigate('QRScanner', {
-						onScanSuccess
-					});
-				}}
+				onPress={openQRScanner}
 			>
 				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
 			</TouchableOpacity>
