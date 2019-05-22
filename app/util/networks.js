@@ -10,7 +10,7 @@ const NetworkList = {
 	mainnet: {
 		name: 'Ethereum Main Network',
 		networkId: 1,
-		chanId: 1,
+		chainId: 1,
 		color: '#3cc29e'
 	},
 	ropsten: {

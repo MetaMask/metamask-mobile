@@ -17,6 +17,7 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import AppInformation from '../../UI/AppInformation';
 import Wallet from '../../Views/Wallet';
 import TransactionsView from '../../Views/TransactionsView';
@@ -157,6 +158,9 @@ const MainNavigator = createStackNavigator(
 				},
 				NetworksSettings: {
 					screen: NetworksSettings
+				},
+				NetworkSettings: {
+					screen: NetworkSettings
 				},
 				CompanySettings: {
 					screen: AppInformation

@@ -58,7 +58,11 @@ class NetworksSettings extends Component {
 		/**
 		 * A list of custom RPCs to provide the user
 		 */
-		frequentRpcList: PropTypes.array
+		frequentRpcList: PropTypes.array,
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -70,8 +74,9 @@ class NetworksSettings extends Component {
 
 	getOtherNetworks = () => this.getAllNetworks().slice(1);
 
-	onPress = () => {
-		//
+	onPress = network => {
+		const { navigation } = this.props;
+		navigation.navigate('NetworkSettings', { network });
 	};
 
 	networkElement(name, color, i, network) {
