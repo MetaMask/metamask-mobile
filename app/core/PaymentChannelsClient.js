@@ -276,18 +276,18 @@ class PaymentChannelsClient {
 		this.setState({ status: newStatus });
 	}
 
-	deposit = async params => {
-		if (isNaN(params.depositAmount) || params.depositAmount.trim() === '') {
+	deposit = async ({ depositAmount }) => {
+		if (isNaN(depositAmount) || depositAmount.trim() === '') {
 			throw new Error('Invalid amount');
 		}
 
-		const depositAmount = parseFloat(params.depositAmount);
+		const depositAmountNumber = parseFloat(depositAmount);
 
 		const ETH = parseFloat(this.state.exchangeRate);
 		const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
 		const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
 
-		if (depositAmount > maxDepositAmount) {
+		if (depositAmountNumber > maxDepositAmount) {
 			throw new Error(`The max. deposit allowed for now it is ${maxDepositAmount} ETH. Try with a lower amount`);
 		}
 
@@ -298,7 +298,7 @@ class PaymentChannelsClient {
 		try {
 			const { connext } = this.state;
 			const data = {
-				amountWei: toWei(params.depositAmount).toString(),
+				amountWei: toWei(depositAmount).toString(),
 				amountToken: '0'
 			};
 			Logger.log('About to deposit', data);
@@ -310,16 +310,16 @@ class PaymentChannelsClient {
 		}
 	};
 
-	send = async params => {
-		if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
+	send = async ({ sendAmount, sendRecipient }) => {
+		if (isNaN(sendAmount) || sendAmount.trim() === '') {
 			throw new Error('You need to enter the amount');
 		}
 
-		if (!params.sendRecipient) {
+		if (!sendRecipient) {
 			throw new Error('You need to enter a recepient');
 		}
 
-		const amount = toWei(params.sendAmount).toString();
+		const amount = toWei(sendAmount).toString();
 
 		const {
 			connext,
@@ -339,9 +339,9 @@ class PaymentChannelsClient {
 				},
 				payments: [
 					{
-						recipient: params.sendRecipient.toLowerCase(),
+						recipient: sendRecipient.toLowerCase(),
 						amountWei: '0',
-						amountToken: toWei(params.sendAmount).toString()
+						amountToken: toWei(sendAmount).toString()
 					}
 				]
 			};
@@ -385,6 +385,10 @@ let client = null;
 let reloading = false;
 
 const instance = {
+	/**
+	 * Method that initializes the connext client for a
+	 * specific address, along with all the listeners required
+	 */
 	async init(address) {
 		initListeners();
 		client = new PaymentChannelsClient(address);
@@ -394,12 +398,18 @@ const instance = {
 		await client.pollAndSwap();
 		Logger.log('PAYMENT-CHANNELS::initialized payment channels for address', address);
 	},
-	getInstance: () => this,
+	/**
+	 * Method that returns the state of the client
+	 * specifically the current status and balance
+	 */
 	getState: () => ({
 		balance: client.getBalance(),
-		status: client.state.status,
-		ready: true
+		status: client.state.status
 	}),
+	/**
+	 * Method that stops the client from running
+	 * and removes all the event listeners associated with it
+	 */
 	stop: () => {
 		if (client) {
 			client.stop();
@@ -410,12 +420,27 @@ const instance = {
 			Logger.log('PAYMENT-CHANNELS::client was not running...');
 		}
 	},
-	deposit: params => client.deposit(params),
+	/**
+	 * Method that handles deposits
+	 */
+	deposit: ({ depositAmount }) => client.deposit({ depositAmount }),
+	/**
+	 * Method that requests the hub to withdraw all the funds
+	 * from the channel to the selected address
+	 */
 	withdrawAll: () => client.withdrawAll(),
-	send: params => {
-		client.send(params);
+	/**
+	 * Method that allows you to send
+	 * a payment of a specific amount,
+	 * to a specific recipient
+	 */
+	send: ({ sendAmount, sendRecipient }) => {
+		client.send({ sendAmount, sendRecipient });
 	},
-	getStatus: () => client.state && client.state.status,
+	/**
+	 * Function that returns the value of the minimum deposit
+	 * based on the current ETH conversion rate
+	 */
 	getMinimumDepositFiat: () => {
 		if (client.state) {
 			const { exchangeRate } = client.state;
@@ -426,6 +451,10 @@ const instance = {
 		}
 		return '0.00';
 	},
+	/**
+	 * Function that returns the value of the maximum deposit
+	 * based on the current ETH conversion rate
+	 */
 	getMaximumDepositEth: () => {
 		if (client.state) {
 			const { exchangeRate } = client.state;
@@ -436,8 +465,18 @@ const instance = {
 		}
 		return '0.00';
 	},
+	/**
+	 *	Minimum deposit amount in ETH
+	 */
 	MIN_DEPOSIT_ETH,
+	/**
+	 *	MAX deposit amount in USD
+	 */
 	MAX_DEPOSIT_TOKEN,
+	/**
+	 *	Event emitter instance that allows to subscribe
+	 *  to the events emitted by the instance
+	 */
 	hub
 };
 
