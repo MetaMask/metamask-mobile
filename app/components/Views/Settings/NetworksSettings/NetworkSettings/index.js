@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Text, ScrollView, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TextInput } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -8,13 +8,18 @@ import { strings } from '../../../../../../locales/i18n';
 import Networks from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		padding: 24,
-		paddingBottom: 48
+		paddingVertical: 12,
+		paddingHorizontal: 24,
+		marginBottom: 24
+	},
+	informationWrapper: {
+		flex: 1
 	},
 	input: {
 		...fontStyles.normal,
@@ -43,6 +48,17 @@ const styles = StyleSheet.create({
 		paddingVertical: 12,
 		color: colors.fontPrimary,
 		...fontStyles.bold
+	},
+	title: {
+		fontSize: 20,
+		paddingVertical: 12,
+		color: colors.fontPrimary,
+		...fontStyles.bold
+	},
+	desc: {
+		fontSize: 14,
+		color: colors.fontPrimary,
+		...fontStyles.normal
 	}
 });
 
@@ -72,42 +88,47 @@ class NetworkSettings extends Component {
 		name: undefined,
 		chainId: undefined,
 		ticker: undefined,
-		editable: undefined
+		editable: undefined,
+		addMode: false
 	};
 
 	getOtherNetworks = () => allNetworks.slice(1);
 
 	componentDidMount = () => {
 		const { navigation, frequentRpcList } = this.props;
-		let network = navigation.getParam('network', '');
+		let network = navigation.getParam('network', undefined);
 		let blockTracker, chainId, name, ticker, editable;
-		if (allNetworks.find(net => network === net)) {
-			blockTracker = getEtherscanBaseUrl(network);
-			const networkInformation = Networks[network];
-			name = networkInformation.name;
-			chainId = networkInformation.chainId.toString();
-			editable = false;
-			network = allNetworksBlocktracker + network;
-			ticker = strings('unit.eth');
+		if (network) {
+			if (allNetworks.find(net => network === net)) {
+				blockTracker = getEtherscanBaseUrl(network);
+				const networkInformation = Networks[network];
+				name = networkInformation.name;
+				chainId = networkInformation.chainId.toString();
+				editable = false;
+				network = allNetworksBlocktracker + network;
+				ticker = strings('unit.eth');
+			} else {
+				const networkInformation = frequentRpcList.find(({ rpcUrl }) => rpcUrl === network);
+				name = networkInformation.nickname;
+				chainId = networkInformation.chainId;
+				blockTracker = networkInformation.blockTracker;
+				ticker = networkInformation.ticker;
+				editable = true;
+			}
+			this.setState({ network, blockTracker, name, chainId, ticker, editable });
 		} else {
-			const networkInformation = frequentRpcList.find(({ rpcUrl }) => rpcUrl === network);
-			name = networkInformation.nickname;
-			chainId = networkInformation.chainId;
-			blockTracker = networkInformation.blockTracker;
-			ticker = networkInformation.ticker;
-			editable = true;
+			this.setState({ addMode: true });
 		}
-		this.setState({ network, blockTracker, name, chainId, ticker, editable });
 	};
 
 	render() {
-		const { network, blockTracker, name, chainId, ticker, editable } = this.state;
+		const { network, blockTracker, name, chainId, ticker, editable, addMode } = this.state;
 		return (
 			<View style={styles.wrapper}>
-				<ScrollView style={styles.networksWrapper}>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
+				<KeyboardAwareScrollView style={styles.informationWrapper}>
+					<View>
+						{addMode && <Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>}
+						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
 
 						<Text style={styles.label}>Network Name</Text>
 
@@ -164,7 +185,7 @@ class NetworkSettings extends Component {
 							value={blockTracker}
 							editable={editable}
 							onChangeText={this.onNicknameChange}
-							placeholder={'Blocktracker (optional)'}
+							placeholder={'Block Explorer URL (optional)'}
 						/>
 
 						<View style={styles.rpcConfirmContainer}>
@@ -172,12 +193,13 @@ class NetworkSettings extends Component {
 								<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
 							</View>
 						</View>
-
-						<StyledButton type="info" onPress={this.addRpcUrl} containerStyle={styles.syncConfirm}>
-							{'Add'}
-						</StyledButton>
 					</View>
-				</ScrollView>
+				</KeyboardAwareScrollView>
+				{(addMode || editable) && (
+					<StyledButton type="confirm" onPress={this.addRpcUrl} containerStyle={styles.syncConfirm}>
+						{editable ? 'Save' : 'Add'}
+					</StyledButton>
+				)}
 			</View>
 		);
 	}

@@ -6,13 +6,15 @@ import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Networks from '../../../../util/networks';
+import StyledButton from '../../../UI/StyledButton';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		padding: 24,
-		paddingBottom: 48
+		paddingVertical: 12,
+		paddingHorizontal: 24,
+		marginBottom: 24
 	},
 	networkIcon: {
 		width: 15,
@@ -79,6 +81,11 @@ class NetworksSettings extends Component {
 		navigation.navigate('NetworkSettings', { network });
 	};
 
+	onAddNetwork = () => {
+		const { navigation } = this.props;
+		navigation.navigate('NetworkSettings');
+	};
+
 	networkElement(name, color, i, network) {
 		return (
 			<TouchableOpacity
@@ -142,6 +149,9 @@ class NetworksSettings extends Component {
 					<Text style={styles.sectionLabel}>RPC Networks</Text>
 					{this.renderRpcNetworks()}
 				</ScrollView>
+				<StyledButton type="confirm" onPress={this.onAddNetwork} containerStyle={styles.syncConfirm}>
+					{'Add Network'}
+				</StyledButton>
 			</View>
 		);
 	}
