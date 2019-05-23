@@ -245,7 +245,8 @@ class Engine {
 			KeyringController,
 			PreferencesController,
 			NetworkController,
-			TransactionController
+			TransactionController,
+			CurrencyRateController
 		} = this.datamodel.context;
 
 		// Recreate accounts
@@ -291,6 +292,7 @@ class Engine {
 
 		// Select same network ?
 		await NetworkController.setProviderType(network.provider.type);
+		CurrencyRateController.configure({ nativeCurrency: 'ETH' });
 		return true;
 	};
 }

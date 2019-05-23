@@ -140,7 +140,7 @@ class NetworkSettings extends Component {
 	 * Setting NetworkController provider to this custom rpc
 	 */
 	addRpcUrl = () => {
-		const { PreferencesController, NetworkController } = Engine.context;
+		const { PreferencesController, NetworkController, CurrencyRateController } = Engine.context;
 		const { rpcUrl, chainId, ticker, nickname, blockExplorerUrl } = this.state;
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
@@ -148,6 +148,7 @@ class NetworkSettings extends Component {
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname, { blockExplorerUrl });
 			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
+			CurrencyRateController.configure({ nativeCurrency: ticker });
 			navigation.navigate('WalletView');
 		}
 	};
