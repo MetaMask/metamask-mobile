@@ -1,15 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworkSettings should render correctly 1`] = `
-<View
+<SafeAreaView
   style={
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
       "flexDirection": "column",
-      "marginBottom": 24,
-      "paddingHorizontal": 24,
-      "paddingVertical": 12,
     }
   }
 >
@@ -17,10 +14,18 @@ exports[`NetworkSettings should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
+        "paddingHorizontal": 24,
       }
     }
   >
-    <View>
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "paddingVertical": 12,
+        }
+      }
+    >
       <Text
         style={
           Object {
@@ -235,7 +240,7 @@ exports[`NetworkSettings should render correctly 1`] = `
         Object {
           "alignSelf": "flex-end",
           "flexDirection": "row",
-          "marginTop": 24,
+          "marginVertical": 12,
         }
       }
     >
@@ -268,5 +273,5 @@ exports[`NetworkSettings should render correctly 1`] = `
       </View>
     </View>
   </ScrollViewMock>
-</View>
+</SafeAreaView>
 `;

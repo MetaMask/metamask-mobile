@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -16,13 +16,15 @@ const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
-		paddingVertical: 12,
-		paddingHorizontal: 24,
-		marginBottom: Platform.OS === 'ios' ? 24 : 12,
 		flexDirection: 'column'
 	},
 	informationWrapper: {
-		flex: 1
+		flex: 1,
+		paddingHorizontal: 24
+	},
+	scrollWrapper: {
+		flex: 1,
+		paddingVertical: 12
 	},
 	input: {
 		...fontStyles.normal,
@@ -61,7 +63,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	buttonsWrapper: {
-		marginTop: 24,
+		marginVertical: 12,
 		flexDirection: 'row',
 		alignSelf: 'flex-end'
 	},
@@ -293,9 +295,9 @@ class NetworkSettings extends Component {
 			enableAction
 		} = this.state;
 		return (
-			<View style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper}>
 				<ScrollView style={styles.informationWrapper}>
-					<View>
+					<View style={styles.scrollWrapper}>
 						{addMode && <Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>}
 						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
 
@@ -393,7 +395,7 @@ class NetworkSettings extends Component {
 						</View>
 					)}
 				</ScrollView>
-			</View>
+			</SafeAreaView>
 		);
 	}
 }
