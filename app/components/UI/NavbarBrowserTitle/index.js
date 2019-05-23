@@ -86,7 +86,6 @@ class NavbarBrowserTitle extends Component {
 		if (this.props.hostname === strings('browser.title')) {
 			this.props.toggleNetworkModal();
 		} else {
-			// this.setState({ autocompleteInputValue: this.state.inputValue });
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
 				url: this.props.url,
