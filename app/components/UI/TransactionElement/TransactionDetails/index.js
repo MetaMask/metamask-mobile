@@ -319,7 +319,6 @@ class TransactionDetails extends PureComponent {
 		const { rpcBlockExplorer } = this.state;
 		const existingGasPrice = transactionObject.transaction ? transactionObject.transaction.gasPrice : '0x0';
 		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
-
 		return (
 			<View style={styles.detailRowWrapper}>
 				{this.renderCancelButton()}
@@ -385,13 +384,13 @@ class TransactionDetails extends PureComponent {
 							{this.props.transactionDetails.renderTotalValue}
 						</Text>
 					</View>
-					{this.props.transactionDetails.renderTotalValueFiat && (
+					{this.props.transactionDetails.renderTotalValueFiat ? (
 						<View style={[styles.detailRowInfoItem, styles.noBorderBottom]}>
 							<Text style={[styles.detailRowText, styles.alignRight]}>
 								{this.props.transactionDetails.renderTotalValueFiat}
 							</Text>
 						</View>
-					)}
+					) : null}
 				</View>
 				{this.props.transactionDetails.transactionHash &&
 					transactionObject.status !== 'cancelled' &&

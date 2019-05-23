@@ -184,8 +184,8 @@ class Wallet extends Component {
 					balanceFiat: weiToFiat(
 						hexToBN(accounts[selectedAddress].balance),
 						conversionRate,
-						currentCurrency
-					).toUpperCase(),
+						currentCurrency.toUpperCase()
+					),
 					logo: '../images/eth-logo.png'
 				},
 				...tokens

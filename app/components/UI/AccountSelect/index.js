@@ -164,9 +164,9 @@ class AccountSelect extends Component {
 		let mainBalance, secondaryBalance;
 		if (primaryCurrency === 'ETH') {
 			mainBalance = renderFromWei(balance) + ' ' + ticker || strings('unit.eth');
-			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency).toUpperCase();
+			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
 		} else {
-			mainBalance = weiToFiat(balance, conversionRate, currentCurrency).toUpperCase();
+			mainBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
 			secondaryBalance = renderFromWei(balance) + ' ' + ticker || strings('unit.eth');
 		}
 

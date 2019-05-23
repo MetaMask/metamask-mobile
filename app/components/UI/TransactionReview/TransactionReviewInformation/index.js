@@ -152,11 +152,11 @@ class TransactionReviewInformation extends Component {
 			contractExchangeRates
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
 				const totalValue = (
 					<Text style={styles.overviewEth}>
 						{' '}
@@ -218,7 +218,7 @@ class TransactionReviewInformation extends Component {
 		} = this.props;
 		const { amountError } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
 		const totalGasEth = renderFromWei(totalGas).toString() + ' ' + strings('unit.eth');
 
 		const [totalFiat, totalValue] = this.getRenderTotals()();

@@ -261,6 +261,7 @@ export function renderToGwei(value, unit = 'ether') {
  * @returns {string} - Currency-formatted string
  */
 export function weiToFiat(wei, conversionRate, currencyCode) {
+	if (!conversionRate) return undefined;
 	if (!wei || !isBN(wei) || !conversionRate) {
 		return `0.00 ${currencyCode}`;
 	}

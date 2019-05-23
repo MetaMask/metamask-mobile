@@ -335,7 +335,7 @@ class TransactionElement extends PureComponent {
 		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
 		const renderTotalEth = renderFromWei(totalEth) + ' ' + unit;
-		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
 
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
@@ -350,7 +350,7 @@ class TransactionElement extends PureComponent {
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalValue) + ' ' + unit,
-			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency).toUpperCase()
+			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency.toUpperCase())
 		};
 
 		const transactionElement = {
@@ -380,7 +380,7 @@ class TransactionElement extends PureComponent {
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
 		const renderTotalEth = renderFromWei(totalGas) + ' ' + unit;
-		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
 		const transactionElement = {
@@ -398,7 +398,7 @@ class TransactionElement extends PureComponent {
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalEth) + ' ' + unit,
-			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase()
+			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase())
 		};
 
 		return [transactionElement, transactionDetails];
