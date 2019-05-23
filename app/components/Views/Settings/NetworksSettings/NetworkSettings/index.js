@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
 });
 
 const allNetworks = ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
-const allNetworksBlocktracker = `https://api.infura.io/v1/jsonrpc/`;
+const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
 /**
  * Main view for app configurations
  */
@@ -87,7 +87,7 @@ class NetworkSettings extends Component {
 
 	state = {
 		rpcUrl: undefined,
-		blockTracker: undefined,
+		blockExplorerUrl: undefined,
 		nickname: undefined,
 		chainId: undefined,
 		ticker: undefined,
@@ -101,26 +101,26 @@ class NetworkSettings extends Component {
 	componentDidMount = () => {
 		const { navigation, frequentRpcList } = this.props;
 		const network = navigation.getParam('network', undefined);
-		let blockTracker, chainId, nickname, ticker, editable, rpcUrl;
+		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
 		if (network) {
 			if (allNetworks.find(net => network === net)) {
-				blockTracker = getEtherscanBaseUrl(network);
+				blockExplorerUrl = getEtherscanBaseUrl(network);
 				const networkInformation = Networks[network];
 				nickname = networkInformation.name;
 				chainId = networkInformation.chainId.toString();
 				editable = false;
-				rpcUrl = allNetworksBlocktracker + network;
+				rpcUrl = allNetworksblockExplorerUrl + network;
 				ticker = strings('unit.eth');
 			} else {
 				const networkInformation = frequentRpcList.find(({ rpcUrl }) => rpcUrl === network);
 				nickname = networkInformation.nickname;
 				chainId = networkInformation.chainId;
-				blockTracker = networkInformation.blockTracker;
+				blockExplorerUrl = networkInformation.rpcPrefs && networkInformation.rpcPrefs.blockExplorerUrl;
 				ticker = networkInformation.ticker;
 				editable = true;
 				rpcUrl = network;
 			}
-			this.setState({ rpcUrl, blockTracker, nickname, chainId, ticker, editable });
+			this.setState({ rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable });
 		} else {
 			this.setState({ addMode: true });
 		}
@@ -128,12 +128,12 @@ class NetworkSettings extends Component {
 
 	addRpcUrl = () => {
 		const { PreferencesController, NetworkController } = Engine.context;
-		const { rpcUrl, chainId, ticker, nickname } = this.state;
+		const { rpcUrl, chainId, ticker, nickname, blockExplorerUrl } = this.state;
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname);
+			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname, { blockExplorerUrl });
 			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
 			navigation.navigate('WalletView');
 		}
@@ -175,8 +175,12 @@ class NetworkSettings extends Component {
 		this.setState({ ticker });
 	};
 
+	onBlockExplorerUrl = blockExplorerUrl => {
+		this.setState({ blockExplorerUrl });
+	};
+
 	render() {
-		const { rpcUrl, blockTracker, nickname, chainId, ticker, editable, addMode } = this.state;
+		const { rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable, addMode } = this.state;
 		return (
 			<View style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -236,9 +240,9 @@ class NetworkSettings extends Component {
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
-							value={blockTracker}
+							value={blockExplorerUrl}
 							editable={editable}
-							onChangeText={this.onNicknameChange}
+							onChangeText={this.onBlockExplorerUrl}
 							placeholder={'Block Explorer URL (optional)'}
 						/>
 
