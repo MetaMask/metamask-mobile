@@ -6,25 +6,19 @@ exports[`NetworkSettings should render correctly 1`] = `
     Object {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
+      "flexDirection": "column",
       "marginBottom": 24,
       "paddingHorizontal": 24,
       "paddingVertical": 12,
     }
   }
 >
-  <KeyboardAwareScrollViewMock
-    enableAutomaticScroll={true}
-    enableOnAndroid={false}
-    enableResetScrollToCoords={true}
-    extraHeight={75}
-    extraScrollHeight={0}
-    keyboardOpeningTime={250}
+  <ScrollViewMock
     style={
       Object {
         "flex": 1,
       }
     }
-    viewIsInsideTabBar={false}
   >
     <View>
       <Text
@@ -236,23 +230,43 @@ exports[`NetworkSettings should render correctly 1`] = `
         underlineColorAndroid="transparent"
       />
     </View>
-  </KeyboardAwareScrollViewMock>
-  <StyledButton
-    disabled={true}
-    disabledContainerStyle={
-      Object {
-        "opacity": 0.6,
+    <View
+      style={
+        Object {
+          "alignSelf": "flex-end",
+          "flexDirection": "row",
+          "marginTop": 24,
+        }
       }
-    }
-    onPress={[Function]}
-    styleDisabled={
-      Object {
-        "opacity": 0.6,
-      }
-    }
-    type="confirm"
-  >
-    Add
-  </StyledButton>
+    >
+      <View
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "flex": 1,
+            "flexDirection": "column",
+          }
+        }
+      >
+        <StyledButton
+          disabled={true}
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          type="confirm"
+        >
+          Add
+        </StyledButton>
+      </View>
+    </View>
+  </ScrollViewMock>
 </View>
 `;

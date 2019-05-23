@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -18,7 +18,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingVertical: 12,
 		paddingHorizontal: 24,
-		marginBottom: 24
+		marginBottom: Platform.OS === 'ios' ? 24 : 12,
+		flexDirection: 'column'
 	},
 	informationWrapper: {
 		flex: 1
@@ -58,6 +59,16 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	buttonsWrapper: {
+		marginTop: 24,
+		flexDirection: 'row',
+		alignSelf: 'flex-end'
+	},
+	buttonsContainer: {
+		flex: 1,
+		flexDirection: 'column',
+		alignSelf: 'flex-end'
 	}
 });
 
@@ -364,17 +375,23 @@ class NetworkSettings extends Component {
 							onSubmitEditing={this.addRpcUrl}
 						/>
 					</View>
+					{(addMode || editable) && (
+						<View style={styles.buttonsWrapper}>
+							<View style={styles.buttonsContainer}>
+								<StyledButton
+									type="confirm"
+									onPress={this.addRpcUrl}
+									containerStyle={styles.syncConfirm}
+									disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
+								>
+									{editable
+										? strings('app_settings.network_save')
+										: strings('app_settings.network_add')}
+								</StyledButton>
+							</View>
+						</View>
+					)}
 				</ScrollView>
-				{(addMode || editable) && (
-					<StyledButton
-						type="confirm"
-						onPress={this.addRpcUrl}
-						containerStyle={styles.syncConfirm}
-						disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
-					>
-						{editable ? strings('app_settings.network_save') : strings('app_settings.network_add')}
-					</StyledButton>
-				)}
 			</View>
 		);
 	}
