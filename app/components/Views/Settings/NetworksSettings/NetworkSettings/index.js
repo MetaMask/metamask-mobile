@@ -151,16 +151,17 @@ class NetworkSettings extends Component {
 	 */
 	addRpcUrl = () => {
 		const { PreferencesController, NetworkController, CurrencyRateController } = Engine.context;
-		const { rpcUrl, chainId, ticker, nickname, blockExplorerUrl } = this.state;
+		const { rpcUrl, chainId, nickname, blockExplorerUrl } = this.state;
+		const ticker = this.state.ticker && this.state.ticker.toUpperCase();
 		const { navigation } = this.props;
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			CurrencyRateController.configure({ nativeCurrency: ticker });
-			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker.toUpperCase(), nickname, {
+			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname, {
 				blockExplorerUrl
 			});
-			NetworkController.setRpcTarget(url.href, chainId, ticker.toUpperCase(), nickname);
+			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
 			navigation.navigate('WalletView');
 		}
 	};
@@ -195,7 +196,7 @@ class NetworkSettings extends Component {
 	 */
 	validateChainId = () => {
 		const { chainId } = this.state;
-		if (!Number.isInteger(Number(chainId))) {
+		if (chainId && !Number.isInteger(Number(chainId))) {
 			this.setState({ warningChainId: strings('app_settings.network_chain_id_warning'), validatedChainId: true });
 		} else {
 			this.setState({ warningChainId: undefined, validatedChainId: true });
@@ -233,7 +234,7 @@ class NetworkSettings extends Component {
 	 */
 	disabledByChainId = () => {
 		const { chainId, validatedChainId, warningChainId } = this.state;
-		return chainId && (!validatedChainId || warningChainId !== undefined);
+		return chainId !== undefined && (!validatedChainId || warningChainId !== undefined);
 	};
 
 	onRpcUrlChange = async url => {
@@ -343,11 +344,11 @@ class NetworkSettings extends Component {
 							onSubmitEditing={this.jumpToSymbol}
 							keyboardType={'numeric'}
 						/>
-						{warningChainId && (
+						{warningChainId ? (
 							<View style={styles.warningContainer}>
 								<Text style={styles.warningText}>{warningChainId}</Text>
 							</View>
-						)}
+						) : null}
 
 						<Text style={styles.label}>{strings('app_settings.network_symbol_label')}</Text>
 						<TextInput

@@ -181,7 +181,8 @@ const defaultEth = [
 	{
 		symbol: 'ETH',
 		name: 'Ether',
-		logo: ethLogo
+		logo: ethLogo,
+		isETH: true
 	}
 ];
 const defaultAssets = [
