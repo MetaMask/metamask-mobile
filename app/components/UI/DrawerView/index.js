@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
 	},
 	menuItemName: {
 		flex: 1,
-		paddingLeft: 15,
+		paddingHorizontal: 15,
 		paddingTop: 2,
 		fontSize: 16,
 		color: colors.grey400,
@@ -356,7 +356,11 @@ class DrawerView extends Component {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Frequent RPC list from PreferencesController
+		 */
+		frequentRpcList: PropTypes.array
 	};
 
 	state = {
@@ -508,10 +512,22 @@ class DrawerView extends Component {
 	};
 
 	viewInEtherscan = () => {
-		const { selectedAddress, network } = this.props;
-		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
-		const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
-		this.goToBrowserUrl(url, etherscan_url);
+		const {
+			selectedAddress,
+			network,
+			network: {
+				provider: { rpcTarget }
+			}
+		} = this.props;
+		if (network.provider.type === 'rpc') {
+			const blockExplorer = this.findBlockExplorerForRpc(rpcTarget);
+			const url = `${blockExplorer}/address/${selectedAddress}`;
+			this.goToBrowserUrl(url, url);
+		} else {
+			const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
+			const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
+			this.goToBrowserUrl(url, etherscan_url);
+		}
 	};
 
 	submitFeedback = () => {
@@ -578,6 +594,30 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
+	findBlockExplorerForRpc = rpcTarget => {
+		const { frequentRpcList } = this.props;
+		const frequentRpc = frequentRpcList.find(({ rpcUrl }) => rpcTarget === rpcUrl);
+		if (frequentRpc) {
+			return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
+		}
+		return undefined;
+	};
+
+	hasBlockExplorer = providerType => {
+		if (providerType === 'rpc') {
+			const {
+				network: {
+					provider: { rpcTarget }
+				}
+			} = this.props;
+			const blockExplorer = this.findBlockExplorerForRpc(rpcTarget);
+			if (blockExplorer) {
+				return true;
+			}
+		}
+		return hasBlockExplorer(providerType);
+	};
+
 	getIcon(name, size) {
 		return <Icon name={name} size={size || 24} color={colors.grey400} />;
 	}
@@ -610,57 +650,70 @@ class DrawerView extends Component {
 		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
 	}
 
-	getSections = () => [
-		[
-			{
-				name: strings('drawer.browser'),
-				icon: this.getIcon('globe'),
-				selectedIcon: this.getSelectedIcon('globe'),
-				action: this.goToBrowser,
-				routeNames: ['BrowserView', 'AddBookmark']
-			},
-			{
-				name: strings('drawer.wallet'),
-				icon: this.getImageIcon('wallet'),
-				selectedIcon: this.getSelectedImageIcon('wallet'),
-				action: this.showWallet,
-				routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
-			},
-			{
-				name: strings('drawer.transaction_history'),
-				icon: this.getFeatherIcon('list'),
-				selectedIcon: this.getSelectedFeatherIcon('list'),
-				action: this.goToTransactionHistory,
-				routeNames: ['TransactionsView']
+	getSections = () => {
+		const {
+			network: {
+				provider: { type, rpcTarget }
 			}
-		],
-		[
-			{
-				name: strings('drawer.share_address'),
-				icon: this.getMaterialIcon('share-variant'),
-				action: this.onShare
-			},
-			{
-				name: strings('drawer.view_in_etherscan'),
-				icon: this.getIcon('eye'),
-				action: this.viewInEtherscan
-			}
-		],
-		[
-			{
-				name: strings('drawer.help'),
-				action: this.showHelp
-			},
-			{
-				name: strings('drawer.submit_feedback'),
-				action: this.submitFeedback
-			},
-			{
-				name: strings('drawer.logout'),
-				action: this.logout
-			}
-		]
-	];
+		} = this.props;
+		let blockExplorer;
+		if (type === 'rpc') {
+			blockExplorer = this.findBlockExplorerForRpc(rpcTarget);
+		}
+		return [
+			[
+				{
+					name: strings('drawer.browser'),
+					icon: this.getIcon('globe'),
+					selectedIcon: this.getSelectedIcon('globe'),
+					action: this.goToBrowser,
+					routeNames: ['BrowserView', 'AddBookmark']
+				},
+				{
+					name: strings('drawer.wallet'),
+					icon: this.getImageIcon('wallet'),
+					selectedIcon: this.getSelectedImageIcon('wallet'),
+					action: this.showWallet,
+					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+				},
+				{
+					name: strings('drawer.transaction_history'),
+					icon: this.getFeatherIcon('list'),
+					selectedIcon: this.getSelectedFeatherIcon('list'),
+					action: this.goToTransactionHistory,
+					routeNames: ['TransactionsView']
+				}
+			],
+			[
+				{
+					name: strings('drawer.share_address'),
+					icon: this.getMaterialIcon('share-variant'),
+					action: this.onShare
+				},
+				{
+					name:
+						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorer}`) ||
+						strings('drawer.view_in_etherscan'),
+					icon: this.getIcon('eye'),
+					action: this.viewInEtherscan
+				}
+			],
+			[
+				{
+					name: strings('drawer.help'),
+					action: this.showHelp
+				},
+				{
+					name: strings('drawer.submit_feedback'),
+					action: this.submitFeedback
+				},
+				{
+					name: strings('drawer.logout'),
+					action: this.logout
+				}
+			]
+		];
+	};
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
@@ -810,7 +863,7 @@ class DrawerView extends Component {
 								{section
 									.filter(item => {
 										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
-											return hasBlockExplorer(network.provider.type);
+											return this.hasBlockExplorer(network.provider.type);
 										}
 										return true;
 									})
@@ -838,6 +891,7 @@ class DrawerView extends Component {
 														? styles.selectedName
 														: null
 												]}
+												numberOfLines={1}
 											>
 												{item.name}
 											</Text>
@@ -931,6 +985,7 @@ const mapStateToProps = state => ({
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,

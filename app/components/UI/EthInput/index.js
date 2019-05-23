@@ -290,9 +290,9 @@ class EthInput extends Component {
 		const { tokenBalances, accounts, selectedAddress, ticker } = this.props;
 		const assetsObject = {
 			ETH: () => {
-				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + ticker;
+				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + ticker || strings('unit.eth');
 				const icon = <Image source={ethLogo} style={styles.logo} />;
-				return { title: ticker, subTitle, icon };
+				return { title: ticker || strings('unit.eth'), subTitle, icon };
 			},
 			ERC20: () => {
 				const title = asset.symbol;
@@ -478,9 +478,9 @@ class EthInput extends Component {
 				let convertedAmount, currency;
 				if (primaryCurrency === 'ETH') {
 					convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
-					currency = ticker;
+					currency = ticker || strings('unit.eth');
 				} else {
-					convertedAmount = renderFromWei(value) + ' ' + ticker;
+					convertedAmount = renderFromWei(value) + ' ' + ticker || strings('unit.eth');
 					currency = currentCurrency.toUpperCase();
 				}
 				const image = <Image source={ethLogo} style={styles.logo} />;

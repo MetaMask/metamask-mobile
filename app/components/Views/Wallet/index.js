@@ -178,7 +178,7 @@ class Wallet extends Component {
 			assets = [
 				{
 					name: 'Ether',
-					symbol: ticker,
+					symbol: ticker || 'ETH',
 					isETH: true,
 					balance,
 					balanceFiat: weiToFiat(

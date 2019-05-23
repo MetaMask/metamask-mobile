@@ -276,7 +276,7 @@ export default class AccountList extends Component {
 							{name}
 						</Text>
 						<Text style={styles.accountBalance}>
-							{renderFromWei(balance)} {ticker}
+							{renderFromWei(balance)} {ticker || strings('unit.eth')}
 						</Text>
 					</View>
 					{imported && <View style={styles.importedView}>{imported}</View>}
