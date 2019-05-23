@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, Switch, TextInput, Text, Platform, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Switch, Text, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
-import { isWebUri } from 'valid-url';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
@@ -17,8 +16,6 @@ import RNFS from 'react-native-fs';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Buffer } from 'buffer';
 import Logger from '../../../../util/Logger';
-import { isprivateConnection } from '../../../../util/networks';
-import URL from 'url-parse';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import timeoutFetch from '../../../../util/general';
@@ -52,34 +49,11 @@ const styles = StyleSheet.create({
 	switchElement: {
 		marginTop: 18
 	},
-	warningText: {
-		...fontStyles.normal,
-		color: colors.red,
-		marginTop: 4,
-		paddingLeft: 2,
-		paddingRight: 4
-	},
-	warningContainer: {
-		flexGrow: 1,
-		flexShrink: 1
-	},
 	setting: {
 		marginTop: 50
 	},
 	firstSetting: {
 		marginTop: 0
-	},
-	rpcConfirmContainer: {
-		marginTop: 12,
-		flexDirection: 'row'
-	},
-	input: {
-		...fontStyles.normal,
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		marginTop: 14,
-		padding: 10
 	},
 	modalView: {
 		alignItems: 'center',
@@ -145,11 +119,6 @@ class AdvancedSettings extends Component {
 
 	state = {
 		resetModalVisible: false,
-		rpcUrl: undefined,
-		chainId: undefined,
-		ticker: undefined,
-		nickname: undefined,
-		warningRpcUrl: '',
 		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
 		onlineIpfsGateways: []
 	};
@@ -201,55 +170,6 @@ class AdvancedSettings extends Component {
 
 	cancelResetAccount = () => {
 		this.setState({ resetModalVisible: false });
-	};
-
-	addRpcUrl = () => {
-		const { PreferencesController, NetworkController } = Engine.context;
-		const { rpcUrl, chainId, ticker, nickname } = this.state;
-		const { navigation } = this.props;
-		if (this.validateRpcUrl()) {
-			const url = new URL(rpcUrl);
-			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname);
-			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
-			navigation.navigate('WalletView');
-		}
-	};
-
-	validateRpcUrl = () => {
-		const { rpcUrl } = this.state;
-		if (!isWebUri(rpcUrl)) {
-			const appendedRpc = `http://${rpcUrl}`;
-			if (isWebUri(appendedRpc)) {
-				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
-			} else {
-				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
-			}
-			return false;
-		}
-		const url = new URL(rpcUrl);
-		const privateConnection = isprivateConnection(url.hostname);
-		if (!privateConnection && url.protocol === 'http:') {
-			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
-			return false;
-		}
-		return true;
-	};
-
-	onRpcUrlChange = url => {
-		this.setState({ rpcUrl: url });
-	};
-
-	onNicknameChange = nickname => {
-		this.setState({ nickname });
-	};
-
-	onChainIDChange = chainId => {
-		this.setState({ chainId });
-	};
-
-	onTickerChange = ticker => {
-		this.setState({ ticker });
 	};
 
 	toggleShowHexData = showHexData => {
@@ -348,57 +268,6 @@ class AdvancedSettings extends Component {
 								{strings('app_settings.sync')}
 							</StyledButton>
 						</View>
-						<View style={styles.setting}>
-							<Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>
-							<Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>
-
-							<TextInput
-								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-								autoCapitalize={'none'}
-								autoCorrect={false}
-								value={this.state.rpcUrl}
-								onChangeText={this.onRpcUrlChange}
-								placeholder={strings('app_settings.new_RPC_URL')}
-							/>
-
-							<TextInput
-								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-								autoCapitalize={'none'}
-								autoCorrect={false}
-								value={this.state.chainId}
-								onChangeText={this.onChainIDChange}
-								placeholder={'Chain ID (optional)'}
-							/>
-
-							<TextInput
-								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-								autoCapitalize={'none'}
-								autoCorrect={false}
-								value={this.state.ticker}
-								onChangeText={this.onTickerChange}
-								placeholder={'Symbol (optional)'}
-							/>
-
-							<TextInput
-								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-								autoCapitalize={'none'}
-								autoCorrect={false}
-								value={this.state.nickname}
-								onChangeText={this.onNicknameChange}
-								placeholder={'Nickname (optional)'}
-							/>
-
-							<View style={styles.rpcConfirmContainer}>
-								<View style={styles.warningContainer}>
-									<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
-								</View>
-							</View>
-
-							<StyledButton type="info" onPress={this.addRpcUrl} containerStyle={styles.syncConfirm}>
-								{'Add'}
-							</StyledButton>
-						</View>
-
 						<View style={[styles.setting]}>
 							<Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.ipfs_gateway_desc')}</Text>

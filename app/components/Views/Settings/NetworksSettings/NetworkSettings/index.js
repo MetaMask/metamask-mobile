@@ -5,10 +5,13 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import Networks from '../../../../../util/networks';
+import Networks, { isprivateConnection } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Engine from '../../../../../core/Engine';
+import { isWebUri } from 'valid-url';
+import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -83,46 +86,97 @@ class NetworkSettings extends Component {
 		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
 
 	state = {
-		network: undefined,
+		rpcUrl: undefined,
 		blockTracker: undefined,
-		name: undefined,
+		nickname: undefined,
 		chainId: undefined,
 		ticker: undefined,
 		editable: undefined,
-		addMode: false
+		addMode: false,
+		warningRpcUrl: undefined
 	};
 
 	getOtherNetworks = () => allNetworks.slice(1);
 
 	componentDidMount = () => {
 		const { navigation, frequentRpcList } = this.props;
-		let network = navigation.getParam('network', undefined);
-		let blockTracker, chainId, name, ticker, editable;
+		const network = navigation.getParam('network', undefined);
+		let blockTracker, chainId, nickname, ticker, editable, rpcUrl;
 		if (network) {
 			if (allNetworks.find(net => network === net)) {
 				blockTracker = getEtherscanBaseUrl(network);
 				const networkInformation = Networks[network];
-				name = networkInformation.name;
+				nickname = networkInformation.name;
 				chainId = networkInformation.chainId.toString();
 				editable = false;
-				network = allNetworksBlocktracker + network;
+				rpcUrl = allNetworksBlocktracker + network;
 				ticker = strings('unit.eth');
 			} else {
 				const networkInformation = frequentRpcList.find(({ rpcUrl }) => rpcUrl === network);
-				name = networkInformation.nickname;
+				nickname = networkInformation.nickname;
 				chainId = networkInformation.chainId;
 				blockTracker = networkInformation.blockTracker;
 				ticker = networkInformation.ticker;
 				editable = true;
+				rpcUrl = network;
 			}
-			this.setState({ network, blockTracker, name, chainId, ticker, editable });
+			this.setState({ rpcUrl, blockTracker, nickname, chainId, ticker, editable });
 		} else {
 			this.setState({ addMode: true });
 		}
 	};
 
+	addRpcUrl = () => {
+		const { PreferencesController, NetworkController } = Engine.context;
+		const { rpcUrl, chainId, ticker, nickname } = this.state;
+		const { navigation } = this.props;
+		if (this.validateRpcUrl()) {
+			const url = new URL(rpcUrl);
+			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
+			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname);
+			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
+			navigation.navigate('WalletView');
+		}
+	};
+
+	validateRpcUrl = () => {
+		const { rpcUrl } = this.state;
+		if (!isWebUri(rpcUrl)) {
+			const appendedRpc = `http://${rpcUrl}`;
+			if (isWebUri(appendedRpc)) {
+				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
+			} else {
+				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
+			}
+			return false;
+		}
+		const url = new URL(rpcUrl);
+		const privateConnection = isprivateConnection(url.hostname);
+		if (!privateConnection && url.protocol === 'http:') {
+			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
+			return false;
+		}
+		return true;
+	};
+
+	onRpcUrlChange = url => {
+		this.setState({ rpcUrl: url });
+	};
+
+	onNicknameChange = nickname => {
+		this.setState({ nickname });
+	};
+
+	onChainIDChange = chainId => {
+		this.setState({ chainId });
+	};
+
+	onTickerChange = ticker => {
+		this.setState({ ticker });
+	};
+
 	render() {
-		const { network, blockTracker, name, chainId, ticker, editable, addMode } = this.state;
+		const { rpcUrl, blockTracker, nickname, chainId, ticker, editable, addMode } = this.state;
 		return (
 			<View style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -136,7 +190,7 @@ class NetworkSettings extends Component {
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
-							value={name}
+							value={nickname}
 							editable={editable}
 							onChangeText={this.onNicknameChange}
 							placeholder={'Nickname (optional)'}
@@ -147,7 +201,7 @@ class NetworkSettings extends Component {
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
-							value={network}
+							value={rpcUrl}
 							editable={editable}
 							onChangeText={this.onRpcUrlChange}
 							placeholder={strings('app_settings.new_RPC_URL')}
