@@ -371,7 +371,7 @@ class NetworkSettings extends Component {
 						containerStyle={styles.syncConfirm}
 						disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
 					>
-						{editable ? 'Save' : 'Add'}
+						{editable ? strings('app_settings.network_save') : strings('app_settings.network_add')}
 					</StyledButton>
 				)}
 			</View>

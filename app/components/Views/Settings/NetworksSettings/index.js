@@ -143,14 +143,14 @@ class NetworksSettings extends Component {
 			<View style={styles.wrapper}>
 				<ScrollView style={styles.networksWrapper}>
 					{this.renderMainnet()}
-					<Text style={styles.sectionLabel}>Other Networks</Text>
+					<Text style={styles.sectionLabel}>{strings('app_settings.network_other_networks')}</Text>
 
 					{this.renderOtherNetworks()}
-					<Text style={styles.sectionLabel}>RPC Networks</Text>
+					<Text style={styles.sectionLabel}>{strings('app_settings.network_rpc_networks')}</Text>
 					{this.renderRpcNetworks()}
 				</ScrollView>
 				<StyledButton type="confirm" onPress={this.onAddNetwork} containerStyle={styles.syncConfirm}>
-					{'Add Network'}
+					{strings('app_settings.network_add_network')}
 				</StyledButton>
 			</View>
 		);
