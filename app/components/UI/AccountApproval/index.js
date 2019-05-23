@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, InteractionManager } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import ElevatedView from 'react-native-elevated-view';
@@ -11,6 +11,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	root: {
@@ -168,14 +170,73 @@ class AccountApproval extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Number of tokens
+		 */
+		tokensLength: PropTypes.number,
+		/**
+		 * Number of accounts
+		 */
+		accountsLength: PropTypes.number,
+		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string
+	};
+
+	state = {
+		start: Date.now()
+	};
+
+	componentDidMount = () => {
+		const params = this.getTrackingParams();
+		delete params.timeOpen;
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT, params);
+		});
+	};
+
+	/**
+	 * Calls onConfirm callback and analytics to track connect confirmed event
+	 */
+	onConfirm = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CONFIRMED,
+			this.getTrackingParams()
+		);
+		this.props.onConfirm();
+	};
+
+	/**
+	 * Calls onConfirm callback and analytics to track connect canceled event
+	 */
+	onCancel = () => {
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.AUTHENTICATION_CONNECT_CANCELED,
+			this.getTrackingParams()
+		);
+		this.props.onCancel();
+	};
+
+	/**
+	 * Returns corresponding tracking params to send
+	 *
+	 * @return {object} - Object containing numberOfTokens, numberOfAccounts, network and timeOpen
+	 */
+	getTrackingParams = () => {
+		const { tokensLength, accountsLength, networkType } = this.props;
+		return {
+			numberOfTokens: tokensLength,
+			numberOfAccounts: accountsLength,
+			network: networkType,
+			timeOpen: (Date.now() - this.state.start) / 1000
+		};
 	};
 
 	render = () => {
 		const {
 			currentPageInformation: { title, url },
-			onConfirm,
-			onCancel,
 			selectedAddress,
 			identities
 		} = this.props;
@@ -189,8 +250,8 @@ class AccountApproval extends Component {
 				<ActionView
 					cancelText={strings('accountApproval.cancel')}
 					confirmText={strings('accountApproval.connect')}
-					onCancelPress={onCancel}
-					onConfirmPress={onConfirm}
+					onCancelPress={this.onCancel}
+					onConfirmPress={this.onConfirm}
 					confirmButtonMode={'confirm'}
 				>
 					<View style={styles.wrapper}>
@@ -240,7 +301,10 @@ class AccountApproval extends Component {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
+	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(AccountApproval);

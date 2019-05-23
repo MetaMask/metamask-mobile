@@ -13,6 +13,8 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -135,6 +137,7 @@ class Onboarding extends Component {
 
 	onPressCreate = () => {
 		const { existingUser } = this.state;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
 		const action = () => this.props.navigation.push('CreateWallet');
 		if (existingUser) {
 			this.alertExistingUser(action);
@@ -145,6 +148,7 @@ class Onboarding extends Component {
 
 	onPressImport = () => {
 		this.props.navigation.push('ImportWallet');
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 	};
 
 	alertExistingUser = callback => {

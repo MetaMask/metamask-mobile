@@ -26,6 +26,8 @@ import BrowserFavorites from '../BrowserFavorites';
 import UrlAutocomplete from '../UrlAutocomplete';
 import onUrlSubmit from '../../../util/browser';
 import { removeBookmark } from '../../../actions/bookmarks';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 const NAVBAR_HEIGHT = 50;
@@ -227,6 +229,11 @@ class HomePage extends Component {
 
 	handleTabHeight(obj) {
 		const refName = obj.ref.ref;
+		if (refName === 'featuredTab') {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_FEATURED_APPS);
+		} else {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_FAVORITES);
+		}
 		setTimeout(() => {
 			// eslint-disable-next-line
 			this.refs[refName].measureMyself((x, y, w, h, l, t) => {
@@ -261,6 +268,7 @@ class HomePage extends Component {
 	};
 
 	onInitialUrlSubmit = () => {
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_SEARCH);
 		this.props.onInitialUrlSubmit(this.state.searchInputValue);
 		this.setState({ searchInputValue: '' });
 	};

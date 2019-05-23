@@ -7,7 +7,23 @@ const mockStore = configureMockStore();
 
 describe('Login', () => {
 	it('should render correctly', () => {
-		const initialState = {};
+		const initialState = {
+			engine: {
+				backgroundState: {
+					AccountTrackerController: {
+						accounts: { '0x2': { balance: '0' } }
+					},
+					NetworkController: {
+						provider: {
+							type: 'ropsten'
+						}
+					},
+					AssetsController: {
+						tokens: []
+					}
+				}
+			}
+		};
 
 		const wrapper = shallow(<Login />, {
 			context: { store: mockStore(initialState) }

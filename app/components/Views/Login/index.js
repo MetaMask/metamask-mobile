@@ -25,6 +25,8 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -117,7 +119,19 @@ class Login extends Component {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Number of tokens
+		 */
+		tokensLength: PropTypes.number,
+		/**
+		 * Number of accounts
+		 */
+		accountsLength: PropTypes.number,
+		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -207,6 +221,12 @@ class Login extends Component {
 			} else {
 				this.setState({ loading: false, error: error.toString() });
 			}
+			const { tokensLength, accountsLength, networkType } = this.props;
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.AUTHENTICATION_INCORRECT_PASSWORD, {
+				numberOfTokens: tokensLength,
+				numberOfAccounts: accountsLength,
+				network: networkType
+			});
 		}
 	};
 
@@ -314,11 +334,17 @@ class Login extends Component {
 	);
 }
 
+const mapStateToProps = state => ({
+	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
+	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
+});
+
 const mapDispatchToProps = dispatch => ({
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(Login);

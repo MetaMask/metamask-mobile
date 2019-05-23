@@ -13,7 +13,8 @@ import {
 	TouchableOpacity,
 	Linking,
 	Keyboard,
-	BackHandler
+	BackHandler,
+	InteractionManager
 } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import Web3Webview from 'react-native-web3-webview';
@@ -57,6 +58,8 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -854,6 +857,7 @@ export class BrowserTab extends PureComponent {
 		} else {
 			this.hideUrlModal();
 		}
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_SEARCH);
 	};
 
 	goBack = () => {
@@ -910,6 +914,7 @@ export class BrowserTab extends PureComponent {
 		});
 
 		this.initialUrl = null;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 	};
 
 	close = () => {
@@ -988,6 +993,7 @@ export class BrowserTab extends PureComponent {
 				}
 			});
 		}, 500);
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
 	};
 
 	share = () => {
@@ -1011,6 +1017,7 @@ export class BrowserTab extends PureComponent {
 		Linking.openURL(this.state.inputValue).catch(error =>
 			Logger.log('Error while trying to open external link: ${url}', error)
 		);
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
 	};
 
 	toggleOptionsIfNeeded() {
@@ -1028,6 +1035,11 @@ export class BrowserTab extends PureComponent {
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
 				showOptions: !this.props.navigation.state.params.showOptions
+			});
+
+		!this.props.navigation.state.params.showOptions &&
+			InteractionManager.runAfterInteractions(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
 			});
 	};
 
