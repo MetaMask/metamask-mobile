@@ -48,7 +48,8 @@ export default class WebsiteIcon extends Component {
 		 */
 		url: PropTypes.string,
 		/**
-		 * String corresponding to website url
+		 * Flag that determines if the background
+		 * should be transaparent or not
 		 */
 		transparent: PropTypes.bool
 	};
