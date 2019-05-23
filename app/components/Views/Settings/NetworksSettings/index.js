@@ -118,6 +118,18 @@ class NetworksSettings extends Component {
 		});
 	};
 
+	renderRpcNetworksView = () => {
+		const { frequentRpcList } = this.props;
+		if (frequentRpcList.length > 0) {
+			return (
+				<View>
+					<Text style={styles.sectionLabel}>{strings('app_settings.network_rpc_networks')}</Text>
+					{this.renderRpcNetworks()}
+				</View>
+			);
+		}
+	};
+
 	renderMainnet() {
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
 		return (
@@ -144,10 +156,8 @@ class NetworksSettings extends Component {
 				<ScrollView style={styles.networksWrapper}>
 					{this.renderMainnet()}
 					<Text style={styles.sectionLabel}>{strings('app_settings.network_other_networks')}</Text>
-
 					{this.renderOtherNetworks()}
-					<Text style={styles.sectionLabel}>{strings('app_settings.network_rpc_networks')}</Text>
-					{this.renderRpcNetworks()}
+					{this.renderRpcNetworksView()}
 				</ScrollView>
 				<StyledButton type="confirm" onPress={this.onAddNetwork} containerStyle={styles.syncConfirm}>
 					{strings('app_settings.network_add_network')}
