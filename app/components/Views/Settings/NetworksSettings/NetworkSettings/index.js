@@ -31,10 +31,6 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		padding: 10
 	},
-	rpcConfirmContainer: {
-		marginTop: 12,
-		flexDirection: 'row'
-	},
 	warningText: {
 		...fontStyles.normal,
 		color: colors.red,
@@ -43,6 +39,7 @@ const styles = StyleSheet.create({
 		paddingRight: 4
 	},
 	warningContainer: {
+		marginTop: 4,
 		flexGrow: 1,
 		flexShrink: 1
 	},
@@ -94,7 +91,9 @@ class NetworkSettings extends Component {
 		editable: undefined,
 		addMode: false,
 		warningRpcUrl: undefined,
+		warningChainId: undefined,
 		validatedRpcURL: true,
+		validatedChainId: true,
 		initialState: undefined,
 		enableAction: false
 	};
@@ -169,6 +168,15 @@ class NetworkSettings extends Component {
 		return true;
 	};
 
+	validateChainId = () => {
+		const { chainId } = this.state;
+		if (!Number.isInteger(Number(chainId))) {
+			this.setState({ warningChainId: 'Invalid Chain ID', validatedChainId: true });
+		} else {
+			this.setState({ warningChainId: undefined, validatedChainId: true });
+		}
+	};
+
 	getCurrentState = () => {
 		const { rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable, initialState } = this.state;
 		const actualState = rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
@@ -193,7 +201,7 @@ class NetworkSettings extends Component {
 	};
 
 	onChainIDChange = async chainId => {
-		await this.setState({ chainId });
+		await this.setState({ chainId, validatedChainId: false });
 		this.getCurrentState();
 	};
 
@@ -234,6 +242,8 @@ class NetworkSettings extends Component {
 			editable,
 			addMode,
 			warningRpcUrl,
+			warningChainId,
+			validatedChainId,
 			validatedRpcURL,
 			enableAction
 		} = this.state;
@@ -272,10 +282,8 @@ class NetworkSettings extends Component {
 						/>
 
 						{warningRpcUrl && (
-							<View style={styles.rpcConfirmContainer}>
-								<View style={styles.warningContainer}>
-									<Text style={styles.warningText}>{warningRpcUrl}</Text>
-								</View>
+							<View style={styles.warningContainer}>
+								<Text style={styles.warningText}>{warningRpcUrl}</Text>
 							</View>
 						)}
 
@@ -288,9 +296,16 @@ class NetworkSettings extends Component {
 							value={chainId}
 							editable={editable}
 							onChangeText={this.onChainIDChange}
+							onBlur={this.validateChainId}
 							placeholder={'Chain ID (optional)'}
 							onSubmitEditing={this.jumpToSymbol}
 						/>
+
+						{warningChainId && (
+							<View style={styles.warningContainer}>
+								<Text style={styles.warningText}>{warningChainId}</Text>
+							</View>
+						)}
 
 						<Text style={styles.label}>Symbol</Text>
 
@@ -328,7 +343,8 @@ class NetworkSettings extends Component {
 						containerStyle={styles.syncConfirm}
 						disabled={
 							!enableAction ||
-							(!rpcUrl || (rpcUrl && !validatedRpcURL) || (rpcUrl && warningRpcUrl !== undefined))
+							(!rpcUrl || (rpcUrl && !validatedRpcURL) || (rpcUrl && warningRpcUrl !== undefined)) ||
+							((chainId && !validatedChainId) || (chainId && warningChainId !== undefined))
 						}
 					>
 						{editable ? 'Save' : 'Add'}
