@@ -3,14 +3,14 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, ScrollView, View } from 'react-native';
 import { connect } from 'react-redux';
 
-import Engine from '../../../core/Engine';
-import I18n, { strings, getLanguages, setLocale } from '../../../../locales/i18n';
-import SelectComponent from '../../UI/SelectComponent';
-import infuraCurrencies from '../../../util/infura-conversion.json';
-import { colors, fontStyles } from '../../../styles/common';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { setSearchEngine, setPrimaryCurrency } from '../../../actions/settings';
-import PickComponent from '../PickComponent';
+import Engine from '../../../../core/Engine';
+import I18n, { strings, getLanguages, setLocale } from '../../../../../locales/i18n';
+import SelectComponent from '../../../UI/SelectComponent';
+import infuraCurrencies from '../../../../util/infura-conversion.json';
+import { colors, fontStyles } from '../../../../styles/common';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { setSearchEngine, setPrimaryCurrency } from '../../../../actions/settings';
+import PickComponent from '../../PickComponent';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())

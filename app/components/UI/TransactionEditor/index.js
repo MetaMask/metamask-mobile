@@ -223,7 +223,7 @@ class TransactionEditor extends Component {
 	 */
 	handleUpdateAsset = async asset => {
 		const { transaction } = this.props;
-		if (asset.symbol === 'ETH') {
+		if (asset.isETH) {
 			const { gas } = await this.estimateGas({ to: transaction.to });
 			this.props.setTransactionObject({
 				value: undefined,

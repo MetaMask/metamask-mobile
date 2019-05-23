@@ -14,6 +14,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../../util/number';
 import Logger from '../../../util/Logger';
+import { getTicker } from '../../../util/transactions';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -116,7 +117,11 @@ class CustomGas extends Component {
 		/**
 		 * Callback to modify state in parent state
 		 */
-		onPress: PropTypes.func
+		onPress: PropTypes.func,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -204,6 +209,10 @@ class CustomGas extends Component {
 	componentDidMount = async () => {
 		await this.handleFetchBasicEstimates();
 		this.onPressGasAverage();
+		const { ticker } = this.props;
+		if (ticker && ticker !== 'ETH') {
+			this.setState({ advancedCustomGas: true });
+		}
 	};
 
 	handleFetchBasicEstimates = async () => {
@@ -240,6 +249,7 @@ class CustomGas extends Component {
 	renderCustomGasSelector = () => {
 		const { averageGwei, fastGwei, safeLowGwei } = this.state;
 		const { conversionRate, currentCurrency, gas } = this.props;
+		const ticker = getTicker(this.props.ticker);
 		return (
 			<View style={styles.selectors}>
 				<TouchableOpacity
@@ -255,10 +265,10 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_slow')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(safeLowGwei, gas)} {strings('unit.eth')}
+						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency, gas).toUpperCase()}
+						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency.toUpperCase(), gas)}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
@@ -276,10 +286,10 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_average')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(averageGwei, gas)} {strings('unit.eth')}
+						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
-						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency, gas).toUpperCase()}
+						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency.toUpperCase(), gas)}
 					</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
@@ -295,10 +305,10 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_fast')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(fastGwei, gas)} {strings('unit.eth')}
+						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency, gas).toUpperCase()}
+						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency.toUpperCase(), gas)}
 					</Text>
 				</TouchableOpacity>
 			</View>
@@ -308,10 +318,11 @@ class CustomGas extends Component {
 	renderCustomGasInput = () => {
 		const { customGasLimit, customGasPrice, warningGasLimit, warningGasPrice } = this.state;
 		const { totalGas } = this.props;
+		const ticker = getTicker(this.props.ticker);
 		return (
 			<View>
 				<Text style={styles.textTotalGas}>
-					{fromWei(totalGas)} {strings('unit.eth')}
+					{fromWei(totalGas)} {ticker}
 				</Text>
 				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
 				<TextInput
@@ -361,7 +372,8 @@ class CustomGas extends Component {
 
 const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(CustomGas);

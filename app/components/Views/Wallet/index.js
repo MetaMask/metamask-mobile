@@ -15,6 +15,7 @@ import { showAlert } from '../../../actions/alert';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -95,7 +96,11 @@ class Wallet extends Component {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -175,7 +180,8 @@ class Wallet extends Component {
 			collectibles,
 			navigation,
 			showAlert,
-			primaryCurrency
+			primaryCurrency,
+			ticker
 		} = this.props;
 
 		let balance = 0;
@@ -185,13 +191,14 @@ class Wallet extends Component {
 			assets = [
 				{
 					name: 'Ether',
-					symbol: 'ETH',
+					symbol: getTicker(ticker),
+					isETH: true,
 					balance,
 					balanceFiat: weiToFiat(
 						hexToBN(accounts[selectedAddress].balance),
 						conversionRate,
-						currentCurrency
-					).toUpperCase(),
+						currentCurrency.toUpperCase()
+					),
 					logo: '../images/eth-logo.png'
 				},
 				...tokens
@@ -263,7 +270,8 @@ const mapStateToProps = state => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 const mapDispatchToProps = dispatch => ({

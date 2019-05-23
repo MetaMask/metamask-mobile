@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -45,6 +45,7 @@ import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import URL from 'url-parse';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
 	},
 	menuItemName: {
 		flex: 1,
-		paddingLeft: 15,
+		paddingHorizontal: 15,
 		paddingTop: 2,
 		fontSize: 16,
 		color: colors.grey400,
@@ -354,7 +355,15 @@ class DrawerView extends Component {
 		/**
 		 * Wizard onboarding state
 		 */
-		wizard: PropTypes.object
+		wizard: PropTypes.object,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string,
+		/**
+		 * Frequent RPC list from PreferencesController
+		 */
+		frequentRpcList: PropTypes.array
 	};
 
 	state = {
@@ -461,7 +470,8 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
-		this.props.setTokensTransaction({ symbol: 'ETH' });
+		const { ticker } = this.props;
+		this.props.setTokensTransaction({ symbol: ticker, isETH: true });
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
@@ -520,10 +530,24 @@ class DrawerView extends Component {
 	};
 
 	viewInEtherscan = () => {
-		const { selectedAddress, network } = this.props;
-		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
-		const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
-		this.goToBrowserUrl(url, etherscan_url);
+		const {
+			selectedAddress,
+			network,
+			network: {
+				provider: { rpcTarget }
+			},
+			frequentRpcList
+		} = this.props;
+		if (network.provider.type === 'rpc') {
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			const url = `${blockExplorer}/address/${selectedAddress}`;
+			const title = new URL(blockExplorer).hostname;
+			this.goToBrowserUrl(url, title);
+		} else {
+			const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
+			const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
+			this.goToBrowserUrl(url, etherscan_url);
+		}
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
 	};
 
@@ -592,6 +616,22 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
+	hasBlockExplorer = providerType => {
+		const { frequentRpcList } = this.props;
+		if (providerType === 'rpc') {
+			const {
+				network: {
+					provider: { rpcTarget }
+				}
+			} = this.props;
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			if (blockExplorer) {
+				return true;
+			}
+		}
+		return hasBlockExplorer(providerType);
+	};
+
 	getIcon(name, size) {
 		return <Icon name={name} size={size || 24} color={colors.grey400} />;
 	}
@@ -624,57 +664,72 @@ class DrawerView extends Component {
 		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
 	}
 
-	getSections = () => [
-		[
-			{
-				name: strings('drawer.browser'),
-				icon: this.getIcon('globe'),
-				selectedIcon: this.getSelectedIcon('globe'),
-				action: this.goToBrowser,
-				routeNames: ['BrowserView', 'AddBookmark']
+	getSections = () => {
+		const {
+			network: {
+				provider: { type, rpcTarget }
 			},
-			{
-				name: strings('drawer.wallet'),
-				icon: this.getImageIcon('wallet'),
-				selectedIcon: this.getSelectedImageIcon('wallet'),
-				action: this.showWallet,
-				routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
-			},
-			{
-				name: strings('drawer.transaction_history'),
-				icon: this.getFeatherIcon('list'),
-				selectedIcon: this.getSelectedFeatherIcon('list'),
-				action: this.goToTransactionHistory,
-				routeNames: ['TransactionsView']
-			}
-		],
-		[
-			{
-				name: strings('drawer.share_address'),
-				icon: this.getMaterialIcon('share-variant'),
-				action: this.onShare
-			},
-			{
-				name: strings('drawer.view_in_etherscan'),
-				icon: this.getIcon('eye'),
-				action: this.viewInEtherscan
-			}
-		],
-		[
-			{
-				name: strings('drawer.help'),
-				action: this.showHelp
-			},
-			{
-				name: strings('drawer.submit_feedback'),
-				action: this.submitFeedback
-			},
-			{
-				name: strings('drawer.logout'),
-				action: this.logout
-			}
-		]
-	];
+			frequentRpcList
+		} = this.props;
+		let blockExplorer, blockExplorerName;
+		if (type === 'rpc') {
+			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			blockExplorerName = getBlockExplorerName(blockExplorer);
+		}
+		return [
+			[
+				{
+					name: strings('drawer.browser'),
+					icon: this.getIcon('globe'),
+					selectedIcon: this.getSelectedIcon('globe'),
+					action: this.goToBrowser,
+					routeNames: ['BrowserView', 'AddBookmark']
+				},
+				{
+					name: strings('drawer.wallet'),
+					icon: this.getImageIcon('wallet'),
+					selectedIcon: this.getSelectedImageIcon('wallet'),
+					action: this.showWallet,
+					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+				},
+				{
+					name: strings('drawer.transaction_history'),
+					icon: this.getFeatherIcon('list'),
+					selectedIcon: this.getSelectedFeatherIcon('list'),
+					action: this.goToTransactionHistory,
+					routeNames: ['TransactionsView']
+				}
+			],
+			[
+				{
+					name: strings('drawer.share_address'),
+					icon: this.getMaterialIcon('share-variant'),
+					action: this.onShare
+				},
+				{
+					name:
+						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorerName}`) ||
+						strings('drawer.view_in_etherscan'),
+					icon: this.getIcon('eye'),
+					action: this.viewInEtherscan
+				}
+			],
+			[
+				{
+					name: strings('drawer.help'),
+					action: this.showHelp
+				},
+				{
+					name: strings('drawer.submit_feedback'),
+					action: this.submitFeedback
+				},
+				{
+					name: strings('drawer.logout'),
+					action: this.logout
+				}
+			]
+		];
+	};
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
@@ -730,7 +785,7 @@ class DrawerView extends Component {
 	};
 
 	render() {
-		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
+		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -825,7 +880,7 @@ class DrawerView extends Component {
 								{section
 									.filter(item => {
 										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
-											return hasBlockExplorer(network.provider.type);
+											return this.hasBlockExplorer(network.provider.type);
 										}
 										return true;
 									})
@@ -853,6 +908,7 @@ class DrawerView extends Component {
 														? styles.selectedName
 														: null
 												]}
+												numberOfLines={1}
 											>
 												{item.name}
 											</Text>
@@ -886,6 +942,7 @@ class DrawerView extends Component {
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
 						onImportAccount={this.onImportAccount}
+						ticker={ticker}
 					/>
 				</Modal>
 				{this.renderOnboardingWizard()}
@@ -945,13 +1002,15 @@ const mapStateToProps = state => ({
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
-	wizard: state.wizard
+	wizard: state.wizard,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 const mapDispatchToProps = dispatch => ({

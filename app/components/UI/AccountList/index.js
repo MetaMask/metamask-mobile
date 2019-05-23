@@ -22,6 +22,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -149,7 +150,11 @@ export default class AccountList extends Component {
 		/**
 		 * function to be called when importing an account
 		 */
-		onImportAccount: PropTypes.func
+		onImportAccount: PropTypes.func,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -254,6 +259,7 @@ export default class AccountList extends Component {
 	}
 
 	renderItem = ({ item }) => {
+		const { ticker } = this.props;
 		const { index, name, address, balance, isSelected, isImported } = item;
 
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
@@ -278,7 +284,7 @@ export default class AccountList extends Component {
 							{name}
 						</Text>
 						<Text style={styles.accountBalance}>
-							{renderFromWei(balance)} {strings('unit.eth')}
+							{renderFromWei(balance)} {getTicker(ticker)}
 						</Text>
 					</View>
 					{imported && <View style={styles.importedView}>{imported}</View>}
