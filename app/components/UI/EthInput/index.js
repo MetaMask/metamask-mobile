@@ -55,7 +55,8 @@ const styles = StyleSheet.create({
 		marginRight: 30,
 		fontSize: 16,
 		paddingTop: Platform.OS === 'android' ? 3 : 0,
-		paddingLeft: 10
+		paddingLeft: 10,
+		alignSelf: 'center'
 	},
 	fiatValue: {
 		...fontStyles.normal,
@@ -450,9 +451,11 @@ class EthInput extends Component {
 							{currency}
 						</Text>
 					</View>
-					<Text style={styles.fiatValue} numberOfLines={1}>
-						{convertedAmount}
-					</Text>
+					{convertedAmount && (
+						<Text style={styles.fiatValue} numberOfLines={1}>
+							{convertedAmount}
+						</Text>
+					)}
 				</View>
 			</View>
 		);
