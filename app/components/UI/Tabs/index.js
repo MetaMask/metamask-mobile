@@ -18,7 +18,7 @@ import DeviceSize from '../../../util/DeviceSize';
 
 const THUMB_VERTICAL_MARGIN = 20;
 const NAVBAR_SIZE = DeviceSize.isIphoneX() ? 88 : 64;
-const THUMB_HEIGHT = Dimensions.get('window').height / 5 + THUMB_VERTICAL_MARGIN;
+const THUMB_HEIGHT = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5) + THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor((Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) / THUMB_HEIGHT);
 const TABS_VISIBLE = ROWS_VISIBLE;
 
@@ -89,13 +89,15 @@ const styles = StyleSheet.create({
 		height: DeviceSize.isIphoneX() ? 80 : 50
 	},
 	tabs: {
-		flex: 1
+		flex: 1,
+		backgroundColor: colors.transparent
 	},
 	tabsContent: {
-		padding: 15
+		padding: 15,
+		backgroundColor: colors.transparent
 	},
 	newTabIcon: {
-		marginTop: Platform.OS === 'ios' ? 3 : 0,
+		marginTop: Platform.OS === 'ios' ? 3 : 2.5,
 		color: colors.white,
 		fontSize: 24,
 		textAlign: 'center',
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 		width: 30,
 		height: 30,
-		marginTop: -5
+		marginTop: -7
 	}
 });
 

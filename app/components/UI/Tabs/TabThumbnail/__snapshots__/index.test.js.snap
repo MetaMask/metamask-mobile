@@ -3,6 +3,12 @@
 exports[`TabThumbnail should render correctly 1`] = `
 <ElevatedView
   elevation={8}
+  style={
+    Object {
+      "backgroundColor": "transparent",
+      "overflow": "hidden",
+    }
+  }
 >
   <View
     style={
@@ -11,6 +17,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           "borderColor": "#d6d9dc",
           "borderRadius": 10,
           "borderWidth": 1,
+          "elevation": 8,
           "height": 266.8,
           "justifyContent": "space-evenly",
           "marginBottom": 20,
@@ -28,7 +35,7 @@ exports[`TabThumbnail should render correctly 1`] = `
       style={
         Object {
           "alignItems": "flex-start",
-          "backgroundColor": "rgba(0,0,0,.5)",
+          "backgroundColor": "#6a737d",
           "flexDirection": "row",
           "justifyContent": "flex-start",
           "minHeight": 25,
@@ -42,6 +49,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         onPress={[Function]}
         style={
           Object {
+            "backgroundColor": "transparent",
             "flex": 1,
             "flexDirection": "row",
             "marginRight": 40,
@@ -76,6 +84,7 @@ exports[`TabThumbnail should render correctly 1`] = `
               "fontWeight": "600",
               "marginLeft": 5,
               "marginRight": 40,
+              "marginTop": 0,
             }
           }
         >
@@ -127,7 +136,7 @@ exports[`TabThumbnail should render correctly 1`] = `
             "bottom": 0,
             "height": null,
             "left": 0,
-            "paddingTop": 560,
+            "paddingTop": 1079,
             "position": "absolute",
             "resizeMode": "cover",
             "right": 0,

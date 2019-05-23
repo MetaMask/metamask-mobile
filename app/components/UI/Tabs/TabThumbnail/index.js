@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
+import { Platform, View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import WebsiteIcon from '../../WebsiteIcon';
@@ -7,9 +7,19 @@ import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import URL from 'url-parse';
+import DeviceSize from '../../../../util/DeviceSize';
 
 const margin = 16;
 const width = Dimensions.get('window').width - margin * 2;
+const height = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5);
+let paddingTop = Dimensions.get('window').height - 190;
+if (DeviceSize.isIphoneX()) {
+	paddingTop -= 65;
+}
+
+if (Platform.OS === 'android') {
+	paddingTop -= 10;
+}
 
 const styles = StyleSheet.create({
 	tabFavicon: {
@@ -25,13 +35,14 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 		fontSize: 24,
 		marginRight: 40,
-		marginLeft: 5
+		marginLeft: 5,
+		marginTop: Platform.OS === 'ios' ? 0 : -5
 	},
 	tabHeader: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		justifyContent: 'flex-start',
-		backgroundColor: colors.overlay,
+		backgroundColor: colors.grey500,
 		paddingVertical: 15,
 		paddingHorizontal: 10,
 		minHeight: 25
@@ -39,12 +50,17 @@ const styles = StyleSheet.create({
 	tabWrapper: {
 		marginBottom: 20,
 		borderRadius: 10,
+		elevation: 8,
 		justifyContent: 'space-evenly',
 		overflow: 'hidden',
 		borderColor: colors.grey100,
 		borderWidth: 1,
 		width,
-		height: Dimensions.get('window').height / 5
+		height
+	},
+	checkWrapper: {
+		backgroundColor: colors.transparent,
+		overflow: 'hidden'
 	},
 	tab: {
 		backgroundColor: colors.white,
@@ -54,7 +70,7 @@ const styles = StyleSheet.create({
 	},
 	tabImage: {
 		...StyleSheet.absoluteFillObject,
-		paddingTop: 560,
+		paddingTop,
 		width: null,
 		height: null,
 		resizeMode: 'cover'
@@ -73,9 +89,15 @@ const styles = StyleSheet.create({
 		position: 'absolute'
 	},
 	titleButton: {
+		backgroundColor: colors.transparent,
 		flex: 1,
 		flexDirection: 'row',
 		marginRight: 40
+	},
+	closeTabButton: {
+		backgroundColor: colors.transparent,
+		width: 36,
+		height: 36
 	}
 });
 
@@ -111,11 +133,14 @@ export default class TabThumbnail extends Component {
 		return urlObj.hostname.toLowerCase().replace('www.', '');
 	};
 
+	getContainer = () => (Platform.OS === 'android' ? View : ElevatedView);
+
 	render() {
 		const { isActiveTab, tab, onClose, onSwitch } = this.props;
+		const Container = this.getContainer();
 
 		return (
-			<ElevatedView style={styles.checkWrapper} elevation={8}>
+			<Container style={styles.checkWrapper} elevation={8}>
 				<View style={[styles.tabWrapper, isActiveTab && styles.activeTab]}>
 					<View style={styles.tabHeader}>
 						<TouchableOpacity
@@ -123,7 +148,7 @@ export default class TabThumbnail extends Component {
 							style={styles.titleButton}
 						>
 							{tab.url !== HOMEPAGE_URL ? (
-								<WebsiteIcon style={styles.tabFavicon} title={tab.url} url={tab.url} />
+								<WebsiteIcon transparent style={styles.tabFavicon} title={tab.url} url={tab.url} />
 							) : (
 								<Image style={styles.tabFavicon} title={tab.url} source={METAMASK_FOX} />
 							)}
@@ -133,6 +158,7 @@ export default class TabThumbnail extends Component {
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={() => onClose(tab)} // eslint-disable-line react/jsx-no-bind
+							style={styles.closeTabButton}
 						>
 							<IonIcon name="ios-close" style={styles.closeTabIcon} />
 						</TouchableOpacity>
@@ -145,7 +171,7 @@ export default class TabThumbnail extends Component {
 						<Image source={{ uri: tab.image }} style={styles.tabImage} />
 					</TouchableOpacity>
 				</View>
-			</ElevatedView>
+			</Container>
 		);
 	}
 }
