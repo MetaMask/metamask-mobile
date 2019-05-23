@@ -27,6 +27,11 @@ exports[`Settings should render correctly 1`] = `
       title="Security & Privacy"
     />
     <SettingsDrawer
+      description="Add and edit custom RPC networks"
+      onPress={[Function]}
+      title="Networks"
+    />
+    <SettingsDrawer
       description="WalletConnect & more..."
       onPress={[Function]}
       title="Experimental"

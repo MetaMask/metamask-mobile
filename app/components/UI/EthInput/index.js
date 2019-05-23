@@ -22,6 +22,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
 import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -55,7 +56,8 @@ const styles = StyleSheet.create({
 		marginRight: 30,
 		fontSize: 16,
 		paddingTop: Platform.OS === 'android' ? 3 : 0,
-		paddingLeft: 10
+		paddingLeft: 10,
+		alignSelf: 'center'
 	},
 	fiatValue: {
 		...fontStyles.normal,
@@ -183,7 +185,11 @@ class EthInput extends Component {
 		/**
 		 * Primary currency, either ETH or Fiat
 		 */
-		primaryCurrency: PropTypes.string
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = { readableValue: undefined, assets: undefined };
@@ -283,12 +289,12 @@ class EthInput extends Component {
 	 * @returns {object} - 'SelectableAsset' object with corresponding asset information
 	 */
 	renderAsset = (asset, onPress) => {
-		const { tokenBalances, accounts, selectedAddress } = this.props;
+		const { tokenBalances, accounts, selectedAddress, ticker } = this.props;
 		const assetsObject = {
 			ETH: () => {
-				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + strings('unit.eth');
+				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + getTicker(ticker);
 				const icon = <Image source={ethLogo} style={styles.logo} />;
-				return { title: strings('unit.eth'), subTitle, icon };
+				return { title: getTicker(ticker), subTitle, icon };
 			},
 			ERC20: () => {
 				const title = asset.symbol;
@@ -310,7 +316,7 @@ class EthInput extends Component {
 			}
 		};
 		let assetType;
-		if (asset.symbol === 'ETH') {
+		if (asset.isETH) {
 			assetType = 'ETH';
 		} else if (asset.decimals) {
 			assetType = 'ERC20';
@@ -446,9 +452,11 @@ class EthInput extends Component {
 							{currency}
 						</Text>
 					</View>
-					<Text style={styles.fiatValue} numberOfLines={1}>
-						{convertedAmount}
-					</Text>
+					{convertedAmount && (
+						<Text style={styles.fiatValue} numberOfLines={1}>
+							{convertedAmount}
+						</Text>
+					)}
 				</View>
 			</View>
 		);
@@ -465,7 +473,8 @@ class EthInput extends Component {
 			contractExchangeRates,
 			conversionRate,
 			transaction: { assetType, selectedAsset, value },
-			primaryCurrency
+			primaryCurrency,
+			ticker
 		} = this.props;
 		// Depending on 'assetType' return object with corresponding 'convertedAmount', 'currency' and 'image'
 		const inputs = {
@@ -473,9 +482,9 @@ class EthInput extends Component {
 				let convertedAmount, currency;
 				if (primaryCurrency === 'ETH') {
 					convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
-					currency = strings('unit.eth');
+					currency = getTicker(ticker);
 				} else {
-					convertedAmount = renderFromWei(value) + ' ' + strings('unit.eth');
+					convertedAmount = renderFromWei(value) + ' ' + getTicker(ticker);
 					currency = currentCurrency.toUpperCase();
 				}
 				const image = <Image source={ethLogo} style={styles.logo} />;
@@ -547,7 +556,8 @@ const mapStateToProps = state => ({
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	transaction: state.transaction,
-	primaryCurrency: state.settings.primaryCurrency
+	primaryCurrency: state.settings.primaryCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(EthInput);

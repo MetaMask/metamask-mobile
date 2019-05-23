@@ -4,17 +4,17 @@ import { StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-nati
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
-import ActionModal from '../../UI/ActionModal';
-import SecureKeychain from '../../../core/SecureKeychain';
-import SelectComponent from '../../UI/SelectComponent';
-import StyledButton from '../../UI/StyledButton';
-import { clearHistory } from '../../../actions/browser';
-import { clearHosts, setPrivacyMode } from '../../../actions/privacy';
-import { colors, fontStyles } from '../../../styles/common';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { setLockTime } from '../../../actions/settings';
-import { strings } from '../../../../locales/i18n';
-import Analytics from '../../../core/Analytics';
+import ActionModal from '../../../UI/ActionModal';
+import SecureKeychain from '../../../../core/SecureKeychain';
+import SelectComponent from '../../../UI/SelectComponent';
+import StyledButton from '../../../UI/StyledButton';
+import { clearHistory } from '../../../../actions/browser';
+import { clearHosts, setPrivacyMode } from '../../../../actions/privacy';
+import { colors, fontStyles } from '../../../../styles/common';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { setLockTime } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
+import Analytics from '../../../../core/Analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {

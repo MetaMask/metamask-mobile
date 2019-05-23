@@ -1,7 +1,542 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionDetails should render correctly 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<View
+  style={
+    Object {
+      "backgroundColor": "#f2f3f4",
+      "flex": 1,
+      "marginTop": 10,
+      "paddingHorizontal": 15,
+      "paddingVertical": 10,
+    }
+  }
+>
+  <ActionModal
+    cancelButtonMode="neutral"
+    cancelTestID=""
+    cancelText="Nevermind"
+    confirmButtonMode="warning"
+    confirmTestID=""
+    confirmText="Yes, let's try"
+    modalVisible={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
+    onRequestClose={[Function]}
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "stretch",
+          "flex": 1,
+          "flexDirection": "column",
+          "justifyContent": "space-between",
+          "padding": 20,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 22,
+            "fontWeight": "600",
+            "textAlign": "center",
+          }
+        }
+      >
+        Attempt to cancel?
+      </Text>
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "600",
+            "textAlign": "center",
+          }
+        }
+      >
+        Gas Cancellation Fee
+      </Text>
+      <View
+        style={
+          Object {
+            "backgroundColor": "#f2f3f4",
+            "padding": 15,
+            "textAlign": "center",
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "textAlign": "center",
+            }
+          }
+        >
+          0
+           
+          ETH
+        </Text>
+      </View>
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "textAlign": "center",
+          }
+        }
+      >
+        Submitting this attempt does not guarantee your original transaction will be cancelled. If the canellation attempt is successful, you will be charged the transaction fee above.
+      </Text>
+    </View>
+  </ActionModal>
+  <View>
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "flex": 1,
+          "fontFamily": "Roboto",
+          "fontSize": 15,
+          "fontWeight": "400",
+          "paddingVertical": 10,
+        }
+      }
+    >
+      Hash
+    </Text>
+    <View
+      style={
+        Array [
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderRadius": 5,
+            "marginBottom": 5,
+            "padding": 10,
+            "shadowColor": "#848c96",
+            "shadowOffset": Object {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 0.5,
+            "shadowRadius": 3,
+          },
+          Object {
+            "flexDirection": "row",
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "fontSize": 12,
+            },
+          ]
+        }
+      >
+        0x2 ... 0x2
+      </Text>
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "paddingRight": 5,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#037dd6"
+          name="copy"
+          size={15}
+        />
+      </TouchableOpacity>
+    </View>
+  </View>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "flex": 1,
+        "fontFamily": "Roboto",
+        "fontSize": 15,
+        "fontWeight": "400",
+        "paddingVertical": 10,
+      }
+    }
+  >
+    From
+  </Text>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 5,
+          "marginBottom": 5,
+          "padding": 10,
+          "shadowColor": "#848c96",
+          "shadowOffset": Object {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 0.5,
+          "shadowRadius": 3,
+        },
+        Object {
+          "flexDirection": "row",
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "flex": 1,
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+        }
+      }
+    >
+      0x0
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "paddingRight": 5,
+        }
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#037dd6"
+        name="copy"
+        size={15}
+      />
+    </TouchableOpacity>
+  </View>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "flex": 1,
+        "fontFamily": "Roboto",
+        "fontSize": 15,
+        "fontWeight": "400",
+        "paddingVertical": 10,
+      }
+    }
+  >
+    To
+  </Text>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderRadius": 5,
+          "marginBottom": 5,
+          "padding": 10,
+          "shadowColor": "#848c96",
+          "shadowOffset": Object {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 0.5,
+          "shadowRadius": 3,
+        },
+        Object {
+          "flexDirection": "row",
+        },
+      ]
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#999999",
+          "flex": 1,
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+        }
+      }
+    >
+      0x1
+    </Text>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "paddingRight": 5,
+        }
+      }
+    >
+      <Icon
+        allowFontScaling={false}
+        color="#037dd6"
+        name="copy"
+        size={15}
+      />
+    </TouchableOpacity>
+  </View>
+  <Text
+    style={
+      Object {
+        "color": "#000000",
+        "flex": 1,
+        "fontFamily": "Roboto",
+        "fontSize": 15,
+        "fontWeight": "400",
+        "paddingVertical": 10,
+      }
+    }
+  >
+    Details
+  </Text>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 5,
+        "marginBottom": 5,
+        "padding": 10,
+        "shadowColor": "#848c96",
+        "shadowOffset": Object {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 0.5,
+        "shadowRadius": 3,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#d6d9dc",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 10,
+          "paddingBottom": 5,
+        }
+      }
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "left",
+              "width": "40%",
+            },
+          ]
+        }
+      >
+        Amount
+      </Text>
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "right",
+              "width": "60%",
+            },
+          ]
+        }
+      >
+        2 TKN
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#d6d9dc",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 10,
+          "paddingBottom": 5,
+        }
+      }
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "left",
+              "width": "40%",
+            },
+          ]
+        }
+      >
+        Gas Limit (Units)
+      </Text>
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "right",
+              "width": "60%",
+            },
+          ]
+        }
+      >
+        21000
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#d6d9dc",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 10,
+          "paddingBottom": 5,
+        }
+      }
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "left",
+              "width": "40%",
+            },
+          ]
+        }
+      >
+        Gas Price (GWEI)
+      </Text>
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "right",
+              "width": "60%",
+            },
+          ]
+        }
+      >
+        2
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#d6d9dc",
+          "flex": 1,
+          "flexDirection": "row",
+          "marginBottom": 10,
+          "paddingBottom": 5,
+        }
+      }
+    >
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "left",
+              "width": "40%",
+            },
+          ]
+        }
+      >
+        Total
+      </Text>
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#999999",
+              "flex": 1,
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+            },
+            Object {
+              "textAlign": "right",
+              "width": "60%",
+            },
+          ]
+        }
+      >
+        2 TKN / 0.001 ETH
+      </Text>
+    </View>
+  </View>
+</View>
 `;

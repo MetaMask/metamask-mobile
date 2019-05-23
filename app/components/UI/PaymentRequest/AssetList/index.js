@@ -69,10 +69,10 @@ export default class AssetList extends Component {
 	 * @param {object} asset - Asset to generate the logo to render
 	 */
 	renderLogo = asset => {
-		const { symbol, logo, address } = asset;
+		const { logo, address, isETH } = asset;
 		if (!logo) {
 			return <Identicon address={address} />;
-		} else if (symbol === 'ETH') {
+		} else if (isETH) {
 			return <Image source={logo} style={styles.ethLogo} />;
 		}
 		return <AssetIcon logo={logo} />;

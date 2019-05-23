@@ -181,7 +181,8 @@ const defaultEth = [
 	{
 		symbol: 'ETH',
 		name: 'Ether',
-		logo: ethLogo
+		logo: ethLogo,
+		isETH: true
 	}
 ];
 const defaultAssets = [
@@ -452,7 +453,7 @@ class PaymentRequest extends Component {
 		let res;
 		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle
 		// fiat conversion for the payment request
-		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.symbol === 'ETH')) {
+		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.isETH)) {
 			res = this.handleFiatPrimaryCurrency(amount);
 		} else {
 			res = this.handleETHPrimaryCurrency(amount);
@@ -490,7 +491,7 @@ class PaymentRequest extends Component {
 		const { cryptoAmount, selectedAsset, chainId } = this.state;
 		try {
 			let link;
-			if (selectedAsset.symbol === 'ETH') {
+			if (selectedAsset.isETH) {
 				link = generateETHLink(selectedAddress, cryptoAmount, chainId);
 			} else {
 				link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount, chainId);

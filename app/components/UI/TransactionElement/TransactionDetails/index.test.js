@@ -13,6 +13,15 @@ describe('TransactionDetails', () => {
 					CurrencyRateController: {
 						conversionRate: 2,
 						currentCurrency: 'USD'
+					},
+					PreferencesController: {
+						frequentRpcList: []
+					},
+					NetworkController: {
+						provider: {
+							rpcTarget: '',
+							type: ''
+						}
 					}
 				}
 			}

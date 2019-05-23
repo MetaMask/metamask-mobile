@@ -96,8 +96,14 @@ class NavbarBrowserTitle extends Component {
 
 	render = () => {
 		const { https, network, hostname } = this.props;
-		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
-
+		let name, color;
+		if (network.provider.nickname) {
+			color = Networks[network.provider.type].color || null;
+			name = network.provider.nickname;
+		} else {
+			color = Networks[network.provider.type].color || null;
+			name = Networks[network.provider.type].name || { ...Networks.rpc, color: null }.name;
+		}
 		return (
 			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>

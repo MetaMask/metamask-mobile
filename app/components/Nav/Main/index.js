@@ -12,11 +12,13 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Approval from '../../Views/Approval';
 import Settings from '../../Views/Settings';
-import GeneralSettings from '../../Views/GeneralSettings';
-import AdvancedSettings from '../../Views/AdvancedSettings';
+import GeneralSettings from '../../Views/Settings/GeneralSettings';
+import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
+import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
+import NetworksSettings from '../../Views/Settings/NetworksSettings';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import AppInformation from '../../UI/AppInformation';
-import SecuritySettings from '../../Views/SecuritySettings';
-import ExperimentalSettings from '../../Views/ExperimentalSettings';
 import Wallet from '../../Views/Wallet';
 import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
@@ -153,6 +155,12 @@ const MainNavigator = createStackNavigator(
 				},
 				ExperimentalSettings: {
 					screen: ExperimentalSettings
+				},
+				NetworksSettings: {
+					screen: NetworksSettings
+				},
+				NetworkSettings: {
+					screen: NetworkSettings
 				},
 				CompanySettings: {
 					screen: AppInformation
