@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer, findBlockExplorerForRpc } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -45,6 +45,7 @@ import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import URL from 'url-parse';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -540,7 +541,8 @@ class DrawerView extends Component {
 		if (network.provider.type === 'rpc') {
 			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 			const url = `${blockExplorer}/address/${selectedAddress}`;
-			this.goToBrowserUrl(url, url);
+			const title = new URL(blockExplorer).hostname;
+			this.goToBrowserUrl(url, title);
 		} else {
 			const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
 			const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
@@ -669,9 +671,10 @@ class DrawerView extends Component {
 			},
 			frequentRpcList
 		} = this.props;
-		let blockExplorer;
+		let blockExplorer, blockExplorerName;
 		if (type === 'rpc') {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			blockExplorerName = getBlockExplorerName(blockExplorer);
 		}
 		return [
 			[
@@ -705,7 +708,7 @@ class DrawerView extends Component {
 				},
 				{
 					name:
-						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorer}`) ||
+						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorerName}`) ||
 						strings('drawer.view_in_etherscan'),
 					icon: this.getIcon('eye'),
 					action: this.viewInEtherscan

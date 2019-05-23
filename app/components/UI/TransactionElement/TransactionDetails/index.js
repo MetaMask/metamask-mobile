@@ -9,10 +9,11 @@ import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import { renderFromWei } from '../../../../util/number';
 import { CANCEL_RATE } from 'gaba/TransactionController';
-import { getNetworkTypeById, findBlockExplorerForRpc } from '../../../../util/networks';
+import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
+import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -263,9 +264,10 @@ class TransactionDetails extends PureComponent {
 		try {
 			if (type === 'rpc') {
 				const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
+				const title = new URL(rpcBlockExplorer).hostname;
 				this.props.navigation.push('Webview', {
 					url,
-					title: url
+					title
 				});
 			} else {
 				const network = getNetworkTypeById(networkID);
@@ -392,7 +394,10 @@ class TransactionDetails extends PureComponent {
 							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
 						>
 							<Text style={styles.viewOnEtherscan}>
-								{(rpcBlockExplorer && `${strings('transactions.view_on')} ${rpcBlockExplorer}`) ||
+								{(rpcBlockExplorer &&
+									`${strings('transactions.view_on')} ${getBlockExplorerName(
+										rpcBlockExplorer
+									).toUpperCase()}`) ||
 									strings('transactions.view_on_etherscan')}
 							</Text>
 						</TouchableOpacity>

@@ -1,4 +1,6 @@
 import { colors } from '../styles/common';
+import URL from 'url-parse';
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -82,4 +84,17 @@ export function findBlockExplorerForRpc(rpcTarget, frequentRpcList) {
 		return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
 	}
 	return undefined;
+}
+
+/**
+ * From block explorer url, get rendereable name or undefined
+ *
+ * @param {string} blockExplorerUrl - block explorer url
+ */
+export function getBlockExplorerName(blockExplorerUrl) {
+	if (!blockExplorerUrl) return undefined;
+	const hostname = new URL(blockExplorerUrl).hostname;
+	if (!hostname) return undefined;
+	const tempBlockExplorerName = hostname.split('.')[0];
+	return tempBlockExplorerName[0].toUpperCase() + tempBlockExplorerName.slice(1);
 }
