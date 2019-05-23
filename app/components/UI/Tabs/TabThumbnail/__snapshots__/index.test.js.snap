@@ -94,6 +94,13 @@ exports[`TabThumbnail should render correctly 1`] = `
       <TouchableOpacity
         activeOpacity={0.2}
         onPress={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+            "height": 36,
+            "width": 36,
+          }
+        }
       >
         <Icon
           allowFontScaling={false}
