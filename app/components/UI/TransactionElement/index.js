@@ -14,6 +14,7 @@ import FadeIn from 'react-native-fade-in-image';
 import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
 import TransferElement from './TransferElement';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	row: {
@@ -100,7 +101,7 @@ const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 /**
  * View that renders a transaction item part of transactions list
  */
-export default class TransactionElement extends PureComponent {
+class TransactionElement extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -154,7 +155,11 @@ export default class TransactionElement extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func
+		showAlert: PropTypes.func,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -323,11 +328,13 @@ export default class TransactionElement extends PureComponent {
 				transactionHash
 			},
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			ticker
 		} = this.props;
+		const unit = ticker || strings('unit.eth');
 		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
-		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.eth');
+		const renderTotalEth = renderFromWei(totalEth) + ' ' + unit;
 		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
 
 		const gasBN = hexToBN(gas);
@@ -339,10 +346,10 @@ export default class TransactionElement extends PureComponent {
 			renderFrom: renderFullAddress(from),
 			renderTo: renderFullAddress(to),
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
+			renderValue: renderFromWei(value) + ' ' + unit,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalValue) + ' ' + strings('unit.eth'),
+			renderTotalValue: renderFromWei(totalValue) + ' ' + unit,
 			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency).toUpperCase()
 		};
 
@@ -363,14 +370,16 @@ export default class TransactionElement extends PureComponent {
 				transactionHash
 			},
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			ticker
 		} = this.props;
+		const unit = ticker || strings('unit.eth');
 		const { actionKey } = this.state;
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
-		const renderTotalEth = renderFromWei(totalGas) + ' ' + strings('unit.eth');
+		const renderTotalEth = renderFromWei(totalGas) + ' ' + unit;
 		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
@@ -385,10 +394,10 @@ export default class TransactionElement extends PureComponent {
 			renderFrom: renderFullAddress(from),
 			renderTo: strings('transactions.to_contract'),
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
+			renderValue: renderFromWei(value) + ' ' + unit,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalEth) + ' ' + strings('unit.eth'),
+			renderTotalValue: renderFromWei(totalEth) + ' ' + unit,
 			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase()
 		};
 
@@ -451,3 +460,8 @@ export default class TransactionElement extends PureComponent {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+});
+export default connect(mapStateToProps)(TransactionElement);

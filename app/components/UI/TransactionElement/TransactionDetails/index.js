@@ -401,7 +401,7 @@ class TransactionDetails extends PureComponent {
 							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
 						>
 							<Text style={styles.viewOnEtherscan}>
-								{(rpcBlockExplorer && `view on ${rpcBlockExplorer}`) ||
+								{(rpcBlockExplorer && `${strings('transactions.view_on')} ${rpcBlockExplorer}`) ||
 									strings('transactions.view_on_etherscan')}
 							</Text>
 						</TouchableOpacity>

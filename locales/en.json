@@ -513,6 +513,7 @@
 		"gas_limit": "Gas Limit (Units)",
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
+		"view_on": "VIEW ON",
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard"
