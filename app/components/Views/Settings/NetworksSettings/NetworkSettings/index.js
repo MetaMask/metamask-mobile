@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -8,7 +8,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Networks, { isprivateConnection } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
 import StyledButton from '../../../../UI/StyledButton';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
@@ -146,9 +145,11 @@ class NetworkSettings extends Component {
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname, { blockExplorerUrl });
-			NetworkController.setRpcTarget(url.href, chainId, ticker, nickname);
 			CurrencyRateController.configure({ nativeCurrency: ticker });
+			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker.toUpperCase(), nickname, {
+				blockExplorerUrl
+			});
+			NetworkController.setRpcTarget(url.href, chainId, ticker.toUpperCase(), nickname);
 			navigation.navigate('WalletView');
 		}
 	};
@@ -281,7 +282,7 @@ class NetworkSettings extends Component {
 		} = this.state;
 		return (
 			<View style={styles.wrapper}>
-				<KeyboardAwareScrollView style={styles.informationWrapper}>
+				<ScrollView style={styles.informationWrapper}>
 					<View>
 						{addMode && <Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>}
 						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
@@ -363,7 +364,7 @@ class NetworkSettings extends Component {
 							onSubmitEditing={this.addRpcUrl}
 						/>
 					</View>
-				</KeyboardAwareScrollView>
+				</ScrollView>
 				{(addMode || editable) && (
 					<StyledButton
 						type="confirm"
