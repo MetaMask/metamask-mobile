@@ -93,8 +93,16 @@ class NetworkSettings extends Component {
 		ticker: undefined,
 		editable: undefined,
 		addMode: false,
-		warningRpcUrl: undefined
+		warningRpcUrl: undefined,
+		validatedRpcURL: true,
+		initialState: undefined,
+		enableAction: false
 	};
+
+	inputRpcURL = React.createRef();
+	inputChainId = React.createRef();
+	inputSymbol = React.createRef();
+	inputBlockExplorerURL = React.createRef();
 
 	getOtherNetworks = () => allNetworks.slice(1);
 
@@ -120,7 +128,8 @@ class NetworkSettings extends Component {
 				editable = true;
 				rpcUrl = network;
 			}
-			this.setState({ rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable });
+			const initialState = rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
+			this.setState({ rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable, initialState });
 		} else {
 			this.setState({ addMode: true });
 		}
@@ -156,31 +165,78 @@ class NetworkSettings extends Component {
 			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
 			return false;
 		}
+		this.setState({ validatedRpcURL: true });
 		return true;
 	};
 
-	onRpcUrlChange = url => {
-		this.setState({ rpcUrl: url });
+	getCurrentState = () => {
+		const { rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable, initialState } = this.state;
+		const actualState = rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
+		let enableAction;
+		if (actualState !== initialState) {
+			//enable editing/ saving
+			enableAction = true;
+		} else {
+			enableAction = false;
+		}
+		this.setState({ enableAction });
 	};
 
-	onNicknameChange = nickname => {
-		this.setState({ nickname });
+	onRpcUrlChange = async url => {
+		await this.setState({ rpcUrl: url, validatedRpcURL: false });
+		this.getCurrentState();
 	};
 
-	onChainIDChange = chainId => {
-		this.setState({ chainId });
+	onNicknameChange = async nickname => {
+		await this.setState({ nickname });
+		this.getCurrentState();
 	};
 
-	onTickerChange = ticker => {
-		this.setState({ ticker });
+	onChainIDChange = async chainId => {
+		await this.setState({ chainId });
+		this.getCurrentState();
 	};
 
-	onBlockExplorerUrl = blockExplorerUrl => {
-		this.setState({ blockExplorerUrl });
+	onTickerChange = async ticker => {
+		await this.setState({ ticker });
+		this.getCurrentState();
+	};
+
+	onBlockExplorerUrlChange = async blockExplorerUrl => {
+		await this.setState({ blockExplorerUrl });
+		this.getCurrentState();
+	};
+
+	jumpToRpcURL = () => {
+		const { current } = this.inputRpcURL;
+		current && current.focus();
+	};
+	jumpToChainId = () => {
+		const { current } = this.inputChainId;
+		current && current.focus();
+	};
+	jumpToSymbol = () => {
+		const { current } = this.inputSymbol;
+		current && current.focus();
+	};
+	jumpBlockExplorerURL = () => {
+		const { current } = this.inputBlockExplorerURL;
+		current && current.focus();
 	};
 
 	render() {
-		const { rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable, addMode } = this.state;
+		const {
+			rpcUrl,
+			blockExplorerUrl,
+			nickname,
+			chainId,
+			ticker,
+			editable,
+			addMode,
+			warningRpcUrl,
+			validatedRpcURL,
+			enableAction
+		} = this.state;
 		return (
 			<View style={styles.wrapper}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -198,21 +254,34 @@ class NetworkSettings extends Component {
 							editable={editable}
 							onChangeText={this.onNicknameChange}
 							placeholder={'Nickname (optional)'}
+							onSubmitEditing={this.jumpToRpcURL}
 						/>
 
 						<Text style={styles.label}>RPC Url</Text>
 						<TextInput
+							ref={this.inputRpcURL}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							value={rpcUrl}
 							editable={editable}
 							onChangeText={this.onRpcUrlChange}
+							onBlur={this.validateRpcUrl}
 							placeholder={strings('app_settings.new_RPC_URL')}
+							onSubmitEditing={this.jumpToChainId}
 						/>
+
+						{warningRpcUrl && (
+							<View style={styles.rpcConfirmContainer}>
+								<View style={styles.warningContainer}>
+									<Text style={styles.warningText}>{warningRpcUrl}</Text>
+								</View>
+							</View>
+						)}
 
 						<Text style={styles.label}>Chain ID</Text>
 						<TextInput
+							ref={this.inputChainId}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
@@ -220,11 +289,13 @@ class NetworkSettings extends Component {
 							editable={editable}
 							onChangeText={this.onChainIDChange}
 							placeholder={'Chain ID (optional)'}
+							onSubmitEditing={this.jumpToSymbol}
 						/>
 
 						<Text style={styles.label}>Symbol</Text>
 
 						<TextInput
+							ref={this.inputSymbol}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
@@ -232,29 +303,34 @@ class NetworkSettings extends Component {
 							editable={editable}
 							onChangeText={this.onTickerChange}
 							placeholder={'Symbol (optional)'}
+							onSubmitEditing={this.jumpBlockExplorerURL}
 						/>
 
 						<Text style={styles.label}>Block Explorer URL</Text>
 
 						<TextInput
+							ref={this.inputBlockExplorerURL}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
 							autoCorrect={false}
 							value={blockExplorerUrl}
 							editable={editable}
-							onChangeText={this.onBlockExplorerUrl}
+							onChangeText={this.onBlockExplorerUrlChange}
 							placeholder={'Block Explorer URL (optional)'}
+							onSubmitEditing={this.addRpcUrl}
 						/>
-
-						<View style={styles.rpcConfirmContainer}>
-							<View style={styles.warningContainer}>
-								<Text style={styles.warningText}>{this.state.warningRpcUrl}</Text>
-							</View>
-						</View>
 					</View>
 				</KeyboardAwareScrollView>
 				{(addMode || editable) && (
-					<StyledButton type="confirm" onPress={this.addRpcUrl} containerStyle={styles.syncConfirm}>
+					<StyledButton
+						type="confirm"
+						onPress={this.addRpcUrl}
+						containerStyle={styles.syncConfirm}
+						disabled={
+							!enableAction ||
+							(!rpcUrl || (rpcUrl && !validatedRpcURL) || (rpcUrl && warningRpcUrl !== undefined))
+						}
+					>
 						{editable ? 'Save' : 'Add'}
 					</StyledButton>
 				)}
