@@ -451,6 +451,7 @@
 		"close": "Close",
 		"open_in_browser": "Open in browser",
 		"change_url": "Change url",
+		"switch_network": "Switch network",
 		"dapp_browser": "DAPP BROWSER",
 		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
 		"featured_dapps": "FEATURED DAPPS",
@@ -770,7 +771,7 @@
 		"public_address_qr_code": "Public Address QR Code",
 		"coming_soon": "Coming soon..."
 	},
-  "experimental_settings": {
+	"experimental_settings": {
 		"wallet_connect_dapps": "WalletConnect Sessions",
 		"wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
 		"wallet_connect_dapps_cta": "VIEW SESSIONS"
@@ -782,5 +783,5 @@
 		"cancel": "Cancel",
 		"session_ended_title": "Session Ended",
 		"session_ended_desc": "The selected session has been terminated"
-  }
+	}
 }

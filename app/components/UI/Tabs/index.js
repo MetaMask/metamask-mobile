@@ -16,13 +16,11 @@ import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 
-const THUMB_HORIZONTAL_MARGIN = 16;
 const THUMB_VERTICAL_MARGIN = 20;
 const NAVBAR_SIZE = DeviceSize.isIphoneX() ? 88 : 64;
-const THUMB_WIDTH = Dimensions.get('window').width / 2 - THUMB_HORIZONTAL_MARGIN * 2;
-const THUMB_HEIGHT = (Platform.OS === 'ios' ? THUMB_WIDTH * 1.8 : THUMB_WIDTH * 1.45) + THUMB_VERTICAL_MARGIN;
+const THUMB_HEIGHT = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5) + THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor((Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) / THUMB_HEIGHT);
-const TABS_VISIBLE = ROWS_VISIBLE * 2;
+const TABS_VISIBLE = ROWS_VISIBLE;
 
 const styles = StyleSheet.create({
 	noTabs: {
@@ -43,7 +41,9 @@ const styles = StyleSheet.create({
 	},
 	tabAction: {
 		flex: 1,
-		alignContent: 'center'
+		alignContent: 'center',
+		alignSelf: 'flex-start',
+		justifyContent: 'center'
 	},
 
 	tabActionleft: {
@@ -53,17 +53,20 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'flex-end'
 	},
+	tabActionDone: {
+		...fontStyles.bold
+	},
 	tabActionText: {
-		color: colors.fontPrimary,
+		color: colors.blue,
 		...fontStyles.normal,
-		fontSize: 14
+		fontSize: 16
 	},
 	actionDisabled: {
 		color: colors.fontSecondary
 	},
 	tabsView: {
 		flex: 1,
-		backgroundColor: colors.grey000,
+		backgroundColor: colors.grey100,
 		position: 'absolute',
 		top: 0,
 		left: 0,
@@ -73,20 +76,28 @@ const styles = StyleSheet.create({
 	tabActions: {
 		paddingHorizontal: 20,
 		flexDirection: 'row',
-		marginBottom: DeviceSize.isIphoneX() ? 30 : 5,
-		paddingVertical: 10
+		marginBottom: DeviceSize.isIphoneX() ? 0 : 0,
+		paddingTop: 17,
+		shadowColor: colors.black,
+		shadowOffset: {
+			width: 0,
+			height: 12
+		},
+		shadowOpacity: 0.58,
+		shadowRadius: 15.0,
+		backgroundColor: colors.grey000,
+		height: DeviceSize.isIphoneX() ? 80 : 50
 	},
 	tabs: {
-		flex: 1
+		flex: 1,
+		backgroundColor: colors.transparent
 	},
 	tabsContent: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'space-between',
-		padding: 15
+		padding: 15,
+		backgroundColor: colors.transparent
 	},
 	newTabIcon: {
-		marginTop: Platform.OS === 'ios' ? 3 : 0,
+		marginTop: Platform.OS === 'ios' ? 3 : 2.5,
 		color: colors.white,
 		fontSize: 24,
 		textAlign: 'center',
@@ -95,12 +106,13 @@ const styles = StyleSheet.create({
 	},
 	newTabIconButton: {
 		alignSelf: 'center',
-		justifyContent: 'center',
-		alignContent: 'center',
+		justifyContent: 'flex-start',
+		alignContent: 'flex-start',
 		backgroundColor: colors.blue,
 		borderRadius: 100,
 		width: 30,
-		height: 30
+		height: 30,
+		marginTop: -7
 	}
 });
 
@@ -169,16 +181,14 @@ export default class Tabs extends PureComponent {
 
 			// Calculate the row
 
-			const row = Math.ceil((index + 1) / 2);
+			const row = index + 1;
 
 			// Scroll if needed
-			if (row > ROWS_VISIBLE) {
-				const pos = (row - 1) * THUMB_HEIGHT;
+			const pos = (row - 1) * THUMB_HEIGHT;
 
-				InteractionManager.runAfterInteractions(() => {
-					this.scrollview.current && this.scrollview.current.scrollTo({ x: 0, y: pos, animated: true });
-				});
-			}
+			InteractionManager.runAfterInteractions(() => {
+				this.scrollview.current && this.scrollview.current.scrollTo({ x: 0, y: pos, animated: true });
+			});
 		}
 	}
 
@@ -224,30 +234,43 @@ export default class Tabs extends PureComponent {
 		);
 	}
 
+	renderTabActions() {
+		const { tabs, closeAllTabs, newTab, closeTabsView } = this.props;
+		return (
+			<View style={styles.tabActions}>
+				<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={closeAllTabs}>
+					<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>
+						{strings('browser.tabs_close_all')}
+					</Text>
+				</TouchableOpacity>
+				<View style={styles.tabAction}>
+					<TouchableOpacity style={styles.newTabIconButton} onPress={newTab}>
+						<MaterialCommunityIcon name="plus" size={15} style={styles.newTabIcon} />
+					</TouchableOpacity>
+				</View>
+
+				<TouchableOpacity style={[styles.tabAction, styles.tabActionRight]} onPress={closeTabsView}>
+					<Text
+						style={[
+							styles.tabActionText,
+							styles.tabActionDone,
+							tabs.length === 0 ? styles.actionDisabled : null
+						]}
+					>
+						{strings('browser.tabs_done')}
+					</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	}
+
 	render() {
-		const { tabs, activeTab, closeAllTabs, newTab, closeTabsView } = this.props;
+		const { tabs, activeTab } = this.props;
 
 		return (
 			<View style={styles.tabsView}>
 				{tabs.length === 0 ? this.renderNoTabs() : this.renderTabs(tabs, activeTab)}
-				<View style={styles.tabActions}>
-					<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={closeAllTabs}>
-						<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>
-							{strings('browser.tabs_close_all')}
-						</Text>
-					</TouchableOpacity>
-					<View style={styles.tabAction}>
-						<TouchableOpacity style={styles.newTabIconButton} onPress={newTab}>
-							<MaterialCommunityIcon name="plus" size={15} style={styles.newTabIcon} />
-						</TouchableOpacity>
-					</View>
-
-					<TouchableOpacity style={[styles.tabAction, styles.tabActionRight]} onPress={closeTabsView}>
-						<Text style={[styles.tabActionText, tabs.length === 0 ? styles.actionDisabled : null]}>
-							{strings('browser.tabs_done')}
-						</Text>
-					</TouchableOpacity>
-				</View>
+				{this.renderTabActions()}
 			</View>
 		);
 	}

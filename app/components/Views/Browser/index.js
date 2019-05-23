@@ -85,7 +85,8 @@ class Browser extends PureComponent {
 					key: `tab_${tab.id}`,
 					initialUrl: tab.url || 'about:blank',
 					updateTabInfo: (url, tabID) => this.updateTabInfo(url, tabID),
-					showTabs: () => this.showTabs()
+					showTabs: () => this.showTabs(),
+					newTab: () => this.newTab()
 				});
 			}
 		});
