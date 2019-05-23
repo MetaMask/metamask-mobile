@@ -46,7 +46,12 @@ export default class WebsiteIcon extends Component {
 		/**
 		 * String corresponding to website url
 		 */
-		url: PropTypes.string
+		url: PropTypes.string,
+		/**
+		 * Flag that determines if the background
+		 * should be transaparent or not
+		 */
+		transparent: PropTypes.bool
 	};
 
 	state = {
@@ -70,7 +75,7 @@ export default class WebsiteIcon extends Component {
 
 	render = () => {
 		const { renderIconUrlError } = this.state;
-		const { url, viewStyle, style, title, textStyle } = this.props;
+		const { url, viewStyle, style, title, textStyle, transparent } = this.props;
 		const apiLogoUrl = { uri: this.getIconUrl(url) };
 
 		if (renderIconUrlError && title) {
@@ -85,7 +90,7 @@ export default class WebsiteIcon extends Component {
 
 		return (
 			<View style={viewStyle}>
-				<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
+				<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
 					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
 				</FadeIn>
 			</View>

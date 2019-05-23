@@ -38,6 +38,7 @@ export const colors = {
 	spinnerColor: '#F758AC',
 	dimmed: '#00000080',
 	transparent: 'transparent',
+	lightOverlay: 'rgba(0,0,0,.2)',
 	overlay: 'rgba(0,0,0,.5)',
 	darkAlert: 'rgba(0,0,0,.75)',
 	normalAlert: 'rgba(55,55,55,.97)',
