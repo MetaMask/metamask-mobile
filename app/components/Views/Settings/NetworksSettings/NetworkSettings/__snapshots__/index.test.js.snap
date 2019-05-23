@@ -1,0 +1,277 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkSettings should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "flexDirection": "column",
+    }
+  }
+>
+  <ScrollViewMock
+    style={
+      Object {
+        "flex": 1,
+        "paddingHorizontal": 24,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "flex": 1,
+          "paddingVertical": 12,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        New RPC Network
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Use a custom RPC-capable network via URL instead of one of the provided networks.
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Network Name
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Network Name (optional)"
+        rejectResponderTermination={true}
+        style={
+          Array [
+            Object {
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
+        }
+        underlineColorAndroid="transparent"
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        RPC Url
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="New RPC Network"
+        rejectResponderTermination={true}
+        style={
+          Array [
+            Object {
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
+        }
+        underlineColorAndroid="transparent"
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Chain ID
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="numeric"
+        onBlur={[Function]}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Chain ID (optional)"
+        rejectResponderTermination={true}
+        style={
+          Array [
+            Object {
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
+        }
+        underlineColorAndroid="transparent"
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Symbol
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Symbol (optional)"
+        rejectResponderTermination={true}
+        style={
+          Array [
+            Object {
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
+        }
+        underlineColorAndroid="transparent"
+      />
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Block Explorer URL
+      </Text>
+      <TextInput
+        allowFontScaling={true}
+        autoCapitalize="none"
+        autoCorrect={false}
+        onChangeText={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Block Explorer URL (optional)"
+        rejectResponderTermination={true}
+        style={
+          Array [
+            Object {
+              "borderColor": "#bbc0c5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "fontFamily": "Roboto",
+              "fontWeight": "400",
+              "padding": 10,
+            },
+            Object {},
+          ]
+        }
+        underlineColorAndroid="transparent"
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "alignSelf": "flex-end",
+          "flexDirection": "row",
+          "marginVertical": 12,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "flex": 1,
+            "flexDirection": "column",
+          }
+        }
+      >
+        <StyledButton
+          disabled={true}
+          disabledContainerStyle={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          onPress={[Function]}
+          styleDisabled={
+            Object {
+              "opacity": 0.6,
+            }
+          }
+          type="confirm"
+        >
+          Add
+        </StyledButton>
+      </View>
+    </View>
+  </ScrollViewMock>
+</SafeAreaView>
+`;

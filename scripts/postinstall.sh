@@ -5,28 +5,28 @@ echo "PostInstall script:"
 echo "0. Fix connext client"
 
 # Fix TS warnings
-TARGET="node_modules/indra/modules/client/src/controllers/ExchangeController.ts"
-sed -i'' -e 's/export const validateExchangeRate /export const validateExchangeRate:any /' $TARGET;
+# TARGET="node_modules/indra/modules/client/src/controllers/ExchangeController.ts"
+# sed -i'' -e 's/export const validateExchangeRate /export const validateExchangeRate:any /' $TARGET;
 
-TARGET="node_modules/indra/modules/client/src/controllers/StateUpdateController.ts"
-sed -i'' -e 's/export const watchStore /export const watchStore:any /' $TARGET;
+# TARGET="node_modules/indra/modules/client/src/controllers/StateUpdateController.ts"
+# sed -i'' -e 's/export const watchStore /export const watchStore:any /' $TARGET;
 
-TARGET="node_modules/indra/modules/client/src/lib/timestamp.ts"
-sed -i'' -e 's/export const validateTimestamp /export const validateTimestamp:any /' $TARGET;
+# TARGET="node_modules/indra/modules/client/src/lib/timestamp.ts"
+# sed -i'' -e 's/export const validateTimestamp /export const validateTimestamp:any /' $TARGET;
 
-TARGET="node_modules/indra/modules/client/src/state/actions.ts"
-sed -i'' -e 's/export const setChannelAndUpdate /export const setChannelAndUpdate:any /' $TARGET;
+# TARGET="node_modules/indra/modules/client/src/state/actions.ts"
+# sed -i'' -e 's/export const setChannelAndUpdate /export const setChannelAndUpdate:any /' $TARGET;
 
 # Install packages
 cd node_modules/indra/modules/client && npm i && cd ../../../../
 
 # Remove warnings
-TARGET="node_modules/indra/modules/client/dist/Connext.js"
-sed -i'' -e 's/timeoutPromise(result/timeoutPromise((result || Promise.resolve())/' $TARGET;
-sed -i'' -e 's/merged.saveState || console.log/merged.saveState || (() => undefined)/' $TARGET;
+# TARGET="node_modules/indra/modules/client/dist/Connext.js"
+# sed -i'' -e 's/timeoutPromise(result/timeoutPromise((result || Promise.resolve())/' $TARGET;
+# sed -i'' -e 's/merged.saveState || console.log/merged.saveState || (() => undefined)/' $TARGET;
 
-TARGET="node_modules/indra/modules/client/dist/Hub.js"
-sed -i'' -e 's/auth\/response`, {/auth\/response`, {origin:"unknown",/' $TARGET;
+# TARGET="node_modules/indra/modules/client/dist/Hub.js"
+# sed -i'' -e 's/auth\/response`, {/auth\/response`, {origin:"unknown",/' $TARGET;
 
 TARGET="node_modules/indra/modules/client/node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
 sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;

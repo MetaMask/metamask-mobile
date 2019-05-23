@@ -2,11 +2,11 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Platform, Switch, StyleSheet, Text, ScrollView, View } from 'react-native';
 import { connect } from 'react-redux';
-import StyledButton from '../../UI/StyledButton';
-import { setEnablePaymentChannels } from '../../../actions/settings';
-import { colors, fontStyles } from '../../../styles/common';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { strings } from '../../../../locales/i18n';
+import StyledButton from '../../../UI/StyledButton';
+import { setEnablePaymentChannels } from '../../../../actions/settings';
+import { colors, fontStyles } from '../../../../styles/common';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { strings } from '../../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
