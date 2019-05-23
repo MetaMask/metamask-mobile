@@ -451,6 +451,7 @@
 		"close": "Close",
 		"open_in_browser": "Open in browser",
 		"change_url": "Change url",
+		"switch_network": "Switch network",
 		"dapp_browser": "DAPP BROWSER",
 		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
 		"featured_dapps": "FEATURED DAPPS",

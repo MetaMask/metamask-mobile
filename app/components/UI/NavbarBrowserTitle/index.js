@@ -6,6 +6,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { toggleNetworkModal } from '../../../actions/modals';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -56,6 +57,14 @@ const styles = StyleSheet.create({
 class NavbarBrowserTitle extends Component {
 	static propTypes = {
 		/**
+		 * Object representing the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * String representing the current url
+		 */
+		url: PropTypes.string,
+		/**
 		 * Object representing the selected the selected network
 		 */
 		network: PropTypes.object.isRequired,
@@ -73,8 +82,16 @@ class NavbarBrowserTitle extends Component {
 		toggleNetworkModal: PropTypes.func
 	};
 
-	openNetworkList = () => {
-		this.props.toggleNetworkModal();
+	onTitlePress = () => {
+		if (this.props.hostname === strings('browser.title')) {
+			this.props.toggleNetworkModal();
+		} else {
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: this.props.url,
+				showUrlModal: true
+			});
+		}
 	};
 
 	render = () => {
@@ -82,7 +99,7 @@ class NavbarBrowserTitle extends Component {
 		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
 
 		return (
-			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
+			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
 					{https ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
 					<Text

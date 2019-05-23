@@ -60,6 +60,7 @@ import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { toggleNetworkModal } from '../../../actions/modals';
 
 const HOMEPAGE_URL = 'about:blank';
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 70,
+		bottom: 75,
 		right: 3
 	},
 	option: {
@@ -333,6 +334,14 @@ export class BrowserTab extends PureComponent {
 		 * For ex. deeplinks
 		 */
 		url: PropTypes.string,
+		/**
+		 * Function to toggle the network switcher modal
+		 */
+		toggleNetworkModal: PropTypes.func,
+		/**
+		 * Function to open a new tab
+		 */
+		newTab: PropTypes.func,
 		/**
 		 * Function to store bookmarks
 		 */
@@ -1005,10 +1014,17 @@ export class BrowserTab extends PureComponent {
 		});
 	};
 
-	changeUrl = () => {
+	switchNetwork = () => {
 		this.toggleOptionsIfNeeded();
 		setTimeout(() => {
-			this.showUrlModal();
+			this.props.toggleNetworkModal();
+		}, 300);
+	};
+
+	openNewTab = () => {
+		this.toggleOptionsIfNeeded();
+		setTimeout(() => {
+			this.props.newTab();
 		}, 300);
 	};
 
@@ -1062,7 +1078,12 @@ export class BrowserTab extends PureComponent {
 					break;
 				case 'NAV_CHANGE': {
 					const { url, title } = data.payload;
-					this.setState({ inputValue: url, currentPageTitle: title, forwardEnabled: false });
+					this.setState({
+						inputValue: url,
+						autocompletInputValue: url,
+						currentPageTitle: title,
+						forwardEnabled: false
+					});
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
 					this.updateTabInfo(data.payload.url);
 					if (Platform.OS === 'ios') {
@@ -1143,7 +1164,7 @@ export class BrowserTab extends PureComponent {
 			}
 		}
 		this.updateTabInfo(inputValue);
-		this.setState({ fullHostname, inputValue, hostname });
+		this.setState({ fullHostname, inputValue, autocompleteInputValue: inputValue, hostname });
 	};
 
 	formatHostname(hostname) {
@@ -1216,65 +1237,79 @@ export class BrowserTab extends PureComponent {
 								Platform.OS === 'android' ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
 							]}
 						>
-							{Platform.OS === 'android' && this.canGoBack() ? (
-								<Button onPress={this.goBack} style={styles.option}>
-									<Icon name="arrow-left" size={15} style={styles.optionIcon} />
-									<Text style={styles.optionText} numberOfLines={1}>
-										{strings('browser.go_back')}
-									</Text>
-								</Button>
-							) : null}
-							{Platform.OS === 'android' && this.canGoForward() ? (
-								<Button onPress={this.goForward} style={styles.option}>
-									<Icon name="arrow-right" size={15} style={styles.optionIcon} />
-									<Text style={styles.optionText} numberOfLines={1}>
-										{strings('browser.go_forward')}
-									</Text>
-								</Button>
-							) : null}
-							<Button onPress={this.reload} style={styles.option}>
-								<Icon name="refresh" size={15} style={styles.optionIcon} />
+							<Button onPress={this.openNewTab} style={styles.option}>
+								<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
 								<Text style={styles.optionText} numberOfLines={1}>
-									{strings('browser.reload')}
+									{strings('browser.new_tab')}
 								</Text>
 							</Button>
-							<Button onPress={this.goBackToHomepage} style={styles.option}>
-								<Icon name="home" size={15} style={styles.optionIcon} />
+							{this.renderNonHomeOptions()}
+							<Button onPress={this.switchNetwork} style={styles.option}>
+								<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
 								<Text style={styles.optionText} numberOfLines={1}>
-									{strings('browser.home')}
+									{strings('browser.switch_network')}
 								</Text>
 							</Button>
-							<Button onPress={this.addBookmark} style={styles.option}>
-								<Icon name="star" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText} numberOfLines={1}>
-									{strings('browser.add_to_favorites')}
-								</Text>
-							</Button>
-							<Button onPress={this.share} style={styles.option}>
-								<Icon name="share" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText} numberOfLines={1}>
-									{strings('browser.share')}
-								</Text>
-							</Button>
-							<Button onPress={this.openInBrowser} style={styles.option}>
-								<Icon name="expand" size={15} style={styles.optionIcon} />
-								<Text style={styles.optionText} numberOfLines={1}>
-									{strings('browser.open_in_browser')}
-								</Text>
-							</Button>
-							{Platform.OS === 'android' ? (
-								<Button onPress={this.changeUrl} style={styles.option}>
-									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
-									<Text style={styles.optionText} numberOfLines={1}>
-										{strings('browser.change_url')}
-									</Text>
-								</Button>
-							) : null}
 						</View>
 					</View>
 				</TouchableWithoutFeedback>
 			);
 		}
+	};
+
+	renderNonHomeOptions = () => {
+		if (this.state.url === HOMEPAGE_URL) return null;
+
+		return (
+			<React.Fragment>
+				{Platform.OS === 'android' && this.canGoBack() ? (
+					<Button onPress={this.goBack} style={styles.option}>
+						<Icon name="arrow-left" size={15} style={styles.optionIcon} />
+						<Text style={styles.optionText} numberOfLines={1}>
+							{strings('browser.go_back')}
+						</Text>
+					</Button>
+				) : null}
+				{Platform.OS === 'android' && this.canGoForward() ? (
+					<Button onPress={this.goForward} style={styles.option}>
+						<Icon name="arrow-right" size={15} style={styles.optionIcon} />
+						<Text style={styles.optionText} numberOfLines={1}>
+							{strings('browser.go_forward')}
+						</Text>
+					</Button>
+				) : null}
+				<Button onPress={this.reload} style={styles.option}>
+					<Icon name="refresh" size={15} style={styles.optionIcon} />
+					<Text style={styles.optionText} numberOfLines={1}>
+						{strings('browser.reload')}
+					</Text>
+				</Button>
+				<Button onPress={this.goBackToHomepage} style={styles.option}>
+					<Icon name="home" size={15} style={styles.optionIcon} />
+					<Text style={styles.optionText} numberOfLines={1}>
+						{strings('browser.home')}
+					</Text>
+				</Button>
+				<Button onPress={this.addBookmark} style={styles.option}>
+					<Icon name="star" size={15} style={styles.optionIcon} />
+					<Text style={styles.optionText} numberOfLines={1}>
+						{strings('browser.add_to_favorites')}
+					</Text>
+				</Button>
+				<Button onPress={this.share} style={styles.option}>
+					<Icon name="share" size={15} style={styles.optionIcon} />
+					<Text style={styles.optionText} numberOfLines={1}>
+						{strings('browser.share')}
+					</Text>
+				</Button>
+				<Button onPress={this.openInBrowser} style={styles.option}>
+					<Icon name="expand" size={15} style={styles.optionIcon} />
+					<Text style={styles.optionText} numberOfLines={1}>
+						{strings('browser.open_in_browser')}
+					</Text>
+				</Button>
+			</React.Fragment>
+		);
 	};
 
 	handleScroll = e => {
@@ -1412,7 +1447,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onAutocomplete = link => {
-		this.setState({ inputValue: link }, () => {
+		this.setState({ inputValue: link, autocompleteInputValue: link }, () => {
 			this.onUrlInputSubmit(link);
 			this.updateTabInfo(link);
 		});
@@ -1694,7 +1729,8 @@ const mapDispatchToProps = dispatch => ({
 	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
-	setTransactionObject: asset => dispatch(setTransactionObject(asset))
+	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
+	toggleNetworkModal: () => dispatch(toggleNetworkModal())
 });
 
 export default connect(
