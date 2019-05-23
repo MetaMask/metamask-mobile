@@ -17,10 +17,8 @@ import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
-import { hasBlockExplorer, getNetworkTypeById } from '../../../util/networks';
+import { hasBlockExplorer } from '../../../util/networks';
 import { showAlert } from '../../../actions/alert';
-import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
-import Logger from '../../../util/Logger';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 
 const styles = StyleSheet.create({
@@ -215,21 +213,6 @@ class Transactions extends PureComponent {
 
 	keyExtractor = item => item.id;
 
-	viewOnEtherscan = (networkID, transactionHash) => {
-		try {
-			const network = getNetworkTypeById(networkID);
-			const url = getEtherscanTransactionUrl(network, transactionHash);
-			const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
-			this.props.navigation.push('Webview', {
-				url,
-				title: etherscan_url
-			});
-		} catch (e) {
-			// eslint-disable-next-line no-console
-			Logger.error(`can't get a block explorer link for network `, networkID, e);
-		}
-	};
-
 	blockExplorer = () => hasBlockExplorer(this.props.networkType);
 
 	renderItem = ({ item, index }) => (
@@ -246,7 +229,7 @@ class Transactions extends PureComponent {
 			conversionRate={this.props.conversionRate}
 			currentCurrency={this.props.currentCurrency}
 			showAlert={this.props.showAlert}
-			viewOnEtherscan={this.viewOnEtherscan}
+			navigation={this.props.navigation}
 		/>
 	);
 

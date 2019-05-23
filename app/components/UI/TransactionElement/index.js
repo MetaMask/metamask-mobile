@@ -103,6 +103,10 @@ const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 export default class TransactionElement extends PureComponent {
 	static propTypes = {
 		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object,
+		/**
 		 * Asset object (in this case ERC721 token)
 		 */
 		tx: PropTypes.object,
@@ -150,11 +154,7 @@ export default class TransactionElement extends PureComponent {
 		/**
 		 * Action that shows the global alert
 		 */
-		showAlert: PropTypes.func,
-		/**
-		 * Action that shows the global alert
-		 */
-		viewOnEtherscan: PropTypes.func
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -209,8 +209,8 @@ export default class TransactionElement extends PureComponent {
 				transactionObject={tx}
 				blockExplorer={blockExplorer}
 				showAlert={showAlert}
-				viewOnEtherscan={this.props.viewOnEtherscan}
 				transactionDetails={transactionDetails}
+				navigation={this.props.navigation}
 			/>
 		) : null;
 	};

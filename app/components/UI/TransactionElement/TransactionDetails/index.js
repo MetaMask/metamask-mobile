@@ -9,6 +9,10 @@ import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import { renderFromWei } from '../../../../util/number';
 import { CANCEL_RATE } from 'gaba/TransactionController';
+import { getNetworkTypeById } from '../../../../util/networks';
+import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
+import Logger from '../../../../util/Logger';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -127,11 +131,21 @@ const styles = StyleSheet.create({
 	}
 });
 
+const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
+
 /**
  * View that renders a transaction details as part of transactions list
  */
-export default class TransactionDetails extends PureComponent {
+class TransactionDetails extends PureComponent {
 	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object,
+		/**
+		 * Object representing the selected the selected network
+		 */
+		network: PropTypes.object,
 		/**
 		 * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
 		 */
@@ -145,17 +159,31 @@ export default class TransactionDetails extends PureComponent {
 		 */
 		showAlert: PropTypes.func,
 		/**
-		 * Action that shows the global alert
-		 */
-		viewOnEtherscan: PropTypes.func,
-		/**
 		 * Object with information to render
 		 */
-		transactionDetails: PropTypes.object
+		transactionDetails: PropTypes.object,
+		/**
+		 * Frequent RPC list from PreferencesController
+		 */
+		frequentRpcList: PropTypes.array
 	};
 
 	state = {
-		cancelIsOpen: false
+		cancelIsOpen: false,
+		rpcBlockExplorer: undefined
+	};
+
+	componentDidMount = () => {
+		const {
+			network: {
+				provider: { rpcTarget, type }
+			}
+		} = this.props;
+		let blockExplorer;
+		if (type === 'rpc') {
+			blockExplorer = this.findBlockExplorerForRpc(rpcTarget) || NO_RPC_BLOCK_EXPLORER;
+		}
+		this.setState({ rpcBlockExplorer: blockExplorer });
 	};
 
 	renderTxHash = transactionHash => {
@@ -222,11 +250,44 @@ export default class TransactionDetails extends PureComponent {
 		</TouchableOpacity>
 	);
 
+	findBlockExplorerForRpc = rpcTarget => {
+		const { frequentRpcList } = this.props;
+		const frequentRpc = frequentRpcList.find(({ rpcUrl }) => rpcTarget === rpcUrl);
+		if (frequentRpc) {
+			return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
+		}
+		return undefined;
+	};
+
 	viewOnEtherscan = () => {
 		const {
-			transactionObject: { networkID }
+			transactionObject: { networkID },
+			transactionDetails: { transactionHash },
+			network: {
+				provider: { type }
+			}
 		} = this.props;
-		this.props.viewOnEtherscan(networkID, this.props.transactionDetails.transactionHash);
+		const { rpcBlockExplorer } = this.state;
+		try {
+			if (type === 'rpc') {
+				const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
+				this.props.navigation.push('Webview', {
+					url,
+					title: url
+				});
+			} else {
+				const network = getNetworkTypeById(networkID);
+				const url = getEtherscanTransactionUrl(network, transactionHash);
+				const etherscan_url = getEtherscanBaseUrl(network).replace('https://', '');
+				this.props.navigation.push('Webview', {
+					url,
+					title: etherscan_url
+				});
+			}
+		} catch (e) {
+			// eslint-disable-next-line no-console
+			Logger.error(`can't get a block explorer link for network `, networkID, e);
+		}
 	};
 
 	showCancelModal = () => {
@@ -255,6 +316,7 @@ export default class TransactionDetails extends PureComponent {
 
 	render = () => {
 		const { blockExplorer, transactionObject } = this.props;
+		const { rpcBlockExplorer } = this.state;
 		const existingGasPrice = transactionObject.transaction ? transactionObject.transaction.gasPrice : '0x0';
 		const existingGasPriceDecimal = parseInt(existingGasPrice === undefined ? '0x0' : existingGasPrice, 16);
 
@@ -333,14 +395,24 @@ export default class TransactionDetails extends PureComponent {
 				</View>
 				{this.props.transactionDetails.transactionHash &&
 					transactionObject.status !== 'cancelled' &&
-					blockExplorer && (
+					blockExplorer &&
+					rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
 						<TouchableOpacity
 							onPress={this.viewOnEtherscan} // eslint-disable-line react/jsx-no-bind
 						>
-							<Text style={styles.viewOnEtherscan}>{strings('transactions.view_on_etherscan')}</Text>
+							<Text style={styles.viewOnEtherscan}>
+								{(rpcBlockExplorer && `view on ${rpcBlockExplorer}`) ||
+									strings('transactions.view_on_etherscan')}
+							</Text>
 						</TouchableOpacity>
 					)}
 			</View>
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	network: state.engine.backgroundState.NetworkController,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
+});
+export default connect(mapStateToProps)(TransactionDetails);
