@@ -424,9 +424,7 @@ exports[`NetworkList should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
-        >
-          http://10.0.2.2:8545
-        </Text>
+        />
       </View>
     </TouchableOpacity>
   </ScrollViewMock>
