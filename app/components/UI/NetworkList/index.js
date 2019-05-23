@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
 	selected: {
 		position: 'absolute',
 		marginLeft: 20,
-		marginTop: 22
+		marginTop: 20
 	},
 	mainnetSelected: {
 		marginLeft: -30,
