@@ -39,6 +39,10 @@ const NetworkList = {
 
 export default NetworkList;
 
+export function getAllNetworks() {
+	return ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
+}
+
 export function getNetworkTypeById(id) {
 	const network = Object.keys(NetworkList).filter(key => NetworkList[key].networkId === parseInt(id, 10));
 	if (network.length > 0) {
@@ -64,4 +68,18 @@ export function isprivateConnection(hostname) {
 		hostname === 'localhost' ||
 		/(^127\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)/.test(hostname)
 	);
+}
+
+/**
+ * Returns custom block explorer for specific rpcTarget
+ *
+ * @param {string} rpcTarget
+ * @param {array<object>} frequentRpcList
+ */
+export function findBlockExplorerForRpc(rpcTarget, frequentRpcList) {
+	const frequentRpc = frequentRpcList.find(({ rpcUrl }) => rpcTarget === rpcUrl);
+	if (frequentRpc) {
+		return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
+	}
+	return undefined;
 }

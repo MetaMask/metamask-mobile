@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import Networks from '../../../../util/networks';
+import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 
 const styles = StyleSheet.create({
@@ -72,9 +72,7 @@ class NetworksSettings extends Component {
 
 	state = {};
 
-	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
-
-	getOtherNetworks = () => this.getAllNetworks().slice(1);
+	getOtherNetworks = () => getAllNetworks().slice(1);
 
 	onPress = network => {
 		const { navigation } = this.props;

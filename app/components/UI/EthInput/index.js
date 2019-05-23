@@ -22,6 +22,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
 import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -291,9 +292,9 @@ class EthInput extends Component {
 		const { tokenBalances, accounts, selectedAddress, ticker } = this.props;
 		const assetsObject = {
 			ETH: () => {
-				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + ticker || strings('unit.eth');
+				const subTitle = renderFromWei(accounts[selectedAddress].balance) + ' ' + getTicker(ticker);
 				const icon = <Image source={ethLogo} style={styles.logo} />;
-				return { title: ticker || strings('unit.eth'), subTitle, icon };
+				return { title: getTicker(ticker), subTitle, icon };
 			},
 			ERC20: () => {
 				const title = asset.symbol;
@@ -481,9 +482,9 @@ class EthInput extends Component {
 				let convertedAmount, currency;
 				if (primaryCurrency === 'ETH') {
 					convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
-					currency = ticker || strings('unit.eth');
+					currency = getTicker(ticker);
 				} else {
-					convertedAmount = renderFromWei(value) + ' ' + ticker || strings('unit.eth');
+					convertedAmount = renderFromWei(value) + ' ' + getTicker(ticker);
 					currency = currentCurrency.toUpperCase();
 				}
 				const image = <Image source={ethLogo} style={styles.logo} />;

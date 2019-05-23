@@ -9,7 +9,7 @@ import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../../util/number';
 import { ScrollView } from 'react-native-gesture-handler';
-import { strings } from '../../../../locales/i18n';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -163,11 +163,11 @@ class AccountSelect extends Component {
 		// render balances according to selected 'primaryCurrency'
 		let mainBalance, secondaryBalance;
 		if (primaryCurrency === 'ETH') {
-			mainBalance = renderFromWei(balance) + ' ' + ticker || strings('unit.eth');
+			mainBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
 			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
 		} else {
 			mainBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
-			secondaryBalance = renderFromWei(balance) + ' ' + ticker || strings('unit.eth');
+			secondaryBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
 		}
 
 		return (

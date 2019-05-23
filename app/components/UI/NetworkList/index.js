@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Networks from '../../../util/networks';
+import Networks, { getAllNetworks } from '../../../util/networks';
 import { connect } from 'react-redux';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
@@ -141,9 +141,7 @@ export class NetworkList extends Component {
 		networkStatus: PropTypes.object
 	};
 
-	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
-
-	getOtherNetworks = () => this.getAllNetworks().slice(1);
+	getOtherNetworks = () => getAllNetworks().slice(1);
 
 	onNetworkChange = async type => {
 		const { provider } = this.props;

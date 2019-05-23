@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -534,10 +534,11 @@ class DrawerView extends Component {
 			network,
 			network: {
 				provider: { rpcTarget }
-			}
+			},
+			frequentRpcList
 		} = this.props;
 		if (network.provider.type === 'rpc') {
-			const blockExplorer = this.findBlockExplorerForRpc(rpcTarget);
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 			const url = `${blockExplorer}/address/${selectedAddress}`;
 			this.goToBrowserUrl(url, url);
 		} else {
@@ -613,23 +614,15 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
-	findBlockExplorerForRpc = rpcTarget => {
-		const { frequentRpcList } = this.props;
-		const frequentRpc = frequentRpcList.find(({ rpcUrl }) => rpcTarget === rpcUrl);
-		if (frequentRpc) {
-			return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
-		}
-		return undefined;
-	};
-
 	hasBlockExplorer = providerType => {
+		const { frequentRpcList } = this.props;
 		if (providerType === 'rpc') {
 			const {
 				network: {
 					provider: { rpcTarget }
 				}
 			} = this.props;
-			const blockExplorer = this.findBlockExplorerForRpc(rpcTarget);
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 			if (blockExplorer) {
 				return true;
 			}
@@ -673,11 +666,12 @@ class DrawerView extends Component {
 		const {
 			network: {
 				provider: { type, rpcTarget }
-			}
+			},
+			frequentRpcList
 		} = this.props;
 		let blockExplorer;
 		if (type === 'rpc') {
-			blockExplorer = this.findBlockExplorerForRpc(rpcTarget);
+			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 		}
 		return [
 			[

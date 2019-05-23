@@ -15,6 +15,7 @@ import { showAlert } from '../../../actions/alert';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -190,7 +191,7 @@ class Wallet extends Component {
 			assets = [
 				{
 					name: 'Ether',
-					symbol: ticker || 'ETH',
+					symbol: getTicker(ticker),
 					isETH: true,
 					balance,
 					balanceFiat: weiToFiat(

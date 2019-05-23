@@ -14,6 +14,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import { fromWei } from '../../../util/number';
 import Logger from '../../../util/Logger';
+import { getTicker } from '../../../util/transactions';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -247,8 +248,8 @@ class CustomGas extends Component {
 
 	renderCustomGasSelector = () => {
 		const { averageGwei, fastGwei, safeLowGwei } = this.state;
-		const { conversionRate, currentCurrency, gas, ticker } = this.props;
-		const unit = ticker || strings('unit.eth');
+		const { conversionRate, currentCurrency, gas } = this.props;
+		const ticker = getTicker(this.props.ticker);
 		return (
 			<View style={styles.selectors}>
 				<TouchableOpacity
@@ -264,7 +265,7 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_slow')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(safeLowGwei, gas)} {unit}
+						{getRenderableEthGasFee(safeLowGwei, gas)} {ticker}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasSlowSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(safeLowGwei, conversionRate, currentCurrency.toUpperCase(), gas)}
@@ -285,7 +286,7 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_average')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(averageGwei, gas)} {unit}
+						{getRenderableEthGasFee(averageGwei, gas)} {ticker}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasAverageSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(averageGwei, conversionRate, currentCurrency.toUpperCase(), gas)}
@@ -304,7 +305,7 @@ class CustomGas extends Component {
 						{strings('transaction.gas_fee_fast')}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
-						{getRenderableEthGasFee(fastGwei, gas)} {unit}
+						{getRenderableEthGasFee(fastGwei, gas)} {ticker}
 					</Text>
 					<Text style={[styles.text, { color: this.state.gasFastSelected ? colors.white : undefined }]}>
 						{getRenderableFiatGasFee(fastGwei, conversionRate, currentCurrency.toUpperCase(), gas)}
@@ -316,12 +317,12 @@ class CustomGas extends Component {
 
 	renderCustomGasInput = () => {
 		const { customGasLimit, customGasPrice, warningGasLimit, warningGasPrice } = this.state;
-		const { totalGas, ticker } = this.props;
-		const unit = ticker || strings('unit.eth');
+		const { totalGas } = this.props;
+		const ticker = getTicker(this.props.ticker);
 		return (
 			<View>
 				<Text style={styles.textTotalGas}>
-					{fromWei(totalGas)} {unit}
+					{fromWei(totalGas)} {ticker}
 				</Text>
 				<Text style={styles.text}>{strings('custom_gas.gas_limit')}</Text>
 				<TextInput

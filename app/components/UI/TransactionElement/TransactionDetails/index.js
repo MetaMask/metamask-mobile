@@ -9,7 +9,7 @@ import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import { renderFromWei } from '../../../../util/number';
 import { CANCEL_RATE } from 'gaba/TransactionController';
-import { getNetworkTypeById } from '../../../../util/networks';
+import { getNetworkTypeById, findBlockExplorerForRpc } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
@@ -177,11 +177,12 @@ class TransactionDetails extends PureComponent {
 		const {
 			network: {
 				provider: { rpcTarget, type }
-			}
+			},
+			frequentRpcList
 		} = this.props;
 		let blockExplorer;
 		if (type === 'rpc') {
-			blockExplorer = this.findBlockExplorerForRpc(rpcTarget) || NO_RPC_BLOCK_EXPLORER;
+			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
 	};
@@ -249,15 +250,6 @@ class TransactionDetails extends PureComponent {
 			<Icon name={'copy'} size={15} color={colors.blue} />
 		</TouchableOpacity>
 	);
-
-	findBlockExplorerForRpc = rpcTarget => {
-		const { frequentRpcList } = this.props;
-		const frequentRpc = frequentRpcList.find(({ rpcUrl }) => rpcTarget === rpcUrl);
-		if (frequentRpc) {
-			return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
-		}
-		return undefined;
-	};
 
 	viewOnEtherscan = () => {
 		const {

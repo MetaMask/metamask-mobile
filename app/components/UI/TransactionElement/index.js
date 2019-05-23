@@ -7,7 +7,7 @@ import { toLocaleDateTime } from '../../../util/date';
 import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
-import { getActionKey, decodeTransferData } from '../../../util/transactions';
+import { getActionKey, decodeTransferData, getTicker } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 import { renderFullAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
@@ -328,13 +328,12 @@ class TransactionElement extends PureComponent {
 				transactionHash
 			},
 			conversionRate,
-			currentCurrency,
-			ticker
+			currentCurrency
 		} = this.props;
-		const unit = ticker || strings('unit.eth');
+		const ticker = getTicker(this.props.ticker);
 		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
-		const renderTotalEth = renderFromWei(totalEth) + ' ' + unit;
+		const renderTotalEth = renderFromWei(totalEth) + ' ' + ticker;
 		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
 
 		const gasBN = hexToBN(gas);
@@ -346,10 +345,10 @@ class TransactionElement extends PureComponent {
 			renderFrom: renderFullAddress(from),
 			renderTo: renderFullAddress(to),
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + unit,
+			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalValue) + ' ' + unit,
+			renderTotalValue: renderFromWei(totalValue) + ' ' + ticker,
 			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency.toUpperCase())
 		};
 
@@ -370,16 +369,15 @@ class TransactionElement extends PureComponent {
 				transactionHash
 			},
 			conversionRate,
-			currentCurrency,
-			ticker
+			currentCurrency
 		} = this.props;
-		const unit = ticker || strings('unit.eth');
+		const ticker = getTicker(this.props.ticker);
 		const { actionKey } = this.state;
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
-		const renderTotalEth = renderFromWei(totalGas) + ' ' + unit;
+		const renderTotalEth = renderFromWei(totalGas) + ' ' + ticker;
 		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
@@ -394,10 +392,10 @@ class TransactionElement extends PureComponent {
 			renderFrom: renderFullAddress(from),
 			renderTo: strings('transactions.to_contract'),
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + unit,
+			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalEth) + ' ' + unit,
+			renderTotalValue: renderFromWei(totalEth) + ' ' + ticker,
 			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase())
 		};
 

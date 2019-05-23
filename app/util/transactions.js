@@ -269,3 +269,13 @@ export async function getTransactionReviewActionKey(transaction) {
 	}
 	return actionKey;
 }
+
+/**
+ * Returns corresponding ticker, defined or ETH
+ *
+ * @param {string} - Ticker
+ * @returns {string} - Corresponding ticker or ETH
+ */
+export function getTicker(ticker) {
+	return ticker || strings('unit.eth');
+}
