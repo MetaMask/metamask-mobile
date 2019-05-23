@@ -109,6 +109,7 @@ class NetworkSettings extends Component {
 		const { navigation, frequentRpcList } = this.props;
 		const network = navigation.getParam('network', undefined);
 		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
+		// If no navigation param, user clicked on add network
 		if (network) {
 			if (allNetworks.find(net => network === net)) {
 				blockExplorerUrl = getEtherscanBaseUrl(network);
@@ -134,6 +135,10 @@ class NetworkSettings extends Component {
 		}
 	};
 
+	/**
+	 * Add rpc url and parameters to PreferencesController
+	 * Setting NetworkController provider to this custom rpc
+	 */
 	addRpcUrl = () => {
 		const { PreferencesController, NetworkController } = Engine.context;
 		const { rpcUrl, chainId, ticker, nickname, blockExplorerUrl } = this.state;
@@ -147,6 +152,10 @@ class NetworkSettings extends Component {
 		}
 	};
 
+	/**
+	 * Validates rpc url, setting a warningRpcUrl if is invalid
+	 * It also changes validatedRpcURL to true, indicating that was validated
+	 */
 	validateRpcUrl = () => {
 		const { rpcUrl } = this.state;
 		if (!isWebUri(rpcUrl)) {
@@ -164,30 +173,54 @@ class NetworkSettings extends Component {
 			this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_prefix') });
 			return false;
 		}
-		this.setState({ validatedRpcURL: true });
+		this.setState({ validatedRpcURL: true, warningRpcUrl: undefined });
 		return true;
 	};
 
+	/**
+	 * Validates that chain id is a valid integer number, setting a warningChainId if is invalid
+	 */
 	validateChainId = () => {
 		const { chainId } = this.state;
 		if (!Number.isInteger(Number(chainId))) {
-			this.setState({ warningChainId: 'Invalid Chain ID', validatedChainId: true });
+			this.setState({ warningChainId: strings('app_settings.network_chain_id_warning'), validatedChainId: true });
 		} else {
 			this.setState({ warningChainId: undefined, validatedChainId: true });
 		}
 	};
 
+	/**
+	 * Allows to identify if any element of the form changed, in order to enable add or save button
+	 */
 	getCurrentState = () => {
 		const { rpcUrl, blockExplorerUrl, nickname, chainId, ticker, editable, initialState } = this.state;
 		const actualState = rpcUrl + blockExplorerUrl + nickname + chainId + ticker + editable;
 		let enableAction;
+		// If concstenation of parameters changed, user changed something so we are going to enable the action button
 		if (actualState !== initialState) {
-			//enable editing/ saving
 			enableAction = true;
 		} else {
 			enableAction = false;
 		}
 		this.setState({ enableAction });
+	};
+
+	/**
+	 * Returns if action button should be disabled because of the rpc url
+	 * No rpc url set or rpc url set but, rpc url has not been validated yet or there is a warning for rpc url
+	 */
+	disabledByRpcUrl = () => {
+		const { rpcUrl, validatedRpcURL, warningRpcUrl } = this.state;
+		return !rpcUrl || (rpcUrl && (!validatedRpcURL || warningRpcUrl !== undefined));
+	};
+
+	/**
+	 * Returns if action button should be disabled because of the rpc url
+	 * Chain ID set but, chain id has not been validated yet or there is a warning for chain id
+	 */
+	disabledByChainId = () => {
+		const { chainId, validatedChainId, warningChainId } = this.state;
+		return chainId && (!validatedChainId || warningChainId !== undefined);
 	};
 
 	onRpcUrlChange = async url => {
@@ -243,8 +276,6 @@ class NetworkSettings extends Component {
 			addMode,
 			warningRpcUrl,
 			warningChainId,
-			validatedChainId,
-			validatedRpcURL,
 			enableAction
 		} = this.state;
 		return (
@@ -254,8 +285,7 @@ class NetworkSettings extends Component {
 						{addMode && <Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>}
 						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
 
-						<Text style={styles.label}>Network Name</Text>
-
+						<Text style={styles.label}>{strings('app_settings.network_name_label')}</Text>
 						<TextInput
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 							autoCapitalize={'none'}
@@ -263,11 +293,11 @@ class NetworkSettings extends Component {
 							value={nickname}
 							editable={editable}
 							onChangeText={this.onNicknameChange}
-							placeholder={'Nickname (optional)'}
+							placeholder={strings('app_settings.network_name_placeholder')}
 							onSubmitEditing={this.jumpToRpcURL}
 						/>
 
-						<Text style={styles.label}>RPC Url</Text>
+						<Text style={styles.label}>{strings('app_settings.network_rpc_url_label')}</Text>
 						<TextInput
 							ref={this.inputRpcURL}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
@@ -277,17 +307,16 @@ class NetworkSettings extends Component {
 							editable={editable}
 							onChangeText={this.onRpcUrlChange}
 							onBlur={this.validateRpcUrl}
-							placeholder={strings('app_settings.new_RPC_URL')}
+							placeholder={strings('app_settings.network_rpc_placeholder')}
 							onSubmitEditing={this.jumpToChainId}
 						/>
-
 						{warningRpcUrl && (
 							<View style={styles.warningContainer}>
 								<Text style={styles.warningText}>{warningRpcUrl}</Text>
 							</View>
 						)}
 
-						<Text style={styles.label}>Chain ID</Text>
+						<Text style={styles.label}>{strings('app_settings.network_chain_id_label')}</Text>
 						<TextInput
 							ref={this.inputChainId}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
@@ -297,18 +326,17 @@ class NetworkSettings extends Component {
 							editable={editable}
 							onChangeText={this.onChainIDChange}
 							onBlur={this.validateChainId}
-							placeholder={'Chain ID (optional)'}
+							placeholder={strings('app_settings.network_chain_id_placeholder')}
 							onSubmitEditing={this.jumpToSymbol}
+							keyboardType={'numeric'}
 						/>
-
 						{warningChainId && (
 							<View style={styles.warningContainer}>
 								<Text style={styles.warningText}>{warningChainId}</Text>
 							</View>
 						)}
 
-						<Text style={styles.label}>Symbol</Text>
-
+						<Text style={styles.label}>{strings('app_settings.network_symbol_label')}</Text>
 						<TextInput
 							ref={this.inputSymbol}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
@@ -317,12 +345,11 @@ class NetworkSettings extends Component {
 							value={ticker}
 							editable={editable}
 							onChangeText={this.onTickerChange}
-							placeholder={'Symbol (optional)'}
+							placeholder={strings('app_settings.network_symbol_placeholder')}
 							onSubmitEditing={this.jumpBlockExplorerURL}
 						/>
 
-						<Text style={styles.label}>Block Explorer URL</Text>
-
+						<Text style={styles.label}>{strings('app_settings.network_block_explorer_label')}</Text>
 						<TextInput
 							ref={this.inputBlockExplorerURL}
 							style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
@@ -331,7 +358,7 @@ class NetworkSettings extends Component {
 							value={blockExplorerUrl}
 							editable={editable}
 							onChangeText={this.onBlockExplorerUrlChange}
-							placeholder={'Block Explorer URL (optional)'}
+							placeholder={strings('app_settings.network_block_explorer_placeholder')}
 							onSubmitEditing={this.addRpcUrl}
 						/>
 					</View>
@@ -341,11 +368,7 @@ class NetworkSettings extends Component {
 						type="confirm"
 						onPress={this.addRpcUrl}
 						containerStyle={styles.syncConfirm}
-						disabled={
-							!enableAction ||
-							(!rpcUrl || (rpcUrl && !validatedRpcURL) || (rpcUrl && warningRpcUrl !== undefined)) ||
-							((chainId && !validatedChainId) || (chainId && warningChainId !== undefined))
-						}
+						disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
 					>
 						{editable ? 'Save' : 'Add'}
 					</StyledButton>
