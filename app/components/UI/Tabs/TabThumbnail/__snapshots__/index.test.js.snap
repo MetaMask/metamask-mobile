@@ -1,115 +1,158 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabThumbnail should render correctly 1`] = `
-<View
+<ElevatedView
+  elevation={8}
   style={
-    Array [
-      Object {
-        "borderColor": "#d6d9dc",
-        "borderRadius": 10,
-        "borderWidth": 1,
-        "height": 617.4,
-        "justifyContent": "space-evenly",
-        "marginBottom": 20,
-        "overflow": "hidden",
-        "width": 343,
-      },
-      Object {
-        "borderColor": "#037dd6",
-        "borderWidth": 3,
-      },
-    ]
+    Object {
+      "backgroundColor": "transparent",
+      "overflow": "hidden",
+    }
   }
 >
   <View
     style={
-      Object {
-        "alignItems": "flex-start",
-        "backgroundColor": "#f2f3f4",
-        "flexDirection": "row",
-        "justifyContent": "flex-start",
-        "minHeight": 25,
-        "paddingHorizontal": 8,
-        "paddingVertical": 5,
-      }
+      Array [
+        Object {
+          "borderColor": "#d6d9dc",
+          "borderRadius": 10,
+          "borderWidth": 1,
+          "elevation": 8,
+          "height": 266.8,
+          "justifyContent": "space-evenly",
+          "marginBottom": 20,
+          "overflow": "hidden",
+          "width": 718,
+        },
+        Object {
+          "borderColor": "#037dd6",
+          "borderWidth": 5,
+        },
+      ]
     }
   >
-    <Image
-      source={
-        Object {
-          "testUri": "../../../app/images/fox.png",
-        }
-      }
+    <View
       style={
         Object {
-          "alignSelf": "flex-start",
-          "height": 12,
-          "marginRight": 5,
-          "width": 12,
-        }
-      }
-      title="about:blank"
-    />
-    <Text
-      numberOfLines={1}
-      style={
-        Object {
-          "color": "#000000",
-          "fontFamily": "Roboto",
-          "fontSize": 10,
-          "fontWeight": "400",
-          "marginRight": 25,
+          "alignItems": "flex-start",
+          "backgroundColor": "#6a737d",
+          "flexDirection": "row",
+          "justifyContent": "flex-start",
+          "minHeight": 25,
+          "paddingHorizontal": 10,
+          "paddingVertical": 15,
         }
       }
     >
-      New tab
-    </Text>
-    <Icon
-      allowFontScaling={false}
-      name="ios-close"
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+            "flex": 1,
+            "flexDirection": "row",
+            "marginRight": 40,
+          }
+        }
+      >
+        <Image
+          source={
+            Object {
+              "testUri": "../../../app/images/fox.png",
+            }
+          }
+          style={
+            Object {
+              "alignSelf": "flex-start",
+              "height": 24,
+              "marginLeft": 2,
+              "marginRight": 5,
+              "marginTop": 1,
+              "width": 24,
+            }
+          }
+          title="about:blank"
+        />
+        <Text
+          numberOfLines={1}
+          style={
+            Object {
+              "color": "#FFFFFF",
+              "fontFamily": "Roboto",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "marginLeft": 5,
+              "marginRight": 40,
+              "marginTop": 0,
+            }
+          }
+        >
+          New tab
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "backgroundColor": "transparent",
+            "height": 36,
+            "width": 36,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          name="ios-close"
+          size={12}
+          style={
+            Object {
+              "color": "#FFFFFF",
+              "fontSize": 38,
+              "marginTop": -7,
+              "paddingHorizontal": 10,
+              "paddingTop": 3,
+              "position": "absolute",
+              "right": 0,
+            }
+          }
+        />
+      </TouchableOpacity>
+    </View>
+    <TouchableOpacity
+      activeOpacity={0.2}
       onPress={[Function]}
-      size={24}
       style={
         Object {
-          "position": "absolute",
-          "right": 8,
-          "top": -1,
+          "alignItems": "flex-start",
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+          "justifyContent": "flex-start",
         }
       }
-    />
+    >
+      <Image
+        source={
+          Object {
+            "uri": "",
+          }
+        }
+        style={
+          Object {
+            "bottom": 0,
+            "height": null,
+            "left": 0,
+            "paddingTop": 1079,
+            "position": "absolute",
+            "resizeMode": "cover",
+            "right": 0,
+            "top": 0,
+            "width": null,
+          }
+        }
+      />
+    </TouchableOpacity>
   </View>
-  <TouchableOpacity
-    activeOpacity={0.2}
-    onPress={[Function]}
-    style={
-      Object {
-        "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "flex": 1,
-        "justifyContent": "center",
-        "overflow": "hidden",
-      }
-    }
-  >
-    <Image
-      source={
-        Object {
-          "uri": "",
-        }
-      }
-      style={
-        Object {
-          "bottom": 0,
-          "height": null,
-          "left": 0,
-          "position": "absolute",
-          "resizeMode": "cover",
-          "right": 0,
-          "top": 0,
-          "width": null,
-        }
-      }
-    />
-  </TouchableOpacity>
-</View>
+</ElevatedView>
 `;

@@ -316,7 +316,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerTitle: <NavbarBrowserTitle hostname={hostname} https={isHttps} />,
+		headerTitle: <NavbarBrowserTitle navigation={navigation} url={url} hostname={hostname} https={isHttps} />,
 		headerRight: (
 			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
 				<AccountRightButton />
