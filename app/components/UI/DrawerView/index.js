@@ -459,7 +459,8 @@ class DrawerView extends Component {
 	};
 
 	onSend = async () => {
-		this.props.setTokensTransaction({ symbol: 'ETH' });
+		const { ticker } = this.props;
+		this.props.setTokensTransaction({ symbol: ticker, isETH: true });
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
 	};
