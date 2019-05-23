@@ -67,7 +67,7 @@
 		"title": "Import Wallet",
 		"sync_help": "Sync your wallet with the extension",
 		"sync_help_step_one": "1. Open the extension",
-		"sync_help_step_two": "2. Go to settings",
+		"sync_help_step_two": "2. Go to \"Settings\" > \"Advanced\"",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code",
 		"sync_from_browser_extension_button": "Start Syncing",
@@ -512,7 +512,7 @@
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
 		"short_title": "Sync with Extension",
-		"label": "Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
+		"label": "Open the MetaMask extension in your desktop browser, then go to \"Settings\" > \"Advanced\", click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",
 		"error_title": "Bummer!",
@@ -522,7 +522,7 @@
 		"warning_ok_button": "YES",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Invalid QR Code",
-		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to Settings --> Sync with Mobile in the browser extension and scan the QR there"
+		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to \"Settings\" > \"Advanced\" > Sync with Mobile in the browser extension and scan the QR there"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",

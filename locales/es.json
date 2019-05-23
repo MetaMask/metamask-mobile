@@ -67,7 +67,7 @@
 		"title": "Importar Billetera",
 		"sync_help": "Sincroniza tu billetera con la extension",
 		"sync_help_step_one": "1. Ingresa a la extension",
-		"sync_help_step_two": "2. Ve a ajustes",
+		"sync_help_step_two": "2. Ve a \"Ajustes\" > \"Avanzado\"",
 		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",
 		"sync_from_browser_extension_button": "Comenzar Sincronización",
@@ -503,7 +503,7 @@
 	},
 	"sync_with_extension": {
 		"title": "Sincronizar datos con la extensión",
-		"label": "Abre la extensión de MetaMask en tu computador, luego ve a ajustes, haz click en \"Sincronizar con el Móvil\" y luego ingresa tu contraseña para ver el código QR",
+		"label": "Abre la extensión de MetaMask en tu computador, luego ve a \"Ajustes\" > \"Avanzado\", haz click en \"Sincronizar con el Móvil\" y luego ingresa tu contraseña para ver el código QR",
 		"button_continue": "Continuar",
 		"please_wait": "Por favor espera mientras sincronizamos tus datos...",
 		"error_title": "Bummer!",
@@ -513,7 +513,7 @@
 		"warning_ok_button": "SI",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Código QR inválido",
-		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  Ajustes --> Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
+		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",
@@ -758,7 +758,7 @@
 		"public_address_qr_code": "Código QR de Dirección Pública",
 		"coming_soon": "Pronto..."
 	},
-  "experimental_settings": {
+	"experimental_settings": {
 		"wallet_connect_dapps": "Sesiones de WalletConnect",
 		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
 		"wallet_connect_dapps_cta": "VER SESIONES"
@@ -770,5 +770,5 @@
 		"cancel": "Cancelar",
 		"session_ended_title": "Sesión Finalizada",
 		"session_ended_desc": "La sesión seleccionada ha sido terminada"
-  }
+	}
 }
