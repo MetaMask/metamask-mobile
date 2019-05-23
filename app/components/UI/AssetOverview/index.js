@@ -112,7 +112,7 @@ class AssetOverview extends Component {
 
 	onSend = async () => {
 		const { asset } = this.props;
-		if (asset.symbol === 'ETH') {
+		if (asset.isEth) {
 			this.props.setTokensTransaction({ symbol: 'ETH' });
 			this.props.navigation.navigate('SendView');
 		} else {
@@ -123,9 +123,9 @@ class AssetOverview extends Component {
 
 	renderLogo = () => {
 		const {
-			asset: { address, image, logo, symbol }
+			asset: { address, image, logo, isETH }
 		} = this.props;
-		if (symbol === 'ETH') {
+		if (isETH) {
 			return <Image source={ethLogo} style={styles.ethLogo} />;
 		}
 		const watchedAsset = image !== undefined;
@@ -150,7 +150,7 @@ class AssetOverview extends Component {
 		let mainBalance, secondaryBalance;
 		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
 		let balance, balanceFiat;
-		if (asset.symbol === 'ETH') {
+		if (asset.isETH) {
 			balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
 			balanceFiat = weiToFiat(
 				hexToBN(accounts[selectedAddress].balance),
