@@ -231,15 +231,21 @@ export async function getTransactionActionKey(transaction) {
  * @param {selectedAddress} selectedAddress - Current account public address
  * @returns {string} - Transaction type message
  */
-export async function getActionKey(tx, selectedAddress) {
+export async function getActionKey(tx, selectedAddress, ticker) {
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
 		return incoming
 			? selfSent
-				? strings('transactions.self_sent_ether')
+				? ticker
+					? strings('transactions.self_sent_unit', { unit: ticker })
+					: strings('transactions.self_sent_ether')
+				: ticker
+				? strings('transactions.received_unit', { unit: ticker })
 				: strings('transactions.received_ether')
+			: ticker
+			? strings('transactions.sent_unit', { unit: ticker })
 			: strings('transactions.sent_ether');
 	}
 	const transactionActionKey = actionKeys[actionKey];

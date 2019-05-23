@@ -170,8 +170,8 @@ class TransactionElement extends PureComponent {
 
 	componentDidMount = async () => {
 		this.mounted = true;
-		const { tx, selectedAddress } = this.props;
-		const actionKey = await getActionKey(tx, selectedAddress);
+		const { tx, selectedAddress, ticker } = this.props;
+		const actionKey = await getActionKey(tx, selectedAddress, ticker);
 		this.mounted && this.setState({ actionKey });
 	};
 
