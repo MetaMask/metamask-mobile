@@ -5,17 +5,25 @@ echo "PostInstall script:"
 echo "0. Fix connext client"
 
 # Fix TS warnings
-# TARGET="node_modules/indra/modules/client/src/controllers/ExchangeController.ts"
-# sed -i'' -e 's/export const validateExchangeRate /export const validateExchangeRate:any /' $TARGET;
+TARGET="node_modules/indra/modules/client/src/controllers/ExchangeController.ts"
+sed -i'' -e 's/export const validateExchangeRate /export const validateExchangeRate:any /' $TARGET;
 
-# TARGET="node_modules/indra/modules/client/src/controllers/StateUpdateController.ts"
-# sed -i'' -e 's/export const watchStore /export const watchStore:any /' $TARGET;
+TARGET="node_modules/indra/modules/client/src/controllers/StateUpdateController.ts"
+sed -i'' -e 's/export const watchStore /export const watchStore:any /' $TARGET;
 
-# TARGET="node_modules/indra/modules/client/src/lib/timestamp.ts"
-# sed -i'' -e 's/export const validateTimestamp /export const validateTimestamp:any /' $TARGET;
+TARGET="node_modules/indra/modules/client/src/lib/timestamp.ts"
+sed -i'' -e 's/export const validateTimestamp /export const validateTimestamp:any /' $TARGET;
 
-# TARGET="node_modules/indra/modules/client/src/state/actions.ts"
-# sed -i'' -e 's/export const setChannelAndUpdate /export const setChannelAndUpdate:any /' $TARGET;
+TARGET="node_modules/indra/modules/client/src/state/actions.ts"
+sed -i'' -e 's/export const setChannelAndUpdate /export const setChannelAndUpdate:any /' $TARGET;
+
+TARGET="node_modules/indra/modules/client/src/testing/index.ts"
+sed -i'' -e 's/export const getPendingArgs /export const getPendingArgs:any /' $TARGET;
+sed -i'' -e 's/export const getDepositArgs /export const getDepositArgs:any /' $TARGET;
+sed -i'' -e 's/export const getWithdrawalArgs /export const getWithdrawalArgs:any /' $TARGET;
+sed -i'' -e 's/export const getPaymentArgs /export const getPaymentArgs:any /' $TARGET;
+sed -i'' -e 's/export const getExchangeArgs /export const getExchangeArgs:any /' $TARGET;
+sed -i'' -e 's/export const getCustodialBalance /export const getCustodialBalance:any /' $TARGET;
 
 # Install packages
 cd node_modules/indra/modules/client && npm i && cd ../../../../
