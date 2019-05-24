@@ -11,6 +11,7 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'Error handling userAuthorizedUpdate',
 	'MaxListenersExceededWarning',
 	'Expected delta of 0 for the fields',
 	'The network request was invalid',
