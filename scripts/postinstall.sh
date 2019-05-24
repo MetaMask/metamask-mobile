@@ -28,14 +28,6 @@ sed -i'' -e 's/export const getCustodialBalance /export const getCustodialBalanc
 # Install packages
 cd node_modules/indra/modules/client && npm i && cd ../../../../
 
-# Remove warnings
-# TARGET="node_modules/indra/modules/client/dist/Connext.js"
-# sed -i'' -e 's/timeoutPromise(result/timeoutPromise((result || Promise.resolve())/' $TARGET;
-# sed -i'' -e 's/merged.saveState || console.log/merged.saveState || (() => undefined)/' $TARGET;
-
-# TARGET="node_modules/indra/modules/client/dist/Hub.js"
-# sed -i'' -e 's/auth\/response`, {/auth\/response`, {origin:"unknown",/' $TARGET;
-
 TARGET="node_modules/indra/modules/client/node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
 sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
 
