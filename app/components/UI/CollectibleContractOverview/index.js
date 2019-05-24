@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
 	},
 	name: {
 		fontSize: 30,
+		textAlign: 'center',
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	}
