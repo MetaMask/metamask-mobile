@@ -397,7 +397,13 @@ class Main extends Component {
 		transactionMeta.transaction.gas = hexToBN(gas);
 		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 		this.props.setTransactionObject({
-			...{ symbol: 'ETH', type: 'ETHER_TRANSACTION', assetType: 'ETH', id: transactionMeta.id },
+			...{
+				symbol: 'ETH',
+				selectedAsset: { isETH: true, symbol: 'ETH' },
+				type: 'ETHER_TRANSACTION',
+				assetType: 'ETH',
+				id: transactionMeta.id
+			},
 			...transactionMeta.transaction
 		});
 		this.props.navigation.push('ApprovalView');
