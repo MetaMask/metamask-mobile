@@ -53,6 +53,7 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
+			const { nativeCurrency, currentCurrency } = initialState.CurrencyRateController || {};
 			this.datamodel = new ComposableController(
 				[
 					new KeyringController({ encryptor }, initialState.KeyringController),
@@ -61,7 +62,10 @@ class Engine {
 					new AssetsContractController(),
 					new AssetsController(),
 					new AssetsDetectionController(),
-					new CurrencyRateController(),
+					new CurrencyRateController({
+						nativeCurrency,
+						currentCurrency
+					}),
 					new PersonalMessageManager(),
 					new NetworkController(
 						{
