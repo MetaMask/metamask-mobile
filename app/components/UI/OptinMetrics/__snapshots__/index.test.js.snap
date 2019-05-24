@@ -8,7 +8,7 @@ exports[`OptinMetrics should render correctly 1`] = `
     }
   }
 >
-  <ComponentWrapper
+  <ScrollViewMock
     style={
       Object {
         "flex": 1,
@@ -296,12 +296,6 @@ exports[`OptinMetrics should render correctly 1`] = `
       </View>
       <TouchableOpacity
         activeOpacity={0.2}
-        delayLongPress={600}
-        extraButtonProps={
-          Object {
-            "rippleColor": "transparent",
-          }
-        }
         onPress={[Function]}
       >
         <Text
@@ -393,6 +387,6 @@ exports[`OptinMetrics should render correctly 1`] = `
         I Agree
       </StyledButton>
     </View>
-  </ComponentWrapper>
+  </ScrollViewMock>
 </SafeAreaView>
 `;
