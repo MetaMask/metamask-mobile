@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet } from 'react-native';
+import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
@@ -8,7 +8,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import CustomAlert from '../../UI/CustomAlert';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { showAlert } from '../../../actions/alert';
 
 const styles = StyleSheet.create({
