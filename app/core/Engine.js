@@ -61,7 +61,10 @@ class Engine {
 					new AssetsContractController(),
 					new AssetsController(),
 					new AssetsDetectionController(),
-					new CurrencyRateController(),
+					new CurrencyRateController({
+						nativeCurrency: initialState.CurrencyRateController.nativeCurrency,
+						currentCurrency: initialState.CurrencyRateController.currentCurrency
+					}),
 					new PersonalMessageManager(),
 					new NetworkController(
 						{
@@ -108,8 +111,7 @@ class Engine {
 				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
-				TransactionController: transaction,
-				CurrencyRateController: currency
+				TransactionController: transaction
 			} = this.datamodel.context;
 
 			assets.setApiKey(OPENSEA_API_KEY);
@@ -117,10 +119,6 @@ class Engine {
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
 			this.configureControllersOnNetworkChange();
-			// TODO fix this hack from GABA
-			const { nativeCurrency, currentCurrency } = initialState.CurrencyRateController;
-			currency.update({ nativeCurrency, currentCurrency });
-			currency.configure({ nativeCurrency, currentCurrency });
 			Engine.instance = this;
 		}
 		return Engine.instance;
