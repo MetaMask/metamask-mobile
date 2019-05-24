@@ -174,8 +174,11 @@ buildAndroidRelease(){
 		echo $ANDROID_KEYSTORE | base64 --decode > android/keystores/release.keystore
 	fi
 
+	npm i react-native-cli --save-dev
+	node_modules/.bin/react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
 	cd android &&
-	./gradlew assembleRelease
+	./gradlew assembleRelease -x bundleReleaseJsAndAssets
 
 	if [ "$PRE_RELEASE" = true ] ; then
 		# Generate sourcemaps
