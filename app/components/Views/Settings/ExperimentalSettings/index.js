@@ -1,12 +1,14 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Platform, Switch, StyleSheet, Text, ScrollView, View } from 'react-native';
+import { Alert, Platform, Switch, StyleSheet, Text, ScrollView, View } from 'react-native';
 import { connect } from 'react-redux';
 import StyledButton from '../../../UI/StyledButton';
 import { setEnablePaymentChannels } from '../../../../actions/settings';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
+const CONNEXT_SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -72,7 +74,12 @@ class ExperimentalSettings extends Component {
 	};
 
 	goToPaymentChannels = () => {
-		this.props.navigation.navigate('PaymentChannelView');
+		const { provider } = Engine.context.NetworkController.state;
+		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
+			this.props.navigation.navigate('PaymentChannelView');
+		} else {
+			Alert.alert(strings('experimental_settings.network_not_supported'), strings('switch_network'));
+		}
 	};
 
 	togglePaymentChannels = enabled => {

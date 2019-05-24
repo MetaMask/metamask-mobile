@@ -21,7 +21,7 @@ const WEI_PER_ETHER = toBN('1000000000000000000');
 const { HUB_EXCHANGE_CEILING_TOKEN, MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN } = AppConstants.CONNEXT;
 
 const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(toBN(HUB_EXCHANGE_CEILING_TOKEN));
-const SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
+const CONNEXT_SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
 const hub = new EventEmitter();
 
 /**
@@ -391,7 +391,7 @@ const instance = {
 	 */
 	async init(address) {
 		const { provider } = Engine.context.NetworkController.state;
-		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
+		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
 			client = new PaymentChannelsClient(address);
 			await client.setConnext(provider);

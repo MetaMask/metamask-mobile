@@ -803,7 +803,9 @@
 		"payment_channels_cta": "VER BILLETERA",
 		"wallet_connect_dapps": "Sesiones de WalletConnect",
 		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
-		"wallet_connect_dapps_cta": "VER SESIONES"
+		"wallet_connect_dapps_cta": "VER SESIONES",
+		"network_not_supported": "La red actual no esta soportada",
+		"switch_network": "Cambia a mainnet o rinkeby"
 	},
 	"walletconnect_sessions": {
 		"no_active_sessions": "No tienes sesiones activas",

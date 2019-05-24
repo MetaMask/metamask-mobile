@@ -816,7 +816,9 @@
 		"payment_channels_cta": "VIEW WALLET",
 		"wallet_connect_dapps": "WalletConnect Sessions",
 		"wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
-		"wallet_connect_dapps_cta": "VIEW SESSIONS"
+		"wallet_connect_dapps_cta": "VIEW SESSIONS",
+		"network_not_supported": "Current network not supported",
+		"switch_network": "Please switch to mainnet or rinkeby"
 	},
 	"walletconnect_sessions": {
 		"no_active_sessions": "You have no active sessions",
