@@ -477,7 +477,7 @@ class Main extends Component {
 				symbol: 'ETH',
 				type: 'ETHER_TRANSACTION',
 				assetType: 'ETH',
-				selectedAsset: { symbol: 'ETH' },
+				selectedAsset: { isETH: true, symbol: 'ETH' },
 				id: transactionMeta.id
 			},
 			...transactionMeta.transaction
