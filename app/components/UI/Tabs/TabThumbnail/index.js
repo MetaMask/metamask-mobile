@@ -138,6 +138,7 @@ export default class TabThumbnail extends Component {
 	render() {
 		const { isActiveTab, tab, onClose, onSwitch } = this.props;
 		const Container = this.getContainer();
+		const hostname = this.getHostName();
 
 		return (
 			<Container style={styles.checkWrapper} elevation={8}>
@@ -148,12 +149,12 @@ export default class TabThumbnail extends Component {
 							style={styles.titleButton}
 						>
 							{tab.url !== HOMEPAGE_URL ? (
-								<WebsiteIcon transparent style={styles.tabFavicon} title={tab.url} url={tab.url} />
+								<WebsiteIcon transparent style={styles.tabFavicon} title={hostname} url={tab.url} />
 							) : (
 								<Image style={styles.tabFavicon} title={tab.url} source={METAMASK_FOX} />
 							)}
 							<Text style={styles.tabSiteName} numberOfLines={1}>
-								{tab.url === HOMEPAGE_URL ? strings('browser.new_tab') : this.getHostName()}
+								{tab.url === HOMEPAGE_URL ? strings('browser.new_tab') : hostname}
 							</Text>
 						</TouchableOpacity>
 						<TouchableOpacity
