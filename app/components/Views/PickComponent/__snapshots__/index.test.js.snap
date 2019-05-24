@@ -18,12 +18,6 @@ exports[`PickComponent should render correctly 1`] = `
   >
     <TouchableOpacity
       activeOpacity={0.2}
-      delayLongPress={600}
-      extraButtonProps={
-        Object {
-          "rippleColor": "transparent",
-        }
-      }
       onPress={[Function]}
       style={
         Object {
@@ -68,12 +62,6 @@ exports[`PickComponent should render correctly 1`] = `
   >
     <TouchableOpacity
       activeOpacity={0.2}
-      delayLongPress={600}
-      extraButtonProps={
-        Object {
-          "rippleColor": "transparent",
-        }
-      }
       onPress={[Function]}
       style={
         Object {
