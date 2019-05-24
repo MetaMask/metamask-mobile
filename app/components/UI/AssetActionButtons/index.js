@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 0
 	},
 	receive: {
-		right: 1,
+		right: Platform.OS === 'ios' ? 1 : 0,
 		bottom: 1,
 		transform: [{ rotate: '90deg' }]
 	}
