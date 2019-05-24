@@ -43,7 +43,7 @@ class PaymentChannelsClient {
 			tokenContract: null,
 			connext: null,
 			channelManagerAddress: null,
-			ethNetworkId: null,
+			ethChainId: null,
 			authorized: false,
 			address: null,
 			channelState: null,
@@ -112,7 +112,7 @@ class PaymentChannelsClient {
 			Logger.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
 			Logger.log(`  - hubAddress: ${connext.opts.hubAddress}`);
 			Logger.log(`  - contractAddress: ${connext.opts.contractAddress}`);
-			Logger.log(`  - ethNetworkId: ${connext.opts.ethNetworkId}`);
+			Logger.log(`  - ethChainId: ${connext.opts.ethChainId}`);
 			Logger.log(`  - public address: ${this.selectedAddress}`);
 
 			this.setState({
@@ -120,7 +120,7 @@ class PaymentChannelsClient {
 				tokenAddress: connext.opts.tokenAddress,
 				channelManagerAddress: connext.opts.contractAddress,
 				hubWalletAddress: connext.opts.hubAddress,
-				ethNetworkId: connext.opts.ethNetworkId,
+				ethChainId: connext.opts.ethChainId,
 				ethprovider,
 				exchangeRate: this.getExchangeRate()
 			});
