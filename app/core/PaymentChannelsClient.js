@@ -86,7 +86,7 @@ class PaymentChannelsClient {
 				throw new Error(`Unrecognized network: ${type}`);
 		}
 
-		const { KeyringController } = Engine.context;
+		const { KeyringController, TransactionController } = Engine.context;
 		const opts = {
 			hubUrl,
 			externalWallet: {
@@ -97,6 +97,42 @@ class PaymentChannelsClient {
 				signMessage: message => {
 					const hexMessage = byteArrayToHex(message);
 					return KeyringController.signPersonalMessage({ data: hexMessage, from: this.selectedAddress });
+				},
+				sign: async txMeta => {
+					// This values are set by ourselves
+					delete txMeta.gas;
+					delete txMeta.gasPrice;
+					delete txMeta.value._hex;
+
+					try {
+						const signedTx = await TransactionController.addTransaction({
+							...txMeta,
+							value: txMeta.value.toHexString(),
+							silent: true
+						});
+						const hash = await signedTx.result;
+
+						return new Promise(resolve => {
+							TransactionController.hub.on(`${signedTx.transactionMeta.id}:finished`, async () => {
+								TransactionController.hub.removeAllListeners(`${signedTx.transactionMeta.id}:finished`);
+							});
+
+							TransactionController.hub.on(`${signedTx.transactionMeta.id}:confirmed`, async () => {
+								TransactionController.hub.removeAllListeners(
+									`${signedTx.transactionMeta.id}:confirmed`
+								);
+								setTimeout(() => {
+									TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
+								}, 1000);
+								resolve({
+									hash,
+									wait: () => Promise.resolve(1)
+								});
+							});
+						});
+					} catch (e) {
+						return false;
+					}
 				}
 			},
 			web3Provider: Engine.context.NetworkController.provider
@@ -304,9 +340,9 @@ class PaymentChannelsClient {
 			Logger.log('About to deposit', data);
 			await connext.deposit(data);
 			Logger.log('Deposit succesful');
-			TransactionsNotificationManager.showInstantPaymentNotification('pending_deposit');
 		} catch (e) {
 			Logger.log('Deposit error', e);
+			throw e;
 		}
 	};
 

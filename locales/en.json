@@ -854,6 +854,8 @@
 		"withdraw_intro": "Your funds will be sent to your normal Ethereum account",
 		"withdraw_info": "This process will take a few seconds because it's a normal ETH transaction",
 		"withdraw_note": "NOTE: The transaction fees will be paid with your funds",
-		"withdraw": "WITHDRAW"
+		"withdraw": "WITHDRAW",
+		"error": "Error",
+		"insufficient_funds": "Insufficient Funds"
 	}
 }

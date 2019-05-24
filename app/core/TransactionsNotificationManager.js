@@ -199,6 +199,7 @@ class TransactionsNotificationManager {
 	 * based on the status of the transaction (failed or confirmed)
 	 */
 	watchSubmittedTransaction(transaction) {
+		if (transaction.silent) return false;
 		const { TransactionController } = Engine.context;
 		// First we show the pending tx notification
 		this._showNotification({
@@ -356,19 +357,22 @@ export default {
 		return instance.requestPushNotificationsPermission();
 	},
 	showInstantPaymentNotification(type) {
-		const notification = {
-			type,
-			autoHide: type.indexOf('success') !== -1,
-			message: {
-				transaction: null,
-				callback: () => null
+		hideMessage();
+		setTimeout(() => {
+			const notification = {
+				type,
+				autoHide: type.indexOf('success') !== -1,
+				message: {
+					transaction: null,
+					callback: () => null
+				}
+			};
+			if (notification.autoHide) {
+				notification.duration = 5000;
 			}
-		};
-		if (notification.autoHide) {
-			notification.duration = 5000;
-		}
 
-		return instance._showNotification(notification);
+			return instance._showNotification(notification);
+		}, 300);
 	},
 	showIncomingPaymentNotification: amount =>
 		instance._showNotification({

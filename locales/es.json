@@ -840,6 +840,8 @@
 		"withdraw_intro": "Tus fondos sera transferidos a tu cuenta de ethereum",
 		"withdraw_info": "Este proceso puede tardar algunos segundos ya que es una transacción de ETH normal.",
 		"withdraw_note": "NOTA: las tarifas de la transacción serán pagas con tu saldo",
-		"withdraw": "RETIRAR"
+		"withdraw": "RETIRAR",
+		"error": "Error",
+		"insufficient_funds": "Saldo insuficiente"
 	}
 }

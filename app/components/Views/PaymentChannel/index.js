@@ -256,8 +256,12 @@ class PaymentChannel extends Component {
 			this.setState({ depositAmount: '' });
 			Logger.log('Deposit succesful');
 		} catch (e) {
-			Alert.alert('Error', e.message);
-			Logger.log('Deposit error', e);
+			if (e.message.indexOf('Error: Insufficient funds:') !== -1) {
+				Alert.alert(strings('paymentChannels.error', strings('paymentChannels.insufficient_funds')));
+			} else {
+				Alert.alert(strings('paymentChannels.error'), e);
+				Logger.log('Deposit error', e);
+			}
 		}
 	};
 
