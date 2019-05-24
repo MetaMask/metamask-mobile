@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 	},
 	some: {
 		marginLeft: 30,
-		marginRight: 80
+		marginRight: 30
 	},
 	coachmarkContainer: {
 		flex: 1,
