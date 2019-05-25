@@ -394,6 +394,7 @@ class TransactionEdit extends Component {
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScan}
+								closeDropdowns={this.closeDropdowns}
 								address={to}
 								updateToAddressError={this.updateToAddressError}
 								ensRecipient={ensRecipient}
