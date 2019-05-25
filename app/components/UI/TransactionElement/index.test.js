@@ -13,6 +13,11 @@ describe('TransactionElement', () => {
 					CurrencyRateController: {
 						currentCurrency: 'usd',
 						conversionRate: 0.1
+					},
+					NetworkController: {
+						provider: {
+							ticker: 'ETH'
+						}
 					}
 				}
 			}

@@ -18,16 +18,20 @@ const styles = StyleSheet.create({
 // eslint-disable-next-line react/display-name
 const AssetIcon = React.memo(props => {
 	if (!props.logo) return null;
-	const uri = getAssetLogoPath(props.logo);
+	const uri = props.watchedAsset ? props.logo : getAssetLogoPath(props.logo);
 	const style = [styles.logo, props.customStyle];
 	return <Image fadeIn placeholderStyle={{ backgroundColor: colors.white }} source={{ uri }} style={style} />;
 });
 
 AssetIcon.propTypes = {
 	/**
-	 * String of the asset icon
+	 * String of the asset icon to be searched in contractMap
 	 */
 	logo: PropTypes.string,
+	/**
+	 * Whether logo has to be fetched from eth-contract-metadata
+	 */
+	watchedAsset: PropTypes.bool,
 	/**
 	 * Custom style to apply to image
 	 */

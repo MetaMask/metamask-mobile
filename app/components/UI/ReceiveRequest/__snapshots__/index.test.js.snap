@@ -1,0 +1,400 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ReceiveRequest should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderTopLeftRadius": 10,
+      "borderTopRightRadius": 10,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "borderBottomWidth": 0.5,
+        "borderColor": "#d6d9dc",
+        "height": 33,
+        "justifyContent": "center",
+        "width": "100%",
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "#848c96",
+          "borderRadius": 4,
+          "height": 5,
+          "opacity": 0.5,
+          "width": 48,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "marginVertical": 8,
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "alignSelf": "center",
+          "flexDirection": "row",
+          "fontFamily": "Roboto",
+          "fontSize": 18,
+          "fontWeight": "400",
+        }
+      }
+    >
+      Receive
+    </Text>
+  </View>
+  <View
+    style={
+      Object {
+        "marginHorizontal": 16,
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <ReceiveRequestAction
+        actionDescription="Email or text your address"
+        actionTitle="Share Address"
+        icon={
+          <Icon
+            allowFontScaling={false}
+            color="#000000"
+            name="paper-plane"
+            size={28}
+          />
+        }
+        onPress={[Function]}
+        style={
+          Object {
+            "flex": 1,
+            "height": 343,
+            "width": 343,
+          }
+        }
+      />
+      <ReceiveRequestAction
+        actionDescription="Scannable image that can read your address"
+        actionTitle="QR Code"
+        icon={
+          <Icon
+            allowFontScaling={false}
+            color="#000000"
+            name="qrcode"
+            size={32}
+          />
+        }
+        onPress={[Function]}
+        style={
+          Object {
+            "flex": 1,
+            "height": 343,
+            "width": 343,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <ReceiveRequestAction
+        actionDescription="Request assets from friends"
+        actionTitle="Request"
+        icon={
+          <FA5iconClass
+            color="#000000"
+            light={false}
+            name="hand-holding"
+            size={30}
+            solid={true}
+          />
+        }
+        onPress={[Function]}
+        style={
+          Object {
+            "flex": 1,
+            "height": 343,
+            "width": 343,
+          }
+        }
+      />
+      <ReceiveRequestAction
+        actionDescription="Buy Crypto with Credit Card"
+        actionTitle="Buy"
+        icon={
+          <Icon
+            allowFontScaling={false}
+            color="#000000"
+            name="credit-card"
+            size={32}
+          />
+        }
+        onPress={[Function]}
+        style={
+          Object {
+            "flex": 1,
+            "height": 343,
+            "width": 343,
+          }
+        }
+      />
+    </View>
+  </View>
+  <ReactNativeModal
+    animationIn="slideInUp"
+    animationInTiming={300}
+    animationOut="slideOutDown"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0.7}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onSwipeComplete={[Function]}
+    propagateSwipe={true}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    useNativeDriver={false}
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "padding": 10,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#f2f3f4",
+            "borderRadius": 8,
+            "justifyContent": "center",
+            "marginBottom": 16,
+            "paddingBottom": 24,
+            "paddingHorizontal": 36,
+            "paddingTop": 16,
+          }
+        }
+      >
+        <View
+          style={
+            Object {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "marginBottom": 16,
+              }
+            }
+          >
+            Public Address QR Code
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              Object {
+                "bottom": 8,
+                "position": "absolute",
+                "right": -40,
+              }
+            }
+          >
+            <Icon
+              allowFontScaling={false}
+              color="#000000"
+              name="ios-close"
+              size={28}
+            />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            Object {
+              "borderColor": "#9fa6ae",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "padding": 15,
+            }
+          }
+        >
+          <QRCode
+            backgroundColor="white"
+            color="black"
+            ecl="M"
+            logoBackgroundColor="white"
+            logoBorderRadius={0}
+            logoMargin={2}
+            logoSize={20}
+            size={590}
+            value="ethereum:0x"
+          />
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#f2f3f4",
+              "borderRadius": 5,
+              "justifyContent": "center",
+              "marginTop": 10,
+              "paddingHorizontal": 16,
+              "paddingTop": 16,
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "fontFamily": "Roboto",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "textAlign": "center",
+              }
+            }
+          >
+            0x
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <Connect(GlobalAlert) />
+    </View>
+  </ReactNativeModal>
+  <ReactNativeModal
+    animationIn="fadeIn"
+    animationInTiming={300}
+    animationOut="fadeOut"
+    animationOutTiming={300}
+    avoidKeyboard={false}
+    backdropColor="black"
+    backdropOpacity={0}
+    backdropTransitionInTiming={300}
+    backdropTransitionOutTiming={300}
+    deviceHeight={null}
+    deviceWidth={null}
+    hasBackdrop={true}
+    hideModalContentWhileAnimating={false}
+    isVisible={false}
+    onBackButtonPress={[Function]}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalShow={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    style={
+      Object {
+        "margin": 0,
+        "width": "100%",
+      }
+    }
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeThreshold={100}
+    useNativeDriver={true}
+  >
+    <ElevatedView
+      elevation={5}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "rgba(0,0,0,.75)",
+          "borderRadius": 8,
+          "justifyContent": "center",
+          "padding": 20,
+          "paddingTop": 30,
+          "width": 180,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "marginBottom": 20,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#FFFFFF"
+          name="clockcircle"
+          size={64}
+        />
+      </View>
+      <Text
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "Roboto",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "textAlign": "center",
+          }
+        }
+      >
+        Coming soon...
+      </Text>
+    </ElevatedView>
+  </ReactNativeModal>
+</SafeAreaView>
+`;

@@ -15,7 +15,7 @@ exports[`NetworkList should render correctly 1`] = `
     style={
       Object {
         "borderBottomWidth": 0.5,
-        "borderColor": "#CCCCCC",
+        "borderColor": "#d6d9dc",
       }
     }
   >
@@ -52,7 +52,7 @@ exports[`NetworkList should render correctly 1`] = `
           Array [
             Object {
               "borderBottomWidth": 0.5,
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "flexDirection": "row",
               "paddingHorizontal": 20,
               "paddingLeft": 45,
@@ -78,7 +78,7 @@ exports[`NetworkList should render correctly 1`] = `
               Array [
                 Object {
                   "marginLeft": 20,
-                  "marginTop": 22,
+                  "marginTop": 20,
                   "position": "absolute",
                 },
                 Object {
@@ -154,7 +154,7 @@ exports[`NetworkList should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "#CCCCCC",
+          "borderColor": "#d6d9dc",
           "marginTop": 0,
         }
       }
@@ -182,7 +182,7 @@ exports[`NetworkList should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "#CCCCCC",
+          "borderColor": "#d6d9dc",
           "flexDirection": "row",
           "paddingHorizontal": 20,
           "paddingLeft": 45,
@@ -194,7 +194,7 @@ exports[`NetworkList should render correctly 1`] = `
         style={
           Object {
             "marginLeft": 20,
-            "marginTop": 22,
+            "marginTop": 20,
             "position": "absolute",
           }
         }
@@ -243,7 +243,7 @@ exports[`NetworkList should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "#CCCCCC",
+          "borderColor": "#d6d9dc",
           "flexDirection": "row",
           "paddingHorizontal": 20,
           "paddingLeft": 45,
@@ -255,7 +255,7 @@ exports[`NetworkList should render correctly 1`] = `
         style={
           Object {
             "marginLeft": 20,
-            "marginTop": 22,
+            "marginTop": 20,
             "position": "absolute",
           }
         }
@@ -304,7 +304,7 @@ exports[`NetworkList should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "#CCCCCC",
+          "borderColor": "#d6d9dc",
           "flexDirection": "row",
           "paddingHorizontal": 20,
           "paddingLeft": 45,
@@ -316,7 +316,7 @@ exports[`NetworkList should render correctly 1`] = `
         style={
           Object {
             "marginLeft": 20,
-            "marginTop": 22,
+            "marginTop": 20,
             "position": "absolute",
           }
         }
@@ -365,7 +365,7 @@ exports[`NetworkList should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "#CCCCCC",
+          "borderColor": "#d6d9dc",
           "flexDirection": "row",
           "paddingHorizontal": 20,
           "paddingLeft": 45,
@@ -377,7 +377,7 @@ exports[`NetworkList should render correctly 1`] = `
         style={
           Object {
             "marginLeft": 20,
-            "marginTop": 22,
+            "marginTop": 20,
             "position": "absolute",
           }
         }
@@ -401,7 +401,7 @@ exports[`NetworkList should render correctly 1`] = `
             },
             Object {
               "backgroundColor": "transparent",
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "borderWidth": 2,
             },
           ]
@@ -424,9 +424,7 @@ exports[`NetworkList should render correctly 1`] = `
               "fontWeight": "400",
             }
           }
-        >
-          http://10.0.2.2:8545
-        </Text>
+        />
       </View>
     </TouchableOpacity>
   </ScrollViewMock>
@@ -434,7 +432,7 @@ exports[`NetworkList should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
-        "borderColor": "#CCCCCC",
+        "borderColor": "#d6d9dc",
         "borderTopWidth": 0.5,
         "flexDirection": "row",
         "height": 60,
@@ -458,7 +456,7 @@ exports[`NetworkList should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#008edf",
+            "color": "#037dd6",
             "fontFamily": "Roboto",
             "fontSize": 16,
             "fontWeight": "400",

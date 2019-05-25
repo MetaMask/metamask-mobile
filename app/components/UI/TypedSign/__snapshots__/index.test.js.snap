@@ -39,11 +39,12 @@ exports[`TypedSign should render correctly 1`] = `
     }
     onCancel={[Function]}
     onConfirm={[Function]}
+    type="typedSign"
   >
     <View
       style={
         Object {
-          "borderBottomColor": "#d2d8dd",
+          "borderBottomColor": "#bbc0c5",
           "borderBottomWidth": 1,
           "padding": 20,
         }

@@ -21,6 +21,12 @@ import AnimatedFox from 'react-native-animated-fox';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
+import { connect } from 'react-redux';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -47,7 +53,7 @@ const styles = StyleSheet.create({
 		fontSize: Platform.OS === 'android' ? 30 : 35,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title,
+		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold
@@ -62,7 +68,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 10,
 		borderRadius: 4,
 		fontSize: Platform.OS === 'android' ? 15 : 20,
@@ -75,7 +81,7 @@ const styles = StyleSheet.create({
 		marginVertical: 40
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	},
 	goBack: {
@@ -104,12 +110,28 @@ const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 /**
  * View where returning users can authenticate
  */
-export default class Login extends Component {
+class Login extends Component {
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Number of tokens
+		 */
+		tokensLength: PropTypes.number,
+		/**
+		 * Number of accounts
+		 */
+		accountsLength: PropTypes.number,
+		/**
+		 * A string representing the network name
+		 */
+		networkType: PropTypes.string
 	};
 
 	state = {
@@ -126,7 +148,12 @@ export default class Login extends Component {
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
+			let enabled = true;
+			const previouslyDisabled = await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			if (previouslyDisabled && previouslyDisabled === 'true') {
+				enabled = false;
+			}
+			this.setState({ biometryType, biometryChoice: enabled });
 		}
 	}
 
@@ -167,9 +194,20 @@ export default class Login extends Component {
 				}
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			}
-
 			this.setState({ loading: false });
-			this.props.navigation.navigate('HomeNav');
+
+			// Get onboarding wizard state
+			const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+			// Check if user passed through metrics opt-in screen
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			if (!metricsOptIn) {
+				this.props.navigation.navigate('OptinMetrics');
+			} else if (onboardingWizard) {
+				this.props.navigation.navigate('HomeNav');
+			} else {
+				this.props.setOnboardingWizardStep(1);
+				this.props.navigation.navigate('HomeNav', {}, NavigationActions.navigate({ routeName: 'WalletView' }));
+			}
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
 			if (error.toString() === WRONG_PASSWORD_ERROR) {
@@ -183,11 +221,26 @@ export default class Login extends Component {
 			} else {
 				this.setState({ loading: false, error: error.toString() });
 			}
+			const { tokensLength, accountsLength, networkType } = this.props;
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.AUTHENTICATION_INCORRECT_PASSWORD, {
+				numberOfTokens: tokensLength,
+				numberOfAccounts: accountsLength,
+				network: networkType
+			});
 		}
 	};
 
 	onPressGoBack = () => {
 		this.props.navigation.navigate('OnboardingRootNav');
+	};
+
+	updateBiometryChoice = async biometryChoice => {
+		if (!biometryChoice) {
+			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+		} else {
+			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+		}
+		this.setState({ biometryChoice });
 	};
 
 	renderSwitch = () => {
@@ -198,13 +251,11 @@ export default class Login extends Component {
 						{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
 					</Text>
 					<Switch
-						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
+						onValueChange={biometryChoice => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -217,10 +268,8 @@ export default class Login extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);
@@ -252,7 +301,7 @@ export default class Login extends Component {
 							onChangeText={this.setPassword}
 							secureTextEntry
 							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
+							underlineColorAndroid={colors.grey100}
 							onSubmitEditing={this.onLogin}
 							returnKeyType={'done'}
 							autoCapitalize="none"
@@ -280,6 +329,22 @@ export default class Login extends Component {
 					</View>
 				</View>
 			</KeyboardAwareScrollView>
+			<FadeOutOverlay />
 		</SafeAreaView>
 	);
 }
+
+const mapStateToProps = state => ({
+	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts).length,
+	tokensLength: state.engine.backgroundState.AssetsController.tokens.length,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
+});
+
+const mapDispatchToProps = dispatch => ({
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Login);

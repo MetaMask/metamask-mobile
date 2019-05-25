@@ -16,7 +16,9 @@ exports[`TransactionEdit should render correctly 1`] = `
     confirmTestID=""
     confirmText="Next"
     confirmed={false}
+    keyboardShouldPersistTaps="handled"
     onConfirmPress={[Function]}
+    onTouchablePress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}
   >
@@ -25,6 +27,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         Object {
           "flex": 1,
           "flexDirection": "column",
+          "minHeight": "100%",
           "padding": 16,
         }
       }
@@ -58,7 +61,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -107,7 +110,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -124,7 +127,7 @@ exports[`TransactionEdit should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "color": "#008edf",
+                  "color": "#037dd6",
                   "fontFamily": "Roboto",
                   "fontSize": 12,
                   "fontWeight": "600",
@@ -138,7 +141,9 @@ exports[`TransactionEdit should render correctly 1`] = `
         </View>
         <Connect(EthInput)
           fillMax={false}
+          isOpen={false}
           onChange={[Function]}
+          openEthInput={[Function]}
           updateFillMax={[Function]}
           value=""
         />
@@ -171,7 +176,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -184,6 +189,8 @@ exports[`TransactionEdit should render correctly 1`] = `
         </View>
         <Connect(AccountInput)
           address="0x2"
+          closeDropdowns={[Function]}
+          isOpen={false}
           navigation={
             Object {
               "state": Object {
@@ -194,6 +201,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           onBlur={[Function]}
           onChange={[Function]}
           onFocus={[Function]}
+          openAccountSelect={[Function]}
           placeholder="Recipient Address"
           updateToAddressError={[Function]}
         />
@@ -226,7 +234,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -241,6 +249,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           gas=""
           gasPrice=""
           handleGasFeeSelection={[Function]}
+          onPress={[Function]}
           totalGas={"14a"}
         />
       </View>
@@ -269,7 +278,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "600",
@@ -289,7 +298,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           style={
             Object {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#dedede",
+              "borderColor": "#d6d9dc",
               "borderRadius": 4,
               "borderWidth": 1,
               "flex": 1,

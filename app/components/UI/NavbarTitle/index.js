@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 	},
 	networkName: {
 		fontSize: 11,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal
 	},
 	networkIcon: {
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.transparent,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1
 	}
 });
@@ -86,7 +86,14 @@ class NavbarTitle extends Component {
 
 	render = () => {
 		const { network, title, translate } = this.props;
-		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
+		let name, color;
+		if (network.provider.nickname) {
+			color = Networks[network.provider.type].color || null;
+			name = network.provider.nickname;
+		} else {
+			color = Networks[network.provider.type].color || null;
+			name = Networks[network.provider.type].name || { ...Networks.rpc, color: null }.name;
+		}
 		const realTitle = translate ? strings(title) : title;
 
 		return (
@@ -95,7 +102,11 @@ class NavbarTitle extends Component {
 				style={styles.wrapper}
 				activeOpacity={this.props.disableNetwork ? 1 : 0.2}
 			>
-				{title ? <Text style={styles.title}>{realTitle}</Text> : null}
+				{title ? (
+					<Text numberOfLines={1} style={styles.title}>
+						{realTitle}
+					</Text>
+				) : null}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 					<Text style={styles.networkName} testID={'navbar-title-network'}>

@@ -5,8 +5,10 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { InteractionManager, ScrollView, TouchableOpacity, StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Networks from '../../../util/networks';
+import Networks, { getAllNetworks } from '../../../util/networks';
 import { connect } from 'react-redux';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -16,7 +18,7 @@ const styles = StyleSheet.create({
 	},
 	titleWrapper: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	title: {
 		textAlign: 'center',
@@ -29,7 +31,7 @@ const styles = StyleSheet.create({
 	otherNetworksHeader: {
 		marginTop: 0,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	otherNetworksText: {
 		textAlign: 'left',
@@ -44,7 +46,7 @@ const styles = StyleSheet.create({
 	},
 	network: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
 	},
 	footer: {
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		height: 60,
 		justifyContent: 'center',
 		flexDirection: 'row',
@@ -80,7 +82,7 @@ const styles = StyleSheet.create({
 	},
 	closeButton: {
 		fontSize: 16,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	networkIcon: {
@@ -103,7 +105,7 @@ const styles = StyleSheet.create({
 	selected: {
 		position: 'absolute',
 		marginLeft: 20,
-		marginTop: 22
+		marginTop: 20
 	},
 	mainnetSelected: {
 		marginLeft: -30,
@@ -111,7 +113,7 @@ const styles = StyleSheet.create({
 	},
 	otherNetworkIcon: {
 		backgroundColor: colors.transparent,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 2
 	}
 });
@@ -139,18 +141,22 @@ export class NetworkList extends Component {
 		networkStatus: PropTypes.object
 	};
 
-	getAllNetworks = () => ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
-
-	getOtherNetworks = () => this.getAllNetworks().slice(1);
+	getOtherNetworks = () => getAllNetworks().slice(1);
 
 	onNetworkChange = async type => {
+		const { provider } = this.props;
 		this.props.onClose(false);
 		InteractionManager.runAfterInteractions(() => {
-			const { NetworkController } = Engine.context;
+			const { NetworkController, CurrencyRateController } = Engine.context;
+			CurrencyRateController.configure({ nativeCurrency: 'ETH' });
 			NetworkController.setProviderType(type);
 			setTimeout(() => {
 				Engine.refreshTransactionHistory();
 			}, 1000);
+			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
+				'From Network': provider.type,
+				'To Network': type
+			});
 		});
 	};
 
@@ -159,8 +165,12 @@ export class NetworkList extends Component {
 	};
 
 	onSetRpcTarget = async rpcTarget => {
-		const { NetworkController } = Engine.context;
-		NetworkController.setRpcTarget(rpcTarget);
+		const { frequentRpcList } = this.props;
+		const { NetworkController, CurrencyRateController } = Engine.context;
+		const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
+		const { rpcUrl, chainId, ticker, nickname } = rpc;
+		CurrencyRateController.configure({ nativeCurrency: ticker });
+		NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 		this.props.onClose(false);
 	};
 
@@ -195,20 +205,20 @@ export class NetworkList extends Component {
 
 	renderRpcNetworks = () => {
 		const { frequentRpcList, provider } = this.props;
-		return frequentRpcList.map((network, i) => {
-			const { color, name } = { name: network, color: null };
+		return frequentRpcList.map(({ rpcUrl }, i) => {
+			const { color, name } = { name: rpcUrl, color: null };
 			const selected =
-				provider.rpcTarget === network && provider.type === 'rpc' ? (
+				provider.rpcTarget === rpcUrl && provider.type === 'rpc' ? (
 					<Icon name="check" size={20} color={colors.fontSecondary} />
 				) : (
 					<Icon
 						name="minus-circle"
 						size={20}
 						color={colors.fontTertiary}
-						onPress={() => this.removeRpcTarget(network)} // eslint-disable-line
+						onPress={() => this.removeRpcTarget(rpcUrl)} // eslint-disable-line
 					/>
 				);
-			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, network);
+			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, rpcUrl);
 		});
 	};
 

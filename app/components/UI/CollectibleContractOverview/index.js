@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 20,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		alignContent: 'center',
 		alignItems: 'center',
 		paddingBottom: 30
@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
 	},
 	name: {
 		fontSize: 30,
+		textAlign: 'center',
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	}
@@ -70,7 +71,8 @@ class CollectibleContractOverview extends Component {
 	};
 
 	onAdd = () => {
-		this.props.navigation.push('AddAsset', { assetType: 'collectible' });
+		const { navigation, collectibleContract } = this.props;
+		navigation.push('AddAsset', { assetType: 'collectible', collectibleContract });
 	};
 
 	onSend = () => {
@@ -117,6 +119,7 @@ class CollectibleContractOverview extends Component {
 					onLeftPress={this.onSend}
 					onMiddlePress={this.onAdd}
 					onRightPress={this.onInfo}
+					middleType={'add'}
 				/>
 			</View>
 		);

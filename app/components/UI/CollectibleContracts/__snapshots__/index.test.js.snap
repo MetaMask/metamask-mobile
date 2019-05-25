@@ -67,7 +67,7 @@ exports[`CollectibleContracts should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#7c7e84",
+                "color": "#848c96",
                 "fontFamily": "Roboto",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -105,14 +105,14 @@ exports[`CollectibleContracts should render correctly 1`] = `
       >
         <Icon
           allowFontScaling={false}
-          color="#008edf"
+          color="#037dd6"
           name="plus"
           size={16}
         />
         <Text
           style={
             Object {
-              "color": "#008edf",
+              "color": "#037dd6",
               "fontFamily": "Roboto",
               "fontSize": 15,
               "fontWeight": "400",

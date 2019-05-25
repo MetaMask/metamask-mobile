@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import ElevatedView from 'react-native-elevated-view';
@@ -9,6 +9,7 @@ import DeviceSize from '../../../util/DeviceSize';
 import AnimatedSpinner from '../AnimatedSpinner';
 import { hideMessage } from 'react-native-flash-message';
 import { strings } from '../../../../locales/i18n';
+import GestureRecognizer from 'react-native-swipe-gestures';
 
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
@@ -60,17 +61,12 @@ export const TransactionNotification = props => {
 			case 'pending':
 				return <AnimatedSpinner size={36} />;
 			case 'success':
-				return <Icon color={colors.success} size={36} name="md-checkmark" style={styles.checkIcon} />;
 			case 'received':
-				return <Icon color={colors.success} size={36} name="md-checkmark" style={styles.checkIcon} />;
+				return <Icon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
+			case 'cancelled':
 			case 'error':
 				return (
-					<MaterialIcon
-						color={colors.darkRed}
-						size={36}
-						name="alert-circle-outline"
-						style={styles.checkIcon}
-					/>
+					<MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />
 				);
 		}
 	};
@@ -87,6 +83,8 @@ export const TransactionNotification = props => {
 					amount: transaction.amount,
 					assetType: transaction.assetType
 				});
+			case 'cancelled':
+				return strings('notifications.cancelled_title');
 			case 'error':
 				return strings('notifications.error_title');
 		}
@@ -118,9 +116,23 @@ export const TransactionNotification = props => {
 
 	return (
 		<ElevatedView elevation={10} style={baseStyles.flex}>
-			<TouchableOpacity style={[styles.defaultFlash, styles.defaultFlashFloating]} onPress={this._onPress}>
-				{this._getContent()}
-			</TouchableOpacity>
+			<GestureRecognizer
+				// eslint-disable-next-line react/jsx-no-bind
+				onSwipeDown={() => hideMessage()}
+				config={{
+					velocityThreshold: 0.2,
+					directionalOffsetThreshold: 50
+				}}
+				style={baseStyles.flex}
+			>
+				<TouchableOpacity
+					style={[styles.defaultFlash, styles.defaultFlashFloating]}
+					onPress={this._onPress}
+					activeOpacity={0.8}
+				>
+					{this._getContent()}
+				</TouchableOpacity>
+			</GestureRecognizer>
 		</ElevatedView>
 	);
 };

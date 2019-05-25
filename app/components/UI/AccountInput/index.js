@@ -2,18 +2,18 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { ScrollView } from 'react-native-gesture-handler';
 import ElevatedView from 'react-native-elevated-view';
 import ENS from 'ethjs-ens';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import { isValidAddress } from 'ethereumjs-util';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	arrow: {
-		color: colors.inputBorderColor,
+		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
 		top: Platform.OS === 'android' ? 14 : 12
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'row',
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1
 	},
@@ -74,6 +74,9 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16
 	},
+	accountWithoutName: {
+		marginTop: 4
+	},
 	name: {
 		flex: 1,
 		...fontStyles.bold,
@@ -87,7 +90,7 @@ const styles = StyleSheet.create({
 	},
 	optionList: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,
@@ -153,11 +156,26 @@ class AccountInput extends Component {
 		/**
 		 * Network id
 		 */
-		updateToAddressError: PropTypes.func
+		updateToAddressError: PropTypes.func,
+		/**
+		 * Callback to open accounts dropdown
+		 */
+		openAccountSelect: PropTypes.func,
+		/**
+		 * Whether accounts dropdown is opened
+		 */
+		isOpen: PropTypes.bool,
+		/**
+		 * Map representing the address book
+		 */
+		addressBook: PropTypes.array,
+		/**
+		 * Callback close all drowpdowns
+		 */
+		closeDropdowns: PropTypes.func
 	};
 
 	state = {
-		isOpen: false,
 		address: undefined,
 		ensRecipient: undefined,
 		value: undefined
@@ -204,9 +222,8 @@ class AccountInput extends Component {
 	};
 
 	onFocus = () => {
-		const { onFocus } = this.props;
-		const { isOpen } = this.state;
-		this.setState({ isOpen: !isOpen });
+		const { onFocus, isOpen, openAccountSelect } = this.props;
+		openAccountSelect && openAccountSelect(!isOpen);
 		onFocus && onFocus();
 	};
 
@@ -223,13 +240,30 @@ class AccountInput extends Component {
 	};
 
 	selectAccount(account) {
+		Keyboard.dismiss();
 		this.onChange(account.address);
+		const { openAccountSelect } = this.props;
+		openAccountSelect && openAccountSelect(false);
 	}
 
 	getNetworkEnsSupport = () => {
 		const { network } = this.props;
 		return Boolean(networkMap[network]);
 	};
+
+	renderAccountName(name) {
+		if (name !== '') {
+			return (
+				<View>
+					<Text numberOfLines={1} style={styles.name}>
+						{name}
+					</Text>
+				</View>
+			);
+		}
+
+		return <View style={styles.accountWithoutName} />;
+	}
 
 	renderOption(account, onPress) {
 		return (
@@ -238,11 +272,7 @@ class AccountInput extends Component {
 					<Identicon address={account.address} diameter={22} />
 				</View>
 				<View style={styles.content}>
-					<View>
-						<Text numberOfLines={1} style={styles.name}>
-							{account.name}
-						</Text>
-					</View>
+					{this.renderAccountName(account.name)}
 					<View>
 						<Text style={styles.address} numberOfLines={1}>
 							{renderShortAddress(account.address)}
@@ -253,11 +283,43 @@ class AccountInput extends Component {
 		);
 	}
 
+	getVisibleOptions = value => {
+		const { accounts, addressBook } = this.props;
+		const addressBookItems = {};
+		if (addressBook.length > 0) {
+			addressBook.forEach(contact => {
+				addressBookItems[contact.address] = contact;
+			});
+		}
+
+		const allAddresses = { ...addressBookItems, ...accounts };
+
+		if (typeof value !== 'undefined' && value.toString().length > 0) {
+			// If it's a valid address we don't show any suggestion
+			if (isValidAddress(value)) {
+				return allAddresses;
+			}
+
+			const filteredAddresses = {};
+			Object.keys(allAddresses).forEach(address => {
+				if (
+					address.toLowerCase().indexOf(value.toLowerCase()) !== -1 ||
+					(allAddresses[address].name &&
+						allAddresses[address].name.toLowerCase().indexOf(value.toLowerCase()) !== -1)
+				) {
+					filteredAddresses[address] = allAddresses[address];
+				}
+			});
+			return filteredAddresses;
+		}
+		return allAddresses;
+	};
+
 	renderOptionList() {
-		const { visibleOptions = this.props.accounts } = this.state;
+		const visibleOptions = this.getVisibleOptions(this.state.value);
 		return (
 			<ElevatedView elevation={10}>
-				<ScrollView style={styles.componentContainer}>
+				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
 							this.renderOption(visibleOptions[address], () => {
@@ -271,35 +333,38 @@ class AccountInput extends Component {
 	}
 
 	onChange = async value => {
-		const { accounts, onChange } = this.props;
-		const addresses = Object.keys(accounts).filter(address => address.toLowerCase().match(value.toLowerCase()));
-		const visibleOptions = value.length === 0 ? accounts : addresses.map(address => accounts[address]);
-		const match = visibleOptions.length === 1 && visibleOptions[0].address.toLowerCase() === value.toLowerCase();
+		const { onChange, openAccountSelect } = this.props;
 		this.setState({
-			isOpen: (value.length === 0 || visibleOptions.length) > 0 && !match,
 			value
 		});
+
+		const filteredAccounts = this.getVisibleOptions(value);
+		openAccountSelect && openAccountSelect(Object.keys(filteredAccounts).length > 0);
 		onChange && onChange(value);
 	};
 
 	onInputFocus = () => {
-		this.setState({ isOpen: false });
+		const { openAccountSelect } = this.props;
+		openAccountSelect && openAccountSelect(true);
 	};
 
 	scan = () => {
+		const { openAccountSelect, closeDropdowns } = this.props;
+		openAccountSelect && openAccountSelect(false);
 		this.setState({ isOpen: false });
 		this.props.navigation.navigate('QRScanner', {
 			onScanSuccess: meta => {
 				if (meta.target_address) {
 					this.onChange(meta.target_address);
+					closeDropdowns && closeDropdowns();
 				}
 			}
 		});
 	};
 
 	render = () => {
-		const { isOpen, value, ensRecipient, address } = this.state;
-		const { placeholder } = this.props;
+		const { value, ensRecipient, address } = this.state;
+		const { placeholder, isOpen } = this.props;
 		return (
 			<View style={styles.root}>
 				<View style={styles.accountContainer}>
@@ -334,6 +399,7 @@ class AccountInput extends Component {
 }
 
 const mapStateToProps = state => ({
+	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
 	accounts: state.engine.backgroundState.PreferencesController.identities,
 	activeAddress: state.engine.backgroundState.PreferencesController.activeAddress,
 	network: state.engine.backgroundState.NetworkController.network

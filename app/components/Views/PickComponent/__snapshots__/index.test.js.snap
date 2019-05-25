@@ -1,0 +1,99 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PickComponent should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+      "flexDirection": "row",
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#9fa6ae",
+            "borderRadius": 6,
+            "borderWidth": 2,
+            "height": 12,
+            "margin": 2,
+            "marginRight": 6,
+            "opacity": 1,
+            "width": 12,
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
+        Text First
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        Object {
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#037dd6",
+            "borderRadius": 6,
+            "height": 12,
+            "margin": 2,
+            "marginRight": 6,
+            "opacity": 1,
+            "width": 12,
+          }
+        }
+      />
+      <Text
+        style={
+          Object {
+            "fontFamily": "Roboto",
+            "fontWeight": "400",
+          }
+        }
+      >
+        Text Second
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

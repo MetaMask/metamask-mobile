@@ -15,13 +15,21 @@ describe('Approval', () => {
 				gas: '',
 				gasPrice: '',
 				to: '0x2',
-				selectedAsset: undefined,
+				selectedAsset: { symbol: 'ETH' },
 				assetType: undefined
 			},
 			engine: {
 				backgroundState: {
 					TransactionController: {
 						transactions: []
+					},
+					AddressBookController: {
+						addressBook: []
+					},
+					NetworkController: {
+						provider: {
+							type: 'ropsten'
+						}
 					}
 				}
 			}

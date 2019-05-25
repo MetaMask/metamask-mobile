@@ -6,6 +6,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { toggleNetworkModal } from '../../../actions/modals';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -42,8 +43,10 @@ const styles = StyleSheet.create({
 	currentUrl: {
 		...fontStyles.normal,
 		fontSize: 14,
-		textAlign: 'center',
-		paddingHorizontal: Platform.OS === 'android' ? 30 : 0
+		textAlign: 'center'
+	},
+	currentUrlAndroid: {
+		maxWidth: '60%'
 	}
 });
 
@@ -53,6 +56,14 @@ const styles = StyleSheet.create({
  */
 class NavbarBrowserTitle extends Component {
 	static propTypes = {
+		/**
+		 * Object representing the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * String representing the current url
+		 */
+		url: PropTypes.string,
 		/**
 		 * Object representing the selected the selected network
 		 */
@@ -71,19 +82,36 @@ class NavbarBrowserTitle extends Component {
 		toggleNetworkModal: PropTypes.func
 	};
 
-	openNetworkList = () => {
-		this.props.toggleNetworkModal();
+	onTitlePress = () => {
+		if (this.props.hostname === strings('browser.title')) {
+			this.props.toggleNetworkModal();
+		} else {
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: this.props.url,
+				showUrlModal: true
+			});
+		}
 	};
 
 	render = () => {
 		const { https, network, hostname } = this.props;
-		const { color, name } = Networks[network.provider.type] || { ...Networks.rpc, color: null };
-
+		let name, color;
+		if (network.provider.nickname) {
+			color = Networks[network.provider.type].color || null;
+			name = network.provider.nickname;
+		} else {
+			color = Networks[network.provider.type].color || null;
+			name = Networks[network.provider.type].name || { ...Networks.rpc, color: null }.name;
+		}
 		return (
-			<TouchableOpacity onPress={this.openNetworkList} style={styles.wrapper}>
+			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
 					{https ? <Icon name="lock" size={14} style={styles.lockIcon} /> : null}
-					<Text numberOfLines={1} style={styles.currentUrl}>
+					<Text
+						numberOfLines={1}
+						style={[styles.currentUrl, Platform.OS === 'android' ? styles.currentUrlAndroid : {}]}
+					>
 						{hostname}
 					</Text>
 				</View>

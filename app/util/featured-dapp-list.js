@@ -5,9 +5,9 @@ export default [
 		description: 'Uniswap is a protocol for automated token exchange on Ethereum.'
 	},
 	{
-		url: 'https://beta.cent.co/',
-		name: 'Cent',
-		description: 'The income-generating social network, earn money by sharing your wisdom and creativity.'
+		url: 'https://explorer.bounties.network/explorer',
+		name: 'The Bounties Network',
+		description: 'Find freelancers and bounty programs for any task paid in any token on Ethereum.'
 	},
 	{
 		url: 'https://peepeth.com/_',

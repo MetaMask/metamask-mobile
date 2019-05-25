@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
-		borderBottomColor: colors.inputBorderColor,
+		borderBottomColor: colors.grey000,
 		borderBottomWidth: 1,
 		flexDirection: 'row',
 		minHeight: 100,
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 	},
 	description: {
 		...fontStyles.normal,
-		color: colors.copy,
+		color: colors.grey500,
 		fontSize: 14,
 		lineHeight: 20,
 		paddingRight: 8
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 	},
 	icon: {
 		bottom: 8,
-		color: colors.gray,
+		color: colors.grey400,
 		left: 4,
 		position: 'relative'
 	},

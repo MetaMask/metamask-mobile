@@ -21,7 +21,7 @@ const getAssetType = selectedAsset => {
 	if (selectedAsset) {
 		if (selectedAsset.tokenId) {
 			assetType = 'ERC721';
-		} else if (selectedAsset.symbol === 'ETH') {
+		} else if (selectedAsset.isETH) {
 			assetType = 'ETH';
 		} else {
 			assetType = 'ERC20';

@@ -4,13 +4,17 @@ import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'reac
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import AnimatedFox from 'react-native-animated-fox';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import TermsAndConditions from '../TermsAndConditions';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -28,8 +32,11 @@ const styles = StyleSheet.create({
 	},
 	ctas: {
 		justifyContent: 'flex-end',
-		height: 190,
+		height: 250,
 		paddingBottom: 40
+	},
+	termsAndConditions: {
+		paddingTop: 30
 	},
 	foxWrapper: {
 		width: Platform.OS === 'ios' ? 100 : 66,
@@ -55,7 +62,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: 19,
 		marginBottom: 20,
-		color: colors.copy,
+		color: colors.grey500,
 		justifyContent: 'flex-start',
 		textAlign: 'left',
 		...fontStyles.normal
@@ -130,6 +137,7 @@ class Onboarding extends Component {
 
 	onPressCreate = () => {
 		const { existingUser } = this.state;
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
 		const action = () => this.props.navigation.push('CreateWallet');
 		if (existingUser) {
 			this.alertExistingUser(action);
@@ -140,6 +148,7 @@ class Onboarding extends Component {
 
 	onPressImport = () => {
 		this.props.navigation.push('ImportWallet');
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
 	};
 
 	alertExistingUser = callback => {
@@ -156,54 +165,63 @@ class Onboarding extends Component {
 
 	render() {
 		return (
-			<OnboardingScreenWithBg>
-				<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
-					<View style={styles.wrapper}>
-						<View style={styles.content}>
-							<View style={styles.foxWrapper}>
-								{Platform.OS === 'android' ? (
-									<Image
-										source={require('../../../images/fox.png')}
-										style={styles.image}
-										resizeMethod={'auto'}
+			<View style={baseStyles.flexGrow}>
+				<OnboardingScreenWithBg>
+					<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
+						<View style={styles.wrapper}>
+							<View style={styles.content}>
+								<View style={styles.foxWrapper}>
+									{Platform.OS === 'android' ? (
+										<Image
+											source={require('../../../images/fox.png')}
+											style={styles.image}
+											resizeMethod={'auto'}
+										/>
+									) : (
+										<AnimatedFox />
+									)}
+								</View>
+								<Text style={styles.title}>{strings('onboarding.title')}</Text>
+								<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
+							</View>
+							<View style={styles.ctas}>
+								<View style={styles.ctaWrapper}>
+									<StyledButton
+										type={'blue'}
+										onPress={this.onPressCreate}
+										testID={'onboarding-new-button'}
+									>
+										{strings('onboarding.start_exploring_now')}
+									</StyledButton>
+								</View>
+								<View style={styles.ctaWrapper}>
+									<StyledButton
+										type={'normal'}
+										onPress={this.onPressImport}
+										testID={'onboarding-import-button'}
+									>
+										{strings('onboarding.import_wallet_button')}
+									</StyledButton>
+								</View>
+								<View style={[styles.ctaWrapper, styles.termsAndConditions]}>
+									<TermsAndConditions
+										navigation={this.props.navigation}
+										action={strings('onboarding.start_exploring_now')}
 									/>
-								) : (
-									<AnimatedFox />
-								)}
+								</View>
 							</View>
-							<Text style={styles.title}>{strings('onboarding.title')}</Text>
-							<Text style={styles.subtitle}>{strings('onboarding.subtitle')}</Text>
+							{this.state.existingUser && (
+								<View style={styles.footer}>
+									<Button style={styles.login} onPress={this.onLogin}>
+										{strings('onboarding.login')}
+									</Button>
+								</View>
+							)}
 						</View>
-						<View style={styles.ctas}>
-							<View style={styles.ctaWrapper}>
-								<StyledButton
-									type={'blue'}
-									onPress={this.onPressCreate}
-									testID={'onboarding-new-button'}
-								>
-									{strings('onboarding.start_exploring_now')}
-								</StyledButton>
-							</View>
-							<View style={styles.ctaWrapper}>
-								<StyledButton
-									type={'normal'}
-									onPress={this.onPressImport}
-									testID={'onboarding-import-button'}
-								>
-									{strings('onboarding.import_wallet_button')}
-								</StyledButton>
-							</View>
-						</View>
-						{this.state.existingUser && (
-							<View style={styles.footer}>
-								<Button style={styles.login} onPress={this.onLogin}>
-									{strings('onboarding.login')}
-								</Button>
-							</View>
-						)}
-					</View>
-				</ScrollView>
-			</OnboardingScreenWithBg>
+					</ScrollView>
+				</OnboardingScreenWithBg>
+				<FadeOutOverlay />
+			</View>
 		);
 	}
 }
