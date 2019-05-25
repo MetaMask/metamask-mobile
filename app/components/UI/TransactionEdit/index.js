@@ -7,19 +7,11 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import {
-	toBN,
-	isBN,
-	hexToBN,
-	fromWei,
-	isDecimal,
-	toWei,
-	toTokenMinimalUnit,
-	fromTokenMinimalUnit
-} from '../../../util/number';
+import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
+import { getTransactionOptionsTitle } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	root: {
@@ -65,12 +57,12 @@ const styles = StyleSheet.create({
 	},
 	labelText: {
 		...fontStyles.bold,
-		color: colors.gray,
+		color: colors.grey400,
 		fontSize: 16
 	},
 	max: {
 		...fontStyles.bold,
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 12,
 		paddingTop: 6
 	},
@@ -81,15 +73,23 @@ const styles = StyleSheet.create({
 		lineHeight: 12,
 		paddingTop: 6
 	},
+	warning: {
+		...fontStyles.bold,
+		color: colors.orange300,
+		fontSize: 12,
+		lineHeight: 12,
+		paddingTop: 6
+	},
 	form: {
 		flex: 1,
 		padding: 16,
-		flexDirection: 'column'
+		flexDirection: 'column',
+		minHeight: '100%'
 	},
 	hexData: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		flex: 1,
@@ -104,11 +104,17 @@ const styles = StyleSheet.create({
  * Component that supports editing and reviewing a transaction
  */
 class TransactionEdit extends Component {
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', 'Cancel', navigation);
+
 	static propTypes = {
 		/**
 		 * List of accounts from the AccountTrackerController
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * Callback to warn if transaction to is a known contract address
+		 */
+		checkForAssetAddress: PropTypes.func,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -180,10 +186,25 @@ class TransactionEdit extends Component {
 		amountError: '',
 		addressError: '',
 		toAddressError: '',
+		toAddressWarning: '',
 		gasError: '',
 		fillMax: false,
 		ensRecipient: undefined,
-		data: undefined
+		data: undefined,
+		accountSelectIsOpen: false,
+		ethInputIsOpen: false
+	};
+
+	openAccountSelect = isOpen => {
+		this.setState({ accountSelectIsOpen: isOpen, ethInputIsOpen: false });
+	};
+
+	openEthInputIsOpen = isOpen => {
+		this.setState({ ethInputIsOpen: isOpen, accountSelectIsOpen: false });
+	};
+
+	closeDropdowns = () => {
+		this.setState({ accountSelectIsOpen: false, ethInputIsOpen: false });
 	};
 
 	componentDidMount = () => {
@@ -261,16 +282,9 @@ class TransactionEdit extends Component {
 		return amountError || gasError || toAddressError;
 	};
 
-	updateAmount = async amount => {
-		const { selectedAsset, assetType } = this.props.transaction;
-		let processedAmount;
-		if (assetType !== 'ETH') {
-			processedAmount = isDecimal(amount) ? toTokenMinimalUnit(amount, selectedAsset.decimals) : undefined;
-		} else {
-			processedAmount = isDecimal(amount) ? toWei(amount) : undefined;
-		}
-		await this.props.handleUpdateAmount(processedAmount);
-		this.props.handleUpdateReadableValue(amount);
+	updateAmount = async (amount, renderValue) => {
+		await this.props.handleUpdateAmount(amount);
+		this.props.handleUpdateReadableValue(renderValue);
 		const amountError = await this.props.validateAmount(true);
 		this.setState({ amountError });
 	};
@@ -297,9 +311,10 @@ class TransactionEdit extends Component {
 
 	updateAndValidateToAddress = async (to, ensRecipient) => {
 		await this.props.handleUpdateToAddress(to, ensRecipient);
-		let { toAddressError } = this.state;
+		let { toAddressError, toAddressWarning } = this.state;
 		toAddressError = toAddressError || this.props.validateToAddress();
-		this.setState({ toAddressError, ensRecipient });
+		toAddressWarning = toAddressWarning || this.props.checkForAssetAddress();
+		this.setState({ toAddressError, toAddressWarning, ensRecipient });
 	};
 
 	renderAmountLabel = () => {
@@ -327,17 +342,23 @@ class TransactionEdit extends Component {
 		);
 	};
 
-	render = () => {
+	render() {
 		const {
 			navigation,
 			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
 			showHexData
 		} = this.props;
-		const { gasError, toAddressError, data } = this.state;
+		const { gasError, toAddressError, toAddressWarning, data, accountSelectIsOpen, ethInputIsOpen } = this.state;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		return (
 			<View style={styles.root}>
-				<ActionView confirmText="Next" onCancelPress={this.props.onCancel} onConfirmPress={this.review}>
+				<ActionView
+					confirmText={strings('transaction.next')}
+					onCancelPress={this.props.onCancel}
+					onConfirmPress={this.review}
+					onTouchablePress={this.closeDropdowns}
+					keyboardShouldPersistTaps={'handled'}
+				>
 					<View style={styles.form}>
 						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
@@ -355,12 +376,17 @@ class TransactionEdit extends Component {
 								readableValue={readableValue}
 								fillMax={this.state.fillMax}
 								updateFillMax={this.updateFillMax}
+								openEthInput={this.openEthInputIsOpen}
+								isOpen={ethInputIsOpen}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.toRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
 								{toAddressError ? <Text style={styles.error}>{toAddressError}</Text> : null}
+								{!toAddressError && toAddressWarning ? (
+									<Text style={styles.warning}>{toAddressWarning}</Text>
+								) : null}
 							</View>
 							<AccountInput
 								onChange={this.updateToAddress}
@@ -368,10 +394,13 @@ class TransactionEdit extends Component {
 								onFocus={this.onFocusToAddress}
 								placeholder={strings('transaction.recipient_address')}
 								showQRScanner={this.onScan}
+								closeDropdowns={this.closeDropdowns}
 								address={to}
 								updateToAddressError={this.updateToAddressError}
 								ensRecipient={ensRecipient}
 								navigation={navigation}
+								openAccountSelect={this.openAccountSelect}
+								isOpen={accountSelectIsOpen}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
@@ -384,6 +413,7 @@ class TransactionEdit extends Component {
 								totalGas={totalGas}
 								gas={gas}
 								gasPrice={gasPrice}
+								onPress={this.closeDropdowns}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row]}>
@@ -406,7 +436,7 @@ class TransactionEdit extends Component {
 				</ActionView>
 			</View>
 		);
-	};
+	}
 }
 
 const mapStateToProps = state => ({

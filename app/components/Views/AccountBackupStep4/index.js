@@ -67,15 +67,15 @@ const styles = StyleSheet.create({
 	},
 	navbarLeftText: {
 		fontSize: 18,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	seedPhraseWrapper: {
-		backgroundColor: colors.lighterGray,
+		backgroundColor: colors.grey000,
 		borderRadius: 10,
 		marginBottom: 22,
 		flexDirection: 'row',
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1
 	},
 	colLeft: {
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 10,
 		flex: 1,
 		alignItems: 'center',
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderRightWidth: 1
 	},
 	colRight: {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
 		color: colors.fontPrimary,
 		lineHeight: 14,
 		backgroundColor: colors.white,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		borderWidth: 1,
 		marginBottom: 15,
 		borderRadius: 4
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
 		borderWidth: 2,
 		borderRadius: 5,
 		width: '100%',
-		borderColor: colors.concrete,
+		borderColor: colors.grey000,
 		padding: 10,
 		height: 40
 	},

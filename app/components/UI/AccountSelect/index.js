@@ -2,14 +2,13 @@ import React, { Component } from 'react';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../../util/number';
-import { strings } from '../../../../locales/i18n';
-import { ScrollView } from 'react-native-gesture-handler';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	root: {
@@ -21,14 +20,14 @@ const styles = StyleSheet.create({
 		width: '100%',
 		marginTop: 75,
 		maxHeight: 200,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		elevation: 11
 	},
 	activeOption: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		position: 'relative'
@@ -58,14 +57,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8
 	},
 	arrow: {
-		color: colors.inputBorderColor,
+		color: colors.grey100,
 		position: 'absolute',
 		right: 10,
 		top: 25
 	},
 	optionList: {
 		backgroundColor: colors.white,
-		borderColor: colors.inputBorderColor,
+		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
 		paddingBottom: 12,
@@ -114,14 +113,28 @@ class AccountSelect extends Component {
 		/**
 		 * Address of the currently-selected account
 		 */
-		value: PropTypes.string
+		value: PropTypes.string,
+		/**
+		 * Callback to open accounts dropdown
+		 */
+		openAccountSelect: PropTypes.func,
+		/**
+		 * Whether accounts dropdown is opened
+		 */
+		isOpen: PropTypes.bool,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	static defaultProps = {
 		enabled: true
 	};
-
-	state = { isOpen: false };
 
 	componentDidMount() {
 		const { onChange, selectedAddress } = this.props;
@@ -129,22 +142,33 @@ class AccountSelect extends Component {
 	}
 
 	renderActiveOption() {
-		const { selectedAddress, accounts, identities, value } = this.props;
+		const { selectedAddress, accounts, identities, value, isOpen, openAccountSelect } = this.props;
 		const targetAddress = toChecksumAddress(value || selectedAddress);
 		const account = { ...identities[targetAddress], ...accounts[targetAddress] };
 		return (
 			<View style={styles.activeOption}>
 				{this.props.enabled && <MaterialIcon name={'arrow-drop-down'} size={24} style={styles.arrow} />}
 				{this.renderOption(account, () => {
-					this.setState({ isOpen: !this.state.isOpen });
+					openAccountSelect && openAccountSelect(!isOpen);
 				})}
 			</View>
 		);
 	}
 
 	renderOption(account, onPress) {
-		const { conversionRate, currentCurrency } = this.props;
+		const { conversionRate, currentCurrency, primaryCurrency, ticker } = this.props;
 		const balance = hexToBN(account.balance);
+
+		// render balances according to selected 'primaryCurrency'
+		let mainBalance, secondaryBalance;
+		if (primaryCurrency === 'ETH') {
+			mainBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
+			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
+		} else {
+			mainBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
+			secondaryBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
+		}
+
 		return (
 			<TouchableOpacity
 				key={account.address}
@@ -159,23 +183,22 @@ class AccountSelect extends Component {
 					<Text numberOfLines={1} style={styles.name}>
 						{account.name}
 					</Text>
-					<Text style={styles.info}>
-						{renderFromWei(balance)} {strings('unit.eth')}
-					</Text>
-					<Text style={styles.info}>{weiToFiat(balance, conversionRate, currentCurrency).toUpperCase()}</Text>
+					<Text style={styles.info}>{mainBalance}</Text>
+					<Text style={styles.info}>{secondaryBalance}</Text>
 				</View>
 			</TouchableOpacity>
 		);
 	}
 
 	renderOptionList() {
-		const { accounts, identities, onChange } = this.props;
+		const { accounts, identities, onChange, openAccountSelect } = this.props;
 		return (
 			<ScrollView style={styles.componentContainer}>
 				<View style={styles.optionList}>
 					{Object.keys(identities).map(address =>
 						this.renderOption({ ...identities[address], ...accounts[address] }, () => {
-							this.setState({ isOpen: false, value: address });
+							this.setState({ value: address });
+							openAccountSelect && openAccountSelect(true);
 							onChange && onChange(address);
 						})
 					)}
@@ -187,21 +210,19 @@ class AccountSelect extends Component {
 	render = () => (
 		<View style={styles.root}>
 			{this.renderActiveOption()}
-			{this.state.isOpen && this.props.enabled && this.renderOptionList()}
+			{this.props.isOpen && this.props.enabled && this.renderOptionList()}
 		</View>
 	);
 }
 
-const mapStateToProps = ({
-	engine: {
-		backgroundState: { AccountTrackerController, CurrencyRateController, PreferencesController }
-	}
-}) => ({
-	accounts: AccountTrackerController.accounts,
-	conversionRate: CurrencyRateController.conversionRate,
-	currentCurrency: CurrencyRateController.currentCurrency,
-	identities: PreferencesController.identities,
-	selectedAddress: PreferencesController.selectedAddress
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	primaryCurrency: state.settings.primaryCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(AccountSelect);

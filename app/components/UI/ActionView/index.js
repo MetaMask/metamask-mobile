@@ -1,14 +1,14 @@
 import React from 'react';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
+import { Keyboard, StyleSheet, View, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import { baseStyles, colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
 	actionContainer: {
-		borderTopColor: colors.lightGray,
+		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
 		flex: 0,
 		flexDirection: 'row',
@@ -37,15 +37,32 @@ export default function ActionView({
 	confirmButtonMode,
 	onCancelPress,
 	onConfirmPress,
+	onTouchablePress,
 	showCancelButton,
 	showConfirmButton,
 	confirmed,
-	confirmDisabled
+	confirmDisabled,
+	keyboardShouldPersistTaps = 'never'
 }) {
 	return (
 		<View style={baseStyles.flexGrow}>
-			<KeyboardAwareScrollView style={baseStyles.flexGrow} resetScrollToCoords={{ x: 0, y: 0 }}>
-				<TouchableWithoutFeedback style={baseStyles.flexGrow}>{children}</TouchableWithoutFeedback>
+			<KeyboardAwareScrollView
+				style={baseStyles.flexGrow}
+				resetScrollToCoords={{ x: 0, y: 0 }}
+				keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+			>
+				<TouchableWithoutFeedback
+					style={baseStyles.flexGrow}
+					// eslint-disable-next-line react/jsx-no-bind
+					onPress={() => {
+						if (keyboardShouldPersistTaps === 'handled') {
+							Keyboard.dismiss();
+						}
+						onTouchablePress && onTouchablePress();
+					}}
+				>
+					{children}
+				</TouchableWithoutFeedback>
 			</KeyboardAwareScrollView>
 			<View style={styles.actionContainer}>
 				{showCancelButton && (
@@ -128,11 +145,20 @@ ActionView.propTypes = {
 	 */
 	onConfirmPress: PropTypes.func,
 	/**
+	 * Called when the touchable without feedback is clicked
+	 */
+	onTouchablePress: PropTypes.func,
+
+	/**
 	 * Whether cancel button is shown
 	 */
 	showCancelButton: PropTypes.bool,
 	/**
 	 * Whether confirm button is shown
 	 */
-	showConfirmButton: PropTypes.bool
+	showConfirmButton: PropTypes.bool,
+	/**
+	 * Determines if the keyboard should stay visible after a tap
+	 */
+	keyboardShouldPersistTaps: PropTypes.string
 };

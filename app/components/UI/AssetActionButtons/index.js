@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 		alignContent: 'center',
 		color: colors.white,
 		borderRadius: 18,
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	buttonIcon: {
 		justifyContent: 'center',
@@ -38,13 +38,18 @@ const styles = StyleSheet.create({
 	buttonText: {
 		marginTop: 12,
 		textAlign: 'center',
-		color: colors.primary,
+		color: colors.blue,
 		fontSize: 11,
 		...fontStyles.normal
 	},
 	sendIcon: {
 		paddingTop: 0,
 		paddingLeft: 0
+	},
+	receive: {
+		right: Platform.OS === 'ios' ? 1 : 0,
+		bottom: 1,
+		transform: [{ rotate: '90deg' }]
 	}
 });
 
@@ -74,13 +79,17 @@ export default class AssetActionButtons extends Component {
 		 */
 		middleText: PropTypes.string,
 		/**
+		 * Middle button type, receive or add
+		 */
+		middleType: PropTypes.oneOf(['add', 'receive']),
+		/**
 		 * String to display on left button
 		 */
 		rightText: PropTypes.string
 	};
 
 	render() {
-		const { onLeftPress, onMiddlePress, onRightPress, leftText, middleText, rightText } = this.props;
+		const { onLeftPress, onMiddlePress, onRightPress, leftText, middleText, rightText, middleType } = this.props;
 		return (
 			<View style={styles.buttons}>
 				{leftText && (
@@ -89,7 +98,7 @@ export default class AssetActionButtons extends Component {
 							<MaterialCommunityIcon
 								name={'arrow-top-right'}
 								size={20}
-								color={colors.primary}
+								color={colors.blue}
 								style={[styles.buttonIcon, styles.sendIcon]}
 							/>
 						</View>
@@ -99,7 +108,16 @@ export default class AssetActionButtons extends Component {
 
 				<TouchableOpacity type={'normal'} onPress={onMiddlePress} style={styles.button}>
 					<View style={styles.buttonIconWrapper}>
-						<Ionicon name={'ios-add'} size={30} color={colors.white} style={styles.buttonIcon} />
+						{middleType === 'add' ? (
+							<Ionicon name={'ios-add'} size={30} color={colors.white} style={styles.buttonIcon} />
+						) : (
+							<MaterialCommunityIcon
+								name={'keyboard-tab'}
+								size={20}
+								color={colors.white}
+								style={[styles.buttonIcon, styles.receive]}
+							/>
+						)}
 					</View>
 					<Text style={styles.buttonText}>{middleText}</Text>
 				</TouchableOpacity>

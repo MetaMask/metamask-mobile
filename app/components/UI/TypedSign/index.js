@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	informationRow: {
-		borderBottomColor: colors.lightGray,
+		borderBottomColor: colors.grey200,
 		borderBottomWidth: 1,
 		padding: 20
 	},
@@ -159,6 +159,7 @@ export default class TypedSign extends Component {
 					onConfirm={this.confirmSignature}
 					domain={domain}
 					currentPageInformation={currentPageInformation}
+					type="typedSign"
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>

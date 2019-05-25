@@ -12,10 +12,13 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Approval from '../../Views/Approval';
 import Settings from '../../Views/Settings';
-import GeneralSettings from '../../Views/GeneralSettings';
-import AdvancedSettings from '../../Views/AdvancedSettings';
+import GeneralSettings from '../../Views/Settings/GeneralSettings';
+import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
+import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
+import NetworksSettings from '../../Views/Settings/NetworksSettings';
+import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
 import AppInformation from '../../UI/AppInformation';
-import SecuritySettings from '../../Views/SecuritySettings';
 import Wallet from '../../Views/Wallet';
 import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';
@@ -25,6 +28,7 @@ import Collectible from '../../Views/Collectible';
 import CollectibleView from '../../Views/CollectibleView';
 import Send from '../../Views/Send';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
+import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
 import ProtectYourAccount from '../../Views/ProtectYourAccount';
@@ -37,6 +41,8 @@ import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
+import PaymentRequest from '../../UI/PaymentRequest';
+import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import { TransactionNotification } from '../../UI/TransactionNotification';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
 import Engine from '../../../core/Engine';
@@ -45,6 +51,15 @@ import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
+import OnboardingWizard from '../../UI/OnboardingWizard';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import { hexToBN, fromWei } from '../../../util/number';
+import { setTransactionObject } from '../../../actions/transaction';
+import PersonalSign from '../../UI/PersonalSign';
+import TypedSign from '../../UI/TypedSign';
+import Modal from 'react-native-modal';
+import WalletConnect from '../../../core/WalletConnect';
+import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -55,6 +70,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0
 	}
 });
 
@@ -134,6 +153,15 @@ const MainNavigator = createStackNavigator(
 				SecuritySettings: {
 					screen: SecuritySettings
 				},
+				ExperimentalSettings: {
+					screen: ExperimentalSettings
+				},
+				NetworksSettings: {
+					screen: NetworksSettings
+				},
+				NetworkSettings: {
+					screen: NetworkSettings
+				},
 				CompanySettings: {
 					screen: AppInformation
 				},
@@ -142,6 +170,9 @@ const MainNavigator = createStackNavigator(
 				},
 				RevealPrivateCredentialView: {
 					screen: RevealPrivateCredential
+				},
+				WalletConnectSessionsView: {
+					screen: WalletConnectSessions
 				}
 			})
 		},
@@ -187,6 +218,21 @@ const MainNavigator = createStackNavigator(
 		},
 		LockScreen: {
 			screen: LockScreen
+		},
+		PaymentRequestView: {
+			screen: createStackNavigator(
+				{
+					PaymentRequest: {
+						screen: PaymentRequest
+					},
+					PaymentRequestSuccess: {
+						screen: PaymentRequestSuccess
+					}
+				},
+				{
+					mode: 'modal'
+				}
+			)
 		},
 		SetPasswordFlow: {
 			screen: createStackNavigator(
@@ -243,11 +289,28 @@ class Main extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		lockTime: PropTypes.number
+		lockTime: PropTypes.number,
+		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number,
+		/**
+		 * Action that sets a transaction
+		 */
+		setTransactionObject: PropTypes.func,
+		/**
+		 * Object containing the information for the current transaction
+		 */
+		transaction: PropTypes.object
 	};
 
 	state = {
-		forceReload: false
+		forceReload: false,
+		signMessage: false,
+		signMessageParams: { data: '' },
+		signType: '',
+		walletConnectRequest: false,
+		walletConnectRequestInfo: {}
 	};
 
 	backgroundMode = false;
@@ -263,13 +326,11 @@ class Main extends Component {
 		}
 	};
 
-	componentDidMount() {
+	componentDidMount = async () => {
 		TransactionsNotificationManager.init(this.props.navigation);
 		this.pollForIncomingTransactions();
 		AppState.addEventListener('change', this.handleAppStateChange);
-
 		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-
 		PushNotification.configure({
 			requestPermissions: false,
 			onNotification: notification => {
@@ -291,7 +352,62 @@ class Main extends Component {
 				}
 			}
 		});
-	}
+
+		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+
+		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
+			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+			delete messageParams.meta;
+			this.setState({
+				signMessage: true,
+				signMessageParams: messageParams,
+				signType: 'personal',
+				currentPageTitle,
+				currentPageUrl
+			});
+		});
+
+		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
+			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+			delete messageParams.meta;
+			this.setState({
+				signMessage: true,
+				signMessageParams: messageParams,
+				signType: 'typed',
+				currentPageTitle,
+				currentPageUrl
+			});
+		});
+
+		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
+			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
+		});
+		WalletConnect.init();
+	};
+
+	onUnapprovedTransaction = transactionMeta => {
+		if (this.props.transaction.value || this.props.transaction.to) {
+			return;
+		}
+		const {
+			transaction: { value, gas, gasPrice }
+		} = transactionMeta;
+		transactionMeta.transaction.value = hexToBN(value);
+		transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
+		transactionMeta.transaction.gas = hexToBN(gas);
+		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
+		this.props.setTransactionObject({
+			...{
+				symbol: 'ETH',
+				selectedAsset: { isETH: true, symbol: 'ETH' },
+				type: 'ETHER_TRANSACTION',
+				assetType: 'ETH',
+				id: transactionMeta.id
+			},
+			...transactionMeta.transaction
+		});
+		this.props.navigation.push('ApprovalView');
+	};
 
 	handleAppStateChange = appState => {
 		const newModeIsBackground = appState === 'background';
@@ -342,19 +458,140 @@ class Main extends Component {
 	componentWillUnmount() {
 		AppState.removeEventListener('change', this.handleAppStateChange);
 		this.lockManager.stopListening();
+		Engine.context.PersonalMessageManager.hub.removeAllListeners();
+		Engine.context.TypedMessageManager.hub.removeAllListeners();
+		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
 	}
 
-	render = () => (
-		<View style={styles.flex}>
-			{!this.state.forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-			<GlobalAlert />
-			<FlashMessage position="bottom" MessageComponent={TransactionNotification} animationDuration={150} />
-		</View>
-	);
+	/**
+	 * Return current step of onboarding wizard if not step 5 nor 0
+	 */
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		return wizardStep !== 5 && wizardStep > 0 && <OnboardingWizard navigation={this.props.navigation} />;
+	};
+
+	onSignAction = () => {
+		this.setState({ signMessage: false });
+	};
+
+	renderSigningModal = () => {
+		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
+		return (
+			<Modal
+				isVisible={signMessage}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={600}
+				animationOutTiming={600}
+				onBackdropPress={this.onSignAction}
+				onSwipeComplete={this.onSignAction}
+				swipeDirection={'down'}
+				propagateSwipe
+			>
+				{signType === 'personal' && (
+					<PersonalSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+				{signType === 'typed' && (
+					<TypedSign
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+			</Modal>
+		);
+	};
+
+	onWalletConnectSessionApproval = () => {
+		const { peerId } = this.state.walletConnectRequestInfo;
+		this.setState({
+			walletConnectRequest: false,
+			walletConnectRequestInfo: {}
+		});
+		WalletConnect.hub.emit('walletconnectSessionRequest::approved', peerId);
+	};
+
+	onWalletConnectSessionRejected = () => {
+		const peerId = this.state.walletConnectRequestInfo.peerId;
+		this.setState({
+			walletConnectRequest: false,
+			walletConnectRequestInfo: {}
+		});
+		WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
+	};
+
+	renderWalletConnectSessionRequestModal = () => {
+		const { walletConnectRequest, walletConnectRequestInfo } = this.state;
+
+		const meta = walletConnectRequestInfo.peerMeta || null;
+
+		return (
+			<Modal
+				isVisible={walletConnectRequest}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={300}
+				animationOutTiming={300}
+				onSwipeComplete={this.onWalletConnectSessionRejected}
+				swipeDirection={'down'}
+			>
+				<WalletConnectSessionApproval
+					onCancel={this.onWalletConnectSessionRejected}
+					onConfirm={this.onWalletConnectSessionApproval}
+					currentPageInformation={{
+						title: meta && meta.name,
+						url: meta && meta.url
+					}}
+				/>
+			</Modal>
+		);
+	};
+
+	render() {
+		const { forceReload } = this.state;
+
+		return (
+			<React.Fragment>
+				<View style={styles.flex}>
+					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
+					{this.renderOnboardingWizard()}
+					<GlobalAlert />
+					<FlashMessage
+						position="bottom"
+						MessageComponent={TransactionNotification}
+						animationDuration={150}
+					/>
+					<FadeOutOverlay />
+				</View>
+				{this.renderSigningModal()}
+				{this.renderWalletConnectSessionRequestModal()}
+			</React.Fragment>
+		);
+	}
 }
 
 const mapStateToProps = state => ({
-	lockTime: state.settings.lockTime
+	lockTime: state.settings.lockTime,
+	wizardStep: state.wizard.step,
+	transaction: state.transaction
 });
 
-export default connect(mapStateToProps)(Main);
+const mapDispatchToProps = dispatch => ({
+	setTransactionObject: asset => dispatch(setTransactionObject(asset))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Main);

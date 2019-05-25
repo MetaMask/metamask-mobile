@@ -30,7 +30,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
               "padding": 20,
             },
             Object {
-              "borderBottomColor": "#9b9b9b",
+              "borderBottomColor": "#848c96",
               "borderBottomWidth": 1,
               "fontFamily": "Roboto",
               "fontWeight": "400",
@@ -45,7 +45,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#fff1f2",
+            "backgroundColor": "#fcf2f3",
           }
         }
       >
@@ -70,7 +70,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             size={22}
             style={
               Object {
-                "color": "#f00",
+                "color": "#D73A49",
                 "margin": 10,
               }
             }
@@ -115,7 +115,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
             secureTextEntry={true}
             style={
               Object {
-                "borderColor": "#f1f2f6",
+                "borderColor": "#f2f3f4",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "padding": 10,
@@ -127,7 +127,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#FF0000",
+                "color": "#D73A49",
                 "fontFamily": "Roboto",
                 "fontWeight": "400",
                 "marginTop": 10,

@@ -5,5 +5,6 @@ export default {
 	TX_CHECK_NORMAL_FREQUENCY: 10000,
 	TX_CHECK_BACKGROUND_FREQUENCY: 30000,
 	IPFS_OVERRIDE_PARAM: 'mm_override',
-	supportedTLDs: ['eth', 'xyz', 'test']
+	supportedTLDs: ['eth', 'xyz', 'test'],
+	MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2
 };

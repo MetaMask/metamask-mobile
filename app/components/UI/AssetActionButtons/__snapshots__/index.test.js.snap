@@ -27,7 +27,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "backgroundColor": "#008edf",
+          "backgroundColor": "#037dd6",
           "borderRadius": 18,
           "color": "#FFFFFF",
           "height": 36,
@@ -40,7 +40,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     >
       <Icon
         allowFontScaling={false}
-        color="#008edf"
+        color="#037dd6"
         name="arrow-top-right"
         size={20}
         style={
@@ -62,7 +62,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#008edf",
+          "color": "#037dd6",
           "fontFamily": "Roboto",
           "fontSize": 11,
           "fontWeight": "400",
@@ -90,7 +90,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "backgroundColor": "#008edf",
+          "backgroundColor": "#037dd6",
           "borderRadius": 18,
           "color": "#FFFFFF",
           "height": 36,
@@ -104,22 +104,33 @@ exports[`AssetActionButtons should render correctly 1`] = `
       <Icon
         allowFontScaling={false}
         color="#FFFFFF"
-        name="ios-add"
-        size={30}
+        name="keyboard-tab"
+        size={20}
         style={
-          Object {
-            "alignContent": "center",
-            "color": "#FFFFFF",
-            "justifyContent": "center",
-            "textAlign": "center",
-          }
+          Array [
+            Object {
+              "alignContent": "center",
+              "color": "#FFFFFF",
+              "justifyContent": "center",
+              "textAlign": "center",
+            },
+            Object {
+              "bottom": 1,
+              "right": 1,
+              "transform": Array [
+                Object {
+                  "rotate": "90deg",
+                },
+              ],
+            },
+          ]
         }
       />
     </View>
     <Text
       style={
         Object {
-          "color": "#008edf",
+          "color": "#037dd6",
           "fontFamily": "Roboto",
           "fontSize": 11,
           "fontWeight": "400",
@@ -145,7 +156,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "backgroundColor": "#008edf",
+          "backgroundColor": "#037dd6",
           "borderRadius": 18,
           "color": "#FFFFFF",
           "height": 36,
@@ -174,7 +185,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#008edf",
+          "color": "#037dd6",
           "fontFamily": "Roboto",
           "fontSize": 11,
           "fontWeight": "400",

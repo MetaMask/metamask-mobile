@@ -29,6 +29,7 @@ import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 
+const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
 const encryptor = new Encryptor();
 let refreshing = false;
 /**
@@ -52,6 +53,7 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
+			const { nativeCurrency, currentCurrency } = initialState.CurrencyRateController || {};
 			this.datamodel = new ComposableController(
 				[
 					new KeyringController({ encryptor }, initialState.KeyringController),
@@ -60,7 +62,10 @@ class Engine {
 					new AssetsContractController(),
 					new AssetsController(),
 					new AssetsDetectionController(),
-					new CurrencyRateController(),
+					new CurrencyRateController({
+						nativeCurrency,
+						currentCurrency
+					}),
 					new PersonalMessageManager(),
 					new NetworkController(
 						{
@@ -73,60 +78,6 @@ class Engine {
 												payload.params[0]
 											)).result;
 											end(undefined, hash);
-										} catch (error) {
-											end(error);
-										}
-									},
-									eth_sign: async (payload, next, end) => {
-										const { PersonalMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-												data: payload.params[1],
-												from: payload.params[0]
-											});
-											end(undefined, rawSig);
-										} catch (error) {
-											end(error);
-										}
-									},
-									personal_sign: async (payload, next, end) => {
-										const { PersonalMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-												data: payload.params[0],
-												from: payload.params[1]
-											});
-											end(undefined, rawSig);
-										} catch (error) {
-											end(error);
-										}
-									},
-									eth_signTypedData: async (payload, next, end) => {
-										const { TypedMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-												{
-													data: payload.params[0],
-													from: payload.params[1]
-												},
-												'V1'
-											);
-											end(undefined, rawSig);
-										} catch (error) {
-											end(error);
-										}
-									},
-									eth_signTypedData_v3: async (payload, next, end) => {
-										const { TypedMessageManager } = this.datamodel.context;
-										try {
-											const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-												{
-													data: payload.params[1],
-													from: payload.params[0]
-												},
-												'V3'
-											);
-											end(undefined, rawSig);
 										} catch (error) {
 											end(error);
 										}
@@ -158,11 +109,13 @@ class Engine {
 			);
 
 			const {
+				AssetsController: assets,
 				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction
 			} = this.datamodel.context;
 
+			assets.setApiKey(OPENSEA_API_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
 			network.subscribe(this.refreshNetwork);
@@ -355,6 +308,7 @@ export default {
 	get state() {
 		const {
 			AccountTrackerController,
+			AddressBookController,
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,
@@ -373,6 +327,7 @@ export default {
 
 		return {
 			AccountTrackerController,
+			AddressBookController,
 			AssetsContractController,
 			AssetsController,
 			AssetsDetectionController,

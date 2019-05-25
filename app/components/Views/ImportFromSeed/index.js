@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
+	Animated,
 	Switch,
 	ActivityIndicator,
 	Alert,
+	TouchableOpacity,
 	Text,
 	View,
 	TextInput,
@@ -19,11 +21,15 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
-
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import { NavigationActions } from 'react-navigation';
+import TermsAndConditions from '../TermsAndConditions';
+import zxcvbn from 'zxcvbn';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -32,38 +38,44 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		padding: 20
+		paddingHorizontal: 20
 	},
 	title: {
 		fontSize: Platform.OS === 'android' ? 20 : 25,
 		marginTop: 20,
 		marginBottom: 20,
-		color: colors.title,
+		color: colors.fontPrimary,
 		justifyContent: 'center',
 		textAlign: 'center',
 		...fontStyles.bold
 	},
 	field: {
-		marginBottom: Platform.OS === 'android' ? 0 : 10
+		marginTop: 20,
+		marginBottom: 10
 	},
 	label: {
+		position: 'absolute',
+		marginTop: -35,
+		marginLeft: 5,
 		fontSize: 16,
-		marginBottom: Platform.OS === 'android' ? 0 : 10,
-		marginTop: 10
+		color: colors.fontSecondary,
+		textAlign: 'left',
+		...fontStyles.normal
 	},
 	input: {
-		borderWidth: Platform.OS === 'android' ? 0 : 1,
-		borderColor: colors.borderColor,
-		padding: 10,
+		borderBottomWidth: Platform.OS === 'android' ? 0 : 1,
+		borderBottomColor: colors.grey100,
+		paddingLeft: 0,
+		paddingVertical: 10,
 		borderRadius: 4,
-		fontSize: Platform.OS === 'android' ? 15 : 20,
+		fontSize: Platform.OS === 'android' ? 14 : 20,
 		...fontStyles.normal
 	},
 	ctaWrapper: {
 		marginTop: 20
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		textAlign: 'center',
 		...fontStyles.normal
 	},
@@ -80,13 +92,12 @@ const styles = StyleSheet.create({
 		minHeight: 110,
 		height: 'auto',
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		...fontStyles.normal
 	},
 	biometrics: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginTop: 20,
+		alignItems: 'flex-start',
+		marginTop: 30,
 		marginBottom: 30
 	},
 	biometryLabel: {
@@ -95,7 +106,43 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	biometrySwitch: {
+		marginTop: 10,
 		flex: 0
+	},
+	termsAndConditions: {
+		paddingVertical: 30
+	},
+	passwordStrengthLabel: {
+		height: 20,
+		marginLeft: 5,
+		marginTop: 10,
+		fontSize: 12,
+		color: colors.fontSecondary,
+		textAlign: 'left',
+		...fontStyles.normal
+	},
+	// eslint-disable-next-line react-native/no-unused-styles
+	strength_weak: {
+		color: colors.red
+	},
+	// eslint-disable-next-line react-native/no-unused-styles
+	strength_good: {
+		color: colors.blue
+	},
+	// eslint-disable-next-line react-native/no-unused-styles
+	strength_strong: {
+		color: colors.green300
+	},
+	showHideToggle: {
+		backgroundColor: colors.white,
+		position: 'absolute',
+		marginTop: 8,
+		alignSelf: 'flex-end'
+	},
+	showMatchingPasswords: {
+		position: 'absolute',
+		marginTop: 8,
+		alignSelf: 'flex-end'
 	}
 });
 
@@ -127,7 +174,11 @@ class ImportFromSeed extends Component {
 		 * The action to update the seedphrase backed up flag
 		 * in the redux store
 		 */
-		seedphraseBackedUp: PropTypes.func
+		seedphraseBackedUp: PropTypes.func,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -136,6 +187,9 @@ class ImportFromSeed extends Component {
 		seed: '',
 		biometryType: null,
 		rememberMe: false,
+		labelsScaleNew: new Animated.Value(1),
+		labelsScaleConfirm: new Animated.Value(1),
+		secureTextEntry: true,
 		biometryChoice: false,
 		loading: false,
 		error: null,
@@ -148,7 +202,12 @@ class ImportFromSeed extends Component {
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		if (biometryType) {
-			this.setState({ biometryType, biometryChoice: true });
+			let enabled = true;
+			const previouslyDisabled = await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			if (previouslyDisabled && previouslyDisabled === 'true') {
+				enabled = false;
+			}
+			this.setState({ biometryType, biometryChoice: enabled });
 		}
 		this.mounted = true;
 		// Workaround https://github.com/facebook/react-native/issues/9958
@@ -196,6 +255,11 @@ class ImportFromSeed extends Component {
 					if (!this.state.biometryChoice) {
 						await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 					} else {
+						// If the user enables biometrics, we're trying to read the password
+						// immediately so we get the permission prompt
+						if (Platform.OS === 'ios') {
+							await SecureKeychain.getGenericPassword();
+						}
 						await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
 					}
 				} else {
@@ -208,14 +272,28 @@ class ImportFromSeed extends Component {
 					}
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				}
-
+				// Get onboarding wizard state
+				const onboardingWizard = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+				// Check if user passed through metrics opt-in screen
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 				// mark the user as existing so it doesn't see the create password screen again
 				await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 				this.setState({ loading: false });
 				this.props.passwordSet();
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
-				this.props.navigation.navigate('HomeNav');
+				if (!metricsOptIn) {
+					this.props.navigation.navigate('OptinMetrics');
+				} else if (onboardingWizard) {
+					this.props.navigation.navigate('HomeNav');
+				} else {
+					this.props.setOnboardingWizardStep(1);
+					this.props.navigation.navigate(
+						'HomeNav',
+						{},
+						NavigationActions.navigate({ routeName: 'WalletView' })
+					);
+				}
 			} catch (error) {
 				// Should we force people to enable passcode / biometrics?
 				if (error.toString() === PASSCODE_NOT_SET_ERROR) {
@@ -240,7 +318,9 @@ class ImportFromSeed extends Component {
 	};
 
 	onPasswordChange = val => {
-		this.setState({ password: val });
+		const passInfo = zxcvbn(val);
+
+		this.setState({ password: val, passwordStrength: passInfo.score });
 	};
 
 	onPasswordConfirmChange = val => {
@@ -257,6 +337,15 @@ class ImportFromSeed extends Component {
 		current && current.focus();
 	};
 
+	updateBiometryChoice = async biometryChoice => {
+		if (!biometryChoice) {
+			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+		} else {
+			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+		}
+		this.setState({ biometryChoice });
+	};
+
 	renderSwitch = () => {
 		if (this.state.biometryType) {
 			return (
@@ -268,10 +357,8 @@ class ImportFromSeed extends Component {
 						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -284,88 +371,227 @@ class ImportFromSeed extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);
 	};
 
-	render = () => (
-		<SafeAreaView style={styles.mainWrapper}>
-			<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-				<View testID={'import-from-seed-screen'}>
-					<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
-					<TextInput
-						value={this.state.seedWords}
-						numberOfLines={3}
-						multiline
-						style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
-						placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-						onChangeText={this.onSeedWordsChange}
-						testID={'input-seed-phrase'}
-						blurOnSubmit
-						onSubmitEditing={this.jumpToPassword}
-						returnKeyType={'next'}
-						keyboardType={Platform.OS === 'android' ? 'email-address' : 'default'}
-						autoCapitalize="none"
-					/>
-					<View style={styles.field}>
-						<Text style={styles.label}>{strings('import_from_seed.new_password')}</Text>
+	toggleShowHide = () => {
+		this.setState({ secureTextEntry: !this.state.secureTextEntry });
+	};
+
+	animateInLabel = label => {
+		if (
+			(label === 'new' && this.state.password !== '') ||
+			(label === 'confirm' && this.state.confirmPassword !== '')
+		) {
+			return;
+		}
+		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
+			toValue: 1,
+			duration: 200,
+			useNativeDriver: true,
+			isInteraction: false
+		}).start();
+	};
+
+	animateOutLabel = label => {
+		Animated.timing(label === 'new' ? this.state.labelsScaleNew : this.state.labelsScaleConfirm, {
+			toValue: 0.66,
+			duration: 200,
+			useNativeDriver: true,
+			isInteraction: false
+		}).start();
+	};
+
+	getPasswordStrengthWord() {
+		// this.state.passwordStrength is calculated by zxcvbn
+		// which returns a score based on "entropy to crack time"
+		// 0 is the weakest, 4 the strongest
+		switch (this.state.passwordStrength) {
+			case 0:
+				return 'weak';
+			case 1:
+				return 'weak';
+			case 2:
+				return 'weak';
+			case 3:
+				return 'good';
+			case 4:
+				return 'strong';
+		}
+	}
+
+	render() {
+		const startX = 0;
+		const startY = 0;
+		const width = 100;
+		const height = 24;
+		const initialScale = 1;
+		const endX = 0;
+		const endY = 50;
+
+		const labelsScaleNewX = this.state.labelsScaleNew.interpolate({
+			inputRange: [0, 1],
+			outputRange: [startX - width / 2 - (width * initialScale) / 2, endX]
+		});
+		const labelsScaleNewY = this.state.labelsScaleNew.interpolate({
+			inputRange: [0, 1],
+			outputRange: [startY - height / 2 - (height * initialScale) / 2, endY]
+		});
+
+		const labelsScaleNewXConfirm = this.state.labelsScaleConfirm.interpolate({
+			inputRange: [0, 1],
+			outputRange: [startX - width / 2 - (width * initialScale) / 2, endX]
+		});
+		const labelsScaleNewYConfirm = this.state.labelsScaleConfirm.interpolate({
+			inputRange: [0, 1],
+			outputRange: [startY - height / 2 - (height * initialScale) / 2, endY]
+		});
+
+		const { password, confirmPassword, seed } = this.state;
+
+		return (
+			<SafeAreaView style={styles.mainWrapper}>
+				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
+					<View testID={'import-from-seed-screen'}>
+						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
 						<TextInput
-							ref={this.passwordInput}
-							style={styles.input}
-							value={this.state.password}
-							onChangeText={this.onPasswordChange}
-							secureTextEntry
-							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
-							testID={'input-password'}
-							onSubmitEditing={this.jumpToConfirmPassword}
+							value={this.state.seedWords}
+							numberOfLines={3}
+							multiline
+							style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+							placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+							onChangeText={this.onSeedWordsChange}
+							testID={'input-seed-phrase'}
+							blurOnSubmit
+							onSubmitEditing={this.jumpToPassword}
 							returnKeyType={'next'}
+							keyboardType={Platform.OS === 'android' ? 'email-address' : 'default'}
 							autoCapitalize="none"
 						/>
-					</View>
-					<View style={styles.field}>
-						<Text style={styles.label}>{strings('import_from_seed.confirm_password')}</Text>
-						<TextInput
-							ref={this.confirmPasswordInput}
-							style={styles.input}
-							value={this.state.confirmPassword}
-							onChangeText={this.onPasswordConfirmChange}
-							secureTextEntry
-							placeholder={''}
-							underlineColorAndroid={colors.borderColor}
-							testID={'input-password-confirm'}
-							onSubmitEditing={this.onPressImport}
-							returnKeyType={'done'}
-							autoCapitalize="none"
-						/>
-					</View>
+						<View style={styles.field}>
+							<Animated.Text
+								style={[
+									styles.label,
+									{
+										transform: [
+											{ scale: this.state.labelsScaleNew },
+											{ translateX: labelsScaleNewX },
+											{ translateY: labelsScaleNewY }
+										]
+									}
+								]}
+							>
+								{strings('import_from_seed.new_password')}
+							</Animated.Text>
+							<TextInput
+								ref={this.passwordInput}
+								style={styles.input}
+								value={this.state.password}
+								onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
+								secureTextEntry={this.state.secureTextEntry}
+								placeholder={''}
+								underlineColorAndroid={colors.grey100}
+								onSubmitEditing={this.jumpToConfirmPassword}
+								returnKeyType={'next'}
+								onFocus={() => this.animateOutLabel('new')} // eslint-disable-line  react/jsx-no-bind
+								onBlur={() => this.animateInLabel('new')} // eslint-disable-line  react/jsx-no-bind
+								autoCapitalize="none"
+							/>
+							<TouchableOpacity onPress={this.toggleShowHide} style={styles.showHideToggle}>
+								<Text style={styles.passwordStrengthLabel}>
+									{strings(`choose_password.${this.state.secureTextEntry ? 'show' : 'hide'}`)}
+								</Text>
+							</TouchableOpacity>
+							{(this.state.password !== '' && (
+								<Text style={styles.passwordStrengthLabel}>
+									{strings('choose_password.password_strength')}
+									<Text style={styles[`strength_${this.getPasswordStrengthWord()}`]}>
+										{' '}
+										{strings(`choose_password.strength_${this.getPasswordStrengthWord()}`)}
+									</Text>
+								</Text>
+							)) || <Text style={styles.passwordStrengthLabel} />}
+						</View>
 
-					{this.renderSwitch()}
+						<View style={styles.field}>
+							<Animated.Text
+								style={[
+									styles.label,
+									{
+										transform: [
+											{ scale: this.state.labelsScaleConfirm },
+											{ translateX: labelsScaleNewXConfirm },
+											{ translateY: labelsScaleNewYConfirm }
+										]
+									}
+								]}
+							>
+								{strings('import_from_seed.confirm_password')}
+							</Animated.Text>
+							<TextInput
+								ref={this.confirmPasswordInput}
+								style={styles.input}
+								value={this.state.confirmPassword}
+								onChangeText={this.onPasswordConfirmChange} // eslint-disable-line  react/jsx-no-bind
+								secureTextEntry={this.state.secureTextEntry}
+								placeholder={''}
+								underlineColorAndroid={colors.grey100}
+								onSubmitEditing={this.onPressImport}
+								returnKeyType={'done'}
+								onFocus={() => this.animateOutLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
+								onBlur={() => this.animateInLabel('confirm')} // eslint-disable-line  react/jsx-no-bind
+								autoCapitalize="none"
+							/>
+							<View style={styles.showMatchingPasswords}>
+								{this.state.password !== '' && this.state.password === this.state.confirmPassword ? (
+									<Icon name="check" size={12} color={colors.green300} />
+								) : null}
+							</View>
+							<Text style={styles.passwordStrengthLabel}>
+								{strings('choose_password.must_be_at_least', { number: 8 })}
+							</Text>
+						</View>
 
-					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+						{this.renderSwitch()}
 
-					<View style={styles.ctaWrapper}>
-						<StyledButton type={'blue'} onPress={this.onPressImport} testID={'submit'}>
-							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
-							) : (
-								strings('import_from_seed.import_button')
-							)}
-						</StyledButton>
+						{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+
+						<View style={styles.ctaWrapper}>
+							<StyledButton
+								type={'blue'}
+								onPress={this.onPressImport}
+								testID={'submit'}
+								disabled={
+									!(password !== '' && password === confirmPassword && seed.split(' ').length === 12)
+								}
+							>
+								{this.state.loading ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									strings('import_from_seed.import_button')
+								)}
+							</StyledButton>
+						</View>
+						<View style={styles.termsAndConditions}>
+							<TermsAndConditions
+								navigation={this.props.navigation}
+								action={strings('import_from_seed.import_button')}
+							/>
+						</View>
 					</View>
-				</View>
-			</KeyboardAwareScrollView>
-		</SafeAreaView>
-	);
+				</KeyboardAwareScrollView>
+			</SafeAreaView>
+		);
+	}
 }
 
 const mapDispatchToProps = dispatch => ({
 	setLockTime: time => dispatch(setLockTime(time)),
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
 });

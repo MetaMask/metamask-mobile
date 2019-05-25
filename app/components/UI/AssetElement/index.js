@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		paddingVertical: 10,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.borderColor
+		borderBottomColor: colors.grey100
 	},
 	arrow: {
 		flex: 1,

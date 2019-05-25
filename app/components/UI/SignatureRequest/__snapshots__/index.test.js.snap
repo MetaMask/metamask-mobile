@@ -179,13 +179,15 @@ exports[`SignatureRequest should render correctly 1`] = `
     confirmTestID="request-signature-confirm-button"
     confirmText="SIGN"
     confirmed={false}
+    onCancelPress={[Function]}
+    onConfirmPress={[Function]}
     showCancelButton={true}
     showConfirmButton={true}
   >
     <View
       style={
         Object {
-          "borderTopColor": "#d2d8dd",
+          "borderTopColor": "#bbc0c5",
           "borderTopWidth": 1,
           "flex": 1,
           "height": "100%",

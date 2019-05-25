@@ -7,7 +7,9 @@ import Networks, { isKnownNetwork } from '../util/networks';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, renderFromWei } from '../util/number';
 import { strings } from '../../locales/i18n';
-import { AppState, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
+import AppConstants from './AppConstants';
 
 /**
  * Singleton class responsible for managing all the transaction
@@ -61,6 +63,10 @@ class TransactionsNotificationManager {
 					title = strings('notifications.error_title');
 					message = strings('notifications.error_message');
 					break;
+				case 'cancelled':
+					title = strings('notifications.cancelled_title');
+					message = strings('notifications.cancelled_message');
+					break;
 				case 'received':
 					title = strings('notifications.received_title', {
 						amount: data.message.transaction.amount,
@@ -107,6 +113,41 @@ class TransactionsNotificationManager {
 	}
 
 	/**
+	 * Handles the push notification prompt
+	 * with a custom set of rules, like max. number of attempts
+	 */
+	requestPushNotificationsPermission = async () => {
+		const promptCount = await AsyncStorage.getItem('@MetaMask:pushNotificationsPromptCount');
+		if (!promptCount || Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES) {
+			PushNotification.checkPermissions(permissions => {
+				if (!permissions || !permissions.alert) {
+					Alert.alert(
+						strings('notifications.prompt_title'),
+						strings('notifications.prompt_desc'),
+						[
+							{
+								text: strings('notifications.prompt_cancel'),
+								onPress: () => false,
+								style: 'default'
+							},
+							{
+								text: strings('notifications.prompt_ok'),
+								onPress: () => PushNotification.requestPermissions()
+							}
+						],
+						{ cancelable: false }
+					);
+
+					const times = (promptCount && Number(promptCount) + 1) || 1;
+					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptCount', times.toString());
+					// In case we want to prompt again after certain time.
+					AsyncStorage.setItem('@MetaMask:pushNotificationsPromptTime', Date.now().toString());
+				}
+			});
+		}
+	};
+
+	/**
 	 * Returns the id of the transaction that should
 	 * be displayed and removes it from memory
 	 */
@@ -127,7 +168,6 @@ class TransactionsNotificationManager {
 	 */
 	watchSubmittedTransaction(transaction) {
 		const { TransactionController } = Engine.context;
-
 		// First we show the pending tx notification
 		this._showNotification({
 			type: 'pending',
@@ -162,9 +202,26 @@ class TransactionsNotificationManager {
 				// Clean up
 				this._removeListeners(transactionMeta.id);
 
+				const { TokenBalancesController, AssetsDetectionController, AccountTrackerController } = Engine.context;
+				// account balances for ETH txs
+				// Detect assets and tokens for ERC20 txs
+				// Detect assets for ERC721 txs
+				// right after a transaction was confirmed
+				const pollPromises = [AccountTrackerController.poll()];
+				switch (transaction.assetType) {
+					case 'ERC20': {
+						pollPromises.push(...[TokenBalancesController.poll(), AssetsDetectionController.poll()]);
+						break;
+					}
+					case 'ERC721':
+						pollPromises.push(AssetsDetectionController.poll());
+						break;
+				}
+				Promise.all(pollPromises);
+
 				Platform.OS === 'ios' &&
 					setTimeout(() => {
-						PushNotification.requestPermissions();
+						this.requestPushNotificationsPermission();
 					}, 7000);
 			}, 500);
 		});
@@ -175,7 +232,7 @@ class TransactionsNotificationManager {
 			setTimeout(() => {
 				// Then we show the error notification
 				this._showNotification({
-					type: 'error',
+					type: transactionMeta.status === 'cancelled' ? 'cancelled' : 'error',
 					autoHide: true,
 					message: {
 						transaction: transactionMeta,
@@ -236,6 +293,11 @@ class TransactionsNotificationManager {
 				});
 			}
 		}
+
+		// Update balance upon detecting
+		// a new incoming transaction
+		const { AccountTrackerController } = Engine.context;
+		AccountTrackerController.poll();
 	};
 }
 
@@ -257,5 +319,8 @@ export default {
 	},
 	gotIncomingTransaction(lastBlock) {
 		return instance.gotIncomingTransaction(lastBlock);
+	},
+	requestPushNotificationsPermission() {
+		return instance.requestPushNotificationsPermission();
 	}
 };

@@ -50,11 +50,12 @@ export default class TokenElement extends Component {
 				asset.logo = contractMap[checksumAddress].logo;
 			}
 		}
-
+		// When image is defined, is coming from a token added by watchAsset, so it has to be handled alone
+		const watchedAsset = asset.image !== undefined;
 		return (
 			<View style={[styles.itemLogoWrapper, containerStyle]}>
-				{asset.logo ? (
-					<AssetIcon logo={asset.logo} customStyle={iconStyle} />
+				{asset.logo || asset.image ? (
+					<AssetIcon watchedAsset={watchedAsset} logo={asset.image || asset.logo} customStyle={iconStyle} />
 				) : (
 					<Identicon address={asset.address} customStyle={iconStyle} />
 				)}

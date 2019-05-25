@@ -174,8 +174,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "0.1.6"
+        versionCode 8
+        versionName "0.1.7"
         multiDexEnabled true
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -210,7 +210,7 @@ android {
             reset()
             enable enableSeparateBuildPerCPUArchitecture
             universalApk false  // If true, also generate a universal APK
-            include "armeabi-v7a", "x86", "arm64-v8a", "x86-64"
+            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
         }
     }
     buildTypes {
@@ -228,12 +228,16 @@ android {
     	it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
 
 	}
+	packagingOptions {
+		pickFirst 'lib/x86_64/libjsc.so'
+		pickFirst 'lib/arm64-v8a/libjsc.so'
+	}
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
             // For each separate APK per architecture, set a unique version code as described here:
             // http://tools.android.com/tech-docs/new-build-system/user-guide/apk-splits
-            def versionCodes = ["armeabi-v7a":1, "x86":2, "arm64-v8a": 3, "x86-64": 4]
+            def versionCodes = ["armeabi-v7a":1, "x86":2, "arm64-v8a": 3, "x86_64": 4]
             def abi = output.getFilter(OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
                 output.versionCodeOverride =
@@ -244,6 +248,8 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-view-shot')
+    implementation project(':lottie-react-native')
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-push-notification')
     implementation project(':react-native-background-timer')

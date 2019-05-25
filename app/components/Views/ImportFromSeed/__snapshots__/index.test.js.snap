@@ -25,7 +25,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
-        "padding": 20,
+        "paddingHorizontal": 20,
       }
     }
     viewIsInsideTabBar={false}
@@ -36,7 +36,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#1B344D",
+            "color": "#000000",
             "fontFamily": "Roboto",
             "fontSize": 25,
             "fontWeight": "600",
@@ -65,7 +65,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           Array [
             Object {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#CCCCCC",
+              "borderColor": "#d6d9dc",
               "borderRadius": 10,
               "borderWidth": 0.5,
               "fontFamily": "Roboto",
@@ -90,24 +90,47 @@ exports[`ImportFromSeed should render correctly 1`] = `
         style={
           Object {
             "marginBottom": 10,
+            "marginTop": 20,
           }
         }
       >
-        <Text
+        <AnimatedComponent
           style={
-            Object {
-              "fontSize": 16,
-              "marginBottom": 10,
-              "marginTop": 10,
-            }
+            Array [
+              Object {
+                "color": "#999999",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "marginLeft": 5,
+                "marginTop": -35,
+                "position": "absolute",
+                "textAlign": "left",
+              },
+              Object {
+                "transform": Array [
+                  Object {
+                    "scale": 1,
+                  },
+                  Object {
+                    "translateX": 0,
+                  },
+                  Object {
+                    "translateY": 50,
+                  },
+                ],
+              },
+            ]
           }
         >
-          New Password (min. 8 characters)
-        </Text>
+          New Password
+        </AnimatedComponent>
         <TextInput
           allowFontScaling={true}
           autoCapitalize="none"
+          onBlur={[Function]}
           onChangeText={[Function]}
+          onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
           rejectResponderTermination={true}
@@ -115,42 +138,108 @@ exports[`ImportFromSeed should render correctly 1`] = `
           secureTextEntry={true}
           style={
             Object {
-              "borderColor": "#CCCCCC",
+              "borderBottomColor": "#d6d9dc",
+              "borderBottomWidth": 1,
               "borderRadius": 4,
-              "borderWidth": 1,
               "fontFamily": "Roboto",
               "fontSize": 20,
               "fontWeight": "400",
-              "padding": 10,
+              "paddingLeft": 0,
+              "paddingVertical": 10,
             }
           }
-          testID="input-password"
-          underlineColorAndroid="#CCCCCC"
+          underlineColorAndroid="#d6d9dc"
           value=""
+        />
+        <TouchableOpacity
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            Object {
+              "alignSelf": "flex-end",
+              "backgroundColor": "#FFFFFF",
+              "marginTop": 8,
+              "position": "absolute",
+            }
+          }
+        >
+          <Text
+            style={
+              Object {
+                "color": "#999999",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "height": 20,
+                "marginLeft": 5,
+                "marginTop": 10,
+                "textAlign": "left",
+              }
+            }
+          >
+            Show
+          </Text>
+        </TouchableOpacity>
+        <Text
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "height": 20,
+              "marginLeft": 5,
+              "marginTop": 10,
+              "textAlign": "left",
+            }
+          }
         />
       </View>
       <View
         style={
           Object {
             "marginBottom": 10,
+            "marginTop": 20,
           }
         }
       >
-        <Text
+        <AnimatedComponent
           style={
-            Object {
-              "fontSize": 16,
-              "marginBottom": 10,
-              "marginTop": 10,
-            }
+            Array [
+              Object {
+                "color": "#999999",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "marginLeft": 5,
+                "marginTop": -35,
+                "position": "absolute",
+                "textAlign": "left",
+              },
+              Object {
+                "transform": Array [
+                  Object {
+                    "scale": 1,
+                  },
+                  Object {
+                    "translateX": 0,
+                  },
+                  Object {
+                    "translateY": 50,
+                  },
+                ],
+              },
+            ]
           }
         >
           Confirm Password
-        </Text>
+        </AnimatedComponent>
         <TextInput
           allowFontScaling={true}
           autoCapitalize="none"
+          onBlur={[Function]}
           onChangeText={[Function]}
+          onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
           rejectResponderTermination={true}
@@ -158,27 +247,51 @@ exports[`ImportFromSeed should render correctly 1`] = `
           secureTextEntry={true}
           style={
             Object {
-              "borderColor": "#CCCCCC",
+              "borderBottomColor": "#d6d9dc",
+              "borderBottomWidth": 1,
               "borderRadius": 4,
-              "borderWidth": 1,
               "fontFamily": "Roboto",
               "fontSize": 20,
               "fontWeight": "400",
-              "padding": 10,
+              "paddingLeft": 0,
+              "paddingVertical": 10,
             }
           }
-          testID="input-password-confirm"
-          underlineColorAndroid="#CCCCCC"
+          underlineColorAndroid="#d6d9dc"
           value=""
         />
+        <View
+          style={
+            Object {
+              "alignSelf": "flex-end",
+              "marginTop": 8,
+              "position": "absolute",
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#999999",
+              "fontFamily": "Roboto",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "height": 20,
+              "marginLeft": 5,
+              "marginTop": 10,
+              "textAlign": "left",
+            }
+          }
+        >
+          Must be at least 8 characters
+        </Text>
       </View>
       <View
         style={
           Object {
-            "alignItems": "center",
-            "flexDirection": "row",
+            "alignItems": "flex-start",
             "marginBottom": 30,
-            "marginTop": 20,
+            "marginTop": 30,
           }
         }
       >
@@ -195,17 +308,18 @@ exports[`ImportFromSeed should render correctly 1`] = `
           Remember me
         </Text>
         <Switch
-          ios_backgroundColor="#B3B3B3"
+          ios_backgroundColor="#9fa6ae"
           onValueChange={[Function]}
           style={
             Object {
               "flex": 0,
+              "marginTop": 10,
             }
           }
           trackColor={
             Object {
-              "false": "#B3B3B3",
-              "true": "#4CD964",
+              "false": "#9fa6ae",
+              "true": "#86e29b",
             }
           }
           value={false}
@@ -219,6 +333,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         }
       >
         <StyledButton
+          disabled={true}
           disabledContainerStyle={
             Object {
               "opacity": 0.6,
@@ -235,6 +350,24 @@ exports[`ImportFromSeed should render correctly 1`] = `
         >
           IMPORT
         </StyledButton>
+      </View>
+      <View
+        style={
+          Object {
+            "paddingVertical": 30,
+          }
+        }
+      >
+        <TermsAndConditions
+          action="IMPORT"
+          navigation={
+            Object {
+              "state": Object {
+                "params": Object {},
+              },
+            }
+          }
+        />
       </View>
     </View>
   </KeyboardAwareScrollViewMock>

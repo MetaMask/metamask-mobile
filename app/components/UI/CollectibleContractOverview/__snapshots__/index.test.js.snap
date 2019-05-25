@@ -6,7 +6,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
     Object {
       "alignContent": "center",
       "alignItems": "center",
-      "borderBottomColor": "#CCCCCC",
+      "borderBottomColor": "#d6d9dc",
       "borderBottomWidth": 0.5,
       "flex": 1,
       "paddingBottom": 30,
@@ -47,6 +47,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 30,
           "fontWeight": "400",
+          "textAlign": "center",
         }
       }
     >
@@ -57,6 +58,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
   <AssetActionButtons
     leftText="Send"
     middleText="Add"
+    middleType="add"
     onLeftPress={[Function]}
     onMiddlePress={[Function]}
     onRightPress={[Function]}
