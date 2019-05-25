@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import ElevatedView from 'react-native-elevated-view';
@@ -120,14 +120,18 @@ export const TransactionNotification = props => {
 				// eslint-disable-next-line react/jsx-no-bind
 				onSwipeDown={() => hideMessage()}
 				config={{
-					velocityThreshold: 0.3,
-					directionalOffsetThreshold: 80
+					velocityThreshold: 0.2,
+					directionalOffsetThreshold: 50
 				}}
 				style={baseStyles.flex}
 			>
-				<View style={[styles.defaultFlash, styles.defaultFlashFloating]} onPress={this._onPress}>
+				<TouchableOpacity
+					style={[styles.defaultFlash, styles.defaultFlashFloating]}
+					onPress={this._onPress}
+					activeOpacity={0.8}
+				>
 					{this._getContent()}
-				</View>
+				</TouchableOpacity>
 			</GestureRecognizer>
 		</ElevatedView>
 	);
