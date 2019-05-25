@@ -2,7 +2,7 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import AsyncStorage from '@react-native-community/async-storage';
 // eslint-disable-next-line
-import * as Connext from 'indra/modules/client';
+import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';

@@ -1,38 +1,9 @@
 #!/bin/bash
 echo "PostInstall script:"
 
-# Temporary until https://github.com/ConnextProject/indra/pull/211 gets merged
-echo "0. Fix connext client"
-
-# Fix TS warnings
-TARGET="node_modules/indra/modules/client/src/controllers/ExchangeController.ts"
-sed -i'' -e 's/export const validateExchangeRate /export const validateExchangeRate:any /' $TARGET;
-
-TARGET="node_modules/indra/modules/client/src/controllers/StateUpdateController.ts"
-sed -i'' -e 's/export const watchStore /export const watchStore:any /' $TARGET;
-
-TARGET="node_modules/indra/modules/client/src/lib/timestamp.ts"
-sed -i'' -e 's/export const validateTimestamp /export const validateTimestamp:any /' $TARGET;
-
-TARGET="node_modules/indra/modules/client/src/state/actions.ts"
-sed -i'' -e 's/export const setChannelAndUpdate /export const setChannelAndUpdate:any /' $TARGET;
-
-TARGET="node_modules/indra/modules/client/src/testing/index.ts"
-sed -i'' -e 's/export const getPendingArgs /export const getPendingArgs:any /' $TARGET;
-sed -i'' -e 's/export const getDepositArgs /export const getDepositArgs:any /' $TARGET;
-sed -i'' -e 's/export const getWithdrawalArgs /export const getWithdrawalArgs:any /' $TARGET;
-sed -i'' -e 's/export const getPaymentArgs /export const getPaymentArgs:any /' $TARGET;
-sed -i'' -e 's/export const getExchangeArgs /export const getExchangeArgs:any /' $TARGET;
-sed -i'' -e 's/export const getCustodialBalance /export const getCustodialBalance:any /' $TARGET;
-
-# Install packages
-cd node_modules/indra/modules/client && npm i && cd ../../../../
-
+echo "0. Fix connext client deps"
 TARGET="node_modules/indra/modules/client/node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
 sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
-
-#Copy ABIs
-cp node_modules/indra/modules/client/src/contract/ChannelManagerAbi.json node_modules/indra/modules/client/dist/contract/
 
 echo "1. React Native nodeify..."
 node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs' --hack
