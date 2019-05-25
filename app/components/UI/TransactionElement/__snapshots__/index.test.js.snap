@@ -1,23 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionElement should render correctly 1`] = `
-<View
-  accessible={true}
-  isTVSelectable={true}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
+<TouchableHighlight
+  activeOpacity={1}
+  delayPressOut={100}
+  onPress={[Function]}
   style={
     Object {
       "backgroundColor": "#FFFFFF",
       "borderBottomWidth": 0.5,
-      "borderColor": "#CCCCCC",
+      "borderColor": "#d6d9dc",
       "flex": 1,
     }
   }
+  underlayColor="#f2f3f4"
 >
   <View
     style={
@@ -81,8 +77,8 @@ exports[`TransactionElement should render correctly 1`] = `
             style={
               Array [
                 Object {
-                  "backgroundColor": "#f1f2f6",
-                  "color": "#7c7e84",
+                  "backgroundColor": "#f2f3f4",
+                  "color": "#848c96",
                   "fontFamily": "Roboto",
                   "fontSize": 9,
                   "fontWeight": "600",
@@ -136,5 +132,5 @@ exports[`TransactionElement should render correctly 1`] = `
       </View>
     </View>
   </View>
-</View>
+</TouchableHighlight>
 `;

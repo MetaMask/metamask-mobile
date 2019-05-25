@@ -15,6 +15,50 @@
 		"start_exploring_now": "Start exploring",
 		"login": "Login"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Skip Tutorial",
+		"coachmark": {
+			"action_back": "No, Thanks",
+			"action_next": "Take the tour",
+			"progress_back": "Back",
+			"progress_next": "Got it!"
+		},
+		"step1": {
+			"title": "Welcome to your new wallet!",
+			"content1": "To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH).",
+			"content2": "You can buy a few dollars worth of ETH from an exchange ike Coinbase or simply request a friend."
+		},
+		"step2": {
+			"title": "Your Accounts",
+			"content1": "This is your first account, total value, and its unique public address (0x...).",
+			"content2": "You can create multiple accounts within this wallet by typing on profile icon."
+		},
+		"step3": {
+			"title": "Edit Account Name",
+			"content1": "'Account 1' isn't that catchy. So why not name your account something a little more memorable.",
+			"content2": "Long tap",
+			"content3": "now to edit account name."
+		},
+		"step4": {
+			"title": "Main Navigation",
+			"content1": "Tap here",
+			"content2": "to access your Wallet, Browser, and Transaction history.",
+			"content3": "You can take more actions with your accounts & access MetaMask settings."
+		},
+		"step5": {
+			"title": "Explore the Browser",
+			"content1": "You can explore blockchain applications (DAPPS) in the",
+			"content2": "Browser."
+		},
+		"step6": {
+			"title": "Search Dapps",
+			"content": "Search directly blockchain applications (DAPPS)!"
+		},
+		"step7": {
+			"title": "Featured Dapps",
+			"content": "Start exploring featured blockchain applications (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creating your new wallet",
 		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
@@ -23,7 +67,7 @@
 		"title": "Import Wallet",
 		"sync_help": "Sync your wallet with the extension",
 		"sync_help_step_one": "1. Open the extension",
-		"sync_help_step_two": "2. Go to settings",
+		"sync_help_step_two": "2. Go to \"Settings\" > \"Advanced\"",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
 		"sync_help_step_four": "4. Scan the QR Code",
 		"sync_from_browser_extension_button": "Start Syncing",
@@ -60,7 +104,7 @@
 	"import_from_seed": {
 		"title": "Import from seed",
 		"seed_phrase_placeholder": "Enter your seed phrase here",
-		"new_password": "New Password (min. 8 characters)",
+		"new_password": "New Password",
 		"confirm_password": "Confirm Password",
 		"import_button": "IMPORT",
 		"cancel_button": "Cancel",
@@ -85,6 +129,7 @@
 		"submit_general_feedback": "GENERAL",
 		"share_address": "Share my Public Address",
 		"view_in_etherscan": "View on Etherscan",
+		"view_in": "View on",
 		"browser": "Browser",
 		"settings": "Settings",
 		"help": "Get help",
@@ -97,7 +142,9 @@
 		"public_address": "Public Address"
 	},
 	"send": {
-		"title": "Send"
+		"title": "Send",
+		"deeplink_failure": "Ooops! Something went wrong! Please try again",
+		"warn_network_change": "Network changed to "
 	},
 	"receive": {
 		"title": "Receive"
@@ -118,6 +165,10 @@
 		"copy_address": "Copy",
 		"remove_token_title": "Do you want to remove this token?",
 		"remove_collectible_title": "Do you want to remove this collectible?",
+		"token_removed_title": "Token removed!",
+		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD TOKENS\"",
+		"collectible_removed_title": "Collectible removed!",
+		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"+ ADD COLLECTIBLES\"",
 		"remove": "Remove",
 		"cancel": "Cancel"
 	},
@@ -136,6 +187,27 @@
 			"cancel_add_collectible": "CANCEL",
 			"add_collectible": "ADD"
 		}
+	},
+	"terms_and_conditions": {
+		"title": "Terms and Conditions",
+		"description": "By clicking \"{{action}}\" you agree to these ",
+		"terms": "Terms and Conditions"
+	},
+	"privacy_policy": {
+		"title": "Privacy Policy",
+		"description": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our Privacy Policy",
+		"here": "here",
+		"agree": "I Agree",
+		"decline": "No Thanks",
+		"description_title": "Help us improve MetaMask",
+		"description_content_1": "MetaMask would like to gather basic usage data to better understand how our users interact with the mobile app. This data will be used to continually improve the usability and user experience of our product.",
+		"description_content_2": "MetaMask will...",
+		"action_description_1": "Always allow you to opt-out via Settings",
+		"action_description_2": "Send anonymied click & pageview events",
+		"action_description_3": "Maintain a public aggregate dashboard to educate the community",
+		"action_description_4": "Never collect keys, addresses, transactions, balances, hashes, or any personal information",
+		"action_description_5": "Never collect your IP address",
+		"action_description_6": "Never sell data for profit. Ever!"
 	},
 	"token": {
 		"token_symbol": "Token Symbol",
@@ -178,6 +250,9 @@
 		"title": "Settings",
 		"current_conversion": "Base Currency",
 		"current_language": "Current Language",
+		"ipfs_gateway": "IPFS Gateway",
+		"ipfs_gateway_down": "Your current IPFS gateway is down",
+		"ipfs_gateway_desc": "Choose your preferred IPFS gateway.",
 		"search_engine": "Search Engine",
 		"new_RPC_URL": "New RPC Network",
 		"state_logs": "State Logs",
@@ -217,15 +292,39 @@
 		"show_hex_data": "Show Hex Data",
 		"show_hex_data_desc": "Select this to show the hex data field on the send screen.",
 		"general_title": "General",
-		"general_desc": "Currency conversion, primary currency, language",
+		"general_desc": "Currency conversion, primary currency, language and search engine",
 		"advanced_title": "Advanced",
-		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs and custom RPC",
+		"advanced_desc": "Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC",
 		"security_title": "Security & Privacy",
-		"security_desc": "Privacy settings, private key and wallet seed phrase",
+		"security_desc": "Privacy settings, MetaMetrics, private key and wallet seed phrase",
+		"networks_title": "Networks",
+		"networks_desc": "Add and edit custom RPC networks",
+		"network_name_label": "Network Name",
+		"network_name_placeholder": "Network Name (optional)",
+		"network_rpc_url_label": "RPC Url",
+		"network_rpc_placeholder": "New RPC Network",
+		"network_chain_id_label": "Chain ID",
+		"network_chain_id_placeholder": "Chain ID (optional)",
+		"network_symbol_label": "Symbol",
+		"network_symbol_placeholder": "Symbol (optional)",
+		"network_block_explorer_label": "Block Explorer URL",
+		"network_block_explorer_placeholder": "Block Explorer URL (optional)",
+		"network_chain_id_warning": "Invalid Chain ID",
+		"network_other_networks": "Other Networks",
+		"network_rpc_networks": "RPC Networks",
+		"network_add_network": "Add Network",
+		"network_add": "Add",
+		"network_save": "Save",
 		"info_title": "About MetaMask",
+		"experimental_title": "Experimental",
+		"experimental_desc": "WalletConnect & more...",
 		"legal_title": "Legal",
 		"conversion_title": "Currency conversion",
 		"conversion_desc": "Display fiat values in using a specific currency throughout the application.",
+		"primary_currency_title": "Primary Currency",
+		"primary_currency_desc": "Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.",
+		"primary_currency_text_first": "Native",
+		"primary_currency_text_second": "Fiat",
 		"language_desc": "Translate the application to a different supported language.",
 		"engine_desc": "Change the default search engine used when entering search terms in the URL bar.",
 		"reset_desc": "This action will clear your transaction history. This data might not be retrievable.",
@@ -233,7 +332,9 @@
 		"hex_desc": "Select this to show the hex data field on the send screen.",
 		"clear_privacy_title": "Clear privacy data",
 		"clear_privacy_desc": "Clear privacy data so all websites must request access to view account information again.",
-		"clear_history_desc": "Choose this option to clear your entire browsing history."
+		"clear_history_desc": "Choose this option to clear your entire browsing history.",
+		"metametrics_title": "Participate in MetaMetrics",
+		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better."
 	},
 	"app_information": {
 		"title": "Information",
@@ -298,9 +399,11 @@
 	"transaction": {
 		"alert": "ALERT",
 		"amount": "Amount",
+		"next": "Next",
 		"confirm": "Confirm",
 		"reject": "Reject",
 		"edit": "Edit",
+		"cancel": "Cancel",
 		"from": "From",
 		"gas_fee": "Transaction Fee",
 		"gas_fee_fast": "FAST",
@@ -317,6 +420,7 @@
 		"invalid_gas": "Invalid gas amount",
 		"invalid_gas_price": "Invalid gas price",
 		"invalid_collectible_ownership": "You don't own this collectible",
+		"known_asset_contract": "Known asset contract address",
 		"max": "Max",
 		"recipient_address": "Recipient Address",
 		"required": "Required",
@@ -327,7 +431,12 @@
 		"value_not_available": "Not Available",
 		"rate_not_available": "Conversion not available",
 		"optional": "Optional",
-		"no_address_for_ens": "No address for ENS name"
+		"no_address_for_ens": "No address for ENS name",
+		"lets_try": "Yes, let's try",
+		"cancel_tx_title": "Attempt to cancel?",
+		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the canellation attempt is successful, you will be charged the transaction fee above.",
+		"nevermind": "Nevermind",
+		"gasCancelFee": "Gas Cancellation Fee"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
@@ -361,13 +470,19 @@
 		"close": "Close",
 		"open_in_browser": "Open in browser",
 		"change_url": "Change url",
+		"switch_network": "Switch network",
 		"dapp_browser": "DAPP BROWSER",
 		"dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
 		"featured_dapps": "FEATURED DAPPS",
 		"my_favorites": "MY FAVORITES",
 		"search": "Search or type a URL",
 		"welcome": "Welcome!",
-		"remove": "Remove"
+		"remove": "Remove",
+		"new_tab": "New tab",
+		"tabs_close_all": "Close All",
+		"tabs_done": "Done",
+		"no_tabs_title": "No Open Tabs",
+		"no_tabs_desc": "To browse the decentralized web, add a new tab"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",
@@ -385,15 +500,21 @@
 		"tx_review_contract_deployment": "CONTRACT DEPLOYMENT",
 		"tx_review_transfer_from": "TRANSFER FROM",
 		"tx_review_unknown": "UNKNOWN METHOD",
+		"tx_review_approve": "APPROVE",
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
 		"sent_tokens": "Sent Tokens",
+		"ether": "Ether",
+		"sent_unit": "Sent {{unit}}",
+		"self_sent_unit": "Sent Yourself {{unit}}",
+		"received_unit": "Received {{unit}}",
 		"sent_collectible": "Sent Collectible",
 		"sent": "Sent",
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
 		"smart_contract_interaction": "Smart Contract Interaction",
+		"approve": "Approve",
 		"hash": "Hash",
 		"from": "From",
 		"to": "To",
@@ -402,6 +523,7 @@
 		"gas_limit": "Gas Limit (Units)",
 		"gas_price": "Gas Price (GWEI)",
 		"total": "Total",
+		"view_on": "VIEW ON",
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
 		"address_copied_to_clipboard": "Address copied to clipboard"
@@ -414,7 +536,7 @@
 	"sync_with_extension": {
 		"title": "Sync data from Extension",
 		"short_title": "Sync with Extension",
-		"label": "Open the MetaMask extension in your desktop browser, then go to settings, click on \"Sync with Mobile\" and then enter your password to see the QR Code",
+		"label": "Open the MetaMask extension in your desktop browser, then go to \"Settings\" > \"Advanced\", click on \"Sync with Mobile\" and then enter your password to see the QR Code",
 		"button_continue": "Continue",
 		"please_wait": "Please wait while we sync your data...",
 		"error_title": "Bummer!",
@@ -424,7 +546,7 @@
 		"warning_ok_button": "YES",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Invalid QR Code",
-		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to Settings --> Sync with Mobile in the browser extension and scan the QR there"
+		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to \"Settings\" > \"Advanced\" > Sync with Mobile in the browser extension and scan the QR there"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",
@@ -452,12 +574,21 @@
 		"balance_title": "Balance:",
 		"message": "Message:"
 	},
+	"watch_asset_request": {
+		"title": "Add Suggested Token",
+		"cancel": "CANCEL",
+		"add": "ADD TOKEN",
+		"message": "Would you like to add this token?",
+		"token": "Token",
+		"balance": "Balance"
+	},
 	"unit": {
 		"eth": "ETH",
 		"negative": "-",
 		"divisor": "/",
 		"token_id": "#",
-		"colon": ":"
+		"colon": ":",
+		"point": "."
 	},
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",
@@ -473,6 +604,7 @@
 	},
 	"accountApproval": {
 		"title": "CONNECT REQUEST",
+		"walletconnect_title": "WALLETCONNECT REQUEST",
 		"action": "would like to",
 		"connect": "CONNECT",
 		"cancel": "CANCEL",
@@ -607,18 +739,73 @@
 	},
 	"notifications": {
 		"pending_title": "Transaction submitted!",
+		"cancelled_title": "Transaction cancelled!",
 		"success_title": "Transaction #{{nonce}} Complete!",
 		"error_title": "Oops, something went wrong :/",
 		"received_title": "You received {{amount}} {{assetType}}!",
 		"pending_message": "Waiting for confirmation...",
 		"error_message": "Tap to view this transaction",
 		"success_message": "Tap to view this transaction",
-		"received_message": "Tap to view this transaction"
+		"cancelled_message": "Tap to view this transaction",
+		"received_message": "Tap to view this transaction",
+		"prompt_title": "Enable Push Notifications",
+		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
+		"prompt_ok": "Yes",
+		"prompt_cancel": "No, thanks"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Secure your wallet",
 		"body": "Now that you have value in your wallet, create password & save your wallet's seed phrase ",
 		"required": "(required)",
 		"button": "PROCEED NOW"
+	},
+	"payment_request": {
+		"title": "Request",
+		"search_top_picks": "Top picks",
+		"search_assets": "Search assets",
+		"search_results": "Search results",
+		"search_no_tokens_found": "No tokens found",
+		"your_tokens": "Your tokens",
+		"enter_amount": "Enter amount",
+		"choose_asset": "Choose an asset to request",
+		"request_error": "Invalid request, please try again",
+		"reset": "Reset",
+		"next": "Next",
+		"amount_placeholder": "0.00",
+		"link_copied": "Link copied to clipboard",
+		"send_link_title": "Send Link",
+		"description_1": "Your request link is ready to send!",
+		"description_2": "Send this link to a friend, and it will ask them to send",
+		"copy_to_clipboard": "Copy to Clipboard",
+		"qr_code": "QR Code",
+		"send_link": "Send Link",
+		"request_qr_code": "Payment Request QR Code"
+	},
+	"receive_request": {
+		"title": "Receive",
+		"share_title": "Share Address",
+		"share_description": "Email or text your address",
+		"qr_code_title": "QR Code",
+		"qr_code_description": "Scannable image that can read your address",
+		"request_title": "Request",
+		"request_description": "Request assets from friends",
+		"buy_title": "Buy",
+		"buy_description": "Buy Crypto with Credit Card",
+		"public_address": "Public Address",
+		"public_address_qr_code": "Public Address QR Code",
+		"coming_soon": "Coming soon..."
+	},
+	"experimental_settings": {
+		"wallet_connect_dapps": "WalletConnect Sessions",
+		"wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
+		"wallet_connect_dapps_cta": "VIEW SESSIONS"
+	},
+	"walletconnect_sessions": {
+		"no_active_sessions": "You have no active sessions",
+		"end_session_title": "End Session",
+		"end": "End",
+		"cancel": "Cancel",
+		"session_ended_title": "Session Ended",
+		"session_ended_desc": "The selected session has been terminated"
 	}
 }

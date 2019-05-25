@@ -13,7 +13,7 @@ import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
-		backgroundColor: colors.lightBlue,
+		backgroundColor: colors.blue000,
 		flex: 1
 	},
 	wrapper: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		height: 120,
 		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		...fontStyles.normal
 	},
 	navbarRightButton: {

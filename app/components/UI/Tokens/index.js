@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -11,6 +11,7 @@ import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number'
 import Engine from '../../../core/Engine';
 import AssetElement from '../AssetElement';
 import FadeIn from 'react-native-fade-in-image';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 	},
 	addText: {
 		fontSize: 15,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	footer: {
@@ -101,7 +102,11 @@ export default class Tokens extends PureComponent {
 		/**
 		 * Array of transactions
 		 */
-		transactions: PropTypes.array
+		transactions: PropTypes.array,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	actionSheet = null;
@@ -121,42 +126,52 @@ export default class Tokens extends PureComponent {
 	renderFooter = () => (
 		<View style={styles.footer} key={'tokens-footer'}>
 			<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
-				<Icon name="plus" size={16} color={colors.primary} />
+				<Icon name="plus" size={16} color={colors.blue} />
 				<Text style={styles.addText}>{strings('wallet.add_tokens').toUpperCase()}</Text>
 			</TouchableOpacity>
 		</View>
 	);
 
-	renderItem = item => {
-		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates } = this.props;
-		const logo = item.logo || ((contractMap[item.address] && contractMap[item.address].logo) || undefined);
-		const exchangeRate = item.address in tokenExchangeRates ? tokenExchangeRates[item.address] : undefined;
+	renderItem = asset => {
+		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency } = this.props;
+		const itemAddress = (asset.address && toChecksumAddress(asset.address)) || undefined;
+		const logo = asset.logo || ((contractMap[itemAddress] && contractMap[itemAddress].logo) || undefined);
+		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
 		const balance =
-			item.balance ||
-			(item.address in tokenBalances
-				? renderFromTokenMinimalUnit(tokenBalances[item.address], item.decimals)
-				: 0);
-		const balanceFiat = item.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-		item = { ...item, ...{ logo, balance, balanceFiat } };
+			asset.balance ||
+			(itemAddress in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals) : 0);
+		const balanceFiat = asset.balanceFiat || balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		const balanceValue = balance + ' ' + asset.symbol;
+
+		// render balances according to primary currency
+		let mainBalance, secondaryBalance;
+		if (primaryCurrency === 'ETH') {
+			mainBalance = balanceValue;
+			secondaryBalance = balanceFiat;
+		} else {
+			mainBalance = !balanceFiat ? balanceValue : balanceFiat;
+			secondaryBalance = !balanceFiat ? balanceFiat : balanceValue;
+		}
+
+		asset = { ...asset, ...{ logo, balance, balanceFiat } };
 		return (
 			<AssetElement
-				key={item.address || '0x'}
+				key={itemAddress || '0x'}
 				onPress={this.onItemPress}
 				onLongPress={this.showRemoveMenu}
-				asset={item}
+				asset={asset}
 			>
-				{item.symbol === 'ETH' ? (
+				{asset.isETH ? (
 					<FadeIn placeholderStyle={{ backgroundColor: colors.white }}>
 						<Image source={ethLogo} style={styles.ethLogo} />
 					</FadeIn>
 				) : (
-					<TokenImage asset={item} containerStyle={styles.ethLogo} />
+					<TokenImage asset={asset} containerStyle={styles.ethLogo} />
 				)}
+
 				<View style={styles.balances}>
-					<Text style={styles.balance}>
-						{balance} {item.symbol}
-					</Text>
-					{balanceFiat ? <Text style={styles.balanceFiat}>{balanceFiat}</Text> : null}
+					<Text style={styles.balance}>{mainBalance}</Text>
+					{secondaryBalance ? <Text style={styles.balanceFiat}>{secondaryBalance}</Text> : null}
 				</View>
 			</AssetElement>
 		);
@@ -184,7 +199,8 @@ export default class Tokens extends PureComponent {
 
 	removeToken = () => {
 		const { AssetsController } = Engine.context;
-		AssetsController.removeToken(this.tokenToRemove.address);
+		AssetsController.removeAndIgnoreToken(this.tokenToRemove.address);
+		Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
 	};
 
 	createActionSheetRef = ref => {

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import {
 	weiToFiat,
 	balanceToFiat,
@@ -10,17 +10,16 @@ import {
 } from '../../../../util/number';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	confirmBadge: {
 		...fontStyles.normal,
 		alignItems: 'center',
-		borderColor: colors.subtleGray,
+		borderColor: colors.grey400,
 		borderRadius: 4,
 		borderWidth: 1,
-		color: colors.subtleGray,
+		color: colors.grey400,
 		fontSize: 12,
 		lineHeight: 22,
 		textAlign: 'center',
@@ -32,31 +31,14 @@ const styles = StyleSheet.create({
 	},
 	summaryFiat: {
 		...fontStyles.normal,
-		color: colors.copy,
+		color: colors.fontPrimary,
 		fontSize: 44,
 		paddingVertical: 4
 	},
 	summaryEth: {
 		...fontStyles.normal,
-		color: colors.subtleGray,
+		color: colors.grey400,
 		fontSize: 24
-	},
-	goBack: {
-		alignItems: 'center',
-		flexDirection: 'row',
-		marginLeft: -8,
-		marginTop: 8,
-		position: 'relative',
-		width: 150
-	},
-	goBackText: {
-		...fontStyles.bold,
-		color: colors.primary,
-		fontSize: 22
-	},
-	goBackIcon: {
-		color: colors.primary,
-		flex: 0
 	}
 });
 
@@ -84,16 +66,7 @@ class TransactionReviewSummary extends Component {
 		/**
 		 * Transaction corresponding action key
 		 */
-		actionKey: PropTypes.string,
-		/**
-		 * Callback for transaction edition
-		 */
-		edit: PropTypes.func
-	};
-
-	edit = () => {
-		const { edit } = this.props;
-		edit && edit();
+		actionKey: PropTypes.string
 	};
 
 	getRenderValues = () => {
@@ -149,11 +122,6 @@ class TransactionReviewSummary extends Component {
 						<Text style={styles.summaryEth}>{assetAmount}</Text>
 					</View>
 				)}
-
-				<TouchableOpacity style={styles.goBack} onPress={this.edit}>
-					<MaterialIcon name={'keyboard-arrow-left'} size={22} style={styles.goBackIcon} />
-					<Text style={styles.goBackText}>{strings('transaction.edit')}</Text>
-				</TouchableOpacity>
 			</View>
 		);
 	};

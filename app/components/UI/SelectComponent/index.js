@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 		paddingTop: 5,
 		height: 50,
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1
 	},
 	label: {
@@ -82,6 +82,10 @@ const styles = StyleSheet.create({
 
 export default class SelectComponent extends Component {
 	static propTypes = {
+		/**
+		 * Default value to show
+		 */
+		defaultValue: PropTypes.string,
 		/**
 		 * Label for the field
 		 */
@@ -137,9 +141,13 @@ export default class SelectComponent extends Component {
 	};
 
 	getSelectedValue = () => {
-		const el = this.props.options && this.props.options.filter(o => o.value === this.props.selectedValue);
+		const { options, selectedValue, defaultValue } = this.props;
+		const el = options && options.filter(o => o.value === selectedValue);
 		if (el.length && el[0].label) {
 			return el[0].label;
+		}
+		if (defaultValue) {
+			return defaultValue;
 		}
 		return '';
 	};
@@ -191,7 +199,7 @@ export default class SelectComponent extends Component {
 										{option.label}
 									</Text>
 									{this.props.selectedValue === option.value ? (
-										<IconCheck style={styles.icon} name="check" size={24} color={colors.primary} />
+										<IconCheck style={styles.icon} name="check" size={24} color={colors.blue} />
 									) : null}
 								</TouchableOpacity>
 							))}

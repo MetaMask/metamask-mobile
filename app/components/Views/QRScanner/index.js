@@ -79,12 +79,21 @@ export default class QrScanner extends Component {
 		if (content.split('ethereum:').length > 1) {
 			this.shouldReadBarCode = false;
 			data = parse(content);
+			let action = 'send-eth';
+			if (data.function_name === 'transfer') {
+				// Send erc20 token
+				action = 'send-token';
+			}
+			data = { ...data, action };
 		} else if (content.substring(0, 2).toLowerCase() === '0x') {
 			this.shouldReadBarCode = false;
 			data = { target_address: content };
 		} else if (content.split('metamask-sync:').length > 1) {
 			this.shouldReadBarCode = false;
 			data = { content };
+		} else if (content.split('wc:').length > 1) {
+			this.shouldReadBarCode = false;
+			data = { walletConnectURI: content };
 		} else {
 			// EIP-945 allows scanning arbitrary data
 			data = content;

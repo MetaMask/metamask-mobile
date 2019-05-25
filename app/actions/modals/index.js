@@ -17,8 +17,9 @@ export function toggleCollectibleContractModal() {
 	};
 }
 
-export function toggleReceiveModal() {
+export function toggleReceiveModal(asset) {
 	return {
-		type: 'TOGGLE_RECEIVE_MODAL'
+		type: 'TOGGLE_RECEIVE_MODAL',
+		asset
 	};
 }

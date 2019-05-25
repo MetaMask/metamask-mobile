@@ -109,13 +109,39 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  * @param {Number|String|BN} tokenValue - Token value to convert
  * @param {Number} decimals - Token decimals to convert
  * @param {Number} decimalsToShow - Decimals to 5
- * @returns {Number} - String of token minimal unit, in render format
+ * @returns {String} - Number of token minimal unit, in render format
+ * If value is less than 5 precision decimals will show '< 0.00001'
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
 	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
-	const base = Math.pow(10, decimalsToShow);
-	const renderMinimalUnit = Math.round(parseFloat(minimalUnit) * base) / base;
+	const minimalUnitNumber = parseFloat(minimalUnit);
+	let renderMinimalUnit;
+	if (minimalUnitNumber < 0.00001 && minimalUnitNumber > 0) {
+		renderMinimalUnit = '< 0.00001';
+	} else {
+		const base = Math.pow(10, decimalsToShow);
+		renderMinimalUnit = (Math.round(minimalUnitNumber * base) / base).toString();
+	}
 	return renderMinimalUnit;
+}
+
+/**
+ * Converts fiat number as human-readable fiat string to token miniml unit expressed as a BN
+ *
+ * @param {number|string} fiat - Fiat number
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @param {number} exchangeRate - Asset to ETH conversion rate
+ * @param {number} decimals - Asset decimals
+ * @returns {Object} - The converted balance as BN instance
+ */
+export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate, decimals) {
+	const floatFiatConverted = parseFloat(fiat) / (conversionRate * exchangeRate);
+	const base = Math.pow(10, decimals);
+	let weiNumber = floatFiatConverted * base;
+	// avoid decimals
+	weiNumber = weiNumber.toLocaleString('fullwide', { useGrouping: false }).split('.');
+	const weiBN = numberToBN(weiNumber[0]);
+	return weiBN;
 }
 
 /**
@@ -123,12 +149,19 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
  *
  * @param {Number|String|BN} value - Wei to convert
  * @param {Number} decimalsToShow - Decimals to 5
- * @returns {Number} - Number of token minimal unit, in render format
+ * @returns {String} - Number of token minimal unit, in render format
+ * If value is less than 5 precision decimals will show '< 0.00001'
  */
 export function renderFromWei(value, decimalsToShow = 5) {
 	const wei = fromWei(value);
-	const base = Math.pow(10, decimalsToShow);
-	const renderWei = Math.round(parseFloat(wei) * base) / base;
+	const weiNumber = parseFloat(wei);
+	let renderWei;
+	if (weiNumber < 0.00001 && weiNumber > 0) {
+		renderWei = '< 0.00001';
+	} else {
+		const base = Math.pow(10, decimalsToShow);
+		renderWei = (Math.round(weiNumber * base) / base).toString();
+	}
 	return renderWei;
 }
 
@@ -228,7 +261,8 @@ export function renderToGwei(value, unit = 'ether') {
  * @returns {string} - Currency-formatted string
  */
 export function weiToFiat(wei, conversionRate, currencyCode) {
-	if (!wei || !isBN(wei)) {
+	if (!conversionRate) return undefined;
+	if (!wei || !isBN(wei) || !conversionRate) {
 		return `0.00 ${currencyCode}`;
 	}
 	const value = weiToFiatNumber(wei, conversionRate);
@@ -252,6 +286,21 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
 }
 
 /**
+ * Converts fiat number as human-readable fiat string to wei expressed as a BN
+ *
+ * @param {number|string} fiat - Fiat number
+ * @param {number} conversionRate - ETH to current currency conversion rate
+ * @returns {Object} - The converted balance as BN instance
+ */
+export function fiatNumberToWei(fiat, conversionRate) {
+	const floatFiatConverted = parseFloat(fiat) / conversionRate;
+	const base = Math.pow(10, 18);
+	const weiNumber = Math.trunc(base * floatFiatConverted);
+	const weiBN = numberToBN(weiNumber);
+	return weiBN;
+}
+
+/**
  * Calculates fiat balance of an asset
  *
  * @param {number} balance - Number corresponding to a balance of an asset
@@ -261,7 +310,7 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
  * @returns {string} - Currency-formatted string
  */
 export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCode) {
-	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === null) {
+	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === 0) {
 		return undefined;
 	}
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
@@ -297,4 +346,16 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 	let fiatFixed = parseFloat(Math.round(value * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
+}
+
+/**
+ * Formatc a string number in an string number with at most 5 decimal places
+ *
+ * @param {string} number - String containing a number
+ * @returns {string} - String number with none or at most 5 decimal places
+ */
+export function renderNumber(number) {
+	const index = number.indexOf('.');
+	if (index === 0) return number;
+	return number.substring(0, index + 6);
 }

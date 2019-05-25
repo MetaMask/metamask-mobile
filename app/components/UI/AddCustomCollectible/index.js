@@ -20,13 +20,13 @@ const styles = StyleSheet.create({
 	textInput: {
 		borderWidth: 1,
 		borderRadius: 4,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		padding: 16,
 		...fontStyles.normal
 	},
 	warningText: {
 		marginTop: 15,
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	}
 });
@@ -49,7 +49,11 @@ class AddCustomCollectible extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Collectible contract object of collectible to add
+		 */
+		collectibleContract: PropTypes.object
 	};
 
 	componentDidMount = () => {
@@ -59,6 +63,8 @@ class AddCustomCollectible extends Component {
 			setTimeout(() => {
 				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
+		const { collectibleContract } = this.props;
+		collectibleContract && this.setState({ address: collectibleContract.address });
 	};
 
 	componentWillUnmount = () => {

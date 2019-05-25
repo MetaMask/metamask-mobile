@@ -27,6 +27,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
+import zxcvbn from 'zxcvbn';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderBottomWidth: Platform.OS === 'android' ? 0 : 1,
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		paddingLeft: 0,
 		paddingVertical: 10,
 		borderRadius: 4,
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10
 	},
 	errorMsg: {
-		color: colors.error,
+		color: colors.red,
 		...fontStyles.normal
 	},
 	biometrics: {
@@ -120,13 +121,14 @@ const styles = StyleSheet.create({
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_good: {
-		color: colors.primary
+		color: colors.blue
 	},
 	// eslint-disable-next-line react-native/no-unused-styles
 	strength_strong: {
-		color: colors.brightGreen
+		color: colors.green300
 	},
 	showHideToggle: {
+		backgroundColor: colors.white,
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
@@ -221,6 +223,11 @@ class ChoosePassword extends Component {
 					if (!this.state.biometryChoice) {
 						await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 					} else {
+						// If the user enables biometrics, we're trying to read the password
+						// immediately so we get the permission prompt
+						if (Platform.OS === 'ios') {
+							await SecureKeychain.getGenericPassword();
+						}
 						await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
 					}
 				} else {
@@ -283,12 +290,19 @@ class ChoosePassword extends Component {
 	};
 
 	getPasswordStrengthWord() {
+		// this.state.passwordStrength is calculated by zxcvbn
+		// which returns a score based on "entropy to crack time"
+		// 0 is the weakest, 4 the strongest
 		switch (this.state.passwordStrength) {
+			case 0:
+				return 'weak';
 			case 1:
 				return 'weak';
 			case 2:
-				return 'good';
+				return 'weak';
 			case 3:
+				return 'good';
+			case 4:
 				return 'strong';
 		}
 	}
@@ -304,10 +318,8 @@ class ChoosePassword extends Component {
 						onValueChange={biometryChoice => this.setState({ biometryChoice })} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-						}
-						ios_backgroundColor={colors.switchOffColor}
+						trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+						ios_backgroundColor={colors.grey300}
 					/>
 				</View>
 			);
@@ -320,32 +332,17 @@ class ChoosePassword extends Component {
 					onValueChange={rememberMe => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={
-						Platform.OS === 'ios' ? { true: colors.switchOnColor, false: colors.switchOffColor } : null
-					}
-					ios_backgroundColor={colors.switchOffColor}
+					trackColor={Platform.OS === 'ios' ? { true: colors.green300, false: colors.grey300 } : null}
+					ios_backgroundColor={colors.grey300}
 				/>
 			</View>
 		);
 	};
 
 	onPasswordChange = val => {
-		let strength = 1;
+		const passInfo = zxcvbn(val);
 
-		// If the password length is greater than 6 and contain alphabet,number,special character respectively
-		if (
-			val.length > 6 &&
-			((val.match(/[a-z]/) && val.match(/\d+/)) ||
-				(val.match(/\d+/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/)) ||
-				(val.match(/[a-z]/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/)))
-		)
-			strength = 2;
-
-		// If the password length is greater than 6 and must contain alphabets,numbers and special characters
-		if (val.length > 6 && val.match(/[a-z]/) && val.match(/\d+/) && val.match(/.[!,@,#,$,%,^,&,*,?,_,~,-,(,)]/))
-			strength = 3;
-
-		this.setState({ password: val, passwordStrength: strength });
+		this.setState({ password: val, passwordStrength: passInfo.score });
 	};
 
 	toggleShowHide = () => {
@@ -411,7 +408,7 @@ class ChoosePassword extends Component {
 									onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									underlineColorAndroid={colors.borderColor}
+									underlineColorAndroid={colors.grey100}
 									testID={'input-password'}
 									onSubmitEditing={this.jumpToConfirmPassword}
 									returnKeyType={'next'}
@@ -474,7 +471,7 @@ class ChoosePassword extends Component {
 									onChangeText={val => this.setState({ confirmPassword: val })} // eslint-disable-line  react/jsx-no-bind
 									secureTextEntry={this.state.secureTextEntry}
 									placeholder={''}
-									underlineColorAndroid={colors.borderColor}
+									underlineColorAndroid={colors.grey100}
 									testID={'input-password-confirm'}
 									onSubmitEditing={this.onPressCreate}
 									returnKeyType={'done'}
@@ -485,7 +482,7 @@ class ChoosePassword extends Component {
 								<View style={styles.showMatchingPasswords}>
 									{this.state.password !== '' &&
 									this.state.password === this.state.confirmPassword ? (
-										<Icon name="check" size={12} color={colors.brightGreen} />
+										<Icon name="check" size={12} color={colors.green300} />
 									) : null}
 								</View>
 								<Text style={styles.passwordStrengthLabel}>

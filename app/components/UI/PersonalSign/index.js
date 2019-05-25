@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	informationRow: {
-		borderBottomColor: colors.lightGray,
+		borderBottomColor: colors.grey200,
 		borderBottomWidth: 1,
 		padding: 20
 	},
@@ -110,6 +110,7 @@ export default class PersonalSign extends Component {
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
+					type="personalSign"
 				>
 					<View style={styles.informationRow}>
 						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>

@@ -6,6 +6,8 @@ import Button from '../Button';
 import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -33,6 +35,11 @@ export default class BrowserFeatured extends Component {
 
 	self = React.createRef();
 
+	onPress = url => {
+		this.props.goTo(url);
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.BROWSER_FEATURED_APPS_OPEN);
+	};
+
 	measureMyself(cb) {
 		this.self && this.self.current && this.self.current.measure(cb);
 	}
@@ -43,7 +50,7 @@ export default class BrowserFeatured extends Component {
 			<Button
 				key={url}
 				style={styles.button}
-				onPress={() => this.props.goTo(url)} // eslint-disable-line react/jsx-no-bind
+				onPress={() => this.onPress(url)} // eslint-disable-line react/jsx-no-bind
 			>
 				<FeaturedItem name={name} url={url} description={description} imageUrl={imageUrl} />
 			</Button>

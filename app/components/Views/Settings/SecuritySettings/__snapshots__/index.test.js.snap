@@ -1,0 +1,567 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SecuritySettings should render correctly 1`] = `
+<ScrollViewMock
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "padding": 24,
+      "paddingBottom": 48,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "paddingBottom": 112,
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "marginTop": 50,
+          },
+          Object {
+            "marginTop": 0,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Privacy mode
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Websites must request access to view your account information.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+          value={true}
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Participate in MetaMetrics
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Participate in MetaMetrics to help us make MetaMask better.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+          value={false}
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Clear privacy data
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Clear privacy data so all websites must request access to view account information again.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        CLEAR PRIVACY DATA
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Clear browser history
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Choose this option to clear your entire browsing history.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        CLEAR BROWSER HISTORY
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Auto-lock
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Choose the amount of time before the application automatically locks.
+      </Text>
+      <View
+        style={
+          Object {
+            "borderColor": "#bbc0c5",
+            "borderRadius": 5,
+            "borderWidth": 2,
+            "marginTop": 16,
+          }
+        }
+      >
+        <SelectComponent
+          label="Auto-lock"
+          onValueChange={[Function]}
+          options={
+            Array [
+              Object {
+                "key": "0",
+                "label": "Immediately",
+                "value": "0",
+              },
+              Object {
+                "key": "5000",
+                "label": "After 5 seconds",
+                "value": "5000",
+              },
+              Object {
+                "key": "15000",
+                "label": "After 15 seconds",
+                "value": "15000",
+              },
+              Object {
+                "key": "30000",
+                "label": "After 30 seconds",
+                "value": "30000",
+              },
+              Object {
+                "key": "60000",
+                "label": "After 60 seconds",
+                "value": "60000",
+              },
+              Object {
+                "key": "300000",
+                "label": "After 5 minutes",
+                "value": "300000",
+              },
+              Object {
+                "key": "600000",
+                "label": "After 10 minutes",
+                "value": "600000",
+              },
+              Object {
+                "key": "-1",
+                "label": "Never",
+                "value": "-1",
+              },
+            ]
+          }
+          selectedValue="1000"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Show Private Key for Account 1
+      </Text>
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#6a737d",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+              "marginTop": 12,
+            },
+            Object {
+              "color": "#D73A49",
+            },
+          ]
+        }
+      >
+        This is the private key for the current selected account: Account 1. Never disclose this key. Anyone with your private keys can take steal any assets held in your account.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="danger"
+      >
+        SHOW PRIVATE KEY
+      </StyledButton>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Reveal Seed Phrase
+      </Text>
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#6a737d",
+              "fontFamily": "Roboto",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 20,
+              "marginTop": 12,
+            },
+            Object {
+              "color": "#D73A49",
+            },
+          ]
+        }
+      >
+        This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE.
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "marginTop": 18,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="danger"
+      >
+        REVEAL SEED PHRASE
+      </StyledButton>
+    </View>
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="NEVERMIND"
+      confirmButtonMode="warning"
+      confirmTestID=""
+      confirmText="CLEAR"
+      modalVisible={false}
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+      onRequestClose={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "marginBottom": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          Clear Approval Data?
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          All dapps will need to request access to view account information again.
+        </Text>
+      </View>
+    </ActionModal>
+    <ActionModal
+      cancelButtonMode="neutral"
+      cancelTestID=""
+      cancelText="NEVERMIND"
+      confirmButtonMode="warning"
+      confirmTestID=""
+      confirmText="CLEAR"
+      modalVisible={false}
+      onCancelPress={[Function]}
+      onConfirmPress={[Function]}
+      onRequestClose={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "column",
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 22,
+              "fontWeight": "600",
+              "marginBottom": 20,
+              "textAlign": "center",
+            }
+          }
+        >
+          Clear Browser History?
+        </Text>
+        <Text
+          style={
+            Object {
+              "fontFamily": "Roboto",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "textAlign": "center",
+            }
+          }
+        >
+          We are about to remove all your browser history. Are you sure?
+        </Text>
+      </View>
+    </ActionModal>
+  </View>
+</ScrollViewMock>
+`;

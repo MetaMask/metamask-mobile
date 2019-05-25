@@ -2,24 +2,22 @@
 
 exports[`WebsiteIcon should render correctly 1`] = `
 <View>
-  <View>
-    <FadeIn
-      placeholderStyle={
+  <FadeIn
+    placeholderStyle={
+      Object {
+        "backgroundColor": "#FFFFFF",
+      }
+    }
+    useNativeDriver={true}
+  >
+    <Image
+      onError={[Function]}
+      source={
         Object {
-          "backgroundColor": "#FFFFFF",
+          "uri": "https://api.faviconkit.com//64",
         }
       }
-      useNativeDriver={true}
-    >
-      <Image
-        onError={[Function]}
-        source={
-          Object {
-            "uri": "https://api.faviconkit.com//64",
-          }
-        }
-      />
-    </FadeIn>
-  </View>
+    />
+  </FadeIn>
 </View>
 `;

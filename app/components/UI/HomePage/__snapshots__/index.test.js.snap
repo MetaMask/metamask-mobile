@@ -4,15 +4,20 @@ exports[`HomePage should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#f9fafa",
+      "backgroundColor": undefined,
       "flex": 1,
     }
   }
 >
   <ScrollViewMock
+    contentContainerStyle={
+      Object {
+        "paddingBottom": 75,
+      }
+    }
     style={
       Object {
-        "backgroundColor": "#f9fafa",
+        "backgroundColor": undefined,
         "flex": 1,
       }
     }
@@ -22,7 +27,7 @@ exports[`HomePage should render correctly 1`] = `
       onPress={[Function]}
       style={
         Object {
-          "backgroundColor": "#f9fafa",
+          "backgroundColor": undefined,
           "flex": 1,
         }
       }
@@ -30,7 +35,7 @@ exports[`HomePage should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#f9fafa",
+            "backgroundColor": undefined,
             "flex": 1,
           }
         }
@@ -53,15 +58,15 @@ exports[`HomePage should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Search or type a URL"
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor="#848c96"
             rejectResponderTermination={true}
             returnKeyType="go"
             style={
               Array [
                 Object {
-                  "backgroundColor": "#F0F2F4",
+                  "backgroundColor": "#f2f3f4",
                   "borderRadius": 20,
-                  "color": "#8E8E93",
+                  "color": "#848c96",
                   "flex": 1,
                   "fontFamily": "Roboto",
                   "fontSize": 16,
@@ -79,7 +84,7 @@ exports[`HomePage should render correctly 1`] = `
           />
           <Icon
             allowFontScaling={false}
-            color="#8E8E93"
+            color="#848c96"
             name="search"
             onPress={[Function]}
             size={18}

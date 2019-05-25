@@ -14,22 +14,22 @@ const styles = StyleSheet.create({
 		fontWeight: 'bold'
 	},
 	blue: {
-		backgroundColor: colors.primary
+		backgroundColor: colors.blue
 	},
 	blueText: {
 		color: colors.white
 	},
 	orange: {
-		backgroundColor: colors.primaryFox
+		backgroundColor: colors.blue
 	},
 	orangeText: {
 		color: colors.white
 	},
 	infoText: {
-		color: colors.primaryFox
+		color: colors.blue
 	},
 	confirm: {
-		backgroundColor: colors.primary,
+		backgroundColor: colors.blue,
 		minHeight: 50
 	},
 	confirmText: {
@@ -38,32 +38,32 @@ const styles = StyleSheet.create({
 	roundedNormal: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.primary,
+		borderColor: colors.blue,
 		padding: 8
 	},
 	roundedNormalText: {
-		color: colors.primary
+		color: colors.blue
 	},
 	normal: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	},
 	normalText: {
-		color: colors.primary
+		color: colors.blue
 	},
 	transparent: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.transparent,
 		borderWidth: 0,
-		borderColor: colors.white
+		borderColor: colors.transparent
 	},
 	cancel: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.accentGray
+		borderColor: colors.grey400
 	},
 	cancelText: {
-		color: colors.accentGray
+		color: colors.grey400
 	},
 	warning: {
 		backgroundColor: colors.white,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
 	info: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.primaryFox
+		borderColor: colors.blue
 	},
 	warningText: {
 		color: colors.red
@@ -81,15 +81,19 @@ const styles = StyleSheet.create({
 	neutral: {
 		backgroundColor: colors.white,
 		borderWidth: 1,
-		borderColor: colors.copy
+		borderColor: colors.grey500
 	},
 	neutralText: {
-		color: colors.copy
+		color: colors.grey500
 	},
 	danger: {
 		backgroundColor: colors.red,
 		borderColor: colors.red,
 		borderWidth: 1
+	},
+	whiteText: {
+		...fontStyles.bold,
+		color: colors.white
 	}
 });
 
@@ -121,7 +125,7 @@ function getStyles(type) {
 			containerStyle = styles.cancel;
 			break;
 		case 'transparent':
-			fontStyle = styles.normalText;
+			fontStyle = styles.whiteText;
 			containerStyle = styles.transparent;
 			break;
 		case 'warning':

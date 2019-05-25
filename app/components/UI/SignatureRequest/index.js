@@ -10,6 +10,8 @@ import { renderFromWei } from '../../../util/number';
 import Identicon from '../Identicon';
 import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -70,7 +72,7 @@ const styles = StyleSheet.create({
 	},
 	children: {
 		flex: 1,
-		borderTopColor: colors.lightGray,
+		borderTopColor: colors.grey200,
 		borderTopWidth: 1,
 		height: '100%'
 	},
@@ -132,7 +134,15 @@ class SignatureRequest extends Component {
 		/**
 		 * Object containing current page title and url
 		 */
-		currentPageInformation: PropTypes.object
+		currentPageInformation: PropTypes.object,
+		/**
+		 * String representing signature type
+		 */
+		type: PropTypes.string,
+		/**
+		 * String representing the selected the selected network
+		 */
+		networkType: PropTypes.string
 	};
 
 	renderPageInformation = () => {
@@ -148,6 +158,41 @@ class SignatureRequest extends Component {
 				{domain && <Text style={styles.domainText}>{domain.name}</Text>}
 			</View>
 		);
+	};
+
+	/**
+	 * Calls trackCancelSignature and onCancel callback
+	 */
+	onCancel = () => {
+		this.props.onCancel();
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CANCEL_SIGNATURE,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Calls trackConfirmSignature and onConfirm callback
+	 */
+	onConfirm = () => {
+		this.props.onConfirm();
+		Analytics.trackEventWithParameters(
+			ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_SIGNATURE,
+			this.getTrackingParams()
+		);
+	};
+
+	/**
+	 * Returns corresponding tracking params to send
+	 *
+	 * @return {object} - Object containing network and functionType
+	 */
+	getTrackingParams = () => {
+		const { type, networkType } = this.props;
+		return {
+			network: networkType,
+			functionType: type
+		};
 	};
 
 	render() {
@@ -190,8 +235,8 @@ class SignatureRequest extends Component {
 					confirmTestID={'request-signature-confirm-button'}
 					cancelText={strings('signature_request.cancel')}
 					confirmText={strings('signature_request.sign')}
-					onCancelPress={this.props.onCancel}
-					onConfirmPress={this.props.onConfirm}
+					onCancelPress={this.onCancel}
+					onConfirmPress={this.onConfirm}
 				>
 					<View style={styles.children}>
 						<KeyboardAwareScrollView>{children}</KeyboardAwareScrollView>
@@ -205,7 +250,8 @@ class SignatureRequest extends Component {
 const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	networkType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 export default connect(mapStateToProps)(SignatureRequest);

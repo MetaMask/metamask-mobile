@@ -1,0 +1,524 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GeneralSettings should render correctly 1`] = `
+<ScrollViewMock
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "padding": 24,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "paddingBottom": 48,
+      }
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "marginTop": 50,
+          },
+          Object {
+            "marginTop": 0,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Currency conversion
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Display fiat values in using a specific currency throughout the application.
+      </Text>
+      <View
+        style={
+          Object {
+            "borderColor": "#bbc0c5",
+            "borderRadius": 5,
+            "borderWidth": 2,
+            "marginTop": 16,
+          }
+        }
+      >
+        <SelectComponent
+          label="Base Currency"
+          onValueChange={[Function]}
+          options={
+            Array [
+              Object {
+                "key": "1st",
+                "label": "1ST - FirstBlood",
+                "value": "1st",
+              },
+              Object {
+                "key": "adt",
+                "label": "ADT - adToken",
+                "value": "adt",
+              },
+              Object {
+                "key": "adx",
+                "label": "ADX - AdEx",
+                "value": "adx",
+              },
+              Object {
+                "key": "ant",
+                "label": "ANT - Aragon",
+                "value": "ant",
+              },
+              Object {
+                "key": "aud",
+                "label": "AUD - Australian Dollar",
+                "value": "aud",
+              },
+              Object {
+                "key": "bat",
+                "label": "BAT - Basic Attention Token",
+                "value": "bat",
+              },
+              Object {
+                "key": "bnt",
+                "label": "BNT - Bancor",
+                "value": "bnt",
+              },
+              Object {
+                "key": "btc",
+                "label": "BTC - Bitcoin",
+                "value": "btc",
+              },
+              Object {
+                "key": "cad",
+                "label": "CAD - Canadian Dollar",
+                "value": "cad",
+              },
+              Object {
+                "key": "cfi",
+                "label": "CFI - Cofound.it",
+                "value": "cfi",
+              },
+              Object {
+                "key": "crb",
+                "label": "CRB - CreditBit",
+                "value": "crb",
+              },
+              Object {
+                "key": "cvc",
+                "label": "CVC - Civic",
+                "value": "cvc",
+              },
+              Object {
+                "key": "dai",
+                "label": "DAI - DAI",
+                "value": "dai",
+              },
+              Object {
+                "key": "dash",
+                "label": "DASH - Dash",
+                "value": "dash",
+              },
+              Object {
+                "key": "dgd",
+                "label": "DGD - DigixDAO",
+                "value": "dgd",
+              },
+              Object {
+                "key": "etc",
+                "label": "ETC - Ethereum Classic",
+                "value": "etc",
+              },
+              Object {
+                "key": "eur",
+                "label": "EUR - Euro",
+                "value": "eur",
+              },
+              Object {
+                "key": "fun",
+                "label": "FUN - FunFair",
+                "value": "fun",
+              },
+              Object {
+                "key": "gbp",
+                "label": "GBP - Pound Sterling",
+                "value": "gbp",
+              },
+              Object {
+                "key": "gno",
+                "label": "GNO - Gnosis",
+                "value": "gno",
+              },
+              Object {
+                "key": "gnt",
+                "label": "GNT - Golem",
+                "value": "gnt",
+              },
+              Object {
+                "key": "gup",
+                "label": "GUP - Matchpool",
+                "value": "gup",
+              },
+              Object {
+                "key": "hkd",
+                "label": "HKD - Hong Kong Dollar",
+                "value": "hkd",
+              },
+              Object {
+                "key": "hmq",
+                "label": "HMQ - Humaniq",
+                "value": "hmq",
+              },
+              Object {
+                "key": "idr",
+                "label": "IDR - Indonesian Rupiah",
+                "value": "idr",
+              },
+              Object {
+                "key": "jpy",
+                "label": "JPY - Japanese Yen",
+                "value": "jpy",
+              },
+              Object {
+                "key": "lgd",
+                "label": "LGD - Legends Room",
+                "value": "lgd",
+              },
+              Object {
+                "key": "lsk",
+                "label": "LSK - Lisk",
+                "value": "lsk",
+              },
+              Object {
+                "key": "ltc",
+                "label": "LTC - Litecoin",
+                "value": "ltc",
+              },
+              Object {
+                "key": "lun",
+                "label": "LUN - Lunyr",
+                "value": "lun",
+              },
+              Object {
+                "key": "mco",
+                "label": "MCO - Monaco",
+                "value": "mco",
+              },
+              Object {
+                "key": "mtl",
+                "label": "MTL - Metal",
+                "value": "mtl",
+              },
+              Object {
+                "key": "myst",
+                "label": "MYST - Mysterium",
+                "value": "myst",
+              },
+              Object {
+                "key": "nmr",
+                "label": "NMR - Numeraire",
+                "value": "nmr",
+              },
+              Object {
+                "key": "omg",
+                "label": "OMG - OmiseGO",
+                "value": "omg",
+              },
+              Object {
+                "key": "pay",
+                "label": "PAY - TenX",
+                "value": "pay",
+              },
+              Object {
+                "key": "php",
+                "label": "PHP - Philippine Peso",
+                "value": "php",
+              },
+              Object {
+                "key": "ptoy",
+                "label": "PTOY - Patientory",
+                "value": "ptoy",
+              },
+              Object {
+                "key": "qrl",
+                "label": "QRL - Quantum-Resistant Ledger",
+                "value": "qrl",
+              },
+              Object {
+                "key": "qtum",
+                "label": "QTUM - Qtum",
+                "value": "qtum",
+              },
+              Object {
+                "key": "rep",
+                "label": "REP - Augur",
+                "value": "rep",
+              },
+              Object {
+                "key": "rlc",
+                "label": "RLC - iEx.ec",
+                "value": "rlc",
+              },
+              Object {
+                "key": "rub",
+                "label": "RUB - Russian Ruble",
+                "value": "rub",
+              },
+              Object {
+                "key": "sc",
+                "label": "SC - Siacoin",
+                "value": "sc",
+              },
+              Object {
+                "key": "sgd",
+                "label": "SGD - Singapore Dollar",
+                "value": "sgd",
+              },
+              Object {
+                "key": "sngls",
+                "label": "SNGLS - SingularDTV",
+                "value": "sngls",
+              },
+              Object {
+                "key": "snt",
+                "label": "SNT - Status",
+                "value": "snt",
+              },
+              Object {
+                "key": "steem",
+                "label": "STEEM - Steem",
+                "value": "steem",
+              },
+              Object {
+                "key": "storj",
+                "label": "STORJ - Storj",
+                "value": "storj",
+              },
+              Object {
+                "key": "time",
+                "label": "TIME - ChronoBank",
+                "value": "time",
+              },
+              Object {
+                "key": "tkn",
+                "label": "TKN - TokenCard",
+                "value": "tkn",
+              },
+              Object {
+                "key": "trst",
+                "label": "TRST - WeTrust",
+                "value": "trst",
+              },
+              Object {
+                "key": "uah",
+                "label": "UAH - Ukrainian Hryvnia",
+                "value": "uah",
+              },
+              Object {
+                "key": "usd",
+                "label": "USD - United States Dollar",
+                "value": "usd",
+              },
+              Object {
+                "key": "usdc",
+                "label": "USDC - USD Coin",
+                "value": "usdc",
+              },
+              Object {
+                "key": "usdt",
+                "label": "USDT - Tether",
+                "value": "usdt",
+              },
+              Object {
+                "key": "wings",
+                "label": "WINGS - Wings",
+                "value": "wings",
+              },
+              Object {
+                "key": "xem",
+                "label": "XEM - NEM",
+                "value": "xem",
+              },
+              Object {
+                "key": "xlm",
+                "label": "XLM - Stellar Lumen",
+                "value": "xlm",
+              },
+              Object {
+                "key": "xmr",
+                "label": "XMR - Monero",
+                "value": "xmr",
+              },
+              Object {
+                "key": "xrp",
+                "label": "XRP - Ripple",
+                "value": "xrp",
+              },
+              Object {
+                "key": "zec",
+                "label": "ZEC - Zcash",
+                "value": "zec",
+              },
+            ]
+          }
+          selectedValue="USD"
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Primary Currency
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 16,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Current Language
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Translate the application to a different supported language.
+      </Text>
+      <View
+        style={
+          Object {
+            "borderColor": "#bbc0c5",
+            "borderRadius": 5,
+            "borderWidth": 2,
+            "marginTop": 16,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
+        Search Engine
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#6a737d",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 20,
+            "marginTop": 12,
+          }
+        }
+      >
+        Change the default search engine used when entering search terms in the URL bar.
+      </Text>
+      <View
+        style={
+          Object {
+            "borderColor": "#bbc0c5",
+            "borderRadius": 5,
+            "borderWidth": 2,
+            "marginTop": 16,
+          }
+        }
+      />
+    </View>
+  </View>
+</ScrollViewMock>
+`;

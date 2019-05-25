@@ -7,20 +7,21 @@ import { toLocaleDateTime } from '../../../util/date';
 import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
-import { getActionKey, decodeTransferData } from '../../../util/transactions';
+import { getActionKey, decodeTransferData, getTicker } from '../../../util/transactions';
 import TransactionDetails from './TransactionDetails';
 import { renderFullAddress } from '../../../util/address';
 import FadeIn from 'react-native-fade-in-image';
 import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
 import TransferElement from './TransferElement';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	row: {
 		backgroundColor: colors.white,
 		flex: 1,
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	rowContent: {
 		padding: 0
@@ -48,8 +49,8 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		paddingHorizontal: 5,
 		textAlign: 'center',
-		backgroundColor: colors.concrete,
-		color: colors.gray,
+		backgroundColor: colors.grey000,
+		color: colors.grey400,
 		fontSize: 9,
 		letterSpacing: 0.5,
 		width: 75,
@@ -73,16 +74,16 @@ const styles = StyleSheet.create({
 		flexDirection: 'row'
 	},
 	statusConfirmed: {
-		backgroundColor: colors.lightSuccess,
-		color: colors.success
+		backgroundColor: colors.green100,
+		color: colors.green500
 	},
 	statusSubmitted: {
-		backgroundColor: colors.lightWarning,
-		color: colors.warning
+		backgroundColor: colors.orange000,
+		color: colors.orange300
 	},
 	statusFailed: {
-		backgroundColor: colors.lightRed,
-		color: colors.error
+		backgroundColor: colors.red000,
+		color: colors.red
 	},
 	ethLogo: {
 		width: 24,
@@ -100,8 +101,12 @@ const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 /**
  * View that renders a transaction item part of transactions list
  */
-export default class TransactionElement extends PureComponent {
+class TransactionElement extends PureComponent {
 	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object,
 		/**
 		 * Asset object (in this case ERC721 token)
 		 */
@@ -152,9 +157,9 @@ export default class TransactionElement extends PureComponent {
 		 */
 		showAlert: PropTypes.func,
 		/**
-		 * Action that shows the global alert
+		 * Current provider ticker
 		 */
-		viewOnEtherscan: PropTypes.func
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -165,8 +170,8 @@ export default class TransactionElement extends PureComponent {
 
 	componentDidMount = async () => {
 		this.mounted = true;
-		const { tx, selectedAddress } = this.props;
-		const actionKey = await getActionKey(tx, selectedAddress);
+		const { tx, selectedAddress, ticker } = this.props;
+		const actionKey = await getActionKey(tx, selectedAddress, ticker);
 		this.mounted && this.setState({ actionKey });
 	};
 
@@ -209,8 +214,8 @@ export default class TransactionElement extends PureComponent {
 				transactionObject={tx}
 				blockExplorer={blockExplorer}
 				showAlert={showAlert}
-				viewOnEtherscan={this.props.viewOnEtherscan}
 				transactionDetails={transactionDetails}
+				navigation={this.props.navigation}
 			/>
 		) : null;
 	};
@@ -325,10 +330,11 @@ export default class TransactionElement extends PureComponent {
 			conversionRate,
 			currentCurrency
 		} = this.props;
+		const ticker = getTicker(this.props.ticker);
 		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
-		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.eth');
-		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase();
+		const renderTotalEth = renderFromWei(totalEth) + ' ' + ticker;
+		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
 
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
@@ -339,11 +345,11 @@ export default class TransactionElement extends PureComponent {
 			renderFrom: renderFullAddress(from),
 			renderTo: renderFullAddress(to),
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
+			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalValue) + ' ' + strings('unit.eth'),
-			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency).toUpperCase()
+			renderTotalValue: renderFromWei(totalValue) + ' ' + ticker,
+			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency.toUpperCase())
 		};
 
 		const transactionElement = {
@@ -365,13 +371,14 @@ export default class TransactionElement extends PureComponent {
 			conversionRate,
 			currentCurrency
 		} = this.props;
+		const ticker = getTicker(this.props.ticker);
 		const { actionKey } = this.state;
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
-		const renderTotalEth = renderFromWei(totalGas) + ' ' + strings('unit.eth');
-		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency).toUpperCase();
+		const renderTotalEth = renderFromWei(totalGas) + ' ' + ticker;
+		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
 		const transactionElement = {
@@ -385,11 +392,11 @@ export default class TransactionElement extends PureComponent {
 			renderFrom: renderFullAddress(from),
 			renderTo: strings('transactions.to_contract'),
 			transactionHash,
-			renderValue: renderFromWei(value) + ' ' + strings('unit.eth'),
+			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
-			renderTotalValue: renderFromWei(totalEth) + ' ' + strings('unit.eth'),
-			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency).toUpperCase()
+			renderTotalValue: renderFromWei(totalEth) + ' ' + ticker,
+			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase())
 		};
 
 		return [transactionElement, transactionDetails];
@@ -440,7 +447,7 @@ export default class TransactionElement extends PureComponent {
 			<TouchableHighlight
 				style={styles.row}
 				onPress={this.onPressItem} // eslint-disable-line react/jsx-no-bind
-				underlayColor={colors.lighterGray}
+				underlayColor={colors.grey000}
 				activeOpacity={1}
 			>
 				<View style={styles.rowContent}>
@@ -451,3 +458,8 @@ export default class TransactionElement extends PureComponent {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+});
+export default connect(mapStateToProps)(TransactionElement);

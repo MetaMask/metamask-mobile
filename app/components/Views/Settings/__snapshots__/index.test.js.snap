@@ -12,19 +12,29 @@ exports[`Settings should render correctly 1`] = `
 >
   <View>
     <SettingsDrawer
-      description="Currency conversion, primary currency, language"
+      description="Currency conversion, primary currency, language and search engine"
       onPress={[Function]}
       title="General"
     />
     <SettingsDrawer
-      description="Access developer features, reset account, setup testnets, sync with extension, state logs and custom RPC"
+      description="Access developer features, reset account, setup testnets, sync with extension, state logs, IPFS gateway and custom RPC"
       onPress={[Function]}
       title="Advanced"
     />
     <SettingsDrawer
-      description="Privacy settings, private key and wallet seed phrase"
+      description="Privacy settings, MetaMetrics, private key and wallet seed phrase"
       onPress={[Function]}
       title="Security & Privacy"
+    />
+    <SettingsDrawer
+      description="Add and edit custom RPC networks"
+      onPress={[Function]}
+      title="Networks"
+    />
+    <SettingsDrawer
+      description="WalletConnect & more..."
+      onPress={[Function]}
+      title="Experimental"
     />
     <SettingsDrawer
       onPress={[Function]}

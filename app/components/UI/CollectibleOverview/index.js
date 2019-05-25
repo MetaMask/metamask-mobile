@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		fontSize: 14,
-		color: colors.gray,
+		color: colors.grey400,
 		paddingTop: 10,
 		...fontStyles.normal
 	},
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	},
 	tokenId: {
 		fontSize: 12,
-		color: colors.gray,
+		color: colors.grey400,
 		marginTop: 8,
 		...fontStyles.normal
 	}

@@ -9,7 +9,7 @@ import URL from 'url-parse';
 
 const styles = StyleSheet.create({
 	warningIcon: {
-		color: colors.warningRed,
+		color: colors.red,
 		marginRight: 10
 	},
 	phishingModalWrapper: {
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 	},
 	phishingModalTitle: {
 		...fontStyles.bold,
-		color: colors.warningRed,
+		color: colors.red,
 		textAlign: 'center'
 	},
 	phishingModalHeader: {
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	phishingModalInfo: {
-		backgroundColor: colors.lighterGray,
+		backgroundColor: colors.grey000,
 		paddingTop: 20,
 		paddingHorizontal: 20
 	},
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 		padding: 10
 	},
 	backToSafetyText: {
-		color: colors.warningRed,
+		color: colors.red,
 		fontSize: 12
 	},
 	foxImage: {

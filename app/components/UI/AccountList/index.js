@@ -20,6 +20,9 @@ import { renderFromWei } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -34,13 +37,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	dragger: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: colors.gray,
+		backgroundColor: colors.grey400,
 		opacity: Platform.OS === 'android' ? 0.6 : 0.5
 	},
 	accountsWrapper: {
@@ -48,7 +51,7 @@ const styles = StyleSheet.create({
 	},
 	account: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		flexDirection: 'row',
 		paddingHorizontal: 20,
 		paddingVertical: 20,
@@ -80,7 +83,7 @@ const styles = StyleSheet.create({
 	},
 	btnText: {
 		fontSize: 14,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	footerButton: {
@@ -89,10 +92,10 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.borderColor
+		borderColor: colors.grey100
 	},
 	importedText: {
-		color: colors.another50ShadesOfGrey,
+		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
 	},
@@ -102,7 +105,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.another50ShadesOfGrey
+		borderColor: colors.grey400
 	},
 	importedView: {
 		flex: 0.5,
@@ -147,7 +150,11 @@ export default class AccountList extends Component {
 		/**
 		 * function to be called when importing an account
 		 */
-		onImportAccount: PropTypes.func
+		onImportAccount: PropTypes.func,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -207,6 +214,11 @@ export default class AccountList extends Component {
 			this.setState({ selectedAccountIndex: previousIndex });
 			Logger.error('error while trying change the selected account', e); // eslint-disable-line
 		}
+		InteractionManager.runAfterInteractions(() => {
+			setTimeout(() => {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
+			}, 1000);
+		});
 	};
 
 	importAccount = () => {
@@ -247,9 +259,10 @@ export default class AccountList extends Component {
 	}
 
 	renderItem = ({ item }) => {
+		const { ticker } = this.props;
 		const { index, name, address, balance, isSelected, isImported } = item;
 
-		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary} /> : null;
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
 				<Text numberOfLines={1} style={styles.importedText}>
@@ -271,7 +284,7 @@ export default class AccountList extends Component {
 							{name}
 						</Text>
 						<Text style={styles.accountBalance}>
-							{renderFromWei(balance)} {strings('unit.eth')}
+							{renderFromWei(balance)} {getTicker(ticker)}
 						</Text>
 					</View>
 					{imported && <View style={styles.importedView}>{imported}</View>}
@@ -325,7 +338,7 @@ export default class AccountList extends Component {
 				<View style={styles.footer}>
 					<TouchableOpacity style={styles.footerButton} onPress={this.addAccount}>
 						{this.state.loading ? (
-							<ActivityIndicator size="small" color={colors.primary} />
+							<ActivityIndicator size="small" color={colors.blue} />
 						) : (
 							<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
 						)}

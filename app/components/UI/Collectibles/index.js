@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ScrollView, RefreshControl, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, RefreshControl, FlatList, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
 	tokenId: {
 		fontSize: 12,
 		marginTop: 4,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal
 	}
 });
@@ -109,7 +109,8 @@ export default class Collectibles extends Component {
 
 	removeCollectible = () => {
 		const { AssetsController } = Engine.context;
-		AssetsController.removeCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
+		AssetsController.removeAndIgnoreCollectible(this.collectibleToRemove.address, this.collectibleToRemove.tokenId);
+		Alert.alert(strings('wallet.collectible_removed_title'), strings('wallet.collectible_removed_desc'));
 	};
 
 	createActionSheetRef = ref => {

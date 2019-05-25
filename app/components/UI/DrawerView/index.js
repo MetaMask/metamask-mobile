@@ -9,18 +9,16 @@ import {
 	StyleSheet,
 	Text,
 	ScrollView,
-	Dimensions,
 	InteractionManager
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
-import { hasBlockExplorer } from '../../../util/networks';
+import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
 import AccountList from '../AccountList';
@@ -43,7 +41,13 @@ import ActionModal from '../ActionModal';
 import DeviceInfo from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
+import OnboardingWizard from '../OnboardingWizard';
+import ReceiveRequest from '../ReceiveRequest';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import URL from 'url-parse';
 
+const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -51,7 +55,7 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		paddingTop: DeviceSize.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.drawerBg,
+		backgroundColor: colors.grey000,
 		height: DeviceSize.isIphoneX() ? 110 : 74,
 		flexDirection: 'column',
 		paddingBottom: 0
@@ -85,10 +89,10 @@ const styles = StyleSheet.create({
 	},
 	account: {
 		flex: 1,
-		backgroundColor: colors.drawerBg
+		backgroundColor: colors.grey000
 	},
 	accountBgOverlay: {
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
 		padding: 17
 	},
@@ -101,7 +105,7 @@ const styles = StyleSheet.create({
 		borderRadius: 96,
 		borderWidth: 2,
 		padding: 2,
-		borderColor: colors.primary
+		borderColor: colors.blue
 	},
 	accountNameWrapper: {
 		flexDirection: 'row',
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
 	},
 	buttons: {
 		flexDirection: 'row',
-		borderBottomColor: colors.borderColor,
+		borderBottomColor: colors.grey100,
 		borderBottomWidth: 1,
 		padding: 15
 	},
@@ -157,7 +161,7 @@ const styles = StyleSheet.create({
 		marginTop: Platform.OS === 'ios' ? 0 : -23,
 		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
 		fontSize: 15,
-		color: colors.primary,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	buttonContent: {
@@ -168,13 +172,19 @@ const styles = StyleSheet.create({
 	buttonIcon: {
 		marginTop: 0
 	},
+	buttonReceive: {
+		transform:
+			Platform.OS === 'ios'
+				? [{ rotate: '90deg' }]
+				: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
+	},
 	menu: {},
 	noTopBorder: {
 		borderTopWidth: 0
 	},
 	menuSection: {
 		borderTopWidth: 1,
-		borderColor: colors.borderColor,
+		borderColor: colors.grey100,
 		paddingVertical: 10
 	},
 	menuItem: {
@@ -184,20 +194,20 @@ const styles = StyleSheet.create({
 		paddingLeft: 17
 	},
 	selectedRoute: {
-		backgroundColor: colors.primaryOpacity,
+		backgroundColor: colors.blue000,
 		marginRight: 10,
 		borderTopRightRadius: 20,
 		borderBottomRightRadius: 20
 	},
 	selectedName: {
-		color: colors.primary
+		color: colors.blue
 	},
 	menuItemName: {
 		flex: 1,
-		paddingLeft: 15,
+		paddingHorizontal: 15,
 		paddingTop: 2,
 		fontSize: 16,
-		color: colors.gray,
+		color: colors.grey400,
 		...fontStyles.normal
 	},
 	noIcon: {
@@ -229,40 +239,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		...fontStyles.bold
 	},
-	detailsWrapper: {
-		padding: 10,
-		alignItems: 'center'
-	},
-	qrCode: {
-		marginVertical: 15,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 40,
-		backgroundColor: colors.concrete,
-		borderRadius: 8
-	},
-	addressWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		marginTop: 10,
-		marginBottom: 20,
-		marginRight: 10,
-		marginLeft: 10,
-		borderRadius: 5,
-		backgroundColor: colors.concrete
-	},
-	addressTitle: {
-		fontSize: 16,
-		marginBottom: 10,
-		...fontStyles.normal
-	},
-	address: {
-		fontSize: Platform.OS === 'ios' ? 17 : 20,
-		letterSpacing: 2,
-		fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
-	},
 	secureModalText: {
 		textAlign: 'center',
 		fontSize: 13,
@@ -282,12 +258,19 @@ const styles = StyleSheet.create({
 		paddingVertical: 3,
 		borderRadius: 10,
 		borderWidth: 1,
-		borderColor: colors.another50ShadesOfGrey
+		borderColor: colors.grey400
 	},
 	importedText: {
-		color: colors.another50ShadesOfGrey,
+		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
+	},
+	onboardingContainer: {
+		position: 'absolute',
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 315 - DeviceSize.getDeviceWidth()
 	}
 });
 
@@ -368,7 +351,19 @@ class DrawerView extends Component {
 		/**
 		 * Boolean that determines if the user has set a password before
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * Wizard onboarding state
+		 */
+		wizard: PropTypes.object,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string,
+		/**
+		 * Frequent RPC list from PreferencesController
+		 */
+		frequentRpcList: PropTypes.array
 	};
 
 	state = {
@@ -429,6 +424,7 @@ class DrawerView extends Component {
 				this.animatingAccountsModal = false;
 			}, 500);
 		}
+		!this.props.accountsModalVisible && this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
 	};
 
 	toggleReceiveModal = () => {
@@ -459,37 +455,50 @@ class DrawerView extends Component {
 	};
 
 	showReceiveModal = () => {
-		this.props.toggleReceiveModal();
+		this.toggleReceiveModal();
+	};
+
+	trackEvent = event => {
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(event);
+		});
 	};
 
 	onReceive = () => {
-		this.props.toggleReceiveModal();
+		this.toggleReceiveModal();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
 	};
 
 	onSend = async () => {
-		this.props.setTokensTransaction({ symbol: 'ETH' });
+		const { ticker } = this.props;
+		this.props.setTokensTransaction({ symbol: ticker, isETH: true });
 		this.props.navigation.navigate('SendView');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
 	};
 
 	goToBrowser = () => {
 		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
 	};
 
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_WALLET);
 	};
 
 	goToTransactionHistory = () => {
 		this.props.navigation.navigate('TransactionsHome');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
 	};
 
 	showSettings = async () => {
 		this.props.navigation.navigate('SettingsView');
 		this.hideDrawer();
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
 	logout = () => {
@@ -510,20 +519,36 @@ class DrawerView extends Component {
 						if (!passwordSet) {
 							this.props.navigation.navigate('Onboarding');
 						} else {
-							this.props.navigation.navigate('Entry');
+							this.props.navigation.navigate('Login');
 						}
 					}
 				}
 			],
 			{ cancelable: false }
 		);
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
 	};
 
 	viewInEtherscan = () => {
-		const { selectedAddress, network } = this.props;
-		const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
-		const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
-		this.goToBrowserUrl(url, etherscan_url);
+		const {
+			selectedAddress,
+			network,
+			network: {
+				provider: { rpcTarget }
+			},
+			frequentRpcList
+		} = this.props;
+		if (network.provider.type === 'rpc') {
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			const url = `${blockExplorer}/address/${selectedAddress}`;
+			const title = new URL(blockExplorer).hostname;
+			this.goToBrowserUrl(url, title);
+		} else {
+			const url = getEtherscanAddressUrl(network.provider.type, selectedAddress);
+			const etherscan_url = getEtherscanBaseUrl(network.provider.type).replace('https://', '');
+			this.goToBrowserUrl(url, etherscan_url);
+		}
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
 	};
 
 	submitFeedback = () => {
@@ -558,6 +583,7 @@ class DrawerView extends Component {
 
 	showHelp = () => {
 		this.goToBrowserUrl('https://support.metamask.io', strings('drawer.metamask_support'));
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_GET_HELP);
 	};
 
 	goToBrowserUrl(url, title) {
@@ -590,16 +616,32 @@ class DrawerView extends Component {
 		this.hideDrawer();
 	};
 
+	hasBlockExplorer = providerType => {
+		const { frequentRpcList } = this.props;
+		if (providerType === 'rpc') {
+			const {
+				network: {
+					provider: { rpcTarget }
+				}
+			} = this.props;
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			if (blockExplorer) {
+				return true;
+			}
+		}
+		return hasBlockExplorer(providerType);
+	};
+
 	getIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.gray} />;
+		return <Icon name={name} size={size || 24} color={colors.grey400} />;
 	}
 
 	getFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.gray} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
 	}
 
 	getMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.gray} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
 	}
 
 	getImageIcon(name) {
@@ -607,72 +649,87 @@ class DrawerView extends Component {
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.primary} />;
+		return <Icon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.primary} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.primary} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
 	}
 
 	getSelectedImageIcon(name) {
 		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
 	}
 
-	getSections = () => [
-		[
-			{
-				name: strings('drawer.browser'),
-				icon: this.getIcon('globe'),
-				selectedIcon: this.getSelectedIcon('globe'),
-				action: this.goToBrowser,
-				routeNames: ['BrowserView', 'AddBookmark']
+	getSections = () => {
+		const {
+			network: {
+				provider: { type, rpcTarget }
 			},
-			{
-				name: strings('drawer.wallet'),
-				icon: this.getImageIcon('wallet'),
-				selectedIcon: this.getSelectedImageIcon('wallet'),
-				action: this.showWallet,
-				routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
-			},
-			{
-				name: strings('drawer.transaction_history'),
-				icon: this.getFeatherIcon('list'),
-				selectedIcon: this.getSelectedFeatherIcon('list'),
-				action: this.goToTransactionHistory,
-				routeNames: ['TransactionsView']
-			}
-		],
-		[
-			{
-				name: strings('drawer.share_address'),
-				icon: this.getMaterialIcon('share-variant'),
-				action: this.onShare
-			},
-			{
-				name: strings('drawer.view_in_etherscan'),
-				icon: this.getIcon('eye'),
-				action: this.viewInEtherscan
-			}
-		],
-		[
-			{
-				name: strings('drawer.help'),
-				action: this.showHelp
-			},
-			{
-				name: strings('drawer.submit_feedback'),
-				action: this.submitFeedback
-			},
-			{
-				name: strings('drawer.logout'),
-				action: this.logout
-			}
-		]
-	];
+			frequentRpcList
+		} = this.props;
+		let blockExplorer, blockExplorerName;
+		if (type === 'rpc') {
+			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			blockExplorerName = getBlockExplorerName(blockExplorer);
+		}
+		return [
+			[
+				{
+					name: strings('drawer.browser'),
+					icon: this.getIcon('globe'),
+					selectedIcon: this.getSelectedIcon('globe'),
+					action: this.goToBrowser,
+					routeNames: ['BrowserView', 'AddBookmark']
+				},
+				{
+					name: strings('drawer.wallet'),
+					icon: this.getImageIcon('wallet'),
+					selectedIcon: this.getSelectedImageIcon('wallet'),
+					action: this.showWallet,
+					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+				},
+				{
+					name: strings('drawer.transaction_history'),
+					icon: this.getFeatherIcon('list'),
+					selectedIcon: this.getSelectedFeatherIcon('list'),
+					action: this.goToTransactionHistory,
+					routeNames: ['TransactionsView']
+				}
+			],
+			[
+				{
+					name: strings('drawer.share_address'),
+					icon: this.getMaterialIcon('share-variant'),
+					action: this.onShare
+				},
+				{
+					name:
+						(blockExplorer && `${strings('drawer.view_in')} ${blockExplorerName}`) ||
+						strings('drawer.view_in_etherscan'),
+					icon: this.getIcon('eye'),
+					action: this.viewInEtherscan
+				}
+			],
+			[
+				{
+					name: strings('drawer.help'),
+					action: this.showHelp
+				},
+				{
+					name: strings('drawer.submit_feedback'),
+					action: this.submitFeedback
+				},
+				{
+					name: strings('drawer.logout'),
+					action: this.logout
+				}
+			]
+		];
+	};
 
 	copyAccountToClipboard = async () => {
 		const { selectedAddress } = this.props;
@@ -695,6 +752,7 @@ class DrawerView extends Component {
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
+		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
 	};
 
 	onSecureWalletModalAction = () => {
@@ -710,8 +768,24 @@ class DrawerView extends Component {
 		return route.routeName;
 	}
 
+	/**
+	 * Return step 5 of onboarding wizard if that is the current step
+	 */
+	renderOnboardingWizard = () => {
+		const {
+			wizard: { step }
+		} = this.props;
+		return (
+			step === 5 && (
+				<View style={styles.onboardingContainer}>
+					<OnboardingWizard navigation={this.props.navigation} />
+				</View>
+			)
+		);
+	};
+
 	render() {
-		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency } = this.props;
+		const { network, accounts, identities, selectedAddress, keyrings, currentCurrency, ticker } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
@@ -721,7 +795,6 @@ class DrawerView extends Component {
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 		const currentRoute = this.findRouteNameFromNavigatorState(this.props.navigation.state);
-
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
@@ -756,7 +829,7 @@ class DrawerView extends Component {
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
-								<Text style={styles.accountBalance}>${fiatBalanceStr}</Text>
+								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
 								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
 								{this.isCurrentAccountImported() && (
 									<View style={styles.importedWrapper}>
@@ -778,7 +851,7 @@ class DrawerView extends Component {
 							<MaterialIcon
 								name={'arrow-top-right'}
 								size={22}
-								color={colors.primary}
+								color={colors.blue}
 								style={styles.buttonIcon}
 							/>
 							<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
@@ -789,7 +862,12 @@ class DrawerView extends Component {
 							containerStyle={[styles.button, styles.rightButton]}
 							style={styles.buttonContent}
 						>
-							<Icon name={'qrcode'} size={22} color={colors.primary} style={styles.buttonIcon} />
+							<MaterialIcon
+								name={'keyboard-tab'}
+								size={22}
+								color={colors.blue}
+								style={[styles.buttonIcon, styles.buttonReceive]}
+							/>
 							<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
 						</StyledButton>
 					</View>
@@ -802,7 +880,7 @@ class DrawerView extends Component {
 								{section
 									.filter(item => {
 										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
-											return hasBlockExplorer(network.provider.type);
+											return this.hasBlockExplorer(network.provider.type);
 										}
 										return true;
 									})
@@ -830,6 +908,7 @@ class DrawerView extends Component {
 														? styles.selectedName
 														: null
 												]}
+												numberOfLines={1}
 											>
 												{item.name}
 											</Text>
@@ -863,8 +942,10 @@ class DrawerView extends Component {
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
 						onImportAccount={this.onImportAccount}
+						ticker={ticker}
 					/>
 				</Modal>
+				{this.renderOnboardingWizard()}
 				<ActionModal
 					modalVisible={this.state.submitFeedback}
 					confirmText={strings('drawer.submit_bug')}
@@ -886,24 +967,13 @@ class DrawerView extends Component {
 					onSwipeComplete={this.toggleReceiveModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					style={styles.bottomModal}
 				>
-					<View style={styles.detailsWrapper}>
-						<View style={styles.qrCode}>
-							<QRCode value={`ethereum:${selectedAddress}`} size={Dimensions.get('window').width - 160} />
-						</View>
-						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-							<Text style={styles.addressTitle} testID={'public-address-text'}>
-								{strings('drawer.public_address')}
-							</Text>
-							<Text style={styles.address} testID={'public-address-text'}>
-								{selectedAddress}
-							</Text>
-						</TouchableOpacity>
-					</View>
+					<ReceiveRequest navigation={this.props.navigation} showReceiveModal={this.showReceiveModal} />
 				</Modal>
 				{!this.props.passwordSet && (
 					<CustomAlert
-						headerStyle={{ backgroundColor: colors.headerModalRed }}
+						headerStyle={{ backgroundColor: colors.red }}
 						headerContent={
 							<Image
 								source={require('../../../images/lock.png')}
@@ -932,12 +1002,15 @@ const mapStateToProps = state => ({
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
-	passwordSet: state.user.passwordSet
+	passwordSet: state.user.passwordSet,
+	wizard: state.wizard,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 const mapDispatchToProps = dispatch => ({

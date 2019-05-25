@@ -15,6 +15,50 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar"
 	},
+	"onboarding_wizard": {
+		"skip_tutorial": "Saltar Tutorial",
+		"coachmark": {
+			"action_back": "No, Gracias",
+			"action_next": "Hacer un recorrido",
+			"progress_back": "Atrás",
+			"progress_next": "Perfecto!"
+		},
+		"step1": {
+			"title": "Bienvenido a tu Nueva Billetera!",
+			"content1": "Para usar aplicaciones blockchain (DAPPS) necesitas una billetera ya que las acciones en blockchain tienen un costo en Ether (ETH).",
+			"content2": "Puedes comprar unos cuantos dólares de ETH en una bolsa de valores como Coinbase o simplemente solicitar a un amigo."
+		},
+		"step2": {
+			"title": "Tus Cuentas",
+			"content1": "Esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).",
+			"content2": "Puedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+		},
+		"step3": {
+			"title": "Editar Nombre",
+			"content1": "'Account 1' no es muy memorable. Porque no nombrar tu cuenta con algo un poco más memorable.",
+			"content2": "Presiona",
+			"content3": "para editar el nombre de la cuenta."
+		},
+		"step4": {
+			"title": "Navegación Principal",
+			"content1": "Presiona acá",
+			"content2": "para acceder a tu Billetera, Navegador, e Historial de Transacciones.",
+			"content3": "Puedes realizzar más acciones con tus cuentas y acceder a configuraciones."
+		},
+		"step5": {
+			"title": "Explora el Navegador",
+			"content1": "Puedes exprolar aplicaciones blockchain (DAPPS) en el",
+			"content2": "Navegador."
+		},
+		"step6": {
+			"title": "Buscar Dapps",
+			"content": "Busca aplicaciones blockchain (DAPPS)!"
+		},
+		"step7": {
+			"title": "Dapps Destacadas",
+			"content": "Comienza a explorar las aplicaciones blockchain (DAPPS)."
+		}
+	},
 	"create_wallet": {
 		"title": "Creando tu nueva billetera",
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
@@ -23,7 +67,7 @@
 		"title": "Importar Billetera",
 		"sync_help": "Sincroniza tu billetera con la extension",
 		"sync_help_step_one": "1. Ingresa a la extension",
-		"sync_help_step_two": "2. Ve a ajustes",
+		"sync_help_step_two": "2. Ve a \"Ajustes\" > \"Avanzado\"",
 		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",
 		"sync_from_browser_extension_button": "Comenzar Sincronización",
@@ -60,7 +104,7 @@
 	"import_from_seed": {
 		"title": "Importar con frase semilla",
 		"seed_phrase_placeholder": "Ingresa tu frase semilla aquí",
-		"new_password": "Nueva Contraseña (min. 8 caracteres)",
+		"new_password": "Nueva Contraseña",
 		"confirm_password": "Confirmar Contraseña",
 		"import_button": "IMPORTAR",
 		"cancel_button": "Cancelar",
@@ -85,6 +129,7 @@
 		"submit_general_feedback": "GENERAL",
 		"copy_address": "Copiar mi dirección pública",
 		"view_in_etherscan": "Ver en Etherscan",
+		"view_in": "Ver en",
 		"browser": "Navegador",
 		"settings": "Ajustes",
 		"help": "Ayuda",
@@ -94,10 +139,12 @@
 		"logout_cancel": "NO",
 		"feedback": "Feedback",
 		"metamask_support": "Soporte de MetaMask",
-		"public_address": "Public Address"
+		"public_address": "Dirección Pública"
 	},
 	"send": {
-		"title": "Enviar"
+		"title": "Enviar",
+		"deeplink_failure": "Ooops! Algo ha salido mal, por favor intėntalo de nuevo",
+		"warn_network_change": "La red ha sido cambiada a "
 	},
 	"receive": {
 		"title": "Recibir"
@@ -118,6 +165,10 @@
 		"copy_address": "Copiar",
 		"remove_token_title": "Deseas eliminar este token?",
 		"remove_collectible_title": "Deseas eliminar este coleccionable?",
+		"token_removed_title": "Token eliminado!",
+		"token_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"+ AGREGAR TOKENS\"",
+		"collectible_removed_title": "Coleccionable eliminado!",
+		"collectible_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"Agregar Coleccionable\"",
 		"remove": "Eliminar",
 		"cancel": "Cancelar"
 	},
@@ -136,6 +187,27 @@
 			"cancel_add_collectible": "CANCELAR",
 			"add_collectible": "AGREGAR COLECCIONABLE"
 		}
+	},
+	"terms_and_conditions": {
+		"title": "Términos y Condiciones",
+		"description": "Haciendo click en \"{{action}}\" estas de acuerdo con estos ",
+		"terms": "Términos y Condiciones"
+	},
+	"privacy_policy": {
+		"title": "Política de Privacidad",
+		"description": "Estos datos se agregan y, por lo tanto, son anónimos para los fines del Reglamento general de protección de datos (UE) 2016/679. Para obtener más información sobre nuestras prácticas de privacidad, consulte nuestra Política de Privacidad",
+		"here": "aquí",
+		"agree": "De Acuerdo",
+		"decline": "No, Gracias",
+		"description_title": "Ayúdanos a mejorar MetaMask",
+		"description_content_1": "A MetaMask le gustaría recopilar datos de uso básicos para comprender mejor cómo interactúan nuestros usuarios con la aplicación movil. Estos datos se utilizarán para mejorar continuamente la usabilidad y la experiencia de usuario de nuestro producto.",
+		"description_content_2": "MetaMask va a...",
+		"action_description_1": "Siempre permitir cancelar a través de Configuraciónes",
+		"action_description_2": "Enviar eventos anónimos de clics y páginas vistas",
+		"action_description_3": "Mantener un panel público agregado para educar a la comunidad.",
+		"action_description_4": "Nunca recopilar claves, direcciones, transacciones, saldos, hashes o cualquier información personal",
+		"action_description_5": "Nunca recopilar su dirección IP",
+		"action_description_6": "Nunca vender datos con fines de lucro. ¡Nunca!"
 	},
 	"token": {
 		"token_symbol": "Símbolo del Token",
@@ -179,6 +251,9 @@
 		"current_conversion": "Conversión actual",
 		"current_language": "Lenguaje Actual",
 		"new_RPC_URL": "Nueva URL del RPC",
+		"ipfs_gateway": "IPFS Gateway",
+		"ipfs_gateway_down": "IPFS gateway actual está desconectado",
+		"ipfs_gateway_desc": "Elige tu IPFS gateway preferida.",
 		"state_logs": "Logs de Estado",
 		"reveal_seed_words": "Revelar Palabras de Semilla",
 		"reset_account": "Reiniciar Cuenta",
@@ -216,15 +291,39 @@
 		"show_hex_data": "Mostrar datos hexadecimales",
 		"show_hex_data_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"general_title": "General",
-		"general_desc": "Conversion, Moneda principal, lenguaje",
+		"general_desc": "Conversion, Moneda principal, lenguaje y motor de búsqueda",
 		"advanced_title": "Avanzado",
-		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba y RPC personalizados",
+		"advanced_desc": "Accede a opciones de desarrolador, reiniciar cuenta, sincronizar con extension, logs de estado, agregar redes de prueba, IPFS gateway y RPC personalizados",
 		"security_title": "Seguridad y privacidad",
-		"security_desc": "Opciones de privacidad y frase semilla de la billetera",
+		"security_desc": "Opciones de privacidad, MetaMetrics y frase semilla de la billetera",
+		"networks_title": "Redes",
+		"networks_desc": "Agregar y editar redes RPC personalizadas",
+		"network_name_label": "Nombre de Red",
+		"network_name_placeholder": "Nombre de Red (opcional)",
+		"network_rpc_url_label": "RPC Url",
+		"network_rpc_placeholder": "Nueva red RPC",
+		"network_chain_id_label": "Chain ID",
+		"network_chain_id_placeholder": "Chain ID (opcional)",
+		"network_symbol_label": "Símbolo",
+		"network_symbol_placeholder": "Símbolo (opcional)",
+		"network_block_explorer_label": "Block Explorer URL",
+		"network_block_explorer_placeholder": "Block Explorer URL (opcional)",
+		"network_chain_id_warning": "Chain ID Inválido",
+		"network_other_networks": "Otras Redes",
+		"network_rpc_networks": "Redes RPC",
+		"network_add_network": "Agregar Red",
+		"network_add": "Agregar",
+		"network_save": "Guardar",
 		"info_title": "Acerca de MetaMask",
+		"experimental_title": "Experimental",
+		"experimental_desc": "WalletConnect & más...",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
+		"primary_currency_title": "Moneda primaria",
+		"primary_currency_desc": "Seleccione nativo para priorizar la visualización de valores en la moneda nativa de la blockchain (por ejemplo, ETH). Seleccione Fiat para priorizar la visualización de valores en su moneda primaria seleccionada.",
+		"primary_currency_text_first": "Nativo",
+		"primary_currency_text_second": "Fiat",
 		"language_desc": "Traducir la aplicacion a un lenguaje soportado diferente.",
 		"engine_desc": "Cambiar el motor de búsqueda por defecto al realizar búsquedas en el navegador.",
 		"reset_desc": "Esta acción borrará tu historial de transacciones. Estos datos puede que no sean recuperables.",
@@ -232,7 +331,9 @@
 		"hex_desc": "Elije esta opción para ver el campo de datos hexadecimales en la pantalla de envío",
 		"clear_privacy_title": "Borrar los datos de privacidad",
 		"clear_privacy_desc": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
-		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación."
+		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
+		"metametrics_title": "Participa en MetaMetrics",
+		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask."
 	},
 	"app_information": {
 		"title": "Información",
@@ -296,9 +397,11 @@
 	"transaction": {
 		"alert": "ALERTA",
 		"amount": "Cantidad",
+		"next": "Siguiente",
 		"confirm": "Confirmar",
 		"reject": "Rechazar",
 		"edit": "Editar",
+		"cancel": "Cancelar",
 		"from": "De",
 		"gas_fee": "Tarifa de Transacción",
 		"gas_fee_fast": "RAPIDA",
@@ -321,6 +424,7 @@
 		"review_function_type": "TIPO DE FUNCIÓN",
 		"review_hex_data": "DATOS HEX ",
 		"invalid_collectible_ownership": "No eres el dueño de este coleccionable",
+		"known_asset_contract": "Dirección de contrato de un activo conocido",
 		"conversion_not_available": "Datos de conversión no disponibles",
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
@@ -365,7 +469,12 @@
 		"my_favorites": "MIS FAVORITOS",
 		"search": "Busca o tipea una URL",
 		"welcome": "Bienvenido!",
-		"remove": "Eliminar"
+		"remove": "Eliminar",
+		"new_tab": "Nueva Pestaña",
+		"tabs_close_all": "Cerrar Todas",
+		"tabs_done": "Listo",
+		"no_tabs_title": "No hay pestañas abiertas",
+		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
@@ -383,15 +492,21 @@
 		"tx_review_contract_deployment": "CONTRATO DESPLEGADO",
 		"tx_review_transfer_from": "TRANSFERIR DESDE",
 		"tx_review_unknown": "MÉTODO DESCONOCIDO",
+		"tx_review_approve": "APROBAR",
 		"sent_ether": "Enviaste Ether",
 		"self_sent_ether": "Enviaste Ether a ti mismo",
 		"received_ether": "Recibiste Ether",
 		"sent_tokens": "Enviaste Tokens",
+		"ether": "Ether",
+		"sent_unit": "Enviaste {{unit}}",
+		"self_sent_unit": "Enviaste {{unit}} a ti mismo",
+		"received_unit": "Recibiste {{unit}}",
 		"sent_collectible": "Enviaste un Coleccionable",
 		"sent": "Enviado",
 		"contract_deploy": "Despliegue de contrato",
 		"to_contract": "Nuevo Contrato",
 		"smart_contract_interaction": "Interación con contrato inteligente ",
+		"approve": "Aprobar",
 		"hash": "Hash",
 		"from": "Desde",
 		"to": "Para",
@@ -400,6 +515,7 @@
 		"gas_limit": "Limite de gas (Unidades)",
 		"gas_price": "Precio del gas (GWEI)",
 		"total": "Total",
+		"view_on": "VER EN",
 		"view_on_etherscan": "VER EN ETHERSCAN",
 		"hash_copied_to_clipboard": "El hash de la transacción fue copiado al portapapeles",
 		"address_copied_to_clipboard": "La dirección fue copiada al portapapeles"
@@ -411,7 +527,7 @@
 	},
 	"sync_with_extension": {
 		"title": "Sincronizar datos con la extensión",
-		"label": "Abre la extensión de MetaMask en tu computador, luego ve a ajustes, haz click en \"Sincronizar con el Móvil\" y luego ingresa tu contraseña para ver el código QR",
+		"label": "Abre la extensión de MetaMask en tu computador, luego ve a \"Ajustes\" > \"Avanzado\", haz click en \"Sincronizar con el Móvil\" y luego ingresa tu contraseña para ver el código QR",
 		"button_continue": "Continuar",
 		"please_wait": "Por favor espera mientras sincronizamos tus datos...",
 		"error_title": "Bummer!",
@@ -421,7 +537,7 @@
 		"warning_ok_button": "SI",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Código QR inválido",
-		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  Ajustes --> Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
+		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",
@@ -449,6 +565,14 @@
 		"balance_title": "Balance:",
 		"message": "Mensaje:"
 	},
+	"watch_asset_request": {
+		"title": "Agregar Token Sugerido",
+		"cancel": "CANCELar",
+		"add": "AGREGAR TOKEN",
+		"message": "Te gustaría agregar este token?",
+		"token": "Token",
+		"balance": "Balance"
+	},
 	"unit": {
 		"eth": "ETH",
 		"negative": "-",
@@ -469,6 +593,7 @@
 	},
 	"accountApproval": {
 		"title": "SOLICITUD DE CONEXIÓN ",
+		"walletconnect_title": "SOLICITUD DE CONEXIÓN VIA WALLETCONNECT ",
 		"action": "le gustaría",
 		"connect": "CONECTAR",
 		"cancel": "CANCELAR",
@@ -609,12 +734,65 @@
 		"pending_message": "Tu transacción esta en proceso",
 		"error_message": "Presiona para ver esta transacción",
 		"success_message": "Presiona para ver esta transacción",
-		"received_message": "Presiona para ver esta transacción"
+		"received_message": "Presiona para ver esta transacción",
+		"prompt_title": "Habilitar Notificationes",
+		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
+		"prompt_ok": "Si",
+		"prompt_cancel": "No, gracias"
 	},
 	"secure_your_wallet_modal": {
 		"title": "Protege tu billetera",
 		"body": "Ahora que tienes valor en tu billetera, crea la contraseña y guarda la frase semilla de tu billetera ",
 		"required": "(requerido)",
 		"button": "CONTINUAR"
+	},
+	"payment_request": {
+		"title": "Solicitud",
+		"search_top_picks": "Top tokens",
+		"search_assets": "Búsqueda de activo",
+		"search_results": "Resultados de búsqueda",
+		"search_no_tokens_found": "No se encontraron tokens",
+		"your_tokens": "Tus tokens",
+		"enter_amount": "Ingrese el monto",
+		"choose_asset": "Elija un activo para solicitar",
+		"request_error": "Solicitud no válida, inténtelo de nuevo",
+		"reset": "Resetear",
+		"next": "Siguiente",
+		"amount_placeholder": "0.00",
+		"link_copied": "Enlace copiado al portapapeles",
+		"send_link_title": "Enviar Enlace",
+		"description_1": "¡Tu enlace de solicitud está listo para enviar!",
+		"description_2": "Envíe este enlace a un amigo y le pedirá que lo envíe",
+		"copy_to_clipboard": "Copiar al Portapapeles",
+		"qr_code": "Código QR",
+		"send_link": "Enviar Enlace",
+		"request_qr_code": "Código QR de solicitud de pago"
+	},
+	"receive_request": {
+		"title": "Recibir",
+		"share_title": "Compartir Dirección",
+		"share_description": "Envíe por correo electrónico o envíe un mensaje de texto con su dirección",
+		"qr_code_title": "Código QR",
+		"qr_code_description": "Imagen escaneable que puede leer su dirección",
+		"request_title": "Solicitar",
+		"request_description": "Solicitar activos de amigos",
+		"buy_title": "Comprar",
+		"buy_description": "Compre con tarjeta de crédito",
+		"public_address": "Dirección Pública",
+		"public_address_qr_code": "Código QR de Dirección Pública",
+		"coming_soon": "Pronto..."
+	},
+	"experimental_settings": {
+		"wallet_connect_dapps": "Sesiones de WalletConnect",
+		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
+		"wallet_connect_dapps_cta": "VER SESIONES"
+	},
+	"walletconnect_sessions": {
+		"no_active_sessions": "No tienes sesiones activas",
+		"end_session_title": "Finalizar Sesión",
+		"end": "Finalizar",
+		"cancel": "Cancelar",
+		"session_ended_title": "Sesión Finalizada",
+		"session_ended_desc": "La sesión seleccionada ha sido terminada"
 	}
 }

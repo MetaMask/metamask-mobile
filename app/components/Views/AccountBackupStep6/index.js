@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet } from 'react-native';
+import { Clipboard, ScrollView, Text, Image, View, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Emoji from 'react-native-emoji';
@@ -8,7 +8,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import CustomAlert from '../../UI/CustomAlert';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { showAlert } from '../../../actions/alert';
 
 const styles = StyleSheet.create({
@@ -155,7 +154,7 @@ class AccountBackupStep6 extends Component {
 								<Text style={styles.label}>{strings('account_backup_step_6.tip_2')}</Text>
 							</View>
 							<TouchableOpacity style={styles.copy} onPress={this.onCopySeedPhrase}>
-								<Text style={[styles.label, { color: colors.primary }]}>
+								<Text style={[styles.label, { color: colors.blue }]}>
 									{strings('account_backup_step_6.copy_seed_phrase')}
 								</Text>
 							</TouchableOpacity>
@@ -185,7 +184,7 @@ class AccountBackupStep6 extends Component {
 						</StyledButton>
 					</View>
 					<CustomAlert
-						headerStyle={{ backgroundColor: colors.lightGray }}
+						headerStyle={{ backgroundColor: colors.grey200 }}
 						headerContent={<Emoji name="tada" style={styles.emoji} />}
 						titleText={strings('account_backup_step_6.modal_title')}
 						buttonText={strings('account_backup_step_6.modal_button')}
