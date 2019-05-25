@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, SafeAreaView, TextInput, Text, StyleSheet, View } from 'react-native';
+import { Platform, SafeAreaView, TextInput, Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
@@ -22,7 +22,6 @@ import {
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateETHLink, generateERC20Link } from '../../../util/eip681-link-generator';

@@ -2,13 +2,12 @@ import React, { Component } from 'react';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../../util/number';
-import { ScrollView } from 'react-native-gesture-handler';
 import { getTicker } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
