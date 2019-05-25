@@ -168,7 +168,11 @@ class AccountInput extends Component {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array
+		addressBook: PropTypes.array,
+		/**
+		 * Callback close all drowpdowns
+		 */
+		closeDropdowns: PropTypes.func
 	};
 
 	state = {
@@ -345,13 +349,14 @@ class AccountInput extends Component {
 	};
 
 	scan = () => {
-		const { openAccountSelect } = this.props;
+		const { openAccountSelect, closeDropdowns } = this.props;
 		openAccountSelect && openAccountSelect(false);
 		this.setState({ isOpen: false });
 		this.props.navigation.navigate('QRScanner', {
 			onScanSuccess: meta => {
 				if (meta.target_address) {
 					this.onChange(meta.target_address);
+					closeDropdowns && closeDropdowns();
 				}
 			}
 		});

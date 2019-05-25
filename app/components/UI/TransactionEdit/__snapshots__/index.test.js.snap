@@ -189,6 +189,7 @@ exports[`TransactionEdit should render correctly 1`] = `
         </View>
         <Connect(AccountInput)
           address="0x2"
+          closeDropdowns={[Function]}
           isOpen={false}
           navigation={
             Object {
