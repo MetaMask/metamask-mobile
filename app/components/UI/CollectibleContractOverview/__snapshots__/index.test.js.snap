@@ -47,6 +47,7 @@ exports[`CollectibleContractOverview should render correctly 1`] = `
           "fontFamily": "Roboto",
           "fontSize": 30,
           "fontWeight": "400",
+          "textAlign": "center",
         }
       }
     >
