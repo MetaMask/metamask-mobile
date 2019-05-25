@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 
 const TERMS_AND_CONDITIONS = 'https://metamask.io/terms.html';
