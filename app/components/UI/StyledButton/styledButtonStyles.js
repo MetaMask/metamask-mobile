@@ -22,11 +22,12 @@ const styles = StyleSheet.create({
 		color: colors.grey500
 	},
 	defaultPressed: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey500
+		borderColor: colors.grey500,
+		backgroundColor: colors.grey000
 	},
 	primary: {
 		backgroundColor: colors.blue,
+		borderColor: colors.blue,
 		minHeight: 50
 	},
 	primaryText: {
@@ -34,6 +35,7 @@ const styles = StyleSheet.create({
 	},
 	primaryPressed: {
 		backgroundColor: colors.blue600,
+		borderColor: colors.blue600,
 		minHeight: 50
 	},
 	secondary: {
@@ -46,6 +48,17 @@ const styles = StyleSheet.create({
 	secondaryPressed: {
 		backgroundColor: colors.blue000,
 		borderColor: colors.blue
+	},
+	danger: {
+		backgroundColor: colors.red,
+		borderColor: colors.red
+	},
+	dangerText: {
+		color: colors.white
+	},
+	dangerPressed: {
+		backgroundColor: colors.red600,
+		borderColor: colors.red600
 	},
 	warning: {
 		backgroundColor: colors.white,
@@ -85,10 +98,6 @@ const styles = StyleSheet.create({
 	neutralText: {
 		color: colors.grey200
 	},
-	danger: {
-		backgroundColor: colors.red,
-		borderColor: colors.red
-	},
 	whiteText: {
 		...fontStyles.bold,
 		color: colors.white
@@ -104,14 +113,19 @@ function getStyles(type) {
 			containerPressedStyle = styles.defaultPressed;
 			break;
 		case 'primary':
-			fontStyle = styles.confirmText;
-			containerStyle = styles.confirm;
-			containerPressedStyle = styles.confirmPressed;
+			fontStyle = styles.primaryText;
+			containerStyle = styles.primary;
+			containerPressedStyle = styles.primaryPressed;
 			break;
 		case 'secondary':
 			fontStyle = styles.secondaryText;
 			containerStyle = styles.secondary;
 			containerPressedStyle = styles.secondaryPressed;
+			break;
+		case 'danger':
+			fontStyle = styles.dangerText;
+			containerStyle = styles.danger;
+			containerPressedStyle = styles.dangerPressed;
 			break;
 		case 'warning':
 			fontStyle = styles.warningText;
@@ -134,10 +148,6 @@ function getStyles(type) {
 		case 'neutral':
 			fontStyle = styles.neutralText;
 			containerStyle = styles.neutral;
-			break;
-		case 'danger':
-			fontStyle = styles.confirmText;
-			containerStyle = styles.danger;
 			break;
 		default:
 			throw new Error('Unknown button type');
