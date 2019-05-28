@@ -157,7 +157,7 @@ class NetworksSettings extends Component {
 					{this.renderOtherNetworks()}
 					{this.renderRpcNetworksView()}
 				</ScrollView>
-				<StyledButton type="confirm" onPress={this.onAddNetwork} containerStyle={styles.syncConfirm}>
+				<StyledButton type="primary" onPress={this.onAddNetwork} containerStyle={styles.syncConfirm}>
 					{strings('app_settings.network_add_network')}
 				</StyledButton>
 			</View>

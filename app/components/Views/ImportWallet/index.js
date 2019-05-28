@@ -414,7 +414,7 @@ class ImportWallet extends Component {
 
 				<View style={styles.ctaWrapper}>
 					<StyledButton
-						type={'normal'}
+						type={'secondary'}
 						onPress={this.onPressImport}
 						testID={'import-wallet-import-from-seed-button'}
 					>

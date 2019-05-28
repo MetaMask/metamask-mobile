@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 	},
 	progressButton: {
 		width: 75,
-		height: 45,
+		height: 50,
 		padding: 5
 	},
 	leftProgessButton: {
@@ -244,7 +244,7 @@ export default class Coachmark extends Component {
 
 				<StyledButton
 					containerStyle={[styles.progressButton, styles.rightProgessButton]}
-					type={'normal'}
+					type={'secondary'}
 					onPress={this.onNext}
 				>
 					{strings('onboarding_wizard.coachmark.progress_next')}
@@ -263,7 +263,7 @@ export default class Coachmark extends Component {
 			<StyledButton containerStyle={styles.actionButton} type={'transparent'} onPress={this.onBack}>
 				{strings('onboarding_wizard.coachmark.action_back')}
 			</StyledButton>
-			<StyledButton containerStyle={styles.actionButton} type={'normal'} onPress={this.onNext}>
+			<StyledButton containerStyle={styles.actionButton} type={'secondary'} onPress={this.onNext}>
 				{strings('onboarding_wizard.coachmark.action_next')}
 			</StyledButton>
 		</View>

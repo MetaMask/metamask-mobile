@@ -196,7 +196,7 @@ class Onboarding extends Component {
 								</View>
 								<View style={styles.ctaWrapper}>
 									<StyledButton
-										type={'normal'}
+										type={'secondary'}
 										onPress={this.onPressImport}
 										testID={'onboarding-import-button'}
 									>

@@ -577,7 +577,7 @@ class PaymentRequest extends Component {
 				</View>
 				<View style={styles.buttonsWrapper}>
 					<View style={styles.buttonsContainer}>
-						<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>
+						<StyledButton type={'secondary'} onPress={this.onReset} containerStyle={[styles.button]}>
 							{strings('payment_request.reset')}
 						</StyledButton>
 						<StyledButton

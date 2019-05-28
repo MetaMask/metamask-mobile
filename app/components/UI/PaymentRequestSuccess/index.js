@@ -247,7 +247,7 @@ class PaymentRequestSuccess extends Component {
 					<View style={styles.buttonsWrapper}>
 						<View style={styles.buttonsContainer}>
 							<StyledButton
-								type={'normal'}
+								type={'secondary'}
 								onPress={this.copyAccountToClipboard}
 								containerStyle={styles.button}
 							>
@@ -262,7 +262,7 @@ class PaymentRequestSuccess extends Component {
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton type={'normal'} onPress={this.showQRModal} containerStyle={styles.button}>
+							<StyledButton type={'secondary'} onPress={this.showQRModal} containerStyle={styles.button}>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
 										<FontAwesome name={'qrcode'} size={18} color={colors.blue} />

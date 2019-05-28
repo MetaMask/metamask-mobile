@@ -340,7 +340,7 @@ class SyncWithExtension extends Component {
 		return (
 			<View>
 				<Text style={styles.text}>{strings('sync_with_extension.label')}</Text>
-				<StyledButton type="blue" onPress={this.scanCode} containerStyle={styles.button}>
+				<StyledButton type="primary" onPress={this.scanCode} containerStyle={styles.button}>
 					{strings('sync_with_extension.button_continue')}
 				</StyledButton>
 			</View>

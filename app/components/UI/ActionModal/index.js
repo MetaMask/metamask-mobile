@@ -91,7 +91,7 @@ export default function ActionModal({
 }
 
 ActionModal.defaultProps = {
-	cancelButtonMode: 'neutral',
+	cancelButtonMode: 'default',
 	confirmButtonMode: 'warning',
 	confirmTestID: '',
 	cancelTestID: '',
@@ -119,11 +119,11 @@ ActionModal.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'primary']),
+	cancelButtonMode: PropTypes.oneOf(['cancel', 'default', 'primary']),
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'primary', 'warning']),
+	confirmButtonMode: PropTypes.oneOf(['default', 'primary', 'warning']),
 	/**
 	 * Text to show in the confirm button
 	 */

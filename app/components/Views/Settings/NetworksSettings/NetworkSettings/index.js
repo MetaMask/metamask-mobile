@@ -382,7 +382,7 @@ class NetworkSettings extends Component {
 						<View style={styles.buttonsWrapper}>
 							<View style={styles.buttonsContainer}>
 								<StyledButton
-									type="confirm"
+									type="primary"
 									onPress={this.addRpcUrl}
 									containerStyle={styles.syncConfirm}
 									disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}

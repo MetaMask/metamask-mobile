@@ -102,13 +102,6 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		borderColor: colors.transparent
 	},
-	neutral: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey200
-	},
-	neutralText: {
-		color: colors.grey200
-	},
 	whiteText: {
 		...fontStyles.bold,
 		color: colors.white
@@ -159,11 +152,7 @@ function getStyles(type) {
 		case 'transparent':
 			fontStyle = styles.whiteText;
 			containerStyle = styles.transparent;
-			break;
-
-		case 'neutral':
-			fontStyle = styles.neutralText;
-			containerStyle = styles.neutral;
+			containerPressedStyle = styles.transparent;
 			break;
 		default:
 			throw new Error('Unknown button type');
