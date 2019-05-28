@@ -14,22 +14,49 @@ const styles = StyleSheet.create({
 		...fontStyles.bolder,
 		fontWeight: 'bold'
 	},
-	orange: {
-		backgroundColor: colors.blue
+	default: {
+		backgroundColor: colors.white,
+		borderColor: colors.grey200
 	},
-	orangeText: {
-		color: colors.white
+	defaultText: {
+		color: colors.grey500
 	},
-	confirm: {
+	defaultPressed: {
+		backgroundColor: colors.white,
+		borderColor: colors.grey500
+	},
+	primary: {
 		backgroundColor: colors.blue,
 		minHeight: 50
 	},
-	confirmText: {
+	primaryText: {
 		color: colors.white
 	},
-	confirmPressed: {
+	primaryPressed: {
 		backgroundColor: colors.blue600,
 		minHeight: 50
+	},
+	secondary: {
+		backgroundColor: colors.white,
+		borderColor: colors.blue200
+	},
+	secondaryText: {
+		color: colors.blue
+	},
+	secondaryPressed: {
+		backgroundColor: colors.blue000,
+		borderColor: colors.blue
+	},
+	warning: {
+		backgroundColor: colors.white,
+		borderColor: colors.orange200
+	},
+	warningText: {
+		color: colors.orange
+	},
+	warningPressed: {
+		backgroundColor: colors.orange000,
+		borderColor: colors.orange
 	},
 	roundedNormal: {
 		backgroundColor: colors.white,
@@ -51,45 +78,12 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 		borderColor: colors.transparent
 	},
-	cancel: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey200
-	},
-	cancelText: {
-		color: colors.grey500
-	},
-	warning: {
-		backgroundColor: colors.white,
-		borderColor: colors.orange200
-	},
-	warningText: {
-		color: colors.orange
-	},
-	warningPressed: {
-		backgroundColor: colors.orange000,
-		borderColor: colors.orange
-	},
-	secondary: {
-		backgroundColor: colors.white,
-		borderColor: colors.blue200
-	},
-	secondaryText: {
-		color: colors.blue
-	},
-	secondaryPressed: {
-		backgroundColor: colors.blue000,
-		borderColor: colors.blue
-	},
 	neutral: {
 		backgroundColor: colors.white,
 		borderColor: colors.grey200
 	},
 	neutralText: {
 		color: colors.grey200
-	},
-	neutralPressed: {
-		backgroundColor: colors.white,
-		borderColor: colors.grey500
 	},
 	danger: {
 		backgroundColor: colors.red,
@@ -105,9 +99,9 @@ function getStyles(type) {
 	let fontStyle, containerStyle, containerPressedStyle;
 	switch (type) {
 		case 'default':
-			fontStyle = styles.cancelText;
-			containerStyle = styles.cancel;
-			containerPressedStyle = styles.neutralPressed;
+			fontStyle = styles.defaultText;
+			containerStyle = styles.default;
+			containerPressedStyle = styles.defaultPressed;
 			break;
 		case 'primary':
 			fontStyle = styles.confirmText;
