@@ -119,11 +119,11 @@ ActionModal.propTypes = {
 	/**
 	 * Type of button to show as the cancel button
 	 */
-	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'confirm']),
+	cancelButtonMode: PropTypes.oneOf(['cancel', 'neutral', 'primary']),
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm', 'warning']),
+	confirmButtonMode: PropTypes.oneOf(['normal', 'primary', 'warning']),
 	/**
 	 * Text to show in the confirm button
 	 */

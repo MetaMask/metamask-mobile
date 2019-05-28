@@ -188,7 +188,7 @@ export default class AccountBackupStep1 extends Component {
 						<View style={styles.buttonWrapper}>
 							<StyledButton
 								containerStyle={styles.button}
-								type={'confirm'}
+								type={'primary'}
 								onPress={this.goNext}
 								testID={'submit-button'}
 							>

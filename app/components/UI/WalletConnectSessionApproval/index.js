@@ -191,7 +191,7 @@ class WalletConnectSessionApproval extends Component {
 					confirmText={strings('accountApproval.connect')}
 					onCancelPress={onCancel}
 					onConfirmPress={onConfirm}
-					confirmButtonMode={'confirm'}
+					confirmButtonMode={'primary'}
 				>
 					<View style={styles.wrapper}>
 						<View style={styles.header}>

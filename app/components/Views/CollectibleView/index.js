@@ -88,7 +88,7 @@ class CollectibleView extends Component {
 				{tradable && (
 					<View style={styles.buttons}>
 						<StyledButton
-							type={'confirm'}
+							type={'primary'}
 							onPress={this.onSend}
 							containerStyle={styles.button}
 							style={styles.buttonContent}

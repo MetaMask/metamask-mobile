@@ -57,9 +57,22 @@ export default class StyledButton extends Component {
 		disabledContainerStyle: { opacity: 0.6 }
 	};
 
+	state = {
+		pressed: false
+	};
+
+	onPressIn = () => {
+		this.setState({ pressed: true });
+	};
+
+	onPressOut = () => {
+		this.setState({ pressed: false });
+	};
+
 	render = () => {
-		const { type, onPress, style, children, disabled, styleDisabled, testID, disabledContainerStyle } = this.props;
-		const { fontStyle, containerStyle } = getStyles(type);
+		const { type, style, onPress, children, disabled, styleDisabled, testID, disabledContainerStyle } = this.props;
+		const { fontStyle, containerStyle, containerPressedStyle } = getStyles(type);
+		const { pressed } = this.state;
 
 		return (
 			<Button
@@ -68,8 +81,10 @@ export default class StyledButton extends Component {
 				styleDisabled={disabled ? styleDisabled : null}
 				disabledContainerStyle={disabled ? disabledContainerStyle : null}
 				onPress={onPress}
+				onPressIn={this.onPressIn}
+				onPressOut={this.onPressOut}
 				style={[...fontStyle, style]}
-				containerStyle={[...containerStyle, this.props.containerStyle]}
+				containerStyle={[...containerStyle, this.props.containerStyle, pressed ? containerPressedStyle : {}]}
 			>
 				{children}
 			</Button>

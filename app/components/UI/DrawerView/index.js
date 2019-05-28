@@ -953,8 +953,8 @@ class DrawerView extends Component {
 					onCancelPress={this.goToGeneralFeedback}
 					onRequestClose={this.closeSubmitFeedback}
 					onConfirmPress={this.goToBugFeedback}
-					cancelButtonMode={'confirm'}
-					confirmButtonMode={'confirm'}
+					cancelButtonMode={'primary'}
+					confirmButtonMode={'primary'}
 				>
 					<View style={styles.modalView}>
 						<Text style={styles.modalTitle}>{strings('drawer.submit_feedback')}</Text>

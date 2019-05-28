@@ -98,7 +98,7 @@ export default class CustomAlert extends Component {
 						{this.props.children}
 					</View>
 					<View style={styles.footer}>
-						<StyledButton type={'confirm'} onPress={this.props.onPress}>
+						<StyledButton type={'primary'} onPress={this.props.onPress}>
 							{this.props.buttonText}
 						</StyledButton>
 					</View>

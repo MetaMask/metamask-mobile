@@ -269,7 +269,7 @@ class TransactionReview extends Component {
 			<View style={styles.root}>
 				{this.renderTransactionDirection()}
 				<ActionView
-					confirmButtonMode="confirm"
+					confirmButtonMode="primary"
 					cancelText={strings('transaction.reject')}
 					onCancelPress={this.props.onCancel}
 					onConfirmPress={this.props.onConfirm}

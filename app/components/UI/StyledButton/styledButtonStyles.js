@@ -5,7 +5,6 @@ const styles = StyleSheet.create({
 	container: {
 		padding: 15,
 		borderRadius: 6,
-		borderWidth: 2,
 		justifyContent: 'center'
 	},
 	text: {
@@ -36,9 +35,13 @@ const styles = StyleSheet.create({
 	confirmText: {
 		color: colors.white
 	},
+	confirmPressed: {
+		backgroundColor: colors.blue600,
+		minHeight: 50
+	},
 	roundedNormal: {
 		backgroundColor: colors.white,
-		borderWidth: 1,
+		borderWidth: 2,
 		borderColor: colors.blue,
 		padding: 8
 	},
@@ -47,8 +50,8 @@ const styles = StyleSheet.create({
 	},
 	normal: {
 		backgroundColor: colors.white,
-		borderWidth: 1,
-		borderColor: colors.blue
+		borderWidth: 2,
+		borderColor: colors.blue200
 	},
 	normalText: {
 		color: colors.blue
@@ -60,20 +63,20 @@ const styles = StyleSheet.create({
 	},
 	cancel: {
 		backgroundColor: colors.white,
-		borderWidth: 1,
-		borderColor: colors.grey400
+		borderWidth: 2,
+		borderColor: colors.grey200
 	},
 	cancelText: {
-		color: colors.grey400
+		color: colors.grey500
 	},
 	warning: {
 		backgroundColor: colors.white,
-		borderWidth: 1,
+		borderWidth: 2,
 		borderColor: colors.red
 	},
 	info: {
 		backgroundColor: colors.white,
-		borderWidth: 1,
+		borderWidth: 2,
 		borderColor: colors.blue
 	},
 	warningText: {
@@ -81,16 +84,19 @@ const styles = StyleSheet.create({
 	},
 	neutral: {
 		backgroundColor: colors.white,
-		borderWidth: 1,
-		borderColor: colors.grey500
+		borderColor: colors.grey200
 	},
 	neutralText: {
-		color: colors.grey500
+		color: colors.grey200
+	},
+	neutralPressed: {
+		backgroundColor: colors.white,
+		borderColor: colors.grey500
 	},
 	danger: {
 		backgroundColor: colors.red,
 		borderColor: colors.red,
-		borderWidth: 1
+		borderWidth: 2
 	},
 	whiteText: {
 		...fontStyles.bold,
@@ -99,7 +105,7 @@ const styles = StyleSheet.create({
 });
 
 function getStyles(type) {
-	let fontStyle, containerStyle;
+	let fontStyle, containerStyle, containerPressedStyle;
 	switch (type) {
 		case 'orange':
 			fontStyle = styles.orangeText;
@@ -109,9 +115,10 @@ function getStyles(type) {
 			fontStyle = styles.blueText;
 			containerStyle = styles.blue;
 			break;
-		case 'confirm':
+		case 'primary':
 			fontStyle = styles.confirmText;
 			containerStyle = styles.confirm;
+			containerPressedStyle = styles.confirmPressed;
 			break;
 		case 'normal':
 			fontStyle = styles.normalText;
@@ -121,9 +128,10 @@ function getStyles(type) {
 			fontStyle = styles.roundedNormalText;
 			containerStyle = styles.roundedNormal;
 			break;
-		case 'cancel':
+		case 'default':
 			fontStyle = styles.cancelText;
 			containerStyle = styles.cancel;
+			containerPressedStyle = styles.neutralPressed;
 			break;
 		case 'transparent':
 			fontStyle = styles.whiteText;
@@ -151,7 +159,8 @@ function getStyles(type) {
 
 	return {
 		fontStyle: [styles.text, fontStyle],
-		containerStyle: [styles.container, containerStyle]
+		containerStyle: [styles.container, containerStyle],
+		containerPressedStyle: [styles.container, containerPressedStyle]
 	};
 }
 

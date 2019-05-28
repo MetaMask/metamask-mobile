@@ -68,7 +68,7 @@ export default function ActionView({
 				{showCancelButton && (
 					<StyledButton
 						testID={cancelTestID}
-						type={'cancel'}
+						type={'default'}
 						onPress={onCancelPress}
 						containerStyle={[styles.button, styles.cancel]}
 						disabled={confirmed}
@@ -123,7 +123,7 @@ ActionView.propTypes = {
 	/**
 	 * Type of button to show as the confirm button
 	 */
-	confirmButtonMode: PropTypes.oneOf(['normal', 'confirm']),
+	confirmButtonMode: PropTypes.oneOf(['normal', 'primary']),
 	/**
 	 * Text to show in the confirm button
 	 */

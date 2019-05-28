@@ -252,7 +252,7 @@ class AccountApproval extends Component {
 					confirmText={strings('accountApproval.connect')}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
-					confirmButtonMode={'confirm'}
+					confirmButtonMode={'primary'}
 				>
 					<View style={styles.wrapper}>
 						<View style={styles.header}>

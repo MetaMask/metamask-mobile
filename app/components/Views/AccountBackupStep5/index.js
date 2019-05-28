@@ -358,7 +358,7 @@ class AccountBackupStep5 extends Component {
 						<View style={styles.buttonWrapper}>
 							<StyledButton
 								containerStyle={styles.button}
-								type={'confirm'}
+								type={'primary'}
 								onPress={this.goNext}
 								testID={'submit-button'}
 								disabled={!(this.state.confirmedWords.filter(word => word === undefined).length === 0)}

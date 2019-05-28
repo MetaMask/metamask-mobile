@@ -215,14 +215,14 @@ class OptinMetrics extends Component {
 					<View style={styles.actionContainer}>
 						<StyledButton
 							containerStyle={[styles.button, styles.cancel]}
-							type={'cancel'}
+							type={'default'}
 							onPress={this.onCancel}
 						>
 							{strings('privacy_policy.decline')}
 						</StyledButton>
 						<StyledButton
 							containerStyle={[styles.button, styles.confirm]}
-							type={'confirm'}
+							type={'primary'}
 							onPress={this.onConfirm}
 						>
 							{strings('privacy_policy.agree')}
