@@ -346,7 +346,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
             }
           }
           testID="submit"
-          type="blue"
+          type="primary"
         >
           IMPORT
         </StyledButton>

@@ -100,7 +100,7 @@ exports[`ActionModal should render correctly 1`] = `
             }
           }
           testID=""
-          type="neutral"
+          type="default"
         >
           CANCEL
         </StyledButton>

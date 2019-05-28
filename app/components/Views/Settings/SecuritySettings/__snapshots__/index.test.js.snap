@@ -463,7 +463,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </StyledButton>
     </View>
     <ActionModal
-      cancelButtonMode="neutral"
+      cancelButtonMode="default"
       cancelTestID=""
       cancelText="NEVERMIND"
       confirmButtonMode="warning"
@@ -513,7 +513,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
     </ActionModal>
     <ActionModal
-      cancelButtonMode="neutral"
+      cancelButtonMode="default"
       cancelTestID=""
       cancelText="NEVERMIND"
       confirmButtonMode="warning"

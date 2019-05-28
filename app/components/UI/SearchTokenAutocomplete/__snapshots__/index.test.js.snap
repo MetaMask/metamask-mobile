@@ -13,7 +13,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
   <ActionView
     cancelTestID=""
     cancelText="CANCEL"
-    confirmButtonMode="normal"
+    confirmButtonMode="secondary"
     confirmTestID=""
     confirmText="ADD TOKEN"
     confirmed={false}

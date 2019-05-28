@@ -13,7 +13,7 @@ exports[`RevealPrivateCredential should render correctly 1`] = `
   <ActionView
     cancelTestID=""
     cancelText="Cancel"
-    confirmButtonMode="normal"
+    confirmButtonMode="secondary"
     confirmTestID=""
     confirmText="Next"
     confirmed={false}

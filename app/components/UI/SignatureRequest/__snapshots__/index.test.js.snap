@@ -175,7 +175,7 @@ exports[`SignatureRequest should render correctly 1`] = `
   <ActionView
     cancelTestID="request-signature-cancel-button"
     cancelText="CANCEL"
-    confirmButtonMode="normal"
+    confirmButtonMode="secondary"
     confirmTestID="request-signature-confirm-button"
     confirmText="SIGN"
     confirmed={false}

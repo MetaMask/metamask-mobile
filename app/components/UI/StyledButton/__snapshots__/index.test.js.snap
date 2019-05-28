@@ -1,19 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
+exports[`StyledButton should render correctly on Android the button with type danger 1`] = `
 <DummyTouchableNativeFeedback>
   <View
     style={
       Array [
         Object {
-          "borderRadius": 4,
+          "borderRadius": 6,
+          "borderWidth": 2,
           "justifyContent": "center",
           "padding": 15,
         },
         Object {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#848c96",
-          "borderWidth": 1,
+          "backgroundColor": "#D73A49",
+          "borderColor": "#D73A49",
         },
         null,
         undefined,
@@ -23,18 +23,43 @@ exports[`StyledButton should render correctly on Android the button with type ca
 </DummyTouchableNativeFeedback>
 `;
 
-exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
+exports[`StyledButton should render correctly on Android the button with type default 1`] = `
 <DummyTouchableNativeFeedback>
   <View
     style={
       Array [
         Object {
-          "borderRadius": 4,
+          "borderRadius": 6,
+          "borderWidth": 2,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#bbc0c5",
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</DummyTouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on Android the button with type primary 1`] = `
+<DummyTouchableNativeFeedback>
+  <View
+    style={
+      Array [
+        Object {
+          "borderRadius": 6,
+          "borderWidth": 2,
           "justifyContent": "center",
           "padding": 15,
         },
         Object {
           "backgroundColor": "#037dd6",
+          "borderColor": "#037dd6",
           "minHeight": 50,
         },
         null,
@@ -45,20 +70,20 @@ exports[`StyledButton should render correctly on Android the button with type co
 </DummyTouchableNativeFeedback>
 `;
 
-exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
+exports[`StyledButton should render correctly on Android the button with type secondary 1`] = `
 <DummyTouchableNativeFeedback>
   <View
     style={
       Array [
         Object {
-          "borderRadius": 4,
+          "borderRadius": 6,
+          "borderWidth": 2,
           "justifyContent": "center",
           "padding": 15,
         },
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#037dd6",
-          "borderWidth": 1,
+          "borderColor": "#75c4fd",
         },
         null,
         undefined,
@@ -68,84 +93,33 @@ exports[`StyledButton should render correctly on Android the button with type no
 </DummyTouchableNativeFeedback>
 `;
 
-exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
-<DummyTouchableNativeFeedback>
-  <View
-    style={
-      Array [
-        Object {
-          "borderRadius": 4,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        Object {
-          "backgroundColor": "#037dd6",
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</DummyTouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
+exports[`StyledButton should render correctly on iOS the button with type danger 1`] = `
 <Button
   containerStyle={
     Array [
       Object {
-        "borderRadius": 4,
+        "borderRadius": 6,
+        "borderWidth": 2,
         "justifyContent": "center",
         "padding": 15,
       },
       Object {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#848c96",
-        "borderWidth": 1,
+        "backgroundColor": "#D73A49",
+        "borderColor": "#D73A49",
       },
+      Object {},
       undefined,
     ]
   }
   disabledContainerStyle={null}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
   style={
     Array [
       Object {
+        "fontFamily": "Roboto",
         "fontSize": 14,
-        "fontWeight": "bold",
-        "textAlign": "center",
-      },
-      Object {
-        "color": "#848c96",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
-<Button
-  containerStyle={
-    Array [
-      Object {
-        "borderRadius": 4,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      Object {
-        "backgroundColor": "#037dd6",
-        "minHeight": 50,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    Array [
-      Object {
-        "fontSize": 14,
-        "fontWeight": "bold",
+        "fontWeight": "600",
         "textAlign": "center",
       },
       Object {
@@ -158,66 +132,116 @@ exports[`StyledButton should render correctly on iOS the button with type confir
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
+exports[`StyledButton should render correctly on iOS the button with type default 1`] = `
 <Button
   containerStyle={
     Array [
       Object {
-        "borderRadius": 4,
+        "borderRadius": 6,
+        "borderWidth": 2,
         "justifyContent": "center",
         "padding": 15,
       },
       Object {
         "backgroundColor": "#FFFFFF",
-        "borderColor": "#037dd6",
-        "borderWidth": 1,
+        "borderColor": "#bbc0c5",
       },
+      Object {},
       undefined,
     ]
   }
   disabledContainerStyle={null}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
   style={
     Array [
       Object {
+        "fontFamily": "Roboto",
         "fontSize": 14,
-        "fontWeight": "bold",
+        "fontWeight": "600",
+        "textAlign": "center",
+      },
+      Object {
+        "color": "#6a737d",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={null}
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type primary 1`] = `
+<Button
+  containerStyle={
+    Array [
+      Object {
+        "borderRadius": 6,
+        "borderWidth": 2,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      Object {
+        "backgroundColor": "#037dd6",
+        "borderColor": "#037dd6",
+        "minHeight": 50,
+      },
+      Object {},
+      undefined,
+    ]
+  }
+  disabledContainerStyle={null}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    Array [
+      Object {
+        "fontFamily": "Roboto",
+        "fontSize": 14,
+        "fontWeight": "600",
+        "textAlign": "center",
+      },
+      Object {
+        "color": "#FFFFFF",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={null}
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type secondary 1`] = `
+<Button
+  containerStyle={
+    Array [
+      Object {
+        "borderRadius": 6,
+        "borderWidth": 2,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#75c4fd",
+      },
+      Object {},
+      undefined,
+    ]
+  }
+  disabledContainerStyle={null}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    Array [
+      Object {
+        "fontFamily": "Roboto",
+        "fontSize": 14,
+        "fontWeight": "600",
         "textAlign": "center",
       },
       Object {
         "color": "#037dd6",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
-<Button
-  containerStyle={
-    Array [
-      Object {
-        "borderRadius": 4,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      Object {
-        "backgroundColor": "#037dd6",
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    Array [
-      Object {
-        "fontSize": 14,
-        "fontWeight": "bold",
-        "textAlign": "center",
-      },
-      Object {
-        "color": "#FFFFFF",
       },
       undefined,
     ]

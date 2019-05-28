@@ -13,7 +13,7 @@ exports[`TransactionDetails should render correctly 1`] = `
   }
 >
   <ActionModal
-    cancelButtonMode="neutral"
+    cancelButtonMode="default"
     cancelTestID=""
     cancelText="Nevermind"
     confirmButtonMode="warning"

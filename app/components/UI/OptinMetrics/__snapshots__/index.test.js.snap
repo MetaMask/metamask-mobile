@@ -356,7 +356,7 @@ exports[`OptinMetrics should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="cancel"
+        type="default"
       >
         No Thanks
       </StyledButton>
@@ -382,7 +382,7 @@ exports[`OptinMetrics should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="confirm"
+        type="primary"
       >
         I Agree
       </StyledButton>

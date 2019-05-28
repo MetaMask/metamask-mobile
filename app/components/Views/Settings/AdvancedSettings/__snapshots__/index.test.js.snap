@@ -39,7 +39,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
       }
     >
       <ActionModal
-        cancelButtonMode="neutral"
+        cancelButtonMode="default"
         cancelTestID=""
         cancelText="NEVERMIND"
         confirmButtonMode="warning"
@@ -144,7 +144,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          type="info"
+          type="secondary"
         >
           RESET ACCOUNT
         </StyledButton>
@@ -200,7 +200,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          type="info"
+          type="secondary"
         >
           SYNC
         </StyledButton>
@@ -365,7 +365,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          type="info"
+          type="secondary"
         >
           DOWNLOAD STATE LOGS
         </StyledButton>

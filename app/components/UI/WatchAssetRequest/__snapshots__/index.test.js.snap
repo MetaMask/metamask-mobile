@@ -32,7 +32,7 @@ exports[`WatchAssetRequest should render correctly 1`] = `
   <ActionView
     cancelTestID="request-signature-cancel-button"
     cancelText="CANCEL"
-    confirmButtonMode="normal"
+    confirmButtonMode="secondary"
     confirmTestID="request-signature-confirm-button"
     confirmText="ADD TOKEN"
     confirmed={false}

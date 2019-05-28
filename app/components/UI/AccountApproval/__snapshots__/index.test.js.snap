@@ -33,7 +33,7 @@ exports[`AccountApproval should render correctly 1`] = `
   <ActionView
     cancelTestID=""
     cancelText="CANCEL"
-    confirmButtonMode="confirm"
+    confirmButtonMode="primary"
     confirmTestID=""
     confirmText="CONNECT"
     confirmed={false}

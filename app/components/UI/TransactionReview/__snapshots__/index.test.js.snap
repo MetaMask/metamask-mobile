@@ -133,7 +133,7 @@ exports[`TransactionReview should render correctly 1`] = `
   <ActionView
     cancelTestID=""
     cancelText="Reject"
-    confirmButtonMode="confirm"
+    confirmButtonMode="primary"
     confirmDisabled={false}
     confirmTestID=""
     confirmText="Confirm"

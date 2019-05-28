@@ -78,7 +78,7 @@ exports[`Coachmark should render correctly 1`] = `
         containerStyle={
           Array [
             Object {
-              "height": 45,
+              "height": 50,
               "padding": 5,
               "width": 75,
             },
@@ -197,7 +197,7 @@ exports[`Coachmark should render correctly 1`] = `
         containerStyle={
           Array [
             Object {
-              "height": 45,
+              "height": 50,
               "padding": 5,
               "width": 75,
             },
@@ -217,7 +217,7 @@ exports[`Coachmark should render correctly 1`] = `
             "opacity": 0.6,
           }
         }
-        type="normal"
+        type="secondary"
       >
         Got it!
       </StyledButton>

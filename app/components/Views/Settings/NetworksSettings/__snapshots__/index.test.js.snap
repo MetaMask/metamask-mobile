@@ -231,7 +231,7 @@ exports[`NetworksSettings should render correctly 1`] = `
         "opacity": 0.6,
       }
     }
-    type="confirm"
+    type="primary"
   >
     Add Network
   </StyledButton>

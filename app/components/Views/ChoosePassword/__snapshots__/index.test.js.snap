@@ -354,7 +354,7 @@ exports[`ChoosePassword should render correctly 1`] = `
           }
         }
         testID="submit-button"
-        type="blue"
+        type="primary"
       >
         NEXT
       </StyledButton>
