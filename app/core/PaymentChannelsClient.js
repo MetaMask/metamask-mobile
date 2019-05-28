@@ -161,7 +161,7 @@ class PaymentChannelsClient {
 				exchangeRate: this.getExchangeRate()
 			});
 		} catch (e) {
-			Logger.log('error', e);
+			Logger.log('Error::connext::createClient', e);
 		}
 	}
 
@@ -187,23 +187,33 @@ class PaymentChannelsClient {
 		const { connext } = this.state;
 		// register connext listeners
 		connext.on('onStateChange', state => {
-			this.checkForBalanceChange(state);
-			this.setState({
-				ready: true,
-				channelState: state.persistent.channel,
-				connextState: state,
-				runtime: state.runtime,
-				exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.DAI : this.getExchangeRate()
-			});
-			this.checkStatus();
-			hub.emit('state::change', {
-				balance: this.getBalance(),
-				status: this.state.status,
-				ready: true
-			});
+			try {
+				this.checkForBalanceChange(state);
+				this.setState({
+					ready: true,
+					channelState: state.persistent.channel,
+					connextState: state,
+					runtime: state.runtime,
+					exchangeRate: state.runtime.exchangeRate
+						? state.runtime.exchangeRate.rates.DAI
+						: this.getExchangeRate()
+				});
+				this.checkStatus();
+				hub.emit('state::change', {
+					balance: this.getBalance(),
+					status: this.state.status,
+					ready: true
+				});
+			} catch (e) {
+				Logger.log('Error::onStateChange', e);
+			}
 		});
 		// start polling
-		await connext.start();
+		try {
+			await connext.start();
+		} catch (e) {
+			Logger.log('Error::connext::start', e);
+		}
 	}
 
 	checkPaymentHistory = async () => {
@@ -236,7 +246,11 @@ class PaymentChannelsClient {
 	};
 
 	pollAndSwap = async () => {
-		await this.autoSwap();
+		try {
+			await this.autoSwap();
+		} catch (e) {
+			Logger.log('Error::connext::autoswap', e);
+		}
 		setTimeout(() => {
 			this.pollAndSwap();
 		}, 1000);
@@ -341,8 +355,7 @@ class PaymentChannelsClient {
 			await connext.deposit(data);
 			Logger.log('Deposit succesful');
 		} catch (e) {
-			Logger.log('Deposit error', e);
-			throw e;
+			Logger.log('Error::connext::deposit', e);
 		}
 	};
 
@@ -385,7 +398,7 @@ class PaymentChannelsClient {
 			await connext.buy(data);
 			Logger.log('Send succesful');
 		} catch (e) {
-			Logger.log('buy error error', e);
+			Logger.log('Error::connext::buy', e);
 		}
 	};
 
@@ -408,7 +421,7 @@ class PaymentChannelsClient {
 			await connext.withdraw(withdrawalVal);
 			Logger.log('withdraw succesful');
 		} catch (e) {
-			Logger.log('withdraw error', e);
+			Logger.log('Error::connext::withdraw', e);
 		}
 	};
 
