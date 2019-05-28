@@ -11,8 +11,7 @@ const styles = StyleSheet.create({
 	text: {
 		fontSize: 14,
 		textAlign: 'center',
-		...fontStyles.bolder,
-		fontWeight: 'bold'
+		...fontStyles.bold
 	},
 	default: {
 		backgroundColor: colors.white,
@@ -84,11 +83,16 @@ const styles = StyleSheet.create({
 	},
 	roundedNormal: {
 		backgroundColor: colors.white,
-		borderColor: colors.blue,
+		borderColor: colors.blue200,
 		padding: 8
 	},
 	roundedNormalText: {
 		color: colors.blue
+	},
+	roundedNormalPressed: {
+		backgroundColor: colors.blue000,
+		borderColor: colors.blue,
+		padding: 8
 	},
 	normal: {
 		backgroundColor: colors.white,
@@ -131,7 +135,7 @@ function getStyles(type) {
 			containerStyle = styles.danger;
 			containerPressedStyle = styles.dangerPressed;
 			break;
-		case 'secondaryDanger':
+		case 'secondary-danger':
 			fontStyle = styles.secondaryDangerText;
 			containerStyle = styles.secondaryDanger;
 			containerPressedStyle = styles.secondaryDangerPressed;
@@ -144,10 +148,12 @@ function getStyles(type) {
 		case 'normal':
 			fontStyle = styles.normalText;
 			containerStyle = styles.normal;
+			containerPressedStyle = styles.normal;
 			break;
 		case 'rounded-normal':
 			fontStyle = styles.roundedNormalText;
 			containerStyle = styles.roundedNormal;
+			containerPressedStyle = styles.roundedNormalPressed;
 			break;
 		case 'transparent':
 			fontStyle = styles.whiteText;

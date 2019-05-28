@@ -84,7 +84,7 @@ export default class StyledButton extends Component {
 				onPressIn={this.onPressIn}
 				onPressOut={this.onPressOut}
 				style={[...fontStyle, style]}
-				containerStyle={[...containerStyle, this.props.containerStyle, pressed ? containerPressedStyle : {}]}
+				containerStyle={[...containerStyle, pressed ? containerPressedStyle : {}, this.props.containerStyle]}
 			>
 				{children}
 			</Button>
