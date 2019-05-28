@@ -4,7 +4,8 @@ import { colors, fontStyles } from '../../../styles/common';
 const styles = StyleSheet.create({
 	container: {
 		padding: 15,
-		borderRadius: 4,
+		borderRadius: 6,
+		borderWidth: 2,
 		justifyContent: 'center'
 	},
 	text: {
