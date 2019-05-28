@@ -60,6 +60,17 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.red600,
 		borderColor: colors.red600
 	},
+	secondaryDanger: {
+		backgroundColor: colors.white,
+		borderColor: colors.red200
+	},
+	secondaryDangerText: {
+		color: colors.red
+	},
+	secondaryDangerPressed: {
+		backgroundColor: colors.red000,
+		borderColor: colors.red
+	},
 	warning: {
 		backgroundColor: colors.white,
 		borderColor: colors.orange200
@@ -126,6 +137,11 @@ function getStyles(type) {
 			fontStyle = styles.dangerText;
 			containerStyle = styles.danger;
 			containerPressedStyle = styles.dangerPressed;
+			break;
+		case 'secondaryDanger':
+			fontStyle = styles.secondaryDangerText;
+			containerStyle = styles.secondaryDanger;
+			containerPressedStyle = styles.secondaryDangerPressed;
 			break;
 		case 'warning':
 			fontStyle = styles.warningText;
