@@ -37,6 +37,7 @@ export const colors = {
 	yellow200: '#ffe281',
 	orange: '#f66a0a',
 	orange300: '#faa66c',
+	orange200: '#fbc49d',
 	orange000: '#fef5ef',
 	spinnerColor: '#F758AC',
 	dimmed: '#00000080',
