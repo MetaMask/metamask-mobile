@@ -5,6 +5,7 @@ const styles = StyleSheet.create({
 	container: {
 		padding: 15,
 		borderRadius: 6,
+		borderWidth: 2,
 		justifyContent: 'center'
 	},
 	text: {
@@ -32,7 +33,6 @@ const styles = StyleSheet.create({
 	},
 	roundedNormal: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
 		borderColor: colors.blue,
 		padding: 8
 	},
@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
 	},
 	normal: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
 		borderColor: colors.blue200
 	},
 	normalText: {
@@ -54,7 +53,6 @@ const styles = StyleSheet.create({
 	},
 	cancel: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
 		borderColor: colors.grey200
 	},
 	cancelText: {
@@ -62,12 +60,17 @@ const styles = StyleSheet.create({
 	},
 	warning: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
-		borderColor: colors.red
+		borderColor: colors.orange200
+	},
+	warningText: {
+		color: colors.orange
+	},
+	warningPressed: {
+		backgroundColor: colors.orange000,
+		borderColor: colors.orange
 	},
 	secondary: {
 		backgroundColor: colors.white,
-		borderWidth: 2,
 		borderColor: colors.blue200
 	},
 	secondaryText: {
@@ -76,9 +79,6 @@ const styles = StyleSheet.create({
 	secondaryPressed: {
 		backgroundColor: colors.blue000,
 		borderColor: colors.blue
-	},
-	warningText: {
-		color: colors.red
 	},
 	neutral: {
 		backgroundColor: colors.white,
@@ -93,8 +93,7 @@ const styles = StyleSheet.create({
 	},
 	danger: {
 		backgroundColor: colors.red,
-		borderColor: colors.red,
-		borderWidth: 2
+		borderColor: colors.red
 	},
 	whiteText: {
 		...fontStyles.bold,
@@ -120,9 +119,10 @@ function getStyles(type) {
 			containerStyle = styles.secondary;
 			containerPressedStyle = styles.secondaryPressed;
 			break;
-		case 'orange':
-			fontStyle = styles.orangeText;
-			containerStyle = styles.orange;
+		case 'warning':
+			fontStyle = styles.warningText;
+			containerStyle = styles.warning;
+			containerPressedStyle = styles.warningPressed;
 			break;
 		case 'normal':
 			fontStyle = styles.normalText;
@@ -136,10 +136,7 @@ function getStyles(type) {
 			fontStyle = styles.whiteText;
 			containerStyle = styles.transparent;
 			break;
-		case 'warning':
-			fontStyle = styles.warningText;
-			containerStyle = styles.warning;
-			break;
+
 		case 'neutral':
 			fontStyle = styles.neutralText;
 			containerStyle = styles.neutral;
