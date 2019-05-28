@@ -161,7 +161,7 @@ class PaymentChannelsClient {
 				exchangeRate: this.getExchangeRate()
 			});
 		} catch (e) {
-			Logger.log('Error::connext::createClient', e);
+			Logger.error('PC::connext::createClient', e);
 		}
 	}
 
@@ -205,14 +205,14 @@ class PaymentChannelsClient {
 					ready: true
 				});
 			} catch (e) {
-				Logger.log('Error::onStateChange', e);
+				Logger.error('PC::onStateChange', e);
 			}
 		});
 		// start polling
 		try {
 			await connext.start();
 		} catch (e) {
-			Logger.log('Error::connext::start', e);
+			Logger.error('PC::connext::start', e);
 		}
 	}
 
@@ -249,7 +249,7 @@ class PaymentChannelsClient {
 		try {
 			await this.autoSwap();
 		} catch (e) {
-			Logger.log('Error::connext::autoswap', e);
+			Logger.error('PC::connext::autoswap', e);
 		}
 		setTimeout(() => {
 			this.pollAndSwap();
@@ -355,7 +355,7 @@ class PaymentChannelsClient {
 			await connext.deposit(data);
 			Logger.log('Deposit succesful');
 		} catch (e) {
-			Logger.log('Error::connext::deposit', e);
+			Logger.error('PC::connext::deposit', e);
 		}
 	};
 
@@ -398,7 +398,7 @@ class PaymentChannelsClient {
 			await connext.buy(data);
 			Logger.log('Send succesful');
 		} catch (e) {
-			Logger.log('Error::connext::buy', e);
+			Logger.error('PC::connext::buy', e);
 		}
 	};
 
@@ -421,7 +421,7 @@ class PaymentChannelsClient {
 			await connext.withdraw(withdrawalVal);
 			Logger.log('withdraw succesful');
 		} catch (e) {
-			Logger.log('Error::connext::withdraw', e);
+			Logger.error('PC::connext::withdraw', e);
 		}
 	};
 
