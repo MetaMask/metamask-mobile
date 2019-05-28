@@ -250,7 +250,7 @@ class AdvancedSettings extends Component {
 							<Text style={styles.title}>{strings('app_settings.reset_account')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.reset_desc')}</Text>
 							<StyledButton
-								type="info"
+								type="secondary"
 								onPress={this.displayResetAccountModal}
 								containerStyle={styles.resetConfirm}
 							>
@@ -261,7 +261,7 @@ class AdvancedSettings extends Component {
 							<Text style={styles.title}>{strings('app_settings.sync_with_extension')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.sync_with_extension_desc')}</Text>
 							<StyledButton
-								type="info"
+								type="secondary"
 								onPress={this.goToSyncWithExtension}
 								containerStyle={styles.syncConfirm}
 							>
@@ -299,7 +299,7 @@ class AdvancedSettings extends Component {
 							<Text style={styles.title}>{strings('app_settings.state_logs')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.state_logs_desc')}</Text>
 							<StyledButton
-								type="info"
+								type="secondary"
 								onPress={this.downloadStateLogs}
 								containerStyle={styles.syncConfirm}
 							>

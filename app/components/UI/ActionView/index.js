@@ -94,7 +94,7 @@ export default function ActionView({
 
 ActionView.defaultProps = {
 	cancelText: strings('action_view.cancel'),
-	confirmButtonMode: 'normal',
+	confirmButtonMode: 'secondary',
 	confirmText: strings('action_view.confirm'),
 	confirmTestID: '',
 	confirmed: false,

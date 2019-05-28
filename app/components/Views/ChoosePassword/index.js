@@ -497,7 +497,7 @@ class ChoosePassword extends Component {
 					</KeyboardAwareScrollView>
 					<View style={styles.ctaWrapper}>
 						<StyledButton
-							type={'blue'}
+							type={'primary'}
 							onPress={this.onPressCreate}
 							testID={'submit-button'}
 							disabled={

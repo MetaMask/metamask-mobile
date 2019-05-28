@@ -406,7 +406,7 @@ class ImportWallet extends Component {
 					<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
 				</View>
 				<View style={styles.ctaWrapper}>
-					<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
+					<StyledButton type={'primary'} onPress={this.safeSync} testID={'onboarding-import-button'}>
 						{strings('import_wallet.sync_from_browser_extension_button')}
 					</StyledButton>
 				</View>

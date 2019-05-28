@@ -187,7 +187,7 @@ class Onboarding extends Component {
 							<View style={styles.ctas}>
 								<View style={styles.ctaWrapper}>
 									<StyledButton
-										type={'blue'}
+										type={'primary'}
 										onPress={this.onPressCreate}
 										testID={'onboarding-new-button'}
 									>

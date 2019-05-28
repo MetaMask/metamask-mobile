@@ -313,7 +313,7 @@ class Login extends Component {
 					{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 
 					<View style={styles.ctaWrapper}>
-						<StyledButton type={'confirm'} onPress={this.onLogin}>
+						<StyledButton type={'primary'} onPress={this.onLogin}>
 							{this.state.loading ? (
 								<ActivityIndicator size="small" color="white" />
 							) : (

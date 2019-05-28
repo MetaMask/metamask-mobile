@@ -272,7 +272,7 @@ class PaymentRequestSuccess extends Component {
 									</View>
 								</View>
 							</StyledButton>
-							<StyledButton type={'blue'} onPress={this.onShare} containerStyle={styles.button}>
+							<StyledButton type={'primary'} onPress={this.onShare} containerStyle={styles.button}>
 								<View style={styles.buttonContent}>
 									<View style={styles.buttonIconWrapper}>
 										<EvilIcons name="share-apple" size={24} style={styles.blueIcon} />

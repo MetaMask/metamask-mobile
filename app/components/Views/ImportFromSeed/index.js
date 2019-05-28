@@ -562,7 +562,7 @@ class ImportFromSeed extends Component {
 
 						<View style={styles.ctaWrapper}>
 							<StyledButton
-								type={'blue'}
+								type={'primary'}
 								onPress={this.onPressImport}
 								testID={'submit'}
 								disabled={
