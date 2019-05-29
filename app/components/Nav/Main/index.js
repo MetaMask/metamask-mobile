@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
-// eslint-disable-next-line react-native/split-platform-components
-import { ActivityIndicator, AppState, StyleSheet, View, PushNotificationIOS, Platform } from 'react-native';
+import {
+	InteractionManager,
+	ActivityIndicator,
+	AppState,
+	StyleSheet,
+	View,
+	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
+	Platform
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
@@ -40,6 +47,7 @@ import AccountBackupStep4 from '../../Views/AccountBackupStep4';
 import AccountBackupStep5 from '../../Views/AccountBackupStep5';
 import AccountBackupStep6 from '../../Views/AccountBackupStep6';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
+import PaymentChannel from '../../Views/PaymentChannel';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
@@ -59,7 +67,9 @@ import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
+import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
+import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -132,6 +142,18 @@ const MainNavigator = createStackNavigator(
 				{
 					SimpleWebview: {
 						screen: SimpleWebview
+					}
+				},
+				{
+					mode: 'modal'
+				}
+			)
+		},
+		PaymentChannelView: {
+			screen: createStackNavigator(
+				{
+					PaymentChannel: {
+						screen: PaymentChannel
 					}
 				},
 				{
@@ -291,6 +313,10 @@ class Main extends Component {
 		 */
 		lockTime: PropTypes.number,
 		/**
+		 * Flag that determines if payment channels are enabled
+		 */
+		paymentChannelsEnabled: PropTypes.bool,
+		/**
 		 * Current onboarding wizard step
 		 */
 		wizardStep: PropTypes.number,
@@ -301,7 +327,11 @@ class Main extends Component {
 		/**
 		 * Object containing the information for the current transaction
 		 */
-		transaction: PropTypes.object
+		transaction: PropTypes.object,
+		/**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -310,7 +340,11 @@ class Main extends Component {
 		signMessageParams: { data: '' },
 		signType: '',
 		walletConnectRequest: false,
-		walletConnectRequestInfo: {}
+		walletConnectRequestInfo: {},
+		paymentChannelRequest: false,
+		paymentChannelRequestLoading: false,
+		paymentChannelRequestCompleted: false,
+		paymentChannelRequestInfo: {}
 	};
 
 	backgroundMode = false;
@@ -327,62 +361,104 @@ class Main extends Component {
 	};
 
 	componentDidMount = async () => {
-		TransactionsNotificationManager.init(this.props.navigation);
-		this.pollForIncomingTransactions();
-		AppState.addEventListener('change', this.handleAppStateChange);
-		this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-		PushNotification.configure({
-			requestPermissions: false,
-			onNotification: notification => {
-				let data = null;
-				if (Platform.OS === 'android') {
-					if (notification.tag) {
-						data = JSON.parse(notification.tag);
+		InteractionManager.runAfterInteractions(() => {
+			AppState.addEventListener('change', this.handleAppStateChange);
+			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
+
+			PushNotification.configure({
+				requestPermissions: false,
+				onNotification: notification => {
+					let data = null;
+					if (Platform.OS === 'android') {
+						if (notification.tag) {
+							data = JSON.parse(notification.tag);
+						}
+					} else if (notification.data) {
+						data = notification.data;
 					}
-				} else if (notification.data) {
-					data = notification.data;
-				}
-				if (data && data.action === 'tx') {
-					TransactionsNotificationManager.setTransactionToView(data.id);
-					this.props.navigation.navigate('TransactionsHome');
-				}
+					if (data && data.action === 'tx') {
+						TransactionsNotificationManager.setTransactionToView(data.id);
+						this.props.navigation.navigate('TransactionsHome');
+					}
 
-				if (Platform.OS === 'ios') {
-					notification.finish(PushNotificationIOS.FetchResult.NoData);
+					if (Platform.OS === 'ios') {
+						notification.finish(PushNotificationIOS.FetchResult.NoData);
+					}
 				}
-			}
-		});
-
-		Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
-
-		Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
-			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
-			delete messageParams.meta;
-			this.setState({
-				signMessage: true,
-				signMessageParams: messageParams,
-				signType: 'personal',
-				currentPageTitle,
-				currentPageUrl
 			});
-		});
 
-		Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
-			const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
-			delete messageParams.meta;
-			this.setState({
-				signMessage: true,
-				signMessageParams: messageParams,
-				signType: 'typed',
-				currentPageTitle,
-				currentPageUrl
+			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
+
+			Engine.context.PersonalMessageManager.hub.on('unapprovedMessage', messageParams => {
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'personal',
+					currentPageTitle,
+					currentPageUrl
+				});
 			});
-		});
 
+			Engine.context.TypedMessageManager.hub.on('unapprovedMessage', messageParams => {
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'typed',
+					currentPageTitle,
+					currentPageUrl
+				});
+			});
+
+			setTimeout(() => {
+				TransactionsNotificationManager.init(this.props.navigation);
+				this.pollForIncomingTransactions();
+
+				this.initializeWalletConnect();
+
+				// Only if enabled under settings
+				if (this.props.paymentChannelsEnabled) {
+					this.initializePaymentChannels();
+				}
+			}, 1000);
+		});
+	};
+
+	initializeWalletConnect = () => {
 		WalletConnect.hub.on('walletconnectSessionRequest', peerInfo => {
 			this.setState({ walletConnectRequest: true, walletConnectRequestInfo: peerInfo });
 		});
 		WalletConnect.init();
+	};
+
+	initializePaymentChannels = () => {
+		PaymentChannelsClient.init(this.props.selectedAddress);
+		PaymentChannelsClient.hub.on('payment::request', request => {
+			this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
+		});
+
+		PaymentChannelsClient.hub.on('payment::complete', () => {
+			// show the success screen
+			this.setState({ paymentChannelRequestCompleted: true });
+			// hide the modal and reset state
+			setTimeout(() => {
+				setTimeout(() => {
+					this.setState({
+						paymentChannelRequest: false,
+						paymentChannelRequestLoading: false,
+						paymentChannelRequestInfo: {}
+					});
+					setTimeout(() => {
+						this.setState({
+							paymentChannelRequestCompleted: false
+						});
+					});
+				}, 800);
+			}, 800);
+		});
 	};
 
 	onUnapprovedTransaction = transactionMeta => {
@@ -399,9 +475,9 @@ class Main extends Component {
 		this.props.setTransactionObject({
 			...{
 				symbol: 'ETH',
-				selectedAsset: { isETH: true, symbol: 'ETH' },
 				type: 'ETHER_TRANSACTION',
 				assetType: 'ETH',
+				selectedAsset: { isETH: true, symbol: 'ETH' },
 				id: transactionMeta.id
 			},
 			...transactionMeta.transaction
@@ -438,6 +514,13 @@ class Main extends Component {
 		if (this.props.lockTime !== prevProps.lockTime) {
 			this.lockManager.updateLockTime(this.props.lockTime);
 		}
+		if (this.props.paymentChannelsEnabled !== prevProps.paymentChannelsEnabled) {
+			if (this.props.paymentChannelsEnabled) {
+				this.initializePaymentChannels();
+			} else {
+				PaymentChannelsClient.stop();
+			}
+		}
 	}
 
 	forceReload() {
@@ -461,6 +544,9 @@ class Main extends Component {
 		Engine.context.PersonalMessageManager.hub.removeAllListeners();
 		Engine.context.TypedMessageManager.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('unapprovedTransaction', this.onUnapprovedTransaction);
+		WalletConnect.hub.removeAllListeners();
+		PaymentChannelsClient.hub.removeAllListeners();
+		PaymentChannelsClient.stop();
 	}
 
 	/**
@@ -529,9 +615,22 @@ class Main extends Component {
 		WalletConnect.hub.emit('walletconnectSessionRequest::rejected', peerId);
 	};
 
+	onPaymentChannelRequestApproval = () => {
+		PaymentChannelsClient.hub.emit('payment::confirm', this.state.paymentChannelRequestInfo);
+		this.setState({
+			paymentChannelRequestLoading: true
+		});
+	};
+
+	onPaymentChannelRequestRejected = () => {
+		this.setState({
+			paymentChannelRequest: false
+		});
+		setTimeout(() => this.setState({ paymentChannelRequestInfo: {} }), 1000);
+	};
+
 	renderWalletConnectSessionRequestModal = () => {
 		const { walletConnectRequest, walletConnectRequestInfo } = this.state;
-
 		const meta = walletConnectRequestInfo.peerMeta || null;
 
 		return (
@@ -553,6 +652,38 @@ class Main extends Component {
 						title: meta && meta.name,
 						url: meta && meta.url
 					}}
+					autosign={false}
+				/>
+			</Modal>
+		);
+	};
+
+	renderPaymentChannelRequestApproval = () => {
+		const {
+			paymentChannelRequest,
+			paymentChannelRequestInfo,
+			paymentChannelRequestLoading,
+			paymentChannelRequestCompleted
+		} = this.state;
+
+		return (
+			<Modal
+				isVisible={paymentChannelRequest}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropOpacity={0.7}
+				animationInTiming={300}
+				animationOutTiming={300}
+				onSwipeComplete={this.onPaymentChannelRequestRejected}
+				swipeDirection={'down'}
+			>
+				<PaymentChannelApproval
+					onCancel={this.onPaymentChannelRequestRejected}
+					onConfirm={this.onPaymentChannelRequestApproval}
+					info={paymentChannelRequestInfo}
+					loading={paymentChannelRequestLoading}
+					complete={paymentChannelRequestCompleted}
 				/>
 			</Modal>
 		);
@@ -576,6 +707,7 @@ class Main extends Component {
 				</View>
 				{this.renderSigningModal()}
 				{this.renderWalletConnectSessionRequestModal()}
+				{this.renderPaymentChannelRequestApproval()}
 			</React.Fragment>
 		);
 	}
@@ -584,7 +716,9 @@ class Main extends Component {
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	wizardStep: state.wizard.step,
-	transaction: state.transaction
+	transaction: state.transaction,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
 });
 
 const mapDispatchToProps = dispatch => ({

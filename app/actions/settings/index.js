@@ -25,3 +25,10 @@ export function setPrimaryCurrency(primaryCurrency) {
 		primaryCurrency
 	};
 }
+
+export function setEnablePaymentChannels(paymentChannelsEnabled) {
+	return {
+		type: 'SET_ENABLE_PAYMENT_CHANNELS',
+		paymentChannelsEnabled
+	};
+}

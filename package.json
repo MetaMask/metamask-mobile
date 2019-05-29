@@ -56,13 +56,18 @@
     "@react-native-community/async-storage": "1.2.0",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/react-native": "1.0.0-beta.22",
+    "asyncstorage-down": "4.2.0",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
+    "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "0.1.0",
     "bignumber.js": "8.1.1",
     "buffer": "5.2.1",
+    "connext": "4.0.1",
     "eth-contract-metadata": "github:estebanmino/eth-contract-metadata#d5e4e6377b0c0bcb5c33b9a4523aeba1f8d78d1e",
     "eth-ens-namehash": "2.0.8",
+    "eth-json-rpc-infura": "4.0.0",
     "eth-url-parser": "1.0.2",
+    "ethers": "4.0.27",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
     "ethjs-contract": "0.2.3",
@@ -77,8 +82,10 @@
     "lottie-react-native": "2.6.1",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
+    "path": "0.12.7",
     "prop-types": "15.7.2",
     "pubnub": "4.22.0",
+    "qs": "6.7.0",
     "react": "16.8.3",
     "react-native": "0.59.4",
     "react-native-actionsheet": "2.4.2",
@@ -101,6 +108,7 @@
     "react-native-i18n": "2.0.15",
     "react-native-keyboard-aware-scroll-view": "0.8.0",
     "react-native-keychain": "github:brunobar79/react-native-keychain#5210c22c94a4d66c2e0231604601b3636bfc41bc",
+    "react-native-level-fs": "3.0.1",
     "react-native-modal": "9.0.0",
     "react-native-os": "1.2.2",
     "react-native-progress": "3.5.0",
@@ -115,6 +123,7 @@
     "react-native-svg": "9.3.3",
     "react-native-swipe-gestures": "1.0.3",
     "react-native-vector-icons": "6.3.0",
+    "react-native-tcp": "3.3.0",
     "react-native-view-shot": "2.5.0",
     "react-native-web3-webview": "1.3.1",
     "react-navigation": "3.3.2",
@@ -227,7 +236,7 @@
       "<rootDir>/app/util/testSetup.js"
     ],
     "transform": {
-      "^.+\\.js$": "<rootDir>jest.preprocessor.js"
+      ".+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers)"
@@ -254,7 +263,9 @@
     "http": "@tradle/react-native-http",
     "https": "https-browserify",
     "vm": "vm-browserify",
-    "os": "react-native-os"
+    "os": "react-native-os",
+    "net": "react-native-tcp",
+    "fs": "react-native-level-fs"
   },
   "browser": {
     "crypto": "react-native-crypto",
@@ -267,7 +278,9 @@
     "http": "@tradle/react-native-http",
     "https": "https-browserify",
     "vm": "vm-browserify",
-    "os": "react-native-os"
+    "os": "react-native-os",
+    "net": "react-native-tcp",
+    "fs": "react-native-level-fs"
   },
   "rnpm": {
     "assets": [
