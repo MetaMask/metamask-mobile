@@ -124,9 +124,17 @@ class WalletConnect {
 							// 	from: payload.params[0]
 							// });
 						} else {
+							let data = payload.params[1];
+							let from = payload.params[0];
+
+							if (payload.method === 'personal_sign') {
+								data = payload.params[0];
+								from = payload.params[1];
+							}
+
 							rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-								data: payload.params[1],
-								from: payload.params[0],
+								data,
+								from,
 								meta: {
 									title: meta && meta.name,
 									url: meta && meta.url,
