@@ -220,6 +220,9 @@ class PaymentChannel extends Component {
 	};
 
 	client = null;
+	sending = false;
+	depositing = false;
+	withdrawing = false;
 
 	onStateChange = state => {
 		this.setState({
@@ -248,6 +251,9 @@ class PaymentChannel extends Component {
 	}
 
 	deposit = async () => {
+		if (this.depositing) {
+			return;
+		}
 		try {
 			const params = {
 				depositAmount: this.state.depositAmount
@@ -259,9 +265,9 @@ class PaymentChannel extends Component {
 			}
 
 			const depositAmountNumber = parseFloat(params.depositAmount);
-			const { MAX_DEPOSIT_TOKEN, exchangeRate } = PaymentChannelsClient;
+			const { MAX_DEPOSIT_TOKEN, getExchangeRate } = PaymentChannelsClient;
 
-			const ETH = parseFloat(exchangeRate);
+			const ETH = parseFloat(getExchangeRate());
 			const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
 			const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
 
@@ -276,8 +282,10 @@ class PaymentChannel extends Component {
 			}
 
 			Logger.log('About to deposit', params);
+			this.depositing = true;
 			await PaymentChannelsClient.deposit(params);
 			this.setState({ depositAmount: '' });
+			this.depositing = false;
 			Logger.log('Deposit succesful');
 		} catch (e) {
 			if (e.message.indexOf('Error: Insufficient funds:') !== -1) {
@@ -286,10 +294,15 @@ class PaymentChannel extends Component {
 				Alert.alert(strings('paymentChannels.error'), e);
 				Logger.log('Deposit error', e);
 			}
+			this.depositing = false;
 		}
 	};
 
 	send = async () => {
+		if (this.sending) {
+			return;
+		}
+
 		try {
 			const params = {
 				sendRecipient: this.state.sendRecipient,
@@ -306,7 +319,9 @@ class PaymentChannel extends Component {
 			}
 
 			Logger.log('Sending ', params);
+			this.sending = true;
 			await PaymentChannelsClient.send(params);
+			this.sending = false;
 
 			Logger.log('Send succesful');
 		} catch (e) {
@@ -316,14 +331,21 @@ class PaymentChannel extends Component {
 			}
 			Alert.alert(strings('paymentChannels.error'), msg);
 			Logger.log('buy error error', e);
+			this.sending = false;
 		}
 	};
 
 	withdraw = async () => {
+		if (this.withdrawing) {
+			return;
+		}
 		try {
+			this.withdrawing = true;
 			await PaymentChannelsClient.withdrawAll();
+			this.withdrawing = false;
 			Logger.log('withdraw succesful');
 		} catch (e) {
+			this.withdrawing = false;
 			Logger.log('withdraw error', e);
 		}
 	};

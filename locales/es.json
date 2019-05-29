@@ -411,7 +411,7 @@
 		"hex_data": "Hex Datos",
 		"insufficient": "Fondos insuficientes",
 		"invalid_address": "Dirección inválida",
-		"invalid_amount": "Monto invalido",
+		"invalid_amount": "Monto inválido",
 		"invalid_gas": "Cantidad de gas no válida",
 		"invalid_gas_price": "Precio de gas no válido",
 		"max": "Max",
@@ -842,6 +842,12 @@
 		"withdraw_note": "NOTA: las tarifas de la transacción serán pagas con tu saldo",
 		"withdraw": "RETIRAR",
 		"error": "Error",
-		"insufficient_funds": "Saldo insuficiente"
+		"insufficient_funds": "Saldo insuficiente",
+		"enter_the_amount": "Debes ingresar el monto",
+		"enter_the_recipient": "Debes ingresar el destinatario",
+		"invalid_amount": "Monto inválido",
+		"amount_too_high": "El monto excede el máximo permitido. Prueba con un monto menor",
+		"amount_too_low": "El monto es menor al mínimo permitido. Prueba con un monto mayor",
+		"insufficient_balance": "Balance insuficiente"
 	}
 }

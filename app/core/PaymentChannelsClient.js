@@ -152,8 +152,7 @@ class PaymentChannelsClient {
 				channelManagerAddress: connext.opts.contractAddress,
 				hubWalletAddress: connext.opts.hubAddress,
 				ethChainId: connext.opts.ethChainId,
-				ethprovider,
-				exchangeRate: this.getExchangeRate()
+				ethprovider
 			});
 		} catch (e) {
 			Logger.error('PC::createClient', e);
@@ -468,9 +467,9 @@ const instance = {
 		return '0.00';
 	},
 	/**
-	 *	Minimum deposit amount in ETH
+	 *	Returns the current exchange rate for DAI / ETH
 	 */
-	exchangeRate: (client.state && client.state.exchangeRate) || 0,
+	getExchangeRate: () => (client && client.state && client.state.exchangeRate) || 0,
 	/**
 	 *	Minimum deposit amount in ETH
 	 */
