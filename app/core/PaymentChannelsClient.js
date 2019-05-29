@@ -6,7 +6,7 @@ import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
-import { toWei, toBN, renderFromWei, weiToFiatNumber } from '../util/number';
+import { toWei, toBN, renderFromWei, weiToFiatNumber, BNToHex } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
@@ -58,7 +58,9 @@ class PaymentChannelsClient {
 				txHash: '',
 				type: '',
 				reset: false
-			}
+			},
+			depositPending: false,
+			withdrawalPending: false
 		};
 	}
 
@@ -89,27 +91,30 @@ class PaymentChannelsClient {
 		const { KeyringController, TransactionController } = Engine.context;
 		const opts = {
 			hubUrl,
+			ethUrl: 'https://eth-rinkeby.alchemyapi.io/jsonrpc/SU-VoQIQnzxwTrccH4tfjrQRTCrNiX6w',
 			externalWallet: {
 				external: true,
 				address: this.selectedAddress,
 				getAddress: () => Promise.resolve(this.selectedAddress),
-				getBalance: block => this.state.ethprovider.getBalance(this.selectedAddress, block),
 				signMessage: message => {
 					const hexMessage = byteArrayToHex(message);
 					return KeyringController.signPersonalMessage({ data: hexMessage, from: this.selectedAddress });
 				},
 				sign: async txMeta => {
-					// This values are set by ourselves
+					// We have to normalize the values
 					delete txMeta.gas;
 					delete txMeta.gasPrice;
-					delete txMeta.value._hex;
+					const weiValue = txMeta.value.toString();
+					const bnValue = toBN(weiValue);
+
+					const normalizedTxMeta = {
+						...txMeta,
+						value: BNToHex(bnValue),
+						silent: true
+					};
 
 					try {
-						const signedTx = await TransactionController.addTransaction({
-							...txMeta,
-							value: txMeta.value.toHexString(),
-							silent: true
-						});
+						const signedTx = await TransactionController.addTransaction(normalizedTxMeta);
 						const hash = await signedTx.result;
 
 						return new Promise(resolve => {
@@ -131,26 +136,17 @@ class PaymentChannelsClient {
 							});
 						});
 					} catch (e) {
-						return false;
+						Logger.error('ExternalWallet::sign', e);
+						throw e;
 					}
 				}
 			},
 			web3Provider: Engine.context.NetworkController.provider
 		};
 
-		Logger.log('Setting up connext with opts:', opts);
-
 		// *** Instantiate the connext client ***
 		try {
 			const connext = await Connext.createClient(opts);
-
-			Logger.log(`Successfully set up connext! Connext config:`);
-			Logger.log(`  - tokenAddress: ${connext.opts.tokenAddress}`);
-			Logger.log(`  - hubAddress: ${connext.opts.hubAddress}`);
-			Logger.log(`  - contractAddress: ${connext.opts.contractAddress}`);
-			Logger.log(`  - ethChainId: ${connext.opts.ethChainId}`);
-			Logger.log(`  - public address: ${this.selectedAddress}`);
-
 			this.setState({
 				connext,
 				tokenAddress: connext.opts.tokenAddress,
@@ -161,7 +157,7 @@ class PaymentChannelsClient {
 				exchangeRate: this.getExchangeRate()
 			});
 		} catch (e) {
-			Logger.error('PC::connext::createClient', e);
+			Logger.error('PC::createClient', e);
 		}
 	}
 
@@ -212,7 +208,7 @@ class PaymentChannelsClient {
 		try {
 			await connext.start();
 		} catch (e) {
-			Logger.error('PC::connext::start', e);
+			Logger.error('PC::start', e);
 		}
 	}
 
@@ -234,7 +230,6 @@ class PaymentChannelsClient {
 						.toNumber()
 						.toFixed(2)
 						.toString();
-					Logger.log('PAYMENT TOKEN IN USD', amountToken);
 					hideMessage();
 					setTimeout(() => {
 						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
@@ -249,7 +244,7 @@ class PaymentChannelsClient {
 		try {
 			await this.autoSwap();
 		} catch (e) {
-			Logger.error('PC::connext::autoswap', e);
+			Logger.error('PC::autoswap', e);
 		}
 		setTimeout(() => {
 			this.pollAndSwap();
@@ -282,35 +277,34 @@ class PaymentChannelsClient {
 	};
 
 	checkStatus() {
-		const { runtime, status } = this.state;
+		const { runtime, status, depositPending, withdrawalPending } = this.state;
 		const newStatus = {
 			reset: status.reset
 		};
 
 		if (runtime) {
-			// Logger.log(`Hub Sync results: ${JSON.stringify(runtime.syncResultsFromHub[0], null, 2)}`);
-			if (runtime.deposit.submitted) {
+			if (depositPending && runtime.deposit.submitted) {
 				if (!runtime.deposit.detected) {
 					newStatus.type = 'DEPOSIT_PENDING';
 				} else {
 					newStatus.type = 'DEPOSIT_SUCCESS';
 					newStatus.txHash = runtime.deposit.transactionHash;
+					this.setState({ depositPending: false });
 				}
 			}
-			if (runtime.withdrawal.submitted) {
+			if (withdrawalPending && runtime.withdrawal.submitted) {
 				if (!runtime.withdrawal.detected) {
 					newStatus.type = 'WITHDRAWAL_PENDING';
 				} else {
 					newStatus.type = 'WITHDRAWAL_SUCCESS';
 					newStatus.txHash = runtime.withdrawal.transactionHash;
+					this.setState({ withdrawalPending: false });
 				}
 			}
 		}
 
 		if (newStatus.type !== status.type) {
 			newStatus.reset = true;
-			Logger.log(`New channel status! ${JSON.stringify(newStatus)}`);
-			Logger.log(`STATUS TYPE!`, newStatus.type);
 			if (newStatus.type && newStatus.type !== 'DEPOSIT_PENDING') {
 				const notification_type = newStatus.type
 					.toLowerCase()
@@ -351,11 +345,10 @@ class PaymentChannelsClient {
 				amountWei: toWei(depositAmount).toString(),
 				amountToken: '0'
 			};
-			Logger.log('About to deposit', data);
 			await connext.deposit(data);
-			Logger.log('Deposit succesful');
+			this.setState({ depositPending: true });
 		} catch (e) {
-			Logger.error('PC::connext::deposit', e);
+			Logger.error('PC::deposit', e);
 		}
 	};
 
@@ -394,11 +387,9 @@ class PaymentChannelsClient {
 					}
 				]
 			};
-			Logger.log('Sending ', data);
 			await connext.buy(data);
-			Logger.log('Send succesful');
 		} catch (e) {
-			Logger.error('PC::connext::buy', e);
+			Logger.error('PC::buy', e);
 		}
 	};
 
@@ -419,9 +410,9 @@ class PaymentChannelsClient {
 			};
 
 			await connext.withdraw(withdrawalVal);
-			Logger.log('withdraw succesful');
+			this.setState({ withdrawalPending: true });
 		} catch (e) {
-			Logger.error('PC::connext::withdraw', e);
+			Logger.error('PC::withdraw', e);
 		}
 	};
 
@@ -446,7 +437,6 @@ const instance = {
 			await client.setConnext(provider);
 			await client.pollConnextState();
 			await client.pollAndSwap();
-			Logger.log('PAYMENT-CHANNELS::initialized payment channels for address', address);
 		}
 	},
 	/**
@@ -466,9 +456,8 @@ const instance = {
 			client.stop();
 			removeListeners();
 			hub.removeAllListeners();
-			Logger.log('PAYMENT-CHANNELS::stopped the client completely');
 		} else {
-			Logger.log('PAYMENT-CHANNELS::client was not running...');
+			Logger.error('PAYMENT-CHANNELS', 'client was not running...');
 		}
 	},
 	/**
@@ -545,7 +534,6 @@ const reloadClient = () => {
 };
 
 const onPaymentConfirm = async request => {
-	Logger.log(instance, instance.send, request);
 	await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
 	hub.emit('payment::complete', request);
 };
