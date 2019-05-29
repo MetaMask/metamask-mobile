@@ -1,9 +1,9 @@
 #!/bin/bash
 echo "PostInstall script:"
 
-echo "0. Fix connext client deps"
-TARGET="node_modules/indra/modules/client/node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
-sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
+echo "0. Fix connext client"
+# Replace console.error by console.log to avoid red screens
+find node_modules/connext/dist -type f -name "*.js" | xargs sed -i'' -e 's/console.error/console.log/g'
 
 echo "1. React Native nodeify..."
 node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs' --hack
