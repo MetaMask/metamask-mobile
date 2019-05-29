@@ -309,24 +309,6 @@ class PaymentChannelsClient {
 	}
 
 	deposit = async ({ depositAmount }) => {
-		if (isNaN(depositAmount) || depositAmount.trim() === '') {
-			throw new Error('Invalid amount');
-		}
-
-		const depositAmountNumber = parseFloat(depositAmount);
-
-		const ETH = parseFloat(this.state.exchangeRate);
-		const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
-		const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
-
-		if (depositAmountNumber > maxDepositAmount) {
-			throw new Error(`The max. deposit allowed for now it is ${maxDepositAmount} ETH. Try with a lower amount`);
-		}
-
-		if (depositAmount < minDepositAmount) {
-			throw new Error(`The max. deposit allowed for now it is ${minDepositAmount} ETH. Try with a lower amount`);
-		}
-
 		try {
 			const { connext } = this.state;
 			const data = {
@@ -341,14 +323,6 @@ class PaymentChannelsClient {
 	};
 
 	send = async ({ sendAmount, sendRecipient }) => {
-		if (isNaN(sendAmount) || sendAmount.trim() === '') {
-			throw new Error('You need to enter the amount');
-		}
-
-		if (!sendRecipient) {
-			throw new Error('You need to enter a recepient');
-		}
-
 		const amount = toWei(sendAmount).toString();
 
 		const {
@@ -359,7 +333,7 @@ class PaymentChannelsClient {
 		const maxAmount = balanceTokenUser;
 
 		if (toBN(amount).gt(toBN(maxAmount))) {
-			throw new Error('Insufficient balance');
+			throw new Error('insufficient_balance');
 		}
 
 		try {
@@ -493,6 +467,10 @@ const instance = {
 		}
 		return '0.00';
 	},
+	/**
+	 *	Minimum deposit amount in ETH
+	 */
+	exchangeRate: (client.state && client.state.exchangeRate) || 0,
 	/**
 	 *	Minimum deposit amount in ETH
 	 */

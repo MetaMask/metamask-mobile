@@ -818,7 +818,13 @@
 		"wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
 		"wallet_connect_dapps_cta": "VIEW SESSIONS",
 		"network_not_supported": "Current network not supported",
-		"switch_network": "Please switch to mainnet or rinkeby"
+		"switch_network": "Please switch to mainnet or rinkeby",
+		"enter_the_amount": "You need to enter the amount",
+		"enter_the_recipient": "You need to enter the recipient",
+		"invalid_amount": "Invalid amount",
+		"amount_too_high": "The amount exceeds the max. allowed. Try with a lower amount",
+		"amount_too_low": "The amount is below the min. allowed. Try with a higher amount",
+		"insufficient_balance": "Insufficient Balance"
 	},
 	"walletconnect_sessions": {
 		"no_active_sessions": "You have no active sessions",

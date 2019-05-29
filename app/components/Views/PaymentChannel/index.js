@@ -29,6 +29,7 @@ import { connect } from 'react-redux';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
+import AppConstants from '../../../core/AppConstants';
 
 const QR_PADDING = 160;
 
@@ -251,6 +252,29 @@ class PaymentChannel extends Component {
 			const params = {
 				depositAmount: this.state.depositAmount
 			};
+
+			if (isNaN(params.depositAmount) || params.depositAmount.trim() === '') {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.invalid_amount'));
+				return false;
+			}
+
+			const depositAmountNumber = parseFloat(params.depositAmount);
+			const { MAX_DEPOSIT_TOKEN, exchangeRate } = PaymentChannelsClient;
+
+			const ETH = parseFloat(exchangeRate);
+			const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
+			const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
+
+			if (depositAmountNumber > maxDepositAmount) {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_high'));
+				return false;
+			}
+
+			if (params.depositAmount < minDepositAmount) {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_low'));
+				return false;
+			}
+
 			Logger.log('About to deposit', params);
 			await PaymentChannelsClient.deposit(params);
 			this.setState({ depositAmount: '' });
@@ -271,12 +295,26 @@ class PaymentChannel extends Component {
 				sendRecipient: this.state.sendRecipient,
 				sendAmount: this.state.sendAmount
 			};
+
+			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_amount'));
+				return false;
+			}
+
+			if (!params.sendRecipient) {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_recipient'));
+			}
+
 			Logger.log('Sending ', params);
 			await PaymentChannelsClient.send(params);
 
 			Logger.log('Send succesful');
 		} catch (e) {
-			Alert.alert('Error', e.message);
+			let msg = strings('paymentChannels.unknown_error');
+			if (e.message === 'insufficient_balance') {
+				msg = strings('paymentChannels.insufficient_balance');
+			}
+			Alert.alert(strings('paymentChannels.error'), msg);
 			Logger.log('buy error error', e);
 		}
 	};
