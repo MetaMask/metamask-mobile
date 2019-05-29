@@ -47,7 +47,6 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
 
-const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
@@ -157,9 +156,9 @@ const styles = StyleSheet.create({
 		marginLeft: 5
 	},
 	buttonText: {
-		marginLeft: Platform.OS === 'ios' ? 8 : 28,
-		marginTop: Platform.OS === 'ios' ? 0 : -23,
-		paddingBottom: Platform.OS === 'ios' ? 0 : 3,
+		marginLeft: 8,
+		marginTop: 0,
+		paddingBottom: 0,
 		fontSize: 15,
 		color: colors.blue,
 		...fontStyles.normal
@@ -173,10 +172,7 @@ const styles = StyleSheet.create({
 		marginTop: 0
 	},
 	buttonReceive: {
-		transform:
-			Platform.OS === 'ios'
-				? [{ rotate: '90deg' }]
-				: [{ rotate: '90deg' }, { translateX: ANDROID_OFFSET }, { translateY: ANDROID_OFFSET }]
+		transform: [{ rotate: '90deg' }]
 	},
 	menu: {},
 	noTopBorder: {

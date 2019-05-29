@@ -1,21 +1,13 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import StyledButtonIOS from './index.ios';
-import StyledButtonAndroid from './index.android';
+import StyledButton from './index';
 
 describe('StyledButton', () => {
 	const buttonTypes = ['default', 'primary', 'secondary', 'danger'];
 
 	buttonTypes.forEach(type => {
 		it(`should render correctly on iOS the button with type ${type}`, () => {
-			const wrapper = shallow(<StyledButtonIOS type={type} />);
-			expect(wrapper).toMatchSnapshot();
-		});
-	});
-
-	buttonTypes.forEach(type => {
-		it(`should render correctly on Android the button with type ${type}`, () => {
-			const wrapper = shallow(<StyledButtonAndroid type={type} />);
+			const wrapper = shallow(<StyledButton type={type} />);
 			expect(wrapper).toMatchSnapshot();
 		});
 	});
