@@ -87,7 +87,7 @@
     "react-native-background-timer": "2.1.1",
     "react-native-branch": "3.0.0-beta.3",
     "react-native-browser-polyfill": "0.1.2",
-    "react-native-button": "github:brunobar79/react-native-button#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
+    "react-native-button": "github:estebanmino/react-native-button#083a0a83a7007c571bb00a825b7ed3e9b2ee9d7e",
     "react-native-camera": "2.0.0",
     "react-native-crypto": "2.1.2",
     "react-native-device-info": "0.29.0",
