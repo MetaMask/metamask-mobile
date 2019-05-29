@@ -14,7 +14,7 @@ import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
-import WalletConnect from '../../../core/WalletConnect';
+import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 const HOMEPAGE_URL = 'about:blank';
@@ -449,7 +449,10 @@ export function getWalletNavbarOptions(title, navigation) {
 		if (data.target_address) {
 			navigation.navigate('SendView', { txMeta: data });
 		} else if (data.walletConnectURI) {
-			WalletConnect.newSession(data.walletConnectURI);
+			setTimeout(() => {
+				const dm = new DeeplinkManager(navigation);
+				dm.parse(data.walletConnectURI);
+			}, 500);
 		}
 	};
 
