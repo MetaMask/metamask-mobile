@@ -111,6 +111,18 @@ exports[`App should render correctly 1`] = `
                     "getStateForAction": [Function],
                   },
                   "LockScreen": null,
+                  "PaymentChannelView": Object {
+                    "childRouters": Object {
+                      "PaymentChannel": null,
+                    },
+                    "getActionCreators": [Function],
+                    "getActionForPathAndParams": [Function],
+                    "getComponentForRouteName": [Function],
+                    "getComponentForState": [Function],
+                    "getPathAndParamsForState": [Function],
+                    "getScreenOptions": [Function],
+                    "getStateForAction": [Function],
+                  },
                   "PaymentRequestView": Object {
                     "childRouters": Object {
                       "PaymentRequest": null,
@@ -489,6 +501,18 @@ exports[`App should render correctly 1`] = `
                       "getStateForAction": [Function],
                     },
                     "LockScreen": null,
+                    "PaymentChannelView": Object {
+                      "childRouters": Object {
+                        "PaymentChannel": null,
+                      },
+                      "getActionCreators": [Function],
+                      "getActionForPathAndParams": [Function],
+                      "getComponentForRouteName": [Function],
+                      "getComponentForState": [Function],
+                      "getPathAndParamsForState": [Function],
+                      "getScreenOptions": [Function],
+                      "getStateForAction": [Function],
+                    },
                     "PaymentRequestView": Object {
                       "childRouters": Object {
                         "PaymentRequest": null,

@@ -483,6 +483,11 @@ class DrawerView extends Component {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
 	};
 
+	goToPaymentChannel = () => {
+		this.props.navigation.navigate('PaymentChannelView');
+		this.hideDrawer();
+	};
+
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();

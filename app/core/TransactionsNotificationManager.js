@@ -37,7 +37,7 @@ class TransactionsNotificationManager {
 
 	_viewTransaction = id => {
 		this._transactionToView.push(id);
-		this._navigation.navigate('TransactionsHome');
+		this.goTo('TransactionsHome');
 	};
 
 	_removeListeners = transactionId => {
@@ -55,9 +55,27 @@ class TransactionsNotificationManager {
 					title = strings('notifications.pending_title');
 					message = strings('notifications.pending_message');
 					break;
+				case 'pending_deposit':
+					title = strings('notifications.pending_deposit_title');
+					message = strings('notifications.pending_deposit_message');
+					break;
+				case 'pending_withdrawal':
+					title = strings('notifications.pending_withdrawal_title');
+					message = strings('notifications.pending_withdrawal_message');
+					break;
 				case 'success':
 					title = strings('notifications.success_title', { nonce: data.message.transaction.nonce });
 					message = strings('notifications.success_message');
+					break;
+				case 'success_withdrawal':
+					title = strings('notifications.success_withdrawal_title', {
+						nonce: data.message.transaction.nonce
+					});
+					message = strings('notifications.success_withdrawal_message');
+					break;
+				case 'success_deposit':
+					title = strings('notifications.success_deposit_title', { nonce: data.message.transaction.nonce });
+					message = strings('notifications.success_deposit_message');
 					break;
 				case 'error':
 					title = strings('notifications.error_title');
@@ -73,6 +91,13 @@ class TransactionsNotificationManager {
 						assetType: data.message.transaction.assetType
 					});
 					message = strings('notifications.received_message');
+					break;
+				case 'received_payment':
+					title = strings('notifications.received_payment_title', {
+						amount: data.message.transaction.amount,
+						assetType: data.message.transaction.assetType
+					});
+					message = strings('notifications.received_payment_message');
 					break;
 			}
 
@@ -110,6 +135,13 @@ class TransactionsNotificationManager {
 		}
 
 		return TransactionsNotificationManager.instance;
+	}
+
+	/**
+	 * Navigates to a specific view
+	 */
+	goTo(view) {
+		this._navigation.navigate(view);
 	}
 
 	/**
@@ -167,6 +199,7 @@ class TransactionsNotificationManager {
 	 * based on the status of the transaction (failed or confirmed)
 	 */
 	watchSubmittedTransaction(transaction) {
+		if (transaction.silent) return false;
 		const { TransactionController } = Engine.context;
 		// First we show the pending tx notification
 		this._showNotification({
@@ -322,5 +355,36 @@ export default {
 	},
 	requestPushNotificationsPermission() {
 		return instance.requestPushNotificationsPermission();
-	}
+	},
+	showInstantPaymentNotification(type) {
+		hideMessage();
+		setTimeout(() => {
+			const notification = {
+				type,
+				autoHide: type.indexOf('success') !== -1,
+				message: {
+					transaction: null,
+					callback: () => null
+				}
+			};
+			if (notification.autoHide) {
+				notification.duration = 5000;
+			}
+
+			return instance._showNotification(notification);
+		}, 300);
+	},
+	showIncomingPaymentNotification: amount =>
+		instance._showNotification({
+			type: 'received_payment',
+			message: {
+				transaction: {
+					amount,
+					assetType: ''
+				},
+				callback: () => instance.goTo('PaymentChannelView')
+			},
+			autoHide: true,
+			duration: 5000
+		})
 };
