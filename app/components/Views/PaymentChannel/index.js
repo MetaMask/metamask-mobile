@@ -30,6 +30,7 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
+import { renderFromWei } from '../../../util/number';
 
 const QR_PADDING = 160;
 
@@ -207,7 +208,11 @@ class PaymentChannel extends Component {
 		/**
 		/* Triggers global alert
 		*/
-		showAlert: PropTypes.func
+		showAlert: PropTypes.func,
+		/**
+		/* List of all available accounts
+		*/
+		accounts: PropTypes.object
 	};
 
 	state = {
@@ -281,6 +286,12 @@ class PaymentChannel extends Component {
 				return false;
 			}
 
+			const accountBalance = renderFromWei(this.props.accounts[this.props.selectedAddress].balance);
+			if (parseFloat(accountBalance) <= parseFloat(params.depositAmount)) {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.insufficient_funds'));
+				return false;
+			}
+
 			Logger.log('About to deposit', params);
 			this.depositing = true;
 			await PaymentChannelsClient.deposit(params);
@@ -288,10 +299,10 @@ class PaymentChannel extends Component {
 			this.depositing = false;
 			Logger.log('Deposit succesful');
 		} catch (e) {
-			if (e.message.indexOf('Error: Insufficient funds:') !== -1) {
-				Alert.alert(strings('paymentChannels.error', strings('paymentChannels.insufficient_funds')));
+			if (e.message === 'still_blocked') {
+				Alert.alert(strings('paymentChannels.not_ready'), strings('paymentChannels.please_wait'));
 			} else {
-				Alert.alert(strings('paymentChannels.error'), e);
+				Alert.alert(strings('paymentChannels.heads_up'), strings('paymentChannels.security_reasons'));
 				Logger.log('Deposit error', e);
 			}
 			this.depositing = false;
@@ -624,7 +635,8 @@ class PaymentChannel extends Component {
 }
 
 const mapStateToProps = state => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts
 });
 
 const mapDispatchToProps = dispatch => ({

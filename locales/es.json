@@ -848,6 +848,10 @@
 		"invalid_amount": "Monto inválido",
 		"amount_too_high": "El monto excede el máximo permitido. Prueba con un monto menor",
 		"amount_too_low": "El monto es menor al mínimo permitido. Prueba con un monto mayor",
-		"insufficient_balance": "Balance insuficiente"
+		"insufficient_balance": "Balance insuficiente",
+		"heads_up": "Aviso",
+		"security_reasons": "Por razones de seguridad deberá esperar 5 minutos antes de intentar nuevamente",
+		"not_ready": "Por favor espere",
+		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito"
 	}
 }

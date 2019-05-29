@@ -19,7 +19,12 @@ const PUBLIC_URL = 'https://daicard.io';
 const { hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
 const WEI_PER_ETHER = toBN('1000000000000000000');
-const { HUB_EXCHANGE_CEILING_TOKEN, MIN_DEPOSIT_ETH, MAX_DEPOSIT_TOKEN } = AppConstants.CONNEXT;
+const {
+	HUB_EXCHANGE_CEILING_TOKEN,
+	MIN_DEPOSIT_ETH,
+	MAX_DEPOSIT_TOKEN,
+	BLOCKED_DEPOSIT_DURATION_MINUTES
+} = AppConstants.CONNEXT;
 
 const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(toBN(HUB_EXCHANGE_CEILING_TOKEN));
 const CONNEXT_SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
@@ -61,7 +66,8 @@ class PaymentChannelsClient {
 				reset: false
 			},
 			depositPending: false,
-			withdrawalPending: false
+			withdrawalPending: false,
+			blocked: false
 		};
 	}
 
@@ -135,6 +141,12 @@ class PaymentChannelsClient {
 							});
 						});
 					} catch (e) {
+						if (!this.state.blocked) {
+							this.setState({ blocked: true });
+							setTimeout(() => {
+								this.setState({ blocked: false });
+							}, 60 * BLOCKED_DEPOSIT_DURATION_MINUTES * 1000);
+						}
 						Logger.error('ExternalWallet::sign', e);
 						throw e;
 					}
@@ -308,6 +320,9 @@ class PaymentChannelsClient {
 	}
 
 	deposit = async ({ depositAmount }) => {
+		if (this.state.blocked) {
+			throw new Error('still_blocked');
+		}
 		try {
 			const { connext } = this.state;
 			const data = {
@@ -318,6 +333,7 @@ class PaymentChannelsClient {
 			this.setState({ depositPending: true });
 		} catch (e) {
 			Logger.error('PC::deposit', e);
+			throw e;
 		}
 	};
 

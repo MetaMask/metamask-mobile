@@ -862,6 +862,10 @@
 		"invalid_amount": "Invalid amount",
 		"amount_too_high": "The amount exceeds the max. allowed. Try with a lower amount",
 		"amount_too_low": "The amount is below the min. allowed. Try with a higher amount",
-		"insufficient_balance": "Insufficient Balance"
+		"insufficient_balance": "Insufficient Balance",
+		"heads_up": "Heads up!",
+		"security_reasons": "For security reasons you'll have to wait 5 minutes before trying again",
+		"not_ready": "Not ready",
+		"please_wait": "You still need to wait a bit before making another deposit"
 	}
 }
