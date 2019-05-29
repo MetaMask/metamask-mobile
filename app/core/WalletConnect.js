@@ -267,7 +267,6 @@ class WalletConnect {
 
 const instance = {
 	async init() {
-		await AsyncStorage.removeItem('@MetaMask:walletconnectSessions');
 		const sessionData = await AsyncStorage.getItem('@MetaMask:walletconnectSessions');
 		if (sessionData) {
 			const sessions = JSON.parse(sessionData);

@@ -78,7 +78,10 @@ class ExperimentalSettings extends Component {
 		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			this.props.navigation.navigate('PaymentChannelView');
 		} else {
-			Alert.alert(strings('experimental_settings.network_not_supported'), strings('switch_network'));
+			Alert.alert(
+				strings('experimental_settings.network_not_supported'),
+				strings('experimental_settings.switch_network')
+			);
 		}
 	};
 

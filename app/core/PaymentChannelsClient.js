@@ -6,7 +6,7 @@ import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
-import { toWei, toBN, renderFromWei, weiToFiatNumber, BNToHex } from '../util/number';
+import { toWei, toBN, renderFromWei, BNToHex } from '../util/number';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
@@ -14,6 +14,7 @@ import byteArrayToHex from '../util/bytes';
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
+const PUBLIC_URL = 'https://daicard.io';
 
 const { hasPendingOps } = new Connext.Utils();
 // Constants for channel max/min - this is also enforced on the hub
@@ -74,15 +75,14 @@ class PaymentChannelsClient {
 		const { type } = provider;
 		const infuraProvider = createInfuraProvider({ network: type });
 
-		const publicUrl = 'https://daicard.io';
 		let hubUrl;
 		const ethprovider = new EthQuery(infuraProvider);
 		switch (type) {
 			case 'rinkeby':
-				hubUrl = `${publicUrl}/api/rinkeby/hub`;
+				hubUrl = `${PUBLIC_URL}/api/rinkeby/hub`;
 				break;
 			case 'mainnet':
-				hubUrl = `${publicUrl}/api/mainnet/hub`;
+				hubUrl = `${PUBLIC_URL}/api/mainnet/hub`;
 				break;
 			default:
 				throw new Error(`Unrecognized network: ${type}`);
@@ -91,7 +91,6 @@ class PaymentChannelsClient {
 		const { KeyringController, TransactionController } = Engine.context;
 		const opts = {
 			hubUrl,
-			ethUrl: 'https://eth-rinkeby.alchemyapi.io/jsonrpc/SU-VoQIQnzxwTrccH4tfjrQRTCrNiX6w',
 			externalWallet: {
 				external: true,
 				address: this.selectedAddress,
@@ -170,15 +169,6 @@ class PaymentChannelsClient {
 		return ret.toFixed(2).toString();
 	};
 
-	getExchangeRate() {
-		const { CurrencyRateController } = Engine.context;
-		const { conversionRate } = CurrencyRateController.state;
-		if (conversionRate) {
-			return weiToFiatNumber(WEI_PER_ETHER, conversionRate).toString();
-		}
-		return 0;
-	}
-
 	async pollConnextState() {
 		const { connext } = this.state;
 		// register connext listeners
@@ -190,9 +180,7 @@ class PaymentChannelsClient {
 					channelState: state.persistent.channel,
 					connextState: state,
 					runtime: state.runtime,
-					exchangeRate: state.runtime.exchangeRate
-						? state.runtime.exchangeRate.rates.DAI
-						: this.getExchangeRate()
+					exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.DAI : 0
 				});
 				this.checkStatus();
 				hub.emit('state::change', {
