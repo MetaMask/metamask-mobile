@@ -159,7 +159,7 @@ class NetworkSettings extends Component {
 		if (this.validateRpcUrl()) {
 			const url = new URL(rpcUrl);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-			CurrencyRateController.configure({ nativeCurrency: ticker });
+			CurrencyRateController.configure({ nativeCurrency: ticker.toLowerCase() });
 			PreferencesController.addToFrequentRpcList(url.href, chainId, ticker, nickname, {
 				blockExplorerUrl
 			});

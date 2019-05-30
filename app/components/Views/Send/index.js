@@ -249,7 +249,7 @@ class Send extends Component {
 		const newNetworkType = getNetworkTypeById(chainId);
 		if (newNetworkType && networkType !== newNetworkType) {
 			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.configure({ nativeCurrency: 'ETH' });
+			CurrencyRateController.configure({ nativeCurrency: 'eth' });
 			NetworkController.setProviderType(newNetworkType);
 			this.props.showAlert({
 				isVisible: true,

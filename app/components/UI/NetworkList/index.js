@@ -148,7 +148,7 @@ export class NetworkList extends Component {
 		this.props.onClose(false);
 		InteractionManager.runAfterInteractions(() => {
 			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.configure({ nativeCurrency: 'ETH' });
+			CurrencyRateController.configure({ nativeCurrency: 'eth' });
 			NetworkController.setProviderType(type);
 			setTimeout(() => {
 				Engine.refreshTransactionHistory();
@@ -169,7 +169,7 @@ export class NetworkList extends Component {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		const rpc = frequentRpcList.find(({ rpcUrl }) => rpcUrl === rpcTarget);
 		const { rpcUrl, chainId, ticker, nickname } = rpc;
-		CurrencyRateController.configure({ nativeCurrency: ticker });
+		CurrencyRateController.configure({ nativeCurrency: ticker.toLowerCase() });
 		NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
 		this.props.onClose(false);
 	};
