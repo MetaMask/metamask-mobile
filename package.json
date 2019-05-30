@@ -55,7 +55,7 @@
   "dependencies": {
     "@react-native-community/async-storage": "1.2.0",
     "@tradle/react-native-http": "2.0.1",
-    "@walletconnect/react-native": "1.0.0-beta.22",
+    "@walletconnect/react-native": "1.0.0-beta.25",
     "asyncstorage-down": "4.2.0",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
@@ -236,7 +236,7 @@
       "<rootDir>/app/util/testSetup.js"
     ],
     "transform": {
-      ".+\\.js$": "<rootDir>jest.preprocessor.js"
+      "^.+\\.js$": "<rootDir>jest.preprocessor.js"
     },
     "transformIgnorePatterns": [
       "node_modules/(?!(jest-)?react-native|@react-navigation|@react-native-community|react-navigation|react-navigation-redux-helpers)"
