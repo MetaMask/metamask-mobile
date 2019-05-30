@@ -12,8 +12,8 @@ exports[`LockScreen should render correctly 1`] = `
     style={
       Array [
         Object {
-          "height": 194,
-          "marginTop": 570,
+          "height": 175,
+          "marginTop": 579.5,
         },
         Object {
           "opacity": 1,
@@ -26,9 +26,9 @@ exports[`LockScreen should render correctly 1`] = `
         Object {
           "alignItems": "center",
           "alignSelf": "center",
-          "height": 125,
+          "height": 110,
           "justifyContent": "center",
-          "width": 125,
+          "width": 110,
         }
       }
     >
@@ -1058,9 +1058,9 @@ exports[`LockScreen should render correctly 1`] = `
           Object {
             "alignItems": "center",
             "alignSelf": "center",
-            "height": 125,
+            "height": 110,
             "justifyContent": "center",
-            "width": 125,
+            "width": 110,
           }
         }
       />
