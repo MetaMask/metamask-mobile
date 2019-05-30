@@ -304,8 +304,6 @@ export function getBrowserViewNavbarOptions(navigation) {
 		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
-	const optionsDisabled = hostname === strings('browser.title');
-
 	return {
 		headerLeft: (
 			<TouchableOpacity onPress={onPress} style={styles.backButton}>
@@ -334,8 +332,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 							onPress={() => {
 								navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
 							}}
-							style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
-							disabled={optionsDisabled}
+							style={styles.browserMoreIconAndroid}
 						>
 							<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
 						</TouchableOpacity>
