@@ -14,7 +14,7 @@ import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import TabCountIcon from '../../UI/Tabs/TabCountIcon';
-import WalletConnect from '../../../core/WalletConnect';
+import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 const HOMEPAGE_URL = 'about:blank';
@@ -304,8 +304,6 @@ export function getBrowserViewNavbarOptions(navigation) {
 		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
-	const optionsDisabled = hostname === strings('browser.title');
-
 	return {
 		headerLeft: (
 			<TouchableOpacity onPress={onPress} style={styles.backButton}>
@@ -334,8 +332,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 							onPress={() => {
 								navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
 							}}
-							style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
-							disabled={optionsDisabled}
+							style={styles.browserMoreIconAndroid}
 						>
 							<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
 						</TouchableOpacity>
@@ -449,7 +446,10 @@ export function getWalletNavbarOptions(title, navigation) {
 		if (data.target_address) {
 			navigation.navigate('SendView', { txMeta: data });
 		} else if (data.walletConnectURI) {
-			WalletConnect.newSession(data.walletConnectURI);
+			setTimeout(() => {
+				const dm = new DeeplinkManager(navigation);
+				dm.parse(data.walletConnectURI);
+			}, 500);
 		}
 	};
 
