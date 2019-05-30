@@ -16,7 +16,7 @@ import { colors } from '../../../styles/common';
  * new, existing , logged in or not
  * while showing the fox
  */
-const LOGO_SIZE = 194;
+const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
 const styles = StyleSheet.create({
 	main: {
@@ -25,8 +25,8 @@ const styles = StyleSheet.create({
 	},
 	metamaskName: {
 		marginTop: 10,
-		height: 30,
-		width: 190,
+		height: 25,
+		width: 170,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -43,15 +43,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	animation: {
-		width: 125,
-		height: 125,
+		width: 110,
+		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
 	fox: {
-		width: 125,
-		height: 125,
+		width: 110,
+		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
