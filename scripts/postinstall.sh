@@ -107,3 +107,26 @@ rm -rf node_modules/react-native-push-notification/.git
 echo "11. Fix xmlhttprequest"
 TARGET="node_modules/xmlhttprequest/lib/XMLHttpRequest.js"
 sed -i'' -e 's/var spawn /\/\/var spawn/' $TARGET;
+
+echo "12. Fix react-native-i18n"
+TARGET="node_modules/react-native-i18n/android/src/main/AndroidManifest.xml"
+sed -i'' -e 's/<uses-sdk android:minSdkVersion="16" \/>//' $TARGET;
+
+echo "13. Fix react-native 59"
+TARGET="node_modules/react-native/react.gradle"
+sed -i'' -e '50i\
+doLast {\
+	def moveFunc = { resSuffix ->\
+		File originalDir = file("$buildDir/generated/res/react/release/drawable-${resSuffix}");\
+		if (originalDir.exists()) {\
+			File destDir = file("$buildDir/../src/main/res/drawable-${resSuffix}");\
+			ant.move(file: originalDir, tofile: destDir);\
+		}\
+	}\
+	moveFunc.curry("ldpi").call()\
+	moveFunc.curry("mdpi").call()\
+	moveFunc.curry("hdpi").call()\
+	moveFunc.curry("xhdpi").call()\
+	moveFunc.curry("xxhdpi").call()\
+	moveFunc.curry("xxxhdpi").call()\
+}' $TARGET;
