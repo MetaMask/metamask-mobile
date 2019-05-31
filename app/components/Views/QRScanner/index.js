@@ -91,6 +91,7 @@ export default class QrScanner extends Component {
 		} else if (content.split('metamask-sync:').length > 1) {
 			this.shouldReadBarCode = false;
 			data = { content };
+			this.props.navigation.state.params.onStartScan(data);
 		} else if (content.split('wc:').length > 1) {
 			this.shouldReadBarCode = false;
 			data = { walletConnectURI: content };

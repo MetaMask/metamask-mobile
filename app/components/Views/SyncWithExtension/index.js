@@ -56,6 +56,7 @@ const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-not
 const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
 
 /**
+ *
  * View that initiates the sync process with
  * the MetaMask extension
  */
@@ -84,6 +85,9 @@ class SyncWithExtension extends Component {
 		 * in the redux store
 		 */
 		setLockTime: PropTypes.func,
+		/**
+		 * Selected address
+		 */
 		selectedAddress: PropTypes.string
 	};
 
@@ -141,14 +145,22 @@ class SyncWithExtension extends Component {
 
 	showQrCode = () => {
 		this.props.navigation.push('QRScanner', {
-			onScanSuccess: data => {
+			onStartScan: data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					const result = data.content.replace('metamask-sync:', '').split('|@|');
 					this.channelName = result[0];
 					this.cipherKey = result[1];
 					this.initWebsockets();
-					this.startConnection();
-					this.disconnectWebsockets();
+					this.establishConnection();
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
+					);
+				}
+			},
+			onScanSuccess: data => {
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					setTimeout(() => {
 						this.initWebsockets();
 						this.startSync();
@@ -173,9 +185,6 @@ class SyncWithExtension extends Component {
 		this.loading = true;
 		this.mounted && this.setState({ loading: true });
 
-		// We need to use ENV variables to set this
-		// And rotate keys before going opensource
-		// See https://github.com/MetaMask/MetaMask/issues/145
 		this.pubnub = new PubNub({
 			subscribeKey: SUB_KEY,
 			publishKey: PUB_KEY,
@@ -233,7 +242,7 @@ class SyncWithExtension extends Component {
 		}
 	}
 
-	startConnection() {
+	establishConnection() {
 		const { cipherKey, channelName } = this.generateCipherKeyAndChannelName();
 		this.pubnub.publish(
 			{
@@ -247,6 +256,7 @@ class SyncWithExtension extends Component {
 				storeInHistory: false
 			},
 			() => {
+				this.disconnectWebsockets();
 				this.channelName = channelName;
 				this.cipherKey = cipherKey;
 			}
