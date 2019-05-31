@@ -84,32 +84,36 @@ export default class PubNubWrapper {
 	 * channel and cipher key
 	 *
 	 * @param {string} selectedAddress - Selected address to generate cipher key with
+	 * @returns - Promise resolving with this process is finished
 	 */
 	establishConnection(selectedAddress) {
-		const { cipherKey, channelName } = this.generateCipherKeyAndChannelName(selectedAddress);
-		this.pubnub.publish(
-			{
-				message: {
-					event: 'connection-info',
-					channel: channelName,
-					cipher: cipherKey
+		return new Promise(resolve => {
+			const { cipherKey, channelName } = this.generateCipherKeyAndChannelName(selectedAddress);
+			this.pubnub.publish(
+				{
+					message: {
+						event: 'connection-info',
+						channel: channelName,
+						cipher: cipherKey
+					},
+					channel: this.channelName,
+					sendByPost: false,
+					storeInHistory: false
 				},
-				channel: this.channelName,
-				sendByPost: false,
-				storeInHistory: false
-			},
-			() => {
-				this.disconnectWebsockets();
-				this.pubnub = new PubNub({
-					subscribeKey: SUB_KEY,
-					publishKey: PUB_KEY,
-					cipherKey,
-					ssl: true
-				});
-				this.channelName = channelName;
-				this.cipherKey = cipherKey;
-			}
-		);
+				() => {
+					this.disconnectWebsockets();
+					this.pubnub = new PubNub({
+						subscribeKey: SUB_KEY,
+						publishKey: PUB_KEY,
+						cipherKey,
+						ssl: true
+					});
+					this.channelName = channelName;
+					this.cipherKey = cipherKey;
+					resolve();
+				}
+			);
+		});
 	}
 
 	/**

@@ -144,12 +144,12 @@ class SyncWithExtension extends Component {
 
 	showQrCode = () => {
 		this.props.navigation.push('QRScanner', {
-			onStartScan: data => {
+			onStartScan: async data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					const result = data.content.replace('metamask-sync:', '').split('|@|');
 					this.pubnubWrapper = new PubNubWrapper(result[0], result[1]);
 					this.initWebsockets();
-					this.pubnubWrapper.establishConnection(this.props.selectedAddress);
+					await this.pubnubWrapper.establishConnection(this.props.selectedAddress);
 				} else {
 					Alert.alert(
 						strings('sync_with_extension.invalid_qr_code'),
