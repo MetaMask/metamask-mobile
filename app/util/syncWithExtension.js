@@ -10,6 +10,12 @@ export default class PubNubWrapper {
 	cipherKey;
 	incomingDataStr = '';
 
+	generateCipherKeyAndChannelName(selectedAddress) {
+		const cipherKey = `${selectedAddress.substr(-4)}-${PubNub.generateUUID()}`;
+		const channelName = `mmm-${PubNub.generateUUID()}`;
+		return { cipherKey, channelName };
+	}
+
 	constructor(channelName, cipherKey) {
 		this.pubnub = new PubNub({
 			subscribeKey: SUB_KEY,
@@ -21,17 +27,20 @@ export default class PubNubWrapper {
 		this.channelName = channelName;
 	}
 
+	/**
+	 * Sets channelName and cipherKey to internal variables
+	 *
+	 * @param {string} channelName - Channel name to set
+	 * @param {string} cipherKey - Cipher key to set
+	 */
 	setChannelNameAndCipherKey(channelName, cipherKey) {
 		this.channelName = channelName;
 		this.cipherKey = cipherKey;
 	}
 
-	generateCipherKeyAndChannelName(selectedAddress) {
-		const cipherKey = `${selectedAddress.substr(-4)}-${PubNub.generateUUID()}`;
-		const channelName = `mmm-${PubNub.generateUUID()}`;
-		return { cipherKey, channelName };
-	}
-
+	/**
+	 * Sends through pubnub a 'start-sync' event
+	 */
 	startSync() {
 		this.pubnub.publish(
 			{
@@ -46,6 +55,11 @@ export default class PubNubWrapper {
 		);
 	}
 
+	/**
+	 * Sends through pubnub an 'end-sync' event, calling a callback after that
+	 *
+	 * @param {func} callback - Callback to be called with event
+	 */
 	async endSync(callback) {
 		this.pubnub.publish(
 			{
@@ -65,6 +79,12 @@ export default class PubNubWrapper {
 		callback();
 	}
 
+	/**
+	 * Sends through pubnub an 'connection-info' event to reconnect to ws through a different
+	 * channel and cipher key
+	 *
+	 * @param {string} selectedAddress - Selected address to generate cipher key with
+	 */
 	establishConnection(selectedAddress) {
 		const { cipherKey, channelName } = this.generateCipherKeyAndChannelName(selectedAddress);
 		this.pubnub.publish(
@@ -80,18 +100,23 @@ export default class PubNubWrapper {
 			},
 			() => {
 				this.disconnectWebsockets();
-				this.channelName = channelName;
-				this.cipherKey = cipherKey;
 				this.pubnub = new PubNub({
 					subscribeKey: SUB_KEY,
 					publishKey: PUB_KEY,
 					cipherKey,
 					ssl: true
 				});
+				this.channelName = channelName;
+				this.cipherKey = cipherKey;
 			}
 		);
 	}
 
+	/**
+	 * Adds a message listener to current pubnub object
+	 * @param {func} onErrorSync - Callback to be called in presence of an 'error-sync' event
+	 * @param {func} onSyncingData - Callback to be called in presence of an 'syncing-data' event
+	 */
 	addMessageListener(onErrorSync, onSyncingData) {
 		this.pubnub.addListener({
 			message: ({ channel, message }) => {
@@ -114,6 +139,9 @@ export default class PubNubWrapper {
 		});
 	}
 
+	/**
+	 * subscribe to current channel name
+	 */
 	subscribe() {
 		this.pubnub.subscribe({
 			channels: [this.channelName],
@@ -121,6 +149,9 @@ export default class PubNubWrapper {
 		});
 	}
 
+	/**
+	 * If pubnub oject defined, disconnect from it
+	 */
 	disconnectWebsockets() {
 		if (this.pubnub && this.pubnubListener) {
 			this.pubnub.disconnect(this.pubnubListener);
