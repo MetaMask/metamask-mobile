@@ -125,14 +125,18 @@ export default class PubNubWrapper {
 				}
 				if (message.event === 'error-sync') {
 					this.disconnectWebsockets();
-					Logger.error('Sync failed', message.data);
+					Logger.error('Sync failed', message, this.incomingDataStr);
 					onErrorSync();
 				}
 				if (message.event === 'syncing-data') {
 					this.incomingDataStr += message.data;
 					if (message.totalPkg === message.currentPkg) {
-						const data = JSON.parse(this.incomingDataStr);
-						onSyncingData(data);
+						try {
+							const data = JSON.parse(this.incomingDataStr);
+							onSyncingData(data);
+						} catch (e) {
+							Logger.error('Sync failed at parsing', e);
+						}
 					}
 				}
 			}
