@@ -83,7 +83,8 @@ class SyncWithExtension extends Component {
 		 * The action to update the locktime
 		 * in the redux store
 		 */
-		setLockTime: PropTypes.func
+		setLockTime: PropTypes.func,
+		selectedAddress: PropTypes.string
 	};
 
 	seedwords = null;
@@ -146,6 +147,12 @@ class SyncWithExtension extends Component {
 					this.channelName = result[0];
 					this.cipherKey = result[1];
 					this.initWebsockets();
+					this.startConnection();
+					this.disconnectWebsockets();
+					setTimeout(() => {
+						this.initWebsockets();
+						this.startSync();
+					}, 3000);
 				} else {
 					Alert.alert(
 						strings('sync_with_extension.invalid_qr_code'),
@@ -156,9 +163,13 @@ class SyncWithExtension extends Component {
 		});
 	};
 
-	initWebsockets() {
-		if (this.loading) return false;
+	generateCipherKeyAndChannelName() {
+		const cipherKey = `${this.props.selectedAddress.substr(-4)}-${PubNub.generateUUID()}`;
+		const channelName = `mmm-${PubNub.generateUUID()}`;
+		return { cipherKey, channelName };
+	}
 
+	initWebsockets() {
 		this.loading = true;
 		this.mounted && this.setState({ loading: true });
 
@@ -214,14 +225,32 @@ class SyncWithExtension extends Component {
 			channels: [this.channelName],
 			withPresence: false
 		});
-
-		this.startSync();
 	}
 
 	disconnectWebsockets() {
 		if (this.pubnub && this.pubnubListener) {
 			this.pubnub.disconnect(this.pubnubListener);
 		}
+	}
+
+	startConnection() {
+		const { cipherKey, channelName } = this.generateCipherKeyAndChannelName();
+		this.pubnub.publish(
+			{
+				message: {
+					event: 'connection-info',
+					channel: channelName,
+					cipher: cipherKey
+				},
+				channel: this.channelName,
+				sendByPost: false,
+				storeInHistory: false
+			},
+			() => {
+				this.channelName = channelName;
+				this.cipherKey = cipherKey;
+			}
+		);
 	}
 
 	startSync() {
