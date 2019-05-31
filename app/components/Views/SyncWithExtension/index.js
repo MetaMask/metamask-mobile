@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import SecureKeychain from '../../../core/SecureKeychain';
-import PubNub from 'pubnub';
 import { colors, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
@@ -14,6 +13,7 @@ import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
+import PubNubWrapper from '../../../util/syncWithExtension';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
 });
 
 const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
-const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
 
 /**
  *
@@ -111,7 +110,7 @@ class SyncWithExtension extends Component {
 
 	componentWillUnmount() {
 		this.mounted = false;
-		this.disconnectWebsockets();
+		this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
 	}
 
 	scanCode = () => {
@@ -148,10 +147,9 @@ class SyncWithExtension extends Component {
 			onStartScan: data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					const result = data.content.replace('metamask-sync:', '').split('|@|');
-					this.channelName = result[0];
-					this.cipherKey = result[1];
+					this.pubnubWrapper = new PubNubWrapper(result[0], result[1]);
 					this.initWebsockets();
-					this.establishConnection();
+					this.pubnubWrapper.establishConnection(this.props.selectedAddress);
 				} else {
 					Alert.alert(
 						strings('sync_with_extension.invalid_qr_code'),
@@ -163,7 +161,7 @@ class SyncWithExtension extends Component {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					setTimeout(() => {
 						this.initWebsockets();
-						this.startSync();
+						this.pubnubWrapper.startSync();
 					}, 3000);
 				} else {
 					Alert.alert(
@@ -175,125 +173,30 @@ class SyncWithExtension extends Component {
 		});
 	};
 
-	generateCipherKeyAndChannelName() {
-		const cipherKey = `${this.props.selectedAddress.substr(-4)}-${PubNub.generateUUID()}`;
-		const channelName = `mmm-${PubNub.generateUUID()}`;
-		return { cipherKey, channelName };
-	}
-
 	initWebsockets() {
 		this.loading = true;
 		this.mounted && this.setState({ loading: true });
 
-		this.pubnub = new PubNub({
-			subscribeKey: SUB_KEY,
-			publishKey: PUB_KEY,
-			cipherKey: this.cipherKey,
-			ssl: true
-		});
-
-		this.pubnubListener = this.pubnub.addListener({
-			message: ({ channel, message }) => {
-				if (channel !== this.channelName) {
-					return false;
-				}
-
-				if (!message) {
-					return false;
-				}
-
-				if (message.event === 'error-sync') {
-					this.disconnectWebsockets();
-					Logger.error('Sync failed', message.data);
-					Alert.alert(
-						strings('sync_with_extension.error_title'),
-						strings('sync_with_extension.error_message')
-					);
-					this.loading = false;
-					this.setState({ loading: false });
-					return false;
-				}
-
-				if (message.event === 'syncing-data') {
-					this.incomingDataStr += message.data;
-					if (message.totalPkg === message.currentPkg) {
-						const data = JSON.parse(this.incomingDataStr);
-						this.incomingDataStr = null;
-						const { pwd, seed } = data.udata;
-						this.password = pwd;
-						this.seedWords = seed;
-						delete data.udata;
-						this.dataToSync = { ...data };
-						this.endSync();
-					}
-				}
-			}
-		});
-
-		this.pubnub.subscribe({
-			channels: [this.channelName],
-			withPresence: false
-		});
-	}
-
-	disconnectWebsockets() {
-		if (this.pubnub && this.pubnubListener) {
-			this.pubnub.disconnect(this.pubnubListener);
-		}
-	}
-
-	establishConnection() {
-		const { cipherKey, channelName } = this.generateCipherKeyAndChannelName();
-		this.pubnub.publish(
-			{
-				message: {
-					event: 'connection-info',
-					channel: channelName,
-					cipher: cipherKey
-				},
-				channel: this.channelName,
-				sendByPost: false,
-				storeInHistory: false
-			},
+		this.pubnubWrapper.addMessageListener(
 			() => {
-				this.disconnectWebsockets();
-				this.channelName = channelName;
-				this.cipherKey = cipherKey;
+				Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
+				this.loading = false;
+				this.setState({ loading: false });
+				return false;
+			},
+			data => {
+				const { pwd, seed } = data.udata;
+				this.password = pwd;
+				this.seedWords = seed;
+				delete data.udata;
+				this.dataToSync = { ...data };
+				this.pubnubWrapper.endSync(() => this.disconnect());
 			}
 		);
+		this.pubnubWrapper.subscribe();
 	}
 
-	startSync() {
-		this.pubnub.publish(
-			{
-				message: {
-					event: 'start-sync'
-				},
-				channel: this.channelName,
-				sendByPost: false,
-				storeInHistory: false
-			},
-			null
-		);
-	}
-
-	async endSync() {
-		this.pubnub.publish(
-			{
-				message: {
-					event: 'end-sync',
-					data: { status: 'success' }
-				},
-				channel: this.channelName,
-				sendByPost: false,
-				storeInHistory: false
-			},
-			() => {
-				this.disconnectWebsockets();
-				this.complete = true;
-			}
-		);
-
+	async disconnect() {
 		let password;
 		try {
 			// If there's a password set, let's keep it
