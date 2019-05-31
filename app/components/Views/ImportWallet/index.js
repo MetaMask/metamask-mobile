@@ -171,10 +171,8 @@ class ImportWallet extends Component {
 			},
 			onScanSuccess: data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
-					setTimeout(() => {
-						this.initWebsockets();
-						this.pubnubWrapper.startSync();
-					}, 3000);
+					this.initWebsockets();
+					this.pubnubWrapper.startSync();
 				} else {
 					Alert.alert(
 						strings('sync_with_extension.invalid_qr_code'),

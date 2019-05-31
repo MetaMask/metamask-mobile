@@ -80,10 +80,10 @@ export default class QrScanner extends Component {
 			this.shouldReadBarCode = false;
 			data = { content };
 			this.props.navigation.state.params.onStartScan(data).then(() => {
-				this.mounted = false;
-				this.props.navigation.goBack();
 				this.props.navigation.state.params.onScanSuccess(data);
 			});
+			this.mounted = false;
+			this.props.navigation.goBack();
 		} else {
 			if (content.split('ethereum:').length > 1) {
 				this.shouldReadBarCode = false;
