@@ -284,9 +284,6 @@ dependencies {
     implementation project(':react-native-fs')
     implementation project(':react-native-vector-icons')
 	implementation 'com.mixpanel.android:mixpanel-android:5.+'
-    implementation "com.google.firebase:firebase-messaging:17.3.4"
-
-
 
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;

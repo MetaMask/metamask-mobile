@@ -56,7 +56,7 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 		}
     }
 
-	public JSONObject toJSONObject(ReadableMap readableMap){
+	private JSONObject toJSONObject(ReadableMap readableMap){
 
         ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
         JSONObject map = new JSONObject();
@@ -93,7 +93,7 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 
     }
 
-	public HashMap<String, Object> toHashMap(ReadableMap readableMap){
+    private HashMap<String, Object> toHashMap(ReadableMap readableMap){
 
         ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
         HashMap<String, Object> hashMap = new HashMap<>();
@@ -127,7 +127,7 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
     }
 
 
-    public ArrayList<Object> toArrayList(ReadableArray readableArray) {
+    private ArrayList<Object> toArrayList(ReadableArray readableArray) {
 
 
         ArrayList<Object> arrayList = new ArrayList<>();
