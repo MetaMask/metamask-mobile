@@ -190,7 +190,7 @@ android {
         manifestPlaceholders = [
                 MM_BRANCH_KEY_TEST: "$System.env.MM_BRANCH_KEY_TEST",
                 MM_BRANCH_KEY_LIVE: "$System.env.MM_BRANCH_KEY_LIVE",
-				MM_MIXPANEL_TOKEN: "$System.env.MM_MIXPANEL_TOKEN",
+				MM_MIXPANEL_TOKEN: "$System.env.MM_MIXPANEL_TOKEN"
         ]
 		missingDimensionStrategy 'react-native-camera', 'general'
 

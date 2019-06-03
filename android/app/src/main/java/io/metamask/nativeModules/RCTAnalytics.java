@@ -4,7 +4,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
-import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -27,8 +26,8 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
         super(reactContext);
         try{
     		ApplicationInfo ai = reactContext.getPackageManager().getApplicationInfo(reactContext.getPackageName(), PackageManager.GET_META_DATA);
-	    	String mixpanelToken = (String)ai.metaData.get("mixpanel.token");
-		    this.mixpanel =
+	    	String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
+	    	this.mixpanel =
 			    MixpanelAPI.getInstance(reactContext, mixpanelToken);
         }catch (PackageManager.NameNotFoundException e){
             Log.d("RCTAnalytics","init:token missing");
@@ -42,9 +41,10 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void trackEvent(ReadableMap e) {
+		String eventCategory = e.getString("category");
 		JSONObject props = toJSONObject(e);
-		this.mixpanel.track("Plan Selected", props);
-        Log.i("event", e.toString());
+		props.remove("category");
+		this.mixpanel.track(eventCategory, props);
     }
 
 	 @ReactMethod
