@@ -137,3 +137,6 @@ else
 		moveFunc.curry("xxxhdpi").call()\
 	}' $TARGET;
 fi
+
+echo "14. Pull git submodules"
+git submodule update --init --recursive
