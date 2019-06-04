@@ -146,8 +146,8 @@ class SyncWithExtension extends Component {
 		this.props.navigation.push('QRScanner', {
 			onStartScan: async data => {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
-					const result = data.content.replace('metamask-sync:', '').split('|@|');
-					this.pubnubWrapper = new PubNubWrapper(result[0], result[1]);
+					const [channelName, cipherKey] = data.content.replace('metamask-sync:', '').split('|@|');
+					this.pubnubWrapper = new PubNubWrapper(channelName, cipherKey);
 					this.initWebsockets();
 					await this.pubnubWrapper.establishConnection(this.props.selectedAddress);
 				} else {

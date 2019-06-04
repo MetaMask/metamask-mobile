@@ -118,6 +118,7 @@ export default class PubNubWrapper {
 
 	/**
 	 * Adds a message listener to current pubnub object
+	 *
 	 * @param {func} onErrorSync - Callback to be called in presence of an 'error-sync' event
 	 * @param {func} onSyncingData - Callback to be called in presence of an 'syncing-data' event
 	 */
@@ -148,7 +149,7 @@ export default class PubNubWrapper {
 	}
 
 	/**
-	 * subscribe to current channel name
+	 * Subscribe to current channel name
 	 */
 	subscribe() {
 		this.pubnub.subscribe({
@@ -158,7 +159,7 @@ export default class PubNubWrapper {
 	}
 
 	/**
-	 * If pubnub oject defined, disconnect from it
+	 * If pubnub object defined, disconnect from it
 	 */
 	disconnectWebsockets() {
 		if (this.pubnub && this.pubnubListener) {
