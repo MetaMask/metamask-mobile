@@ -198,21 +198,21 @@ export default {
 		return instance;
 	},
 	enable() {
-		return instance.enable();
+		return instance && instance.enable();
 	},
 	disable() {
-		return instance.disable();
+		return instance && instance.disable();
 	},
 	getEnabled() {
-		return instance.enabled;
+		return instance && instance.enabled;
 	},
 	subscribe(listener) {
-		return instance.subscribe(listener);
+		return instance && instance.subscribe(listener);
 	},
 	trackEvent(event) {
-		return instance.trackEvent(event);
+		return instance && instance.trackEvent(event);
 	},
 	trackEventWithParameters(event, parameters) {
-		return instance.trackEventWithParameters(event, parameters);
+		return instance && instance.trackEventWithParameters(event, parameters);
 	}
 };
