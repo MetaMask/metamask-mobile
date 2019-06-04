@@ -189,7 +189,8 @@ android {
 
         manifestPlaceholders = [
                 MM_BRANCH_KEY_TEST: "$System.env.MM_BRANCH_KEY_TEST",
-                MM_BRANCH_KEY_LIVE: "$System.env.MM_BRANCH_KEY_LIVE"
+                MM_BRANCH_KEY_LIVE: "$System.env.MM_BRANCH_KEY_LIVE",
+				MM_MIXPANEL_TOKEN: "$System.env.MM_MIXPANEL_TOKEN"
         ]
 		missingDimensionStrategy 'react-native-camera', 'general'
 
@@ -282,6 +283,7 @@ dependencies {
     implementation project(':react-native-randombytes')
     implementation project(':react-native-fs')
     implementation project(':react-native-vector-icons')
+	implementation 'com.mixpanel.android:mixpanel-android:5.+'
 
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
