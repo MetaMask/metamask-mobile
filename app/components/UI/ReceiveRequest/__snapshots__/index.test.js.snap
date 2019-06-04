@@ -124,10 +124,12 @@ exports[`ReceiveRequest should render correctly 1`] = `
         actionDescription="Request assets from friends"
         actionTitle="Request"
         icon={
-          <FA5iconClass
+          <IconClass
+            brand={false}
             color="#000000"
             light={false}
             name="hand-holding"
+            regular={false}
             size={30}
             solid={true}
           />
