@@ -1213,10 +1213,8 @@ export class BrowserTab extends PureComponent {
 
 		// We need to get the title of the page and the height
 		const { current } = this.webview;
-
-		Platform.OS === 'ios'
-			? current.evaluateJavaScript(JS_WINDOW_INFORMATION_HEIGHT)
-			: current.injectJavaScript(JS_WINDOW_INFORMATION_HEIGHT);
+		const js = JS_WINDOW_INFORMATION_HEIGHT(Platform.OS);
+		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
 		clearTimeout(this.timeoutHandler);
 	};
 

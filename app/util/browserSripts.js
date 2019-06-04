@@ -1,5 +1,3 @@
-import Platform from 'react-native';
-
 const getWindowInformation = `
     const shortcutIcon = window.document.querySelector('head > link[rel="shortcut icon"]');
     const icon = shortcutIcon || Array.from(window.document.querySelectorAll('head > link[rel="icon"]')).find((icon) => Boolean(icon.href));
@@ -75,11 +73,11 @@ export const JS_WINDOW_INFORMATION = `
     })();
 `;
 
-export const JS_WINDOW_INFORMATION_HEIGHT = `
+export const JS_WINDOW_INFORMATION_HEIGHT = os => `
 	(function () {
 		${getWindowInformation}
 		${
-			Platform.OS === 'ios'
+			os === 'ios'
 				? `setTimeout(() => {
                     const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
                     window.postMessageToNative(
