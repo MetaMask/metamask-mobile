@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		borderStyle: 'solid',
 		borderLeftWidth: 15,
 		borderRightWidth: 15,
-		borderBottomWidth: 10,
+		borderBottomWidth: 12,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderBottomColor: colors.blue,
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 		borderStyle: 'solid',
 		borderLeftWidth: 15,
 		borderRightWidth: 15,
-		borderTopWidth: 10,
+		borderTopWidth: 12,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderTopColor: colors.blue,
@@ -67,24 +67,29 @@ const styles = StyleSheet.create({
 	},
 	topCenter: {
 		marginBottom: 10,
+		bottom: -2,
 		alignItems: 'center'
 	},
 	topLeft: {
 		marginBottom: 10,
+		bottom: -2,
 		alignItems: 'flex-start',
 		marginLeft: 30
 	},
 	topLeftCorner: {
 		marginBottom: 10,
+		bottom: -2,
 		alignItems: 'flex-start',
 		marginLeft: 12
 	},
 	bottomCenter: {
 		marginBottom: 10,
+		top: -2,
 		alignItems: 'center'
 	},
 	bottomLeft: {
 		marginBottom: 10,
+		top: -2,
 		alignItems: 'flex-start',
 		marginLeft: 30
 	},
