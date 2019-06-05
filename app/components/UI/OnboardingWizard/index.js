@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -30,14 +30,21 @@ const styles = StyleSheet.create({
 	},
 	skipWrapper: {
 		alignItems: 'center',
+		alignSelf: 'center',
 		bottom: 30
 	},
 	skip: {
-		width: 120,
 		height: 30,
-		borderRadius: 20,
+		borderRadius: 30,
 		backgroundColor: colors.white,
 		alignItems: 'center'
+	},
+	androidElevated: {
+		width: 120,
+		borderRadius: 30
+	},
+	iosTouchable: {
+		width: 120
 	},
 	skipTextWrapper: {
 		flex: 1,
@@ -96,8 +103,14 @@ class OnboardingWizard extends Component {
 			<View style={styles.root}>
 				<View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>
 				{step !== 1 && (
-					<ElevatedView elevation={10} style={styles.skipWrapper}>
-						<TouchableOpacity style={styles.skip} onPress={this.closeOnboardingWizard}>
+					<ElevatedView
+						elevation={10}
+						style={[styles.skipWrapper, Platform.OS === 'ios' ? {} : styles.androidElevated]}
+					>
+						<TouchableOpacity
+							style={[styles.skip, Platform.OS === 'ios' ? styles.iosTouchable : {}]}
+							onPress={this.closeOnboardingWizard}
+						>
 							<View style={styles.skipTextWrapper}>
 								<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
 							</View>
