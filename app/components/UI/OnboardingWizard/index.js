@@ -14,6 +14,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
+import ElevatedView from 'react-native-elevated-view';
 
 const styles = StyleSheet.create({
 	root: {
@@ -27,14 +28,26 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.transparent
 	},
-	skip: {
-		height: 30,
+	skipWrapper: {
+		alignItems: 'center',
 		bottom: 30
+	},
+	skip: {
+		width: 120,
+		height: 30,
+		borderRadius: 20,
+		backgroundColor: colors.white,
+		alignItems: 'center'
+	},
+	skipTextWrapper: {
+		flex: 1,
+		flexDirection: 'column',
+		alignItems: 'center',
+		justifyContent: 'center'
 	},
 	skipText: {
 		...fontStyles.normal,
-		textAlign: 'center',
-		fontSize: 18,
+		fontSize: 12,
 		color: colors.blue
 	}
 });
@@ -83,9 +96,13 @@ class OnboardingWizard extends Component {
 			<View style={styles.root}>
 				<View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>
 				{step !== 1 && (
-					<TouchableOpacity style={styles.skip} onPress={this.closeOnboardingWizard}>
-						<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
-					</TouchableOpacity>
+					<ElevatedView elevation={10} style={styles.skipWrapper}>
+						<TouchableOpacity style={styles.skip} onPress={this.closeOnboardingWizard}>
+							<View style={styles.skipTextWrapper}>
+								<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
+							</View>
+						</TouchableOpacity>
+					</ElevatedView>
 				)}
 			</View>
 		);
