@@ -111,6 +111,8 @@ prebuild_ios(){
 		echo "" > ios/debug.xcconfig
 		echo "" > ios/release.xcconfig
 	fi
+	# Required to install mixpanel dep
+	git submodule update --init --recursive
 }
 
 prebuild_android(){
