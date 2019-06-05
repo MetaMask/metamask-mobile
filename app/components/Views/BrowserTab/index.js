@@ -1314,7 +1314,7 @@ export class BrowserTab extends PureComponent {
 	handleScroll = e => {
 		if (Platform.OS === 'android') return;
 
-		if (e.contentSize.height < Dimensions.get('window').height) {
+		if (e.contentSize.height < Dimensions.get('window').height - BOTTOM_NAVBAR_HEIGHT) {
 			return;
 		}
 
@@ -1326,6 +1326,11 @@ export class BrowserTab extends PureComponent {
 
 		// Avoid wrong position at the beginning
 		if ((this.state.scrollAnim._value === 0 && newOffset > BOTTOM_NAVBAR_HEIGHT) || newOffset <= 0) {
+			return;
+		}
+
+		// Avoid blocking bottom content
+		if (this.state.contentHeight - e.layoutMeasurement.height - newOffset < BOTTOM_NAVBAR_HEIGHT) {
 			return;
 		}
 
