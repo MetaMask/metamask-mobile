@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: Platform.OS === 'ios' ? 90 : 60
+		top: Platform.OS === 'ios' ? '10%' : '8%'
 	}
 });
 

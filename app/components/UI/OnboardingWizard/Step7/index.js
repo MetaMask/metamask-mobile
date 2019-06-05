@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: Platform.OS === 'ios' ? 140 : 100,
+		top: Platform.OS === 'ios' ? '17%' : '15%',
 		marginHorizontal: 45
 	}
 });
