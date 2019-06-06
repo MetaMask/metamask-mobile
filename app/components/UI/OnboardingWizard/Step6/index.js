@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -16,7 +16,6 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: Platform.OS === 'ios' ? '19%' : '16%',
 		marginHorizontal: 45
 	}
 });
@@ -30,16 +29,36 @@ class Step6 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
+		coachmarkRef: PropTypes.object
 	};
 
 	state = {
-		ready: false
+		ready: false,
+		coachmarkTop: 0
 	};
 
 	componentDidMount() {
 		this.setState({ ready: true });
 	}
+
+	componentDidUpdate() {
+		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.searchWrapperRef);
+	}
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy, width, height) => {
+				this.setState({ coachmarkTop: fy + height });
+			});
+	};
 
 	/**
 	 * Dispatches 'setOnboardingWizardStep' with next step
@@ -73,7 +92,7 @@ class Step6 extends Component {
 		if (!ready) return null;
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step6.title')}
 						content={this.content()}

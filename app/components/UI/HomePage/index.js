@@ -212,7 +212,11 @@ class HomePage extends Component {
 		/**
 		 * Default search engine
 		 */
-		searchEngine: PropTypes.string
+		searchEngine: PropTypes.string,
+		/**
+		 * Used to get child ref
+		 */
+		onRef: PropTypes.func
 	};
 
 	state = {
@@ -224,6 +228,7 @@ class HomePage extends Component {
 
 	searchInput = React.createRef();
 	scrollView = React.createRef();
+	searchWrapperRef = React.createRef();
 
 	actionSheet = null;
 
@@ -256,6 +261,7 @@ class HomePage extends Component {
 			setTimeout(() => {
 				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
+		this.props.onRef = this.props.onRef(this);
 	};
 
 	componentWillUnmount() {
@@ -330,7 +336,7 @@ class HomePage extends Component {
 						accesible={false}
 					>
 						<View style={styles.flex}>
-							<View style={styles.searchWrapper}>
+							<View style={styles.searchWrapper} ref={this.searchWrapperRef}>
 								<TextInput
 									style={[
 										styles.searchInput,

@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import HomePage from '../../UI/HomePage';
 import onUrlSubmit from '../../../util/browser';
+import { View } from 'react-native';
+import { baseStyles } from '../../../styles/common';
+import OnboardingWizard from '../../UI/OnboardingWizard';
 
 /**
  * Complete Web browser component with URL entry and history management
@@ -32,12 +35,18 @@ class BrowserHome extends Component {
 		/**
 		 * Time to auto-lock the app after it goes in background mode
 		 */
-		goToUrl: PropTypes.func
+		goToUrl: PropTypes.func,
+		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number
 	};
 
 	state = {
 		url: this.props.defaultURL || ''
 	};
+
+	homepageRef = React.createRef();
 
 	mounted = false;
 	lockTimer = null;
@@ -63,13 +72,36 @@ class BrowserHome extends Component {
 		await this.go(sanitizedInput);
 	};
 
+	/**
+	 * Return current step of onboarding wizard if not step 5 nor 0
+	 */
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		return (
+			[6, 7].includes(wizardStep) && (
+				<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.homepageRef} />
+			)
+		);
+	};
+
 	render = () => (
-		<HomePage goTo={this.go} onInitialUrlSubmit={this.onInitialUrlSubmit} navigation={this.props.navigation} />
+		<View style={baseStyles.flexGrow}>
+			<HomePage
+				goTo={this.go}
+				onInitialUrlSubmit={this.onInitialUrlSubmit}
+				navigation={this.props.navigation}
+				onRef={ref => {
+					this.homepageRef = ref;
+				}}
+			/>
+			{this.renderOnboardingWizard()}
+		</View>
 	);
 }
 
 const mapStateToProps = state => ({
-	searchEngine: state.settings.searchEngine
+	searchEngine: state.settings.searchEngine,
+	wizardStep: state.wizard.step
 });
 
 export default connect(mapStateToProps)(BrowserHome);
