@@ -168,6 +168,7 @@ class PaymentChannelsClient {
 			});
 		} catch (e) {
 			Logger.error('PC::createClient', e);
+			throw e;
 		}
 	}
 
@@ -411,9 +412,13 @@ const instance = {
 		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
 			client = new PaymentChannelsClient(address);
-			await client.setConnext(provider);
-			await client.pollConnextState();
-			await client.pollAndSwap();
+			try {
+				await client.setConnext(provider);
+				await client.pollConnextState();
+				await client.pollAndSwap();
+			} catch (e) {
+				Logger.error('Connext:init', e);
+			}
 		}
 	},
 	/**
