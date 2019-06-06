@@ -112,7 +112,7 @@ class OnboardingWizard extends Component {
 		const steps = {
 			1: <Step1 onClose={this.closeOnboardingWizard} />,
 			2: <Step2 coachmarkRef={this.props.coachmarkRef} />,
-			3: <Step3 />,
+			3: <Step3 coachmarkRef={this.props.coachmarkRef} />,
 			4: <Step4 navigation={this.props.navigation} />,
 			5: <Step5 navigation={this.props.navigation} coachmarkTop={this.state.coachmarkTop} />,
 			6: <Step6 navigation={this.props.navigation} />,

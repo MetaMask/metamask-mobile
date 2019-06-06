@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -9,6 +9,8 @@ import { renderAccountName } from '../../../../util/address';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+
+const INDICATOR_HEIGHT = 10;
 
 const styles = StyleSheet.create({
 	main: {
@@ -25,7 +27,6 @@ const styles = StyleSheet.create({
 	},
 	accountLabelContainer: {
 		alignItems: 'center',
-		marginTop: Platform.OS === 'ios' ? 88 : 57,
 		backgroundColor: colors.white
 	}
 });
@@ -51,7 +52,11 @@ class Step3 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
+		coachmarkRef: PropTypes.object
 	};
 
 	state = {
@@ -60,8 +65,6 @@ class Step3 extends Component {
 		coachmarkTop: 0
 	};
 
-	accountOverviewRef = React.createRef();
-
 	/**
 	 * Sets corresponding account label
 	 */
@@ -69,13 +72,7 @@ class Step3 extends Component {
 		const { identities, selectedAddress } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
-	};
-
-	/**
-	 * Updates coachmark position if not set
-	 */
-	componentDidUpdate = () => {
-		this.state.coachmarkTop === 0 && this.getPosition(this.accountOverviewRef.editableLabelRef);
+		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.editableLabelRef);
 	};
 
 	/**
@@ -84,8 +81,8 @@ class Step3 extends Component {
 	getPosition = ref => {
 		ref &&
 			ref.current &&
-			ref.current.measure((a, b, width, height, px, py) => {
-				this.setState({ coachmarkTop: height + py });
+			ref.current.measure((fx, fy) => {
+				this.setState({ coachmarkTop: 2 * fy + INDICATOR_HEIGHT });
 			});
 	};
 
@@ -132,12 +129,7 @@ class Step3 extends Component {
 		return (
 			<View style={styles.main}>
 				<View style={styles.accountLabelContainer}>
-					<AccountOverview
-						onRef={this.getAccountOverviewRef}
-						account={account}
-						currentCurrency={currentCurrency}
-						onboardingWizard
-					/>
+					<AccountOverview account={account} currentCurrency={currentCurrency} onboardingWizard />
 				</View>
 
 				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>

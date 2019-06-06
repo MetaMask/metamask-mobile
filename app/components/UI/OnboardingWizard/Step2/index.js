@@ -28,6 +28,9 @@ class Step2 extends Component {
 		 * Dispatch set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
 		coachmarkRef: PropTypes.object
 	};
 
