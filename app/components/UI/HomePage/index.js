@@ -229,6 +229,7 @@ class HomePage extends Component {
 	searchInput = React.createRef();
 	scrollView = React.createRef();
 	searchWrapperRef = React.createRef();
+	homePageContentRef = React.createRef();
 
 	actionSheet = null;
 
@@ -362,7 +363,7 @@ class HomePage extends Component {
 									style={styles.searchIcon}
 								/>
 							</View>
-							<View style={styles.homePageContent}>
+							<View style={styles.homePageContent} ref={this.homePageContentRef}>
 								<View style={styles.topBarWrapper}>
 									<View style={styles.foxWrapper}>
 										<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />

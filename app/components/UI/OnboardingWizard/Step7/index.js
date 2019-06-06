@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+
+const INDICATOR_HEIGHT = 10;
 
 const styles = StyleSheet.create({
 	main: {
@@ -16,7 +18,6 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: Platform.OS === 'ios' ? '17%' : '15%',
 		marginHorizontal: 45
 	}
 });
@@ -30,7 +31,30 @@ class Step7 extends Component {
 		/**
 		 * Callback to call when closing
 		 */
-		onClose: PropTypes.func
+		onClose: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
+		coachmarkRef: PropTypes.object
+	};
+
+	state = {
+		coachmarkTop: 0
+	};
+
+	componentDidMount() {
+		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.homePageContentRef);
+	}
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy) => {
+				this.setState({ coachmarkTop: fy - 2 * INDICATOR_HEIGHT });
+			});
 	};
 
 	/**
@@ -61,7 +85,7 @@ class Step7 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step7.title')}
 						content={this.content()}
