@@ -35,7 +35,7 @@ exports[`Step3 should render correctly 1`] = `
         "left": 0,
         "position": "absolute",
         "right": 0,
-        "top": 210,
+        "top": "27%",
       }
     }
   >
@@ -60,7 +60,7 @@ exports[`Step3 should render correctly 1`] = `
               }
             }
           >
-            'Account 1' isn't that catchy. So why not name your account something a little more memorable.
+            Why not give your account a memorable and distinct name?
           </Text>
           <Text
             style={
