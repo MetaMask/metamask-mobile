@@ -74,7 +74,7 @@ class OnboardingWizard extends Component {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * Position top
+		 * Coachmark ref to get position
 		 */
 		coachmarkRef: PropTypes.object
 	};
@@ -111,7 +111,7 @@ class OnboardingWizard extends Component {
 	onboardingWizardNavigator = step => {
 		const steps = {
 			1: <Step1 onClose={this.closeOnboardingWizard} />,
-			2: <Step2 />,
+			2: <Step2 coachmarkRef={this.props.coachmarkRef} />,
 			3: <Step3 />,
 			4: <Step4 navigation={this.props.navigation} />,
 			5: <Step5 navigation={this.props.navigation} coachmarkTop={this.state.coachmarkTop} />,

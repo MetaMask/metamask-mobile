@@ -18,8 +18,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0,
-		top: '35%'
+		right: 0
 	}
 });
 
@@ -28,7 +27,27 @@ class Step2 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		coachmarkRef: PropTypes.object
+	};
+
+	state = {
+		coachmarkTop: 0
+	};
+
+	componentDidMount = () => {
+		this.getPosition(this.props.coachmarkRef.main);
+	};
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy, width, height) => {
+				this.setState({ coachmarkTop: height + fy });
+			});
 	};
 
 	/**
@@ -60,7 +79,7 @@ class Step2 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step2.title')}
 						content={this.content()}

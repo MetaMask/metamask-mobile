@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
@@ -16,6 +16,7 @@ import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
+import OnboardingWizard from '../../UI/OnboardingWizard';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -100,12 +101,18 @@ class Wallet extends Component {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number
 	};
 
 	state = {
 		refreshing: false
 	};
+
+	accountOverviewRef = React.createRef();
 
 	mounted = false;
 
@@ -214,6 +221,9 @@ class Wallet extends Component {
 					navigation={navigation}
 					showAlert={showAlert}
 					currentCurrency={currentCurrency}
+					onRef={ref => {
+						this.accountOverviewRef = ref;
+					}}
 				/>
 				<ScrollableTabView
 					renderTabBar={this.renderTabBar}
@@ -248,14 +258,30 @@ class Wallet extends Component {
 		);
 	}
 
+	/**
+	 * Return current step of onboarding wizard if not step 5 nor 0
+	 */
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		return (
+			wizardStep !== 5 &&
+			wizardStep > 0 && (
+				<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.accountOverviewRef} />
+			)
+		);
+	};
+
 	render = () => (
-		<ScrollView
-			style={styles.wrapper}
-			testID={'wallet-screen'}
-			refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-		>
-			{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
-		</ScrollView>
+		<View style={baseStyles.flexGrow}>
+			<ScrollView
+				style={styles.wrapper}
+				testID={'wallet-screen'}
+				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+			>
+				{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}
+			</ScrollView>
+			{this.renderOnboardingWizard()}
+		</View>
 	);
 }
 
@@ -271,7 +297,8 @@ const mapStateToProps = state => ({
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	primaryCurrency: state.settings.primaryCurrency,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	wizardStep: state.wizard.step
 });
 
 const mapDispatchToProps = dispatch => ({

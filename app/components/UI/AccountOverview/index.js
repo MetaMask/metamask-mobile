@@ -123,6 +123,7 @@ class AccountOverview extends Component {
 	};
 
 	editableLabelRef = React.createRef();
+	main = React.createRef();
 
 	animatingAccountsModal = false;
 
@@ -204,7 +205,7 @@ class AccountOverview extends Component {
 				contentContainerStyle={styles.wrapper}
 				testID={'account-overview'}
 			>
-				<View style={styles.info}>
+				<View style={styles.info} ref={this.main}>
 					<TouchableOpacity
 						style={styles.identiconBorder}
 						disabled={onboardingWizard}
