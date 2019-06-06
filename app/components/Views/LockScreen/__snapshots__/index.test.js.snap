@@ -73,7 +73,7 @@ exports[`LockScreen should render correctly 1`] = `
                           Object {
                             "e": Array [
                               562.688,
-                              730.992,
+                              626.992,
                               0,
                             ],
                             "i": Object {
@@ -97,7 +97,7 @@ exports[`LockScreen should render correctly 1`] = `
                             ],
                             "to": Array [
                               0,
-                              -20,
+                              -37.333,
                               0,
                             ],
                           },
@@ -117,13 +117,13 @@ exports[`LockScreen should render correctly 1`] = `
                             },
                             "s": Array [
                               562.688,
-                              730.992,
+                              626.992,
                               0,
                             ],
                             "t": 12,
                             "ti": Array [
                               0,
-                              -20,
+                              -37.333,
                               0,
                             ],
                             "to": Array [
@@ -424,7 +424,7 @@ exports[`LockScreen should render correctly 1`] = `
                                       ],
                                     },
                                   ],
-                                  "t": 10,
+                                  "t": 7,
                                 },
                                 Object {
                                   "t": 12,
@@ -546,7 +546,7 @@ exports[`LockScreen should render correctly 1`] = `
                           Object {
                             "e": Array [
                               562.688,
-                              730.992,
+                              626.992,
                               0,
                             ],
                             "i": Object {
@@ -570,7 +570,7 @@ exports[`LockScreen should render correctly 1`] = `
                             ],
                             "to": Array [
                               0,
-                              -20,
+                              -37.333,
                               0,
                             ],
                           },
@@ -590,13 +590,13 @@ exports[`LockScreen should render correctly 1`] = `
                             },
                             "s": Array [
                               562.688,
-                              730.992,
+                              626.992,
                               0,
                             ],
                             "t": 12,
                             "ti": Array [
                               0,
-                              -20,
+                              -37.333,
                               0,
                             ],
                             "to": Array [
@@ -945,7 +945,7 @@ exports[`LockScreen should render correctly 1`] = `
                       },
                       "o": Object {
                         "x": Array [
-                          0.064,
+                          0.135,
                         ],
                         "y": Array [
                           0,
@@ -962,7 +962,7 @@ exports[`LockScreen should render correctly 1`] = `
                       ],
                       "i": Object {
                         "x": Array [
-                          1,
+                          0.928,
                         ],
                         "y": Array [
                           1,
