@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Text, View, StyleSheet } from 'react-native';
+import { Platform, Text, View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -75,14 +75,20 @@ class Step3 extends Component {
 		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.editableLabelRef);
 	};
 
+	componentDidUpdate = () => {
+		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.editableLabelRef);
+	};
+
 	/**
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
 	getPosition = ref => {
 		ref &&
 			ref.current &&
-			ref.current.measure((fx, fy) => {
-				this.setState({ coachmarkTop: 2 * fy + INDICATOR_HEIGHT });
+			ref.current.measure((fx, fy, width, height, px, py) => {
+				this.setState({
+					coachmarkTop: Platform.os === 'ios' ? 2 * fy + INDICATOR_HEIGHT : py - INDICATOR_HEIGHT
+				});
 			});
 	};
 
