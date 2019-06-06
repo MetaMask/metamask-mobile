@@ -109,7 +109,11 @@ class AccountOverview extends Component {
 		/**
 		 * whether component is being rendered from onboarding wizard
 		 */
-		onboardingWizard: PropTypes.bool
+		onboardingWizard: PropTypes.bool,
+		/**
+		 * Used to get child ref
+		 */
+		onRef: PropTypes.func
 	};
 
 	state = {
@@ -117,6 +121,8 @@ class AccountOverview extends Component {
 		accountLabel: '',
 		originalAccountLabel: ''
 	};
+
+	editableLabelRef = React.createRef();
 
 	animatingAccountsModal = false;
 
@@ -134,9 +140,10 @@ class AccountOverview extends Component {
 	input = React.createRef();
 
 	componentDidMount = () => {
-		const { identities, selectedAddress } = this.props;
+		const { identities, selectedAddress, onRef } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
+		onRef && onRef(this);
 	};
 
 	setAccountLabel = () => {
@@ -205,7 +212,7 @@ class AccountOverview extends Component {
 					>
 						<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
 					</TouchableOpacity>
-					<View style={styles.data}>
+					<View ref={this.editableLabelRef} style={styles.data}>
 						{accountLabelEditable ? (
 							<TextInput
 								style={[

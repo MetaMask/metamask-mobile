@@ -21,8 +21,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0,
-		top: Platform.OS === 'ios' ? '27%' : '25%'
+		right: 0
 	},
 	accountLabelContainer: {
 		alignItems: 'center',
@@ -57,8 +56,11 @@ class Step3 extends Component {
 
 	state = {
 		accountLabel: '',
-		accountLabelEditable: false
+		accountLabelEditable: false,
+		coachmarkTop: 0
 	};
+
+	accountOverviewRef = React.createRef();
 
 	/**
 	 * Sets corresponding account label
@@ -67,6 +69,24 @@ class Step3 extends Component {
 		const { identities, selectedAddress } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
+	};
+
+	/**
+	 * Updates coachmark position if not set
+	 */
+	componentDidUpdate = () => {
+		this.state.coachmarkTop === 0 && this.getPosition(this.accountOverviewRef.editableLabelRef);
+	};
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((a, b, width, height, px, py) => {
+				this.setState({ coachmarkTop: height + py });
+			});
 	};
 
 	/**
@@ -83,6 +103,13 @@ class Step3 extends Component {
 	onBack = () => {
 		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(2);
+	};
+
+	/**
+	 * Get account overview component child ref
+	 */
+	getAccountOverviewRef = ref => {
+		this.accountOverviewRef = ref;
 	};
 
 	/**
@@ -105,10 +132,15 @@ class Step3 extends Component {
 		return (
 			<View style={styles.main}>
 				<View style={styles.accountLabelContainer}>
-					<AccountOverview account={account} currentCurrency={currentCurrency} onboardingWizard />
+					<AccountOverview
+						onRef={this.getAccountOverviewRef}
+						account={account}
+						currentCurrency={currentCurrency}
+						onboardingWizard
+					/>
 				</View>
 
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step3.title')}
 						content={this.content()}
