@@ -22,8 +22,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0,
-		top: '51%'
+		right: 0
 	}
 });
 
@@ -36,7 +35,11 @@ class Step5 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Position top
+		 */
+		coachmarkTop: PropTypes.number
 	};
 
 	/**
@@ -76,7 +79,7 @@ class Step5 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.props.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step5.title')}
 						content={this.content()}

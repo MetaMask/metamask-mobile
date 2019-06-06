@@ -72,7 +72,19 @@ class OnboardingWizard extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Position top
+		 */
+		coachmarkRef: PropTypes.object
+	};
+
+	state = {
+		coachmarkTop: 0
+	};
+
+	componentDidMount = () => {
+		this.getPosition(this.props.coachmarkRef);
 	};
 
 	/**
@@ -85,14 +97,28 @@ class OnboardingWizard extends Component {
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 	};
 
-	onboardingWizardNavigator = {
-		1: <Step1 onClose={this.closeOnboardingWizard} />,
-		2: <Step2 />,
-		3: <Step3 />,
-		4: <Step4 navigation={this.props.navigation} />,
-		5: <Step5 navigation={this.props.navigation} />,
-		6: <Step6 navigation={this.props.navigation} />,
-		7: <Step7 onClose={this.closeOnboardingWizard} />
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((a, b, width, height, px, py) => {
+				this.setState({ coachmarkTop: height / 2 + py });
+			});
+	};
+
+	onboardingWizardNavigator = step => {
+		const steps = {
+			1: <Step1 onClose={this.closeOnboardingWizard} />,
+			2: <Step2 />,
+			3: <Step3 />,
+			4: <Step4 navigation={this.props.navigation} />,
+			5: <Step5 navigation={this.props.navigation} coachmarkTop={this.state.coachmarkTop} />,
+			6: <Step6 navigation={this.props.navigation} />,
+			7: <Step7 onClose={this.closeOnboardingWizard} />
+		};
+		return steps[step];
 	};
 
 	render() {
@@ -101,7 +127,7 @@ class OnboardingWizard extends Component {
 		} = this.props;
 		return (
 			<View style={styles.root}>
-				<View style={styles.main}>{this.onboardingWizardNavigator[step]}</View>
+				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
 				{step !== 1 && (
 					<ElevatedView
 						elevation={10}

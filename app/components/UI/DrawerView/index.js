@@ -370,6 +370,8 @@ class DrawerView extends Component {
 		showSecureWalletModal: false
 	};
 
+	browserSectionRef = React.createRef();
+
 	currentBalance = null;
 	previousBalance = null;
 	processedNewBalance = false;
@@ -790,7 +792,7 @@ class DrawerView extends Component {
 					transparent
 					style={[styles.onboardingContainer, { backgroundColor: colors.transparent }]}
 				>
-					<OnboardingWizard navigation={this.props.navigation} />
+					<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
 				</Modal>
 			)
 		);
@@ -905,6 +907,7 @@ class DrawerView extends Component {
 													? styles.selectedRoute
 													: null
 											]}
+											ref={item.name === strings('drawer.browser') && this.browserSectionRef}
 											onPress={() => item.action()} // eslint-disable-line
 										>
 											{item.icon
