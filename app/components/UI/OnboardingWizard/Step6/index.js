@@ -44,7 +44,10 @@ class Step6 extends Component {
 	};
 
 	componentDidMount() {
-		this.setState({ ready: true });
+		setTimeout(() => {
+			this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.searchWrapperRef);
+			this.setState({ ready: true });
+		}, 100);
 	}
 
 	componentDidUpdate() {
