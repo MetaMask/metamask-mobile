@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	moreIcon: {
-		marginRight: 15,
 		marginTop: 5
 	},
 	flex: {
@@ -94,14 +93,22 @@ const styles = StyleSheet.create({
 	},
 	browserRightButtonAndroid: {
 		flex: 1,
-		width: 95,
+		width: 112,
 		flexDirection: 'row'
 	},
 	browserRightButton: {
 		flex: 1
 	},
 	browserMoreIconAndroid: {
-		paddingTop: 10
+		alignItems: 'center',
+		width: 36,
+		paddingTop: 10,
+		marginLeft: -7
+	},
+	tabIconAndroidWrapper: {
+		alignItems: 'center',
+		width: 36,
+		marginLeft: 5
 	},
 	disabled: {
 		opacity: 0.3
@@ -113,7 +120,7 @@ const styles = StyleSheet.create({
 	},
 	tabIconAndroid: {
 		marginTop: 13,
-		marginLeft: -10,
+		marginLeft: 0,
 		marginRight: 3,
 		width: 24,
 		height: 24
@@ -320,13 +327,16 @@ export function getBrowserViewNavbarOptions(navigation) {
 				<AccountRightButton />
 				{Platform.OS === 'android' ? (
 					<React.Fragment>
-						<TabCountIcon
+						<TouchableOpacity
 							// eslint-disable-next-line
 							onPress={() => {
 								navigation.navigate('BrowserView', { ...navigation.state.params, showTabs: true });
 							}}
-							style={styles.tabIconAndroid}
-						/>
+							style={styles.tabIconAndroidWrapper}
+						>
+							<TabCountIcon style={styles.tabIconAndroid} />
+						</TouchableOpacity>
+
 						<TouchableOpacity
 							// eslint-disable-next-line
 							onPress={() => {
