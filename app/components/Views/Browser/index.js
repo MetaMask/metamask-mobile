@@ -86,7 +86,7 @@ class Browser extends PureComponent {
 					initialUrl: tab.url || 'about:blank',
 					updateTabInfo: (url, tabID) => this.updateTabInfo(url, tabID),
 					showTabs: () => this.showTabs(),
-					newTab: () => this.newTab()
+					newTab: url => this.newTab(url)
 				});
 			}
 		});
@@ -132,8 +132,8 @@ class Browser extends PureComponent {
 		}
 	};
 
-	newTab = () => {
-		this.props.createNewTab('about:blank');
+	newTab = url => {
+		this.props.createNewTab(url || 'about:blank');
 		setTimeout(() => {
 			const { tabs } = this.props;
 			this.switchToTab(tabs[tabs.length - 1]);

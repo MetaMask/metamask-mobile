@@ -191,7 +191,11 @@ class AccountInput extends Component {
 			this.ens = new ENS({ provider, network });
 		}
 		if (ensRecipient) {
-			this.setState({ value: ensRecipient, ensRecipient, address });
+			this.setState({ value: ensRecipient, ensRecipient, address }, () => {
+				// If we have an ENS name predefined
+				// We need to resolve it
+				this.onBlur();
+			});
 		} else if (address) {
 			this.setState({ value: address, address });
 		}
