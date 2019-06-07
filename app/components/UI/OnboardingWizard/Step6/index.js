@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+
+const INDICATOR_HEIGHT = 10;
 
 const styles = StyleSheet.create({
 	main: {
@@ -55,8 +57,9 @@ class Step6 extends Component {
 	getPosition = ref => {
 		ref &&
 			ref.current &&
-			ref.current.measure((fx, fy, width, height) => {
-				this.setState({ coachmarkTop: fy + height });
+			ref.current.measure((ox, oy, width, height) => {
+				const coachmarkTop = Platform.OS === 'ios' ? oy + height : height + INDICATOR_HEIGHT;
+				height && this.setState({ coachmarkTop });
 			});
 	};
 

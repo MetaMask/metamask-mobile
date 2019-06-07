@@ -13,7 +13,7 @@ import {
 	View,
 	ScrollView
 } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -230,6 +230,7 @@ class HomePage extends Component {
 	scrollView = React.createRef();
 	searchWrapperRef = React.createRef();
 	homePageContentRef = React.createRef();
+	main = React.createRef();
 
 	actionSheet = null;
 
@@ -262,7 +263,7 @@ class HomePage extends Component {
 			setTimeout(() => {
 				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
-		this.props.onRef = this.props.onRef(this);
+		this.props.onRef && this.props.onRef(this);
 	};
 
 	componentWillUnmount() {
@@ -329,7 +330,7 @@ class HomePage extends Component {
 
 	render() {
 		return (
-			<View style={styles.flex}>
+			<View style={styles.flex} ref={this.main}>
 				<ScrollView style={styles.flex} contentContainerStyle={styles.paddingBottom} ref={this.scrollView}>
 					<TouchableWithoutFeedback
 						style={styles.flex}
@@ -337,7 +338,7 @@ class HomePage extends Component {
 						accesible={false}
 					>
 						<View style={styles.flex}>
-							<View style={styles.searchWrapper} ref={this.searchWrapperRef}>
+							<View style={styles.searchWrapper} ref={this.searchWrapperRef} collapsable={false}>
 								<TextInput
 									style={[
 										styles.searchInput,
@@ -363,7 +364,7 @@ class HomePage extends Component {
 									style={styles.searchIcon}
 								/>
 							</View>
-							<View style={styles.homePageContent} ref={this.homePageContentRef}>
+							<View style={styles.homePageContent} ref={this.homePageContentRef} collapsable={false}>
 								<View style={styles.topBarWrapper}>
 									<View style={styles.foxWrapper}>
 										<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
@@ -388,28 +389,30 @@ class HomePage extends Component {
 								</View>
 							</View>
 
-							<ScrollableTabView
-								renderTabBar={this.renderTabBar}
-								// eslint-disable-next-line react/jsx-no-bind
-								onChangeTab={obj => this.handleTabHeight(obj)}
-								style={this.state.tabViewStyle}
-							>
-								<BrowserFeatured
-									tabLabel={strings('browser.featured_dapps')}
-									goTo={this.props.goTo}
-									// eslint-disable-next-line react/no-string-refs
-									ref={'featuredTab'}
-								/>
-								<BrowserFavorites
-									tabLabel={strings('browser.my_favorites')}
-									goTo={this.props.goTo}
-									// eslint-disable-next-line react/no-string-refs
-									ref={'favoritesTab'}
-									navigation={this.props.navigation}
-									removeBookmark={this.props.removeBookmark}
-									bookmarks={this.props.bookmarks}
-								/>
-							</ScrollableTabView>
+							<View style={baseStyles.flexGrow} ref={this.homePageContentRef} collapsable={false}>
+								<ScrollableTabView
+									renderTabBar={this.renderTabBar}
+									// eslint-disable-next-line react/jsx-no-bind
+									onChangeTab={obj => this.handleTabHeight(obj)}
+									style={this.state.tabViewStyle}
+								>
+									<BrowserFeatured
+										tabLabel={strings('browser.featured_dapps')}
+										goTo={this.props.goTo}
+										// eslint-disable-next-line react/no-string-refs
+										ref={'featuredTab'}
+									/>
+									<BrowserFavorites
+										tabLabel={strings('browser.my_favorites')}
+										goTo={this.props.goTo}
+										// eslint-disable-next-line react/no-string-refs
+										ref={'favoritesTab'}
+										navigation={this.props.navigation}
+										removeBookmark={this.props.removeBookmark}
+										bookmarks={this.props.bookmarks}
+									/>
+								</ScrollableTabView>
+							</View>
 						</View>
 					</TouchableWithoutFeedback>
 				</ScrollView>

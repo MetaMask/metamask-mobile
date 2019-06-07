@@ -46,8 +46,6 @@ class BrowserHome extends Component {
 		url: this.props.defaultURL || ''
 	};
 
-	homepageRef = React.createRef();
-
 	mounted = false;
 	lockTimer = null;
 
@@ -84,15 +82,17 @@ class BrowserHome extends Component {
 		);
 	};
 
+	onRef = ref => {
+		this.homepageRef = ref;
+	};
+
 	render = () => (
 		<View style={baseStyles.flexGrow}>
 			<HomePage
 				goTo={this.go}
 				onInitialUrlSubmit={this.onInitialUrlSubmit}
 				navigation={this.props.navigation}
-				onRef={ref => {
-					this.homepageRef = ref;
-				}}
+				onRef={this.onRef}
 			/>
 			{this.renderOnboardingWizard()}
 		</View>

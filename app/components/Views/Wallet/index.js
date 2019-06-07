@@ -174,6 +174,10 @@ class Wallet extends Component {
 		});
 	};
 
+	onRef = ref => {
+		this.accountOverviewRef = ref;
+	};
+
 	renderContent() {
 		const {
 			accounts,
@@ -221,9 +225,7 @@ class Wallet extends Component {
 					navigation={navigation}
 					showAlert={showAlert}
 					currentCurrency={currentCurrency}
-					onRef={ref => {
-						this.accountOverviewRef = ref;
-					}}
+					onRef={this.onRef}
 				/>
 				<ScrollableTabView
 					renderTabBar={this.renderTabBar}
@@ -264,8 +266,7 @@ class Wallet extends Component {
 	renderOnboardingWizard = () => {
 		const { wizardStep } = this.props;
 		return (
-			wizardStep !== 5 &&
-			wizardStep > 0 && (
+			[1, 2, 3, 4].includes(wizardStep) && (
 				<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.accountOverviewRef} />
 			)
 		);

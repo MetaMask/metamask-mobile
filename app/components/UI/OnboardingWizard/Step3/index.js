@@ -86,8 +86,9 @@ class Step3 extends Component {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
+				const coachmarkTop = Platform.OS === 'ios' ? 2 * fy + INDICATOR_HEIGHT : py - INDICATOR_HEIGHT;
 				this.setState({
-					coachmarkTop: Platform.os === 'ios' ? 2 * fy + INDICATOR_HEIGHT : py - INDICATOR_HEIGHT
+					coachmarkTop
 				});
 			});
 	};
