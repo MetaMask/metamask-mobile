@@ -87,7 +87,7 @@
     "pubnub": "4.22.0",
     "qs": "6.7.0",
     "react": "16.8.3",
-    "react-native": "0.59.9",
+    "react-native": "0.59.8",
     "react-native-actionsheet": "2.4.2",
     "react-native-aes-crypto": "github:brunobar79/react-native-aes#495bf43f119f6ee5998e7e42b9cb02bb39a5a524",
     "react-native-animated-fox": "github:brunobar79/react-native-animated-fox#6854027bc6262882a1348391c370f3e2a027122c",
@@ -140,8 +140,8 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
-    "@babel/core": "7.4.5",
-    "@babel/runtime": "7.4.5",
+    "@babel/core": "7.3.4",
+    "@babel/runtime": "7.3.4",
     "assert": "1.4.1",
     "babel-core": "7.0.0-bridge.0",
     "babel-jest": "24.5.0",
@@ -156,7 +156,7 @@
     "jest": "24.5.0",
     "jest-serializer": "24.4.0",
     "lint-staged": "8.1.5",
-    "metro-react-native-babel-preset": "0.54.1",
+    "metro-react-native-babel-preset": "0.53.0",
     "octonode": "0.9.5",
     "prettier": "1.16.4",
     "react-dom": "16.8.4",
