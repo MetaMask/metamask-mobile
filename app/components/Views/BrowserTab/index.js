@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 	icon: {
 		color: colors.grey500,
 		height: 28,
-		lineHeight: 28,
+		lineHeight: 30,
 		textAlign: 'center',
 		width: 36,
 		alignSelf: 'center'
@@ -115,9 +115,12 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		zIndex: 99999999,
 		width: 200,
-		borderWidth: StyleSheet.hairlineWidth,
+		borderWidth: 1,
 		borderColor: colors.grey100,
-		backgroundColor: colors.grey000
+		backgroundColor: colors.white,
+		borderRadius: 10,
+		paddingBottom: 5,
+		paddingTop: 10
 	},
 	optionsWrapperAndroid: {
 		top: 0,
@@ -133,26 +136,37 @@ const styles = StyleSheet.create({
 		right: 3
 	},
 	option: {
-		backgroundColor: colors.grey000,
+		paddingVertical: 10,
+		height: 44,
+		paddingHorizontal: 15,
+		backgroundColor: colors.white,
 		flexDirection: 'row',
-		alignItems: 'flex-start',
+		alignItems: 'center',
 		justifyContent: 'flex-start',
 		marginTop: Platform.OS === 'android' ? 0 : -5
 	},
 	optionText: {
-		fontSize: 14,
-		color: colors.fontPrimary,
-		...fontStyles.normal
+		fontSize: 16,
+		lineHeight: 16,
+		alignSelf: 'center',
+		justifyContent: 'center',
+		marginTop: 3,
+		color: colors.blue,
+		...fontStyles.fontPrimary
+	},
+	optionIconWrapper: {
+		flex: 0,
+		borderRadius: 5,
+		backgroundColor: colors.blue000,
+		padding: 3,
+		marginRight: 10,
+		alignSelf: 'center'
 	},
 	optionIcon: {
-		width: 18,
-		color: colors.grey500,
-		flex: 0,
-		height: 15,
-		lineHeight: 15,
-		marginRight: 10,
+		color: colors.blue,
 		textAlign: 'center',
-		alignSelf: 'center'
+		alignSelf: 'center',
+		fontSize: 18
 	},
 	webview: {
 		...baseStyles.flexGrow
@@ -163,7 +177,7 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		bottom: 0,
-		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 15 : 12,
+		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 14 : 12,
 		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
 		flexDirection: 'row',
 		paddingHorizontal: 10,
@@ -1237,14 +1251,18 @@ export class BrowserTab extends PureComponent {
 							]}
 						>
 							<Button onPress={this.openNewTab} style={styles.option}>
-								<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
+								<View style={styles.optionIconWrapper}>
+									<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
+								</View>
 								<Text style={styles.optionText} numberOfLines={1}>
 									{strings('browser.new_tab')}
 								</Text>
 							</Button>
 							{this.renderNonHomeOptions()}
 							<Button onPress={this.switchNetwork} style={styles.option}>
-								<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
+								<View style={styles.optionIconWrapper}>
+									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
+								</View>
 								<Text style={styles.optionText} numberOfLines={1}>
 									{strings('browser.switch_network')}
 								</Text>
@@ -1263,7 +1281,9 @@ export class BrowserTab extends PureComponent {
 			<React.Fragment>
 				{Platform.OS === 'android' && this.canGoBack() ? (
 					<Button onPress={this.goBack} style={styles.option}>
-						<Icon name="arrow-left" size={15} style={styles.optionIcon} />
+						<View style={styles.optionIconWrapper}>
+							<Icon name="arrow-left" size={18} style={styles.optionIcon} />
+						</View>
 						<Text style={styles.optionText} numberOfLines={1}>
 							{strings('browser.go_back')}
 						</Text>
@@ -1271,38 +1291,50 @@ export class BrowserTab extends PureComponent {
 				) : null}
 				{Platform.OS === 'android' && this.canGoForward() ? (
 					<Button onPress={this.goForward} style={styles.option}>
-						<Icon name="arrow-right" size={15} style={styles.optionIcon} />
+						<View style={styles.optionIconWrapper}>
+							<Icon name="arrow-right" size={18} style={styles.optionIcon} />
+						</View>
 						<Text style={styles.optionText} numberOfLines={1}>
 							{strings('browser.go_forward')}
 						</Text>
 					</Button>
 				) : null}
 				<Button onPress={this.reload} style={styles.option}>
-					<Icon name="refresh" size={15} style={styles.optionIcon} />
+					<View style={styles.optionIconWrapper}>
+						<Icon name="refresh" size={15} style={styles.optionIcon} />
+					</View>
 					<Text style={styles.optionText} numberOfLines={1}>
 						{strings('browser.reload')}
 					</Text>
 				</Button>
 				<Button onPress={this.goBackToHomepage} style={styles.option}>
-					<Icon name="home" size={15} style={styles.optionIcon} />
+					<View style={styles.optionIconWrapper}>
+						<Icon name="home" size={18} style={styles.optionIcon} />
+					</View>
 					<Text style={styles.optionText} numberOfLines={1}>
 						{strings('browser.home')}
 					</Text>
 				</Button>
 				<Button onPress={this.addBookmark} style={styles.option}>
-					<Icon name="star" size={15} style={styles.optionIcon} />
+					<View style={styles.optionIconWrapper}>
+						<Icon name="star" size={16} style={styles.optionIcon} />
+					</View>
 					<Text style={styles.optionText} numberOfLines={1}>
 						{strings('browser.add_to_favorites')}
 					</Text>
 				</Button>
 				<Button onPress={this.share} style={styles.option}>
-					<Icon name="share" size={15} style={styles.optionIcon} />
+					<View style={styles.optionIconWrapper}>
+						<Icon name="share" size={15} style={styles.optionIcon} />
+					</View>
 					<Text style={styles.optionText} numberOfLines={1}>
 						{strings('browser.share')}
 					</Text>
 				</Button>
 				<Button onPress={this.openInBrowser} style={styles.option}>
-					<Icon name="expand" size={15} style={styles.optionIcon} />
+					<View style={styles.optionIconWrapper}>
+						<Icon name="expand" size={16} style={styles.optionIcon} />
+					</View>
 					<Text style={styles.optionText} numberOfLines={1}>
 						{strings('browser.open_in_browser')}
 					</Text>
