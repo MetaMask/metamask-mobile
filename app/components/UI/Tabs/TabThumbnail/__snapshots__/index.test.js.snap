@@ -10,7 +10,9 @@ exports[`TabThumbnail should render correctly 1`] = `
     }
   }
 >
-  <View
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
     style={
       Array [
         Object {
@@ -20,9 +22,9 @@ exports[`TabThumbnail should render correctly 1`] = `
           "elevation": 8,
           "height": 266.8,
           "justifyContent": "space-evenly",
-          "marginBottom": 20,
+          "marginBottom": 15,
           "overflow": "hidden",
-          "width": 718,
+          "width": 720,
         },
         Object {
           "borderColor": "#037dd6",
@@ -38,15 +40,12 @@ exports[`TabThumbnail should render correctly 1`] = `
           "backgroundColor": "#6a737d",
           "flexDirection": "row",
           "justifyContent": "flex-start",
-          "minHeight": 25,
           "paddingHorizontal": 10,
-          "paddingVertical": 15,
+          "paddingVertical": 10,
         }
       }
     >
-      <TouchableOpacity
-        activeOpacity={0.2}
-        onPress={[Function]}
+      <View
         style={
           Object {
             "backgroundColor": "transparent",
@@ -65,11 +64,11 @@ exports[`TabThumbnail should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-start",
-              "height": 24,
+              "height": 22,
               "marginLeft": 2,
               "marginRight": 5,
               "marginTop": 1,
-              "width": 24,
+              "width": 22,
             }
           }
           title="about:blank"
@@ -80,7 +79,7 @@ exports[`TabThumbnail should render correctly 1`] = `
             Object {
               "color": "#FFFFFF",
               "fontFamily": "Roboto",
-              "fontSize": 24,
+              "fontSize": 18,
               "fontWeight": "600",
               "marginLeft": 5,
               "marginRight": 40,
@@ -90,15 +89,16 @@ exports[`TabThumbnail should render correctly 1`] = `
         >
           New tab
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         activeOpacity={0.2}
         onPress={[Function]}
         style={
           Object {
             "backgroundColor": "transparent",
-            "height": 36,
-            "width": 36,
+            "height": 24,
+            "marginRight": -5,
+            "width": 30,
           }
         }
       >
@@ -109,7 +109,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           style={
             Object {
               "color": "#FFFFFF",
-              "fontSize": 38,
+              "fontSize": 32,
               "marginTop": -7,
               "paddingHorizontal": 10,
               "paddingTop": 3,
@@ -120,9 +120,7 @@ exports[`TabThumbnail should render correctly 1`] = `
         />
       </TouchableOpacity>
     </View>
-    <TouchableOpacity
-      activeOpacity={0.2}
-      onPress={[Function]}
+    <View
       style={
         Object {
           "alignItems": "flex-start",
@@ -152,7 +150,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
       />
-    </TouchableOpacity>
-  </View>
+    </View>
+  </TouchableOpacity>
 </ElevatedView>
 `;
