@@ -117,11 +117,11 @@ exports[`Coachmark should render correctly 1`] = `
             Array [
               Object {
                 "backgroundColor": "#FFFFFF",
-                "borderRadius": 3.5,
-                "height": 7,
-                "margin": 5,
+                "borderRadius": 3,
+                "height": 6,
+                "margin": 3,
                 "opacity": 0.4,
-                "width": 7,
+                "width": 6,
               },
               Object {
                 "opacity": 1,
@@ -135,11 +135,11 @@ exports[`Coachmark should render correctly 1`] = `
             Array [
               Object {
                 "backgroundColor": "#FFFFFF",
-                "borderRadius": 3.5,
-                "height": 7,
-                "margin": 5,
+                "borderRadius": 3,
+                "height": 6,
+                "margin": 3,
                 "opacity": 0.4,
-                "width": 7,
+                "width": 6,
               },
               Object {},
             ]
@@ -151,11 +151,11 @@ exports[`Coachmark should render correctly 1`] = `
             Array [
               Object {
                 "backgroundColor": "#FFFFFF",
-                "borderRadius": 3.5,
-                "height": 7,
-                "margin": 5,
+                "borderRadius": 3,
+                "height": 6,
+                "margin": 3,
                 "opacity": 0.4,
-                "width": 7,
+                "width": 6,
               },
               Object {},
             ]
@@ -167,11 +167,11 @@ exports[`Coachmark should render correctly 1`] = `
             Array [
               Object {
                 "backgroundColor": "#FFFFFF",
-                "borderRadius": 3.5,
-                "height": 7,
-                "margin": 5,
+                "borderRadius": 3,
+                "height": 6,
+                "margin": 3,
                 "opacity": 0.4,
-                "width": 7,
+                "width": 6,
               },
               Object {},
             ]
@@ -183,11 +183,27 @@ exports[`Coachmark should render correctly 1`] = `
             Array [
               Object {
                 "backgroundColor": "#FFFFFF",
-                "borderRadius": 3.5,
-                "height": 7,
-                "margin": 5,
+                "borderRadius": 3,
+                "height": 6,
+                "margin": 3,
                 "opacity": 0.4,
-                "width": 7,
+                "width": 6,
+              },
+              Object {},
+            ]
+          }
+        />
+        <View
+          key="6"
+          style={
+            Array [
+              Object {
+                "backgroundColor": "#FFFFFF",
+                "borderRadius": 3,
+                "height": 6,
+                "margin": 3,
+                "opacity": 0.4,
+                "width": 6,
               },
               Object {},
             ]
