@@ -17,7 +17,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 
-const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
 	root: {
 		top: 0,
@@ -83,14 +82,6 @@ class OnboardingWizard extends Component {
 		coachmarkRef: PropTypes.object
 	};
 
-	state = {
-		coachmarkTop: 0
-	};
-
-	componentDidMount = () => {
-		this.getPosition(this.props.coachmarkRef);
-	};
-
 	/**
 	 * Close onboarding wizard setting step to 0 and closing drawer
 	 */
@@ -101,26 +92,15 @@ class OnboardingWizard extends Component {
 		navigation && navigation.dispatch(DrawerActions.closeDrawer());
 	};
 
-	/**
-	 * If component ref defined, calculate its position and position coachmark accordingly
-	 */
-	getPosition = ref => {
-		ref &&
-			ref.current &&
-			ref.current.measure((a, b, width, height, px, py) => {
-				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT });
-			});
-	};
-
 	onboardingWizardNavigator = step => {
 		const steps = {
 			1: <Step1 onClose={this.closeOnboardingWizard} />,
 			2: <Step2 coachmarkRef={this.props.coachmarkRef} />,
 			3: <Step3 coachmarkRef={this.props.coachmarkRef} />,
 			4: <Step4 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			5: <Step5 navigation={this.props.navigation} coachmarkTop={this.state.coachmarkTop} />,
-			6: <Step6 navigation={this.props.navigation} coachmarkRef={this.props.coachmarkRef} />,
-			7: <Step7 onClose={this.closeOnboardingWizard} coachmarkRef={this.props.coachmarkRef} />
+			5: <Step5 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
+			6: <Step6 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
+			7: <Step7 coachmarkRef={this.props.coachmarkRef} onClose={this.closeOnboardingWizard} />
 		};
 		return steps[step];
 	};

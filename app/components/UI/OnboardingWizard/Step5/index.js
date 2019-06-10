@@ -9,6 +9,8 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
+const INDICATOR_HEIGHT = 10;
+const DRAWER_WIDTH = 315;
 const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
 	main: {
@@ -17,7 +19,7 @@ const styles = StyleSheet.create({
 	},
 	some: {
 		marginLeft: 24,
-		marginRight: WIDTH - 315 + 24
+		marginRight: WIDTH - DRAWER_WIDTH + 24
 	},
 	coachmarkContainer: {
 		flex: 1,
@@ -38,9 +40,28 @@ class Step5 extends Component {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * Position top
+		 * Coachmark ref to get position
 		 */
-		coachmarkTop: PropTypes.number
+		coachmarkRef: PropTypes.object
+	};
+
+	state = {
+		coachmarkTop: 0
+	};
+
+	componentDidMount = () => {
+		this.getPosition(this.props.coachmarkRef);
+	};
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((a, b, width, height, px, py) => {
+				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT });
+			});
 	};
 
 	/**
@@ -80,7 +101,7 @@ class Step5 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={[styles.coachmarkContainer, { top: this.props.coachmarkTop }]}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step5.title')}
 						content={this.content()}
