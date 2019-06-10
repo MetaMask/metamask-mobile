@@ -123,8 +123,8 @@ class AccountOverview extends Component {
 	};
 
 	editableLabelRef = React.createRef();
-	scrollViewRef = React.createRef();
-	main = React.createRef();
+	scrollViewContainer = React.createRef();
+	mainView = React.createRef();
 
 	animatingAccountsModal = false;
 
@@ -199,7 +199,7 @@ class AccountOverview extends Component {
 		const { accountLabelEditable, accountLabel } = this.state;
 
 		return (
-			<View style={baseStyles.flexGrow} ref={this.scrollViewRef} collapsable={false}>
+			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
 				<ScrollView
 					bounces={false}
 					keyboardShouldPersistTaps={'never'}
@@ -207,7 +207,7 @@ class AccountOverview extends Component {
 					contentContainerStyle={styles.wrapper}
 					testID={'account-overview'}
 				>
-					<View style={styles.info} ref={this.main}>
+					<View style={styles.info} ref={this.mainView}>
 						<TouchableOpacity
 							style={styles.identiconBorder}
 							disabled={onboardingWizard}

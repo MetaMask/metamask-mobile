@@ -68,7 +68,7 @@ class Step3 extends Component {
 	 * Sets corresponding account label
 	 */
 	componentDidMount = () => {
-		this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+		this.getViewPosition(this.props.coachmarkRef.scrollViewContainer);
 		this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
 	};
 

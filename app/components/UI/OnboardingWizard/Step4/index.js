@@ -45,7 +45,7 @@ class Step4 extends Component {
 	};
 
 	componentDidMount = () => {
-		this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+		this.getViewPosition(this.props.coachmarkRef.scrollViewContainer);
 	};
 
 	/**

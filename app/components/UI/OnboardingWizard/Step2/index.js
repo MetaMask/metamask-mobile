@@ -40,7 +40,7 @@ class Step2 extends Component {
 	};
 
 	componentDidMount = () => {
-		this.getPosition(this.props.coachmarkRef.main);
+		this.getPosition(this.props.coachmarkRef.mainView);
 	};
 
 	/**
