@@ -16,6 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
+import DeviceSize from '../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	root: {
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
 	skipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
-		bottom: 30
+		bottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 98 : 66
 	},
 	skip: {
 		height: 30,
