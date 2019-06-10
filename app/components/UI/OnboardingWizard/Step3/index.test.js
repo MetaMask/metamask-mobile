@@ -30,7 +30,7 @@ describe('Step3', () => {
 			}
 		};
 
-		const wrapper = shallow(<Step3 />, {
+		const wrapper = shallow(<Step3 coachmarkRef={{}} />, {
 			context: { store: mockStore(initialState) }
 		});
 		expect(wrapper.dive()).toMatchSnapshot();
