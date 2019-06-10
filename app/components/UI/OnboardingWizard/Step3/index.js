@@ -5,7 +5,6 @@ import { Platform, Text, View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors, fontStyles } from '../../../../styles/common';
-import { renderAccountName } from '../../../../util/address';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
@@ -61,8 +60,6 @@ class Step3 extends Component {
 	};
 
 	state = {
-		accountLabel: '',
-		accountLabelEditable: false,
 		coachmarkTop: 0,
 		viewTop: 0
 	};
@@ -71,11 +68,8 @@ class Step3 extends Component {
 	 * Sets corresponding account label
 	 */
 	componentDidMount = () => {
-		const { identities, selectedAddress } = this.props;
-		const accountLabel = renderAccountName(selectedAddress, identities);
-		this.setState({ accountLabel });
-		this.state.coachmarkTop === 0 && this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
-		this.state.viewTop === 0 && this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+		this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
+		this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
 	};
 
 	getCoachmarkPosition = ref => {
