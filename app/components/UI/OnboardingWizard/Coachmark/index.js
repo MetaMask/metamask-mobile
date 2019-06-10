@@ -94,12 +94,12 @@ const styles = StyleSheet.create({
 		marginLeft: 30
 	},
 	circle: {
-		width: 7,
-		height: 7,
-		borderRadius: 7 / 2,
+		width: 6,
+		height: 6,
+		borderRadius: 6 / 2,
 		backgroundColor: colors.white,
 		opacity: 0.4,
-		margin: 5
+		margin: 3
 	},
 	solidCircle: {
 		opacity: 1
@@ -242,7 +242,7 @@ export default class Coachmark extends Component {
 					{strings('onboarding_wizard.coachmark.progress_back')}
 				</StyledButton>
 				<View style={styles.progessContainer}>
-					{[1, 2, 3, 4, 5].map(i => (
+					{[1, 2, 3, 4, 5, 6].map(i => (
 						<View key={i} style={[styles.circle, currentStep === i ? styles.solidCircle : {}]} />
 					))}
 				</View>

@@ -95,7 +95,7 @@ class Step7 extends Component {
 						onNext={this.onClose}
 						onBack={this.onBack}
 						onClose={this.onClose}
-						currentStep={5}
+						currentStep={6}
 						bottomIndicatorPosition={'bottomLeft'}
 					/>
 				</View>
