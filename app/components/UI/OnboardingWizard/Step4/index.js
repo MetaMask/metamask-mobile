@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -33,7 +33,30 @@ class Step4 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
+		coachmarkRef: PropTypes.object
+	};
+
+	state = {
+		viewTop: 0
+	};
+
+	componentDidMount = () => {
+		this.state.viewTop === 0 && this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+	};
+
+	getViewPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy, width, height, px, py) => {
+				const viewTop = Platform.OS === 'ios' ? py : py;
+				this.setState({
+					viewTop
+				});
+			});
 	};
 
 	/**
@@ -68,7 +91,7 @@ class Step4 extends Component {
 
 	render() {
 		return (
-			<View style={styles.main}>
+			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
 						title={strings('onboarding_wizard.step4.title')}
