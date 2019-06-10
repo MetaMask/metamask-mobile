@@ -57,7 +57,9 @@ class Step7 extends Component {
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
 				const coachmarkBottom =
-					Platform.OS === 'ios' ? HEIGHT - py - NAVBAR_HEIGHT + INDICATOR_HEIGHT : py - height / 2;
+					Platform.OS === 'ios'
+						? HEIGHT - py - NAVBAR_HEIGHT + INDICATOR_HEIGHT
+						: HEIGHT - py - NAVBAR_HEIGHT - INDICATOR_HEIGHT;
 				this.setState({ coachmarkBottom });
 			});
 	};

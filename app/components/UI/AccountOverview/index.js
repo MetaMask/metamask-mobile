@@ -199,7 +199,7 @@ class AccountOverview extends Component {
 		const { accountLabelEditable, accountLabel } = this.state;
 
 		return (
-			<View style={baseStyles.flexGrow} ref={this.scrollViewRef}>
+			<View style={baseStyles.flexGrow} ref={this.scrollViewRef} collapsable={false}>
 				<ScrollView
 					bounces={false}
 					keyboardShouldPersistTaps={'never'}
@@ -215,7 +215,7 @@ class AccountOverview extends Component {
 						>
 							<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
 						</TouchableOpacity>
-						<View ref={this.editableLabelRef} style={styles.data}>
+						<View ref={this.editableLabelRef} style={styles.data} collapsable={false}>
 							{accountLabelEditable ? (
 								<TextInput
 									style={[

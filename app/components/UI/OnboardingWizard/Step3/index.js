@@ -9,8 +9,6 @@ import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
-const INDICATOR_HEIGHT = 10;
-
 const styles = StyleSheet.create({
 	main: {
 		flex: 1,
@@ -69,9 +67,9 @@ class Step3 extends Component {
 	 * Sets corresponding account label
 	 */
 	componentDidMount = () => {
+		this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+		this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
 		setTimeout(() => {
-			this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
-			this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
 			this.setState({ ready: true });
 		}, 100);
 	};
@@ -79,10 +77,9 @@ class Step3 extends Component {
 	getCoachmarkPosition = ref => {
 		ref &&
 			ref.current &&
-			ref.current.measure((fx, fy, width, height, px, py) => {
-				const coachmarkTop = Platform.OS === 'ios' ? 2 * height : py - INDICATOR_HEIGHT;
+			ref.current.measure((fx, fy, width, height) => {
 				this.setState({
-					coachmarkTop
+					coachmarkTop: 2 * height
 				});
 			});
 	};
@@ -91,7 +88,7 @@ class Step3 extends Component {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
-				const viewTop = Platform.OS === 'ios' ? py : py - INDICATOR_HEIGHT;
+				const viewTop = Platform.OS === 'ios' ? py : py + 1;
 				this.setState({
 					viewTop
 				});
