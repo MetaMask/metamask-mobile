@@ -7,12 +7,13 @@ import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
+const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1
 	},
 	some: {
-		marginHorizontal: 45
+		marginHorizontal: 20
 	},
 	coachmarkContainer: {
 		flex: 1,
@@ -48,8 +49,8 @@ class Step2 extends Component {
 	getPosition = ref => {
 		ref &&
 			ref.current &&
-			ref.current.measure((fx, fy, width, height) => {
-				this.setState({ coachmarkTop: height + fy });
+			ref.current.measure((fx, fy, width, height, px, py) => {
+				this.setState({ coachmarkTop: py + height - INDICATOR_HEIGHT });
 			});
 	};
 

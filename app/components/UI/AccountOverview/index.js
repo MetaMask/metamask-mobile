@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Clipboard, Platform, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
@@ -14,7 +14,8 @@ import { toggleAccountsModal } from '../../../actions/modals';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		maxHeight: Platform.OS === 'ios' ? 210 : 220
+		maxHeight: Platform.OS === 'ios' ? 210 : 220,
+		backgroundColor: colors.white
 	},
 	wrapper: {
 		maxHeight: Platform.OS === 'ios' ? 210 : 220,
@@ -123,6 +124,7 @@ class AccountOverview extends Component {
 	};
 
 	editableLabelRef = React.createRef();
+	scrollViewRef = React.createRef();
 	main = React.createRef();
 
 	animatingAccountsModal = false;
@@ -198,59 +200,61 @@ class AccountOverview extends Component {
 		const { accountLabelEditable, accountLabel } = this.state;
 
 		return (
-			<ScrollView
-				bounces={false}
-				keyboardShouldPersistTaps={'never'}
-				style={styles.scrollView}
-				contentContainerStyle={styles.wrapper}
-				testID={'account-overview'}
-			>
-				<View style={styles.info} ref={this.main}>
-					<TouchableOpacity
-						style={styles.identiconBorder}
-						disabled={onboardingWizard}
-						onPress={this.toggleAccountsModal}
-					>
-						<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
-					</TouchableOpacity>
-					<View ref={this.editableLabelRef} style={styles.data}>
-						{accountLabelEditable ? (
-							<TextInput
-								style={[
-									styles.label,
-									styles.labelInput,
-									onboardingWizard ? styles.onboardingWizardLabel : {}
-								]}
-								editable={accountLabelEditable}
-								onChangeText={this.onAccountLabelChange}
-								onSubmitEditing={this.setAccountLabel}
-								onBlur={this.setAccountLabel}
-								testID={'account-label-text-input'}
-								value={accountLabel}
-								selectTextOnFocus
-								ref={this.input}
-								returnKeyType={'done'}
-								autoCapitalize={'none'}
-								autoCorrect={false}
-								numberOfLines={1}
-							/>
-						) : (
-							<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-								<Text
-									style={[styles.label, onboardingWizard ? styles.onboardingWizardLabel : {}]}
+			<View style={baseStyles.flexGrow} ref={this.scrollViewRef}>
+				<ScrollView
+					bounces={false}
+					keyboardShouldPersistTaps={'never'}
+					style={styles.scrollView}
+					contentContainerStyle={styles.wrapper}
+					testID={'account-overview'}
+				>
+					<View style={styles.info} ref={this.main}>
+						<TouchableOpacity
+							style={styles.identiconBorder}
+							disabled={onboardingWizard}
+							onPress={this.toggleAccountsModal}
+						>
+							<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
+						</TouchableOpacity>
+						<View ref={this.editableLabelRef} style={styles.data}>
+							{accountLabelEditable ? (
+								<TextInput
+									style={[
+										styles.label,
+										styles.labelInput,
+										onboardingWizard ? styles.onboardingWizardLabel : {}
+									]}
+									editable={accountLabelEditable}
+									onChangeText={this.onAccountLabelChange}
+									onSubmitEditing={this.setAccountLabel}
+									onBlur={this.setAccountLabel}
+									testID={'account-label-text-input'}
+									value={accountLabel}
+									selectTextOnFocus
+									ref={this.input}
+									returnKeyType={'done'}
+									autoCapitalize={'none'}
+									autoCorrect={false}
 									numberOfLines={1}
-								>
-									{name}
-								</Text>
-							</TouchableOpacity>
-						)}
+								/>
+							) : (
+								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
+									<Text
+										style={[styles.label, onboardingWizard ? styles.onboardingWizardLabel : {}]}
+										numberOfLines={1}
+									>
+										{name}
+									</Text>
+								</TouchableOpacity>
+							)}
+						</View>
+						<Text style={styles.amountFiat}>{fiatBalance}</Text>
+						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+							<Text style={styles.address}>{renderShortAddress(address)}</Text>
+						</TouchableOpacity>
 					</View>
-					<Text style={styles.amountFiat}>{fiatBalance}</Text>
-					<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-						<Text style={styles.address}>{renderShortAddress(address)}</Text>
-					</TouchableOpacity>
-				</View>
-			</ScrollView>
+				</ScrollView>
+			</View>
 		);
 	}
 }

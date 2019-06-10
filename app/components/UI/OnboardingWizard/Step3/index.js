@@ -26,8 +26,9 @@ const styles = StyleSheet.create({
 		right: 0
 	},
 	accountLabelContainer: {
+		flex: 1,
 		alignItems: 'center',
-		backgroundColor: colors.white
+		backgroundColor: colors.transparent
 	}
 });
 
@@ -62,7 +63,8 @@ class Step3 extends Component {
 	state = {
 		accountLabel: '',
 		accountLabelEditable: false,
-		coachmarkTop: 0
+		coachmarkTop: 0,
+		viewTop: 0
 	};
 
 	/**
@@ -72,23 +74,28 @@ class Step3 extends Component {
 		const { identities, selectedAddress } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
-		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.editableLabelRef);
+		this.state.coachmarkTop === 0 && this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
+		this.state.viewTop === 0 && this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
 	};
 
-	componentDidUpdate = () => {
-		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.editableLabelRef);
-	};
-
-	/**
-	 * If component ref defined, calculate its position and position coachmark accordingly
-	 */
-	getPosition = ref => {
+	getCoachmarkPosition = ref => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
-				const coachmarkTop = Platform.OS === 'ios' ? 2 * fy + INDICATOR_HEIGHT : py - INDICATOR_HEIGHT;
+				const coachmarkTop = Platform.OS === 'ios' ? py - height : py - INDICATOR_HEIGHT;
 				this.setState({
 					coachmarkTop
+				});
+			});
+	};
+
+	getViewPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy, width, height, px, py) => {
+				const viewTop = Platform.OS === 'ios' ? py : py - INDICATOR_HEIGHT;
+				this.setState({
+					viewTop
 				});
 			});
 	};
@@ -134,7 +141,7 @@ class Step3 extends Component {
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 
 		return (
-			<View style={styles.main}>
+			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.accountLabelContainer}>
 					<AccountOverview account={account} currentCurrency={currentCurrency} onboardingWizard />
 				</View>

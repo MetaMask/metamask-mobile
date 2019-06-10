@@ -15,13 +15,16 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
 import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
+import Modal from 'react-native-modal';
 
 const styles = StyleSheet.create({
 	root: {
-		left: 0,
-		right: 0,
 		top: 0,
 		bottom: 0,
+		left: 0,
+		right: 0,
+		flex: 1,
+		margin: 0,
 		position: 'absolute'
 	},
 	main: {
@@ -126,7 +129,15 @@ class OnboardingWizard extends Component {
 			wizard: { step }
 		} = this.props;
 		return (
-			<View style={styles.root}>
+			<Modal
+				animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
+				animationOut={{ from: { opacity: 0 }, to: { opacity: 0 } }}
+				isVisible
+				backdropOpacity={0}
+				disableAnimation
+				transparent
+				style={[styles.root, { backgroundColor: colors.transparent }]}
+			>
 				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
 				{step !== 1 && (
 					<ElevatedView
@@ -143,7 +154,7 @@ class OnboardingWizard extends Component {
 						</TouchableOpacity>
 					</ElevatedView>
 				)}
-			</View>
+			</Modal>
 		);
 	}
 }

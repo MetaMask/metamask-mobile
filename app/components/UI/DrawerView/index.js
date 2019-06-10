@@ -264,12 +264,6 @@ const styles = StyleSheet.create({
 		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
-	},
-	onboardingContainer: {
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0
 	}
 });
 
@@ -782,19 +776,7 @@ class DrawerView extends Component {
 			wizard: { step }
 		} = this.props;
 		return (
-			step === 5 && (
-				<Modal
-					animationIn={{ from: { opacity: 1 }, to: { opacity: 1 } }}
-					animationOut={{ from: { opacity: 0 }, to: { opacity: 0 } }}
-					isVisible
-					backdropOpacity={0}
-					disableAnimation
-					transparent
-					style={[styles.onboardingContainer, { backgroundColor: colors.transparent }]}
-				>
-					<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
-				</Modal>
-			)
+			step === 5 && <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
 		);
 	};
 
