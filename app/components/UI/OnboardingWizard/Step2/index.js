@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	some: {
-		marginHorizontal: 20
+		marginHorizontal: 45
 	},
 	coachmarkContainer: {
 		flex: 1,
