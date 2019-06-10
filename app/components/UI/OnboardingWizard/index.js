@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 
+const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
 	root: {
 		top: 0,
@@ -107,7 +108,7 @@ class OnboardingWizard extends Component {
 		ref &&
 			ref.current &&
 			ref.current.measure((a, b, width, height, px, py) => {
-				this.setState({ coachmarkTop: height / 2 + py });
+				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT });
 			});
 	};
 
