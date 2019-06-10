@@ -1,7 +1,7 @@
 import { REHYDRATE } from 'redux-persist';
 
 const initialState = {
-	step: 2
+	step: 0
 };
 
 const onboardingWizardReducer = (state = initialState, action) => {
