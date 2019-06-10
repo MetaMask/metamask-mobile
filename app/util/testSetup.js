@@ -101,6 +101,11 @@ NativeModules.RNGestureHandlerModule = {
 	Directions: {}
 };
 
+NativeModules.RCTAnalytics = {
+	optIn: jest.fn(),
+	trackEvent: jest.fn()
+};
+
 NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };

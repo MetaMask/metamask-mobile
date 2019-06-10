@@ -15,6 +15,7 @@ import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import io.branch.rnbranch.RNBranchPackage;
 import io.branch.referral.Branch;
 import com.web3webview.Web3WebviewPackage;
+import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import cl.json.RNSharePackage;
 import com.bitgo.randombytes.RandomBytesPackage;
@@ -70,7 +71,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new RNOSModule(),
 				new RNSharePackage(),
 				new VectorIconsPackage(),
-				new Web3WebviewPackage()
+				new Web3WebviewPackage(),
+				new RCTAnalyticsPackage()
 		);
 		}
 

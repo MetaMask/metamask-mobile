@@ -70,7 +70,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>
@@ -123,5 +123,7 @@
 	</dict>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+	<key>mixpanel_token</key>
+	<string>$(MM_MIXPANEL_TOKEN)</string>
 </dict>
 </plist>

@@ -137,3 +137,4 @@ else
 		moveFunc.curry("xxxhdpi").call()\
 	}' $TARGET;
 fi
+
