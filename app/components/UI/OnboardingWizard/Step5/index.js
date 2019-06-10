@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -9,21 +9,23 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
+const INDICATOR_HEIGHT = 10;
+const DRAWER_WIDTH = 315;
+const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1,
 		backgroundColor: colors.transparent
 	},
 	some: {
-		marginLeft: 30,
-		marginRight: 30
+		marginLeft: 24,
+		marginRight: WIDTH - DRAWER_WIDTH + 24
 	},
 	coachmarkContainer: {
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0,
-		top: Platform.OS === 'ios' ? 400 : 370
+		right: 0
 	}
 });
 
@@ -36,7 +38,30 @@ class Step5 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
+		coachmarkRef: PropTypes.object
+	};
+
+	state = {
+		coachmarkTop: 0
+	};
+
+	componentDidMount = () => {
+		this.getPosition(this.props.coachmarkRef);
+	};
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((a, b, width, height, px, py) => {
+				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT });
+			});
 	};
 
 	/**
@@ -76,7 +101,7 @@ class Step5 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step5.title')}
 						content={this.content()}
