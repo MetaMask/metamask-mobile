@@ -16,7 +16,7 @@ import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 
-const THUMB_VERTICAL_MARGIN = 20;
+const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = DeviceSize.isIphoneX() ? 88 : 64;
 const THUMB_HEIGHT = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5) + THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor((Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) / THUMB_HEIGHT);
