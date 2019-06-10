@@ -117,17 +117,6 @@ class DeeplinkManager {
 		}
 	}
 }
-// Examples
-/*
-	* Open uniswap in metamask *
-	https://metamask.app.link/dapp/uniswap.exchange
-
-	* Send 0.1 ETH to a specific address *
-	https://metamask.app.link/send/0xb2d191b6FE03C5B8A1aB249cFe88C37553357A23?value=1e17
-
-	* Payment channel request *
-	https://metamask.app.link/payment/0xb2d191b6FE03C5B8A1aB249cFe88C37553357A23?amount=1&detail=because%20why%20not
-*/
 
 let instance = null;
 let pendingDeeplink = null;

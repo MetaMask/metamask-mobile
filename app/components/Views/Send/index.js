@@ -193,7 +193,6 @@ class Send extends Component {
 					newTxMeta.to = toChecksumAddress(target_address);
 				} else {
 					// ENS Name
-					//newTxMeta.to = target_address;
 					newTxMeta.ensRecipient = target_address;
 				}
 				if (parameters && parameters.value) {
