@@ -58,9 +58,10 @@ class Step3 extends Component {
 	};
 
 	state = {
-		ready: 0,
 		coachmarkTop: 0,
-		viewTop: 0
+		viewTop: 0,
+		coachmarkTopReady: false,
+		viewTopReady: false
 	};
 
 	/**
@@ -69,28 +70,34 @@ class Step3 extends Component {
 	componentDidMount = () => {
 		this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
 		this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
-		setTimeout(() => {
-			this.setState({ ready: true });
-		}, 100);
 	};
 
+	/**
+	 * Sets coachmark top position getting AccountOverview component ref from Wallet
+	 */
 	getCoachmarkPosition = ref => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height) => {
 				this.setState({
-					coachmarkTop: 2 * height
+					coachmarkTop: 2 * height,
+					coachmarkTopReady: true
 				});
 			});
 	};
 
+	/**
+	 * Sets view top position getting accountOverview component ref from Wallet
+	 */
 	getViewPosition = ref => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
+				// Adding one for android
 				const viewTop = Platform.OS === 'ios' ? py : py + 1;
 				this.setState({
-					viewTop
+					viewTop,
+					viewTopReady: true
 				});
 			});
 	};
@@ -112,13 +119,6 @@ class Step3 extends Component {
 	};
 
 	/**
-	 * Get account overview component child ref
-	 */
-	getAccountOverviewRef = ref => {
-		this.accountOverviewRef = ref;
-	};
-
-	/**
 	 * Returns content for this step
 	 */
 	content = () => (
@@ -134,14 +134,14 @@ class Step3 extends Component {
 	render() {
 		const { selectedAddress, identities, accounts, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-		const { ready } = this.state;
-		if (!ready) return null;
+		const { coachmarkTopReady, viewTopReady } = this.state;
+		if (!coachmarkTopReady || !viewTopReady) return null;
 		return (
 			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.accountLabelContainer}>
 					<AccountOverview account={account} currentCurrency={currentCurrency} onboardingWizard />
 				</View>
-				<View style={[styles.coachmarkContainer, { marginTop: -this.state.coachmarkTop }]}>
+				<View style={[styles.coachmarkContainer, { top: -this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step3.title')}
 						content={this.content()}

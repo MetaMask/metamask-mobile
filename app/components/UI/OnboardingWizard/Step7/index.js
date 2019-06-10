@@ -43,10 +43,8 @@ class Step7 extends Component {
 		coachmarkBottom: 0
 	};
 
-	coachmark = React.createRef();
-
 	componentDidMount() {
-		this.state.coachmarkBottom === 0 && this.getPosition(this.props.coachmarkRef.homePageContentRef);
+		this.getPosition(this.props.coachmarkRef.homePageContentRef);
 	}
 
 	/**
@@ -57,9 +55,7 @@ class Step7 extends Component {
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
 				const coachmarkBottom =
-					Platform.OS === 'ios'
-						? HEIGHT - py - NAVBAR_HEIGHT + INDICATOR_HEIGHT
-						: HEIGHT - py - NAVBAR_HEIGHT - INDICATOR_HEIGHT;
+					HEIGHT - py - NAVBAR_HEIGHT + (Platform.OS === 'ios' ? +INDICATOR_HEIGHT : -INDICATOR_HEIGHT);
 				this.setState({ coachmarkBottom });
 			});
 	};

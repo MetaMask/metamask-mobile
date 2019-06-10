@@ -42,14 +42,10 @@ class Step6 extends Component {
 	};
 
 	componentDidMount() {
+		// As we're changing the view on this step, we have to make sure Browser is rendered
 		setTimeout(() => {
-			this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.searchWrapperRef);
-			this.setState({ ready: true });
+			this.getPosition(this.props.coachmarkRef.searchWrapperRef);
 		}, 100);
-	}
-
-	componentDidUpdate() {
-		this.state.coachmarkTop === 0 && this.getPosition(this.props.coachmarkRef.searchWrapperRef);
 	}
 
 	/**
@@ -59,8 +55,7 @@ class Step6 extends Component {
 		ref &&
 			ref.current &&
 			ref.current.measure((ox, oy, width, height, px, py) => {
-				const coachmarkTop = py + height;
-				height && this.setState({ coachmarkTop });
+				this.setState({ coachmarkTop: py + height, ready: true });
 			});
 	};
 

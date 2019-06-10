@@ -45,9 +45,12 @@ class Step4 extends Component {
 	};
 
 	componentDidMount = () => {
-		this.state.viewTop === 0 && this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+		this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
 	};
 
+	/**
+	 * Sets coachmark top position getting AccountOverview component ref from Wallet
+	 */
 	getViewPosition = ref => {
 		ref &&
 			ref.current &&
