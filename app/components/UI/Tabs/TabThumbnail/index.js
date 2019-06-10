@@ -9,7 +9,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import URL from 'url-parse';
 import DeviceSize from '../../../../util/DeviceSize';
 
-const margin = 16;
+const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
 const height = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5);
 let paddingTop = Dimensions.get('window').height - 190;
@@ -24,8 +24,8 @@ if (Platform.OS === 'android') {
 const styles = StyleSheet.create({
 	tabFavicon: {
 		alignSelf: 'flex-start',
-		width: 24,
-		height: 24,
+		width: 22,
+		height: 22,
 		marginRight: 5,
 		marginLeft: 2,
 		marginTop: 1
@@ -33,22 +33,21 @@ const styles = StyleSheet.create({
 	tabSiteName: {
 		color: colors.white,
 		...fontStyles.bold,
-		fontSize: 24,
+		fontSize: 18,
 		marginRight: 40,
 		marginLeft: 5,
-		marginTop: Platform.OS === 'ios' ? 0 : -5
+		marginTop: 0
 	},
 	tabHeader: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		justifyContent: 'flex-start',
 		backgroundColor: colors.grey500,
-		paddingVertical: 15,
-		paddingHorizontal: 10,
-		minHeight: 25
+		paddingVertical: 10,
+		paddingHorizontal: 10
 	},
 	tabWrapper: {
-		marginBottom: 20,
+		marginBottom: 15,
 		borderRadius: 10,
 		elevation: 8,
 		justifyContent: 'space-evenly',
@@ -82,7 +81,7 @@ const styles = StyleSheet.create({
 	closeTabIcon: {
 		paddingHorizontal: 10,
 		paddingTop: 3,
-		fontSize: 38,
+		fontSize: 32,
 		color: colors.white,
 		right: 0,
 		marginTop: -7,
@@ -96,8 +95,9 @@ const styles = StyleSheet.create({
 	},
 	closeTabButton: {
 		backgroundColor: colors.transparent,
-		width: 36,
-		height: 36
+		width: Platform.OS === 'ios' ? 30 : 35,
+		height: 24,
+		marginRight: -5
 	}
 });
 
@@ -142,12 +142,12 @@ export default class TabThumbnail extends Component {
 
 		return (
 			<Container style={styles.checkWrapper} elevation={8}>
-				<View style={[styles.tabWrapper, isActiveTab && styles.activeTab]}>
+				<TouchableOpacity
+					onPress={() => onSwitch(tab)} // eslint-disable-line react/jsx-no-bind
+					style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
+				>
 					<View style={styles.tabHeader}>
-						<TouchableOpacity
-							onPress={() => onSwitch(tab)} // eslint-disable-line react/jsx-no-bind
-							style={styles.titleButton}
-						>
+						<View style={styles.titleButton}>
 							{tab.url !== HOMEPAGE_URL ? (
 								<WebsiteIcon transparent style={styles.tabFavicon} title={hostname} url={tab.url} />
 							) : (
@@ -156,7 +156,7 @@ export default class TabThumbnail extends Component {
 							<Text style={styles.tabSiteName} numberOfLines={1}>
 								{tab.url === HOMEPAGE_URL ? strings('browser.new_tab') : hostname}
 							</Text>
-						</TouchableOpacity>
+						</View>
 						<TouchableOpacity
 							onPress={() => onClose(tab)} // eslint-disable-line react/jsx-no-bind
 							style={styles.closeTabButton}
@@ -164,14 +164,10 @@ export default class TabThumbnail extends Component {
 							<IonIcon name="ios-close" style={styles.closeTabIcon} />
 						</TouchableOpacity>
 					</View>
-					<TouchableOpacity
-						style={styles.tab}
-						// eslint-disable-next-line react/jsx-no-bind
-						onPress={() => onSwitch(tab)}
-					>
+					<View style={styles.tab}>
 						<Image source={{ uri: tab.image }} style={styles.tabImage} />
-					</TouchableOpacity>
-				</View>
+					</View>
+				</TouchableOpacity>
 			</Container>
 		);
 	}
