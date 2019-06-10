@@ -230,7 +230,6 @@ class HomePage extends Component {
 	scrollView = React.createRef();
 	searchWrapperRef = React.createRef();
 	homePageContentRef = React.createRef();
-	main = React.createRef();
 
 	actionSheet = null;
 
@@ -330,7 +329,7 @@ class HomePage extends Component {
 
 	render() {
 		return (
-			<View style={styles.flex} ref={this.main}>
+			<View style={styles.flex}>
 				<ScrollView style={styles.flex} contentContainerStyle={styles.paddingBottom} ref={this.scrollView}>
 					<TouchableWithoutFeedback
 						style={styles.flex}
