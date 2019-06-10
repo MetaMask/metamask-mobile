@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -9,14 +9,15 @@ import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
+const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1,
 		backgroundColor: colors.transparent
 	},
 	some: {
-		marginLeft: 30,
-		marginRight: 30
+		marginLeft: 24,
+		marginRight: WIDTH - 315 + 24
 	},
 	coachmarkContainer: {
 		flex: 1,
