@@ -264,13 +264,6 @@ const styles = StyleSheet.create({
 		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
-	},
-	onboardingContainer: {
-		position: 'absolute',
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 315 - DeviceSize.getDeviceWidth()
 	}
 });
 
@@ -370,6 +363,8 @@ class DrawerView extends Component {
 		submitFeedback: false,
 		showSecureWalletModal: false
 	};
+
+	browserSectionRef = React.createRef();
 
 	currentBalance = null;
 	previousBalance = null;
@@ -781,11 +776,7 @@ class DrawerView extends Component {
 			wizard: { step }
 		} = this.props;
 		return (
-			step === 5 && (
-				<View style={styles.onboardingContainer}>
-					<OnboardingWizard navigation={this.props.navigation} />
-				</View>
-			)
+			step === 5 && <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
 		);
 	};
 
@@ -898,6 +889,7 @@ class DrawerView extends Component {
 													? styles.selectedRoute
 													: null
 											]}
+											ref={item.name === strings('drawer.browser') && this.browserSectionRef}
 											onPress={() => item.action()} // eslint-disable-line
 										>
 											{item.icon

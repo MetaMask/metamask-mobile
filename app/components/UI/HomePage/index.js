@@ -13,7 +13,7 @@ import {
 	View,
 	ScrollView
 } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -212,7 +212,11 @@ class HomePage extends Component {
 		/**
 		 * Default search engine
 		 */
-		searchEngine: PropTypes.string
+		searchEngine: PropTypes.string,
+		/**
+		 * Used to get child ref
+		 */
+		onRef: PropTypes.func
 	};
 
 	state = {
@@ -224,6 +228,8 @@ class HomePage extends Component {
 
 	searchInput = React.createRef();
 	scrollView = React.createRef();
+	searchWrapperRef = React.createRef();
+	homePageContentRef = React.createRef();
 
 	actionSheet = null;
 
@@ -256,6 +262,7 @@ class HomePage extends Component {
 			setTimeout(() => {
 				this.mounted && this.setState({ inputWidth: '100%' });
 			}, 100);
+		this.props.onRef && this.props.onRef(this);
 	};
 
 	componentWillUnmount() {
@@ -330,7 +337,7 @@ class HomePage extends Component {
 						accesible={false}
 					>
 						<View style={styles.flex}>
-							<View style={styles.searchWrapper}>
+							<View style={styles.searchWrapper} ref={this.searchWrapperRef} collapsable={false}>
 								<TextInput
 									style={[
 										styles.searchInput,
@@ -381,28 +388,30 @@ class HomePage extends Component {
 								</View>
 							</View>
 
-							<ScrollableTabView
-								renderTabBar={this.renderTabBar}
-								// eslint-disable-next-line react/jsx-no-bind
-								onChangeTab={obj => this.handleTabHeight(obj)}
-								style={this.state.tabViewStyle}
-							>
-								<BrowserFeatured
-									tabLabel={strings('browser.featured_dapps')}
-									goTo={this.props.goTo}
-									// eslint-disable-next-line react/no-string-refs
-									ref={'featuredTab'}
-								/>
-								<BrowserFavorites
-									tabLabel={strings('browser.my_favorites')}
-									goTo={this.props.goTo}
-									// eslint-disable-next-line react/no-string-refs
-									ref={'favoritesTab'}
-									navigation={this.props.navigation}
-									removeBookmark={this.props.removeBookmark}
-									bookmarks={this.props.bookmarks}
-								/>
-							</ScrollableTabView>
+							<View style={baseStyles.flexGrow} ref={this.homePageContentRef} collapsable={false}>
+								<ScrollableTabView
+									renderTabBar={this.renderTabBar}
+									// eslint-disable-next-line react/jsx-no-bind
+									onChangeTab={obj => this.handleTabHeight(obj)}
+									style={this.state.tabViewStyle}
+								>
+									<BrowserFeatured
+										tabLabel={strings('browser.featured_dapps')}
+										goTo={this.props.goTo}
+										// eslint-disable-next-line react/no-string-refs
+										ref={'featuredTab'}
+									/>
+									<BrowserFavorites
+										tabLabel={strings('browser.my_favorites')}
+										goTo={this.props.goTo}
+										// eslint-disable-next-line react/no-string-refs
+										ref={'favoritesTab'}
+										navigation={this.props.navigation}
+										removeBookmark={this.props.removeBookmark}
+										bookmarks={this.props.bookmarks}
+									/>
+								</ScrollableTabView>
+							</View>
 						</View>
 					</TouchableWithoutFeedback>
 				</ScrollView>

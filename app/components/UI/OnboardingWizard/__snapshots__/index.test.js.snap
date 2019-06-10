@@ -1,16 +1,74 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OnboardingWizard should render correctly 1`] = `
-<View
-  style={
+<ReactNativeModal
+  animationIn={
     Object {
-      "bottom": 0,
-      "left": 0,
-      "position": "absolute",
-      "right": 0,
-      "top": 0,
+      "from": Object {
+        "opacity": 1,
+      },
+      "to": Object {
+        "opacity": 1,
+      },
     }
   }
+  animationInTiming={300}
+  animationOut={
+    Object {
+      "from": Object {
+        "opacity": 0,
+      },
+      "to": Object {
+        "opacity": 0,
+      },
+    }
+  }
+  animationOutTiming={300}
+  avoidKeyboard={false}
+  backdropColor="black"
+  backdropOpacity={0}
+  backdropTransitionInTiming={300}
+  backdropTransitionOutTiming={300}
+  deviceHeight={null}
+  deviceWidth={null}
+  disableAnimation={true}
+  hasBackdrop={true}
+  hideModalContentWhileAnimating={false}
+  isVisible={true}
+  onBackButtonPress={[Function]}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalShow={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  style={
+    Array [
+      Object {
+        "bottom": 0,
+        "flex": 1,
+        "left": 0,
+        "margin": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      },
+      Object {
+        "backgroundColor": "transparent",
+      },
+    ]
+  }
+  supportedOrientations={
+    Array [
+      "portrait",
+      "landscape",
+    ]
+  }
+  swipeThreshold={100}
+  transparent={true}
+  useNativeDriver={false}
 >
   <View
     style={
@@ -24,5 +82,5 @@ exports[`OnboardingWizard should render correctly 1`] = `
       onClose={[Function]}
     />
   </View>
-</View>
+</ReactNativeModal>
 `;
