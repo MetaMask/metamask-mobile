@@ -13,14 +13,14 @@ const INDICATOR_HEIGHT = 10;
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
+		position: 'absolute'
 	},
 	some: {
 		marginHorizontal: 45
 	},
 	coachmarkContainer: {
 		flex: 1,
-		position: 'absolute',
 		left: 0,
 		right: 0
 	},
@@ -60,6 +60,7 @@ class Step3 extends Component {
 	};
 
 	state = {
+		ready: 0,
 		coachmarkTop: 0,
 		viewTop: 0
 	};
@@ -68,15 +69,18 @@ class Step3 extends Component {
 	 * Sets corresponding account label
 	 */
 	componentDidMount = () => {
-		this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
-		this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+		setTimeout(() => {
+			this.getViewPosition(this.props.coachmarkRef.scrollViewRef);
+			this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
+			this.setState({ ready: true });
+		}, 100);
 	};
 
 	getCoachmarkPosition = ref => {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
-				const coachmarkTop = Platform.OS === 'ios' ? py - height : py - INDICATOR_HEIGHT;
+				const coachmarkTop = Platform.OS === 'ios' ? 2 * height : py - INDICATOR_HEIGHT;
 				this.setState({
 					coachmarkTop
 				});
@@ -133,14 +137,14 @@ class Step3 extends Component {
 	render() {
 		const { selectedAddress, identities, accounts, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-
+		const { ready } = this.state;
+		if (!ready) return null;
 		return (
 			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.accountLabelContainer}>
 					<AccountOverview account={account} currentCurrency={currentCurrency} onboardingWizard />
 				</View>
-
-				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
+				<View style={[styles.coachmarkContainer, { marginTop: -this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step3.title')}
 						content={this.content()}

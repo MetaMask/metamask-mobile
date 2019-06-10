@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
 	onboardingWizardLabel: {
 		borderWidth: 2,
 		borderRadius: 4,
-		borderColor: colors.blue,
 		paddingVertical: Platform.OS === 'ios' ? 2 : -4,
 		paddingHorizontal: Platform.OS === 'ios' ? 5 : 5,
 		top: Platform.OS === 'ios' ? 0 : -2
@@ -222,7 +221,8 @@ class AccountOverview extends Component {
 									style={[
 										styles.label,
 										styles.labelInput,
-										onboardingWizard ? styles.onboardingWizardLabel : {}
+										styles.onboardingWizardLabel,
+										onboardingWizard ? { borderColor: colors.blue } : { borderColor: colors.white }
 									]}
 									editable={accountLabelEditable}
 									onChangeText={this.onAccountLabelChange}
@@ -240,7 +240,13 @@ class AccountOverview extends Component {
 							) : (
 								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
 									<Text
-										style={[styles.label, onboardingWizard ? styles.onboardingWizardLabel : {}]}
+										style={[
+											styles.label,
+											styles.onboardingWizardLabel,
+											onboardingWizard
+												? { borderColor: colors.blue }
+												: { borderColor: colors.white }
+										]}
 										numberOfLines={1}
 									>
 										{name}
