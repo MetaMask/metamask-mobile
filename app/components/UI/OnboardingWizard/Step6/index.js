@@ -60,8 +60,8 @@ class Step6 extends Component {
 	getPosition = ref => {
 		ref &&
 			ref.current &&
-			ref.current.measure((ox, oy, width, height) => {
-				const coachmarkTop = Platform.OS === 'ios' ? oy + height : height + INDICATOR_HEIGHT;
+			ref.current.measure((ox, oy, width, height, px, py) => {
+				const coachmarkTop = Platform.OS === 'ios' ? py + height : height + INDICATOR_HEIGHT;
 				height && this.setState({ coachmarkTop });
 			});
 	};

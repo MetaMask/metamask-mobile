@@ -364,7 +364,7 @@ class HomePage extends Component {
 									style={styles.searchIcon}
 								/>
 							</View>
-							<View style={styles.homePageContent} ref={this.homePageContentRef} collapsable={false}>
+							<View style={styles.homePageContent}>
 								<View style={styles.topBarWrapper}>
 									<View style={styles.foxWrapper}>
 										<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />

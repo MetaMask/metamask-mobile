@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { Platform, View, Text, StyleSheet, Dimensions } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
+const HEIGHT = Dimensions.get('window').height;
+const INDICATOR_HEIGHT = 10;
+const NAVBAR_HEIGHT = 40;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1
@@ -43,7 +46,7 @@ class Step7 extends Component {
 	coachmark = React.createRef();
 
 	componentDidMount() {
-		this.state.coachmarkBottom === 0 && this.getPosition(this.props.coachmarkRef.searchWrapperRef);
+		this.state.coachmarkBottom === 0 && this.getPosition(this.props.coachmarkRef.homePageContentRef);
 	}
 
 	/**
@@ -53,7 +56,8 @@ class Step7 extends Component {
 		ref &&
 			ref.current &&
 			ref.current.measure((fx, fy, width, height, px, py) => {
-				const coachmarkBottom = Platform.OS === 'ios' ? py - height : py - height / 2;
+				const coachmarkBottom =
+					Platform.OS === 'ios' ? HEIGHT - py - NAVBAR_HEIGHT + INDICATOR_HEIGHT : py - height / 2;
 				this.setState({ coachmarkBottom });
 			});
 	};
@@ -85,8 +89,8 @@ class Step7 extends Component {
 
 	render() {
 		return (
-			<View style={styles.main} ref={this.coachmark} collapsable={false}>
-				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkBottom }]}>
+			<View style={styles.main}>
+				<View style={[styles.coachmarkContainer, { bottom: this.state.coachmarkBottom }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step7.title')}
 						content={this.content()}
