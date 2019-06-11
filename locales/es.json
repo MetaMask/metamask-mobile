@@ -386,7 +386,9 @@
 	},
 	"qr_scanner": {
 		"invalid_qr_code_title": "Código QR Inválido",
-		"invalid_qr_code_message": "El código QR que has escaneado no es válido!",
+		"invalid_qr_code_message": "!El código QR que has escaneado no es válido!",
+		"outdated_qr_code": "Código QR Caducado",
+		"outdated_qr_code_desc": "!Este parece ser un código QR expirado! Por favor, intenta escanear uno nuevo",
 		"allow_camera_dialog_title": "Permite acceso a la cámara",
 		"allow_camera_dialog_message": "Necesitamos tu permiso para escanear códigos QR",
 		"scanning": "escaneando..."

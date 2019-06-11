@@ -4,11 +4,14 @@ import Logger from './Logger';
 const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
 const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
 
+const EXPIRED_CODE_TIMEOUT = 1000;
+
 export default class PubNubWrapper {
 	pubnub;
 	channelName;
 	cipherKey;
 	incomingDataStr = '';
+	timeout = true;
 
 	generateCipherKeyAndChannelName(selectedAddress) {
 		const cipherKey = `${selectedAddress.substr(-4)}-${PubNub.generateUUID()}`;
@@ -42,17 +45,27 @@ export default class PubNubWrapper {
 	 * Sends through pubnub a 'start-sync' event
 	 */
 	startSync() {
-		this.pubnub.publish(
-			{
-				message: {
-					event: 'start-sync'
+		return new Promise((resolve, reject) => {
+			this.pubnub.publish(
+				{
+					message: {
+						event: 'start-sync'
+					},
+					channel: this.channelName,
+					sendByPost: false,
+					storeInHistory: false
 				},
-				channel: this.channelName,
-				sendByPost: false,
-				storeInHistory: false
-			},
-			null
-		);
+				() => {
+					setTimeout(() => {
+						if (this.timeout) {
+							reject();
+						} else {
+							resolve();
+						}
+					}, EXPIRED_CODE_TIMEOUT);
+				}
+			);
+		});
 	}
 
 	/**
@@ -117,7 +130,7 @@ export default class PubNubWrapper {
 	}
 
 	/**
-	 * Adds a message listener to current pubnub object
+	 * Adds a message listener to current pubnub object, seting timeout to false if a message is received
 	 *
 	 * @param {func} onErrorSync - Callback to be called in presence of an 'error-sync' event
 	 * @param {func} onSyncingData - Callback to be called in presence of an 'syncing-data' event
@@ -126,14 +139,17 @@ export default class PubNubWrapper {
 		this.pubnub.addListener({
 			message: ({ channel, message }) => {
 				if (channel !== this.channelName || !message) {
+					this.timeout = false;
 					return false;
 				}
 				if (message.event === 'error-sync') {
+					this.timeout = false;
 					this.disconnectWebsockets();
 					Logger.error('Sync failed', message, this.incomingDataStr);
 					onErrorSync();
 				}
 				if (message.event === 'syncing-data') {
+					this.timeout = false;
 					this.incomingDataStr += message.data;
 					if (message.totalPkg === message.currentPkg) {
 						try {

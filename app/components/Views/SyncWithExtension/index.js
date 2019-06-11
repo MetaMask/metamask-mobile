@@ -148,7 +148,6 @@ class SyncWithExtension extends Component {
 				if (data.content && data.content.search('metamask-sync:') !== -1) {
 					const [channelName, cipherKey] = data.content.replace('metamask-sync:', '').split('|@|');
 					this.pubnubWrapper = new PubNubWrapper(channelName, cipherKey);
-					this.initWebsockets();
 					await this.pubnubWrapper.establishConnection(this.props.selectedAddress);
 				} else {
 					Alert.alert(
@@ -157,14 +156,22 @@ class SyncWithExtension extends Component {
 					);
 				}
 			},
-			onScanSuccess: data => {
-				if (data.content && data.content.search('metamask-sync:') !== -1) {
-					this.initWebsockets();
-					this.pubnubWrapper.startSync();
-				} else {
+			onScanSuccess: async data => {
+				try {
+					if (data.content && data.content.search('metamask-sync:') !== -1) {
+						this.initWebsockets();
+						await this.pubnubWrapper.startSync();
+					} else {
+						Alert.alert(
+							strings('sync_with_extension.invalid_qr_code'),
+							strings('sync_with_extension.invalid_qr_code_desc')
+						);
+					}
+				} catch (e) {
+					this.props.navigation.goBack();
 					Alert.alert(
-						strings('sync_with_extension.invalid_qr_code'),
-						strings('sync_with_extension.invalid_qr_code_desc')
+						strings('sync_with_extension.outdated_qr_code'),
+						strings('sync_with_extension.outdated_qr_code_desc')
 					);
 				}
 			}
