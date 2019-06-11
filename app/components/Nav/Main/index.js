@@ -59,7 +59,6 @@ import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
-import OnboardingWizard from '../../UI/OnboardingWizard';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import { hexToBN, fromWei } from '../../../util/number';
 import { setTransactionObject } from '../../../actions/transaction';
@@ -317,10 +316,6 @@ class Main extends Component {
 		 */
 		paymentChannelsEnabled: PropTypes.bool,
 		/**
-		 * Current onboarding wizard step
-		 */
-		wizardStep: PropTypes.number,
-		/**
 		 * Action that sets a transaction
 		 */
 		setTransactionObject: PropTypes.func,
@@ -549,14 +544,6 @@ class Main extends Component {
 		PaymentChannelsClient.stop();
 	}
 
-	/**
-	 * Return current step of onboarding wizard if not step 5 nor 0
-	 */
-	renderOnboardingWizard = () => {
-		const { wizardStep } = this.props;
-		return wizardStep !== 5 && wizardStep > 0 && <OnboardingWizard navigation={this.props.navigation} />;
-	};
-
 	onSignAction = () => {
 		this.setState({ signMessage: false });
 	};
@@ -696,7 +683,6 @@ class Main extends Component {
 			<React.Fragment>
 				<View style={styles.flex}>
 					{!forceReload ? <MainNavigator navigation={this.props.navigation} /> : this.renderLoader()}
-					{this.renderOnboardingWizard()}
 					<GlobalAlert />
 					<FlashMessage
 						position="bottom"
@@ -715,7 +701,6 @@ class Main extends Component {
 
 const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
-	wizardStep: state.wizard.step,
 	transaction: state.transaction,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled

@@ -5,29 +5,27 @@ import { Platform, Text, View, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { colors, fontStyles } from '../../../../styles/common';
-import { renderAccountName } from '../../../../util/address';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
 const styles = StyleSheet.create({
 	main: {
-		flex: 1
+		flex: 1,
+		position: 'absolute'
 	},
 	some: {
 		marginHorizontal: 45
 	},
 	coachmarkContainer: {
 		flex: 1,
-		position: 'absolute',
 		left: 0,
-		right: 0,
-		top: Platform.OS === 'ios' ? 210 : 180
+		right: 0
 	},
 	accountLabelContainer: {
+		flex: 1,
 		alignItems: 'center',
-		marginTop: Platform.OS === 'ios' ? 88 : 57,
-		backgroundColor: colors.white
+		backgroundColor: colors.transparent
 	}
 });
 
@@ -52,21 +50,56 @@ class Step3 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
+		coachmarkRef: PropTypes.object
 	};
 
 	state = {
-		accountLabel: '',
-		accountLabelEditable: false
+		coachmarkTop: 0,
+		viewTop: 0,
+		coachmarkTopReady: false,
+		viewTopReady: false
 	};
 
 	/**
 	 * Sets corresponding account label
 	 */
 	componentDidMount = () => {
-		const { identities, selectedAddress } = this.props;
-		const accountLabel = renderAccountName(selectedAddress, identities);
-		this.setState({ accountLabel });
+		this.getViewPosition(this.props.coachmarkRef.scrollViewContainer);
+		this.getCoachmarkPosition(this.props.coachmarkRef.editableLabelRef);
+	};
+
+	/**
+	 * Sets coachmark top position getting AccountOverview component ref from Wallet
+	 */
+	getCoachmarkPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy, width, height) => {
+				this.setState({
+					coachmarkTop: 2 * height,
+					coachmarkTopReady: true
+				});
+			});
+	};
+
+	/**
+	 * Sets view top position getting accountOverview component ref from Wallet
+	 */
+	getViewPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy, width, height, px, py) => {
+				// Adding one for android
+				const viewTop = Platform.OS === 'ios' ? py : py + 1;
+				this.setState({
+					viewTop,
+					viewTopReady: true
+				});
+			});
 	};
 
 	/**
@@ -101,14 +134,14 @@ class Step3 extends Component {
 	render() {
 		const { selectedAddress, identities, accounts, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-
+		const { coachmarkTopReady, viewTopReady } = this.state;
+		if (!coachmarkTopReady || !viewTopReady) return null;
 		return (
-			<View style={styles.main}>
+			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.accountLabelContainer}>
 					<AccountOverview account={account} currentCurrency={currentCurrency} onboardingWizard />
 				</View>
-
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: -this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step3.title')}
 						content={this.content()}

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Clipboard, Platform, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import Identicon from '../Identicon';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
@@ -14,7 +14,8 @@ import { toggleAccountsModal } from '../../../actions/modals';
 
 const styles = StyleSheet.create({
 	scrollView: {
-		maxHeight: Platform.OS === 'ios' ? 210 : 220
+		maxHeight: Platform.OS === 'ios' ? 210 : 220,
+		backgroundColor: colors.white
 	},
 	wrapper: {
 		maxHeight: Platform.OS === 'ios' ? 210 : 220,
@@ -69,7 +70,6 @@ const styles = StyleSheet.create({
 	onboardingWizardLabel: {
 		borderWidth: 2,
 		borderRadius: 4,
-		borderColor: colors.blue,
 		paddingVertical: Platform.OS === 'ios' ? 2 : -4,
 		paddingHorizontal: Platform.OS === 'ios' ? 5 : 5,
 		top: Platform.OS === 'ios' ? 0 : -2
@@ -109,7 +109,11 @@ class AccountOverview extends Component {
 		/**
 		 * whether component is being rendered from onboarding wizard
 		 */
-		onboardingWizard: PropTypes.bool
+		onboardingWizard: PropTypes.bool,
+		/**
+		 * Used to get child ref
+		 */
+		onRef: PropTypes.func
 	};
 
 	state = {
@@ -117,6 +121,10 @@ class AccountOverview extends Component {
 		accountLabel: '',
 		originalAccountLabel: ''
 	};
+
+	editableLabelRef = React.createRef();
+	scrollViewContainer = React.createRef();
+	mainView = React.createRef();
 
 	animatingAccountsModal = false;
 
@@ -134,9 +142,10 @@ class AccountOverview extends Component {
 	input = React.createRef();
 
 	componentDidMount = () => {
-		const { identities, selectedAddress } = this.props;
+		const { identities, selectedAddress, onRef } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
 		this.setState({ accountLabel });
+		onRef && onRef(this);
 	};
 
 	setAccountLabel = () => {
@@ -190,59 +199,68 @@ class AccountOverview extends Component {
 		const { accountLabelEditable, accountLabel } = this.state;
 
 		return (
-			<ScrollView
-				bounces={false}
-				keyboardShouldPersistTaps={'never'}
-				style={styles.scrollView}
-				contentContainerStyle={styles.wrapper}
-				testID={'account-overview'}
-			>
-				<View style={styles.info}>
-					<TouchableOpacity
-						style={styles.identiconBorder}
-						disabled={onboardingWizard}
-						onPress={this.toggleAccountsModal}
-					>
-						<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
-					</TouchableOpacity>
-					<View style={styles.data}>
-						{accountLabelEditable ? (
-							<TextInput
-								style={[
-									styles.label,
-									styles.labelInput,
-									onboardingWizard ? styles.onboardingWizardLabel : {}
-								]}
-								editable={accountLabelEditable}
-								onChangeText={this.onAccountLabelChange}
-								onSubmitEditing={this.setAccountLabel}
-								onBlur={this.setAccountLabel}
-								testID={'account-label-text-input'}
-								value={accountLabel}
-								selectTextOnFocus
-								ref={this.input}
-								returnKeyType={'done'}
-								autoCapitalize={'none'}
-								autoCorrect={false}
-								numberOfLines={1}
-							/>
-						) : (
-							<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-								<Text
-									style={[styles.label, onboardingWizard ? styles.onboardingWizardLabel : {}]}
+			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
+				<ScrollView
+					bounces={false}
+					keyboardShouldPersistTaps={'never'}
+					style={styles.scrollView}
+					contentContainerStyle={styles.wrapper}
+					testID={'account-overview'}
+				>
+					<View style={styles.info} ref={this.mainView}>
+						<TouchableOpacity
+							style={styles.identiconBorder}
+							disabled={onboardingWizard}
+							onPress={this.toggleAccountsModal}
+						>
+							<Identicon address={address} size="38" noFadeIn={onboardingWizard} />
+						</TouchableOpacity>
+						<View ref={this.editableLabelRef} style={styles.data} collapsable={false}>
+							{accountLabelEditable ? (
+								<TextInput
+									style={[
+										styles.label,
+										styles.labelInput,
+										styles.onboardingWizardLabel,
+										onboardingWizard ? { borderColor: colors.blue } : { borderColor: colors.white }
+									]}
+									editable={accountLabelEditable}
+									onChangeText={this.onAccountLabelChange}
+									onSubmitEditing={this.setAccountLabel}
+									onBlur={this.setAccountLabel}
+									testID={'account-label-text-input'}
+									value={accountLabel}
+									selectTextOnFocus
+									ref={this.input}
+									returnKeyType={'done'}
+									autoCapitalize={'none'}
+									autoCorrect={false}
 									numberOfLines={1}
-								>
-									{name}
-								</Text>
-							</TouchableOpacity>
-						)}
+								/>
+							) : (
+								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
+									<Text
+										style={[
+											styles.label,
+											styles.onboardingWizardLabel,
+											onboardingWizard
+												? { borderColor: colors.blue }
+												: { borderColor: colors.white }
+										]}
+										numberOfLines={1}
+									>
+										{name}
+									</Text>
+								</TouchableOpacity>
+							)}
+						</View>
+						<Text style={styles.amountFiat}>{fiatBalance}</Text>
+						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+							<Text style={styles.address}>{renderShortAddress(address)}</Text>
+						</TouchableOpacity>
 					</View>
-					<Text style={styles.amountFiat}>{fiatBalance}</Text>
-					<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-						<Text style={styles.address}>{renderShortAddress(address)}</Text>
-					</TouchableOpacity>
-				</View>
-			</ScrollView>
+				</ScrollView>
+			</View>
 		);
 	}
 }

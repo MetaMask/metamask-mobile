@@ -41,6 +41,7 @@ exports[`HomePage should render correctly 1`] = `
         }
       >
         <View
+          collapsable={false}
           style={
             Object {
               "marginBottom": 24,
@@ -222,35 +223,44 @@ exports[`HomePage should render correctly 1`] = `
             </Text>
           </View>
         </View>
-        <ScrollableTabView
-          contentProps={Object {}}
-          initialPage={0}
-          locked={false}
-          onChangeTab={[Function]}
-          onScroll={[Function]}
-          page={-1}
-          prerenderingSiblingsNumber={0}
-          renderTabBar={[Function]}
-          scrollWithoutAnimation={false}
-          style={null}
-          tabBarPosition="top"
-        >
-          <BrowserFeatured
-            tabLabel="FEATURED DAPPS"
-          />
-          <BrowserFavorites
-            bookmarks={
-              Array [
-                Object {
-                  "name": "name",
-                  "url": "url",
-                },
-              ]
+        <View
+          collapsable={false}
+          style={
+            Object {
+              "flex": 1,
             }
-            removeBookmark={[Function]}
-            tabLabel="MY FAVORITES"
-          />
-        </ScrollableTabView>
+          }
+        >
+          <ScrollableTabView
+            contentProps={Object {}}
+            initialPage={0}
+            locked={false}
+            onChangeTab={[Function]}
+            onScroll={[Function]}
+            page={-1}
+            prerenderingSiblingsNumber={0}
+            renderTabBar={[Function]}
+            scrollWithoutAnimation={false}
+            style={null}
+            tabBarPosition="top"
+          >
+            <BrowserFeatured
+              tabLabel="FEATURED DAPPS"
+            />
+            <BrowserFavorites
+              bookmarks={
+                Array [
+                  Object {
+                    "name": "name",
+                    "url": "url",
+                  },
+                ]
+              }
+              removeBookmark={[Function]}
+              tabLabel="MY FAVORITES"
+            />
+          </ScrollableTabView>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   </ScrollViewMock>

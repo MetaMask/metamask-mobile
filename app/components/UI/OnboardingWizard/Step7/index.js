@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { Platform, View, Text, StyleSheet, Dimensions } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 
+const HEIGHT = Dimensions.get('window').height;
+const INDICATOR_HEIGHT = 10;
+const NAVBAR_HEIGHT = 40;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1
@@ -16,7 +19,6 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: Platform.OS === 'ios' ? 140 : 100,
 		marginHorizontal: 45
 	}
 });
@@ -30,7 +32,32 @@ class Step7 extends Component {
 		/**
 		 * Callback to call when closing
 		 */
-		onClose: PropTypes.func
+		onClose: PropTypes.func,
+		/**
+		 * Coachmark ref to get position
+		 */
+		coachmarkRef: PropTypes.object
+	};
+
+	state = {
+		coachmarkBottom: 0
+	};
+
+	componentDidMount() {
+		this.getPosition(this.props.coachmarkRef.homePageContentRef);
+	}
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = ref => {
+		ref &&
+			ref.current &&
+			ref.current.measure((fx, fy, width, height, px, py) => {
+				const coachmarkBottom =
+					HEIGHT - py - NAVBAR_HEIGHT + (Platform.OS === 'ios' ? +INDICATOR_HEIGHT : -INDICATOR_HEIGHT);
+				this.setState({ coachmarkBottom });
+			});
 	};
 
 	/**
@@ -61,14 +88,14 @@ class Step7 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { bottom: this.state.coachmarkBottom }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step7.title')}
 						content={this.content()}
 						onNext={this.onClose}
 						onBack={this.onBack}
 						onClose={this.onClose}
-						currentStep={5}
+						currentStep={6}
 						bottomIndicatorPosition={'bottomLeft'}
 					/>
 				</View>
