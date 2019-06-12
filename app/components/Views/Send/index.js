@@ -178,7 +178,12 @@ class Send extends Component {
 		switch (action) {
 			case 'send-eth':
 				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
-				newTxMeta.to = toChecksumAddress(target_address);
+				if (target_address.toLowerCase().substr(0, 2) === '0x') {
+					newTxMeta.to = toChecksumAddress(target_address);
+				} else {
+					// ENS Name
+					newTxMeta.ensRecipient = target_address;
+				}
 				if (parameters && parameters.value) {
 					newTxMeta.value = toBN(parameters.value);
 					newTxMeta.readableValue = fromWei(newTxMeta.value);

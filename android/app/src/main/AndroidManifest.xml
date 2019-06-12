@@ -43,8 +43,47 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
 		 <!-- Branch URI Scheme -->
+		 <intent-filter android:autoVerify="true">
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+			<data android:scheme="https" android:host="metamask.app.link" />
+			<data android:scheme="https" android:host="metamask-alternate.app.link" />
+			<data android:scheme="https" android:host="metamask.test-app.link" />
+			<data android:scheme="https" android:host="metamask-alternate.test-app.link" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="metamask" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
 		<intent-filter>
 			<data android:scheme="ethereum" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="dapp" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="wc" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="http" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="https" />
 			<action android:name="android.intent.action.VIEW" />
 			<category android:name="android.intent.category.DEFAULT" />
 			<category android:name="android.intent.category.BROWSABLE" />

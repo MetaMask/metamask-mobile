@@ -619,7 +619,16 @@ export class BrowserTab extends PureComponent {
 			this.setState({ watchAsset: true, suggestedAssetMeta });
 		});
 
-		Branch.subscribe(this.handleDeeplinks);
+		// Deeplink handling
+		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
+		// Check if there's a deeplink pending from launch
+		const pendingDeeplink = DeeplinkManager.getPendingDeeplink();
+		if (pendingDeeplink) {
+			// Expire it to avoid duplicate actions
+			DeeplinkManager.expireDeeplink();
+			// Handle it
+			this.handleBranchDeeplink(pendingDeeplink);
+		}
 
 		if (Platform.OS === 'ios') {
 			this.state.scrollAnim.addListener(({ value }) => {
@@ -648,9 +657,7 @@ export class BrowserTab extends PureComponent {
 			return;
 		}
 		if (params['+non_branch_link']) {
-			Logger.log('Deeplink detected!', params);
-			const dm = new DeeplinkManager(this.props.navigation);
-			dm.parse(params['+non_branch_link']);
+			this.handleBranchDeeplink(params['+non_branch_link']);
 		} else if (params.spotlight_identifier) {
 			setTimeout(() => {
 				this.props.navigation.setParams({
@@ -661,6 +668,13 @@ export class BrowserTab extends PureComponent {
 			}, 1000);
 		}
 	};
+
+	handleBranchDeeplink(deeplink_url) {
+		Logger.log('Branch Deeplink detected!', deeplink_url);
+		DeeplinkManager.parse(deeplink_url, url => {
+			this.openNewTab(url);
+		});
+	}
 
 	handleAndroidBackPress = () => {
 		if (!this.isTabActive()) return false;
@@ -721,6 +735,10 @@ export class BrowserTab extends PureComponent {
 		} else {
 			this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
+		}
+		if (this.unsubscribeFromBranch) {
+			this.unsubscribeFromBranch();
+			this.unsubscribeFromBranch = null;
 		}
 	}
 
@@ -1036,10 +1054,10 @@ export class BrowserTab extends PureComponent {
 		}, 300);
 	};
 
-	openNewTab = () => {
+	openNewTab = url => {
 		this.toggleOptionsIfNeeded();
 		setTimeout(() => {
-			this.props.newTab();
+			this.props.newTab(url);
 		}, 300);
 	};
 
