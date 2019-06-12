@@ -48,7 +48,6 @@ class DeeplinkManager {
 		if (urlObj.query.length) {
 			params = qs.parse(urlObj.query.substring(1));
 		}
-
 		switch (urlObj.protocol.replace(':', '')) {
 			case 'http':
 			case 'https':
