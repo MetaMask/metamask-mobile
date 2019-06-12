@@ -7,6 +7,8 @@ import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import PaymentChannelsClient from '../core/PaymentChannelsClient';
 
+const MM_UNIVERSAL_LINK_HOST = 'metamask.app.link';
+
 class DeeplinkManager {
 	constructor(_navigation) {
 		this.navigation = _navigation;
@@ -52,18 +54,20 @@ class DeeplinkManager {
 			case 'http':
 			case 'https':
 				// Universal links
-				if (urlObj.hostname === 'metamask.app.link') {
+				if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
 					// action is the first parth of the pathname
 					const action = urlObj.pathname.split('/')[1];
 					switch (action) {
 						case 'dapp':
 							this.handleBrowserUrl(
-								urlObj.href.replace('https://metamask.app.link/dapp/', 'https://'),
+								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/dapp/`, 'https://'),
 								browserCallBack
 							);
 							break;
 						case 'send':
-							this.handleEthereumUrl(urlObj.href.replace('https://metamask.app.link/send/', 'ethereum:'));
+							this.handleEthereumUrl(
+								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/send/`, 'ethereum:')
+							);
 							break;
 						case 'payment':
 							this.handlePaymentChannelsUrl(urlObj.pathname.replace('/payment/', ''), params);
