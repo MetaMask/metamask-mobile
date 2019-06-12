@@ -14,6 +14,7 @@ exports[`AddCustomToken should render correctly 1`] = `
     cancelTestID="add-custom-asset-cancel-button"
     cancelText="CANCEL"
     confirmButtonMode="normal"
+    confirmDisabled={true}
     confirmTestID="add-custom-asset-confirm-button"
     confirmText="ADD TOKEN"
     confirmed={false}

@@ -149,65 +149,69 @@ export default class AddCustomToken extends Component {
 		current && current.focus();
 	};
 
-	render = () => (
-		<View style={styles.wrapper} testID={'add-custom-token-screen'}>
-			<ActionView
-				cancelTestID={'add-custom-asset-cancel-button'}
-				confirmTestID={'add-custom-asset-confirm-button'}
-				cancelText={strings('add_asset.tokens.cancel_add_token')}
-				confirmText={strings('add_asset.tokens.add_token')}
-				onCancelPress={this.cancelAddToken}
-				onConfirmPress={this.addToken}
-			>
-				<View>
-					<View style={styles.rowWrapper}>
-						<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
-						<TextInput
-							style={styles.textInput}
-							placeholder={'0x...'}
-							value={this.state.address}
-							onChangeText={this.onAddressChange}
-							onBlur={this.onAddressBlur}
-							testID={'input-token-address'}
-							onSubmitEditing={this.jumpToAssetSymbol}
-							returnKeyType={'next'}
-						/>
-						<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+	render = () => {
+		const { address, symbol, decimals } = this.state;
+		return (
+			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
+				<ActionView
+					cancelTestID={'add-custom-asset-cancel-button'}
+					confirmTestID={'add-custom-asset-confirm-button'}
+					cancelText={strings('add_asset.tokens.cancel_add_token')}
+					confirmText={strings('add_asset.tokens.add_token')}
+					onCancelPress={this.cancelAddToken}
+					onConfirmPress={this.addToken}
+					confirmDisabled={!(address && symbol && decimals)}
+				>
+					<View>
+						<View style={styles.rowWrapper}>
+							<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
+							<TextInput
+								style={styles.textInput}
+								placeholder={'0x...'}
+								value={this.state.address}
+								onChangeText={this.onAddressChange}
+								onBlur={this.onAddressBlur}
+								testID={'input-token-address'}
+								onSubmitEditing={this.jumpToAssetSymbol}
+								returnKeyType={'next'}
+							/>
+							<Text style={styles.warningText}>{this.state.warningAddress}</Text>
+						</View>
+						<View style={styles.rowWrapper}>
+							<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
+							<TextInput
+								style={styles.textInput}
+								placeholder={'GNO'}
+								value={this.state.symbol}
+								onChangeText={this.onSymbolChange}
+								onBlur={this.validateCustomTokenSymbol}
+								testID={'input-token-symbol'}
+								ref={this.assetSymbolInput}
+								onSubmitEditing={this.jumpToAssetPrecision}
+								returnKeyType={'next'}
+							/>
+							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
+						</View>
+						<View style={styles.rowWrapper}>
+							<Text style={fontStyles.normal}>{strings('token.token_precision')}</Text>
+							<TextInput
+								style={styles.textInput}
+								value={this.state.decimals}
+								keyboardType="numeric"
+								maxLength={2}
+								placeholder={'18'}
+								onChangeText={this.onDecimalsChange}
+								onBlur={this.validateCustomTokenDecimals}
+								testID={'input-token-decimals'}
+								ref={this.assetPrecisionInput}
+								onSubmitEditing={this.addToken}
+								returnKeyType={'done'}
+							/>
+							<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
+						</View>
 					</View>
-					<View style={styles.rowWrapper}>
-						<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
-						<TextInput
-							style={styles.textInput}
-							placeholder={'GNO'}
-							value={this.state.symbol}
-							onChangeText={this.onSymbolChange}
-							onBlur={this.validateCustomTokenSymbol}
-							testID={'input-token-symbol'}
-							ref={this.assetSymbolInput}
-							onSubmitEditing={this.jumpToAssetPrecision}
-							returnKeyType={'next'}
-						/>
-						<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
-					</View>
-					<View style={styles.rowWrapper}>
-						<Text style={fontStyles.normal}>{strings('token.token_precision')}</Text>
-						<TextInput
-							style={styles.textInput}
-							value={this.state.decimals}
-							keyboardType="numeric"
-							maxLength={2}
-							placeholder={'18'}
-							onChangeText={this.onDecimalsChange}
-							onBlur={this.validateCustomTokenDecimals}
-							testID={'input-token-decimals'}
-							ref={this.assetPrecisionInput}
-							onSubmitEditing={this.addToken}
-							returnKeyType={'done'}
-						/>
-						<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
-					</View>
-				</View>
-			</ActionView>
-		</View>
-	);
+				</ActionView>
+			</View>
+		);
+	};
 }
