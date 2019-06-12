@@ -547,7 +547,9 @@
 		"warning_ok_button": "YES",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Invalid QR Code",
-		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to \"Settings\" > \"Advanced\" > Sync with Mobile in the browser extension and scan the QR there"
+		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to \"Settings\" > \"Advanced\" > Sync with Mobile in the browser extension and scan the QR there",
+		"outdated_qr_code": "Expired QR Code",
+		"outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",

@@ -210,7 +210,7 @@ class Login extends Component {
 			}
 		} catch (error) {
 			// Should we force people to enable passcode / biometrics?
-			if (error.toString() === WRONG_PASSWORD_ERROR) {
+			if (error.toString().toLowerCase() === WRONG_PASSWORD_ERROR.toLowerCase()) {
 				this.setState({ loading: false, error: strings('login.invalid_password') });
 			} else if (error.toString() === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(

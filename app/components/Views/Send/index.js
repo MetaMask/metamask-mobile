@@ -102,17 +102,6 @@ class Send extends Component {
 	}
 
 	/**
-	 * Removes collectible in case an ERC721 asset is being sent
-	 */
-	removeCollectible = () => {
-		const { selectedAsset, assetType } = this.props.transaction;
-		if (assetType === 'ERC721') {
-			const { AssetsController } = Engine.context;
-			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
-		}
-	};
-
-	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
@@ -392,7 +381,6 @@ class Send extends Component {
 			if (transactionMeta.error) {
 				throw transactionMeta.error;
 			}
-			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
