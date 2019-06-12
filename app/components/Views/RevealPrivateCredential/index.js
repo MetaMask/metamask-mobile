@@ -173,7 +173,7 @@ class RevealPrivateCredential extends Component {
 			}
 		} catch (e) {
 			let msg = strings('reveal_credential.warning_incorrect_password');
-			if (e.toString() !== WRONG_PASSWORD_ERROR) {
+			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
 				msg = strings('reveal_credential.unknown_error');
 			}
 

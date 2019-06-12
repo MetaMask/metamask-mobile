@@ -197,7 +197,7 @@ export default class AccountBackupStep4 extends Component {
 			this.setState({ view: SEED_PHRASE, ready: true });
 		} catch (e) {
 			let msg = strings('reveal_credential.warning_incorrect_password');
-			if (e.toString() !== WRONG_PASSWORD_ERROR) {
+			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
 				msg = strings('reveal_credential.unknown_error');
 			}
 			this.setState({
