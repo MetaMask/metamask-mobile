@@ -32,11 +32,12 @@
   if(foxCodeFromBundle != nil){
     foxCode = foxCodeFromBundle;
     [Fabric with:@[[Crashlytics class]]];
-  	[RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
     [Mixpanel sharedInstanceWithToken:mixPanelTokenFromBundle];
   } else {
     foxCode = @"debug";
   }
+  
+  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
   
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
