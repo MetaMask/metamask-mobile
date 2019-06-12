@@ -14,6 +14,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
     cancelTestID=""
     cancelText="CANCEL"
     confirmButtonMode="normal"
+    confirmDisabled={true}
     confirmTestID=""
     confirmText="ADD TOKEN"
     confirmed={false}
