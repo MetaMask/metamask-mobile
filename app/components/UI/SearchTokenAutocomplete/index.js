@@ -53,6 +53,7 @@ export default class SearchTokenAutocomplete extends Component {
 
 	render = () => {
 		const { searchResults, selectedAsset, searchQuery } = this.state;
+		const { address, symbol, decimals } = selectedAsset;
 
 		return (
 			<View style={styles.wrapper} testID={'search-token-screen'}>
@@ -61,6 +62,7 @@ export default class SearchTokenAutocomplete extends Component {
 					confirmText={strings('add_asset.tokens.add_token')}
 					onCancelPress={this.cancelAddToken}
 					onConfirmPress={this.addToken}
+					confirmDisabled={!(address && symbol && decimals)}
 				>
 					<View>
 						<AssetSearch onSearch={this.handleSearch} />
