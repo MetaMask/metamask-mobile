@@ -177,7 +177,11 @@ class Send extends Component {
 		let newTxMeta;
 		switch (action) {
 			case 'send-eth':
-				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
+				newTxMeta = {
+					symbol: 'ETH',
+					assetType: 'ETH',
+					type: 'ETHER_TRANSACTION'
+				};
 				if (target_address.toLowerCase().substr(0, 2) === '0x') {
 					newTxMeta.to = toChecksumAddress(target_address);
 				} else {
@@ -456,7 +460,7 @@ class Send extends Component {
 		return {
 			view: SEND,
 			network: networkType,
-			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			activeCurrency: (selectedAsset && (selectedAsset.symbol || selectedAsset.contractName)) || 'ETH',
 			assetType
 		};
 	};

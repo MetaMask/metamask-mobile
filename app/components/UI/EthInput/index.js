@@ -506,7 +506,12 @@ class EthInput extends Component {
 					}
 				} else {
 					convertedAmount = strings('transaction.conversion_not_available');
+					currency =
+						primaryCurrency === 'ETH'
+							? selectedAsset.symbol
+							: currentCurrency && currentCurrency.toUpperCase();
 				}
+
 				const image = <TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />;
 				return this.renderTokenInput(image, currency, convertedAmount);
 			},

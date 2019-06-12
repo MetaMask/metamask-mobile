@@ -509,7 +509,10 @@ const instance = {
 const reloadClient = () => {
 	if (!reloading) {
 		reloading = true;
-		instance.stop();
+		if (client) {
+			client.stop();
+			removeListeners();
+		}
 		setTimeout(() => {
 			instance.init(Engine.context.PreferencesController.state.selectedAddress);
 			setTimeout(() => {
