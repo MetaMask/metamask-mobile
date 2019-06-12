@@ -92,8 +92,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		super.onCreate();
 		if (!BuildConfig.DEBUG){
 			Fabric.with(this, new Crashlytics());
-			Branch.getAutoInstance(this);
 		}
+		Branch.getAutoInstance(this);
 		SoLoader.init(this, /* native exopackage */ false);
 	}
 

@@ -457,8 +457,7 @@ export function getWalletNavbarOptions(title, navigation) {
 			navigation.navigate('SendView', { txMeta: data });
 		} else if (data.walletConnectURI) {
 			setTimeout(() => {
-				const dm = new DeeplinkManager(navigation);
-				dm.parse(data.walletConnectURI);
+				DeeplinkManager.parse(data.walletConnectURI);
 			}, 500);
 		}
 	};

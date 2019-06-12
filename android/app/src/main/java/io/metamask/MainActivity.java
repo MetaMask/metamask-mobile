@@ -25,9 +25,7 @@ public class MainActivity extends ReactFragmentActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		if(!BuildConfig.DEBUG){
-			RNBranchModule.initSession(getIntent().getData(), this);
-		}
+		RNBranchModule.initSession(getIntent().getData(), this);
 	}
 
 	@Override
