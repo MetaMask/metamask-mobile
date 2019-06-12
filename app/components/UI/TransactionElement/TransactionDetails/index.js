@@ -8,7 +8,7 @@ import Button from '../../Button';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import { renderFromWei } from '../../../../util/number';
-import { CANCEL_RATE } from 'gaba/TransactionController';
+import { CANCEL_RATE } from 'gaba/transaction/TransactionController';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
 import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Logger from '../../../../util/Logger';
