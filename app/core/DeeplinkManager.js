@@ -37,10 +37,12 @@ class DeeplinkManager {
 	}
 
 	handlePaymentChannelsUrl(to, params) {
-		PaymentChannelsClient.hub.emit('payment::request', {
-			to,
-			...params
-		});
+		setTimeout(() => {
+			PaymentChannelsClient.hub.emit('payment::request', {
+				to,
+				...params
+			});
+		}, 1000);
 	}
 
 	parse(url, browserCallBack = null) {
