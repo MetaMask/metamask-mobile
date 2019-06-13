@@ -166,10 +166,14 @@ export default class AccountBackupStep4 extends Component {
 		this.words = this.props.navigation.getParam('words', []);
 		// If the user is going to the backup seed flow directly
 		if (!this.words.length) {
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (credentials) {
-				this.words = await this.tryExportSeedPhrase(credentials.password);
-			} else {
+			try {
+				const credentials = await SecureKeychain.getGenericPassword();
+				if (credentials) {
+					this.words = await this.tryExportSeedPhrase(credentials.password);
+				} else {
+					this.setState({ view: CONFIRM_PASSWORD });
+				}
+			} catch (e) {
 				this.setState({ view: CONFIRM_PASSWORD });
 			}
 		}
