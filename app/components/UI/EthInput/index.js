@@ -218,7 +218,8 @@ class EthInput extends Component {
 					assets: [
 						{
 							name: 'Ether',
-							symbol: 'ETH'
+							symbol: 'ETH',
+							isETH: true
 						},
 						...this.props.tokens
 					],
