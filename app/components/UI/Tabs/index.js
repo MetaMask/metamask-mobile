@@ -234,8 +234,12 @@ export default class Tabs extends PureComponent {
 		);
 	}
 
+	onNewTabPress = () => {
+		this.props.newTab();
+	};
+
 	renderTabActions() {
-		const { tabs, closeAllTabs, newTab, closeTabsView } = this.props;
+		const { tabs, closeAllTabs, closeTabsView } = this.props;
 		return (
 			<View style={styles.tabActions}>
 				<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={closeAllTabs}>
@@ -244,7 +248,7 @@ export default class Tabs extends PureComponent {
 					</Text>
 				</TouchableOpacity>
 				<View style={styles.tabAction}>
-					<TouchableOpacity style={styles.newTabIconButton} onPress={newTab}>
+					<TouchableOpacity style={styles.newTabIconButton} onPress={this.onNewTabPress}>
 						<MaterialCommunityIcon name="plus" size={15} style={styles.newTabIcon} />
 					</TouchableOpacity>
 				</View>

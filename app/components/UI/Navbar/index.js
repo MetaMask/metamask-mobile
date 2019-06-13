@@ -292,7 +292,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 	let hostname = null;
 	let isHttps = false;
 	if (url && url !== HOMEPAGE_URL) {
-		isHttps = url.toLowerCase().substr(0, 6) === 'https:';
+		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
 		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
 		if (hostname === 'ipfs.io' && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
