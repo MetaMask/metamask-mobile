@@ -241,6 +241,8 @@ class PaymentRequest extends Component {
 		networkType: PropTypes.string
 	};
 
+	amountInput = React.createRef();
+
 	state = {
 		searchInputValue: '',
 		results: [],
@@ -266,6 +268,10 @@ class PaymentRequest extends Component {
 		if (receiveAsset) {
 			this.goToAmountInput(receiveAsset);
 		}
+	};
+
+	componentDidUpdate = () => {
+		this.amountInput.current && this.amountInput.current.focus();
 	};
 
 	/**
@@ -540,6 +546,7 @@ class PaymentRequest extends Component {
 										style={styles.input}
 										value={amount}
 										onSubmitEditing={this.onNext}
+										ref={this.amountInput}
 									/>
 									<Text style={styles.eth} numberOfLines={1}>
 										{symbol}
