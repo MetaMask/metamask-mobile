@@ -228,7 +228,7 @@ class TransactionEditor extends Component {
 			this.props.setTransactionObject({
 				value: undefined,
 				data: undefined,
-				selectedAsset: { symbol: 'ETH' },
+				selectedAsset: { symbol: 'ETH', isETH: true },
 				gas: hexToBN(gas)
 			});
 		} else {
