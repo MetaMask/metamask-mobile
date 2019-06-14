@@ -7,7 +7,8 @@ import {
 	StyleSheet,
 	View,
 	TouchableOpacity,
-	KeyboardAvoidingView
+	KeyboardAvoidingView,
+	InteractionManager
 } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -281,7 +282,9 @@ class PaymentRequest extends Component {
 	};
 
 	componentDidUpdate = () => {
-		this.amountInput.current && this.amountInput.current.focus();
+		InteractionManager.runAfterInteractions(() => {
+			this.amountInput.current && this.amountInput.current.focus();
+		});
 	};
 
 	/**
