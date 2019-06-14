@@ -471,13 +471,13 @@ class PaymentRequest extends Component {
 	 * Updates internalPrimaryCurrency
 	 */
 	switchPrimaryCurrency = async () => {
-		const { internalPrimaryCurrency } = this.state;
+		const { internalPrimaryCurrency, secondaryAmount } = this.state;
 		const primarycurrencies = {
 			ETH: 'Fiat',
 			Fiat: 'ETH'
 		};
 		await this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
-		this.updateAmount();
+		this.updateAmount(secondaryAmount.split(' ')[0]);
 	};
 
 	/**
