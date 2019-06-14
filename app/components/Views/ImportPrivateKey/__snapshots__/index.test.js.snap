@@ -215,6 +215,31 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           underlineColorAndroid="transparent"
           value=""
         />
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "justifyContent": "center",
+              "marginTop": 20,
+            }
+          }
+        >
+          <TouchableOpacity
+            activeOpacity={0.2}
+            onPress={[Function]}
+          >
+            <Text
+              style={
+                Object {
+                  "color": "#037dd6",
+                  "fontSize": 14,
+                }
+              }
+            >
+              or Scan a QR Code
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
     <View

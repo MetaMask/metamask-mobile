@@ -171,7 +171,10 @@
 		"collectible_removed_title": "Coleccionable eliminado!",
 		"collectible_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"Agregar Coleccionable\"",
 		"remove": "Eliminar",
-		"cancel": "Cancelar"
+		"cancel": "Cancelar",
+		"yes": "Sí",
+		"private_key_detected": "Llave privada detectada",
+		"do_you_want_to_import_this_account": "Deseas importar esta cuenta?"
 	},
 	"transactions_view": {
 		"title": "Transacciones"
@@ -245,7 +248,11 @@
 	"accounts": {
 		"create_new_account": "Crear cuenta nueva",
 		"import_account": "Import una cuenta",
-		"imported": "IMPORTAR"
+		"imported": "IMPORTAR",
+		"remove_account_title": "Eliminar cuenta",
+		"remove_account_message": "Realmente deseas liminar esta cuenta?",
+		"no": "No",
+		"yes_remove_it": "Si, deseo eliminarla"
 	},
 	"app_settings": {
 		"title": "Ajustes",
@@ -615,7 +622,8 @@
 		"example": "ej. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
 		"error_title": "Ooops! algo ha salido mal...",
 		"error_message": "No pudimos importar esa llave secreta. Asegúrate de que la hayas ingresado correctamente.",
-		"error_empty_message": "Debes ingresar tu llave privada."
+		"error_empty_message": "Debes ingresar tu llave privada.",
+		"or_scan_a_qr_code": "o escanea un codigo QR"
 	},
 	"import_private_key_success": {
 		"title": "Cuenta importada correctamente!",
