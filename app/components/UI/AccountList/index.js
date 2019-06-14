@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
 import {
+	Alert,
 	ActivityIndicator,
 	InteractionManager,
 	FlatList,
@@ -258,6 +259,30 @@ export default class AccountList extends Component {
 		return ret;
 	}
 
+	onLongPress = (address, imported, index) => {
+		if (!imported) return;
+		Alert.alert(
+			strings('accounts.remove_account_title'),
+			strings('accounts.remove_account_message'),
+			[
+				{
+					text: strings('accounts.no'),
+					onPress: () => false,
+					style: 'cancel'
+				},
+				{
+					text: strings('accounts.yes_remove_it'),
+					onPress: async () => {
+						await Engine.context.KeyringController.removeAccount(address);
+						// Default to the previous account in the list
+						this.onAccountChange(index - 1);
+					}
+				}
+			],
+			{ cancelable: false }
+		);
+	};
+
 	renderItem = ({ item }) => {
 		const { ticker } = this.props;
 		const { index, name, address, balance, isSelected, isImported } = item;
@@ -276,6 +301,7 @@ export default class AccountList extends Component {
 				style={styles.account}
 				key={`account-${address}`}
 				onPress={() => this.onAccountChange(index)} // eslint-disable-line
+				onLongPress={() => this.onLongPress(address, imported, index)} // eslint-disable-line
 			>
 				<Identicon address={address} diameter={38} />
 				<View style={styles.accountInfo}>
