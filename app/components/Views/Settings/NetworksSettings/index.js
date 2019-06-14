@@ -2,11 +2,13 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { StyleSheet, Text, ScrollView, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
+import ActionSheet from 'react-native-actionsheet';
 import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
+import Engine from '../../../../core/Engine';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -64,8 +66,15 @@ class NetworksSettings extends Component {
 		/**
 		 * Object that represents the navigator
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * NetworkController povider object
+		 */
+		provider: PropTypes.object
 	};
+
+	actionSheet = null;
+	networkToRemove = null;
 
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
@@ -84,11 +93,42 @@ class NetworksSettings extends Component {
 		navigation.navigate('NetworkSettings');
 	};
 
-	networkElement(name, color, i, network) {
+	showRemoveMenu = network => {
+		this.networkToRemove = network;
+		this.actionSheet.show();
+	};
+
+	switchToMainnet = () => {
+		const { NetworkController, CurrencyRateController } = Engine.context;
+		CurrencyRateController.configure({ nativeCurrency: 'ETH' });
+		NetworkController.setProviderType('mainnet');
+		setTimeout(() => {
+			Engine.refreshTransactionHistory();
+		}, 1000);
+	};
+
+	removeNetwork = () => {
+		// Check if it's the selected network and then switch to mainnet first
+		const { provider } = this.props;
+		if (provider.rpcTarget === this.networkToRemove && provider.type === 'rpc') {
+			this.switchToMainnet();
+		}
+		const { PreferencesController } = Engine.context;
+		PreferencesController.removeFromFrequentRpcList(this.networkToRemove);
+	};
+
+	createActionSheetRef = ref => {
+		this.actionSheet = ref;
+	};
+
+	onActionSheetPress = index => (index === 0 ? this.removeNetwork() : null);
+
+	networkElement(name, color, i, network, isCustomRPC) {
 		return (
 			<TouchableOpacity
 				key={`network-${i}`}
 				onPress={() => this.onPress(network)} // eslint-disable-line
+				onLongPress={() => isCustomRPC && this.showRemoveMenu(network)}
 			>
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
@@ -103,7 +143,7 @@ class NetworksSettings extends Component {
 	renderOtherNetworks() {
 		return this.getOtherNetworks().map((network, i) => {
 			const { color, name } = Networks[network];
-			return this.networkElement(name, color, i, network);
+			return this.networkElement(name, color, i, network, false);
 		});
 	}
 
@@ -112,7 +152,7 @@ class NetworksSettings extends Component {
 		return frequentRpcList.map(({ rpcUrl, nickname }, i) => {
 			const { color, name } = { name: nickname || rpcUrl, color: null };
 
-			return this.networkElement(name, color, i, rpcUrl);
+			return this.networkElement(name, color, i, rpcUrl, true);
 		});
 	};
 
@@ -160,12 +200,21 @@ class NetworksSettings extends Component {
 				<StyledButton type="confirm" onPress={this.onAddNetwork} containerStyle={styles.syncConfirm}>
 					{strings('app_settings.network_add_network')}
 				</StyledButton>
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('app_settings.remove_network_title')}
+					options={[strings('app_settings.remove_network'), strings('app_settings.cancel_remove_network')]}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					onPress={this.onActionSheetPress}
+				/>
 			</View>
 		);
 	}
 }
 
 const mapStateToProps = state => ({
+	provider: state.engine.backgroundState.NetworkController.provider,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList
 });
 

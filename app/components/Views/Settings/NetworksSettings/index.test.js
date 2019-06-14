@@ -8,9 +8,10 @@ describe('NetworksSettings', () => {
 		const initialState = {
 			engine: {
 				backgroundState: {
-					PreferencesController: {
-						frequentRpcList: []
-					}
+					NetworkController: {
+						provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' }
+					},
+					PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] }
 				}
 			}
 		};
