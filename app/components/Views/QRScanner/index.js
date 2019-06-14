@@ -94,9 +94,15 @@ export default class QrScanner extends Component {
 					action = 'send-token';
 				}
 				data = { ...data, action };
+			} else if (
+				content.length === 64 ||
+				(content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)
+			) {
+				this.shouldReadBarCode = false;
+				data = { private_key: content.length === 64 ? content : content.substr(2) };
 			} else if (content.substring(0, 2).toLowerCase() === '0x') {
 				this.shouldReadBarCode = false;
-				data = { target_address: content };
+				data = { target_address: content, action: 'send-eth' };
 			} else if (content.split('wc:').length > 1) {
 				this.shouldReadBarCode = false;
 				data = { walletConnectURI: content };

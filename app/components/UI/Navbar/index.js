@@ -4,7 +4,17 @@ import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard, InteractionManager } from 'react-native';
+import {
+	Alert,
+	Text,
+	Platform,
+	TouchableOpacity,
+	View,
+	StyleSheet,
+	Image,
+	Keyboard,
+	InteractionManager
+} from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -17,6 +27,7 @@ import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { importAccountFromPrivateKey } from '../../../util/address';
 const HOMEPAGE_URL = 'about:blank';
 
 const trackEvent = event => {
@@ -455,6 +466,33 @@ export function getWalletNavbarOptions(title, navigation) {
 	const onScanSuccess = data => {
 		if (data.target_address) {
 			navigation.navigate('SendView', { txMeta: data });
+		} else if (data.private_key) {
+			Alert.alert(
+				strings('wallet.private_key_detected'),
+				strings('wallet.do_you_want_to_import_this_account'),
+				[
+					{
+						text: strings('wallet.cancel'),
+						onPress: () => false,
+						style: 'cancel'
+					},
+					{
+						text: strings('wallet.yes'),
+						onPress: async () => {
+							try {
+								await importAccountFromPrivateKey(data.private_key);
+								navigation.navigate('ImportPrivateKeySuccess');
+							} catch (e) {
+								Alert.alert(
+									strings('import_private_key.error_title'),
+									strings('import_private_key.error_message')
+								);
+							}
+						}
+					}
+				],
+				{ cancelable: false }
+			);
 		} else if (data.walletConnectURI) {
 			setTimeout(() => {
 				DeeplinkManager.parse(data.walletConnectURI);
