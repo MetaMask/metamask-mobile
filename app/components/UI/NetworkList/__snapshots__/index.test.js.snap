@@ -381,15 +381,7 @@ exports[`NetworkList should render correctly 1`] = `
             "position": "absolute",
           }
         }
-      >
-        <Icon
-          allowFontScaling={false}
-          color="#AAAAAA"
-          name="minus-circle"
-          onPress={[Function]}
-          size={20}
-        />
-      </View>
+      />
       <View
         style={
           Array [
