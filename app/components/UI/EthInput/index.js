@@ -4,7 +4,6 @@ import { Keyboard, ScrollView, Platform, StyleSheet, Text, TextInput, View, Imag
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import {
-	weiToFiat,
 	balanceToFiat,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
@@ -23,6 +22,7 @@ import ElevatedView from 'react-native-elevated-view';
 import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
 import { getTicker } from '../../../util/transactions';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	root: {
@@ -39,6 +39,9 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1
+	},
+	wrapper: {
+		flexDirection: 'row'
 	},
 	input: {
 		...fontStyles.bold,
@@ -59,9 +62,17 @@ const styles = StyleSheet.create({
 		paddingLeft: 10,
 		alignSelf: 'center'
 	},
-	fiatValue: {
+	secondaryValue: {
 		...fontStyles.normal,
 		fontSize: 12
+	},
+	secondaryCurrency: {
+		...fontStyles.normal,
+		fontSize: 12
+	},
+	secondaryValues: {
+		flexDirection: 'row',
+		maxWidth: '70%'
 	},
 	split: {
 		flex: 1,
@@ -70,7 +81,8 @@ const styles = StyleSheet.create({
 	ethContainer: {
 		flex: 1,
 		paddingLeft: 6,
-		paddingRight: 10
+		paddingRight: 10,
+		maxWidth: '65%'
 	},
 	icon: {
 		paddingBottom: 4,
@@ -82,11 +94,16 @@ const styles = StyleSheet.create({
 		height: 22,
 		borderRadius: 11
 	},
-	arrow: {
-		color: colors.grey100,
+	actions: {
 		position: 'absolute',
 		right: 10,
+		flexDirection: 'row',
 		top: Platform.OS === 'android' ? 20 : 13
+	},
+	switch: {
+		transform: [{ rotate: '270deg' }],
+		marginVertical: 3,
+		marginHorizontal: 3
 	},
 	componentContainer: {
 		position: 'relative',
@@ -426,10 +443,11 @@ class EthInput extends Component {
 	 *
 	 * @param {object} image - Image object of the asset
 	 * @param {tsring} currency - String containing currency code
-	 * @param {string} conversionRate - String containing amount depending on primary currency
+	 * @param {string} secondaryAmount - String containing amount depending on primary currency
+	 * @param {string} secondaryCurrency - String containing currency code
 	 * @returns {object} - View object to render as input field
 	 */
-	renderTokenInput = (image, currency, convertedAmount) => {
+	renderTokenInput = (image, currency, secondaryAmount, secondaryCurrency) => {
 		const { readonly } = this.props;
 		const { readableValue } = this.state;
 		return (
@@ -453,10 +471,16 @@ class EthInput extends Component {
 							{currency}
 						</Text>
 					</View>
-					{convertedAmount && (
-						<Text style={styles.fiatValue} numberOfLines={1}>
-							{convertedAmount}
-						</Text>
+					{secondaryAmount !== undefined && (
+						<View style={styles.secondaryValues}>
+							<Text style={styles.secondaryValue} numberOfLines={1}>
+								{secondaryAmount}
+							</Text>
+							<Text style={styles.secondaryCurrency} numberOfLines={1}>
+								{' '}
+								{secondaryCurrency}
+							</Text>
+						</View>
 					)}
 				</View>
 			</View>
@@ -477,36 +501,38 @@ class EthInput extends Component {
 			primaryCurrency,
 			ticker
 		} = this.props;
-		// Depending on 'assetType' return object with corresponding 'convertedAmount', 'currency' and 'image'
+		// Depending on 'assetType' return object with corresponding 'secondaryAmount', 'currency' and 'image'
 		const inputs = {
 			ETH: () => {
-				let convertedAmount, currency;
+				let secondaryAmount, currency, secondaryCurrency;
 				if (primaryCurrency === 'ETH') {
-					convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
+					secondaryAmount = weiToFiatNumber(value, conversionRate);
+					secondaryCurrency = currentCurrency.toUpperCase();
 					currency = getTicker(ticker);
 				} else {
-					convertedAmount = renderFromWei(value) + ' ' + getTicker(ticker);
+					secondaryAmount = renderFromWei(value);
+					secondaryCurrency = getTicker(ticker);
 					currency = currentCurrency.toUpperCase();
 				}
 				const image = <Image source={ethLogo} style={styles.logo} />;
-				return this.renderTokenInput(image, currency, convertedAmount);
+				return this.renderTokenInput(image, currency, secondaryAmount, secondaryCurrency);
 			},
 			ERC20: () => {
 				const exchangeRate =
 					selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-				let convertedAmount, currency;
+				let secondaryAmount, currency, secondaryCurrency;
 				if (exchangeRate && exchangeRate !== 0) {
 					if (primaryCurrency === 'ETH') {
 						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						convertedAmount = balanceToFiat(finalValue, conversionRate, exchangeRate, currentCurrency);
+						secondaryAmount = balanceToFiat(finalValue, conversionRate, exchangeRate, currentCurrency);
 						currency = selectedAsset.symbol;
 					} else {
 						const finalValue = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						convertedAmount = finalValue + ' ' + selectedAsset.symbol;
+						secondaryAmount = finalValue + ' ' + selectedAsset.symbol;
 						currency = currentCurrency.toUpperCase();
 					}
 				} else {
-					convertedAmount = strings('transaction.conversion_not_available');
+					secondaryAmount = strings('transaction.conversion_not_available');
 					currency =
 						primaryCurrency === 'ETH'
 							? selectedAsset.symbol
@@ -514,7 +540,7 @@ class EthInput extends Component {
 				}
 
 				const image = <TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />;
-				return this.renderTokenInput(image, currency, convertedAmount);
+				return this.renderTokenInput(image, currency, secondaryAmount, secondaryCurrency);
 			},
 			ERC721: () => (
 				<View style={styles.container}>
@@ -542,10 +568,26 @@ class EthInput extends Component {
 		const selectAssets = assets && assets.length > 1;
 		return (
 			<View style={styles.root}>
-				{this.renderInput()}
-				{selectAssets && (
-					<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
-				)}
+				<View style={styles.wrapper}>
+					{this.renderInput()}
+					<View style={[styles.actions]}>
+						<FontAwesome
+							onPress={this.focusInput}
+							name="exchange"
+							size={18}
+							color={colors.grey100}
+							style={styles.switch}
+						/>
+						{selectAssets && (
+							<MaterialIcon
+								onPress={this.onFocus}
+								name={'arrow-drop-down'}
+								size={24}
+								color={colors.grey100}
+							/>
+						)}
+					</View>
+				</View>
 				{selectAssets && isOpen && this.renderAssetsList()}
 			</View>
 		);
