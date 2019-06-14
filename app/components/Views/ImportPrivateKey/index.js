@@ -9,7 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import DeviceSize from '../../../util/DeviceSize';
-import Engine from '../../../core/Engine';
+import { importAccountFromPrivateKey } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -145,13 +145,7 @@ export default class ImportPrivateKey extends Component {
 		this.setState({ loading: true });
 		// Import private key
 		try {
-			let pkey = this.state.privateKey;
-			// Handle PKeys with 0x
-			if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
-				pkey = pkey.substr(2);
-			}
-			const { KeyringController } = Engine.context;
-			await KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+			await importAccountFromPrivateKey(this.state.privateKey);
 			this.props.navigation.navigate('ImportPrivateKeySuccess');
 			this.setState({ loading: false, privateKey: '' });
 		} catch (e) {
