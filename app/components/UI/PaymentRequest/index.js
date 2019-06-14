@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
-import { Platform, SafeAreaView, TextInput, Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import {
+	Platform,
+	SafeAreaView,
+	TextInput,
+	Text,
+	StyleSheet,
+	View,
+	TouchableOpacity,
+	KeyboardAvoidingView
+} from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
@@ -27,6 +36,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { generateETHLink, generateERC20Link } from '../../../util/eip681-link-generator';
 import NetworkList from '../../../util/networks';
 
+const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
@@ -582,7 +592,12 @@ class PaymentRequest extends Component {
 						</View>
 					)}
 				</View>
-				<View style={styles.buttonsWrapper}>
+				<KeyboardAvoidingView
+					style={styles.buttonsWrapper}
+					behavior={'padding'}
+					keyboardVerticalOffset={KEYBOARD_OFFSET}
+					enabled={Platform.OS === 'ios'}
+				>
 					<View style={styles.buttonsContainer}>
 						<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>
 							{strings('payment_request.reset')}
@@ -596,7 +611,7 @@ class PaymentRequest extends Component {
 							{strings('payment_request.next')}
 						</StyledButton>
 					</View>
-				</View>
+				</KeyboardAvoidingView>
 			</View>
 		);
 	};
