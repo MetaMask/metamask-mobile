@@ -74,7 +74,7 @@ class NetworksSettings extends Component {
 	};
 
 	actionSheet = null;
-	tokenToRemove = null;
+	networkToRemove = null;
 
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
