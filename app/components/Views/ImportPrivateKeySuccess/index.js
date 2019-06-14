@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import { TouchableOpacity, ScrollView, Text, View, StyleSheet } from 'react-native';
-
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import DeviceSize from '../../../util/DeviceSize';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -64,12 +66,29 @@ const styles = StyleSheet.create({
 /**
  * View that's displayed the first time a user receives funds
  */
-export default class ImportPrivateKey extends Component {
+class ImportPrivateKeySuccess extends Component {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * List of keyrings
+		 */
+		keyrings: PropTypes.array
+	};
+
+	componentDidMount = async () => {
+		const { PreferencesController } = Engine.context;
+		const { keyrings } = this.props;
+		try {
+			const allKeyrings =
+				keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+			await PreferencesController.update({ selectedAddress: accountsOrdered[accountsOrdered.length - 1] });
+		} catch (e) {
+			Logger.error('Error while refreshing imported pkey', e);
+		}
 	};
 
 	dismiss = () => {
@@ -104,3 +123,9 @@ export default class ImportPrivateKey extends Component {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	keyrings: state.engine.backgroundState.KeyringController.keyrings
+});
+
+export default connect(mapStateToProps)(ImportPrivateKeySuccess);
