@@ -467,7 +467,8 @@ export class BrowserTab extends PureComponent {
 	 * if not, get metadata first
 	 */
 	checkForPageMeta = callback => {
-		if (!this.state.currentPageTitle) {
+		const { currentPageTitle } = this.state;
+		if (!currentPageTitle || currentPageTitle !== {}) {
 			// We need to get the title to add bookmark
 			const { current } = this.webview;
 			Platform.OS === 'ios'
