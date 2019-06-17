@@ -4,6 +4,18 @@ import Engine from '../core/Engine';
 import { strings } from '../../locales/i18n';
 import contractMap from 'eth-contract-metadata';
 import { isSmartContractCode } from 'gaba/util';
+import {
+	isDecimal,
+	toWei,
+	fiatNumberToTokenMinimalUnit,
+	renderFromTokenMinimalUnit,
+	fromTokenMinimalUnit,
+	renderFromWei,
+	fromWei,
+	fiatNumberToWei,
+	balanceToFiatNumber,
+	weiToFiatNumber
+} from './number';
 
 export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
@@ -278,4 +290,68 @@ export async function getTransactionReviewActionKey(transaction) {
  */
 export function getTicker(ticker) {
 	return ticker || strings('unit.eth');
+}
+
+/**
+ * Handles payment request parameters for ETH as primaryCurrency
+ *
+ * @param {string} amount - String containing amount number from input, as token value
+ * @returns {object} - Object containing respective symbol, secondaryAmount and cryptoAmount according to amount and selectedAsset
+ */
+export function handleETHPrimaryCurrency(
+	amount,
+	conversionRate,
+	currentCurrency,
+	contractExchangeRates,
+	selectedAsset
+) {
+	let secondaryAmount, secondaryCurrency;
+	const symbol = selectedAsset.symbol;
+	const undefAmount = (isDecimal(amount) && amount) || 0;
+	const cryptoAmount = amount;
+	const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+
+	if (selectedAsset.symbol !== 'ETH') {
+		secondaryAmount = exchangeRate ? balanceToFiatNumber(undefAmount, conversionRate, exchangeRate) : undefined;
+		secondaryCurrency = currentCurrency.toUpperCase();
+	} else {
+		secondaryAmount = weiToFiatNumber(toWei(undefAmount), conversionRate);
+		secondaryCurrency = currentCurrency.toUpperCase();
+	}
+	return { symbol, secondaryAmount, secondaryCurrency, cryptoAmount };
+}
+
+/**
+ * Handles payment request parameters for Fiat as primaryCurrency
+ *
+ * @param {string} amount - String containing amount number from input, as fiat value
+ * @returns {object} - Object containing respective symbol, secondaryAmount and cryptoAmount according to amount and selectedAsset
+ */
+export function handleFiatPrimaryCurrency(
+	amount,
+	conversionRate,
+	currentCurrency,
+	contractExchangeRates,
+	selectedAsset
+) {
+	const symbol = currentCurrency.toUpperCase();
+	const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+	const undefAmount = (isDecimal(amount) && amount) || 0;
+	let secondaryAmount, cryptoAmount, secondaryCurrency;
+	if (selectedAsset.symbol !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+		const secondaryMinimalUnit = fiatNumberToTokenMinimalUnit(
+			undefAmount,
+			conversionRate,
+			exchangeRate,
+			selectedAsset.decimals
+		);
+		secondaryAmount = renderFromTokenMinimalUnit(secondaryMinimalUnit, selectedAsset.decimals);
+		secondaryCurrency = selectedAsset.symbol.toUpperCase();
+		cryptoAmount = fromTokenMinimalUnit(secondaryMinimalUnit, selectedAsset.decimals);
+	} else {
+		secondaryAmount = renderFromWei(fiatNumberToWei(undefAmount, conversionRate));
+		secondaryCurrency = strings('unit.eth');
+		cryptoAmount = fromWei(fiatNumberToWei(undefAmount, conversionRate));
+	}
+	return { symbol, secondaryAmount, cryptoAmount, secondaryCurrency };
 }
