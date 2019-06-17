@@ -174,11 +174,6 @@ export class NetworkList extends Component {
 		this.props.onClose(false);
 	};
 
-	removeRpcTarget = rpcTarget => {
-		const { PreferencesController } = Engine.context;
-		PreferencesController.removeFromFrequentRpcList(rpcTarget);
-	};
-
 	networkElement = (selected, onPress, name, color, i, network) => (
 		<TouchableOpacity
 			style={styles.network}
@@ -205,19 +200,12 @@ export class NetworkList extends Component {
 
 	renderRpcNetworks = () => {
 		const { frequentRpcList, provider } = this.props;
-		return frequentRpcList.map(({ rpcUrl }, i) => {
-			const { color, name } = { name: rpcUrl, color: null };
+		return frequentRpcList.map(({ nickname, rpcUrl }, i) => {
+			const { color, name } = { name: nickname || rpcUrl, color: null };
 			const selected =
 				provider.rpcTarget === rpcUrl && provider.type === 'rpc' ? (
 					<Icon name="check" size={20} color={colors.fontSecondary} />
-				) : (
-					<Icon
-						name="minus-circle"
-						size={20}
-						color={colors.fontTertiary}
-						onPress={() => this.removeRpcTarget(rpcUrl)} // eslint-disable-line
-					/>
-				);
+				) : null;
 			return this.networkElement(selected, this.onSetRpcTarget, name, color, i, rpcUrl);
 		});
 	};
