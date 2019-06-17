@@ -34,7 +34,7 @@ import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { generateETHLink, generateERC20Link } from '../../../util/eip681-link-generator';
+import { generateETHLink, generateERC20Link, generateUniversalLinkRequest } from '../../../util/payment-link-generator';
 import NetworkList from '../../../util/networks';
 
 const KEYBOARD_OFFSET = 120;
@@ -508,15 +508,20 @@ class PaymentRequest extends Component {
 		const { selectedAddress, navigation } = this.props;
 		const { cryptoAmount, selectedAsset, chainId } = this.state;
 		try {
-			let link;
+			let eth_link;
 			if (selectedAsset.isETH) {
-				link = generateETHLink(selectedAddress, cryptoAmount, chainId);
+				eth_link = generateETHLink(selectedAddress, cryptoAmount, chainId);
 			} else {
-				link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount, chainId);
+				eth_link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount, chainId);
 			}
+
+			// Convert to universal link / app link
+			const link = generateUniversalLinkRequest(eth_link);
+
 			navigation &&
 				navigation.replace('PaymentRequestSuccess', {
 					link,
+					qrLink: eth_link,
 					amount: cryptoAmount,
 					symbol: selectedAsset.symbol
 				});

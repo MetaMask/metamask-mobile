@@ -46,6 +46,7 @@ import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
+import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -748,7 +749,7 @@ class DrawerView extends Component {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: `ethereum:${selectedAddress}`
+			message: generateUniversalLinkAddress(selectedAddress)
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
