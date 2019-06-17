@@ -263,7 +263,6 @@ class ReceiveRequest extends Component {
 
 	render() {
 		const { qrModalVisible, buyModalVisible } = this.state;
-		const address_link = generateUniversalLinkAddress(this.props.selectedAddress);
 
 		return (
 			<SafeAreaView style={styles.wrapper}>
@@ -326,7 +325,10 @@ class ReceiveRequest extends Component {
 								</TouchableOpacity>
 							</View>
 							<View style={styles.qrCodeWrapper}>
-								<QRCode value={address_link} size={Dimensions.get('window').width - 160} />
+								<QRCode
+									value={`ethereum:${this.props.selectedAddress}`}
+									size={Dimensions.get('window').width - 160}
+								/>
 							</View>
 							<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
 								<Text style={styles.address}>{this.props.selectedAddress}</Text>

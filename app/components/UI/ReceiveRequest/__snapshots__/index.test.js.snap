@@ -280,7 +280,7 @@ exports[`ReceiveRequest should render correctly 1`] = `
             logoMargin={2}
             logoSize={20}
             size={590}
-            value="https://metamask.app.link/send/0x"
+            value="ethereum:0x"
           />
         </View>
         <TouchableOpacity

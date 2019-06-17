@@ -166,6 +166,7 @@ class PaymentRequestSuccess extends Component {
 
 	state = {
 		link: '',
+		qrLink: '',
 		amount: '',
 		symbol: '',
 		qrModalVisible: false
@@ -177,9 +178,10 @@ class PaymentRequestSuccess extends Component {
 	componentDidMount = () => {
 		const { navigation } = this.props;
 		const link = navigation && navigation.getParam('link', '');
+		const qrLink = navigation && navigation.getParam('qrLink', '');
 		const amount = navigation && navigation.getParam('amount', '');
 		const symbol = navigation && navigation.getParam('symbol', '');
-		this.setState({ link, amount, symbol });
+		this.setState({ link, qrLink, amount, symbol });
 	};
 
 	/**
@@ -304,7 +306,7 @@ class PaymentRequestSuccess extends Component {
 								</TouchableOpacity>
 							</View>
 							<View style={styles.qrCodeWrapper}>
-								<QRCode value={this.state.link} size={Dimensions.get('window').width - 160} />
+								<QRCode value={this.state.qrLink} size={Dimensions.get('window').width - 160} />
 							</View>
 						</View>
 					</View>

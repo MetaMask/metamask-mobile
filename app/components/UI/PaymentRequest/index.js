@@ -502,6 +502,7 @@ class PaymentRequest extends Component {
 			navigation &&
 				navigation.replace('PaymentRequestSuccess', {
 					link,
+					qrLink: eth_link,
 					amount: cryptoAmount,
 					symbol: selectedAsset.symbol
 				});
