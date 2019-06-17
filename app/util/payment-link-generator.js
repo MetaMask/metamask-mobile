@@ -4,6 +4,17 @@ import AppConstants from '../core/AppConstants';
 /**
  * Generate a universal link / app link based on EIP-681 / EIP-831 URLs
  *
+ * @param {string} address - Ethereum address
+ *
+ * @returns Payment request universal link / app link
+ */
+export function generateUniversalLinkAddress(address) {
+	return `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/send/${address}`;
+}
+
+/**
+ * Generate a universal link / app link based on EIP-681 / EIP-831 URLs
+ *
  * @param {string} ethereum_link - EIP-681 / EIP-831 compatible url
  *
  * @returns Payment request universal link / app link
