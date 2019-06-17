@@ -209,7 +209,11 @@ class EthInput extends Component {
 		ticker: PropTypes.string
 	};
 
-	state = { readableValue: undefined, assets: undefined };
+	state = {
+		readableValue: undefined,
+		assets: undefined,
+		internalPrimaryCurrency: this.props.primaryCurrency
+	};
 
 	/**
 	 * Used to 'fillMax' feature. Will process value coming from parent to render corresponding values on input
@@ -390,16 +394,16 @@ class EthInput extends Component {
 		const {
 			transaction: { selectedAsset, assetType },
 			conversionRate,
-			primaryCurrency,
 			contractExchangeRates
 		} = this.props;
+		const { internalPrimaryCurrency } = this.state;
 		let processedValue, processedReadableValue;
 		const decimal = isDecimal(value);
 		if (decimal) {
 			// Only for ETH or ERC20, depending on 'primaryCurrency' selected
 			switch (assetType) {
 				case 'ETH':
-					if (primaryCurrency === 'ETH') {
+					if (internalPrimaryCurrency === 'ETH') {
 						processedValue = toWei(value);
 						processedReadableValue = value;
 					} else {
@@ -410,7 +414,7 @@ class EthInput extends Component {
 				case 'ERC20': {
 					const exchangeRate =
 						selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-					if (primaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+					if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
 						processedValue = fiatNumberToTokenMinimalUnit(
 							value,
 							conversionRate,
@@ -498,14 +502,16 @@ class EthInput extends Component {
 			contractExchangeRates,
 			conversionRate,
 			transaction: { assetType, selectedAsset, value },
-			primaryCurrency,
+
 			ticker
 		} = this.props;
+		const { internalPrimaryCurrency } = this.state;
+
 		// Depending on 'assetType' return object with corresponding 'secondaryAmount', 'currency' and 'image'
 		const inputs = {
 			ETH: () => {
 				let secondaryAmount, currency, secondaryCurrency;
-				if (primaryCurrency === 'ETH') {
+				if (internalPrimaryCurrency === 'ETH') {
 					secondaryAmount = weiToFiatNumber(value, conversionRate);
 					secondaryCurrency = currentCurrency.toUpperCase();
 					currency = getTicker(ticker);
@@ -522,7 +528,7 @@ class EthInput extends Component {
 					selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 				let secondaryAmount, currency, secondaryCurrency;
 				if (exchangeRate && exchangeRate !== 0) {
-					if (primaryCurrency === 'ETH') {
+					if (internalPrimaryCurrency === 'ETH') {
 						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
 						secondaryAmount = balanceToFiat(finalValue, conversionRate, exchangeRate, currentCurrency);
 						currency = selectedAsset.symbol;
@@ -534,7 +540,7 @@ class EthInput extends Component {
 				} else {
 					secondaryAmount = strings('transaction.conversion_not_available');
 					currency =
-						primaryCurrency === 'ETH'
+						internalPrimaryCurrency === 'ETH'
 							? selectedAsset.symbol
 							: currentCurrency && currentCurrency.toUpperCase();
 				}
@@ -562,6 +568,16 @@ class EthInput extends Component {
 		return assetType && inputs[assetType]();
 	};
 
+	swithInternalPrimaryCurrency = async () => {
+		const { internalPrimaryCurrency, readableValue } = this.state;
+		const primarycurrencies = {
+			ETH: 'Fiat',
+			Fiat: 'ETH'
+		};
+		await this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
+		this.onChange(readableValue);
+	};
+
 	render = () => {
 		const { assets } = this.state;
 		const { isOpen } = this.props;
@@ -572,7 +588,7 @@ class EthInput extends Component {
 					{this.renderInput()}
 					<View style={[styles.actions]}>
 						<FontAwesome
-							onPress={this.focusInput}
+							onPress={this.swithInternalPrimaryCurrency}
 							name="exchange"
 							size={18}
 							color={colors.grey100}
