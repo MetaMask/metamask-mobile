@@ -8,13 +8,24 @@ import contractMap from 'eth-contract-metadata';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';
+import {
+	weiToFiat,
+	toWei,
+	balanceToFiat,
+	renderFromWei,
+	fiatNumberToWei,
+	fromWei,
+	isDecimal,
+	fiatNumberToTokenMinimalUnit,
+	renderFromTokenMinimalUnit,
+	fromTokenMinimalUnit
+} from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateETHLink, generateERC20Link } from '../../../util/eip681-link-generator';
 import NetworkList from '../../../util/networks';
-import { handleETHPrimaryCurrency, handleFiatPrimaryCurrency } from '../../../util/transactions';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -239,7 +250,6 @@ class PaymentRequest extends Component {
 		cryptoAmount: undefined,
 		amount: undefined,
 		secondaryAmount: undefined,
-		secondaryCurrency: undefined,
 		symbol: undefined,
 		showError: false,
 		chainId: ''
@@ -269,7 +279,6 @@ class PaymentRequest extends Component {
 			amount: undefined,
 			cryptoAmount: undefined,
 			secondaryAmount: undefined,
-			secondaryCurrency: undefined,
 			symbol: undefined
 		});
 	};
@@ -377,36 +386,79 @@ class PaymentRequest extends Component {
 	};
 
 	/**
+	 * Handles payment request parameters for ETH as primaryCurrency
+	 *
+	 * @param {string} amount - String containing amount number from input, as token value
+	 * @returns {object} - Object containing respective symbol, secondaryAmount and cryptoAmount according to amount and selectedAsset
+	 */
+	handleETHPrimaryCurrency = amount => {
+		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
+		const { selectedAsset } = this.state;
+		let secondaryAmount;
+		const symbol = selectedAsset.symbol;
+		const undefAmount = (isDecimal(amount) && amount) || 0;
+		const cryptoAmount = amount;
+		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+
+		if (selectedAsset.symbol !== 'ETH') {
+			secondaryAmount = exchangeRate
+				? balanceToFiat(undefAmount, conversionRate, exchangeRate, currentCurrency)
+				: undefined;
+		} else {
+			secondaryAmount = weiToFiat(toWei(undefAmount), conversionRate, currentCurrency.toUpperCase());
+		}
+		return { symbol, secondaryAmount, cryptoAmount };
+	};
+
+	/**
+	 * Handles payment request parameters for Fiat as primaryCurrency
+	 *
+	 * @param {string} amount - String containing amount number from input, as fiat value
+	 * @returns {object} - Object containing respective symbol, secondaryAmount and cryptoAmount according to amount and selectedAsset
+	 */
+	handleFiatPrimaryCurrency = amount => {
+		const { conversionRate, currentCurrency, contractExchangeRates } = this.props;
+		const { selectedAsset } = this.state;
+		const symbol = currentCurrency.toUpperCase();
+		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+		const undefAmount = (isDecimal(amount) && amount) || 0;
+		let secondaryAmount, cryptoAmount;
+		if (selectedAsset.symbol !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+			const secondaryMinimalUnit = fiatNumberToTokenMinimalUnit(
+				undefAmount,
+				conversionRate,
+				exchangeRate,
+				selectedAsset.decimals
+			);
+			secondaryAmount =
+				renderFromTokenMinimalUnit(secondaryMinimalUnit, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
+			cryptoAmount = fromTokenMinimalUnit(secondaryMinimalUnit, selectedAsset.decimals);
+		} else {
+			secondaryAmount = renderFromWei(fiatNumberToWei(undefAmount, conversionRate)) + ' ' + strings('unit.eth');
+			cryptoAmount = fromWei(fiatNumberToWei(undefAmount, conversionRate));
+		}
+		return { symbol, secondaryAmount, cryptoAmount };
+	};
+
+	/**
 	 * Handles amount update, setting amount related state parameters, it handles state according to internalPrimaryCurrency
 	 *
 	 * @param {string} amount - String containing amount number from input
 	 */
 	updateAmount = amount => {
 		const { internalPrimaryCurrency, selectedAsset } = this.state;
-		const { conversionRate, contractExchangeRates, currentCurrency } = this.props;
+		const { conversionRate, contractExchangeRates } = this.props;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let res;
 		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle
 		// fiat conversion for the payment request
 		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.isETH)) {
-			res = handleFiatPrimaryCurrency(
-				amount,
-				conversionRate,
-				currentCurrency,
-				contractExchangeRates,
-				selectedAsset
-			);
+			res = this.handleFiatPrimaryCurrency(amount);
 		} else {
-			res = handleETHPrimaryCurrency(
-				amount,
-				conversionRate,
-				currentCurrency,
-				contractExchangeRates,
-				selectedAsset
-			);
+			res = this.handleETHPrimaryCurrency(amount);
 		}
-		const { cryptoAmount, secondaryAmount, secondaryCurrency, symbol } = res;
-		this.setState({ amount, cryptoAmount, secondaryAmount, secondaryCurrency, symbol, showError: false });
+		const { cryptoAmount, secondaryAmount, symbol } = res;
+		this.setState({ amount, cryptoAmount, secondaryAmount, symbol, showError: false });
 	};
 
 	/**
@@ -459,15 +511,7 @@ class PaymentRequest extends Component {
 	 */
 	renderEnterAmount = () => {
 		const { conversionRate, contractExchangeRates } = this.props;
-		const {
-			amount,
-			secondaryAmount,
-			secondaryCurrency,
-			symbol,
-			cryptoAmount,
-			showError,
-			selectedAsset
-		} = this.state;
+		const { amount, secondaryAmount, symbol, cryptoAmount, showError, selectedAsset } = this.state;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let switchable = true;
 		if (!conversionRate) {
@@ -501,9 +545,9 @@ class PaymentRequest extends Component {
 										{symbol}
 									</Text>
 								</View>
-								{secondaryAmount !== undefined && (
+								{secondaryAmount && (
 									<Text style={styles.fiatValue} numberOfLines={1}>
-										{secondaryAmount + ' ' + secondaryCurrency}
+										{secondaryAmount}
 									</Text>
 								)}
 							</View>
