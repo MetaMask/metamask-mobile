@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -11,6 +11,7 @@ import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -296,7 +297,7 @@ class NetworkSettings extends Component {
 		} = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
-				<ScrollView style={styles.informationWrapper}>
+				<KeyboardAwareScrollView style={styles.informationWrapper}>
 					<View style={styles.scrollWrapper}>
 						{addMode && <Text style={styles.title}>{strings('app_settings.new_RPC_URL')}</Text>}
 						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
@@ -394,7 +395,7 @@ class NetworkSettings extends Component {
 							</View>
 						</View>
 					)}
-				</ScrollView>
+				</KeyboardAwareScrollView>
 			</SafeAreaView>
 		);
 	}

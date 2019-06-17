@@ -1,5 +1,5 @@
 import { toChecksumAddress } from 'ethereumjs-util';
-
+import Engine from '../core/Engine';
 /**
  * Returns full checksummed address
  *
@@ -37,4 +37,26 @@ export function renderAccountName(address, identities) {
 		return identities[address].name;
 	}
 	return renderShortAddress(address);
+}
+
+/**
+ * Imports a an account from a private key
+ *
+ * @param {String} private_key - String corresponding to a private key
+ * @returns {Promise} - Returns a promise
+ */
+
+export async function importAccountFromPrivateKey(private_key) {
+	// Import private key
+	try {
+		let pkey = private_key;
+		// Handle PKeys with 0x
+		if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
+			pkey = pkey.substr(2);
+		}
+		const { KeyringController } = Engine.context;
+		return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+	} catch (e) {
+		throw e;
+	}
 }
