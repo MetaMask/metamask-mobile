@@ -389,14 +389,15 @@ class EthInput extends Component {
 	 * Handle value from eth input according to app 'primaryCurrency', transforming either Token or Fiat value to corresponding transaction object value.
 	 *
 	 * @returns {Object} - Object containing BN instance of the value for the transaction and a string containing readable value
+	 * @returns {String} - String containing internalPrimaryCurrency, if not provided will take it from state
 	 */
-	processValue = value => {
+	processValue = (value, internalPrimaryCurrency) => {
 		const {
 			transaction: { selectedAsset, assetType },
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const { internalPrimaryCurrency } = this.state;
+		internalPrimaryCurrency = internalPrimaryCurrency || this.state.internalPrimaryCurrency;
 		let processedValue, processedReadableValue;
 		const decimal = isDecimal(value);
 		if (decimal) {
@@ -568,14 +569,19 @@ class EthInput extends Component {
 		return assetType && inputs[assetType]();
 	};
 
-	swithInternalPrimaryCurrency = async () => {
+	/**
+	 * Handle change of primary currency
+	 */
+	swithInternalPrimaryCurrency = () => {
 		const { internalPrimaryCurrency, readableValue } = this.state;
+		const { onChange } = this.props;
 		const primarycurrencies = {
 			ETH: 'Fiat',
 			Fiat: 'ETH'
 		};
-		await this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
-		this.onChange(readableValue);
+		const { processedValue } = this.processValue(readableValue, primarycurrencies[internalPrimaryCurrency]);
+		onChange && onChange(processedValue, readableValue);
+		this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
 	};
 
 	render = () => {
