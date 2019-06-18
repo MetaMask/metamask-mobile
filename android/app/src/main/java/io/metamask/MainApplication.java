@@ -12,8 +12,8 @@ import com.ocetnik.timer.BackgroundTimerPackage;
 import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
-// import io.branch.rnbranch.RNBranchPackage;
-// import io.branch.rnbranch.RNBranchModule;
+import io.branch.rnbranch.RNBranchPackage;
+import io.branch.rnbranch.RNBranchModule;
 import com.web3webview.Web3WebviewPackage;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -60,7 +60,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new SvgPackage(),
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),
-				// new RNBranchPackage(),
+				new RNBranchPackage(),
 				new FabricPackage(),
 				new KeychainPackage(),
 				new RandomBytesPackage(),
@@ -93,7 +93,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		if (!BuildConfig.DEBUG){
 			Fabric.with(this, new Crashlytics());
 		}
-		// RNBranchModule.getAutoInstance(this);
+		RNBranchModule.getAutoInstance(this);
 		SoLoader.init(this, /* native exopackage */ false);
 	}
 

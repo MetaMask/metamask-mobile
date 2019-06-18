@@ -269,7 +269,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
-    // implementation project(':react-native-branch')
+    implementation project(':react-native-branch')
+	implementation "io.branch.sdk.android:library:3.0.4"
 
     implementation project(':react-native-web3-webview')
     implementation project(':react-native-camera')

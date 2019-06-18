@@ -5,7 +5,7 @@ import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
-// import io.branch.rnbranch.*;
+import io.branch.rnbranch.*;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -25,7 +25,7 @@ public class MainActivity extends ReactFragmentActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		// RNBranchModule.initSession(getIntent().getData(), this);
+		RNBranchModule.initSession(getIntent().getData(), this);
 	}
 
 	@Override
