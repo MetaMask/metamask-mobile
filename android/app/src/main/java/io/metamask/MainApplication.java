@@ -13,7 +13,7 @@ import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import io.branch.rnbranch.RNBranchPackage;
-import io.branch.referral.Branch;
+import io.branch.rnbranch.RNBranchModule;
 import com.web3webview.Web3WebviewPackage;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -36,7 +36,7 @@ import io.fabric.sdk.android.Fabric;
 import java.util.Arrays;
 import java.util.List;
 
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 
 
 public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
@@ -93,7 +93,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		if (!BuildConfig.DEBUG){
 			Fabric.with(this, new Crashlytics());
 		}
-		Branch.getAutoInstance(this);
+		RNBranchModule.getAutoInstance(this);
 		SoLoader.init(this, /* native exopackage */ false);
 	}
 

@@ -179,7 +179,7 @@ android {
         multiDexEnabled true
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy "minReactNative", "minReactNative46"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
         }
@@ -264,9 +264,9 @@ dependencies {
     implementation project(':react-native-svg')
     implementation project(':react-native-gesture-handler')
     implementation project(':react-native-screens')
-    implementation 'com.android.support:multidex:1.0.1'
-    implementation "com.android.support:support-annotations:27.1.1"
-    implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+    implementation 'androidx.multidex:multidex:2.0.0'
+    implementation 'androidx.annotation:annotation:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
     implementation project(':react-native-branch')
