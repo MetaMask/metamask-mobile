@@ -111,6 +111,8 @@ export default class LockScreen extends Component {
 						this.animationName.play();
 					}
 				});
+			} else {
+				this.props.navigation.navigate('Login');
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
