@@ -5,10 +5,10 @@ import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
-import io.branch.rnbranch.*;
+// import io.branch.rnbranch.*;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
 
 public class MainActivity extends ReactFragmentActivity {
 
@@ -25,7 +25,7 @@ public class MainActivity extends ReactFragmentActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		RNBranchModule.initSession(getIntent().getData(), this);
+		// RNBranchModule.initSession(getIntent().getData(), this);
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class MainActivity extends ReactFragmentActivity {
 	@Override
     protected ReactActivityDelegate createReactActivityDelegate() {
         return new ReactActivityDelegate(this, getMainComponentName()) {
-            @Nullable
+            @NonNull
             @Override
             protected Bundle getLaunchOptions() {
                 Bundle bundle = new Bundle();
