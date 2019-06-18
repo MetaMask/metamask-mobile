@@ -1,5 +1,15 @@
 import React, { Component } from 'react';
-import { Platform, SafeAreaView, TextInput, Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import {
+	Platform,
+	SafeAreaView,
+	TextInput,
+	Text,
+	StyleSheet,
+	View,
+	TouchableOpacity,
+	KeyboardAvoidingView,
+	InteractionManager
+} from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
@@ -24,9 +34,10 @@ import { strings } from '../../../../locales/i18n';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { generateETHLink, generateERC20Link } from '../../../util/eip681-link-generator';
+import { generateETHLink, generateERC20Link, generateUniversalLinkRequest } from '../../../util/payment-link-generator';
 import NetworkList from '../../../util/networks';
 
+const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
@@ -241,6 +252,8 @@ class PaymentRequest extends Component {
 		networkType: PropTypes.string
 	};
 
+	amountInput = React.createRef();
+
 	state = {
 		searchInputValue: '',
 		results: [],
@@ -266,6 +279,12 @@ class PaymentRequest extends Component {
 		if (receiveAsset) {
 			this.goToAmountInput(receiveAsset);
 		}
+	};
+
+	componentDidUpdate = () => {
+		InteractionManager.runAfterInteractions(() => {
+			this.amountInput.current && this.amountInput.current.focus();
+		});
 	};
 
 	/**
@@ -465,13 +484,13 @@ class PaymentRequest extends Component {
 	 * Updates internalPrimaryCurrency
 	 */
 	switchPrimaryCurrency = async () => {
-		const { internalPrimaryCurrency } = this.state;
+		const { internalPrimaryCurrency, secondaryAmount } = this.state;
 		const primarycurrencies = {
 			ETH: 'Fiat',
 			Fiat: 'ETH'
 		};
 		await this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
-		this.updateAmount();
+		this.updateAmount(secondaryAmount.split(' ')[0]);
 	};
 
 	/**
@@ -489,15 +508,20 @@ class PaymentRequest extends Component {
 		const { selectedAddress, navigation } = this.props;
 		const { cryptoAmount, selectedAsset, chainId } = this.state;
 		try {
-			let link;
+			let eth_link;
 			if (selectedAsset.isETH) {
-				link = generateETHLink(selectedAddress, cryptoAmount, chainId);
+				eth_link = generateETHLink(selectedAddress, cryptoAmount, chainId);
 			} else {
-				link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount, chainId);
+				eth_link = generateERC20Link(selectedAddress, selectedAsset.address, cryptoAmount, chainId);
 			}
+
+			// Convert to universal link / app link
+			const link = generateUniversalLinkRequest(eth_link);
+
 			navigation &&
 				navigation.replace('PaymentRequestSuccess', {
 					link,
+					qrLink: eth_link,
 					amount: cryptoAmount,
 					symbol: selectedAsset.symbol
 				});
@@ -540,6 +564,7 @@ class PaymentRequest extends Component {
 										style={styles.input}
 										value={amount}
 										onSubmitEditing={this.onNext}
+										ref={this.amountInput}
 									/>
 									<Text style={styles.eth} numberOfLines={1}>
 										{symbol}
@@ -575,7 +600,12 @@ class PaymentRequest extends Component {
 						</View>
 					)}
 				</View>
-				<View style={styles.buttonsWrapper}>
+				<KeyboardAvoidingView
+					style={styles.buttonsWrapper}
+					behavior={'padding'}
+					keyboardVerticalOffset={KEYBOARD_OFFSET}
+					enabled={Platform.OS === 'ios'}
+				>
 					<View style={styles.buttonsContainer}>
 						<StyledButton type={'normal'} onPress={this.onReset} containerStyle={[styles.button]}>
 							{strings('payment_request.reset')}
@@ -589,7 +619,7 @@ class PaymentRequest extends Component {
 							{strings('payment_request.next')}
 						</StyledButton>
 					</View>
-				</View>
+				</KeyboardAvoidingView>
 			</View>
 		);
 	};

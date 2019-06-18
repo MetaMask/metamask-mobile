@@ -6,8 +6,7 @@ import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import PaymentChannelsClient from '../core/PaymentChannelsClient';
-
-const MM_UNIVERSAL_LINK_HOST = 'metamask.app.link';
+import AppConstants from './AppConstants';
 
 class DeeplinkManager {
 	constructor(_navigation) {
@@ -52,6 +51,8 @@ class DeeplinkManager {
 		if (urlObj.query.length) {
 			params = qs.parse(urlObj.query.substring(1));
 		}
+		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
+
 		switch (urlObj.protocol.replace(':', '')) {
 			case 'http':
 			case 'https':

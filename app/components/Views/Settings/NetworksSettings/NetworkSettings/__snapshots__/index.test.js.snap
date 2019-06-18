@@ -10,13 +10,20 @@ exports[`NetworkSettings should render correctly 1`] = `
     }
   }
 >
-  <ScrollViewMock
+  <KeyboardAwareScrollViewMock
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    keyboardOpeningTime={250}
     style={
       Object {
         "flex": 1,
         "paddingHorizontal": 24,
       }
     }
+    viewIsInsideTabBar={false}
   >
     <View
       style={
@@ -272,6 +279,6 @@ exports[`NetworkSettings should render correctly 1`] = `
         </StyledButton>
       </View>
     </View>
-  </ScrollViewMock>
+  </KeyboardAwareScrollViewMock>
 </SafeAreaView>
 `;

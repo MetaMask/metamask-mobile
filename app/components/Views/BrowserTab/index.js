@@ -1073,6 +1073,9 @@ export class BrowserTab extends PureComponent {
 		}, 300);
 	};
 
+	onNewTabPress = () => {
+		this.openNewTab();
+	};
 	openNewTab = url => {
 		this.toggleOptionsIfNeeded();
 		setTimeout(() => {
@@ -1287,7 +1290,7 @@ export class BrowserTab extends PureComponent {
 								Platform.OS === 'android' ? styles.optionsWrapperAndroid : styles.optionsWrapperIos
 							]}
 						>
-							<Button onPress={this.openNewTab} style={styles.option}>
+							<Button onPress={this.onNewTabPress} style={styles.option}>
 								<View style={styles.optionIconWrapper}>
 									<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
 								</View>

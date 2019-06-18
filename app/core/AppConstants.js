@@ -12,5 +12,6 @@ export default {
 		MIN_DEPOSIT_ETH: 0.03,
 		MAX_DEPOSIT_TOKEN: 30,
 		BLOCKED_DEPOSIT_DURATION_MINUTES: 5
-	}
+	},
+	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link'
 };
