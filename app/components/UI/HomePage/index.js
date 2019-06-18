@@ -242,11 +242,14 @@ class HomePage extends Component {
 		}
 		setTimeout(() => {
 			// eslint-disable-next-line
-			this.refs[refName].measureMyself((x, y, w, h, l, t) => {
-				if (h !== 0) {
-					this.setState({ tabViewStyle: { height: h + NAVBAR_HEIGHT } });
-				}
-			});
+			if (this.refs[refName]) {
+				// eslint-disable-next-line
+				this.refs[refName].measureMyself((x, y, w, h) => {
+					if (h !== 0) {
+						this.setState({ tabViewStyle: { height: h + NAVBAR_HEIGHT } });
+					}
+				});
+			}
 		}, 100);
 	}
 
