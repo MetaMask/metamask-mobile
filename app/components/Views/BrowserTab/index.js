@@ -462,13 +462,35 @@ export class BrowserTab extends PureComponent {
 		return { scrollAnim, offsetAnim, clampedScroll };
 	}
 
+	/**
+	 * Check that page metadata is available and call callback
+	 * if not, get metadata first
+	 */
+	checkForPageMeta = callback => {
+		const { currentPageTitle } = this.state;
+		if (!currentPageTitle || currentPageTitle !== {}) {
+			// We need to get the title to add bookmark
+			const { current } = this.webview;
+			Platform.OS === 'ios'
+				? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
+				: current.injectJavaScript(JS_WINDOW_INFORMATION);
+		}
+		setTimeout(() => {
+			callback();
+		}, 500);
+	};
+
 	getPageMeta() {
-		return {
-			meta: {
-				title: this.state.currentPageTitle,
-				url: this.state.currentPageUrl
-			}
-		};
+		return new Promise(resolve => {
+			this.checkForPageMeta(() =>
+				resolve({
+					meta: {
+						title: this.state.currentPageTitle || '',
+						url: this.state.currentPageUrl
+					}
+				})
+			);
+		});
 	}
 
 	async componentDidMount() {
@@ -480,10 +502,11 @@ export class BrowserTab extends PureComponent {
 			eth_sign: async payload => {
 				const { PersonalMessageManager } = Engine.context;
 				try {
+					const pageMeta = await this.getPageMeta();
 					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 						data: payload.params[1],
 						from: payload.params[0],
-						...this.getPageMeta()
+						...pageMeta
 					});
 					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
 				} catch (error) {
@@ -493,10 +516,11 @@ export class BrowserTab extends PureComponent {
 			personal_sign: async payload => {
 				const { PersonalMessageManager } = Engine.context;
 				try {
+					const pageMeta = await this.getPageMeta();
 					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 						data: payload.params[0],
 						from: payload.params[1],
-						...this.getPageMeta()
+						...pageMeta
 					});
 					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
 				} catch (error) {
@@ -506,11 +530,12 @@ export class BrowserTab extends PureComponent {
 			eth_signTypedData: async payload => {
 				const { TypedMessageManager } = Engine.context;
 				try {
+					const pageMeta = await this.getPageMeta();
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: payload.params[0],
 							from: payload.params[1],
-							...this.getPageMeta()
+							...pageMeta
 						},
 						'V1'
 					);
@@ -522,11 +547,12 @@ export class BrowserTab extends PureComponent {
 			eth_signTypedData_v3: async payload => {
 				const { TypedMessageManager } = Engine.context;
 				try {
+					const pageMeta = await this.getPageMeta();
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 						{
 							data: payload.params[1],
 							from: payload.params[0],
-							...this.getPageMeta()
+							...pageMeta
 						},
 						'V3'
 					);
@@ -1005,14 +1031,7 @@ export class BrowserTab extends PureComponent {
 			Alert.alert(strings('browser.error'), strings('browser.bookmark_already_exists'));
 			return false;
 		}
-		if (!this.state.currentPageTitle) {
-			// We need to get the title to add bookmark
-			const { current } = this.webview;
-			Platform.OS === 'ios'
-				? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
-				: current.injectJavaScript(JS_WINDOW_INFORMATION);
-		}
-		setTimeout(() => {
+		this.checkForPageMeta(() =>
 			this.props.navigation.push('AddBookmarkView', {
 				title: this.state.currentPageTitle || '',
 				url: this.state.inputValue,
@@ -1033,8 +1052,8 @@ export class BrowserTab extends PureComponent {
 						}
 					}
 				}
-			});
-		}, 500);
+			})
+		);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
 	};
 
