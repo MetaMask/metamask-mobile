@@ -456,8 +456,7 @@ class EthInput extends Component {
 	 */
 	renderTokenInput = (image, currency, secondaryAmount, secondaryCurrency) => {
 		const { readonly } = this.props;
-		const { readableValue } = this.state;
-		const { assets } = this.state;
+		const { readableValue, assets } = this.state;
 		const selectAssets = assets && assets.length > 1;
 		return (
 			<View style={styles.container}>
@@ -526,7 +525,6 @@ class EthInput extends Component {
 			contractExchangeRates,
 			conversionRate,
 			transaction: { assetType, selectedAsset, value },
-
 			ticker
 		} = this.props;
 		const { internalPrimaryCurrency } = this.state;
@@ -536,7 +534,7 @@ class EthInput extends Component {
 			ETH: () => {
 				let secondaryAmount, currency, secondaryCurrency;
 				if (internalPrimaryCurrency === 'ETH') {
-					secondaryAmount = weiToFiatNumber(value, conversionRate);
+					secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
 					secondaryCurrency = currentCurrency.toUpperCase();
 					currency = getTicker(ticker);
 				} else {
@@ -574,22 +572,36 @@ class EthInput extends Component {
 				const image = <TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />;
 				return this.renderTokenInput(image, currency, secondaryAmount, secondaryCurrency);
 			},
-			ERC721: () => (
-				<View style={styles.container}>
-					<SelectableAsset
-						title={selectedAsset.name}
-						subTitle={`${strings('unit.token_id')}${selectedAsset.tokenId}`}
-						icon={
-							<CollectibleImage
-								collectible={selectedAsset}
-								containerStyle={styles.logo}
-								iconStyle={styles.logo}
-							/>
-						}
-						asset={selectedAsset}
-					/>
-				</View>
-			)
+			ERC721: () => {
+				const { assets } = this.state;
+				const selectAssets = assets && assets.length > 1;
+				return (
+					<View style={styles.container}>
+						<SelectableAsset
+							title={selectedAsset.name}
+							subTitle={`${strings('unit.token_id')}${selectedAsset.tokenId}`}
+							icon={
+								<CollectibleImage
+									collectible={selectedAsset}
+									containerStyle={styles.logo}
+									iconStyle={styles.logo}
+								/>
+							}
+							asset={selectedAsset}
+						/>
+						<View style={[styles.actions]}>
+							{selectAssets && (
+								<MaterialIcon
+									onPress={this.onFocus}
+									name={'arrow-drop-down'}
+									size={24}
+									color={colors.grey100}
+								/>
+							)}
+						</View>
+					</View>
+				);
+			}
 		};
 		return assetType && inputs[assetType]();
 	};
