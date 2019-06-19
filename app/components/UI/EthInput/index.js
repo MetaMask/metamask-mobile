@@ -494,7 +494,7 @@ class EthInput extends Component {
 				<View style={[styles.actions]}>
 					{secondaryCurrency && (
 						<FontAwesome
-							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)}
+							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)} // eslint-disable-line react/jsx-no-bind
 							name="exchange"
 							size={18}
 							color={colors.grey100}
