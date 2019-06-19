@@ -885,18 +885,21 @@ export class BrowserTab extends PureComponent {
 	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
 		const { ipfsGateway } = this.props;
-
-		let ipfsHash;
+		let gatewayUrl, resourceType;
 		try {
-			ipfsHash = await resolveEnsToIpfsContentId({ provider, name: hostname });
+			const { type, hash } = await resolveEnsToIpfsContentId({ provider, name: hostname });
+			resourceType = type;
+			if (type === 'ipfs-ns') {
+				gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
+			} else if (type === 'swarm-ns') {
+				gatewayUrl = `${AppConstants.SWARM_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
+			}
 		} catch (err) {
 			this.timeoutHandler && clearTimeout(this.timeoutHandler);
 			Logger.error('Failed to resolve ENS name', err);
 			err === 'unsupport' ? this.urlNotSupported(fullUrl) : this.urlErrored(fullUrl);
 			return null;
 		}
-
-		const gatewayUrl = `${ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
 
 		try {
 			const response = await fetch(gatewayUrl, { method: 'HEAD' });
@@ -909,8 +912,8 @@ export class BrowserTab extends PureComponent {
 		} catch (err) {
 			// If there's an error our fallback mechanism is
 			// to point straight to the ipfs gateway
-			Logger.error('Failed to fetch ipfs website via ens', err);
-			return `https://ipfs.io/ipfs/${ipfsHash}/`;
+			Logger.error(`Failed to fetch ${resourceType} website via ens`, err);
+			return gatewayUrl;
 		}
 	}
 
