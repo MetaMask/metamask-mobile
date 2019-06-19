@@ -13,7 +13,8 @@ import {
 	toWei,
 	fiatNumberToWei,
 	isDecimal,
-	weiToFiatNumber
+	weiToFiatNumber,
+	balanceToFiatNumber
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -212,6 +213,7 @@ class EthInput extends Component {
 	state = {
 		readableValue: undefined,
 		assets: undefined,
+		secondaryAmount: undefined,
 		internalPrimaryCurrency: this.props.primaryCurrency
 	};
 
@@ -455,6 +457,8 @@ class EthInput extends Component {
 	renderTokenInput = (image, currency, secondaryAmount, secondaryCurrency) => {
 		const { readonly } = this.props;
 		const { readableValue } = this.state;
+		const { assets } = this.state;
+		const selectAssets = assets && assets.length > 1;
 		return (
 			<View style={styles.container}>
 				<View style={styles.icon}>{image}</View>
@@ -486,6 +490,23 @@ class EthInput extends Component {
 								{secondaryCurrency}
 							</Text>
 						</View>
+					)}
+				</View>
+				<View style={[styles.actions]}>
+					<FontAwesome
+						onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)}
+						name="exchange"
+						size={18}
+						color={colors.grey100}
+						style={styles.switch}
+					/>
+					{selectAssets && (
+						<MaterialIcon
+							onPress={this.onFocus}
+							name={'arrow-drop-down'}
+							size={24}
+							color={colors.grey100}
+						/>
 					)}
 				</View>
 			</View>
@@ -531,12 +552,14 @@ class EthInput extends Component {
 				if (exchangeRate && exchangeRate !== 0) {
 					if (internalPrimaryCurrency === 'ETH') {
 						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						secondaryAmount = balanceToFiat(finalValue, conversionRate, exchangeRate, currentCurrency);
+						secondaryAmount = balanceToFiatNumber(finalValue, conversionRate, exchangeRate);
 						currency = selectedAsset.symbol;
+						secondaryCurrency = currentCurrency;
 					} else {
 						const finalValue = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						secondaryAmount = finalValue + ' ' + selectedAsset.symbol;
+						secondaryAmount = finalValue;
 						currency = currentCurrency.toUpperCase();
+						secondaryCurrency = selectedAsset.symbol;
 					}
 				} else {
 					secondaryAmount = strings('transaction.conversion_not_available');
@@ -572,16 +595,22 @@ class EthInput extends Component {
 	/**
 	 * Handle change of primary currency
 	 */
-	switchInternalPrimaryCurrency = () => {
-		const { internalPrimaryCurrency, readableValue } = this.state;
+	switchInternalPrimaryCurrency = secondaryAmount => {
+		const { internalPrimaryCurrency } = this.state;
 		const { onChange } = this.props;
 		const primarycurrencies = {
 			ETH: 'Fiat',
 			Fiat: 'ETH'
 		};
-		const { processedValue } = this.processValue(readableValue, primarycurrencies[internalPrimaryCurrency]);
-		onChange && onChange(processedValue, readableValue);
-		this.setState({ internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency] });
+		const { processedValue } = this.processValue(
+			secondaryAmount.toString(),
+			primarycurrencies[internalPrimaryCurrency]
+		);
+		onChange && onChange(processedValue, secondaryAmount.toString());
+		this.setState({
+			readableValue: secondaryAmount.toString(),
+			internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency]
+		});
 	};
 
 	render = () => {
@@ -590,26 +619,7 @@ class EthInput extends Component {
 		const selectAssets = assets && assets.length > 1;
 		return (
 			<View style={styles.root}>
-				<View style={styles.wrapper}>
-					{this.renderInput()}
-					<View style={[styles.actions]}>
-						<FontAwesome
-							onPress={this.switchInternalPrimaryCurrency}
-							name="exchange"
-							size={18}
-							color={colors.grey100}
-							style={styles.switch}
-						/>
-						{selectAssets && (
-							<MaterialIcon
-								onPress={this.onFocus}
-								name={'arrow-drop-down'}
-								size={24}
-								color={colors.grey100}
-							/>
-						)}
-					</View>
-				</View>
+				<View style={styles.wrapper}>{this.renderInput()}</View>
 				{selectAssets && isOpen && this.renderAssetsList()}
 			</View>
 		);
