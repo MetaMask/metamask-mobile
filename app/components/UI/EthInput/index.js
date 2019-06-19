@@ -493,13 +493,15 @@ class EthInput extends Component {
 					)}
 				</View>
 				<View style={[styles.actions]}>
-					<FontAwesome
-						onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)}
-						name="exchange"
-						size={18}
-						color={colors.grey100}
-						style={styles.switch}
-					/>
+					{secondaryCurrency && (
+						<FontAwesome
+							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)}
+							name="exchange"
+							size={18}
+							color={colors.grey100}
+							style={styles.switch}
+						/>
+					)}
 					{selectAssets && (
 						<MaterialIcon
 							onPress={this.onFocus}
@@ -552,12 +554,12 @@ class EthInput extends Component {
 				if (exchangeRate && exchangeRate !== 0) {
 					if (internalPrimaryCurrency === 'ETH') {
 						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						secondaryAmount = balanceToFiatNumber(finalValue, conversionRate, exchangeRate);
+						secondaryAmount = balanceToFiatNumber(finalValue, conversionRate, exchangeRate).toString();
 						currency = selectedAsset.symbol;
 						secondaryCurrency = currentCurrency;
 					} else {
 						const finalValue = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						secondaryAmount = finalValue;
+						secondaryAmount = finalValue.toString();
 						currency = currentCurrency.toUpperCase();
 						secondaryCurrency = selectedAsset.symbol;
 					}
@@ -602,13 +604,10 @@ class EthInput extends Component {
 			ETH: 'Fiat',
 			Fiat: 'ETH'
 		};
-		const { processedValue } = this.processValue(
-			secondaryAmount.toString(),
-			primarycurrencies[internalPrimaryCurrency]
-		);
+		const { processedValue } = this.processValue(secondaryAmount, primarycurrencies[internalPrimaryCurrency]);
 		onChange && onChange(processedValue, secondaryAmount.toString());
 		this.setState({
-			readableValue: secondaryAmount.toString(),
+			readableValue: secondaryAmount,
 			internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency]
 		});
 	};
