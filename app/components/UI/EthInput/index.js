@@ -554,7 +554,7 @@ class EthInput extends Component {
 						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
 						secondaryAmount = balanceToFiatNumber(finalValue, conversionRate, exchangeRate).toString();
 						currency = selectedAsset.symbol;
-						secondaryCurrency = currentCurrency;
+						secondaryCurrency = currentCurrency.toUpperCase();
 					} else {
 						const finalValue = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
 						secondaryAmount = finalValue.toString();
