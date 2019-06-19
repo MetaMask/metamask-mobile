@@ -572,7 +572,7 @@ class EthInput extends Component {
 	/**
 	 * Handle change of primary currency
 	 */
-	swithInternalPrimaryCurrency = () => {
+	switchInternalPrimaryCurrency = () => {
 		const { internalPrimaryCurrency, readableValue } = this.state;
 		const { onChange } = this.props;
 		const primarycurrencies = {
@@ -594,7 +594,7 @@ class EthInput extends Component {
 					{this.renderInput()}
 					<View style={[styles.actions]}>
 						<FontAwesome
-							onPress={this.swithInternalPrimaryCurrency}
+							onPress={this.switchInternalPrimaryCurrency}
 							name="exchange"
 							size={18}
 							color={colors.grey100}
