@@ -406,7 +406,7 @@ export class BrowserTab extends PureComponent {
 			hostname: '',
 			inputValue: '',
 			autocompleteInputValue: '',
-			ipfsGateway: 'https://ipfs.io/ipfs/',
+			ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
 			contentId: null,
 			ipfsWebsite: false,
 			showApprovalDialog: false,
@@ -496,6 +496,8 @@ export class BrowserTab extends PureComponent {
 	async componentDidMount() {
 		if (this.state.url !== HOMEPAGE_URL && Platform.OS === 'android' && this.isTabActive()) {
 			this.reload();
+		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
+			this.go(this.state.url);
 		}
 		this.mounted = true;
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
