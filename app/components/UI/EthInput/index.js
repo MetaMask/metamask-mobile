@@ -81,14 +81,13 @@ const styles = StyleSheet.create({
 	},
 	ethContainer: {
 		flex: 1,
-		paddingLeft: 6,
-		paddingRight: 10,
+		marginLeft: 6,
+		marginRight: 10,
 		maxWidth: '65%'
 	},
 	icon: {
-		paddingBottom: 4,
-		paddingRight: 10,
-		paddingTop: 6
+		paddingVertical: 6,
+		marginRight: 10
 	},
 	logo: {
 		width: 22,
@@ -471,7 +470,7 @@ class EthInput extends Component {
 				if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
 					processedReadableValue = balanceToFiatNumber(value, conversionRate, exchangeRate).toString();
 				} else {
-					processedReadableValue = renderFromTokenMinimalUnit(value.selectAsset.decimal);
+					processedReadableValue = fromTokenMinimalUnit(value, selectedAsset.decimals);
 				}
 			}
 		}
@@ -605,7 +604,6 @@ class EthInput extends Component {
 						secondaryCurrency = selectedAsset.symbol;
 					}
 				} else {
-					secondaryAmount = strings('transaction.conversion_not_available');
 					currency =
 						internalPrimaryCurrency === 'ETH'
 							? selectedAsset.symbol
