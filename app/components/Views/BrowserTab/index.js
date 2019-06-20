@@ -872,6 +872,13 @@ export class BrowserTab extends PureComponent {
 			const { type, hash } = await resolveEnsToIpfsContentId({ provider, name: hostname });
 			if (type === 'ipfs-ns') {
 				gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
+				const response = await fetch(gatewayUrl);
+				const statusCode = response.status;
+				if (statusCode >= 400) {
+					Logger.log('Status code ', statusCode, gatewayUrl);
+					this.urlNotFound(gatewayUrl);
+					return null;
+				}
 			} else if (type === 'swarm-ns') {
 				gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
 			}
