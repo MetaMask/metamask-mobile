@@ -406,7 +406,7 @@ export class BrowserTab extends PureComponent {
 			hostname: '',
 			inputValue: '',
 			autocompleteInputValue: '',
-			ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+			ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
 			contentId: null,
 			ipfsWebsite: false,
 			showApprovalDialog: false,
@@ -902,7 +902,7 @@ export class BrowserTab extends PureComponent {
 					return null;
 				}
 			} else if (type === 'swarm-ns') {
-				gatewayUrl = `${AppConstants.SWARM_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
+				gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
 			}
 
 			return {
