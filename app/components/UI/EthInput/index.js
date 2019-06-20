@@ -13,8 +13,7 @@ import {
 	fiatNumberToWei,
 	isDecimal,
 	weiToFiatNumber,
-	balanceToFiatNumber,
-	fromWei
+	balanceToFiatNumber
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -461,7 +460,7 @@ class EthInput extends Component {
 		switch (assetType) {
 			case 'ETH':
 				if (internalPrimaryCurrency === 'ETH') {
-					processedReadableValue = fromWei(value);
+					processedReadableValue = renderFromWei(value);
 				} else {
 					processedReadableValue = weiToFiatNumber(value, conversionRate).toString();
 				}
@@ -472,7 +471,7 @@ class EthInput extends Component {
 				if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
 					processedReadableValue = balanceToFiatNumber(value, conversionRate, exchangeRate).toString();
 				} else {
-					processedReadableValue = fromTokenMinimalUnit(value, selectedAsset.decimals);
+					processedReadableValue = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
 				}
 			}
 		}
