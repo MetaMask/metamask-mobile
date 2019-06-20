@@ -147,7 +147,7 @@ class AdvancedSettings extends Component {
 		const ipfsGatewaysPromises = ipfsGateways.map(async ipfsGateway => {
 			const testUrl = ipfsGateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
 			try {
-				const res = await timeoutFetch(testUrl, 1000);
+				const res = await timeoutFetch(testUrl, 1200);
 				const text = await res.text();
 				const available = text.trim() === HASH_STRING.trim();
 				ipfsGateway.available = available;
