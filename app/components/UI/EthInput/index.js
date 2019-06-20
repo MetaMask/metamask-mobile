@@ -4,7 +4,6 @@ import { Keyboard, ScrollView, Platform, StyleSheet, Text, TextInput, View, Imag
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import {
-	balanceToFiat,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
@@ -14,7 +13,8 @@ import {
 	fiatNumberToWei,
 	isDecimal,
 	weiToFiatNumber,
-	balanceToFiatNumber
+	balanceToFiatNumber,
+	fromWei
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -234,7 +234,7 @@ class EthInput extends Component {
 	 */
 	componentDidMount = () => {
 		const { transaction, collectibles } = this.props;
-		const { processedReadableValue } = this.processValue(transaction.readableValue);
+		const processedReadableValue = this.processFromValue(transaction.value);
 		switch (transaction.type) {
 			case 'TOKENS_TRANSACTION':
 				this.setState({
@@ -390,10 +390,12 @@ class EthInput extends Component {
 	/**
 	 * Handle value from eth input according to app 'primaryCurrency', transforming either Token or Fiat value to corresponding transaction object value.
 	 *
+	 * @param {String} readableValue - String containing the tx value in readable format
+	 * @param {String} internalPrimaryCurrency - If provided, represents internal primary currency
 	 * @returns {Object} - Object containing BN instance of the value for the transaction and a string containing readable value
 	 * @returns {String} - String containing internalPrimaryCurrency, if not provided will take it from state
 	 */
-	processValue = (value, internalPrimaryCurrency) => {
+	processValue = (readableValue, internalPrimaryCurrency) => {
 		const {
 			transaction: { selectedAsset, assetType },
 			conversionRate,
@@ -401,17 +403,17 @@ class EthInput extends Component {
 		} = this.props;
 		internalPrimaryCurrency = internalPrimaryCurrency || this.state.internalPrimaryCurrency;
 		let processedValue, processedReadableValue;
-		const decimal = isDecimal(value);
+		const decimal = isDecimal(readableValue);
 		if (decimal) {
 			// Only for ETH or ERC20, depending on 'primaryCurrency' selected
 			switch (assetType) {
 				case 'ETH':
 					if (internalPrimaryCurrency === 'ETH') {
-						processedValue = toWei(value);
-						processedReadableValue = value;
+						processedValue = toWei(readableValue);
+						processedReadableValue = readableValue;
 					} else {
-						processedValue = fiatNumberToWei(value, conversionRate);
-						processedReadableValue = weiToFiatNumber(toWei(value), conversionRate).toString();
+						processedValue = fiatNumberToWei(readableValue, conversionRate);
+						processedReadableValue = weiToFiatNumber(toWei(readableValue), conversionRate).toString();
 					}
 					break;
 				case 'ERC20': {
@@ -419,20 +421,61 @@ class EthInput extends Component {
 						selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 					if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
 						processedValue = fiatNumberToTokenMinimalUnit(
-							value,
+							readableValue,
 							conversionRate,
 							exchangeRate,
 							selectedAsset.decimals
 						);
-						processedReadableValue = balanceToFiat(value, conversionRate, exchangeRate, '');
+						processedReadableValue = balanceToFiatNumber(
+							readableValue,
+							conversionRate,
+							exchangeRate
+						).toString();
 					} else {
-						processedValue = toTokenMinimalUnit(value, selectedAsset.decimals);
-						processedReadableValue = value;
+						processedValue = toTokenMinimalUnit(readableValue, selectedAsset.decimals);
+						processedReadableValue = readableValue;
 					}
 				}
 			}
 		}
 		return { processedValue, processedReadableValue };
+	};
+
+	/**
+	 * Handle generation of readable information for the component from a transaction value
+	 *
+	 * @param {Object} value - Transaction value
+	 * @returns {String} - Readable transaction value depending on primaryCurrency
+	 */
+	processFromValue = value => {
+		if (!value) return undefined;
+		const {
+			transaction: { selectedAsset, assetType },
+			conversionRate,
+			contractExchangeRates
+		} = this.props;
+		const { internalPrimaryCurrency } = this.state;
+		let processedReadableValue;
+		// Only for ETH or ERC20, depending on 'primaryCurrency' selected
+		switch (assetType) {
+			case 'ETH':
+				if (internalPrimaryCurrency === 'ETH') {
+					processedReadableValue = fromWei(value);
+				} else {
+					processedReadableValue = weiToFiatNumber(value, conversionRate).toString();
+				}
+				break;
+			case 'ERC20': {
+				const exchangeRate =
+					selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+				if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+					processedReadableValue = balanceToFiatNumber(value, conversionRate, exchangeRate).toString();
+				} else {
+					processedReadableValue = renderFromTokenMinimalUnit(value.selectAsset.decimal);
+				}
+			}
+		}
+		return processedReadableValue;
 	};
 
 	/**
@@ -611,13 +654,10 @@ class EthInput extends Component {
 	 */
 	switchInternalPrimaryCurrency = secondaryAmount => {
 		const { internalPrimaryCurrency } = this.state;
-		const { onChange } = this.props;
 		const primarycurrencies = {
 			ETH: 'Fiat',
 			Fiat: 'ETH'
 		};
-		const { processedValue } = this.processValue(secondaryAmount, primarycurrencies[internalPrimaryCurrency]);
-		onChange && onChange(processedValue, secondaryAmount.toString());
 		this.setState({
 			readableValue: secondaryAmount,
 			internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency]
