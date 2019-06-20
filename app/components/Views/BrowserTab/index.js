@@ -957,7 +957,8 @@ export class BrowserTab extends PureComponent {
 	goBackToHomepage = () => {
 		this.toggleOptionsIfNeeded();
 		this.props.navigation.setParams({
-			url: null
+			url: null,
+			currentEnsName: null
 		});
 
 		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
@@ -985,6 +986,8 @@ export class BrowserTab extends PureComponent {
 			contentHeight: 0,
 			forwardEnabled: false
 		});
+
+		this.updateTabInfo(HOMEPAGE_URL);
 
 		this.initialUrl = null;
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
