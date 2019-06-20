@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, Switch, Text, Platform, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ActionModal from '../../../UI/ActionModal';
@@ -84,6 +84,11 @@ const styles = StyleSheet.create({
 	},
 	syncConfirm: {
 		marginTop: 18
+	},
+	ipfsGatewayLoadingWrapper: {
+		height: 37,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 
@@ -120,7 +125,8 @@ class AdvancedSettings extends Component {
 	state = {
 		resetModalVisible: false,
 		inputWidth: Platform.OS === 'android' ? '99%' : undefined,
-		onlineIpfsGateways: []
+		onlineIpfsGateways: [],
+		gotAvailableGateways: false
 	};
 
 	componentDidMount = async () => {
@@ -141,7 +147,7 @@ class AdvancedSettings extends Component {
 		const ipfsGatewaysPromises = ipfsGateways.map(async ipfsGateway => {
 			const testUrl = ipfsGateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
 			try {
-				const res = await timeoutFetch(testUrl);
+				const res = await timeoutFetch(testUrl, 1200);
 				const text = await res.text();
 				const available = text.trim() === HASH_STRING.trim();
 				ipfsGateway.available = available;
@@ -154,7 +160,7 @@ class AdvancedSettings extends Component {
 		const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
 		const onlineIpfsGateways = ipfsGatewaysAvailability.filter(ipfsGateway => ipfsGateway.available);
 		const sortedOnlineIpfsGateways = onlineIpfsGateways.sort((a, b) => a.key < b.key);
-		this.setState({ onlineIpfsGateways: sortedOnlineIpfsGateways });
+		this.setState({ gotAvailableGateways: true, onlineIpfsGateways: sortedOnlineIpfsGateways });
 	};
 
 	displayResetAccountModal = () => {
@@ -272,13 +278,19 @@ class AdvancedSettings extends Component {
 							<Text style={styles.title}>{strings('app_settings.ipfs_gateway')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.ipfs_gateway_desc')}</Text>
 							<View style={styles.picker}>
-								<SelectComponent
-									selectedValue={ipfsGateway}
-									defaultValue={strings('app_settings.ipfs_gateway_down')}
-									onValueChange={this.setIpfsGateway}
-									label={strings('app_settings.ipfs_gateway')}
-									options={onlineIpfsGateways}
-								/>
+								{this.state.gotAvailableGateways ? (
+									<SelectComponent
+										selectedValue={ipfsGateway}
+										defaultValue={strings('app_settings.ipfs_gateway_down')}
+										onValueChange={this.setIpfsGateway}
+										label={strings('app_settings.ipfs_gateway')}
+										options={onlineIpfsGateways}
+									/>
+								) : (
+									<View style={styles.ipfsGatewayLoadingWrapper}>
+										<ActivityIndicator size="small" />
+									</View>
+								)}
 							</View>
 						</View>
 						<View style={styles.setting}>

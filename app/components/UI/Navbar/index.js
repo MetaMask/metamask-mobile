@@ -28,6 +28,7 @@ import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
+import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 const HOMEPAGE_URL = 'about:blank';
 
 const trackEvent = event => {
@@ -306,7 +307,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
 		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
-		if (hostname === 'ipfs.io' && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
+		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			const ensUrl = navigation.getParam('currentEnsName', '');
 			if (ensUrl) {
 				hostname = ensUrl.toLowerCase().replace('www.', '');
