@@ -54,12 +54,12 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that renders an ERC-20 Token logo
+ * View that renders custom error page for the browser
  */
 export default class WebviewError extends Component {
 	static propTypes = {
 		/**
-		 * error object
+		 * error info
 		 */
 		error: PropTypes.any,
 		/**
