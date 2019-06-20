@@ -57,9 +57,9 @@ const styles = StyleSheet.create({
 	},
 	eth: {
 		...fontStyles.bold,
-		marginRight: 30,
+		marginRight: 0,
 		fontSize: 16,
-		paddingTop: Platform.OS === 'android' ? 3 : 0,
+		paddingTop: Platform.OS === 'android' ? 1 : 0,
 		paddingLeft: 10,
 		alignSelf: 'center'
 	},
@@ -76,8 +76,10 @@ const styles = StyleSheet.create({
 		maxWidth: '70%'
 	},
 	split: {
-		flex: 1,
 		flexDirection: 'row'
+	},
+	splitNoSecondaryAmount: {
+		top: Platform.OS === 'android' ? 5 : 8
 	},
 	ethContainer: {
 		flex: 1,
@@ -86,7 +88,7 @@ const styles = StyleSheet.create({
 		maxWidth: '65%'
 	},
 	icon: {
-		paddingVertical: 6,
+		paddingVertical: Platform.OS === 'android' ? 8 : 6,
 		marginRight: 10
 	},
 	logo: {
@@ -98,7 +100,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		right: 10,
 		flexDirection: 'row',
-		top: Platform.OS === 'android' ? 20 : 13
+		top: Platform.OS === 'android' ? 18 : 15
 	},
 	switch: {
 		transform: [{ rotate: '270deg' }],
@@ -504,7 +506,7 @@ class EthInput extends Component {
 			<View style={styles.container}>
 				<View style={styles.icon}>{image}</View>
 				<View style={styles.ethContainer}>
-					<View style={styles.split}>
+					<View style={[styles.split, !secondaryAmount ? styles.splitNoSecondaryAmount : {}]}>
 						<TextInput
 							autoCapitalize="none"
 							autoCorrect={false}
