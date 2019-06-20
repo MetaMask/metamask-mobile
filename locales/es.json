@@ -866,5 +866,11 @@
 		"security_reasons": "Por razones de seguridad deberá esperar 5 minutos antes de intentar nuevamente",
 		"not_ready": "Por favor espere",
 		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito"
+	},
+	"webview_error": {
+		"title": "Ooops! algo salió mal...",
+		"message": "No pudimos cargar esa página.",
+		"reason": "Motivo",
+		"try_again": "Inténtar nuevamente"
 	}
 }

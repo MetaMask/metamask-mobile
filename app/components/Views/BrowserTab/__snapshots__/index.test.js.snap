@@ -17,6 +17,7 @@ exports[`Browser should render correctly 1`] = `
     javaScriptEnabled={true}
     javascriptEnabled={true}
     messagingEnabled={true}
+    onError={[Function]}
     onLoadEnd={[Function]}
     onLoadStart={[Function]}
     onMessage={[Function]}
@@ -31,6 +32,7 @@ exports[`Browser should render correctly 1`] = `
         "https://*",
       ]
     }
+    renderError={[Function]}
     saveFormDataDisabled={false}
     scalesPageToFit={true}
     scrollEventThrottle={1}

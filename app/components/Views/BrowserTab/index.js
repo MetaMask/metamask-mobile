@@ -47,6 +47,7 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import AccountApproval from '../../UI/AccountApproval';
+import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
@@ -421,13 +422,13 @@ export class BrowserTab extends PureComponent {
 			forceReload: false,
 			suggestedAssetMeta: undefined,
 			watchAsset: false,
-			activated: props.id === props.activeTab
+			activated: props.id === props.activeTab,
+			lastError: null
 		};
 	}
 
 	webview = React.createRef();
 	inputRef = React.createRef();
-	timeoutHandler = null;
 	snapshotTimer = null;
 	prevScrollOffset = 0;
 	goingBack = false;
@@ -857,34 +858,11 @@ export class BrowserTab extends PureComponent {
 			});
 			this.updateTabInfo(sanitizedURL);
 
-			this.timeoutHandler && clearTimeout(this.timeoutHandler);
-			if (urlToGo !== HOMEPAGE_URL) {
-				this.timeoutHandler = setTimeout(() => {
-					this.urlTimedOut(urlToGo);
-				}, 60000);
-			}
-
 			return sanitizedURL;
 		}
 		this.handleNotAllowedUrl(urlToGo, hostname);
 		return null;
 	};
-
-	urlTimedOut(url) {
-		Logger.log('Browser::url::Timeout!', url);
-	}
-
-	urlNotFound(url) {
-		Logger.log('Browser::url::Not found!', url);
-	}
-
-	urlNotSupported(url) {
-		Logger.log('Browser::url::Not supported!', url);
-	}
-
-	urlErrored(url) {
-		Logger.log('Browser::url::Unknown error!', url);
-	}
 
 	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
@@ -894,13 +872,6 @@ export class BrowserTab extends PureComponent {
 			const { type, hash } = await resolveEnsToIpfsContentId({ provider, name: hostname });
 			if (type === 'ipfs-ns') {
 				gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
-				const response = await fetch(gatewayUrl);
-				const statusCode = response.status;
-				if (statusCode >= 400) {
-					Logger.log('Status code ', statusCode, gatewayUrl);
-					this.urlNotFound(gatewayUrl);
-					return null;
-				}
 			} else if (type === 'swarm-ns') {
 				gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
 			}
@@ -911,9 +882,7 @@ export class BrowserTab extends PureComponent {
 				type
 			};
 		} catch (err) {
-			this.timeoutHandler && clearTimeout(this.timeoutHandler);
 			Logger.error('Failed to resolve ENS name', err);
-			err === 'unsupport' ? this.urlNotSupported(fullUrl) : this.urlErrored(fullUrl);
 			return null;
 		}
 	}
@@ -984,7 +953,8 @@ export class BrowserTab extends PureComponent {
 			offsetAnim,
 			clampedScroll,
 			contentHeight: 0,
-			forwardEnabled: false
+			forwardEnabled: false,
+			lastError: null
 		});
 
 		this.updateTabInfo(HOMEPAGE_URL);
@@ -1284,7 +1254,11 @@ export class BrowserTab extends PureComponent {
 		const { current } = this.webview;
 		const js = JS_WINDOW_INFORMATION_HEIGHT(Platform.OS);
 		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
-		clearTimeout(this.timeoutHandler);
+	};
+
+	onError = ({ nativeEvent: errorInfo }) => {
+		Logger.log(errorInfo);
+		this.setState({ lastError: errorInfo });
 	};
 
 	renderLoader = () => (
@@ -1768,10 +1742,13 @@ export class BrowserTab extends PureComponent {
 			>
 				{activated && !forceReload && (
 					<Web3Webview
+						// eslint-disable-next-line react/jsx-no-bind
+						renderError={() => <WebviewError error={this.state.lastError} onReload={this.reload} />}
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						onProgress={this.onLoadProgress}
 						onLoadStart={this.onLoadStart}
 						onLoadEnd={this.onLoadEnd}
+						onError={this.onError}
 						onMessage={this.onMessage}
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}
