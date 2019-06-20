@@ -5,6 +5,8 @@ export default {
 	TX_CHECK_NORMAL_FREQUENCY: 10000,
 	TX_CHECK_BACKGROUND_FREQUENCY: 30000,
 	IPFS_OVERRIDE_PARAM: 'mm_override',
+	IPFS_DEFAULT_GATEWAY_URL: 'https://cloudflare-ipfs.com/ipfs/',
+	SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
 	supportedTLDs: ['eth', 'xyz', 'test'],
 	MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
 	CONNEXT: {

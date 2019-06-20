@@ -101,7 +101,12 @@ class Engine {
 					),
 					new NetworkStatusController(),
 					new PhishingController(),
-					new PreferencesController(),
+					new PreferencesController(
+						{},
+						{
+							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
+						}
+					),
 					new ShapeShiftController(),
 					new TokenBalancesController(),
 					new TokenRatesController(),
