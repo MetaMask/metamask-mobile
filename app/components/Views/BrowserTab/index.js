@@ -407,7 +407,7 @@ export class BrowserTab extends PureComponent {
 			inputValue: '',
 			autocompleteInputValue: '',
 			ipfsGateway: 'https://ipfs.io/ipfs/',
-			ipfsHash: null,
+			contentId: null,
 			ipfsWebsite: false,
 			showApprovalDialog: false,
 			showPhishingModal: false,
@@ -816,22 +816,23 @@ export class BrowserTab extends PureComponent {
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
-		const { ipfsGateway } = this.props;
 
-		let ipfsContent = null;
 		let currentEnsName = null;
-		let ipfsHash = null;
-
+		let contentId = null;
+		let contentUrl = null;
+		let contentType = null;
 		if (this.isENSUrl(sanitizedURL)) {
-			ipfsContent = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
-
-			if (ipfsContent) {
+			const { url: tmpUrl, hash, type } = await this.handleIpfsContent(sanitizedURL, {
+				hostname,
+				query,
+				pathname
+			});
+			contentUrl = tmpUrl;
+			contentType = type;
+			if (contentUrl) {
 				const urlObj = new URL(sanitizedURL);
 				currentEnsName = urlObj.hostname;
-				ipfsHash = ipfsContent
-					.replace(ipfsGateway, '')
-					.split('/')
-					.shift();
+				contentId = hash;
 			}
 			// Needed for the navbar to mask the URL
 			this.props.navigation.setParams({
@@ -839,16 +840,17 @@ export class BrowserTab extends PureComponent {
 				currentEnsName: urlObj.hostname
 			});
 		}
-		const urlToGo = ipfsContent || sanitizedURL;
+		const urlToGo = contentUrl || sanitizedURL;
 
 		if (this.isAllowedUrl(urlToGo)) {
 			this.setState({
 				url: urlToGo,
 				progress: 0,
-				ipfsWebsite: !!ipfsContent,
+				ipfsWebsite: !!contentUrl,
 				inputValue: sanitizedURL,
 				currentEnsName,
-				ipfsHash,
+				contentId,
+				contentType,
 				hostname: this.formatHostname(hostname)
 			});
 			this.updateTabInfo(sanitizedURL);
@@ -885,35 +887,32 @@ export class BrowserTab extends PureComponent {
 	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
 		const { ipfsGateway } = this.props;
-		let gatewayUrl, resourceType;
+		let gatewayUrl;
 		try {
 			const { type, hash } = await resolveEnsToIpfsContentId({ provider, name: hostname });
-			resourceType = type;
 			if (type === 'ipfs-ns') {
 				gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
+				const response = await fetch(gatewayUrl);
+				const statusCode = response.status;
+				if (statusCode >= 400) {
+					Logger.log('Status code ', statusCode, gatewayUrl);
+					this.urlNotFound(gatewayUrl);
+					return null;
+				}
 			} else if (type === 'swarm-ns') {
 				gatewayUrl = `${AppConstants.SWARM_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
 			}
+
+			return {
+				url: gatewayUrl,
+				hash,
+				type
+			};
 		} catch (err) {
 			this.timeoutHandler && clearTimeout(this.timeoutHandler);
 			Logger.error('Failed to resolve ENS name', err);
 			err === 'unsupport' ? this.urlNotSupported(fullUrl) : this.urlErrored(fullUrl);
 			return null;
-		}
-
-		try {
-			const response = await fetch(gatewayUrl, { method: 'HEAD' });
-			const statusCode = response.status;
-			if (statusCode !== 200) {
-				this.urlNotFound(gatewayUrl);
-				return null;
-			}
-			return gatewayUrl;
-		} catch (err) {
-			// If there's an error our fallback mechanism is
-			// to point straight to the ipfs gateway
-			Logger.error(`Failed to fetch ${resourceType} website via ens`, err);
-			return gatewayUrl;
 		}
 	}
 
@@ -971,7 +970,8 @@ export class BrowserTab extends PureComponent {
 			hostname: '',
 			inputValue: '',
 			autocompleteInputValue: '',
-			ipfsHash: null,
+			contentId: null,
+			contentType: null,
 			ipfsWebsite: false,
 			showApprovalDialog: false,
 			showPhishingModal: false,
@@ -1200,10 +1200,17 @@ export class BrowserTab extends PureComponent {
 		if (!this.state.ipfsWebsite) {
 			data.inputValue = url;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
-			data.inputValue = url.replace(
-				`${ipfsGateway}${this.state.ipfsHash}/`,
-				`https://${this.state.currentEnsName}/`
-			);
+			if (this.state.contentType === 'ipfs-ns') {
+				data.inputValue = url.replace(
+					`${ipfsGateway}${this.state.contentId}/`,
+					`https://${this.state.currentEnsName}/`
+				);
+			} else {
+				data.inputValue = url.replace(
+					`${AppConstants.SWARM_GATEWAY_URL}${this.state.contentId}/`,
+					`https://${this.state.currentEnsName}/`
+				);
+			}
 		} else if (this.isENSUrl(url)) {
 			this.go(url);
 			return;

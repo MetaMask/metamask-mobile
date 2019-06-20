@@ -81,6 +81,7 @@
     "https-browserify": "0.0.1",
     "jsc-android": "236355.1.1",
     "lottie-react-native": "github:brunobar79/lottie-react-native#25f818decdc0f9157506f3cca629d0db5971d75f",
+    "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "path": "0.12.7",
     "prop-types": "15.7.2",

@@ -4,6 +4,7 @@ import EthContract from 'ethjs-contract';
 import registryAbi from './contracts/registry';
 import resolverAbi from './contracts/resolver';
 import contentHash from 'content-hash';
+import multihash from 'multihashes';
 
 export default async function resolveEnsToIpfsContentId({ provider, name }) {
 	const eth = new Eth(provider);
@@ -39,7 +40,13 @@ export default async function resolveEnsToIpfsContentId({ provider, name }) {
 		if (hexValueIsEmpty(content)) {
 			throw new Error(`EnsIpfsResolver - no content ID found for name "${name}"`);
 		}
-		return { type: 'ipfs-ns', hash: content.slice(2) };
+		const nonPrefixedHex = content.slice(2);
+
+		// Multihash
+		const buffer = multihash.fromHexString(nonPrefixedHex);
+		const contentId = multihash.toB58String(multihash.encode(buffer, 'sha2-256'));
+
+		return { type: 'ipfs-ns', hash: contentId };
 	}
 
 	throw new Error(
@@ -65,5 +72,20 @@ function getRegistryForChainId(chainId) {
 		// ropsten
 		case 3:
 			return '0x112234455c3a32fd11230c42e7bccd4a84e02010';
+		// rinkeby
+		case 4:
+			return '0xe7410170f87102df0055eb195163a03b7f2bff4a';
+		// goerli
+		case 5:
+			return '0x112234455c3a32fd11230c42e7bccd4a84e02010';
 	}
+}
+
+export function isGatewayUrl(urlObj) {
+	// All IPFS gateway urls start with the path /ipfs/
+	if (urlObj.pathname.substr(0, 6) === '/ipfs/') return true;
+	// All Swarm gateway urls start with the path /bzz:/
+	if (urlObj.pathname.substr(0, 6) === '/bzz:/') return true;
+
+	return false;
 }
