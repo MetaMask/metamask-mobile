@@ -8,7 +8,8 @@ import { fontStyles, colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: colors.white,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
