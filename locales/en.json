@@ -493,7 +493,8 @@
 		"tabs_close_all": "Close All",
 		"tabs_done": "Done",
 		"no_tabs_title": "No Open Tabs",
-		"no_tabs_desc": "To browse the decentralized web, add a new tab"
+		"no_tabs_desc": "To browse the decentralized web, add a new tab",
+		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",

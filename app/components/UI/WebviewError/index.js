@@ -61,7 +61,7 @@ export default class WebviewError extends Component {
 		/**
 		 * error info
 		 */
-		error: PropTypes.any,
+		error: PropTypes.object,
 		/**
 		 * Function that reloads the page
 		 */
@@ -89,7 +89,7 @@ export default class WebviewError extends Component {
 				<View style={styles.textWrapper}>
 					<Text style={styles.errorTitle}>{strings('webview_error.title')}</Text>
 					<Text style={styles.errorMessage}>{strings('webview_error.message')}</Text>
-					{error ? (
+					{error.description ? (
 						<Text style={styles.errorInfo}>{`${strings('webview_error.reason')}: ${
 							error.description
 						}`}</Text>

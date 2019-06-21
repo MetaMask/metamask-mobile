@@ -494,6 +494,10 @@ export class BrowserTab extends PureComponent {
 		});
 	}
 
+	reloadFromError = () => {
+		this.reload(true);
+	};
+
 	async componentDidMount() {
 		if (this.state.url !== HOMEPAGE_URL && Platform.OS === 'android' && this.isTabActive()) {
 			this.reload();
@@ -890,6 +894,7 @@ export class BrowserTab extends PureComponent {
 			};
 		} catch (err) {
 			Logger.error('Failed to resolve ENS name', err);
+			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
 			return null;
 		}
 	}
@@ -990,9 +995,9 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
-	reload = () => {
+	reload = (force = false) => {
 		this.toggleOptionsIfNeeded();
-		if (Platform.OS === 'ios') {
+		if (!force && Platform.OS === 'ios') {
 			const { current } = this.webview;
 			current && current.reload();
 		} else {
@@ -1750,7 +1755,9 @@ export class BrowserTab extends PureComponent {
 				{activated && !forceReload && (
 					<Web3Webview
 						// eslint-disable-next-line react/jsx-no-bind
-						renderError={() => <WebviewError error={this.state.lastError} onReload={this.reload} />}
+						renderError={() => (
+							<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
+						)}
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						onProgress={this.onLoadProgress}
 						onLoadStart={this.onLoadStart}
