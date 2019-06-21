@@ -11,6 +11,8 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'createErrorFromErrorData',
+	'Encountered an error loading page',
 	'Error handling userAuthorizedUpdate',
 	'MaxListenersExceededWarning',
 	'Expected delta of 0 for the fields',
