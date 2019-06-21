@@ -487,7 +487,8 @@
 		"tabs_close_all": "Cerrar Todas",
 		"tabs_done": "Listo",
 		"no_tabs_title": "No hay pestañas abiertas",
-		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña"
+		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña",
+		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
@@ -866,5 +867,11 @@
 		"security_reasons": "Por razones de seguridad deberá esperar 5 minutos antes de intentar nuevamente",
 		"not_ready": "Por favor espere",
 		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito"
+	},
+	"webview_error": {
+		"title": "Ooops! algo salió mal...",
+		"message": "No pudimos cargar esa página.",
+		"reason": "Motivo",
+		"try_again": "Intentar nuevamente"
 	}
 }
