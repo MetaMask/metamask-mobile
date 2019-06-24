@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		paddingLeft: 14,
 		position: 'relative',
-		backgroundColor: colors.white,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1
@@ -108,20 +107,20 @@ const styles = StyleSheet.create({
 	},
 	componentContainer: {
 		position: 'relative',
-		maxHeight: 200,
-		borderRadius: 4
+		maxHeight: 200
 	},
 	optionList: {
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
-		paddingLeft: 14,
-		paddingBottom: 12,
-		width: '100%'
+		paddingHorizontal: 14,
+		paddingVertical: 6,
+		flexGrow: 1
 	},
 	selectableAsset: {
-		paddingTop: 12
+		flex: 1,
+		paddingVertical: 6
 	}
 });
 
@@ -368,7 +367,7 @@ class EthInput extends Component {
 		};
 		const assetsList = assetsLists[assetType]();
 		return (
-			<ElevatedView elevation={10} style={styles.root}>
+			<ElevatedView borderRadius={4} elevation={10} style={styles.root}>
 				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
 						{assetsList.map(asset => (

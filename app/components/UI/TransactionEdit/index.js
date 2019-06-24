@@ -369,6 +369,20 @@ class TransactionEdit extends Component {
 							</View>
 							<AccountSelect value={from} onChange={this.updateFromAddress} enabled={false} />
 						</View>
+						<View style={[styles.formRow, styles.row, styles.amountRow]}>
+							{this.renderAmountLabel()}
+							<EthInput
+								onChange={this.updateAmount}
+								value={value}
+								asset={selectedAsset}
+								handleUpdateAsset={this.props.handleUpdateAsset}
+								readableValue={readableValue}
+								fillMax={this.state.fillMax}
+								updateFillMax={this.updateFillMax}
+								openEthInput={this.openEthInputIsOpen}
+								isOpen={ethInputIsOpen}
+							/>
+						</View>
 						<View style={[styles.formRow, styles.toRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.to')}:</Text>
@@ -392,20 +406,7 @@ class TransactionEdit extends Component {
 								isOpen={accountSelectIsOpen}
 							/>
 						</View>
-						<View style={[styles.formRow, styles.row, styles.amountRow]}>
-							{this.renderAmountLabel()}
-							<EthInput
-								onChange={this.updateAmount}
-								value={value}
-								asset={selectedAsset}
-								handleUpdateAsset={this.props.handleUpdateAsset}
-								readableValue={readableValue}
-								fillMax={this.state.fillMax}
-								updateFillMax={this.updateFillMax}
-								openEthInput={this.openEthInputIsOpen}
-								isOpen={ethInputIsOpen}
-							/>
-						</View>
+
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
