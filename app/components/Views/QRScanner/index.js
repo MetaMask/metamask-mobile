@@ -137,8 +137,8 @@ export default class QrScanner extends Component {
 				androidCameraPermissionOptions={{
 					title: strings('qr_scanner.allow_camera_dialog_title'),
 					message: strings('qr_scanner.allow_camera_dialog_message'),
-					buttonPositive: 'Ok',
-					buttonNegative: 'Cancel'
+					buttonPositive: strings('qr_scanner.ok'),
+					buttonNegative: strings('qr_scanner.cancel')
 				}}
 			>
 				<SafeAreaView style={styles.innerView}>
