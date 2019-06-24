@@ -86,6 +86,9 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		minHeight: '100%'
 	},
+	androidForm: {
+		minHeight: 520
+	},
 	hexData: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
@@ -359,26 +362,12 @@ class TransactionEdit extends Component {
 					onTouchablePress={this.closeDropdowns}
 					keyboardShouldPersistTaps={'handled'}
 				>
-					<View style={styles.form}>
+					<View style={[styles.form, Platform.OS === 'android' ? styles.androidForm : {}]}>
 						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
 							</View>
 							<AccountSelect value={from} onChange={this.updateFromAddress} enabled={false} />
-						</View>
-						<View style={[styles.formRow, styles.row, styles.amountRow]}>
-							{this.renderAmountLabel()}
-							<EthInput
-								onChange={this.updateAmount}
-								value={value}
-								asset={selectedAsset}
-								handleUpdateAsset={this.props.handleUpdateAsset}
-								readableValue={readableValue}
-								fillMax={this.state.fillMax}
-								updateFillMax={this.updateFillMax}
-								openEthInput={this.openEthInputIsOpen}
-								isOpen={ethInputIsOpen}
-							/>
 						</View>
 						<View style={[styles.formRow, styles.toRow]}>
 							<View style={styles.label}>
@@ -401,6 +390,20 @@ class TransactionEdit extends Component {
 								navigation={navigation}
 								openAccountSelect={this.openAccountSelect}
 								isOpen={accountSelectIsOpen}
+							/>
+						</View>
+						<View style={[styles.formRow, styles.row, styles.amountRow]}>
+							{this.renderAmountLabel()}
+							<EthInput
+								onChange={this.updateAmount}
+								value={value}
+								asset={selectedAsset}
+								handleUpdateAsset={this.props.handleUpdateAsset}
+								readableValue={readableValue}
+								fillMax={this.state.fillMax}
+								updateFillMax={this.updateFillMax}
+								openEthInput={this.openEthInputIsOpen}
+								isOpen={ethInputIsOpen}
 							/>
 						</View>
 						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
