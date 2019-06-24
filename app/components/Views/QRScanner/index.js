@@ -134,8 +134,12 @@ export default class QrScanner extends Component {
 				type={'back'}
 				onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}
 				flashMode={'auto'}
-				permissionDialogTitle={strings('qr_scanner.allow_camera_dialog_title')}
-				permissionDialogMessage={strings('qr_scanner.allow_camera_dialog_message')}
+				androidCameraPermissionOptions={{
+					title: strings('qr_scanner.allow_camera_dialog_title'),
+					message: strings('qr_scanner.allow_camera_dialog_message'),
+					buttonPositive: 'Ok',
+					buttonNegative: 'Cancel'
+				}}
 			>
 				<SafeAreaView style={styles.innerView}>
 					<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
