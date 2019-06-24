@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 	amountRow: {
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 205 : 190,
+		marginTop: Platform.OS === 'android' ? 200 : 190,
 		position: 'absolute',
 		zIndex: 4
 	},
