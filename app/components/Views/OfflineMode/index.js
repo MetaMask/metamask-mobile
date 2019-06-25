@@ -54,9 +54,9 @@ const styles = StyleSheet.create({
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
 
 /**
- * View that wraps the QR code scanner screen
+ * View that wraps the Offline mode screen
  */
-export default class QrScanner extends Component {
+export default class OfflineMode extends Component {
 	static navigationOptions = ({ navigation }) => getOfflineModalNavbar(navigation);
 
 	static propTypes = {
@@ -65,13 +65,6 @@ export default class QrScanner extends Component {
 		 */
 		navigation: PropTypes.object
 	};
-
-	mounted = false;
-	shouldReadBarCode = true;
-
-	componentDidMount() {
-		this.mounted = true;
-	}
 
 	goBack = () => {
 		this.props.navigation.goBack();

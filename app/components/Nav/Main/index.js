@@ -429,18 +429,18 @@ class Main extends Component {
 					this.initializePaymentChannels();
 				}
 
-				NetInfo.isConnected.addEventListener('connectionChange', this.connectionChangeHandler);
+				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
 	};
 
-	connectionChangeHandler = isConnected => {
+	connectionChangeHandler = state => {
 		// Show the modal once the status changes to offline
-		if (this.state.connected && !isConnected) {
+		if (this.state.connected && !state.isConnected) {
 			this.props.navigation.navigate('OfflineModeView');
 		}
 
-		this.setState({ connected: isConnected });
+		this.setState({ connected: state.isConnected });
 	};
 
 	initializeWalletConnect = () => {
@@ -563,7 +563,7 @@ class Main extends Component {
 		WalletConnect.hub.removeAllListeners();
 		PaymentChannelsClient.hub.removeAllListeners();
 		PaymentChannelsClient.stop();
-		NetInfo.isConnected.removeEventListener('connectionChange', this.connectionChangeHandler);
+		this.removeConnectionStatusListener && this.removeConnectionStatusListener();
 	}
 
 	onSignAction = () => {
