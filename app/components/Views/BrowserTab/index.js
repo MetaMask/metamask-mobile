@@ -47,6 +47,7 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import AccountApproval from '../../UI/AccountApproval';
+import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
@@ -406,8 +407,8 @@ export class BrowserTab extends PureComponent {
 			hostname: '',
 			inputValue: '',
 			autocompleteInputValue: '',
-			ipfsGateway: 'https://ipfs.io/ipfs/',
-			ipfsHash: null,
+			ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
+			contentId: null,
 			ipfsWebsite: false,
 			showApprovalDialog: false,
 			showPhishingModal: false,
@@ -421,13 +422,13 @@ export class BrowserTab extends PureComponent {
 			forceReload: false,
 			suggestedAssetMeta: undefined,
 			watchAsset: false,
-			activated: props.id === props.activeTab
+			activated: props.id === props.activeTab,
+			lastError: null
 		};
 	}
 
 	webview = React.createRef();
 	inputRef = React.createRef();
-	timeoutHandler = null;
 	snapshotTimer = null;
 	prevScrollOffset = 0;
 	goingBack = false;
@@ -493,9 +494,15 @@ export class BrowserTab extends PureComponent {
 		});
 	}
 
+	reloadFromError = () => {
+		this.reload(true);
+	};
+
 	async componentDidMount() {
 		if (this.state.url !== HOMEPAGE_URL && Platform.OS === 'android' && this.isTabActive()) {
 			this.reload();
+		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
+			this.go(this.state.url);
 		}
 		this.mounted = true;
 		this.backgroundBridge = new BackgroundBridge(Engine, this.webview, {
@@ -816,22 +823,23 @@ export class BrowserTab extends PureComponent {
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
-		const { ipfsGateway } = this.props;
 
-		let ipfsContent = null;
 		let currentEnsName = null;
-		let ipfsHash = null;
-
+		let contentId = null;
+		let contentUrl = null;
+		let contentType = null;
 		if (this.isENSUrl(sanitizedURL)) {
-			ipfsContent = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
-
-			if (ipfsContent) {
+			const { url: tmpUrl, hash, type } = await this.handleIpfsContent(sanitizedURL, {
+				hostname,
+				query,
+				pathname
+			});
+			contentUrl = tmpUrl;
+			contentType = type;
+			if (contentUrl) {
 				const urlObj = new URL(sanitizedURL);
 				currentEnsName = urlObj.hostname;
-				ipfsHash = ipfsContent
-					.replace(ipfsGateway, '')
-					.split('/')
-					.shift();
+				contentId = hash;
 			}
 			// Needed for the navbar to mask the URL
 			this.props.navigation.setParams({
@@ -839,26 +847,20 @@ export class BrowserTab extends PureComponent {
 				currentEnsName: urlObj.hostname
 			});
 		}
-		const urlToGo = ipfsContent || sanitizedURL;
+		const urlToGo = contentUrl || sanitizedURL;
 
 		if (this.isAllowedUrl(urlToGo)) {
 			this.setState({
 				url: urlToGo,
 				progress: 0,
-				ipfsWebsite: !!ipfsContent,
+				ipfsWebsite: !!contentUrl,
 				inputValue: sanitizedURL,
 				currentEnsName,
-				ipfsHash,
+				contentId,
+				contentType,
 				hostname: this.formatHostname(hostname)
 			});
 			this.updateTabInfo(sanitizedURL);
-
-			this.timeoutHandler && clearTimeout(this.timeoutHandler);
-			if (urlToGo !== HOMEPAGE_URL) {
-				this.timeoutHandler = setTimeout(() => {
-					this.urlTimedOut(urlToGo);
-				}, 60000);
-			}
 
 			return sanitizedURL;
 		}
@@ -866,51 +868,34 @@ export class BrowserTab extends PureComponent {
 		return null;
 	};
 
-	urlTimedOut(url) {
-		Logger.log('Browser::url::Timeout!', url);
-	}
-
-	urlNotFound(url) {
-		Logger.log('Browser::url::Not found!', url);
-	}
-
-	urlNotSupported(url) {
-		Logger.log('Browser::url::Not supported!', url);
-	}
-
-	urlErrored(url) {
-		Logger.log('Browser::url::Unknown error!', url);
-	}
-
 	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
 		const { ipfsGateway } = this.props;
-
-		let ipfsHash;
+		let gatewayUrl;
 		try {
-			ipfsHash = await resolveEnsToIpfsContentId({ provider, name: hostname });
-		} catch (err) {
-			this.timeoutHandler && clearTimeout(this.timeoutHandler);
-			Logger.error('Failed to resolve ENS name', err);
-			err === 'unsupport' ? this.urlNotSupported(fullUrl) : this.urlErrored(fullUrl);
-			return null;
-		}
-
-		const gatewayUrl = `${ipfsGateway}${ipfsHash}${pathname || '/'}${query || ''}`;
-
-		try {
-			const response = await fetch(gatewayUrl, { method: 'HEAD' });
-			const statusCode = response.status;
-			if (statusCode !== 200) {
-				this.urlNotFound(gatewayUrl);
-				return null;
+			const { type, hash } = await resolveEnsToIpfsContentId({ provider, name: hostname });
+			if (type === 'ipfs-ns') {
+				gatewayUrl = `${ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
+				const response = await fetch(gatewayUrl);
+				const statusCode = response.status;
+				if (statusCode >= 400) {
+					Logger.log('Status code ', statusCode, gatewayUrl);
+					this.urlNotFound(gatewayUrl);
+					return null;
+				}
+			} else if (type === 'swarm-ns') {
+				gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
 			}
-			return gatewayUrl;
+
+			return {
+				url: gatewayUrl,
+				hash,
+				type
+			};
 		} catch (err) {
-			// If there's an error our fallback mechanism is
-			// to point straight to the ipfs gateway
-			Logger.error('Failed to fetch ipfs website via ens', err);
-			return `https://ipfs.io/ipfs/${ipfsHash}/`;
+			Logger.error('Failed to resolve ENS name', err);
+			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
+			return null;
 		}
 	}
 
@@ -953,7 +938,8 @@ export class BrowserTab extends PureComponent {
 	goBackToHomepage = () => {
 		this.toggleOptionsIfNeeded();
 		this.props.navigation.setParams({
-			url: null
+			url: null,
+			currentEnsName: null
 		});
 
 		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
@@ -968,7 +954,8 @@ export class BrowserTab extends PureComponent {
 			hostname: '',
 			inputValue: '',
 			autocompleteInputValue: '',
-			ipfsHash: null,
+			contentId: null,
+			contentType: null,
 			ipfsWebsite: false,
 			showApprovalDialog: false,
 			showPhishingModal: false,
@@ -978,8 +965,11 @@ export class BrowserTab extends PureComponent {
 			offsetAnim,
 			clampedScroll,
 			contentHeight: 0,
-			forwardEnabled: false
+			forwardEnabled: false,
+			lastError: null
 		});
+
+		this.updateTabInfo(HOMEPAGE_URL);
 
 		this.initialUrl = null;
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
@@ -1005,9 +995,9 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
-	reload = () => {
+	reload = (force = false) => {
 		this.toggleOptionsIfNeeded();
-		if (Platform.OS === 'ios') {
+		if (!force && Platform.OS === 'ios') {
 			const { current } = this.webview;
 			current && current.reload();
 		} else {
@@ -1197,10 +1187,17 @@ export class BrowserTab extends PureComponent {
 		if (!this.state.ipfsWebsite) {
 			data.inputValue = url;
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
-			data.inputValue = url.replace(
-				`${ipfsGateway}${this.state.ipfsHash}/`,
-				`https://${this.state.currentEnsName}/`
-			);
+			if (this.state.contentType === 'ipfs-ns') {
+				data.inputValue = url.replace(
+					`${ipfsGateway}${this.state.contentId}/`,
+					`https://${this.state.currentEnsName}/`
+				);
+			} else {
+				data.inputValue = url.replace(
+					`${AppConstants.SWARM_GATEWAY_URL}${this.state.contentId}/`,
+					`https://${this.state.currentEnsName}/`
+				);
+			}
 		} else if (this.isENSUrl(url)) {
 			this.go(url);
 			return;
@@ -1269,7 +1266,11 @@ export class BrowserTab extends PureComponent {
 		const { current } = this.webview;
 		const js = JS_WINDOW_INFORMATION_HEIGHT(Platform.OS);
 		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
-		clearTimeout(this.timeoutHandler);
+	};
+
+	onError = ({ nativeEvent: errorInfo }) => {
+		Logger.log(errorInfo);
+		this.setState({ lastError: errorInfo });
 	};
 
 	renderLoader = () => (
@@ -1753,10 +1754,15 @@ export class BrowserTab extends PureComponent {
 			>
 				{activated && !forceReload && (
 					<Web3Webview
+						// eslint-disable-next-line react/jsx-no-bind
+						renderError={() => (
+							<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
+						)}
 						injectedOnStartLoadingJavaScript={entryScriptWeb3}
 						onProgress={this.onLoadProgress}
 						onLoadStart={this.onLoadStart}
 						onLoadEnd={this.onLoadEnd}
+						onError={this.onError}
 						onMessage={this.onMessage}
 						onNavigationStateChange={this.onPageChange}
 						ref={this.webview}

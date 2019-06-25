@@ -401,7 +401,9 @@
 		"invalid_qr_code_message": "The QR code that you are trying to scan it is not valid.",
 		"allow_camera_dialog_title": "Allow camera access",
 		"allow_camera_dialog_message": "We need your permission to scan QR codes",
-		"scanning": "scanning..."
+		"scanning": "scanning...",
+		"ok": "Ok",
+		"cancel": "Cancel"
 	},
 	"action_view": {
 		"cancel": "Cancel",
@@ -493,7 +495,8 @@
 		"tabs_close_all": "Close All",
 		"tabs_done": "Done",
 		"no_tabs_title": "No Open Tabs",
-		"no_tabs_desc": "To browse the decentralized web, add a new tab"
+		"no_tabs_desc": "To browse the decentralized web, add a new tab",
+		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",
@@ -880,5 +883,11 @@
 		"security_reasons": "For security reasons you'll have to wait 5 minutes before trying again",
 		"not_ready": "Not ready",
 		"please_wait": "You still need to wait a bit before making another deposit"
+	},
+	"webview_error": {
+		"title": "Ooops! something went wrong...",
+		"message": "We weren't able to load that page.",
+		"reason": "Reason",
+		"try_again": "Try again"
 	}
 }

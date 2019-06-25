@@ -1,10 +1,38 @@
 export default [
 	{
+		constant: false,
+		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'hash', type: 'bytes32' }],
+		name: 'setContent',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'function'
+	},
+	{
+		constant: true,
+		inputs: [{ name: 'node', type: 'bytes32' }],
+		name: 'content',
+		outputs: [{ name: '', type: 'bytes32' }],
+		payable: false,
+		stateMutability: 'view',
+		type: 'function'
+	},
+	{
 		constant: true,
 		inputs: [{ name: 'interfaceID', type: 'bytes4' }],
 		name: 'supportsInterface',
 		outputs: [{ name: '', type: 'bool' }],
 		payable: false,
+		stateMutability: 'pure',
+		type: 'function'
+	},
+	{
+		constant: false,
+		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'key', type: 'string' }, { name: 'value', type: 'string' }],
+		name: 'setText',
+		outputs: [],
+		payable: false,
+		stateMutability: 'nonpayable',
 		type: 'function'
 	},
 	{
@@ -13,6 +41,7 @@ export default [
 		name: 'ABI',
 		outputs: [{ name: 'contentType', type: 'uint256' }, { name: 'data', type: 'bytes' }],
 		payable: false,
+		stateMutability: 'view',
 		type: 'function'
 	},
 	{
@@ -21,22 +50,34 @@ export default [
 		name: 'setPubkey',
 		outputs: [],
 		payable: false,
+		stateMutability: 'nonpayable',
 		type: 'function'
 	},
 	{
-		constant: true,
-		inputs: [{ name: 'node', type: 'bytes32' }],
-		name: 'content',
-		outputs: [{ name: 'ret', type: 'bytes32' }],
+		constant: false,
+		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'hash', type: 'bytes' }],
+		name: 'setContenthash',
+		outputs: [],
 		payable: false,
+		stateMutability: 'nonpayable',
 		type: 'function'
 	},
 	{
 		constant: true,
 		inputs: [{ name: 'node', type: 'bytes32' }],
 		name: 'addr',
-		outputs: [{ name: 'ret', type: 'address' }],
+		outputs: [{ name: '', type: 'address' }],
 		payable: false,
+		stateMutability: 'view',
+		type: 'function'
+	},
+	{
+		constant: true,
+		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'key', type: 'string' }],
+		name: 'text',
+		outputs: [{ name: '', type: 'string' }],
+		payable: false,
+		stateMutability: 'view',
 		type: 'function'
 	},
 	{
@@ -49,14 +90,16 @@ export default [
 		name: 'setABI',
 		outputs: [],
 		payable: false,
+		stateMutability: 'nonpayable',
 		type: 'function'
 	},
 	{
 		constant: true,
 		inputs: [{ name: 'node', type: 'bytes32' }],
 		name: 'name',
-		outputs: [{ name: 'ret', type: 'string' }],
+		outputs: [{ name: '', type: 'string' }],
 		payable: false,
+		stateMutability: 'view',
 		type: 'function'
 	},
 	{
@@ -65,14 +108,16 @@ export default [
 		name: 'setName',
 		outputs: [],
 		payable: false,
+		stateMutability: 'nonpayable',
 		type: 'function'
 	},
 	{
-		constant: false,
-		inputs: [{ name: 'node', type: 'bytes32' }, { name: 'hash', type: 'bytes32' }],
-		name: 'setContent',
-		outputs: [],
+		constant: true,
+		inputs: [{ name: 'node', type: 'bytes32' }],
+		name: 'contenthash',
+		outputs: [{ name: '', type: 'bytes' }],
 		payable: false,
+		stateMutability: 'view',
 		type: 'function'
 	},
 	{
@@ -81,6 +126,7 @@ export default [
 		name: 'pubkey',
 		outputs: [{ name: 'x', type: 'bytes32' }, { name: 'y', type: 'bytes32' }],
 		payable: false,
+		stateMutability: 'view',
 		type: 'function'
 	},
 	{
@@ -89,19 +135,19 @@ export default [
 		name: 'setAddr',
 		outputs: [],
 		payable: false,
+		stateMutability: 'nonpayable',
 		type: 'function'
 	},
-	{ inputs: [{ name: 'ensAddr', type: 'address' }], payable: false, type: 'constructor' },
+	{
+		inputs: [{ name: 'ensAddr', type: 'address' }],
+		payable: false,
+		stateMutability: 'nonpayable',
+		type: 'constructor'
+	},
 	{
 		anonymous: false,
 		inputs: [{ indexed: true, name: 'node', type: 'bytes32' }, { indexed: false, name: 'a', type: 'address' }],
 		name: 'AddrChanged',
-		type: 'event'
-	},
-	{
-		anonymous: false,
-		inputs: [{ indexed: true, name: 'node', type: 'bytes32' }, { indexed: false, name: 'hash', type: 'bytes32' }],
-		name: 'ContentChanged',
 		type: 'event'
 	},
 	{
@@ -127,6 +173,22 @@ export default [
 			{ indexed: false, name: 'y', type: 'bytes32' }
 		],
 		name: 'PubkeyChanged',
+		type: 'event'
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, name: 'node', type: 'bytes32' },
+			{ indexed: false, name: 'indexedKey', type: 'string' },
+			{ indexed: false, name: 'key', type: 'string' }
+		],
+		name: 'TextChanged',
+		type: 'event'
+	},
+	{
+		anonymous: false,
+		inputs: [{ indexed: true, name: 'node', type: 'bytes32' }, { indexed: false, name: 'hash', type: 'bytes' }],
+		name: 'ContenthashChanged',
 		type: 'event'
 	}
 ];

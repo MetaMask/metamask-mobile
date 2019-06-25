@@ -401,7 +401,9 @@
 		"outdated_qr_code_desc": "!Este parece ser un código QR expirado! Por favor, intenta escanear uno nuevo",
 		"allow_camera_dialog_title": "Permite acceso a la cámara",
 		"allow_camera_dialog_message": "Necesitamos tu permiso para escanear códigos QR",
-		"scanning": "escaneando..."
+		"scanning": "escaneando...",
+		"ok": "Ok",
+		"cancel": "Cancelar"
 	},
 	"action_view": {
 		"cancel": "Cancelar",
@@ -487,7 +489,8 @@
 		"tabs_close_all": "Cerrar Todas",
 		"tabs_done": "Listo",
 		"no_tabs_title": "No hay pestañas abiertas",
-		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña"
+		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña",
+		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
@@ -866,5 +869,11 @@
 		"security_reasons": "Por razones de seguridad deberá esperar 5 minutos antes de intentar nuevamente",
 		"not_ready": "Por favor espere",
 		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito"
+	},
+	"webview_error": {
+		"title": "Ooops! algo salió mal...",
+		"message": "No pudimos cargar esa página.",
+		"reason": "Motivo",
+		"try_again": "Intentar nuevamente"
 	}
 }
