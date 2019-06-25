@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 		marginVertical: 3,
 		marginHorizontal: 3
 	},
-	componentContainer: {
+	scrollContainer: {
 		position: 'relative',
 		maxHeight: 200
 	},
@@ -368,13 +368,10 @@ class EthInput extends Component {
 		const assetsList = assetsLists[assetType]();
 		return (
 			<ElevatedView borderRadius={4} elevation={10} style={styles.root}>
-				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
+				<ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
-						{assetsList.map(asset => (
-							<View
-								key={asset.address + asset.tokenId || asset.symbol || undefined}
-								style={styles.selectableAsset}
-							>
+						{assetsList.map((asset, i) => (
+							<View key={i} style={styles.selectableAsset}>
 								{this.renderAsset(asset, async () => {
 									await this.selectAsset(asset);
 								})}

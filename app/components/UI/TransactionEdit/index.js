@@ -83,11 +83,10 @@ const styles = StyleSheet.create({
 	form: {
 		flex: 1,
 		padding: 16,
-		flexDirection: 'column',
-		minHeight: '100%'
+		flexDirection: 'column'
 	},
 	androidForm: {
-		minHeight: 520
+		paddingBottom: 100
 	},
 	hexData: {
 		...fontStyles.bold,
@@ -362,7 +361,7 @@ class TransactionEdit extends Component {
 					onTouchablePress={this.closeDropdowns}
 					keyboardShouldPersistTaps={'handled'}
 				>
-					<View style={[styles.form, Platform.OS === 'android' ? styles.androidForm : {}]}>
+					<View style={[styles.form, Platform.OS === 'android' && !showHexData ? styles.androidForm : {}]}>
 						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
