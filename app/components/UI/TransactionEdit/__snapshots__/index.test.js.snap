@@ -28,7 +28,6 @@ exports[`TransactionEdit should render correctly 1`] = `
           Object {
             "flex": 1,
             "flexDirection": "column",
-            "minHeight": "100%",
             "padding": 16,
           },
           Object {},
