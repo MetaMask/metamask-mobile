@@ -10,12 +10,18 @@ exports[`QrScanner should render correctly 1`] = `
   }
 >
   <View
+    androidCameraPermissionOptions={
+      Object {
+        "buttonNegative": "Cancel",
+        "buttonPositive": "Ok",
+        "message": "We need your permission to scan QR codes",
+        "title": "Allow camera access",
+      }
+    }
     captureAudio={false}
     flashMode="auto"
     onBarCodeRead={[Function]}
     onMountError={[Function]}
-    permissionDialogMessage="We need your permission to scan QR codes"
-    permissionDialogTitle="Allow camera access"
     style={
       Object {
         "flex": 1,

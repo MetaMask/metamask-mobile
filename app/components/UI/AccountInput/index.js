@@ -35,7 +35,9 @@ const styles = StyleSheet.create({
 	input: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		marginRight: 24
+		marginRight: 24,
+		paddingLeft: 0,
+		minWidth: 120
 	},
 	qrCodeButton: {
 		minHeight: Platform.OS === 'android' ? 50 : 50,
@@ -46,7 +48,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	accountContainer: {
-		flex: 1,
 		flexDirection: 'row',
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
@@ -322,7 +323,7 @@ class AccountInput extends Component {
 	renderOptionList() {
 		const visibleOptions = this.getVisibleOptions(this.state.value);
 		return (
-			<ElevatedView elevation={10}>
+			<ElevatedView borderRadius={4} elevation={10}>
 				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
