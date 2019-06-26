@@ -459,6 +459,37 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 
 /**
  * Function that returns the navigation options
+ * for our closable screens,
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getOfflineModalNavbar(navigation) {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0
+		},
+		headerLeft:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : null,
+		headerRight:
+			Platform.OS === 'ios' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			) : null
+	};
+}
+
+/**
+ * Function that returns the navigation options
  * for our wallet screen,
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle

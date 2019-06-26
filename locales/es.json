@@ -875,5 +875,10 @@
 		"message": "No pudimos cargar esa página.",
 		"reason": "Motivo",
 		"try_again": "Intentar nuevamente"
+	},
+	"offline_mode": {
+		"title": "Sin Conexión",
+		"text": "Revisa tu conexión de internet e intenta nuevamente",
+		"try_again": "Intentar de nuevo"
 	}
 }

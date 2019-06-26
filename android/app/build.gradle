@@ -255,6 +255,7 @@ android {
 }
 
 dependencies {
+    implementation project(':@react-native-community_netinfo')
     implementation project(':react-native-view-shot')
     implementation project(':lottie-react-native')
     implementation project(':@react-native-community_async-storage')
