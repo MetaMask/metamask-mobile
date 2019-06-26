@@ -889,5 +889,10 @@
 		"message": "We weren't able to load that page.",
 		"reason": "Reason",
 		"try_again": "Try again"
+	},
+	"offline_mode": {
+		"title": "You're offline",
+		"text": "Check your internet connection and try again",
+		"try_again": "Try again"
 	}
 }
