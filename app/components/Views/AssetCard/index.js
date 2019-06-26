@@ -6,11 +6,9 @@ import ElevatedView from 'react-native-elevated-view';
 
 const styles = StyleSheet.create({
 	wrapper: {
-		flex: 1,
 		backgroundColor: colors.white,
-		marginVertical: 16,
-		marginHorizontal: 20,
-		borderRadius: 8
+		borderRadius: 8,
+		height: 200
 	},
 	contentWrapper: {
 		marginHorizontal: 30,

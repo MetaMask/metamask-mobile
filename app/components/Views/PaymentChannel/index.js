@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
 	},
 	data: {
 		backgroundColor: colors.grey000,
-		height: 232,
 		borderBottomColor: colors.grey200,
 		borderBottomWidth: 1
 	},
@@ -112,6 +111,23 @@ const styles = StyleSheet.create({
 	},
 	sectionTitleWrapper: {
 		marginBottom: 15
+	},
+	assetCardWrapper: {
+		marginTop: 16,
+		marginHorizontal: 20
+	},
+	actionsWrapper: {
+		flexDirection: 'column',
+		margin: 20
+	},
+	secondActionsWrapper: {
+		flexDirection: 'row',
+		marginVertical: 10,
+		justifyContent: 'space-between'
+	},
+	sendButton: {
+		width: '100%',
+		marginBottom: 10
 	},
 	panel: {
 		flex: 1
@@ -386,12 +402,48 @@ class PaymentChannel extends Component {
 
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
+		const isDisabled = false;
 		return (
-			<AssetCard
-				balance={balance + ' DAI'}
-				balanceFiat={balanceFiat}
-				description={'Free Transactions with Connext Payment Channels'}
-			/>
+			<View style={styles.data}>
+				<View style={styles.assetCardWrapper}>
+					<AssetCard
+						balance={balance + ' DAI'}
+						balanceFiat={balanceFiat}
+						description={'Free Transactions with Connext Payment Channels'}
+					/>
+				</View>
+				<View style={styles.actionsWrapper}>
+					<StyledButton
+						containerStyle={[styles.button, styles.sendButton]}
+						style={styles.buttonText}
+						type={'confirm'}
+						onPress={this.send}
+						disabled={isDisabled}
+					>
+						{'Send'}
+					</StyledButton>
+					<View style={styles.secondActionsWrapper}>
+						<StyledButton
+							containerStyle={styles.button}
+							style={styles.buttonText}
+							type={'info'}
+							onPress={this.deposit}
+							disabled={isDisabled}
+						>
+							{'Deposit'}
+						</StyledButton>
+						<StyledButton
+							containerStyle={styles.button}
+							style={styles.buttonText}
+							type={'info'}
+							onPress={this.withdraw}
+							disabled={isDisabled}
+						>
+							{'Withdraw'}
+						</StyledButton>
+					</View>
+				</View>
+			</View>
 		);
 	}
 
@@ -664,7 +716,7 @@ class PaymentChannel extends Component {
 
 		return (
 			<React.Fragment>
-				<View style={styles.data}>{this.renderInfo()}</View>
+				{this.renderInfo()}
 				<View style={styles.panel}>
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
 						<ScrollView tabLabel={strings('paymentChannels.deposit')}>
