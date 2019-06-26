@@ -32,6 +32,7 @@ import AppConstants from '../../../core/AppConstants';
 import { renderFromWei, balanceToFiat } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const QR_PADDING = 160;
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
@@ -204,7 +205,15 @@ class PaymentChannel extends Component {
 		/**
 		 * Currently-active ISO 4217 currency code
 		 */
-		currentCurrency: PropTypes.string
+		currentCurrency: PropTypes.string,
+		/**
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object,
+		/**
+		 * ETH-to-current currency conversion rate from CurrencyRateController
+		 */
+		conversionRate: PropTypes.number
 	};
 
 	state = {
@@ -369,16 +378,20 @@ class PaymentChannel extends Component {
 	};
 
 	getBalanceFiat = async balance => {
-		const { TokenRatesController, CurrencyRateController } = Engine.context;
-		const { nativeCurrency, currentCurrency } = this.props;
+		const { TokenRatesController } = Engine.context;
+		const { nativeCurrency, currentCurrency, contractExchangeRates, conversionRate } = this.props;
 		let exchangeRate;
-		const res = await TokenRatesController.fetchExchangeRate(
-			`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
-		);
-		const { conversionRate } = await CurrencyRateController.fetchExchangeRate('dai');
-		if (!!res && Object.keys(res).includes(DAI_ADDRESS)) {
-			exchangeRate = res[DAI_ADDRESS][nativeCurrency.toLowerCase()];
+		if (Object.keys(contractExchangeRates).includes(toChecksumAddress(DAI_ADDRESS))) {
+			exchangeRate = contractExchangeRates[toChecksumAddress(DAI_ADDRESS)];
+		} else {
+			const res = await TokenRatesController.fetchExchangeRate(
+				`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
+			);
+			if (!!res && Object.keys(res).includes(DAI_ADDRESS)) {
+				exchangeRate = res[DAI_ADDRESS][nativeCurrency.toLowerCase()];
+			}
 		}
+
 		const balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
 		this.setState({ balanceFiat });
 	};
@@ -640,7 +653,9 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate
 });
 
 const mapDispatchToProps = dispatch => ({
