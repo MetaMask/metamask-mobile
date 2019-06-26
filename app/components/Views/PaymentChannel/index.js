@@ -29,10 +29,12 @@ import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
-import { renderFromWei } from '../../../util/number';
+import { renderFromWei, balanceToFiat } from '../../../util/number';
 import AssetCard from '../AssetCard';
+import Engine from '../../../core/Engine';
 
 const QR_PADDING = 160;
+const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -194,11 +196,20 @@ class PaymentChannel extends Component {
 		/**
 		/* List of all available accounts
 		*/
-		accounts: PropTypes.object
+		accounts: PropTypes.object,
+		/**
+		 * Symbol for base asset
+		 */
+		nativeCurrency: PropTypes.string,
+		/**
+		 * Currently-active ISO 4217 currency code
+		 */
+		currentCurrency: PropTypes.string
 	};
 
 	state = {
 		balance: '0.00',
+		balanceFiat: undefined,
 		status: { type: null },
 		qrModalVisible: false,
 		sendAmount: '',
@@ -219,17 +230,16 @@ class PaymentChannel extends Component {
 	};
 
 	componentDidMount = async () => {
-		InteractionManager.runAfterInteractions(() => {
+		InteractionManager.runAfterInteractions(async () => {
 			const state = PaymentChannelsClient.getState();
 			this.setState({
 				balance: state.balance,
 				status: state.status,
 				ready: true
 			});
+			this.getBalanceFiat(state.balance);
 		});
-
 		PaymentChannelsClient.hub.on('state::change', this.onStateChange);
-
 		this.mounted = true;
 	};
 
@@ -344,7 +354,8 @@ class PaymentChannel extends Component {
 	};
 
 	renderInfo() {
-		return <AssetCard balance={this.state.balance} balanceFiat={'a'} />;
+		const { balance, balanceFiat } = this.state;
+		return <AssetCard balance={balance + ' DAI'} balanceFiat={balanceFiat} />;
 	}
 
 	scan = () => {
@@ -355,6 +366,21 @@ class PaymentChannel extends Component {
 				}
 			}
 		});
+	};
+
+	getBalanceFiat = async balance => {
+		const { TokenRatesController, CurrencyRateController } = Engine.context;
+		const { nativeCurrency, currentCurrency } = this.props;
+		let exchangeRate;
+		const res = await TokenRatesController.fetchExchangeRate(
+			`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
+		);
+		const { conversionRate } = await CurrencyRateController.fetchExchangeRate('dai');
+		if (!!res && Object.keys(res).includes(DAI_ADDRESS)) {
+			exchangeRate = res[DAI_ADDRESS][nativeCurrency.toLowerCase()];
+		}
+		const balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		this.setState({ balanceFiat });
 	};
 
 	closeQrModal = () => {
@@ -612,7 +638,9 @@ class PaymentChannel extends Component {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
