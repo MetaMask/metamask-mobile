@@ -111,6 +111,18 @@ exports[`App should render correctly 1`] = `
                     "getStateForAction": [Function],
                   },
                   "LockScreen": null,
+                  "OfflineModeView": Object {
+                    "childRouters": Object {
+                      "OfflineMode": null,
+                    },
+                    "getActionCreators": [Function],
+                    "getActionForPathAndParams": [Function],
+                    "getComponentForRouteName": [Function],
+                    "getComponentForState": [Function],
+                    "getPathAndParamsForState": [Function],
+                    "getScreenOptions": [Function],
+                    "getStateForAction": [Function],
+                  },
                   "PaymentChannelView": Object {
                     "childRouters": Object {
                       "PaymentChannel": null,
@@ -501,6 +513,18 @@ exports[`App should render correctly 1`] = `
                       "getStateForAction": [Function],
                     },
                     "LockScreen": null,
+                    "OfflineModeView": Object {
+                      "childRouters": Object {
+                        "OfflineMode": null,
+                      },
+                      "getActionCreators": [Function],
+                      "getActionForPathAndParams": [Function],
+                      "getComponentForRouteName": [Function],
+                      "getComponentForState": [Function],
+                      "getPathAndParamsForState": [Function],
+                      "getScreenOptions": [Function],
+                      "getStateForAction": [Function],
+                    },
                     "PaymentChannelView": Object {
                       "childRouters": Object {
                         "PaymentChannel": null,

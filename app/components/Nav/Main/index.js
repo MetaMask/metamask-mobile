@@ -8,6 +8,7 @@ import {
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 	Platform
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
@@ -36,6 +37,7 @@ import CollectibleView from '../../Views/CollectibleView';
 import Send from '../../Views/Send';
 import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
+import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
 import ProtectYourAccount from '../../Views/ProtectYourAccount';
@@ -233,6 +235,13 @@ const MainNavigator = createStackNavigator(
 				}
 			})
 		},
+		OfflineModeView: {
+			screen: createStackNavigator({
+				OfflineMode: {
+					screen: OfflineMode
+				}
+			})
+		},
 		/** ALL FULL SCREEN MODALS SHOULD GO HERE */
 		QRScanner: {
 			screen: QrScanner
@@ -240,6 +249,7 @@ const MainNavigator = createStackNavigator(
 		LockScreen: {
 			screen: LockScreen
 		},
+
 		PaymentRequestView: {
 			screen: createStackNavigator(
 				{
@@ -330,6 +340,7 @@ class Main extends Component {
 	};
 
 	state = {
+		connected: true,
 		forceReload: false,
 		signMessage: false,
 		signMessageParams: { data: '' },
@@ -359,7 +370,6 @@ class Main extends Component {
 		InteractionManager.runAfterInteractions(() => {
 			AppState.addEventListener('change', this.handleAppStateChange);
 			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
-
 			PushNotification.configure({
 				requestPermissions: false,
 				onNotification: notification => {
@@ -418,8 +428,19 @@ class Main extends Component {
 				if (this.props.paymentChannelsEnabled) {
 					this.initializePaymentChannels();
 				}
+
+				this.removeConnectionStatusListener = NetInfo.addEventListener(this.connectionChangeHandler);
 			}, 1000);
 		});
+	};
+
+	connectionChangeHandler = state => {
+		// Show the modal once the status changes to offline
+		if (this.state.connected && !state.isConnected) {
+			this.props.navigation.navigate('OfflineModeView');
+		}
+
+		this.setState({ connected: state.isConnected });
 	};
 
 	initializeWalletConnect = () => {
@@ -542,6 +563,7 @@ class Main extends Component {
 		WalletConnect.hub.removeAllListeners();
 		PaymentChannelsClient.hub.removeAllListeners();
 		PaymentChannelsClient.stop();
+		this.removeConnectionStatusListener && this.removeConnectionStatusListener();
 	}
 
 	onSignAction = () => {
