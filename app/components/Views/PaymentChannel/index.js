@@ -24,13 +24,13 @@ import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import QRCode from 'react-native-qrcode-svg';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-
 import { connect } from 'react-redux';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
 import { renderFromWei } from '../../../util/number';
+import AssetCard from '../AssetCard';
 
 const QR_PADDING = 160;
 
@@ -46,27 +46,9 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingBottom: 0
 	},
-	balance: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	balanceText: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		flex: 1,
-		marginTop: 10,
-		fontSize: 70,
-		...fontStyles.normal
-	},
-	info: {
-		flex: 1,
-		paddingVertical: 15,
-		paddingRight: 20
-	},
 	data: {
-		marginTop: 10,
-		height: 120
+		backgroundColor: colors.grey000,
+		height: 232
 	},
 	buttonWrapper: {
 		paddingVertical: 20,
@@ -362,13 +344,7 @@ class PaymentChannel extends Component {
 	};
 
 	renderInfo() {
-		return (
-			<View style={styles.info}>
-				<View style={styles.balance}>
-					<Text style={styles.balanceText}>$ {this.state.balance}</Text>
-				</View>
-			</View>
-		);
+		return <AssetCard balance={this.state.balance} balanceFiat={'a'} />;
 	}
 
 	scan = () => {
