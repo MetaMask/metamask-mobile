@@ -29,6 +29,18 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: colors.grey200
 	},
+	description: {
+		...fontStyles.normal,
+		fontSize: 10,
+		color: colors.grey500,
+		marginBottom: 20
+	},
+	descriptionWrapper: {
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'center',
+		alignItems: 'flex-end'
+	},
 	watermarkWrapper: {
 		flex: 1
 	},
@@ -49,11 +61,12 @@ const paymentChannelWatermark = require('../../../images/payment-channel-waterma
 export default class AssetCard extends Component {
 	static propTypes = {
 		balance: PropTypes.string,
-		balanceFiat: PropTypes.string
+		balanceFiat: PropTypes.string,
+		description: PropTypes.string
 	};
 
 	render() {
-		const { balance, balanceFiat } = this.props;
+		const { balance, balanceFiat, description } = this.props;
 		return (
 			<ElevatedView elevation={10} style={styles.wrapper}>
 				<ImageBackground
@@ -66,6 +79,11 @@ export default class AssetCard extends Component {
 						<Text style={styles.balance}>{balance}</Text>
 						<Text style={styles.balanceFiat}>{balanceFiat}</Text>
 					</View>
+					{description && (
+						<View style={styles.descriptionWrapper}>
+							<Text style={styles.description}>{description}</Text>
+						</View>
+					)}
 				</ImageBackground>
 			</ElevatedView>
 		);

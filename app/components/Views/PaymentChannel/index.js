@@ -386,7 +386,13 @@ class PaymentChannel extends Component {
 
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
-		return <AssetCard balance={balance + ' DAI'} balanceFiat={balanceFiat} />;
+		return (
+			<AssetCard
+				balance={balance + ' DAI'}
+				balanceFiat={balanceFiat}
+				description={'Free Transactions with Connext Payment Channels'}
+			/>
+		);
 	}
 
 	scan = () => {
