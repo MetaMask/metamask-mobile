@@ -51,7 +51,9 @@ const styles = StyleSheet.create({
 	},
 	data: {
 		backgroundColor: colors.grey000,
-		height: 232
+		height: 232,
+		borderBottomColor: colors.grey200,
+		borderBottomWidth: 1
 	},
 	buttonWrapper: {
 		paddingVertical: 20,
@@ -67,7 +69,11 @@ const styles = StyleSheet.create({
 		flex: 0,
 		paddingVertical: 5,
 		width: 160,
-		height: 30
+		height: 44
+	},
+	depositButton: {
+		width: '80%',
+		marginVertical: 15
 	},
 	fullButton: {
 		flex: 1,
@@ -170,6 +176,22 @@ const styles = StyleSheet.create({
 	},
 	bold: {
 		...fontStyles.bold
+	},
+	noFundsWrapper: {
+		alignItems: 'center',
+		margin: 40
+	},
+	noFundsTitle: {
+		...fontStyles.normal,
+		color: colors.grey500,
+		fontSize: 18
+	},
+	noFundsDescription: {
+		...fontStyles.normal,
+		color: colors.grey500,
+		fontSize: 12,
+		margin: 20,
+		textAlign: 'center'
 	}
 });
 
@@ -566,12 +588,35 @@ class PaymentChannel extends Component {
 					<StyledButton
 						containerStyle={styles.fullButton}
 						style={styles.buttonText}
-						type={'confirm'}
+						type={'orange'}
 						onPress={this.withdraw}
 						testID={'submit-button'}
 						disabled={isDisabled}
 					>
 						{strings('paymentChannels.withdraw')}
+					</StyledButton>
+				</View>
+			</React.Fragment>
+		);
+	}
+
+	renderNoFunds() {
+		return (
+			<React.Fragment>
+				<View style={styles.data}>{this.renderInfo()}</View>
+				<View style={styles.noFundsWrapper}>
+					<Text style={styles.noFundsTitle}>No Funds</Text>
+					<Text style={styles.noFundsDescription}>
+						Deposit eth into your InstaPay card to start making instant free paymentts with DAI.{' '}
+					</Text>
+					<StyledButton
+						containerStyle={[styles.button, styles.depositButton]}
+						style={styles.buttonText}
+						type={'info'}
+						onPress={this.deposit}
+						testID={'submit-button'}
+					>
+						Deposit Funds
 					</StyledButton>
 				</View>
 			</React.Fragment>
