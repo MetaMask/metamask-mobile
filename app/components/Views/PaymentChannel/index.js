@@ -28,8 +28,7 @@ import { connect } from 'react-redux';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
-import AppConstants from '../../../core/AppConstants';
-import { renderFromWei, balanceToFiat } from '../../../util/number';
+import { balanceToFiat } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -190,9 +189,6 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		...fontStyles.bold
 	},
-	bold: {
-		...fontStyles.bold
-	},
 	noFundsWrapper: {
 		alignItems: 'center',
 		margin: 40
@@ -232,10 +228,6 @@ class PaymentChannel extends Component {
 		/* Triggers global alert
 		*/
 		showAlert: PropTypes.func,
-		/**
-		/* List of all available accounts
-		*/
-		accounts: PropTypes.object,
 		/**
 		 * Symbol for base asset
 		 */
@@ -293,60 +285,6 @@ class PaymentChannel extends Component {
 	componentWillUnmount() {
 		PaymentChannelsClient.hub.removeListener('state::change', this.onStateChange);
 	}
-
-	deposit = async () => {
-		if (this.depositing) {
-			return;
-		}
-		try {
-			const params = {
-				depositAmount: this.state.depositAmount
-			};
-
-			if (isNaN(params.depositAmount) || params.depositAmount.trim() === '') {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.invalid_amount'));
-				return false;
-			}
-
-			const depositAmountNumber = parseFloat(params.depositAmount);
-			const { MAX_DEPOSIT_TOKEN, getExchangeRate } = PaymentChannelsClient;
-
-			const ETH = parseFloat(getExchangeRate());
-			const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
-			const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
-
-			if (depositAmountNumber > maxDepositAmount) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_high'));
-				return false;
-			}
-
-			if (params.depositAmount < minDepositAmount) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_low'));
-				return false;
-			}
-
-			const accountBalance = renderFromWei(this.props.accounts[this.props.selectedAddress].balance);
-			if (parseFloat(accountBalance) <= parseFloat(params.depositAmount)) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.insufficient_funds'));
-				return false;
-			}
-
-			Logger.log('About to deposit', params);
-			this.depositing = true;
-			await PaymentChannelsClient.deposit(params);
-			this.setState({ depositAmount: '' });
-			this.depositing = false;
-			Logger.log('Deposit succesful');
-		} catch (e) {
-			if (e.message === 'still_blocked') {
-				Alert.alert(strings('paymentChannels.not_ready'), strings('paymentChannels.please_wait'));
-			} else {
-				Alert.alert(strings('paymentChannels.heads_up'), strings('paymentChannels.security_reasons'));
-				Logger.log('Deposit error', e);
-			}
-			this.depositing = false;
-		}
-	};
 
 	send = async () => {
 		if (this.sending) {
@@ -491,72 +429,6 @@ class PaymentChannel extends Component {
 		}
 		return false;
 	};
-
-	renderMinimumsOrSpinner() {
-		const minFiat = PaymentChannelsClient.getMinimumDepositFiat();
-		const maxFiat = PaymentChannelsClient.MAX_DEPOSIT_TOKEN.toFixed(2).toString();
-		const maxETH = PaymentChannelsClient.getMaximumDepositEth();
-		return (
-			<React.Fragment>
-				<Text style={styles.explainerText}>
-					{`${strings('paymentChannels.min_deposit')}`}
-					<Text style={styles.bold}>
-						{PaymentChannelsClient.MIN_DEPOSIT_ETH} ETH (${minFiat})
-					</Text>
-				</Text>
-				<Text style={styles.explainerText}>
-					{`${strings('paymentChannels.max_deposit')}`}
-					<Text style={styles.bold}>
-						{maxETH} ETH (${maxFiat})
-					</Text>
-				</Text>
-			</React.Fragment>
-		);
-	}
-
-	renderDeposit() {
-		const isDisabled = this.areButtonsDisabled();
-		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>
-						{strings('paymentChannels.in_order_to_use')}
-						<Text style={styles.bold}>{strings('paymentChannels.you_need_to_deposit')}</Text>
-					</Text>
-					{this.renderMinimumsOrSpinner()}
-				</View>
-
-				<View style={styles.sectionTitleWrapper}>
-					<Text style={styles.sectionTitleText}>{strings('paymentChannels.deposit_eth')}</Text>
-				</View>
-				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						// eslint-disable-next-line react/jsx-no-bind
-						onChangeText={val => this.setState({ depositAmount: val })}
-						placeholder={strings('paymentChannels.enter_eth_amount')}
-						spellCheck={false}
-						style={styles.input}
-						value={this.state.depositAmount}
-						onBlur={this.onBlur}
-						keyboardType="numeric"
-						numberOfLines={1}
-					/>
-					<StyledButton
-						containerStyle={styles.button}
-						style={styles.buttonText}
-						type={'confirm'}
-						onPress={this.deposit}
-						testID={'submit-button'}
-						disabled={isDisabled}
-					>
-						{strings('paymentChannels.deposit')}
-					</StyledButton>
-				</View>
-			</React.Fragment>
-		);
-	}
 
 	renderSend() {
 		const isDisabled = this.areButtonsDisabled();
@@ -719,9 +591,6 @@ class PaymentChannel extends Component {
 				{this.renderInfo()}
 				<View style={styles.panel}>
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						<ScrollView tabLabel={strings('paymentChannels.deposit')}>
-							<View style={styles.panelContent}>{this.renderDeposit()}</View>
-						</ScrollView>
 						<ScrollView tabLabel={strings('paymentChannels.send')}>
 							<View style={styles.panelContent}>{this.renderSend()}</View>
 						</ScrollView>
@@ -754,7 +623,6 @@ class PaymentChannel extends Component {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,

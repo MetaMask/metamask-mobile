@@ -199,24 +199,12 @@ class Deposit extends Component {
 	};
 
 	state = {
-		balance: '0.00',
-		balanceFiat: undefined,
-		status: { type: null },
-		qrModalVisible: false,
-		sendAmount: '',
-		sendRecipient: '',
-		depositAmount: '',
 		amount: undefined,
 		invalidAmount: true,
 		depositing: undefined
 	};
 
 	amountInput = React.createRef();
-
-	client = null;
-	sending = false;
-	depositing = false;
-	withdrawing = false;
 
 	componentDidMount = () => {
 		const { navigation } = this.props;
@@ -267,11 +255,6 @@ class Deposit extends Component {
 		} else {
 			invalidAmount = true;
 			error = strings('transaction.invalid_amount');
-		}
-
-		if (isNaN(amount) || amount.trim() === '') {
-			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.invalid_amount'));
-			return false;
 		}
 
 		const depositAmountNumber = parseFloat(amount);
