@@ -1,6 +1,15 @@
 import React, { Component } from 'react';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
-import { Platform, TextInput, Alert, Text, View, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import {
+	Platform,
+	TextInput,
+	Alert,
+	Text,
+	View,
+	StyleSheet,
+	KeyboardAvoidingView,
+	InteractionManager
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../../UI/StyledButton';
@@ -18,12 +27,14 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		backgroundColor: colors.white,
 		color: colors.black,
-		fontSize: 40
+		fontSize: 40,
+		maxWidth: '70%'
 	},
 	fiatValue: {
 		...fontStyles.normal,
 		fontSize: 18,
-		color: colors.grey500
+		color: colors.grey500,
+		marginVertical: 4
 	},
 	wrapper: {
 		flex: 1,
@@ -49,6 +60,21 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 14,
 		color: colors.grey500
+	},
+	title: {
+		...fontStyles.normal,
+		fontSize: 14,
+		marginBottom: 4,
+		color: colors.grey500
+	},
+	inputWrapper: {
+		flexDirection: 'row',
+		marginVertical: 4
+	},
+	inputCurrency: {
+		...fontStyles.normal,
+		fontSize: 40,
+		marginLeft: 20
 	}
 });
 
@@ -90,6 +116,8 @@ class PaymentChannel extends Component {
 		depositAmount: ''
 	};
 
+	amountInput = React.createRef();
+
 	client = null;
 	sending = false;
 	depositing = false;
@@ -98,6 +126,9 @@ class PaymentChannel extends Component {
 	componentDidMount = () => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
+		InteractionManager.runAfterInteractions(() => {
+			this.amountInput.current && this.amountInput.current.focus();
+		});
 	};
 
 	deposit = async () => {
@@ -154,6 +185,10 @@ class PaymentChannel extends Component {
 		}
 	};
 
+	updateAmount = amount => {
+		this.setState({ amount });
+	};
+
 	renderMinimumsOrSpinner() {
 		const minFiat = PaymentChannelsClient.getMinimumDepositFiat();
 		const maxFiat = PaymentChannelsClient.MAX_DEPOSIT_TOKEN.toFixed(2).toString();
@@ -181,21 +216,26 @@ class PaymentChannel extends Component {
 		const { amount, cryptoAmount } = this.state;
 		return (
 			<View style={styles.wrapper}>
-				<TextInput
-					autoCapitalize="none"
-					autoCorrect={false}
-					keyboardType="numeric"
-					numberOfLines={1}
-					onChangeText={this.updateAmount}
-					placeholder={strings('payment_request.amount_placeholder')}
-					spellCheck={false}
-					value={amount}
-					onSubmitEditing={this.onNext}
-					style={styles.input}
-					ref={this.amountInput}
-				/>
+				<Text style={styles.title}>Amount to transfer</Text>
+				<View style={styles.inputWrapper}>
+					<TextInput
+						autoCapitalize="none"
+						autoCorrect={false}
+						keyboardType="numeric"
+						numberOfLines={1}
+						onChangeText={this.updateAmount}
+						placeholder={strings('payment_request.amount_placeholder')}
+						spellCheck={false}
+						value={amount}
+						onSubmitEditing={this.onNext}
+						style={styles.input}
+						ref={this.amountInput}
+					/>
+					<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
+				</View>
+
 				<Text style={styles.fiatValue}>
-					{weiToFiat(toWei(1), conversionRate, currentCurrency.toUpperCase())}
+					{weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase())}
 				</Text>
 				{this.renderMinimumsOrSpinner()}
 
@@ -212,7 +252,7 @@ class PaymentChannel extends Component {
 							containerStyle={[styles.button]}
 							disabled={!cryptoAmount || cryptoAmount === '0'}
 						>
-							{strings('payment_request.next')}
+							{'Load Funds'}
 						</StyledButton>
 					</View>
 				</KeyboardAvoidingView>
