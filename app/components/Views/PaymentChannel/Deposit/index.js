@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
 		flexGrow: 1
 	},
 	button: {
-		marginBottom: 16
+		marginBottom: 24
 	},
 	buttonsWrapper: {
 		flex: 1,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
 /* deposit, send, receive and withdraw
 /* instant payments
 */
-class PaymentChannel extends Component {
+class Deposit extends Component {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('deposit.title', navigation);
 
 	static propTypes = {
@@ -218,7 +218,7 @@ class PaymentChannel extends Component {
 		}
 		try {
 			const params = {
-				depositAmount: this.state.depositAmount
+				depositAmount: this.state.amount
 			};
 
 			if (isNaN(params.depositAmount) || params.depositAmount.trim() === '') {
@@ -319,7 +319,7 @@ class PaymentChannel extends Component {
 
 	render() {
 		const { conversionRate, currentCurrency } = this.props;
-		const { amount, cryptoAmount } = this.state;
+		const { amount } = this.state;
 		return (
 			<View style={styles.root}>
 				{this.renderTransactionDirection()}
@@ -358,7 +358,7 @@ class PaymentChannel extends Component {
 								type={'blue'}
 								onPress={this.onNext}
 								containerStyle={[styles.button]}
-								disabled={!cryptoAmount || cryptoAmount === '0'}
+								disabled={!amount}
 							>
 								{'Load Funds'}
 							</StyledButton>
@@ -378,4 +378,4 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
-export default connect(mapStateToProps)(PaymentChannel);
+export default connect(mapStateToProps)(Deposit);

@@ -402,8 +402,7 @@ class PaymentChannel extends Component {
 
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
-
-		const isDisabled = false;
+		const isDisabled = this.areButtonsDisabled();
 		return (
 			<View style={styles.data}>
 				<View style={styles.assetCardWrapper}>
