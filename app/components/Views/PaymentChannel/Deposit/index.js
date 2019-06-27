@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
 	inputCurrency: {
 		...fontStyles.normal,
 		fontSize: 40,
-		marginLeft: 20
+		marginLeft: 20,
+		color: colors.black
 	}
 });
 
