@@ -4,7 +4,7 @@ import { Platform, TextInput, Alert, Text, View, StyleSheet, KeyboardAvoidingVie
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../../UI/StyledButton';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { getTransactionOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
@@ -58,9 +58,10 @@ const styles = StyleSheet.create({
 /* instant payments
 */
 class PaymentChannel extends Component {
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Instant Payments`, navigation);
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('deposit.title', navigation);
 
 	static propTypes = {
+		navigation: PropTypes.object,
 		/**
 		 * A string that represents the selected address
 		 */
@@ -93,6 +94,11 @@ class PaymentChannel extends Component {
 	sending = false;
 	depositing = false;
 	withdrawing = false;
+
+	componentDidMount = () => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: 'edit' });
+	};
 
 	deposit = async () => {
 		if (this.depositing) {

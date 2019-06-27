@@ -147,6 +147,9 @@
 		"deeplink_failure": "Ooops! Something went wrong! Please try again",
 		"warn_network_change": "Network changed to "
 	},
+	"deposit": {
+		"title": "Deposit"
+	},
 	"receive": {
 		"title": "Receive"
 	},
