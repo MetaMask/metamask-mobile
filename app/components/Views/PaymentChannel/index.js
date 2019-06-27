@@ -13,16 +13,13 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	ActivityIndicator,
-	TouchableOpacity,
-	Dimensions,
-	Clipboard
+	TouchableOpacity
 } from 'react-native';
 import PropTypes from 'prop-types';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import QRCode from 'react-native-qrcode-svg';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
 import { showAlert } from '../../../actions/alert';
@@ -33,7 +30,6 @@ import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
 
-const QR_PADDING = 160;
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
 const styles = StyleSheet.create({
@@ -140,26 +136,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
-	qrCodeWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingTop: 0,
-		padding: 15
-	},
-	addressWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 16,
-		paddingVertical: 15,
-		marginTop: 10,
-		borderRadius: 5,
-		backgroundColor: colors.grey000
-	},
-	address: {
-		...fontStyles.normal,
-		fontSize: Platform.OS === 'ios' ? 14 : 20,
-		textAlign: 'center'
-	},
 	explainerText: {
 		...fontStyles.normal,
 		color: colors.fontPrimary,
@@ -213,14 +189,6 @@ class PaymentChannel extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * A string that represents the selected address
-		 */
-		selectedAddress: PropTypes.string,
-		/**
-		/* Triggers global alert
-		*/
-		showAlert: PropTypes.func,
-		/**
 		 * Symbol for base asset
 		 */
 		nativeCurrency: PropTypes.string,
@@ -258,6 +226,7 @@ class PaymentChannel extends Component {
 			balance: state.balance,
 			status: state.status
 		});
+		this.getBalanceFiat(state.balance);
 	};
 
 	componentDidMount = async () => {
@@ -498,25 +467,6 @@ class PaymentChannel extends Component {
 		);
 	}
 
-	renderReceive() {
-		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>{strings('paymentChannels.receive_intro')}</Text>
-				</View>
-				<View style={styles.qrCodeWrapper}>
-					<QRCode
-						value={`ethereum:${this.props.selectedAddress}`}
-						size={Dimensions.get('window').width - QR_PADDING}
-					/>
-				</View>
-				<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-					<Text style={styles.address}>{this.props.selectedAddress}</Text>
-				</TouchableOpacity>
-			</React.Fragment>
-		);
-	}
-
 	renderNoFunds() {
 		return (
 			<React.Fragment>
@@ -553,17 +503,6 @@ class PaymentChannel extends Component {
 		);
 	}
 
-	copyAccountToClipboard = async () => {
-		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
-		});
-	};
-
 	renderContent() {
 		if (!this.state.ready) {
 			return (
@@ -580,9 +519,6 @@ class PaymentChannel extends Component {
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
 						<ScrollView tabLabel={strings('paymentChannels.send')}>
 							<View style={styles.panelContent}>{this.renderSend()}</View>
-						</ScrollView>
-						<ScrollView tabLabel={strings('paymentChannels.receive')}>
-							<View style={styles.panelContent}>{this.renderReceive()}</View>
 						</ScrollView>
 					</ScrollableTabView>
 				</View>
