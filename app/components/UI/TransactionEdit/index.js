@@ -345,7 +345,17 @@ class TransactionEdit extends Component {
 	render() {
 		const {
 			navigation,
-			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
+			transaction: {
+				value,
+				gas,
+				gasPrice,
+				from,
+				to,
+				selectedAsset,
+				readableValue,
+				ensRecipient,
+				paymentChannelTransaction
+			},
 			showHexData
 		} = this.props;
 		const { gasError, toAddressError, toAddressWarning, data, accountSelectIsOpen, ethInputIsOpen } = this.state;
@@ -403,35 +413,39 @@ class TransactionEdit extends Component {
 								isOpen={accountSelectIsOpen}
 							/>
 						</View>
-						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
-								{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
-							</View>
-							<CustomGas
-								handleGasFeeSelection={this.updateGas}
-								totalGas={totalGas}
-								gas={gas}
-								gasPrice={gasPrice}
-								onPress={this.closeDropdowns}
-							/>
-						</View>
-						<View style={[styles.formRow, styles.row]}>
-							{showHexData && (
+						{!paymentChannelTransaction && (
+							<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+									<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
+									{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
 								</View>
-							)}
-							{showHexData && (
-								<TextInput
-									multiline
-									onChangeText={this.updateData}
-									placeholder="Optional"
-									style={styles.hexData}
-									value={data}
+								<CustomGas
+									handleGasFeeSelection={this.updateGas}
+									totalGas={totalGas}
+									gas={gas}
+									gasPrice={gasPrice}
+									onPress={this.closeDropdowns}
 								/>
-							)}
-						</View>
+							</View>
+						)}
+						{!paymentChannelTransaction && (
+							<View style={[styles.formRow, styles.row]}>
+								{showHexData && (
+									<View style={styles.label}>
+										<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+									</View>
+								)}
+								{showHexData && (
+									<TextInput
+										multiline
+										onChangeText={this.updateData}
+										placeholder="Optional"
+										style={styles.hexData}
+										value={data}
+									/>
+								)}
+							</View>
+						)}
 					</View>
 				</ActionView>
 			</View>

@@ -1,0 +1,213 @@
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { colors } from '../../../../styles/common';
+import TransactionEditor from '../../../UI/TransactionEditor';
+import { BNToHex } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
+import { getTransactionOptionsTitle } from '../../../UI/Navbar';
+import { connect } from 'react-redux';
+import { newTransaction } from '../../../../actions/transaction';
+import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
+import Logger from '../../../../util/Logger';
+
+const EDIT = 'edit';
+
+const styles = StyleSheet.create({
+	wrapper: {
+		backgroundColor: colors.white,
+		flex: 1
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	}
+});
+
+/**
+ * View that wraps the wraps the "Send" screen
+ */
+class Send extends Component {
+	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
+
+	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
+		navigation: PropTypes.object,
+		/**
+		 * Action that cleans transaction state
+		 */
+		newTransaction: PropTypes.func.isRequired,
+		/**
+		 * Transaction state
+		 */
+		transaction: PropTypes.object.isRequired
+	};
+
+	state = {
+		mode: EDIT,
+		transactionKey: undefined,
+		ready: false,
+		transactionConfirmed: false,
+		transactionSubmitted: false
+	};
+
+	mounted = false;
+	unmountHandled = false;
+
+	/**
+	 * Sets state mounted to true, resets transaction and check for deeplinks
+	 */
+	componentDidMount() {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode: EDIT, dispatch: this.onModeChange });
+		this.mounted = true;
+		this.setState({ ready: true });
+	}
+
+	/**
+	 * Cancels transaction and sets mounted to false
+	 */
+	async componentWillUnmount() {
+		this.props.newTransaction();
+	}
+
+	onCancel = () => {
+		this.props.navigation.pop();
+	};
+
+	/**
+	 * Returns transaction object with gas, gasPrice and value in hex format
+	 *
+	 * @param {object} transaction - Transaction object
+	 */
+	prepareTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: BNToHex(transaction.value)
+	});
+
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
+	 * and to set to selectedAsset address
+	 *
+	 * @param {object} transaction - Transaction object
+	 * @param {object} selectedAsset - Asset object
+	 */
+	prepareAssetTransaction = (transaction, selectedAsset) => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice),
+		value: '0x0',
+		to: selectedAsset.address
+	});
+
+	/**
+	 * Returns transaction object with gas and gasPrice in hex format
+	 *
+	 * @param transaction - Transaction object
+	 */
+	sanitizeTransaction = transaction => ({
+		...transaction,
+		gas: BNToHex(transaction.gas),
+		gasPrice: BNToHex(transaction.gasPrice)
+	});
+
+	/**
+	 * Confirms transaction. In case of selectedAsset handles a token transfer transaction,
+	 * if not, and Ether transaction.
+	 * If success, transaction state is cleared, if not transaction is reset alert about the error
+	 * and returns to edit transaction
+	 */
+	onConfirm = async () => {
+		this.setState({ transactionConfirmed: true });
+		const { transaction } = this.props;
+		if (this.sending) {
+			return;
+		}
+
+		try {
+			const params = {
+				sendRecipient: transaction.to,
+				sendAmount: transaction.readableValue
+			};
+
+			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_amount'));
+				return false;
+			}
+
+			if (!params.sendRecipient) {
+				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_recipient'));
+			}
+
+			Logger.log('Sending ', params);
+			this.sending = true;
+			await PaymentChannelsClient.send(params);
+			this.sending = false;
+
+			Logger.log('Send succesful');
+		} catch (e) {
+			let msg = strings('paymentChannels.unknown_error');
+			if (e.message === 'insufficient_balance') {
+				msg = strings('paymentChannels.insufficient_balance');
+			}
+			Alert.alert(strings('paymentChannels.error'), msg);
+			Logger.log('buy error error', e);
+			this.sending = false;
+		}
+	};
+
+	/**
+	 * Change transaction mode
+	 *
+	 * @param mode - Transaction mode, review or edit
+	 */
+	onModeChange = mode => {
+		const { navigation } = this.props;
+		navigation && navigation.setParams({ mode });
+		this.mounted && this.setState({ mode });
+	};
+
+	renderLoader() {
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator size="small" />
+			</View>
+		);
+	}
+
+	render = () => (
+		<SafeAreaView style={styles.wrapper}>
+			{this.state.ready ? (
+				<TransactionEditor
+					navigation={this.props.navigation}
+					mode={this.state.mode}
+					onCancel={this.onCancel}
+					onConfirm={this.onConfirm}
+					onModeChange={this.onModeChange}
+					transactionConfirmed={this.state.transactionConfirmed}
+				/>
+			) : (
+				this.renderLoader()
+			)}
+		</SafeAreaView>
+	);
+}
+
+const mapStateToProps = state => ({
+	transaction: state.transaction
+});
+
+const mapDispatchToProps = dispatch => ({
+	newTransaction: () => dispatch(newTransaction())
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Send);

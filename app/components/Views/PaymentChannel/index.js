@@ -22,13 +22,13 @@ import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
-import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { balanceToFiat } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { setPaymentChannelTransaction } from '../../../actions/transaction';
 
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
@@ -203,7 +203,11 @@ class PaymentChannel extends Component {
 		/**
 		 * ETH-to-current currency conversion rate from CurrencyRateController
 		 */
-		conversionRate: PropTypes.number
+		conversionRate: PropTypes.number,
+		/**
+		 * Action that sets a tokens type transaction
+		 */
+		setPaymentChannelTransaction: PropTypes.func
 	};
 
 	state = {
@@ -318,6 +322,16 @@ class PaymentChannel extends Component {
 		);
 	};
 
+	onSend = () => {
+		this.props.setPaymentChannelTransaction({
+			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
+			decimals: 18,
+			logo: 'dai.svg',
+			symbol: 'DAI'
+		});
+		this.props.navigation.navigate('PaymentChannelSend');
+	};
+
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
 		const isDisabled = this.areButtonsDisabled();
@@ -336,7 +350,7 @@ class PaymentChannel extends Component {
 						containerStyle={[styles.button, styles.sendButton]}
 						style={styles.buttonText}
 						type={'confirm'}
-						onPress={this.send}
+						onPress={this.onSend}
 						disabled={isDisabled || noFunds}
 					>
 						{'Send'}
@@ -550,7 +564,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+	setPaymentChannelTransaction: asset => dispatch(setPaymentChannelTransaction(asset))
 });
 
 export default connect(
