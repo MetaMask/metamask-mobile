@@ -60,9 +60,6 @@ const styles = StyleSheet.create({
 		flexWrap: 'wrap',
 		justifyContent: 'space-between'
 	},
-	noPaddingTop: {
-		paddingTop: 0
-	},
 	button: {
 		flex: 0,
 		paddingVertical: 5,
@@ -72,11 +69,6 @@ const styles = StyleSheet.create({
 	depositButton: {
 		width: '80%',
 		marginVertical: 15
-	},
-	fullButton: {
-		flex: 1,
-		marginBottom: 20,
-		height: 30
 	},
 	buttonText: {
 		fontSize: 14
@@ -327,20 +319,40 @@ class PaymentChannel extends Component {
 		if (this.withdrawing) {
 			return;
 		}
-		try {
-			this.withdrawing = true;
-			await PaymentChannelsClient.withdrawAll();
-			this.withdrawing = false;
-			Logger.log('withdraw succesful');
-		} catch (e) {
-			this.withdrawing = false;
-			Logger.log('withdraw error', e);
-		}
+		Alert.alert(
+			'Withdraw Funds',
+			`${strings('paymentChannels.withdraw_intro')}. ${strings('paymentChannels.withdraw_info')}.\n${strings(
+				'paymentChannels.withdraw_note'
+			)}.`,
+			[
+				{
+					text: 'Cancel',
+					onPress: () => false,
+					style: 'cancel'
+				},
+				{
+					text: 'Confirm',
+					onPress: async () => {
+						try {
+							this.withdrawing = true;
+							//await PaymentChannelsClient.withdrawAll();
+							this.withdrawing = false;
+							Logger.log('withdraw succesful');
+						} catch (e) {
+							this.withdrawing = false;
+							Logger.log('withdraw error', e);
+						}
+					}
+				}
+			],
+			{ cancelable: false }
+		);
 	};
 
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
 		const isDisabled = this.areButtonsDisabled();
+		const noFunds = this.state.balance === '0.00';
 		return (
 			<View style={styles.data}>
 				<View style={styles.assetCardWrapper}>
@@ -356,7 +368,7 @@ class PaymentChannel extends Component {
 						style={styles.buttonText}
 						type={'confirm'}
 						onPress={this.send}
-						disabled={isDisabled}
+						disabled={isDisabled || noFunds}
 					>
 						{'Send'}
 					</StyledButton>
@@ -375,7 +387,7 @@ class PaymentChannel extends Component {
 							style={styles.buttonText}
 							type={'info'}
 							onPress={this.withdraw}
-							disabled={isDisabled}
+							disabled={isDisabled || noFunds}
 						>
 							{'Withdraw'}
 						</StyledButton>
@@ -505,31 +517,6 @@ class PaymentChannel extends Component {
 		);
 	}
 
-	renderWithdraw() {
-		const isDisabled = this.areButtonsDisabled();
-		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_intro')}</Text>
-					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_info')}</Text>
-					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_note')}</Text>
-				</View>
-				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
-					<StyledButton
-						containerStyle={styles.fullButton}
-						style={styles.buttonText}
-						type={'orange'}
-						onPress={this.withdraw}
-						testID={'submit-button'}
-						disabled={isDisabled}
-					>
-						{strings('paymentChannels.withdraw')}
-					</StyledButton>
-				</View>
-			</React.Fragment>
-		);
-	}
-
 	renderNoFunds() {
 		return (
 			<React.Fragment>
@@ -596,9 +583,6 @@ class PaymentChannel extends Component {
 						</ScrollView>
 						<ScrollView tabLabel={strings('paymentChannels.receive')}>
 							<View style={styles.panelContent}>{this.renderReceive()}</View>
-						</ScrollView>
-						<ScrollView tabLabel={strings('paymentChannels.withdraw')}>
-							<View style={styles.panelContent}>{this.renderWithdraw()}</View>
 						</ScrollView>
 					</ScrollableTabView>
 				</View>
