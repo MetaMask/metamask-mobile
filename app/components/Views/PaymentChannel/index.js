@@ -402,6 +402,7 @@ class PaymentChannel extends Component {
 
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
+
 		const isDisabled = false;
 		return (
 			<View style={styles.data}>
@@ -427,7 +428,7 @@ class PaymentChannel extends Component {
 							containerStyle={styles.button}
 							style={styles.buttonText}
 							type={'info'}
-							onPress={this.deposit}
+							onPress={() => this.props.navigation.navigate('PaymentChannelDeposit')}
 							disabled={isDisabled}
 						>
 							{'Deposit'}

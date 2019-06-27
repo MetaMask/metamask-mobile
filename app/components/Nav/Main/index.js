@@ -69,6 +69,7 @@ import WalletConnect from '../../../core/WalletConnect';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval';
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
+import Deposit from '../../Views/PaymentChannel/Deposit';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -153,6 +154,9 @@ const MainNavigator = createStackNavigator(
 				{
 					PaymentChannel: {
 						screen: PaymentChannel
+					},
+					PaymentChannelDeposit: {
+						screen: Deposit
 					}
 				},
 				{
