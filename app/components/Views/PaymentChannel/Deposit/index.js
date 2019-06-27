@@ -18,12 +18,13 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import AppConstants from '../../../../core/AppConstants';
-import { renderFromWei, weiToFiat, toWei } from '../../../../util/number';
+import { renderFromWei, weiToFiat, toWei, isDecimal, isBN } from '../../../../util/number';
 import { renderAccountName } from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
+import { hexToBN } from 'gaba/util';
 
 const KEYBOARD_OFFSET = 120;
 const DAI_ADDRESS = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359';
@@ -152,6 +153,15 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		borderColor: colors.yellow,
 		borderWidth: 1
+	},
+	invalidAmountError: {
+		backgroundColor: colors.red000,
+		color: colors.red,
+		marginTop: 8,
+		paddingVertical: 8,
+		textAlign: 'center',
+		fontSize: 12,
+		...fontStyles.normal
 	}
 });
 
@@ -194,7 +204,9 @@ class Deposit extends Component {
 		qrModalVisible: false,
 		sendAmount: '',
 		sendRecipient: '',
-		depositAmount: ''
+		depositAmount: '',
+		amount: undefined,
+		invalidAmount: true
 	};
 
 	amountInput = React.createRef();
@@ -213,42 +225,11 @@ class Deposit extends Component {
 	};
 
 	deposit = async () => {
-		if (this.depositing) {
+		if (this.depositing || this.state.invalidAmount) {
 			return;
 		}
 		try {
-			const params = {
-				depositAmount: this.state.amount
-			};
-
-			if (isNaN(params.depositAmount) || params.depositAmount.trim() === '') {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.invalid_amount'));
-				return false;
-			}
-
-			const depositAmountNumber = parseFloat(params.depositAmount);
-			const { MAX_DEPOSIT_TOKEN, getExchangeRate } = PaymentChannelsClient;
-
-			const ETH = parseFloat(getExchangeRate());
-			const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
-			const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
-
-			if (depositAmountNumber > maxDepositAmount) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_high'));
-				return false;
-			}
-
-			if (params.depositAmount < minDepositAmount) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_low'));
-				return false;
-			}
-
-			const accountBalance = renderFromWei(this.props.accounts[this.props.selectedAddress].balance);
-			if (parseFloat(accountBalance) <= parseFloat(params.depositAmount)) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.insufficient_funds'));
-				return false;
-			}
-
+			const params = { depositAmount: this.state.amount };
 			Logger.log('About to deposit', params);
 			this.depositing = true;
 			await PaymentChannelsClient.deposit(params);
@@ -268,6 +249,52 @@ class Deposit extends Component {
 
 	updateAmount = amount => {
 		this.setState({ amount });
+	};
+
+	validateDeposit = () => {
+		const { selectedAddress, accounts } = this.props;
+		const { amount } = this.state;
+		const { balance } = accounts[selectedAddress];
+		let error = undefined;
+		let invalidAmount = false;
+		if (isDecimal(amount) && isBN(toWei(amount))) {
+			if (hexToBN(balance).lt(toWei(amount))) {
+				invalidAmount = true;
+				error = strings('transaction.insufficient');
+			}
+		} else {
+			invalidAmount = true;
+			error = strings('transaction.invalid_amount');
+		}
+
+		if (isNaN(amount) || amount.trim() === '') {
+			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.invalid_amount'));
+			return false;
+		}
+
+		const depositAmountNumber = parseFloat(amount);
+		const { MAX_DEPOSIT_TOKEN, getExchangeRate } = PaymentChannelsClient;
+
+		const ETH = parseFloat(getExchangeRate());
+		const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
+		const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
+
+		if (depositAmountNumber > maxDepositAmount) {
+			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_high'));
+			invalidAmount = true;
+		}
+
+		if (amount < minDepositAmount) {
+			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_low'));
+			invalidAmount = true;
+		}
+
+		const accountBalance = renderFromWei(this.props.accounts[this.props.selectedAddress].balance);
+		if (parseFloat(accountBalance) <= parseFloat(amount)) {
+			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.insufficient_funds'));
+			invalidAmount = true;
+		}
+		this.setState({ invalidAmount, error });
 	};
 
 	renderTransactionDirection() {
@@ -319,7 +346,12 @@ class Deposit extends Component {
 
 	render() {
 		const { conversionRate, currentCurrency } = this.props;
-		const { amount } = this.state;
+		const { amount, invalidAmount, error } = this.state;
+		const conversionAmount = weiToFiat(
+			toWei((isDecimal(amount) && amount) || 0),
+			conversionRate,
+			currentCurrency.toUpperCase()
+		);
 		return (
 			<View style={styles.root}>
 				{this.renderTransactionDirection()}
@@ -335,17 +367,18 @@ class Deposit extends Component {
 							placeholder={strings('payment_request.amount_placeholder')}
 							spellCheck={false}
 							value={amount}
-							onSubmitEditing={this.onNext}
+							onSubmitEditing={this.deposit}
 							style={styles.input}
 							ref={this.amountInput}
+							onBlur={this.validateDeposit}
+							returnKeyType={'done'}
 						/>
 						<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
 					</View>
 
-					<Text style={styles.fiatValue}>
-						{weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase())}
-					</Text>
+					<Text style={styles.fiatValue}>{conversionAmount}</Text>
 					{this.renderMinimumsOrSpinner()}
+					{error && <Text style={styles.invalidAmountError}>{error}</Text>}
 
 					<KeyboardAvoidingView
 						style={styles.buttonsWrapper}
@@ -356,9 +389,9 @@ class Deposit extends Component {
 						<View style={styles.buttonsContainer}>
 							<StyledButton
 								type={'blue'}
-								onPress={this.onNext}
+								onPress={this.deposit}
 								containerStyle={[styles.button]}
-								disabled={!amount}
+								disabled={!amount || invalidAmount}
 							>
 								{'Load Funds'}
 							</StyledButton>
