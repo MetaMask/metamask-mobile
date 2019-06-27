@@ -14,6 +14,7 @@ export const colors = {
 	primaryFox: '#f66a0a',
 	black: '#000000',
 	white: '#FFFFFF',
+	white100: '#F9FAFB',
 	grey500: '#6a737d',
 	grey400: '#848c96',
 	grey300: '#9fa6ae',

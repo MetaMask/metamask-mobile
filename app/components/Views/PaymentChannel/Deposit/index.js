@@ -19,15 +19,18 @@ import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import AppConstants from '../../../../core/AppConstants';
 import { renderFromWei, weiToFiat, toWei } from '../../../../util/number';
+import { renderAccountName } from '../../../../util/address';
+import Identicon from '../../../UI/Identicon';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import contractMap from 'eth-contract-metadata';
+import AssetIcon from '../../../UI/AssetIcon';
 
 const KEYBOARD_OFFSET = 120;
+const DAI_ADDRESS = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359';
 
 const styles = StyleSheet.create({
-	fiatValue: {
-		...fontStyles.normal,
-		fontSize: 18,
-		color: colors.grey500,
-		marginVertical: 4
+	root: {
+		flex: 1
 	},
 	wrapper: {
 		flex: 1,
@@ -48,6 +51,12 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: 'column',
 		alignSelf: 'flex-end'
+	},
+	fiatValue: {
+		...fontStyles.normal,
+		fontSize: 18,
+		color: colors.grey500,
+		marginVertical: 4
 	},
 	explainerText: {
 		...fontStyles.normal,
@@ -77,6 +86,72 @@ const styles = StyleSheet.create({
 		fontSize: 40,
 		marginLeft: 20,
 		color: colors.black
+	},
+	arrow: {
+		backgroundColor: colors.white,
+		borderColor: colors.grey200,
+		borderRadius: 15,
+		borderWidth: 1,
+		height: 30,
+		width: 30,
+		marginTop: -15,
+		marginLeft: -15,
+		left: '50%',
+		position: 'absolute',
+		zIndex: 1,
+		alignSelf: 'center'
+	},
+	arrowIcon: {
+		color: colors.grey400,
+		marginLeft: 3,
+		marginTop: 3
+	},
+	addressGraphic: {
+		alignItems: 'center',
+		flexDirection: 'row',
+		minHeight: 42,
+		width: '50%',
+		flex: 1
+	},
+	fromGraphic: {
+		borderColor: colors.grey100,
+		borderRightWidth: 1,
+		paddingRight: 35,
+		paddingLeft: 20
+	},
+	toGraphic: {
+		paddingRight: 20,
+		paddingLeft: 35
+	},
+	graphic: {
+		borderBottomWidth: 1,
+		borderColor: colors.grey100,
+		backgroundColor: colors.white100,
+		borderTopWidth: 1,
+		flexDirection: 'row',
+		flexGrow: 0,
+		flexShrink: 0
+	},
+	directionText: {
+		...fontStyles.normal,
+		color: colors.grey500,
+		fontSize: 14,
+		marginLeft: 8
+	},
+	daiLogo: {
+		height: 16,
+		width: 16,
+		backgroundColor: colors.white
+	},
+	daiLogoWrapper: {
+		width: 24,
+		height: 24,
+		backgroundColor: colors.white,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 12,
+		borderColor: colors.yellow,
+		borderWidth: 1
 	}
 });
 
@@ -105,7 +180,11 @@ class PaymentChannel extends Component {
 		/**
 		 * ETH-to-current currency conversion rate from CurrencyRateController
 		 */
-		conversionRate: PropTypes.number
+		conversionRate: PropTypes.number,
+		/**
+		/* Identities object required to get account name
+		*/
+		identities: PropTypes.object
 	};
 
 	state = {
@@ -191,6 +270,31 @@ class PaymentChannel extends Component {
 		this.setState({ amount });
 	};
 
+	renderTransactionDirection() {
+		const { selectedAddress, identities } = this.props;
+		return (
+			<View style={styles.graphic}>
+				<View style={[styles.addressGraphic, styles.fromGraphic]}>
+					<Identicon address={selectedAddress} diameter={18} />
+					<Text style={styles.directionText} numberOfLines={1}>
+						{renderAccountName(selectedAddress, identities)}
+					</Text>
+				</View>
+				<View style={styles.arrow}>
+					<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
+				</View>
+				<View style={[styles.addressGraphic, styles.toGraphic]}>
+					<View style={styles.daiLogoWrapper}>
+						<AssetIcon logo={contractMap[DAI_ADDRESS].logo} customStyle={styles.daiLogo} />
+					</View>
+					<Text style={styles.directionText} numberOfLines={1}>
+						InstaPay
+					</Text>
+				</View>
+			</View>
+		);
+	}
+
 	renderMinimumsOrSpinner() {
 		const minFiat = PaymentChannelsClient.getMinimumDepositFiat();
 		const maxFiat = PaymentChannelsClient.MAX_DEPOSIT_TOKEN.toFixed(2).toString();
@@ -217,47 +321,50 @@ class PaymentChannel extends Component {
 		const { conversionRate, currentCurrency } = this.props;
 		const { amount, cryptoAmount } = this.state;
 		return (
-			<View style={styles.wrapper}>
-				<Text style={styles.title}>Amount to transfer</Text>
-				<View style={styles.inputWrapper}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						keyboardType="numeric"
-						numberOfLines={1}
-						onChangeText={this.updateAmount}
-						placeholder={strings('payment_request.amount_placeholder')}
-						spellCheck={false}
-						value={amount}
-						onSubmitEditing={this.onNext}
-						style={styles.input}
-						ref={this.amountInput}
-					/>
-					<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
-				</View>
-
-				<Text style={styles.fiatValue}>
-					{weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase())}
-				</Text>
-				{this.renderMinimumsOrSpinner()}
-
-				<KeyboardAvoidingView
-					style={styles.buttonsWrapper}
-					behavior={'padding'}
-					keyboardVerticalOffset={KEYBOARD_OFFSET}
-					enabled={Platform.OS === 'ios'}
-				>
-					<View style={styles.buttonsContainer}>
-						<StyledButton
-							type={'blue'}
-							onPress={this.onNext}
-							containerStyle={[styles.button]}
-							disabled={!cryptoAmount || cryptoAmount === '0'}
-						>
-							{'Load Funds'}
-						</StyledButton>
+			<View style={styles.root}>
+				{this.renderTransactionDirection()}
+				<View style={styles.wrapper}>
+					<Text style={styles.title}>Amount to transfer</Text>
+					<View style={styles.inputWrapper}>
+						<TextInput
+							autoCapitalize="none"
+							autoCorrect={false}
+							keyboardType="numeric"
+							numberOfLines={1}
+							onChangeText={this.updateAmount}
+							placeholder={strings('payment_request.amount_placeholder')}
+							spellCheck={false}
+							value={amount}
+							onSubmitEditing={this.onNext}
+							style={styles.input}
+							ref={this.amountInput}
+						/>
+						<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
 					</View>
-				</KeyboardAvoidingView>
+
+					<Text style={styles.fiatValue}>
+						{weiToFiat(toWei(amount || 0), conversionRate, currentCurrency.toUpperCase())}
+					</Text>
+					{this.renderMinimumsOrSpinner()}
+
+					<KeyboardAvoidingView
+						style={styles.buttonsWrapper}
+						behavior={'padding'}
+						keyboardVerticalOffset={KEYBOARD_OFFSET}
+						enabled={Platform.OS === 'ios'}
+					>
+						<View style={styles.buttonsContainer}>
+							<StyledButton
+								type={'blue'}
+								onPress={this.onNext}
+								containerStyle={[styles.button]}
+								disabled={!cryptoAmount || cryptoAmount === '0'}
+							>
+								{'Load Funds'}
+							</StyledButton>
+						</View>
+					</KeyboardAvoidingView>
+				</View>
 			</View>
 		);
 	}
@@ -267,7 +374,8 @@ const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	identities: state.engine.backgroundState.PreferencesController.identities
 });
 
 export default connect(mapStateToProps)(PaymentChannel);
