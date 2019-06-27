@@ -8,7 +8,8 @@ import {
 	View,
 	StyleSheet,
 	KeyboardAvoidingView,
-	InteractionManager
+	InteractionManager,
+	ActivityIndicator
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -206,7 +207,8 @@ class Deposit extends Component {
 		sendRecipient: '',
 		depositAmount: '',
 		amount: undefined,
-		invalidAmount: true
+		invalidAmount: true,
+		depositing: undefined
 	};
 
 	amountInput = React.createRef();
@@ -225,16 +227,15 @@ class Deposit extends Component {
 	};
 
 	deposit = async () => {
-		if (this.depositing || this.state.invalidAmount) {
+		if (this.state.depositing || this.state.invalidAmount) {
 			return;
 		}
 		try {
 			const params = { depositAmount: this.state.amount };
 			Logger.log('About to deposit', params);
-			this.depositing = true;
+			this.setState({ depositing: true });
 			await PaymentChannelsClient.deposit(params);
-			this.setState({ depositAmount: '' });
-			this.depositing = false;
+			this.setState({ depositing: false });
 			Logger.log('Deposit succesful');
 		} catch (e) {
 			if (e.message === 'still_blocked') {
@@ -243,7 +244,8 @@ class Deposit extends Component {
 				Alert.alert(strings('paymentChannels.heads_up'), strings('paymentChannels.security_reasons'));
 				Logger.log('Deposit error', e);
 			}
-			this.depositing = false;
+			this.setState({ depositing: false });
+			this.props.navigation.pop();
 		}
 	};
 
@@ -393,7 +395,11 @@ class Deposit extends Component {
 								containerStyle={[styles.button]}
 								disabled={!amount || invalidAmount}
 							>
-								{'Load Funds'}
+								{this.state.depositing ? (
+									<ActivityIndicator size="small" color="white" />
+								) : (
+									'Load Funds'
+								)}
 							</StyledButton>
 						</View>
 					</KeyboardAvoidingView>
