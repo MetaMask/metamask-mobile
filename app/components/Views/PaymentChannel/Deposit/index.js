@@ -23,13 +23,6 @@ import { renderFromWei, weiToFiat, toWei } from '../../../../util/number';
 const KEYBOARD_OFFSET = 120;
 
 const styles = StyleSheet.create({
-	input: {
-		...fontStyles.normal,
-		backgroundColor: colors.white,
-		color: colors.black,
-		fontSize: 40,
-		maxWidth: '70%'
-	},
 	fiatValue: {
 		...fontStyles.normal,
 		fontSize: 18,
@@ -66,6 +59,14 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		marginBottom: 4,
 		color: colors.grey500
+	},
+	input: {
+		...fontStyles.normal,
+		backgroundColor: colors.white,
+		color: colors.black,
+		fontSize: 40,
+		maxWidth: '70%',
+		padding: 0
 	},
 	inputWrapper: {
 		flexDirection: 'row',
