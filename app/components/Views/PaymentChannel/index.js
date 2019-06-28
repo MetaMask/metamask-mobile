@@ -188,7 +188,7 @@ class PaymentChannel extends Component {
 			time: Date.parse(tx.createdOn),
 			status: 'confirmed',
 			id: tx.id.toString(),
-			networkID: 'payment-channel',
+			paymentChannelTransaction: true,
 			transaction: {
 				from: tx.sender,
 				to: tx.recipient,
@@ -365,7 +365,7 @@ class PaymentChannel extends Component {
 		}
 
 		const balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-		this.setState({ balanceFiat });
+		this.setState({ balanceFiat, exchangeRate });
 	};
 
 	closeQrModal = () => {
@@ -417,6 +417,7 @@ class PaymentChannel extends Component {
 						transactions={this.state.transactions}
 						conversionRate={conversionRate}
 						currentCurrency={currentCurrency}
+						exchangeRate={this.state.exchangeRate}
 						selectedAddress={selectedAddress}
 						loading={false}
 					/>

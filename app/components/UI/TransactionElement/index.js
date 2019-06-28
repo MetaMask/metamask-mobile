@@ -159,7 +159,8 @@ class TransactionElement extends PureComponent {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		exchangeRate: PropTypes.number
 	};
 
 	state = {
@@ -405,28 +406,32 @@ class TransactionElement extends PureComponent {
 	renderPaymentChannelTx = () => {
 		const {
 			tx: {
-				exchangeRate,
 				transaction: { value, from, to }
 			},
 			conversionRate,
-			currentCurrency
+			currentCurrency,
+			exchangeRate
 		} = this.props;
 		let { actionKey } = this.state;
 		actionKey = actionKey && actionKey.replace(strings('unit.eth'), strings('unit.dai'));
 		const totalEth = hexToBN(value);
-		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.dai');
-		const renderTotalEthFiat = balanceToFiat(totalEth, conversionRate, exchangeRate, currentCurrency.toUpperCase());
-
-		const totalValue = totalEth;
+		const readableTotalEth = renderFromWei(totalEth);
+		const renderTotalEth = readableTotalEth + ' ' + strings('unit.dai');
+		const renderTotalEthFiat = balanceToFiat(
+			parseFloat(readableTotalEth),
+			conversionRate,
+			exchangeRate,
+			currentCurrency
+		);
 
 		const transactionDetails = {
 			renderFrom: renderFullAddress(from),
 			renderTo: renderFullAddress(to),
 			renderGas: 'Free',
 			renderGasPrice: 'Free',
-			renderValue: renderFromWei(value) + ' ' + strings('unit.dai'),
-			renderTotalValue: renderFromWei(totalValue) + ' ' + strings('unit.dai'),
-			renderTotalValueFiat: balanceToFiat(totalValue, conversionRate, exchangeRate, currentCurrency.toUpperCase())
+			renderValue: renderTotalEth,
+			renderTotalValue: renderTotalEth,
+			renderTotalValueFiat: renderTotalEthFiat
 		};
 
 		const transactionElement = {
@@ -442,7 +447,7 @@ class TransactionElement extends PureComponent {
 	render() {
 		const {
 			tx: {
-				networkID,
+				paymentChannelTransaction,
 				transaction: { gas, gasPrice }
 			},
 			selected,
@@ -471,7 +476,7 @@ class TransactionElement extends PureComponent {
 				/>
 			);
 		}
-		if (networkID === 'payment-channel') {
+		if (paymentChannelTransaction) {
 			[transactionElement, transactionDetails] = this.renderPaymentChannelTx();
 		} else {
 			switch (actionKey) {
