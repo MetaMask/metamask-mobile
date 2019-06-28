@@ -8,6 +8,7 @@ import IonIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
 import URL from 'url-parse';
 import DeviceSize from '../../../../util/DeviceSize';
+import AppConstants from '../../../../core/AppConstants';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const HOMEPAGE_URL = 'about:blank';
+const { HOMEPAGE_URL } = AppConstants;
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 /**

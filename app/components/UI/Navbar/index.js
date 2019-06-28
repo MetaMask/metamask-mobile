@@ -29,7 +29,8 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
-const HOMEPAGE_URL = 'about:blank';
+
+const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = event => {
 	InteractionManager.runAfterInteractions(() => {

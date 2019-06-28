@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import {
-	Dimensions,
 	Text,
 	ActivityIndicator,
 	Platform,
@@ -9,7 +8,6 @@ import {
 	View,
 	TouchableWithoutFeedback,
 	Alert,
-	Animated,
 	TouchableOpacity,
 	Linking,
 	Keyboard,
@@ -30,7 +28,6 @@ import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import BrowserHome from '../../Views/BrowserHome';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
@@ -63,9 +60,8 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 
-const HOMEPAGE_URL = 'about:blank';
+const { HOMEPAGE_URL } = AppConstants;
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
-const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -173,24 +169,21 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
+		height: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60,
 		backgroundColor: colors.grey000,
-		position: 'absolute',
-		left: 0,
-		right: 0,
-		bottom: 0,
 		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 14 : 12,
 		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
 		flexDirection: 'row',
 		paddingHorizontal: 10,
-		flex: 1
+		flex: 0
 	},
 	iconSearch: {
-		alignSelf: 'flex-end',
-		alignContent: 'flex-end'
+		alignSelf: 'flex-start',
+		alignContent: 'flex-start'
 	},
 	iconMore: {
-		alignSelf: 'flex-end',
-		alignContent: 'flex-end'
+		alignSelf: 'flex-start',
+		alignContent: 'flex-start'
 	},
 	iconsLeft: {
 		flex: 1,
@@ -206,7 +199,8 @@ const styles = StyleSheet.create({
 	iconsRight: {
 		flex: 1,
 		flexDirection: 'row',
-		justifyContent: 'flex-end'
+		justifyContent: 'flex-end',
+		alignItems: 'center'
 	},
 	tabIcon: {
 		width: 30,
@@ -267,14 +261,6 @@ const styles = StyleSheet.create({
 	},
 	fullScreenModal: {
 		flex: 1
-	},
-	homepage: {
-		flex: 1,
-		position: 'absolute',
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0
 	}
 });
 
@@ -394,8 +380,6 @@ export class BrowserTab extends PureComponent {
 	constructor(props) {
 		super(props);
 
-		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
-
 		this.state = {
 			approvedOrigin: false,
 			currentEnsName: null,
@@ -414,9 +398,6 @@ export class BrowserTab extends PureComponent {
 			showPhishingModal: false,
 			timeout: false,
 			url: props.initialUrl || HOMEPAGE_URL,
-			scrollAnim,
-			offsetAnim,
-			clampedScroll,
 			contentHeight: 0,
 			forwardEnabled: false,
 			forceReload: false,
@@ -430,38 +411,10 @@ export class BrowserTab extends PureComponent {
 	webview = React.createRef();
 	inputRef = React.createRef();
 	snapshotTimer = null;
-	prevScrollOffset = 0;
 	goingBack = false;
 	forwardHistoryStack = [];
 	approvalRequest;
 	accountsRequest;
-
-	clampedScrollValue = 0;
-	offsetValue = 0;
-	scrollValue = 0;
-	scrollStopTimer = null;
-
-	initScrollVariables() {
-		const scrollAnim = Platform.OS === 'ios' ? new Animated.Value(0) : null;
-		const offsetAnim = Platform.OS === 'ios' ? new Animated.Value(0) : null;
-		let clampedScroll = null;
-		if (Platform.OS === 'ios') {
-			clampedScroll = Animated.diffClamp(
-				Animated.add(
-					scrollAnim.interpolate({
-						inputRange: [0, 1],
-						outputRange: [0, 1],
-						extrapolateLeft: 'clamp'
-					}),
-					offsetAnim
-				),
-				0,
-				BOTTOM_NAVBAR_HEIGHT
-			);
-		}
-
-		return { scrollAnim, offsetAnim, clampedScroll };
-	}
 
 	/**
 	 * Check that page metadata is available and call callback
@@ -663,19 +616,7 @@ export class BrowserTab extends PureComponent {
 			this.handleBranchDeeplink(pendingDeeplink);
 		}
 
-		if (Platform.OS === 'ios') {
-			this.state.scrollAnim.addListener(({ value }) => {
-				const diff = value - this.scrollValue;
-				this.scrollValue = value;
-				this.clampedScrollValue = Math.min(Math.max(this.clampedScrollValue + diff, 0), BOTTOM_NAVBAR_HEIGHT);
-			});
-
-			this.state.offsetAnim.addListener(({ value }) => {
-				this.offsetValue = value;
-			});
-		} else {
-			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
-		}
+		this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
 
 		// Listen to network changes
 		Engine.context.TransactionController.hub.on('networkChange', this.reload);
@@ -762,10 +703,7 @@ export class BrowserTab extends PureComponent {
 		// Remove all Engine listeners
 		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
-		if (Platform.OS === 'ios') {
-			this.state.scrollAnim && this.state.scrollAnim.removeAllListeners();
-			this.state.offsetAnim && this.state.offsetAnim.removeAllListeners();
-		} else {
+		if (Platform.OS !== 'ios') {
 			this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 		}
@@ -920,19 +858,15 @@ export class BrowserTab extends PureComponent {
 			this.goingBack = false;
 		}, 500);
 
-		if (this.initialUrl && this.state.inputValue !== this.initialUrl) {
-			const { current } = this.webview;
-			current && current.goBack();
-			setTimeout(() => {
-				this.setState({ forwardEnabled: true });
-				this.props.navigation.setParams({
-					...this.props.navigation.state.params,
-					url: this.state.inputValue
-				});
-			}, 100);
-		} else {
-			this.goBackToHomepage();
-		}
+		const { current } = this.webview;
+		current && current.goBack();
+		setTimeout(() => {
+			this.setState({ forwardEnabled: true });
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: this.state.inputValue
+			});
+		}, 100);
 	};
 
 	goBackToHomepage = () => {
@@ -941,8 +875,6 @@ export class BrowserTab extends PureComponent {
 			url: null,
 			currentEnsName: null
 		});
-
-		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
 
 		this.setState({
 			approvedOrigin: false,
@@ -961,9 +893,6 @@ export class BrowserTab extends PureComponent {
 			showPhishingModal: false,
 			timeout: false,
 			url: HOMEPAGE_URL,
-			scrollAnim,
-			offsetAnim,
-			clampedScroll,
 			contentHeight: 0,
 			forwardEnabled: false,
 			lastError: null
@@ -1111,16 +1040,6 @@ export class BrowserTab extends PureComponent {
 				return;
 			}
 			switch (data.type) {
-				case 'GET_HEIGHT':
-					this.setState({ contentHeight: data.payload.height });
-					// Reset the navbar every time we change the page
-					if (Platform.OS === 'ios') {
-						setTimeout(() => {
-							this.state.scrollAnim.setValue(0);
-							this.state.offsetAnim.setValue(0);
-						}, 100);
-					}
-					break;
 				case 'NAV_CHANGE': {
 					const { url, title } = data.payload;
 					this.setState({
@@ -1131,11 +1050,6 @@ export class BrowserTab extends PureComponent {
 					});
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
 					this.updateTabInfo(data.payload.url);
-					if (Platform.OS === 'ios') {
-						setTimeout(() => {
-							this.resetBottomBarPosition();
-						}, 100);
-					}
 					break;
 				}
 				case 'INPAGE_REQUEST':
@@ -1156,28 +1070,12 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
-	resetBottomBarPosition() {
-		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
-
-		this.mounted &&
-			this.setState({
-				scrollAnim,
-				offsetAnim,
-				clampedScroll
-			});
-	}
-
 	onPageChange = ({ url }) => {
 		const { ipfsGateway } = this.props;
-		if ((this.goingBack && url === 'about:blank') || (this.initialUrl === url && url === 'about:blank')) {
-			this.goBackToHomepage();
-			return;
-		}
-
-		// Reset the navbar every time we change the page
-		if (Platform.OS === 'ios') {
-			this.resetBottomBarPosition();
-		}
+		// if ((this.goingBack && url === HOMEPAGE_URL) || (this.initialUrl === url && url === HOMEPAGE_URL)) {
+		// 	this.goBackToHomepage();
+		// 	return;
+		// }
 
 		this.forwardHistoryStack = [];
 		const data = {};
@@ -1236,12 +1134,6 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onLoadEnd = () => {
-		if (Platform.OS === 'ios') {
-			setTimeout(() => {
-				this.state.scrollAnim.setValue(0);
-			}, 100);
-		}
-
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
 			this.backgroundBridge.enableAccounts();
@@ -1384,116 +1276,47 @@ export class BrowserTab extends PureComponent {
 		);
 	};
 
-	handleScroll = e => {
-		if (Platform.OS === 'android') return;
-
-		if (e.contentSize.height < Dimensions.get('window').height - BOTTOM_NAVBAR_HEIGHT) {
-			return;
-		}
-
-		if (this.state.progress < 1) {
-			return;
-		}
-
-		const newOffset = e.contentOffset.y;
-
-		// Avoid wrong position at the beginning
-		if ((this.state.scrollAnim._value === 0 && newOffset > BOTTOM_NAVBAR_HEIGHT) || newOffset <= 0) {
-			return;
-		}
-
-		// Avoid blocking bottom content
-		if (this.state.contentHeight - e.layoutMeasurement.height - newOffset < BOTTOM_NAVBAR_HEIGHT) {
-			return;
-		}
-
-		if (newOffset > this.state.contentHeight - BOTTOM_NAVBAR_HEIGHT) {
-			return;
-		}
-
-		this.state.scrollAnim.setValue(newOffset);
-
-		this.scrollStopTimer = setTimeout(() => {
-			if (Math.abs(this.scrollValue - newOffset) > 1) {
-				this.onScrollStop();
-			}
-		}, 200);
-	};
-
-	onMomentumScrollBegin = () => {
-		if (Platform.OS === 'android') return;
-		clearTimeout(this.scrollStopTimer);
-	};
-
-	onScrollStop = () => {
-		if (Platform.OS === 'android') return;
-		const toValue =
-			this.clampedScrollValue > BOTTOM_NAVBAR_HEIGHT / 2
-				? this.offsetValue + BOTTOM_NAVBAR_HEIGHT
-				: this.offsetValue - BOTTOM_NAVBAR_HEIGHT;
-
-		this.animateBottomNavbar(toValue);
-	};
-
-	animateBottomNavbar(toValue) {
-		Animated.timing(this.state.offsetAnim, {
-			toValue,
-			duration: 300,
-			useNativeDriver: true
-		}).start();
-	}
-
 	showTabs = () => {
 		this.props.showTabs();
 	};
 
-	renderBottomBar = (canGoBack, canGoForward) => {
-		const { clampedScroll } = this.state;
-
-		const bottomBarPosition = clampedScroll.interpolate({
-			inputRange: [0, BOTTOM_NAVBAR_HEIGHT],
-			outputRange: [0, BOTTOM_NAVBAR_HEIGHT],
-			extrapolate: 'clamp'
-		});
-
-		return (
-			<Animated.View style={[styles.bottomBar, { transform: [{ translateY: bottomBarPosition }] }]}>
-				<View style={styles.iconsLeft}>
-					<Icon
-						name="angle-left"
-						disabled={!canGoBack}
-						onPress={this.goBack}
-						size={40}
-						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
-					/>
-					<Icon
-						disabled={!canGoForward}
-						name="angle-right"
-						onPress={this.goForward}
-						size={40}
-						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
-					/>
-				</View>
-				<View style={styles.iconsMiddle}>
-					<TabCountIcon onPress={this.showTabs} style={styles.tabIcon} />
-				</View>
-				<View style={styles.iconsRight}>
-					<IonIcon
-						name="ios-search"
-						onPress={this.showUrlModal}
-						size={30}
-						style={[styles.icon, styles.iconSearch]}
-					/>
-					<MaterialIcon
-						name="more-vert"
-						onPress={this.toggleOptions}
-						size={32}
-						style={[styles.icon, styles.iconMore]}
-					/>
-				</View>
-			</Animated.View>
-		);
-	};
+	renderBottomBar = (canGoBack, canGoForward) => (
+		<View style={styles.bottomBar}>
+			<View style={styles.iconsLeft}>
+				<Icon
+					name="angle-left"
+					disabled={!canGoBack}
+					onPress={this.goBack}
+					size={40}
+					style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
+				/>
+				<Icon
+					disabled={!canGoForward}
+					name="angle-right"
+					onPress={this.goForward}
+					size={40}
+					style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
+				/>
+			</View>
+			<View style={styles.iconsMiddle}>
+				<TabCountIcon onPress={this.showTabs} style={styles.tabIcon} />
+			</View>
+			<View style={styles.iconsRight}>
+				<IonIcon
+					name="ios-search"
+					onPress={this.showUrlModal}
+					size={30}
+					style={[styles.icon, styles.iconSearch]}
+				/>
+				<MaterialIcon
+					name="more-vert"
+					onPress={this.toggleOptions}
+					size={32}
+					style={[styles.icon, styles.iconMore]}
+				/>
+			</View>
+		</View>
+	);
 
 	isHttps() {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
@@ -1740,9 +1563,9 @@ export class BrowserTab extends PureComponent {
 	};
 
 	render() {
-		const { entryScriptWeb3, url, forceReload, activated } = this.state;
+		const { entryScriptWeb3, inputValue, url, forceReload, activated } = this.state;
 
-		const canGoBackIOS = Platform.OS === 'ios' && url === HOMEPAGE_URL ? false : this.canGoBack();
+		const canGoBack = inputValue === HOMEPAGE_URL ? false : this.canGoBack();
 		const canGoForward = this.canGoForward();
 
 		const isHidden = !this.isTabActive();
@@ -1768,26 +1591,18 @@ export class BrowserTab extends PureComponent {
 						ref={this.webview}
 						source={{ uri: url }}
 						style={styles.webview}
-						onScroll={this.handleScroll}
-						onMomentumScrollBegin={this.onMomentumScrollBegin}
-						scrollEventThrottle={1}
 						userAgent={this.getUserAgent()}
 						sendCookies
 						javascriptEnabled
 					/>
 				)}
 				{this.renderProgressBar()}
-				{!isHidden && url === HOMEPAGE_URL ? (
-					<View style={styles.homepage}>
-						<BrowserHome goToUrl={this.go} navigation={this.props.navigation} />
-					</View>
-				) : null}
 				{!isHidden && this.renderUrlModal()}
 				{!isHidden && this.renderApprovalModal()}
 				{!isHidden && this.renderPhishingModal()}
 				{!isHidden && this.renderWatchAssetModal()}
 				{!isHidden && this.renderOptions()}
-				{!isHidden && Platform.OS === 'ios' ? this.renderBottomBar(canGoBackIOS, canGoForward) : null}
+				{!isHidden && this.renderBottomBar(canGoBack, canGoForward)}
 			</View>
 		);
 	}
