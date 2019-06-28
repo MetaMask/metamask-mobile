@@ -87,7 +87,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'column'
 	},
 	androidForm: {
-		paddingBottom: 100
+		paddingBottom: 100,
+		minHeight: 500
 	},
 	hexData: {
 		...fontStyles.bold,
