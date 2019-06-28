@@ -67,7 +67,8 @@ class PaymentChannelsClient {
 			},
 			depositPending: false,
 			withdrawalPending: false,
-			blocked: false
+			blocked: false,
+			transactions: []
 		};
 	}
 
@@ -238,6 +239,7 @@ class PaymentChannelsClient {
 			}
 			await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 		}
+		this.setState({ transactions: paymentHistory });
 	};
 
 	pollAndSwap = async () => {
@@ -427,7 +429,8 @@ const instance = {
 	 */
 	getState: () => ({
 		balance: client.getBalance(),
-		status: client.state.status
+		status: client.state.status,
+		transactions: client.state.transactions
 	}),
 	/**
 	 * Method that stops the client from running

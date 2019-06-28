@@ -18,6 +18,7 @@ import {
 import { toChecksumAddress } from 'ethereumjs-util';
 import { getActionKey, decodeTransferData, isCollectibleAddress } from '../../../../util/transactions';
 import { renderFullAddress } from '../../../../util/address';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	row: {
@@ -123,6 +124,7 @@ export default class TransferElement extends Component {
 	getTokenTransfer = totalGas => {
 		const {
 			tx: {
+				networkID,
 				transaction: { to }
 			},
 			conversionRate,
@@ -135,8 +137,13 @@ export default class TransferElement extends Component {
 
 		const amount = toBN(encodedAmount);
 
-		const userHasToken = toChecksumAddress(to) in tokens;
-		const token = userHasToken ? tokens[toChecksumAddress(to)] : null;
+		let token;
+		if (networkID === 'payment-channel') {
+			token = contractMap[toChecksumAddress('0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359')];
+		} else {
+			const userHasToken = toChecksumAddress(to) in tokens;
+			token = userHasToken ? tokens[toChecksumAddress(to)] : null;
+		}
 		const renderActionKey = token ? strings('transactions.sent') + ' ' + token.symbol : actionKey;
 		const renderTokenAmount = token
 			? renderFromTokenMinimalUnit(amount, token.decimals) + ' ' + token.symbol

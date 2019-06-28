@@ -18,11 +18,14 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
-import { balanceToFiat } from '../../../util/number';
+import { balanceToFiat, toBN } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { setPaymentChannelTransaction } from '../../../actions/transaction';
+import Transactions from '../../UI/Transactions';
+import { BNToHex } from 'gaba/util';
+import { generateTransferData } from '../../../util/transactions';
 
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
@@ -91,10 +94,7 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		...fontStyles.bold
 	},
-	noFundsWrapper: {
-		alignItems: 'center',
-		margin: 40
-	},
+	noFundsWrapper: {},
 	noFundsTitle: {
 		...fontStyles.normal,
 		color: colors.grey500,
@@ -141,7 +141,8 @@ class PaymentChannel extends Component {
 		/**
 		 * Action that sets a tokens type transaction
 		 */
-		setPaymentChannelTransaction: PropTypes.func
+		setPaymentChannelTransaction: PropTypes.func,
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
@@ -173,12 +174,31 @@ class PaymentChannel extends Component {
 			this.setState({
 				balance: state.balance,
 				status: state.status,
+				transactions: this.handleTransactions(state.transactions),
 				ready: true
 			});
 			this.getBalanceFiat(state.balance);
 		});
 		PaymentChannelsClient.hub.on('state::change', this.onStateChange);
 		this.mounted = true;
+	};
+
+	handleTransactions = transactions => {
+		const parsedTransactions = transactions.map(tx => ({
+			timestamp: Date.parse(tx.createdOn),
+			status: 'confirmed',
+			id: tx.id.toString(),
+			networkID: 'payment-channel',
+			transaction: {
+				from: tx.sender,
+				to: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
+				data: generateTransferData('transfer', {
+					toAddress: tx.recipient,
+					amount: BNToHex(toBN(tx.amount.amountToken))
+				})
+			}
+		}));
+		return parsedTransactions;
 	};
 
 	componentWillUnmount() {
@@ -389,6 +409,25 @@ class PaymentChannel extends Component {
 		);
 	}
 
+	renderTransactionsHistory() {
+		const { navigation, conversionRate, currentCurrency, selectedAddress } = this.props;
+		return (
+			<ScrollView>
+				<View style={styles.noFundsWrapper}>
+					<Text style={styles.noFundsTitle}>Transactions history</Text>
+					<Transactions
+						navigation={navigation}
+						transactions={this.state.transactions}
+						conversionRate={conversionRate}
+						currentCurrency={currentCurrency}
+						selectedAddress={selectedAddress}
+						loading={false}
+					/>
+				</View>
+			</ScrollView>
+		);
+	}
+
 	renderTabBar() {
 		return (
 			<DefaultTabBar
@@ -410,11 +449,13 @@ class PaymentChannel extends Component {
 				</View>
 			);
 		}
+		const noFunds = this.state.balance === '0.00';
 
 		return (
 			<React.Fragment>
 				{this.renderInfo()}
-				{this.renderNoFunds()}
+				{noFunds && this.renderNoFunds()}
+				{!noFunds && this.renderTransactionsHistory()}
 			</React.Fragment>
 		);
 	}
