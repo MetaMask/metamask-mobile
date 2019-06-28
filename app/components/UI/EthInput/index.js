@@ -498,7 +498,10 @@ class EthInput extends Component {
 	 * @returns {object} - View object to render as input field
 	 */
 	renderTokenInput = (image, currency, secondaryAmount, secondaryCurrency) => {
-		const { readonly } = this.props;
+		const {
+			readonly,
+			transaction: { paymentChannelTransaction }
+		} = this.props;
 		const { readableValue, assets } = this.state;
 		const selectAssets = assets && assets.length > 1;
 		return (
@@ -535,7 +538,7 @@ class EthInput extends Component {
 					)}
 				</View>
 				<View style={[styles.actions]}>
-					{secondaryCurrency && (
+					{!paymentChannelTransaction && secondaryCurrency && (
 						<FontAwesome
 							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)} // eslint-disable-line react/jsx-no-bind
 							name="exchange"
@@ -544,7 +547,7 @@ class EthInput extends Component {
 							style={styles.switch}
 						/>
 					)}
-					{selectAssets && (
+					{!paymentChannelTransaction && selectAssets && (
 						<MaterialIcon
 							onPress={this.onFocus}
 							name={'arrow-drop-down'}

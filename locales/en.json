@@ -601,6 +601,7 @@
 	},
 	"unit": {
 		"eth": "ETH",
+		"dai": "DAI",
 		"negative": "-",
 		"divisor": "/",
 		"token_id": "#",

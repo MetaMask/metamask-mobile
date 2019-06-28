@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../../styles/common';
 import TransactionEditor from '../../../UI/TransactionEditor';
-import { BNToHex } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -80,50 +79,11 @@ class Send extends Component {
 	};
 
 	/**
-	 * Returns transaction object with gas, gasPrice and value in hex format
+	 * Change transaction mode
 	 *
-	 * @param {object} transaction - Transaction object
+	 * @param mode - Transaction mode, review or edit
 	 */
-	prepareTransaction = transaction => ({
-		...transaction,
-		gas: BNToHex(transaction.gas),
-		gasPrice: BNToHex(transaction.gasPrice),
-		value: BNToHex(transaction.value)
-	});
-
-	/**
-	 * Returns transaction object with gas and gasPrice in hex format, value set to 0 in hex format
-	 * and to set to selectedAsset address
-	 *
-	 * @param {object} transaction - Transaction object
-	 * @param {object} selectedAsset - Asset object
-	 */
-	prepareAssetTransaction = (transaction, selectedAsset) => ({
-		...transaction,
-		gas: BNToHex(transaction.gas),
-		gasPrice: BNToHex(transaction.gasPrice),
-		value: '0x0',
-		to: selectedAsset.address
-	});
-
-	/**
-	 * Returns transaction object with gas and gasPrice in hex format
-	 *
-	 * @param transaction - Transaction object
-	 */
-	sanitizeTransaction = transaction => ({
-		...transaction,
-		gas: BNToHex(transaction.gas),
-		gasPrice: BNToHex(transaction.gasPrice)
-	});
-
-	/**
-	 * Confirms transaction. In case of selectedAsset handles a token transfer transaction,
-	 * if not, and Ether transaction.
-	 * If success, transaction state is cleared, if not transaction is reset alert about the error
-	 * and returns to edit transaction
-	 */
-	onConfirm = async () => {
+	onModeChange = async () => {
 		this.setState({ transactionConfirmed: true });
 		const { transaction } = this.props;
 		if (this.sending) {
@@ -162,17 +122,6 @@ class Send extends Component {
 		}
 	};
 
-	/**
-	 * Change transaction mode
-	 *
-	 * @param mode - Transaction mode, review or edit
-	 */
-	onModeChange = mode => {
-		const { navigation } = this.props;
-		navigation && navigation.setParams({ mode });
-		this.mounted && this.setState({ mode });
-	};
-
 	renderLoader() {
 		return (
 			<View style={styles.loader}>
@@ -188,7 +137,6 @@ class Send extends Component {
 					navigation={this.props.navigation}
 					mode={this.state.mode}
 					onCancel={this.onCancel}
-					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
 					transactionConfirmed={this.state.transactionConfirmed}
 				/>

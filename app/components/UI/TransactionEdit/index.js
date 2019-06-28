@@ -7,11 +7,12 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
+import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
+import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 
 const styles = StyleSheet.create({
 	root: {
@@ -227,9 +228,8 @@ class TransactionEdit extends Component {
 	};
 
 	fillMax = () => {
-		const { gas, gasPrice, from, selectedAsset, assetType } = this.props.transaction;
+		const { gas, gasPrice, from, selectedAsset, assetType, paymentChannelTransaction } = this.props.transaction;
 		const { balance } = this.props.accounts[from];
-
 		const { contractBalances } = this.props;
 		let value, readableValue;
 		if (assetType === 'ETH') {
@@ -240,6 +240,10 @@ class TransactionEdit extends Component {
 				? hexToBN(balance).sub(totalGas)
 				: fromWei(0);
 			readableValue = fromWei(value);
+		} else if (paymentChannelTransaction) {
+			const state = PaymentChannelsClient.getState();
+			value = toTokenMinimalUnit(state.balance, selectedAsset.decimals);
+			readableValue = state.balance;
 		} else if (assetType === 'ERC20') {
 			value = hexToBN(contractBalances[selectedAsset.address].toString(16));
 			readableValue = fromTokenMinimalUnit(value, selectedAsset.decimals);
@@ -363,8 +367,12 @@ class TransactionEdit extends Component {
 		return (
 			<View style={styles.root}>
 				<ActionView
-					confirmText={strings('transaction.next')}
+					confirmText={
+						paymentChannelTransaction ? strings('transaction.confirm') : strings('transaction.next')
+					}
+					confirmButtonMode={paymentChannelTransaction ? 'confirm' : 'normal'}
 					onCancelPress={this.props.onCancel}
+					showCancelButton={!paymentChannelTransaction}
 					onConfirmPress={this.review}
 					onTouchablePress={this.closeDropdowns}
 					keyboardShouldPersistTaps={'handled'}
