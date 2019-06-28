@@ -44,9 +44,8 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1
 	},
 	button: {
-		flex: 0,
 		paddingVertical: 5,
-		width: 160,
+		width: '48%',
 		height: 44
 	},
 	depositButton: {
@@ -69,7 +68,7 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		flexDirection: 'column',
-		margin: 20
+		margin: 10
 	},
 	secondActionsWrapper: {
 		flexDirection: 'row',
@@ -78,7 +77,7 @@ const styles = StyleSheet.create({
 	},
 	sendButton: {
 		width: '100%',
-		marginBottom: 10
+		marginVertical: 10
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -285,35 +284,39 @@ class PaymentChannel extends Component {
 					/>
 				</View>
 				<View style={styles.actionsWrapper}>
-					<StyledButton
-						containerStyle={[styles.button, styles.sendButton]}
-						style={styles.buttonText}
-						type={'confirm'}
-						onPress={this.onSend}
-						disabled={isDisabled || noFunds}
-					>
-						{'Send'}
-					</StyledButton>
-					<View style={styles.secondActionsWrapper}>
-						<StyledButton
-							containerStyle={styles.button}
-							style={styles.buttonText}
-							type={'info'}
-							onPress={this.onDeposit}
-							disabled={isDisabled}
-						>
-							{'Deposit'}
-						</StyledButton>
-						<StyledButton
-							containerStyle={styles.button}
-							style={styles.buttonText}
-							type={'info'}
-							onPress={this.withdraw}
-							disabled={isDisabled || noFunds}
-						>
-							{'Withdraw'}
-						</StyledButton>
-					</View>
+					{!noFunds && (
+						<View>
+							<StyledButton
+								containerStyle={[styles.button, styles.sendButton]}
+								style={styles.buttonText}
+								type={'confirm'}
+								onPress={this.onSend}
+								disabled={isDisabled || noFunds}
+							>
+								{'Send'}
+							</StyledButton>
+							<View style={styles.secondActionsWrapper}>
+								<StyledButton
+									containerStyle={styles.button}
+									style={styles.buttonText}
+									type={'info'}
+									onPress={this.onDeposit}
+									disabled={isDisabled}
+								>
+									{'Deposit'}
+								</StyledButton>
+								<StyledButton
+									containerStyle={styles.button}
+									style={styles.buttonText}
+									type={'info'}
+									onPress={this.withdraw}
+									disabled={isDisabled || noFunds}
+								>
+									{'Withdraw'}
+								</StyledButton>
+							</View>
+						</View>
+					)}
 				</View>
 			</View>
 		);
@@ -367,7 +370,6 @@ class PaymentChannel extends Component {
 	renderNoFunds() {
 		return (
 			<React.Fragment>
-				<View style={styles.data}>{this.renderInfo()}</View>
 				<View style={styles.noFundsWrapper}>
 					<Text style={styles.noFundsTitle}>No Funds</Text>
 					<Text style={styles.noFundsDescription}>
@@ -409,7 +411,12 @@ class PaymentChannel extends Component {
 			);
 		}
 
-		return <React.Fragment>{this.renderInfo()}</React.Fragment>;
+		return (
+			<React.Fragment>
+				{this.renderInfo()}
+				{this.renderNoFunds()}
+			</React.Fragment>
+		);
 	}
 
 	render() {
