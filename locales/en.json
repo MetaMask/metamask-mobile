@@ -404,7 +404,9 @@
 		"invalid_qr_code_message": "The QR code that you are trying to scan it is not valid.",
 		"allow_camera_dialog_title": "Allow camera access",
 		"allow_camera_dialog_message": "We need your permission to scan QR codes",
-		"scanning": "scanning..."
+		"scanning": "scanning...",
+		"ok": "Ok",
+		"cancel": "Cancel"
 	},
 	"action_view": {
 		"cancel": "Cancel",
@@ -890,6 +892,11 @@
 		"title": "Ooops! something went wrong...",
 		"message": "We weren't able to load that page.",
 		"reason": "Reason",
+		"try_again": "Try again"
+	},
+	"offline_mode": {
+		"title": "You're offline",
+		"text": "Check your internet connection and try again",
 		"try_again": "Try again"
 	}
 }
