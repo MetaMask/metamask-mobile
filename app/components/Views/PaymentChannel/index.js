@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
 	},
 	actionsWrapper: {
 		flexDirection: 'column',
-		margin: 10
+		marginVertical: 10,
+		marginHorizontal: 20
 	},
 	secondActionsWrapper: {
 		flexDirection: 'row',
@@ -93,7 +94,9 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		...fontStyles.bold
 	},
-	noFundsWrapper: {},
+	noFundsWrapper: {
+		marginHorizontal: 10
+	},
 	noFundsTitle: {
 		...fontStyles.normal,
 		color: colors.grey500,
