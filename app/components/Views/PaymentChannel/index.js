@@ -25,7 +25,6 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { setPaymentChannelTransaction } from '../../../actions/transaction';
 import Transactions from '../../UI/Transactions';
 import { BNToHex } from 'gaba/util';
-import { generateTransferData } from '../../../util/transactions';
 
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
@@ -152,7 +151,8 @@ class PaymentChannel extends Component {
 		qrModalVisible: false,
 		sendAmount: '',
 		sendRecipient: '',
-		depositAmount: ''
+		depositAmount: '',
+		exchangeRate: undefined
 	};
 
 	client = null;
@@ -185,17 +185,14 @@ class PaymentChannel extends Component {
 
 	handleTransactions = transactions => {
 		const parsedTransactions = transactions.map(tx => ({
-			timestamp: Date.parse(tx.createdOn),
+			time: Date.parse(tx.createdOn),
 			status: 'confirmed',
 			id: tx.id.toString(),
 			networkID: 'payment-channel',
 			transaction: {
 				from: tx.sender,
-				to: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
-				data: generateTransferData('transfer', {
-					toAddress: tx.recipient,
-					amount: BNToHex(toBN(tx.amount.amountToken))
-				})
+				to: tx.recipient,
+				value: BNToHex(toBN(tx.amount.amountToken))
 			}
 		}));
 		return parsedTransactions;

@@ -4,7 +4,7 @@ import { Platform, TouchableHighlight, StyleSheet, Text, View, Image } from 'rea
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toLocaleDateTime } from '../../../util/date';
-import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei } from '../../../util/number';
+import { renderFromWei, weiToFiat, hexToBN, toBN, isBN, renderToGwei, balanceToFiat } from '../../../util/number';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Identicon from '../Identicon';
 import { getActionKey, decodeTransferData, getTicker } from '../../../util/transactions';
@@ -201,7 +201,7 @@ class TransactionElement extends PureComponent {
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		return (
 			<Text style={styles.date}>
-				{(!incoming || selfSent) && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
+				{(!incoming || selfSent) && tx.transaction.nonce && `#${hexToBN(tx.transaction.nonce).toString()}  - `}
 				{`${toLocaleDateTime(tx.time)}`}
 			</Text>
 		);
@@ -402,9 +402,47 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
+	renderPaymentChannelTx = () => {
+		const {
+			tx: {
+				exchangeRate,
+				transaction: { value, from, to }
+			},
+			conversionRate,
+			currentCurrency
+		} = this.props;
+		let { actionKey } = this.state;
+		actionKey = actionKey && actionKey.replace(strings('unit.eth'), strings('unit.dai'));
+		const totalEth = hexToBN(value);
+		const renderTotalEth = renderFromWei(totalEth) + ' ' + strings('unit.dai');
+		const renderTotalEthFiat = balanceToFiat(totalEth, conversionRate, exchangeRate, currentCurrency.toUpperCase());
+
+		const totalValue = totalEth;
+
+		const transactionDetails = {
+			renderFrom: renderFullAddress(from),
+			renderTo: renderFullAddress(to),
+			renderGas: 'Free',
+			renderGasPrice: 'Free',
+			renderValue: renderFromWei(value) + ' ' + strings('unit.dai'),
+			renderTotalValue: renderFromWei(totalValue) + ' ' + strings('unit.dai'),
+			renderTotalValueFiat: balanceToFiat(totalValue, conversionRate, exchangeRate, currentCurrency.toUpperCase())
+		};
+
+		const transactionElement = {
+			addressTo: to,
+			actionKey,
+			value: renderTotalEth,
+			fiatValue: renderTotalEthFiat
+		};
+
+		return [transactionElement, transactionDetails];
+	};
+
 	render() {
 		const {
 			tx: {
+				networkID,
 				transaction: { gas, gasPrice }
 			},
 			selected,
@@ -433,15 +471,19 @@ class TransactionElement extends PureComponent {
 				/>
 			);
 		}
-		switch (actionKey) {
-			case strings('transactions.sent_collectible'):
-				[transactionElement, transactionDetails] = this.renderTransferFromElement(totalGas);
-				break;
-			case strings('transactions.contract_deploy'):
-				[transactionElement, transactionDetails] = this.renderDeploymentElement(totalGas);
-				break;
-			default:
-				[transactionElement, transactionDetails] = this.renderConfirmElement(totalGas);
+		if (networkID === 'payment-channel') {
+			[transactionElement, transactionDetails] = this.renderPaymentChannelTx();
+		} else {
+			switch (actionKey) {
+				case strings('transactions.sent_collectible'):
+					[transactionElement, transactionDetails] = this.renderTransferFromElement(totalGas);
+					break;
+				case strings('transactions.contract_deploy'):
+					[transactionElement, transactionDetails] = this.renderDeploymentElement(totalGas);
+					break;
+				default:
+					[transactionElement, transactionDetails] = this.renderConfirmElement(totalGas);
+			}
 		}
 		return (
 			<TouchableHighlight
