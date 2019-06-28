@@ -85,7 +85,7 @@ class Send extends Component {
 	 */
 	onModeChange = async () => {
 		this.setState({ transactionConfirmed: true });
-		const { transaction } = this.props;
+		const { transaction, navigation } = this.props;
 		if (this.sending) {
 			return;
 		}
@@ -111,6 +111,7 @@ class Send extends Component {
 			this.sending = false;
 
 			Logger.log('Send succesful');
+			navigation.pop();
 		} catch (e) {
 			let msg = strings('paymentChannels.unknown_error');
 			if (e.message === 'insufficient_balance') {

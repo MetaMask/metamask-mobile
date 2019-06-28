@@ -1,22 +1,16 @@
 import React, { Component } from 'react';
-// eslint-disable-next-line import/no-commonjs
-import Icon from 'react-native-vector-icons/FontAwesome';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import {
 	InteractionManager,
-	Platform,
 	ScrollView,
-	TextInput,
 	Alert,
 	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
-	ActivityIndicator,
-	TouchableOpacity
+	ActivityIndicator
 } from 'react-native';
 import PropTypes from 'prop-types';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
@@ -49,13 +43,6 @@ const styles = StyleSheet.create({
 		borderBottomColor: colors.grey200,
 		borderBottomWidth: 1
 	},
-	buttonWrapper: {
-		paddingVertical: 20,
-		alignItems: 'flex-end',
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'space-between'
-	},
 	button: {
 		flex: 0,
 		paddingVertical: 5,
@@ -76,29 +63,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
-	input: {
-		width: 160,
-		height: 50,
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		paddingHorizontal: 10
-	},
-	fullWidthInput: {
-		flex: 1,
-		height: 50,
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		paddingHorizontal: 10,
-		paddingRight: 50,
-		marginTop: 10
-	},
-	sectionTitleText: {
-		fontSize: 20,
-		...fontStyles.bold
-	},
-	sectionTitleWrapper: {
-		marginBottom: 15
-	},
 	assetCardWrapper: {
 		marginTop: 16,
 		marginHorizontal: 20
@@ -115,35 +79,6 @@ const styles = StyleSheet.create({
 	sendButton: {
 		width: '100%',
 		marginBottom: 10
-	},
-	panel: {
-		flex: 1
-	},
-	panelContent: {
-		paddingVertical: 20,
-		paddingHorizontal: 20
-	},
-	accountWrapper: {
-		flexDirection: 'row'
-	},
-	qrCodeButton: {
-		position: 'absolute',
-		right: 5,
-		top: 10,
-		minHeight: 50,
-		paddingRight: 8,
-		paddingLeft: 12,
-		flexDirection: 'row',
-		alignItems: 'center'
-	},
-	explainerText: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 16,
-		marginBottom: 15
-	},
-	explainerTextWrapper: {
-		marginBottom: 20
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -332,6 +267,10 @@ class PaymentChannel extends Component {
 		this.props.navigation.navigate('PaymentChannelSend');
 	};
 
+	onDeposit = () => {
+		this.props.navigation.navigate('PaymentChannelDeposit');
+	};
+
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
 		const isDisabled = this.areButtonsDisabled();
@@ -340,7 +279,7 @@ class PaymentChannel extends Component {
 			<View style={styles.data}>
 				<View style={styles.assetCardWrapper}>
 					<AssetCard
-						balance={balance + ' DAI'}
+						balance={balance + ' ' + strings('unit.dai')}
 						balanceFiat={balanceFiat}
 						description={'Free Transactions with Connext Payment Channels'}
 					/>
@@ -360,7 +299,7 @@ class PaymentChannel extends Component {
 							containerStyle={styles.button}
 							style={styles.buttonText}
 							type={'info'}
-							onPress={() => this.props.navigation.navigate('PaymentChannelDeposit')}
+							onPress={this.onDeposit}
 							disabled={isDisabled}
 						>
 							{'Deposit'}
@@ -425,62 +364,6 @@ class PaymentChannel extends Component {
 		return false;
 	};
 
-	renderSend() {
-		const isDisabled = this.areButtonsDisabled();
-		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>{strings('paymentChannels.send_intro')}</Text>
-				</View>
-				<View style={styles.sectionTitleWrapper}>
-					<Text style={styles.sectionTitleText}>{strings('paymentChannels.send_payment')}</Text>
-				</View>
-				<View style={styles.accountWrapper}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						// eslint-disable-next-line react/jsx-no-bind
-						onChangeText={val => this.setState({ sendRecipient: val })}
-						placeholder={strings('paymentChannels.enter_recipient')}
-						spellCheck={false}
-						style={styles.fullWidthInput}
-						value={this.state.sendRecipient}
-						onBlur={this.onBlur}
-					/>
-					<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
-						<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
-					</TouchableOpacity>
-				</View>
-				<View style={styles.buttonWrapper}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						// eslint-disable-next-line react/jsx-no-bind
-						onChangeText={val => this.setState({ sendAmount: val })}
-						placeholder={strings('paymentChannels.enter_amount')}
-						spellCheck={false}
-						style={styles.input}
-						value={this.state.sendAmount}
-						onBlur={this.onBlur}
-						keyboardType="numeric"
-						numberOfLines={1}
-					/>
-
-					<StyledButton
-						containerStyle={styles.button}
-						style={styles.buttonText}
-						type={'confirm'}
-						onPress={this.send}
-						testID={'submit-button'}
-						disabled={isDisabled}
-					>
-						{strings('paymentChannels.send')}
-					</StyledButton>
-				</View>
-			</React.Fragment>
-		);
-	}
-
 	renderNoFunds() {
 		return (
 			<React.Fragment>
@@ -526,18 +409,7 @@ class PaymentChannel extends Component {
 			);
 		}
 
-		return (
-			<React.Fragment>
-				{this.renderInfo()}
-				<View style={styles.panel}>
-					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						<ScrollView tabLabel={strings('paymentChannels.send')}>
-							<View style={styles.panelContent}>{this.renderSend()}</View>
-						</ScrollView>
-					</ScrollableTabView>
-				</View>
-			</React.Fragment>
-		);
+		return <React.Fragment>{this.renderInfo()}</React.Fragment>;
 	}
 
 	render() {
