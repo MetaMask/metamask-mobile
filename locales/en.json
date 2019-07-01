@@ -123,6 +123,7 @@
 		"receive_button": "Receive",
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
+		"insta_pay": "InstaPay",
 		"transaction_history": "Transaction History",
 		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",

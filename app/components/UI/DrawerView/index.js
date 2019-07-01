@@ -357,7 +357,11 @@ class DrawerView extends Component {
 		/**
 		 * Frequent RPC list from PreferencesController
 		 */
-		frequentRpcList: PropTypes.array
+		frequentRpcList: PropTypes.array,
+		/**
+		/* flag that determines the state of payment channels
+		*/
+		paymentChannelsEnabled: PropTypes.bool
 	};
 
 	state = {
@@ -488,6 +492,11 @@ class DrawerView extends Component {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_WALLET);
+	};
+
+	showPaymentChannel = () => {
+		this.props.navigation.navigate('PaymentChannelView');
+		this.hideDrawer();
 	};
 
 	goToTransactionHistory = () => {
@@ -670,7 +679,8 @@ class DrawerView extends Component {
 			network: {
 				provider: { type, rpcTarget }
 			},
-			frequentRpcList
+			frequentRpcList,
+			paymentChannelsEnabled
 		} = this.props;
 		let blockExplorer, blockExplorerName;
 		if (type === 'rpc') {
@@ -692,6 +702,12 @@ class DrawerView extends Component {
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+				},
+				paymentChannelsEnabled && {
+					name: strings('drawer.insta_pay'),
+					icon: this.getMaterialIcon('credit-card'),
+					selectedIcon: this.getSelectedMaterialIcon('credit-card'),
+					action: this.showPaymentChannel
 				},
 				{
 					name: strings('drawer.transaction_history'),
@@ -876,6 +892,7 @@ class DrawerView extends Component {
 							>
 								{section
 									.filter(item => {
+										if (!item) return undefined;
 										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
 											return this.hasBlockExplorer(network.provider.type);
 										}
@@ -1008,7 +1025,8 @@ const mapStateToProps = state => ({
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
 });
 
 const mapDispatchToProps = dispatch => ({
