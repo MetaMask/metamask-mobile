@@ -95,7 +95,12 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	noFundsWrapper: {
-		marginHorizontal: 10
+		marginHorizontal: 10,
+		marginTop: 40,
+		alignItems: 'center'
+	},
+	transactionsWrapper: {
+		marginHorizontal: 0
 	},
 	noFundsTitle: {
 		...fontStyles.normal,
@@ -262,7 +267,7 @@ class PaymentChannel extends Component {
 					onPress: async () => {
 						try {
 							this.withdrawing = true;
-							//await PaymentChannelsClient.withdrawAll();
+							await PaymentChannelsClient.withdrawAll();
 							this.withdrawing = false;
 							Logger.log('withdraw succesful');
 						} catch (e) {
@@ -413,8 +418,7 @@ class PaymentChannel extends Component {
 		const { navigation, conversionRate, currentCurrency, selectedAddress } = this.props;
 		return (
 			<ScrollView>
-				<View style={styles.noFundsWrapper}>
-					<Text style={styles.noFundsTitle}>Transactions history</Text>
+				<View style={styles.transactionsWrapper}>
 					<Transactions
 						navigation={navigation}
 						transactions={this.state.transactions}
