@@ -356,7 +356,6 @@ class Deposit extends Component {
 							style={styles.input}
 							ref={this.amountInput}
 							onBlur={this.validateDeposit}
-							returnKeyType={'done'}
 						/>
 						<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
 					</View>

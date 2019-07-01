@@ -25,6 +25,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { setPaymentChannelTransaction } from '../../../actions/transaction';
 import Transactions from '../../UI/Transactions';
 import { BNToHex } from 'gaba/util';
+import Networks from '../../../util/networks';
 
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
@@ -149,6 +150,17 @@ class PaymentChannel extends Component {
 		 * Action that sets a tokens type transaction
 		 */
 		setPaymentChannelTransaction: PropTypes.func,
+		/**
+		 * An array that represents the user transactions on chain
+		 */
+		transactions: PropTypes.array,
+		/**
+		 * NetworkController povider object
+		 */
+		provider: PropTypes.object,
+		/**
+		 * Selected address
+		 */
 		selectedAddress: PropTypes.string
 	};
 
@@ -192,6 +204,7 @@ class PaymentChannel extends Component {
 	};
 
 	handleTransactions = transactions => {
+		const { transactions: onChainTransactions, provider } = this.props;
 		const parsedTransactions = transactions.map(tx => ({
 			time: Date.parse(tx.createdOn),
 			status: 'confirmed',
@@ -203,7 +216,18 @@ class PaymentChannel extends Component {
 				value: BNToHex(toBN(tx.amount.amountToken))
 			}
 		}));
-		return parsedTransactions;
+		onChainTransactions.forEach(tx => {
+			if (
+				tx.toSmartContract &&
+				Networks[provider.type].networkId.toString() === tx.networkID &&
+				tx.transaction.data.substring(0, 10) === '0xea682e37' &&
+				tx.status === 'confirmed'
+			) {
+				parsedTransactions.push(tx);
+			}
+		});
+		const sortedTransactions = parsedTransactions.sort((a, b) => b.time - a.time);
+		return sortedTransactions;
 	};
 
 	componentWillUnmount() {
@@ -404,7 +428,7 @@ class PaymentChannel extends Component {
 						containerStyle={[styles.button, styles.depositButton]}
 						style={styles.buttonText}
 						type={'info'}
-						onPress={this.deposit}
+						onPress={this.onDeposit}
 						testID={'submit-button'}
 					>
 						Deposit Funds
@@ -485,7 +509,9 @@ const mapStateToProps = state => ({
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	provider: state.engine.backgroundState.NetworkController.provider
 });
 
 const mapDispatchToProps = dispatch => ({
