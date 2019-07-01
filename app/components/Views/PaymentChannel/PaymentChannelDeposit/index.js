@@ -223,13 +223,14 @@ class Deposit extends Component {
 			Logger.log('About to deposit', params);
 			this.setState({ depositing: true });
 			await PaymentChannelsClient.deposit(params);
+			this.props.navigation.pop();
 			this.setState({ depositing: false });
 			Logger.log('Deposit succesful');
 		} catch (e) {
 			if (e.message === 'still_blocked') {
-				Alert.alert(strings('paymentChannels.not_ready'), strings('paymentChannels.please_wait'));
+				Alert.alert(strings('payment_channel.not_ready'), strings('payment_channel.please_wait'));
 			} else {
-				Alert.alert(strings('paymentChannels.heads_up'), strings('paymentChannels.security_reasons'));
+				Alert.alert(strings('payment_channel.heads_up'), strings('payment_channel.security_reasons'));
 				Logger.log('Deposit error', e);
 			}
 			this.setState({ depositing: false });
@@ -265,18 +266,18 @@ class Deposit extends Component {
 		const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
 
 		if (depositAmountNumber > maxDepositAmount) {
-			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_high'));
+			Alert.alert(strings('payment_channel.error'), strings('payment_channel.amount_too_high'));
 			invalidAmount = true;
 		}
 
 		if (amount < minDepositAmount) {
-			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_low'));
+			Alert.alert(strings('payment_channel.error'), strings('payment_channel.amount_too_low'));
 			invalidAmount = true;
 		}
 
 		const accountBalance = renderFromWei(this.props.accounts[this.props.selectedAddress].balance);
 		if (parseFloat(accountBalance) <= parseFloat(amount)) {
-			Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.insufficient_funds'));
+			Alert.alert(strings('payment_channel.error'), strings('payment_channel.insufficient_funds'));
 			invalidAmount = true;
 		}
 		this.setState({ invalidAmount, error });
@@ -314,13 +315,13 @@ class Deposit extends Component {
 		return (
 			<React.Fragment>
 				<Text style={styles.explainerText}>
-					{`${strings('paymentChannels.min_deposit')} `}
+					{`${strings('payment_channel.min_deposit')} `}
 					<Text style={fontStyles.bold}>
 						{PaymentChannelsClient.MIN_DEPOSIT_ETH} ETH (${minFiat})
 					</Text>
 				</Text>
 				<Text style={styles.explainerText}>
-					{`${strings('paymentChannels.max_deposit')} `}
+					{`${strings('payment_channel.max_deposit')} `}
 					<Text style={fontStyles.bold}>
 						{maxETH} ETH (${maxFiat})
 					</Text>

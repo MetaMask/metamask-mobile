@@ -247,12 +247,12 @@ class PaymentChannel extends Component {
 			};
 
 			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_amount'));
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_amount'));
 				return false;
 			}
 
 			if (!params.sendRecipient) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_recipient'));
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_recipient'));
 			}
 
 			Logger.log('Sending ', params);
@@ -262,11 +262,11 @@ class PaymentChannel extends Component {
 
 			Logger.log('Send succesful');
 		} catch (e) {
-			let msg = strings('paymentChannels.unknown_error');
+			let msg = strings('payment_channel.unknown_error');
 			if (e.message === 'insufficient_balance') {
-				msg = strings('paymentChannels.insufficient_balance');
+				msg = strings('payment_channel.insufficient_balance');
 			}
-			Alert.alert(strings('paymentChannels.error'), msg);
+			Alert.alert(strings('payment_channel.error'), msg);
 			Logger.log('buy error error', e);
 			this.sending = false;
 		}
@@ -278,17 +278,17 @@ class PaymentChannel extends Component {
 		}
 		Alert.alert(
 			'Withdraw Funds',
-			`${strings('paymentChannels.withdraw_intro')}. ${strings('paymentChannels.withdraw_info')}.\n${strings(
-				'paymentChannels.withdraw_note'
+			`${strings('payment_channel.withdraw_intro')}. ${strings('payment_channel.withdraw_info')}.\n${strings(
+				'payment_channel.withdraw_note'
 			)}.`,
 			[
 				{
-					text: 'Cancel',
+					text: strings('payment_channel.cancel'),
 					onPress: () => false,
 					style: 'cancel'
 				},
 				{
-					text: 'Confirm',
+					text: strings('payment_channel.confirm'),
 					onPress: async () => {
 						try {
 							this.withdrawing = true;
@@ -330,7 +330,7 @@ class PaymentChannel extends Component {
 					<AssetCard
 						balance={balance + ' ' + strings('unit.dai')}
 						balanceFiat={balanceFiat}
-						description={'Free Transactions with Connext Payment Channels'}
+						description={strings('payment_channel.asset_card_desc')}
 					/>
 				</View>
 				<View style={styles.actionsWrapper}>
@@ -343,7 +343,7 @@ class PaymentChannel extends Component {
 								onPress={this.onSend}
 								disabled={isDisabled || noFunds}
 							>
-								{'Send'}
+								{strings('payment_channel.send_buttton')}
 							</StyledButton>
 							<View style={styles.secondActionsWrapper}>
 								<StyledButton
@@ -353,7 +353,7 @@ class PaymentChannel extends Component {
 									onPress={this.onDeposit}
 									disabled={isDisabled}
 								>
-									{'Deposit'}
+									{strings('payment_channel.deposit_buttton')}
 								</StyledButton>
 								<StyledButton
 									containerStyle={styles.button}
@@ -362,7 +362,7 @@ class PaymentChannel extends Component {
 									onPress={this.withdraw}
 									disabled={isDisabled || noFunds}
 								>
-									{'Withdraw'}
+									{strings('payment_channel.withdraw_buttton')}
 								</StyledButton>
 							</View>
 						</View>
@@ -421,10 +421,8 @@ class PaymentChannel extends Component {
 		return (
 			<React.Fragment>
 				<View style={styles.noFundsWrapper}>
-					<Text style={styles.noFundsTitle}>No Funds</Text>
-					<Text style={styles.noFundsDescription}>
-						Deposit eth into your InstaPay card to start making instant free paymentts with DAI.{' '}
-					</Text>
+					<Text style={styles.noFundsTitle}>{strings('payment_channel.no_funds_title')}</Text>
+					<Text style={styles.noFundsDescription}>{strings('payment_channel.no_funds_desc')}</Text>
 					<StyledButton
 						containerStyle={[styles.button, styles.depositButton]}
 						style={styles.buttonText}
@@ -432,7 +430,7 @@ class PaymentChannel extends Component {
 						onPress={this.onDeposit}
 						testID={'submit-button'}
 					>
-						Deposit Funds
+						{strings('payment_channel.no_funds_action')}
 					</StyledButton>
 				</View>
 			</React.Fragment>

@@ -97,12 +97,12 @@ class Send extends Component {
 			};
 
 			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_amount'));
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_amount'));
 				return false;
 			}
 
 			if (!params.sendRecipient) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_recipient'));
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_recipient'));
 			}
 
 			Logger.log('Sending ', params);
@@ -113,11 +113,11 @@ class Send extends Component {
 			Logger.log('Send succesful');
 			navigation.pop();
 		} catch (e) {
-			let msg = strings('paymentChannels.unknown_error');
+			let msg = strings('payment_channel.unknown_error');
 			if (e.message === 'insufficient_balance') {
-				msg = strings('paymentChannels.insufficient_balance');
+				msg = strings('payment_channel.insufficient_balance');
 			}
-			Alert.alert(strings('paymentChannels.error'), msg);
+			Alert.alert(strings('payment_channel.error'), msg);
 			Logger.log('buy error error', e);
 			this.sending = false;
 		}
