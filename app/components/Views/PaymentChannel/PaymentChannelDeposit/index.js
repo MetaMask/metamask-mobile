@@ -301,7 +301,7 @@ class Deposit extends Component {
 						<AssetIcon logo={contractMap[DAI_ADDRESS].logo} customStyle={styles.daiLogo} />
 					</View>
 					<Text style={styles.directionText} numberOfLines={1}>
-						InstaPay
+						{strings('payment_channel.insta_pay')}
 					</Text>
 				</View>
 			</View>
@@ -317,13 +317,13 @@ class Deposit extends Component {
 				<Text style={styles.explainerText}>
 					{`${strings('payment_channel.min_deposit')} `}
 					<Text style={fontStyles.bold}>
-						{PaymentChannelsClient.MIN_DEPOSIT_ETH} ETH (${minFiat})
+						{PaymentChannelsClient.MIN_DEPOSIT_ETH} {strings('unit.eth')} (${minFiat})
 					</Text>
 				</Text>
 				<Text style={styles.explainerText}>
 					{`${strings('payment_channel.max_deposit')} `}
 					<Text style={fontStyles.bold}>
-						{maxETH} ETH (${maxFiat})
+						{maxETH} {strings('unit.eth')} (${maxFiat})
 					</Text>
 				</Text>
 			</React.Fragment>
@@ -342,7 +342,7 @@ class Deposit extends Component {
 			<View style={styles.root}>
 				{this.renderTransactionDirection()}
 				<View style={styles.wrapper}>
-					<Text style={styles.title}>Amount to transfer</Text>
+					<Text style={styles.title}>{strings('payment_channel.deposit_amount')}</Text>
 					<View style={styles.inputWrapper}>
 						<TextInput
 							autoCapitalize="none"
@@ -381,7 +381,7 @@ class Deposit extends Component {
 								{this.state.depositing ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
-									'Load Funds'
+									strings('payment_channel.load_funds')
 								)}
 							</StyledButton>
 						</View>

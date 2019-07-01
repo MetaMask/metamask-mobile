@@ -899,7 +899,10 @@
 		"no_funds_desc": "Deposit eth into your InstaPay card to start making instant free paymentts with DAI.",
 		"confirm": "Confirm",
 		"cancel": "Cancel",
-		"asset_card_desc": "Free Transactions with Connext Payment Channels"
+		"asset_card_desc": "Free Transactions with Connext Payment Channels",
+		"deposit_amount": "Amount to transfer",
+		"load_funds": "Load Funds",
+		"insta_pay": "InstaPay"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
