@@ -224,7 +224,7 @@ class PaymentChannel extends Component {
 				tx.transaction.data.substring(0, 10) === '0xea682e37' &&
 				tx.status === 'confirmed'
 			) {
-				parsedTransactions.push(tx);
+				parsedTransactions.push({ ...tx, actionKey: strings('transactions.instant_payment_deposit_tx') });
 			}
 		});
 		const sortedTransactions = parsedTransactions.sort((a, b) => b.time - a.time);

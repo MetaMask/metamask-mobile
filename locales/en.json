@@ -533,6 +533,7 @@
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
 		"instant_payment_deposit": "Instant Payment Deposit",
+		"instant_payment_deposit_tx": "Deposit",
 		"smart_contract_interaction": "Smart Contract Interaction",
 		"approve": "Approve",
 		"hash": "Hash",
