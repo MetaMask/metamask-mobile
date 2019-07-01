@@ -183,7 +183,8 @@ class PaymentChannel extends Component {
 	onStateChange = state => {
 		this.setState({
 			balance: state.balance,
-			status: state.status
+			status: state.status,
+			transactions: this.handleTransactions(state.transactions)
 		});
 		this.getBalanceFiat(state.balance);
 	};

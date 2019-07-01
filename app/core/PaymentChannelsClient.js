@@ -185,7 +185,7 @@ class PaymentChannelsClient {
 	async pollConnextState() {
 		const { connext } = this.state;
 		// register connext listeners
-		connext.on('onStateChange', state => {
+		connext.on('onStateChange', async state => {
 			try {
 				this.checkForBalanceChange(state);
 				this.setState({
@@ -196,9 +196,11 @@ class PaymentChannelsClient {
 					exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.DAI : 0
 				});
 				this.checkStatus();
+				const transactions = await this.state.connext.getPaymentHistory();
 				hub.emit('state::change', {
 					balance: this.getBalance(),
 					status: this.state.status,
+					transactions,
 					ready: true
 				});
 			} catch (e) {
