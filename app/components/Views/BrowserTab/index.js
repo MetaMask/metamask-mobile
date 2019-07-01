@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import IonIcon from 'react-native-vector-icons/Ionicons';
+import ElevatedView from 'react-native-elevated-view';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -120,16 +121,19 @@ const styles = StyleSheet.create({
 		paddingTop: 10
 	},
 	optionsWrapperAndroid: {
-		top: 0,
-		right: 0,
-		elevation: 5
+		shadowColor: colors.grey400,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
+		bottom: 55,
+		right: 5
 	},
 	optionsWrapperIos: {
 		shadowColor: colors.grey400,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 75,
+		bottom: 80,
 		right: 3
 	},
 	option: {
@@ -169,13 +173,15 @@ const styles = StyleSheet.create({
 		...baseStyles.flexGrow
 	},
 	bottomBar: {
-		height: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60,
-		backgroundColor: colors.grey000,
-		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 14 : 12,
+		height: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : Platform.OS === 'android' ? 45 : 60,
+		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
+		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 14 : Platform.OS === 'android' ? 8 : 12,
 		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
 		flexDirection: 'row',
 		paddingHorizontal: 10,
-		flex: 0
+		flex: 0,
+		borderTopWidth: Platform.OS === 'android' ? 0 : StyleSheet.hairlineWidth,
+		borderColor: colors.grey200
 	},
 	iconSearch: {
 		alignSelf: 'flex-start',
@@ -203,8 +209,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	tabIcon: {
-		width: 30,
-		height: 30
+		width: Platform.OS === 'ios' ? 30 : 26,
+		height: Platform.OS === 'ios' ? 30 : 26
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -1281,20 +1287,20 @@ export class BrowserTab extends PureComponent {
 	};
 
 	renderBottomBar = (canGoBack, canGoForward) => (
-		<View style={styles.bottomBar}>
+		<ElevatedView elevation={11} style={styles.bottomBar}>
 			<View style={styles.iconsLeft}>
 				<Icon
 					name="angle-left"
 					disabled={!canGoBack}
 					onPress={this.goBack}
-					size={40}
+					size={Platform.OS === 'android' ? 32 : 40}
 					style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
 				/>
 				<Icon
 					disabled={!canGoForward}
 					name="angle-right"
 					onPress={this.goForward}
-					size={40}
+					size={Platform.OS === 'android' ? 32 : 40}
 					style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
 				/>
 			</View>
@@ -1305,17 +1311,17 @@ export class BrowserTab extends PureComponent {
 				<IonIcon
 					name="ios-search"
 					onPress={this.showUrlModal}
-					size={30}
+					size={Platform.OS === 'android' ? 24 : 30}
 					style={[styles.icon, styles.iconSearch]}
 				/>
 				<MaterialIcon
 					name="more-vert"
 					onPress={this.toggleOptions}
-					size={32}
+					size={Platform.OS === 'android' ? 26 : 30}
 					style={[styles.icon, styles.iconMore]}
 				/>
 			</View>
-		</View>
+		</ElevatedView>
 	);
 
 	isHttps() {
