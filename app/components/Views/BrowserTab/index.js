@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import Web3Webview from 'react-native-web3-webview';
+import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -55,6 +56,7 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import OnboardingWizard from '../../UI/OnboardingWizard';
 
 const { HOMEPAGE_URL } = AppConstants;
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -332,7 +334,20 @@ export class BrowserTab extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number,
+		/**
+		 * redux flag that indicates if the user set a password
+		 */
+		passwordSet: PropTypes.bool,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	constructor(props) {
@@ -701,8 +716,8 @@ export class BrowserTab extends PureComponent {
 		// Remove all Engine listeners
 		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
-		if (Platform.OS !== 'ios') {
-			this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
+		this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
+		if (Platform.OS === 'android') {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 		}
 		if (this.unsubscribeFromBranch) {
@@ -867,9 +882,10 @@ export class BrowserTab extends PureComponent {
 		}, 100);
 	};
 
-	goBackToHomepage = () => {
+	goBackToHomepage = async () => {
 		this.toggleOptionsIfNeeded();
-		this.go(HOMEPAGE_URL);
+		await this.go(HOMEPAGE_URL);
+		this.reload(true);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 	};
 
@@ -1200,7 +1216,7 @@ export class BrowserTab extends PureComponent {
 						</Text>
 					</Button>
 				) : null}
-				<Button onPress={this.reload} style={styles.option}>
+				<Button onPress={() => this.reload()} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
@@ -1208,7 +1224,7 @@ export class BrowserTab extends PureComponent {
 						{strings('browser.reload')}
 					</Text>
 				</Button>
-				<Button onPress={this.goBackToHomepage} style={styles.option}>
+				<Button onPress={() => this.goBackToHomepage()} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="home" size={18} style={styles.optionIcon} />
 					</View>
@@ -1514,6 +1530,15 @@ export class BrowserTab extends PureComponent {
 		return false;
 	};
 
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		return (
+			[6, 7].includes(wizardStep) && (
+				<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.homepageRef} />
+			)
+		);
+	};
+
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
 		const isHomepage = this.isHomepage();
@@ -1556,6 +1581,22 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderWatchAssetModal()}
 				{!isHidden && this.renderOptions()}
 				{!isHidden && this.renderBottomBar(canGoBack, canGoForward)}
+				{!isHidden && this.renderOnboardingWizard()}
+				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
+					<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
+						<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
+							<View style={styles.backupAlertIconWrapper}>
+								<Icon name="info-outline" style={styles.backupAlertIcon} />
+							</View>
+							<View>
+								<Text style={styles.backupAlertTitle}>{strings('home_page.backup_alert_title')}</Text>
+								<Text style={styles.backupAlertMessage}>
+									{strings('home_page.backup_alert_message')}
+								</Text>
+							</View>
+						</ElevatedView>
+					</TouchableOpacity>
+				)}
 			</View>
 		);
 	}
@@ -1571,7 +1612,10 @@ const mapStateToProps = state => ({
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
-	activeTab: state.browser.activeTab
+	activeTab: state.browser.activeTab,
+	wizardStep: state.wizard.step,
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({

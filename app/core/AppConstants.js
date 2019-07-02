@@ -16,5 +16,5 @@ export default {
 		BLOCKED_DEPOSIT_DURATION_MINUTES: 5
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-	HOMEPAGE_URL: 'https://metamask-dapps.netlify.com'
+	HOMEPAGE_URL: 'https://metamask-dapps.netlify.com/'
 };
