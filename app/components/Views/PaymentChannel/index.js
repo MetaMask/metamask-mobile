@@ -294,7 +294,7 @@ class PaymentChannel extends Component {
 			return;
 		}
 		Alert.alert(
-			'Withdraw Funds',
+			strings('payment_channel.withdraw_funds'),
 			`${strings('payment_channel.withdraw_intro')}. ${strings('payment_channel.withdraw_info')}.\n${strings(
 				'payment_channel.withdraw_note'
 			)}.`,
@@ -436,7 +436,8 @@ class PaymentChannel extends Component {
 
 	renderNoFunds() {
 		return (
-			<React.Fragment>
+			<View>
+				{this.renderInfo()}
 				<View style={styles.noFundsWrapper}>
 					<Text style={styles.noFundsTitle}>{strings('payment_channel.no_funds_title')}</Text>
 					<Text style={styles.noFundsDescription}>{strings('payment_channel.no_funds_desc')}</Text>
@@ -450,25 +451,24 @@ class PaymentChannel extends Component {
 						{strings('payment_channel.no_funds_action')}
 					</StyledButton>
 				</View>
-			</React.Fragment>
+			</View>
 		);
 	}
 
 	renderTransactionsHistory() {
 		const { navigation, conversionRate, currentCurrency, selectedAddress } = this.props;
 		return (
-			<ScrollView>
-				<View style={styles.transactionsWrapper}>
-					<Transactions
-						navigation={navigation}
-						transactions={this.state.transactions}
-						conversionRate={conversionRate}
-						currentCurrency={currentCurrency}
-						exchangeRate={this.state.exchangeRate}
-						selectedAddress={selectedAddress}
-						loading={false}
-					/>
-				</View>
+			<ScrollView style={styles.transactionsWrapper}>
+				<Transactions
+					header={this.renderInfo()}
+					navigation={navigation}
+					transactions={this.state.transactions}
+					conversionRate={conversionRate}
+					currentCurrency={currentCurrency}
+					exchangeRate={this.state.exchangeRate}
+					selectedAddress={selectedAddress}
+					loading={false}
+				/>
 			</ScrollView>
 		);
 	}
@@ -497,11 +497,10 @@ class PaymentChannel extends Component {
 		const noFunds = this.state.balance === '0.00';
 
 		return (
-			<React.Fragment>
-				{this.renderInfo()}
+			<View>
 				{noFunds && this.renderNoFunds()}
 				{!noFunds && this.renderTransactionsHistory()}
-			</React.Fragment>
+			</View>
 		);
 	}
 
