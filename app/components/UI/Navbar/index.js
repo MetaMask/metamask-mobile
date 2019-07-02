@@ -292,7 +292,18 @@ export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
 	let hostname = null;
 	let isHttps = false;
-	if (url && url !== HOMEPAGE_URL) {
+
+	const isHomepage = url => {
+		const currentPage = url;
+		const tmp0 = currentPage.split('?')[0];
+		const currentPageCleanedUp = tmp0.split('#')[0];
+		if (currentPageCleanedUp === HOMEPAGE_URL) {
+			return true;
+		}
+		return false;
+	};
+
+	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
 		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
