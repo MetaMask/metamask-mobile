@@ -123,7 +123,8 @@ const styles = StyleSheet.create({
 /* instant payments
 */
 class PaymentChannel extends Component {
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Instant Payments`, navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('payment_channel.insta_pay'), navigation);
 
 	static propTypes = {
 		/**
