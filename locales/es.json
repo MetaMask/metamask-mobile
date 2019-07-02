@@ -844,7 +844,7 @@
 		"complete_payment_for": "Completa tu pago por:",
 		"total": "TOTAL:"
 	},
-	"paymentChannels": {
+	"payment_channel": {
 		"min_deposit": "Depósito Min.:",
 		"max_deposit": "Depósito Max.:",
 		"in_order_to_use": "Para empezar a utilizar los pagos instantáneos, ",
@@ -874,7 +874,20 @@
 		"heads_up": "Aviso",
 		"security_reasons": "Por razones de seguridad deberá esperar 5 minutos antes de intentar nuevamente",
 		"not_ready": "Por favor espere",
-		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito"
+		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito",
+		"send_buttton": "Enviar",
+		"deposit_buttton": "Depositar",
+		"withdraw_buttton": "Retirar",
+		"no_funds_title": "Sin Fondos",
+		"no_funds_action": "Depositar Fondos",
+		"withdraw_funds": "Retirar Fondos",
+		"no_funds_desc": "Deposita ETH en tu tarjeta InstaPay para empezar a hacer pagos instantáneos con DAI.",
+		"confirm": "Confirmar",
+		"cancel": "Cancelar",
+		"asset_card_desc": "Transacciones gratis con Connext Payment Channels",
+		"deposit_amount": "Monto a transferir",
+		"load_funds": "Cargar Fondos",
+		"insta_pay": "InstaPay"
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
