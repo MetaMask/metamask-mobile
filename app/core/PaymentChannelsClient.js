@@ -284,22 +284,19 @@ class PaymentChannelsClient {
 
 	handleInternalTransactions = txHash => {
 		const { withdrawalPendingValue } = this.state;
-		let newInternalTxs = Engine.context.TransactionController.state.internalTransactions;
-		newInternalTxs = [
-			...newInternalTxs,
-			{
-				time: Date.now(),
-				status: 'confirmed',
-				paymentChannelTransaction: true,
-				networkID: Networks[Engine.context.NetworkController.state.type].networkId.toString(),
-				transaction: {
-					from: undefined,
-					to: Engine.context.PreferencesController.state.selectedAddress,
-					value: BNToHex(withdrawalPendingValue)
-				},
-				transactionHash: txHash
-			}
-		];
+		const newInternalTxs = Engine.context.TransactionController.state.internalTransactions || [];
+		newInternalTxs.push({
+			time: Date.now(),
+			status: 'confirmed',
+			paymentChannelTransaction: true,
+			networkID: Networks[Engine.context.NetworkController.state.provider.type].networkId.toString(),
+			transaction: {
+				from: Engine.context.PreferencesController.state.selectedAddress,
+				to: Engine.context.PreferencesController.state.selectedAddress,
+				value: BNToHex(withdrawalPendingValue)
+			},
+			transactionHash: txHash
+		});
 		return newInternalTxs;
 	};
 

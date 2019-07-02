@@ -273,6 +273,7 @@ class PaymentChannel extends Component {
 
 			Logger.log('Sending ', params);
 			this.sending = true;
+			this.props.navigation.pop();
 			await PaymentChannelsClient.send(params);
 			this.sending = false;
 
