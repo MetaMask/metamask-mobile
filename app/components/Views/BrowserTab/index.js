@@ -1522,12 +1522,7 @@ export class BrowserTab extends PureComponent {
 
 	isHomepage = (url = null) => {
 		const currentPage = url || this.state.inputValue;
-		const tmp0 = currentPage.split('?')[0];
-		const currentPageCleanedUp = tmp0.split('#')[0];
-		if (currentPageCleanedUp === HOMEPAGE_URL) {
-			return true;
-		}
-		return false;
+		return getHost(currentPage) === getHost(HOMEPAGE_URL);
 	};
 
 	renderOnboardingWizard = () => {

@@ -27,6 +27,7 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
+import { getHost } from '../../../util/browser';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -293,15 +294,7 @@ export function getBrowserViewNavbarOptions(navigation) {
 	let hostname = null;
 	let isHttps = false;
 
-	const isHomepage = url => {
-		const currentPage = url;
-		const tmp0 = currentPage.split('?')[0];
-		const currentPageCleanedUp = tmp0.split('#')[0];
-		if (currentPageCleanedUp === HOMEPAGE_URL) {
-			return true;
-		}
-		return false;
-	};
+	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
 
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
