@@ -293,7 +293,7 @@ class PaymentChannelsClient {
 				paymentChannelTransaction: true,
 				networkID: Networks[Engine.context.NetworkController.state.type].networkId.toString(),
 				transaction: {
-					from: Engine.context.PreferencesController.state.selectedAddress,
+					from: undefined,
 					to: Engine.context.PreferencesController.state.selectedAddress,
 					value: BNToHex(withdrawalPendingValue)
 				},
