@@ -13,6 +13,7 @@ import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
 	root: {
@@ -259,7 +260,7 @@ class AccountApproval extends Component {
 							<View style={styles.dapp}>
 								<WebsiteIcon style={styles.icon} title={title} url={url} />
 								<Text style={styles.headerTitle} numberOfLines={1}>
-									{title}
+									{title || getHost(url)}
 								</Text>
 								<Text style={styles.headerUrl} numberOfLines={1}>
 									{url}

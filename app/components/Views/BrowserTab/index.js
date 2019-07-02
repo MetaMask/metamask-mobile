@@ -19,8 +19,7 @@ import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import IonIcon from 'react-native-vector-icons/Ionicons';
-import ElevatedView from 'react-native-elevated-view';
+import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -33,11 +32,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost } from '../../../util/browser';
-import {
-	SPA_urlChangeListener,
-	JS_WINDOW_INFORMATION,
-	JS_WINDOW_INFORMATION_HEIGHT
-} from '../../../util/browserSripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION } from '../../../util/browserSripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -47,7 +42,7 @@ import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import AccountApproval from '../../UI/AccountApproval';
 import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
-import { addBookmark } from '../../../actions/bookmarks';
+import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
 import DeviceSize from '../../../util/DeviceSize';
@@ -56,10 +51,10 @@ import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
-import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
+import setOnboardingWizardStep from '../../../actions/wizard';
 
 const { HOMEPAGE_URL } = AppConstants;
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -75,17 +70,6 @@ const styles = StyleSheet.create({
 		display: 'none',
 		width: 0,
 		height: 0
-	},
-	icon: {
-		color: colors.grey500,
-		height: 28,
-		lineHeight: 30,
-		textAlign: 'center',
-		width: 36,
-		alignSelf: 'center'
-	},
-	disabledIcon: {
-		color: colors.grey100
 	},
 	progressBarWrapper: {
 		height: 3,
@@ -171,46 +155,6 @@ const styles = StyleSheet.create({
 	},
 	webview: {
 		...baseStyles.flexGrow
-	},
-	bottomBar: {
-		height: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : Platform.OS === 'android' ? 45 : 60,
-		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
-		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 14 : Platform.OS === 'android' ? 8 : 12,
-		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
-		flexDirection: 'row',
-		paddingHorizontal: 10,
-		flex: 0,
-		borderTopWidth: Platform.OS === 'android' ? 0 : StyleSheet.hairlineWidth,
-		borderColor: colors.grey200
-	},
-	iconSearch: {
-		alignSelf: 'flex-start',
-		alignContent: 'flex-start'
-	},
-	iconMore: {
-		alignSelf: 'flex-start',
-		alignContent: 'flex-start'
-	},
-	iconsLeft: {
-		flex: 1,
-		alignContent: 'flex-start',
-		flexDirection: 'row'
-	},
-	iconsMiddle: {
-		flex: 1,
-		alignContent: 'center',
-		flexDirection: 'row',
-		justifyContent: 'center'
-	},
-	iconsRight: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-		alignItems: 'center'
-	},
-	tabIcon: {
-		width: Platform.OS === 'ios' ? 30 : 26,
-		height: Platform.OS === 'ios' ? 30 : 26
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -354,6 +298,10 @@ export class BrowserTab extends PureComponent {
 		 */
 		addBookmark: PropTypes.func,
 		/**
+		 * Function to remove bookmarks
+		 */
+		removeBookmark: PropTypes.func,
+		/**
 		 * Array of bookmarks
 		 */
 		bookmarks: PropTypes.array,
@@ -380,7 +328,11 @@ export class BrowserTab extends PureComponent {
 		/**
 		 * Function to update the tab information
 		 */
-		showTabs: PropTypes.func
+		showTabs: PropTypes.func,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	constructor(props) {
@@ -393,9 +345,10 @@ export class BrowserTab extends PureComponent {
 			currentPageUrl: '',
 			currentPageIcon: undefined,
 			entryScriptWeb3: null,
+			favoritesScript: null,
 			fullHostname: '',
 			hostname: '',
-			inputValue: '',
+			inputValue: HOMEPAGE_URL,
 			autocompleteInputValue: '',
 			ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
 			contentId: null,
@@ -458,7 +411,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	async componentDidMount() {
-		if (this.state.url !== HOMEPAGE_URL && Platform.OS === 'android' && this.isTabActive()) {
+		if (this.isHomepage(this.state.url) && Platform.OS === 'android' && this.isTabActive()) {
 			this.reload();
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
@@ -591,7 +544,43 @@ export class BrowserTab extends PureComponent {
 			},
 			metamask_isApproved: async ({ hostname }) => ({
 				isApproved: !!this.props.approvedHosts[hostname]
-			})
+			}),
+			metamask_removeFavorite: ({ params }) => {
+				const promise = new Promise((resolve, reject) => {
+					if (!this.isHomepage()) {
+						reject({ error: 'unauthorized' });
+					}
+
+					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
+						{
+							text: strings('browser.cancel'),
+							onPress: () => {
+								resolve({
+									favorites: this.props.bookmarks
+								});
+							},
+							style: 'cancel'
+						},
+						{
+							text: strings('browser.yes'),
+							onPress: () => {
+								const bookmark = { url: params[0] };
+								this.props.removeBookmark(bookmark);
+								resolve({
+									favorites: this.props.bookmarks
+								});
+							}
+						}
+					]);
+				});
+				return promise;
+			},
+			metamask_showTutorial: () => {
+				this.props.setOnboardingWizardStep(1);
+				this.props.navigation.navigate('WalletView');
+
+				return Promise.resolve({ result: true });
+			}
 		});
 
 		const entryScriptWeb3 =
@@ -605,7 +594,10 @@ export class BrowserTab extends PureComponent {
 				? `'${this.props.network}'`
 				: `'${Networks[this.props.networkType].networkId}'`
 		);
-		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
+
+		const favoritesScript = `window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};`;
+
+		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, favoritesScript });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
@@ -659,7 +651,7 @@ export class BrowserTab extends PureComponent {
 	handleAndroidBackPress = () => {
 		if (!this.isTabActive()) return false;
 
-		if (this.state.url === HOMEPAGE_URL && this.props.navigation.getParam('url', null) === null) {
+		if (this.isHomepage() && this.props.navigation.getParam('url', null) === null) {
 			return false;
 		}
 		this.goBack();
@@ -763,7 +755,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	go = async url => {
-		const hasProtocol = url.match(/^[a-z]*:\/\//) || url === HOMEPAGE_URL;
+		const hasProtocol = url.match(/^[a-z]*:\/\//) || this.isHomepage(url);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
@@ -877,36 +869,7 @@ export class BrowserTab extends PureComponent {
 
 	goBackToHomepage = () => {
 		this.toggleOptionsIfNeeded();
-		this.props.navigation.setParams({
-			url: null,
-			currentEnsName: null
-		});
-
-		this.setState({
-			approvedOrigin: false,
-			currentEnsName: null,
-			currentPageTitle: '',
-			currentPageUrl: '',
-			currentPageIcon: undefined,
-			fullHostname: '',
-			hostname: '',
-			inputValue: '',
-			autocompleteInputValue: '',
-			contentId: null,
-			contentType: null,
-			ipfsWebsite: false,
-			showApprovalDialog: false,
-			showPhishingModal: false,
-			timeout: false,
-			url: HOMEPAGE_URL,
-			contentHeight: 0,
-			forwardEnabled: false,
-			lastError: null
-		});
-
-		this.updateTabInfo(HOMEPAGE_URL);
-
-		this.initialUrl = null;
+		this.go(HOMEPAGE_URL);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 	};
 
@@ -976,6 +939,8 @@ export class BrowserTab extends PureComponent {
 							Logger.error('Error adding to spotlight', e);
 						}
 					}
+					const favoritesScript = `window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};`;
+					this.setState({ favoritesScript });
 				}
 			})
 		);
@@ -1078,11 +1043,6 @@ export class BrowserTab extends PureComponent {
 
 	onPageChange = ({ url }) => {
 		const { ipfsGateway } = this.props;
-		// if ((this.goingBack && url === HOMEPAGE_URL) || (this.initialUrl === url && url === HOMEPAGE_URL)) {
-		// 	this.goBackToHomepage();
-		// 	return;
-		// }
-
 		this.forwardHistoryStack = [];
 		const data = {};
 		const urlObj = new URL(url);
@@ -1154,16 +1114,18 @@ export class BrowserTab extends PureComponent {
 		}, 500);
 
 		// Let's wait for potential redirects that might break things
-		if (!this.initialUrl || this.initialUrl === HOMEPAGE_URL) {
+		if (!this.initialUrl || this.isHomepage(this.initialUrl)) {
 			setTimeout(() => {
 				this.initialUrl = this.state.inputValue;
 			}, 1000);
 		}
 
-		// We need to get the title of the page and the height
 		const { current } = this.webview;
-		const js = JS_WINDOW_INFORMATION_HEIGHT(Platform.OS);
-		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		// Inject favorites on the homepage
+		if (this.isHomepage()) {
+			const js = this.state.favoritesScript + this.state.entryScriptWeb3;
+			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		}
 	};
 
 	onError = ({ nativeEvent: errorInfo }) => {
@@ -1214,7 +1176,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	renderNonHomeOptions = () => {
-		if (this.state.url === HOMEPAGE_URL) return null;
+		if (this.isHomepage()) return null;
 
 		return (
 			<React.Fragment>
@@ -1287,41 +1249,15 @@ export class BrowserTab extends PureComponent {
 	};
 
 	renderBottomBar = (canGoBack, canGoForward) => (
-		<ElevatedView elevation={11} style={styles.bottomBar}>
-			<View style={styles.iconsLeft}>
-				<Icon
-					name="angle-left"
-					disabled={!canGoBack}
-					onPress={this.goBack}
-					size={Platform.OS === 'android' ? 32 : 40}
-					style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
-				/>
-				<Icon
-					disabled={!canGoForward}
-					name="angle-right"
-					onPress={this.goForward}
-					size={Platform.OS === 'android' ? 32 : 40}
-					style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
-				/>
-			</View>
-			<View style={styles.iconsMiddle}>
-				<TabCountIcon onPress={this.showTabs} style={styles.tabIcon} />
-			</View>
-			<View style={styles.iconsRight}>
-				<IonIcon
-					name="ios-search"
-					onPress={this.showUrlModal}
-					size={Platform.OS === 'android' ? 24 : 30}
-					style={[styles.icon, styles.iconSearch]}
-				/>
-				<MaterialIcon
-					name="more-vert"
-					onPress={this.toggleOptions}
-					size={Platform.OS === 'android' ? 26 : 30}
-					style={[styles.icon, styles.iconMore]}
-				/>
-			</View>
-		</ElevatedView>
+		<BrowserBottomBar
+			canGoBack={canGoBack}
+			canGoForward={canGoForward}
+			goForward={this.goForward}
+			goBack={this.goBack}
+			showTabs={this.showTabs}
+			showUrlModal={this.showUrlModal}
+			toggleOptions={this.toggleOptions}
+		/>
 	);
 
 	isHttps() {
@@ -1568,12 +1504,21 @@ export class BrowserTab extends PureComponent {
 		return activeTab === id;
 	};
 
+	isHomepage = (url = null) => {
+		const currentPage = url || this.state.inputValue;
+		const tmp0 = currentPage.split('?')[0];
+		const currentPageCleanedUp = tmp0.split('#')[0];
+		if (currentPageCleanedUp === HOMEPAGE_URL) {
+			return true;
+		}
+		return false;
+	};
+
 	render() {
-		const { entryScriptWeb3, inputValue, url, forceReload, activated } = this.state;
-
-		const canGoBack = inputValue === HOMEPAGE_URL ? false : this.canGoBack();
+		const { entryScriptWeb3, url, forceReload, activated } = this.state;
+		const isHomepage = this.isHomepage();
+		const canGoBack = isHomepage ? false : this.canGoBack();
 		const canGoForward = this.canGoForward();
-
 		const isHidden = !this.isTabActive();
 
 		return (
@@ -1581,27 +1526,29 @@ export class BrowserTab extends PureComponent {
 				style={[styles.wrapper, isHidden && styles.hide]}
 				{...(Platform.OS === 'android' ? { collapsable: false } : {})}
 			>
-				{activated && !forceReload && (
-					<Web3Webview
-						// eslint-disable-next-line react/jsx-no-bind
-						renderError={() => (
-							<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
-						)}
-						injectedOnStartLoadingJavaScript={entryScriptWeb3}
-						onProgress={this.onLoadProgress}
-						onLoadStart={this.onLoadStart}
-						onLoadEnd={this.onLoadEnd}
-						onError={this.onError}
-						onMessage={this.onMessage}
-						onNavigationStateChange={this.onPageChange}
-						ref={this.webview}
-						source={{ uri: url }}
-						style={styles.webview}
-						userAgent={this.getUserAgent()}
-						sendCookies
-						javascriptEnabled
-					/>
-				)}
+				<View style={styles.webview}>
+					{activated && !forceReload && (
+						<Web3Webview
+							// eslint-disable-next-line react/jsx-no-bind
+							renderError={() => (
+								<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
+							)}
+							injectedOnStartLoadingJavaScript={entryScriptWeb3}
+							onProgress={this.onLoadProgress}
+							onLoadStart={this.onLoadStart}
+							onLoadEnd={this.onLoadEnd}
+							onError={this.onError}
+							onMessage={this.onMessage}
+							onNavigationStateChange={this.onPageChange}
+							ref={this.webview}
+							source={{ uri: url }}
+							style={styles.webview}
+							userAgent={this.getUserAgent()}
+							sendCookies
+							javascriptEnabled
+						/>
+					)}
+				</View>
 				{this.renderProgressBar()}
 				{!isHidden && this.renderUrlModal()}
 				{!isHidden && this.renderApprovalModal()}
@@ -1630,10 +1577,12 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	approveHost: hostname => dispatch(approveHost(hostname)),
 	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
+	removeBookmark: bookmark => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
 	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
-	toggleNetworkModal: () => dispatch(toggleNetworkModal())
+	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });
 
 export default connect(
