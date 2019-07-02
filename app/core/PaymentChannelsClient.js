@@ -11,6 +11,7 @@ import { toWei, toBN, renderFromWei, BNToHex } from '../util/number';
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
 import byteArrayToHex from '../util/bytes';
+import Networks from '../util/networks';
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
@@ -67,6 +68,7 @@ class PaymentChannelsClient {
 			},
 			depositPending: false,
 			withdrawalPending: false,
+			withdrawalPendingValue: undefined,
 			blocked: false,
 			transactions: []
 		};
@@ -280,6 +282,27 @@ class PaymentChannelsClient {
 		}
 	};
 
+	handleInternalTransactions = txHash => {
+		const { withdrawalPendingValue } = this.state;
+		let newInternalTxs = Engine.context.TransactionController.state.internalTransactions;
+		newInternalTxs = [
+			...newInternalTxs,
+			{
+				time: Date.now(),
+				status: 'confirmed',
+				paymentChannelTransaction: true,
+				networkID: Networks[Engine.context.NetworkController.state.type].networkId.toString(),
+				transaction: {
+					from: Engine.context.PreferencesController.state.selectedAddress,
+					to: Engine.context.PreferencesController.state.selectedAddress,
+					value: BNToHex(withdrawalPendingValue)
+				},
+				transactionHash: txHash
+			}
+		];
+		return newInternalTxs;
+	};
+
 	checkStatus() {
 		const { runtime, status, depositPending, withdrawalPending } = this.state;
 		const newStatus = {
@@ -302,7 +325,9 @@ class PaymentChannelsClient {
 				} else {
 					newStatus.type = 'WITHDRAWAL_SUCCESS';
 					newStatus.txHash = runtime.withdrawal.transactionHash;
-					this.setState({ withdrawalPending: false });
+					const newInternalTxs = this.handleInternalTransactions(newStatus.txHash);
+					Engine.context.TransactionController.update({ internalTransactions: newInternalTxs });
+					this.setState({ withdrawalPending: false, withdrawalPendingValue: undefined });
 				}
 			}
 		}
@@ -392,7 +417,7 @@ class PaymentChannelsClient {
 			};
 
 			await connext.withdraw(withdrawalVal);
-			this.setState({ withdrawalPending: true });
+			this.setState({ withdrawalPending: true, withdrawalPendingValue: toWei(renderFromWei(balanceTokenUser)) });
 		} catch (e) {
 			Logger.error('PC::withdraw', e);
 		}

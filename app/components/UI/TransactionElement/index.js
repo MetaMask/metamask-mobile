@@ -15,6 +15,7 @@ import TokenImage from '../TokenImage';
 import contractMap from 'eth-contract-metadata';
 import TransferElement from './TransferElement';
 import { connect } from 'react-redux';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	row: {
@@ -406,6 +407,7 @@ class TransactionElement extends PureComponent {
 	renderPaymentChannelTx = () => {
 		const {
 			tx: {
+				networkID,
 				transaction: { value, from, to }
 			},
 			conversionRate,
@@ -424,11 +426,16 @@ class TransactionElement extends PureComponent {
 			currentCurrency
 		);
 
+		const isWithdraw = from === to;
+		const renderPrice = isWithdraw
+			? strings('transactions.tx_details_not_available')
+			: strings('transactions.tx_details_not_available');
+
 		const transactionDetails = {
-			renderFrom: renderFullAddress(from),
+			renderFrom: isWithdraw ? AppConstants.CONNEXT.CONTRACTS[networkID] : renderFullAddress(from),
 			renderTo: renderFullAddress(to),
-			renderGas: 'Free',
-			renderGasPrice: 'Free',
+			renderGas: renderPrice,
+			renderGasPrice: renderPrice,
 			renderValue: renderTotalEth,
 			renderTotalValue: renderTotalEth,
 			renderTotalValueFiat: renderTotalEthFiat

@@ -155,6 +155,10 @@ class PaymentChannel extends Component {
 		 */
 		transactions: PropTypes.array,
 		/**
+		 * An array that represents the user internal transactions
+		 */
+		internalTransactions: PropTypes.array,
+		/**
 		 * NetworkController povider object
 		 */
 		provider: PropTypes.object,
@@ -205,7 +209,7 @@ class PaymentChannel extends Component {
 	};
 
 	handleTransactions = transactions => {
-		const { transactions: onChainTransactions, provider } = this.props;
+		const { transactions: onChainTransactions, provider, internalTransactions } = this.props;
 		const parsedTransactions = transactions.map(tx => ({
 			time: Date.parse(tx.createdOn),
 			status: 'confirmed',
@@ -227,6 +231,18 @@ class PaymentChannel extends Component {
 				parsedTransactions.push({ ...tx, actionKey: strings('transactions.instant_payment_deposit_tx') });
 			}
 		});
+		internalTransactions &&
+			internalTransactions.forEach(tx => {
+				if (Networks[provider.type].networkId.toString() === tx.networkID) {
+					parsedTransactions.push({
+						...tx,
+						from: undefined,
+						id: tx.transactionHash,
+						actionKey: strings('transactions.instant_payment_withdraw_tx'),
+						paymentChannelTransaction: true
+					});
+				}
+			});
 		const sortedTransactions = parsedTransactions.sort((a, b) => b.time - a.time);
 		return sortedTransactions;
 	};
@@ -510,6 +526,7 @@ const mapStateToProps = state => ({
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
+	internalTransactions: state.engine.backgroundState.TransactionController.internalTransactions,
 	provider: state.engine.backgroundState.NetworkController.provider
 });
 
