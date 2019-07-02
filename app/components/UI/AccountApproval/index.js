@@ -275,7 +275,7 @@ class AccountApproval extends Component {
 							</View>
 							<View style={styles.dapp}>
 								<Identicon address={selectedAddress} diameter={54} />
-								<Text style={styles.selectedAddress}>
+								<Text style={styles.selectedAddress} numberOfLines={1}>
 									{renderAccountName(selectedAddress, identities)}
 								</Text>
 							</View>
