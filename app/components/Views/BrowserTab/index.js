@@ -360,7 +360,7 @@ export class BrowserTab extends PureComponent {
 			currentPageUrl: '',
 			currentPageIcon: undefined,
 			entryScriptWeb3: null,
-			favoritesScript: null,
+			homepageScripts: null,
 			fullHostname: '',
 			hostname: '',
 			inputValue: HOMEPAGE_URL,
@@ -610,9 +610,12 @@ export class BrowserTab extends PureComponent {
 				: `'${Networks[this.props.networkType].networkId}'`
 		);
 
-		const favoritesScript = `window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};`;
+		const homepageScripts = `
+			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+			window.__mmSearchEngine="${this.props.searchEngine}";
+		`;
 
-		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, favoritesScript });
+		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
@@ -955,8 +958,11 @@ export class BrowserTab extends PureComponent {
 							Logger.error('Error adding to spotlight', e);
 						}
 					}
-					const favoritesScript = `window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};`;
-					this.setState({ favoritesScript });
+					const homepageScripts = `
+						window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+						window.__mmSearchEngine="${this.props.searchEngine}";
+					`;
+					this.setState({ homepageScripts });
 				}
 			})
 		);
@@ -1139,7 +1145,7 @@ export class BrowserTab extends PureComponent {
 		const { current } = this.webview;
 		// Inject favorites on the homepage
 		if (this.isHomepage()) {
-			const js = this.state.favoritesScript + this.state.entryScriptWeb3;
+			const js = this.state.homepageScripts + this.state.entryScriptWeb3;
 			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
 		}
 	};
