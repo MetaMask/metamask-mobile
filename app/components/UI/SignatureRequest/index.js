@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
@@ -205,12 +205,14 @@ class SignatureRequest extends Component {
 					<View style={styles.accountInformation}>
 						<View style={styles.accountInfoCol}>
 							<Text>{strings('signature_request.account_title')}</Text>
-							<View style={styles.account}>
-								<View style={styles.identicon}>
+							<View style={[styles.account, baseStyles.flexGrow]}>
+								<View style={[styles.identicon]}>
 									<Identicon address={selectedAddress} diameter={20} />
 								</View>
-								<View>
-									<Text style={styles.text}>{accountLabel}</Text>
+								<View style={baseStyles.flexGrow}>
+									<Text numberOfLines={1} style={styles.text}>
+										{accountLabel}
+									</Text>
 								</View>
 							</View>
 						</View>
