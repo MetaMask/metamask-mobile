@@ -229,7 +229,11 @@ class PaymentChannel extends Component {
 				tx.transaction.data.substring(0, 10) === '0xea682e37' &&
 				tx.status === 'confirmed'
 			) {
-				parsedTransactions.push({ ...tx, actionKey: strings('transactions.instant_payment_deposit_tx') });
+				parsedTransactions.push({
+					...tx,
+					actionKey: strings('transactions.instant_payment_deposit_tx'),
+					paymentChannelTransaction: true
+				});
 			}
 		});
 		internalTransactions &&

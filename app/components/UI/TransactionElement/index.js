@@ -16,6 +16,7 @@ import contractMap from 'eth-contract-metadata';
 import TransferElement from './TransferElement';
 import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
 	row: {
@@ -94,6 +95,25 @@ const styles = StyleSheet.create({
 		width: 24,
 		height: 24,
 		borderRadius: 12
+	},
+	paymentChannelTransactionIconWrapper: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		borderWidth: 1,
+		borderColor: colors.grey100,
+		borderRadius: 12,
+		width: 24,
+		height: 24,
+		backgroundColor: colors.white
+	},
+	paymentChannelTransactionDepositIcon: {
+		marginTop: 2,
+		marginLeft: 1
+	},
+	paymentChannelTransactionWithdrawIcon: {
+		marginBottom: 2,
+		marginRight: 1,
+		transform: [{ rotate: '180deg' }]
 	}
 });
 
@@ -222,6 +242,71 @@ class TransactionElement extends PureComponent {
 		) : null;
 	};
 
+	renderTxElementImage = transactionElement => {
+		const {
+			addressTo,
+			addressFrom,
+			actionKey,
+			contractDeployment = false,
+			paymentChannelTransaction
+		} = transactionElement;
+		const {
+			tx: { networkID }
+		} = this.props;
+		const checksumAddress = toChecksumAddress(addressTo);
+		let logo;
+
+		if (contractDeployment) {
+			return (
+				<FadeIn>
+					<Image source={ethLogo} style={styles.ethLogo} />
+				</FadeIn>
+			);
+		} else if (actionKey === strings('transactions.smart_contract_interaction')) {
+			if (checksumAddress in contractMap) {
+				logo = contractMap[checksumAddress].logo;
+			}
+			return (
+				<TokenImage
+					asset={{ address: addressTo, logo }}
+					containerStyle={styles.tokenImageStyle}
+					iconStyle={styles.tokenImageStyle}
+					logoDefined
+				/>
+			);
+		} else if (paymentChannelTransaction) {
+			const isDeposit =
+				AppConstants.CONNEXT.CONTRACTS[networkID] &&
+				addressTo.toLowerCase() === AppConstants.CONNEXT.CONTRACTS[networkID].toLowerCase();
+			if (isDeposit) {
+				return (
+					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
+						<Ionicons
+							style={styles.paymentChannelTransactionDepositIcon}
+							name={'md-arrow-down'}
+							size={16}
+							color={colors.green500}
+						/>
+					</FadeIn>
+				);
+			}
+			const isWithdraw = addressFrom === addressTo;
+			if (isWithdraw) {
+				return (
+					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
+						<Ionicons
+							style={styles.paymentChannelTransactionWithdrawIcon}
+							name={'md-arrow-down'}
+							size={16}
+							color={colors.grey500}
+						/>
+					</FadeIn>
+				);
+			}
+		}
+		return <Identicon address={addressTo} diameter={24} />;
+	};
+
 	/**
 	 * Renders an horizontal bar with basic tx information
 	 *
@@ -231,31 +316,17 @@ class TransactionElement extends PureComponent {
 		const {
 			tx: { status }
 		} = this.props;
-		const { addressTo, actionKey, value, fiatValue, contractDeployment = false } = transactionElement;
+		const { addressTo, actionKey, value, fiatValue = false } = transactionElement;
 		const checksumAddress = toChecksumAddress(addressTo);
-		let symbol, logo;
+		let symbol;
 		if (checksumAddress in contractMap) {
 			symbol = contractMap[checksumAddress].symbol;
-			logo = contractMap[checksumAddress].logo;
 		}
 		return (
 			<View style={styles.rowOnly}>
 				{this.renderTxTime()}
 				<View style={styles.subRow}>
-					{contractDeployment ? (
-						<FadeIn>
-							<Image source={ethLogo} style={styles.ethLogo} />
-						</FadeIn>
-					) : actionKey === strings('transactions.smart_contract_interaction') ? (
-						<TokenImage
-							asset={{ address: addressTo, logo }}
-							containerStyle={styles.tokenImageStyle}
-							iconStyle={styles.tokenImageStyle}
-							logoDefined
-						/>
-					) : (
-						<Identicon address={addressTo} diameter={24} />
-					)}
+					{this.renderTxElementImage(transactionElement)}
 					<View style={styles.info}>
 						<Text numberOfLines={1} style={styles.address}>
 							{symbol ? symbol + ' ' + actionKey : actionKey}
@@ -315,6 +386,7 @@ class TransactionElement extends PureComponent {
 
 		const transactionElement = {
 			addressTo,
+			addressFrom,
 			actionKey,
 			value: `${strings('unit.token_id')}${tokenId}`,
 			fiatValue: collectible ? collectible.symbol : undefined
@@ -356,6 +428,7 @@ class TransactionElement extends PureComponent {
 
 		const transactionElement = {
 			addressTo: to,
+			addressFrom: from,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat
@@ -385,6 +458,7 @@ class TransactionElement extends PureComponent {
 
 		const transactionElement = {
 			addressTo: to,
+			addressFrom: from,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
@@ -438,14 +512,16 @@ class TransactionElement extends PureComponent {
 			renderGasPrice: renderPrice,
 			renderValue: renderTotalEth,
 			renderTotalValue: renderTotalEth,
-			renderTotalValueFiat: renderTotalEthFiat
+			renderTotalValueFiat: true
 		};
 
 		const transactionElement = {
 			addressTo: to,
+			addressFrom: from,
 			actionKey,
 			value: renderTotalEth,
-			fiatValue: renderTotalEthFiat
+			fiatValue: renderTotalEthFiat,
+			paymentChannelTransaction: true
 		};
 
 		return [transactionElement, transactionDetails];
