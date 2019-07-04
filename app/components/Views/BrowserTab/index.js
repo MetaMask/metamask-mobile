@@ -1640,7 +1640,6 @@ export class BrowserTab extends PureComponent {
 
 	renderApprovalModal = () => {
 		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon } = this.state;
-
 		return (
 			<Modal
 				isVisible={showApprovalDialog}
