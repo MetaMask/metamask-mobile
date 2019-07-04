@@ -900,7 +900,7 @@
 		"no_funds_title": "No Funds",
 		"no_funds_action": "Deposit Funds",
 		"withdraw_funds": "Withdraw Funds",
-		"no_funds_desc": "Deposit ETH into your InstaPay card to start making instant free paymentts with DAI.",
+		"no_funds_desc": "Deposit ETH into your InstaPay card to start making instant free payments with DAI.",
 		"confirm": "Confirm",
 		"cancel": "Cancel",
 		"asset_card_desc": "Free Transactions with Connext Payment Channels",
