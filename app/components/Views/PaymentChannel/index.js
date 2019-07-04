@@ -523,7 +523,7 @@ class PaymentChannel extends Component {
 	}
 
 	closeWelcomeModal = async () => {
-		await AsyncStorage.setItem('@MetaMask:paymentChannelFirstTime', true);
+		await AsyncStorage.setItem('@MetaMask:paymentChannelFirstTime', '1');
 		this.setState({ displayWelcomeModal: false });
 	};
 
