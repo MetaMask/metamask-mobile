@@ -27,7 +27,7 @@ import Transactions from '../../UI/Transactions';
 import { BNToHex } from 'gaba/util';
 import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
-import PaymentChannelWelcome from './PaymentChannelWelcome/PaymentChannelWelcome';
+import PaymentChannelWelcome from './PaymentChannelWelcome';
 import AsyncStorage from '@react-native-community/async-storage';
 
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
