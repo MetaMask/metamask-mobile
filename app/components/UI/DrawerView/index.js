@@ -48,6 +48,8 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 
+const CONNEXT_SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
+
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
 	wrapper: {
@@ -361,7 +363,11 @@ class DrawerView extends Component {
 		/**
 		/* flag that determines the state of payment channels
 		*/
-		paymentChannelsEnabled: PropTypes.bool
+		paymentChannelsEnabled: PropTypes.bool,
+		/**
+		 * Current provider type
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -484,7 +490,15 @@ class DrawerView extends Component {
 	};
 
 	goToPaymentChannel = () => {
-		this.props.navigation.navigate('PaymentChannelView');
+		const { providerType } = this.props;
+		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
+			this.props.navigation.navigate('PaymentChannelView');
+		} else {
+			Alert.alert(
+				strings('experimental_settings.network_not_supported'),
+				strings('experimental_settings.switch_network')
+			);
+		}
 		this.hideDrawer();
 	};
 
@@ -492,11 +506,6 @@ class DrawerView extends Component {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_WALLET);
-	};
-
-	showPaymentChannel = () => {
-		this.props.navigation.navigate('PaymentChannelView');
-		this.hideDrawer();
 	};
 
 	goToTransactionHistory = () => {
@@ -707,7 +716,7 @@ class DrawerView extends Component {
 					name: strings('drawer.insta_pay'),
 					icon: this.getMaterialIcon('credit-card'),
 					selectedIcon: this.getSelectedMaterialIcon('credit-card'),
-					action: this.showPaymentChannel
+					action: this.goToPaymentChannel
 				},
 				{
 					name: strings('drawer.transaction_history'),
@@ -1026,6 +1035,7 @@ const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
 });
 
