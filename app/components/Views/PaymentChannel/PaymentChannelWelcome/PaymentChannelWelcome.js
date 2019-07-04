@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 const welcomeImage = require('../../../../images/payment-channel-welcome.png'); // eslint-disable-line import/no-commonjs
 
 /**
- * View that wraps the Offline mode screen
+ * View show a welcome screen for payment channels
  */
 export default class PaymentChannelWelcome extends Component {
 	static propTypes = {

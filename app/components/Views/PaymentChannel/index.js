@@ -28,6 +28,7 @@ import { BNToHex } from 'gaba/util';
 import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import PaymentChannelWelcome from './PaymentChannelWelcome/PaymentChannelWelcome';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
@@ -183,7 +184,7 @@ class PaymentChannel extends Component {
 		sendRecipient: '',
 		depositAmount: '',
 		exchangeRate: undefined,
-		showWelcome: true
+		displayWelcomeModal: false
 	};
 
 	client = null;
@@ -203,6 +204,10 @@ class PaymentChannel extends Component {
 	};
 
 	componentDidMount = async () => {
+		const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+		if (!paymentChannelFirstTime) {
+			this.setState({ displayWelcomeModal: true });
+		}
 		InteractionManager.runAfterInteractions(async () => {
 			const state = PaymentChannelsClient.getState();
 			this.setState({
@@ -517,8 +522,9 @@ class PaymentChannel extends Component {
 		);
 	}
 
-	closeWelcome = () => {
-		this.setState({ showWelcome: false });
+	closeWelcomeModal = async () => {
+		await AsyncStorage.setItem('@MetaMask:paymentChannelFirstTime', true);
+		this.setState({ displayWelcomeModal: false });
 	};
 
 	render() {
@@ -532,13 +538,13 @@ class PaymentChannel extends Component {
 					<View style={styles.wrapper}>{this.renderContent()}</View>
 				</ScrollView>
 				<Modal
-					isVisible={this.state.showWelcome}
-					onBackdropPress={this.closeWelcome}
-					onSwipeComplete={this.closeWelcome}
+					isVisible={this.state.displayWelcomeModal}
+					onBackdropPress={this.closeWelcomeModal}
+					onSwipeComplete={this.closeWelcomeModal}
 					swipeDirection={'down'}
 					style={styles.bottomModal}
 				>
-					<PaymentChannelWelcome close={this.closeWelcome} />
+					<PaymentChannelWelcome close={this.closeWelcomeModal} />
 				</Modal>
 			</SafeAreaView>
 		);
