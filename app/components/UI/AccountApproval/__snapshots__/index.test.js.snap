@@ -182,6 +182,7 @@ exports[`AccountApproval should render correctly 1`] = `
             diameter={54}
           />
           <Text
+            numberOfLines={1}
             style={
               Object {
                 "color": "#000000",
