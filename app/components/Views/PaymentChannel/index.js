@@ -186,7 +186,7 @@ class PaymentChannel extends Component {
 	withdrawing = false;
 
 	onStateChange = state => {
-		if (state.balance !== this.state.balance) {
+		if (state.balance !== this.state.balance || state.status.type !== this.state.status.type) {
 			this.setState({
 				balance: state.balance,
 				status: state.status,
