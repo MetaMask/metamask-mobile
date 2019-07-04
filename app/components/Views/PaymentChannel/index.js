@@ -186,12 +186,14 @@ class PaymentChannel extends Component {
 	withdrawing = false;
 
 	onStateChange = state => {
-		this.setState({
-			balance: state.balance,
-			status: state.status,
-			transactions: this.handleTransactions(state.transactions)
-		});
-		this.getBalanceFiat(state.balance);
+		if (state.balance !== this.state.balance) {
+			this.setState({
+				balance: state.balance,
+				status: state.status,
+				transactions: this.handleTransactions(state.transactions)
+			});
+			this.getBalanceFiat(state.balance);
+		}
 	};
 
 	componentDidMount = async () => {
