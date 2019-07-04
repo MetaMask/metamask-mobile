@@ -482,17 +482,21 @@ class TransactionElement extends PureComponent {
 		const {
 			tx: {
 				networkID,
-				transaction: { value, from, to }
+				transactionHash,
+				transaction: { value, gas, gasPrice, from, to }
 			},
 			conversionRate,
 			currentCurrency,
 			exchangeRate
 		} = this.props;
 		let { actionKey } = this.state;
+		const isDeposit =
+			AppConstants.CONNEXT.CONTRACTS[networkID] &&
+			to.toLowerCase() === AppConstants.CONNEXT.CONTRACTS[networkID].toLowerCase();
 		actionKey = actionKey && actionKey.replace(strings('unit.eth'), strings('unit.dai'));
 		const totalEth = hexToBN(value);
 		const readableTotalEth = renderFromWei(totalEth);
-		const renderTotalEth = readableTotalEth + ' ' + strings('unit.dai');
+		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.dai'));
 		const renderTotalEthFiat = balanceToFiat(
 			parseFloat(readableTotalEth),
 			conversionRate,
@@ -501,18 +505,16 @@ class TransactionElement extends PureComponent {
 		);
 
 		const isWithdraw = from === to;
-		const renderPrice = isWithdraw
-			? strings('transactions.tx_details_not_available')
-			: strings('transactions.tx_details_not_available');
 
 		const transactionDetails = {
 			renderFrom: isWithdraw ? AppConstants.CONNEXT.CONTRACTS[networkID] : renderFullAddress(from),
 			renderTo: renderFullAddress(to),
-			renderGas: renderPrice,
-			renderGasPrice: renderPrice,
+			transactionHash,
+			renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
+			renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
 			renderValue: renderTotalEth,
 			renderTotalValue: renderTotalEth,
-			renderTotalValueFiat: true
+			renderTotalValueFiat: isDeposit && weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase())
 		};
 
 		const transactionElement = {
