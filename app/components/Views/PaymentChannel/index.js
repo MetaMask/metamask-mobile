@@ -26,6 +26,8 @@ import { setPaymentChannelTransaction } from '../../../actions/transaction';
 import Transactions from '../../UI/Transactions';
 import { BNToHex } from 'gaba/util';
 import Networks from '../../../util/networks';
+import Modal from 'react-native-modal';
+import PaymentChannelWelcome from './PaymentChannelWelcome/PaymentChannelWelcome';
 
 const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 
@@ -114,6 +116,9 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		margin: 20,
 		textAlign: 'center'
+	},
+	bottomModal: {
+		margin: 0
 	}
 });
 
@@ -177,7 +182,8 @@ class PaymentChannel extends Component {
 		sendAmount: '',
 		sendRecipient: '',
 		depositAmount: '',
-		exchangeRate: undefined
+		exchangeRate: undefined,
+		showWelcome: true
 	};
 
 	client = null;
@@ -511,6 +517,10 @@ class PaymentChannel extends Component {
 		);
 	}
 
+	closeWelcome = () => {
+		this.setState({ showWelcome: false });
+	};
+
 	render() {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
@@ -521,6 +531,15 @@ class PaymentChannel extends Component {
 				>
 					<View style={styles.wrapper}>{this.renderContent()}</View>
 				</ScrollView>
+				<Modal
+					isVisible={this.state.showWelcome}
+					onBackdropPress={this.closeWelcome}
+					onSwipeComplete={this.closeWelcome}
+					swipeDirection={'down'}
+					style={styles.bottomModal}
+				>
+					<PaymentChannelWelcome close={this.closeWelcome} />
+				</Modal>
 			</SafeAreaView>
 		);
 	}

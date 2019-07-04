@@ -906,7 +906,13 @@
 		"asset_card_desc": "Free Transactions with Connext Payment Channels",
 		"deposit_amount": "Amount to transfer",
 		"load_funds": "Load Funds",
-		"insta_pay": "InstaPay"
+		"insta_pay": "InstaPay",
+		"welcome": {
+			"title": "Welcome to InstaPay!",
+			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",
+			"desc_2": "Made possible by Connext Payment Channels.",
+			"close": "Close"
+		}
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
