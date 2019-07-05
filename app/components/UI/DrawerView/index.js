@@ -11,6 +11,7 @@ import {
 	ScrollView,
 	InteractionManager
 } from 'react-native';
+import SvgImage from 'react-native-remote-svg';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -267,6 +268,10 @@ const styles = StyleSheet.create({
 		color: colors.grey400,
 		fontSize: 10,
 		...fontStyles.bold
+	},
+	instapayLogo: {
+		width: 24,
+		height: 24
 	}
 });
 
@@ -277,6 +282,8 @@ const ICON_IMAGES = {
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
 const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
+const instapay_logo_selected = require('../../../images/mm-instapay-selected.svg'); // eslint-disable-line
+const instapay_logo = require('../../../images/mm-instapay.svg'); // eslint-disable-line
 
 /**
  * View component that displays the MetaMask fox
@@ -714,8 +721,8 @@ class DrawerView extends Component {
 				},
 				paymentChannelsEnabled && {
 					name: strings('drawer.insta_pay'),
-					icon: this.getMaterialIcon('credit-card'),
-					selectedIcon: this.getSelectedMaterialIcon('credit-card'),
+					icon: <SvgImage source={instapay_logo} style={styles.instapayLogo} />,
+					selectedIcon: <SvgImage source={instapay_logo_selected} style={styles.instapayLogo} />,
 					action: this.goToPaymentChannel
 				},
 				{
