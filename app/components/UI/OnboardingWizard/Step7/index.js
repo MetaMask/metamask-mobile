@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet } from 'react-native';
+import { Platform, View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -44,7 +44,8 @@ class Step7 extends Component {
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
 	getPosition = () => {
-		this.setState({ coachmarkTop: 120 });
+		const position = Platform.OS === 'android' ? 85 : 120;
+		this.setState({ coachmarkTop: position });
 	};
 
 	/**
