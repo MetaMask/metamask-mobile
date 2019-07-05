@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const allNetworks = ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
+const allNetworks = ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
 const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
 /**
  * Main view for app configurations
