@@ -498,7 +498,7 @@ const instance = {
 				return (ETH * MIN_DEPOSIT_ETH).toFixed(2).toString();
 			}
 		}
-		return '0.00';
+		return undefined;
 	},
 	/**
 	 * Function that returns the value of the maximum deposit
@@ -512,7 +512,7 @@ const instance = {
 				return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
 			}
 		}
-		return '0.00';
+		return undefined;
 	},
 	/**
 	 *	Returns the current exchange rate for DAI / ETH

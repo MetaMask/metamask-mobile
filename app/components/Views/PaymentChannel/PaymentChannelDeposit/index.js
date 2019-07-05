@@ -309,21 +309,28 @@ class Deposit extends Component {
 	}
 
 	renderMinimumsOrSpinner() {
-		const minFiat = PaymentChannelsClient.getMinimumDepositFiat();
-		const maxFiat = PaymentChannelsClient.MAX_DEPOSIT_TOKEN.toFixed(2).toString();
+		const { conversionRate, currentCurrency } = this.props;
 		const maxETH = PaymentChannelsClient.getMaximumDepositEth();
+		const maxFiat =
+			conversionRate &&
+			maxETH &&
+			isDecimal(maxETH) &&
+			weiToFiat(toWei(maxETH), conversionRate, currentCurrency.toUpperCase());
+		const minFiat =
+			conversionRate &&
+			weiToFiat(toWei(PaymentChannelsClient.MIN_DEPOSIT_ETH), conversionRate, currentCurrency.toUpperCase());
 		return (
 			<React.Fragment>
 				<Text style={styles.explainerText}>
 					{`${strings('payment_channel.min_deposit')} `}
 					<Text style={fontStyles.bold}>
-						{PaymentChannelsClient.MIN_DEPOSIT_ETH} {strings('unit.eth')} (${minFiat})
+						{PaymentChannelsClient.MIN_DEPOSIT_ETH} {strings('unit.eth')} {maxFiat && `(${minFiat})`}
 					</Text>
 				</Text>
 				<Text style={styles.explainerText}>
 					{`${strings('payment_channel.max_deposit')} `}
 					<Text style={fontStyles.bold}>
-						{maxETH} {strings('unit.eth')} (${maxFiat})
+						{maxETH} {strings('unit.eth')} {maxFiat && `(${maxFiat})`}
 					</Text>
 				</Text>
 			</React.Fragment>
