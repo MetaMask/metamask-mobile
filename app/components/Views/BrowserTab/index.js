@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import {
-	Dimensions,
 	Text,
 	ActivityIndicator,
 	Platform,
@@ -9,7 +8,6 @@ import {
 	View,
 	TouchableWithoutFeedback,
 	Alert,
-	Animated,
 	TouchableOpacity,
 	Linking,
 	Keyboard,
@@ -21,7 +19,7 @@ import Web3Webview from 'react-native-web3-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import IonIcon from 'react-native-vector-icons/Ionicons';
+import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -30,16 +28,11 @@ import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import BrowserHome from '../../Views/BrowserHome';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost } from '../../../util/browser';
-import {
-	SPA_urlChangeListener,
-	JS_WINDOW_INFORMATION,
-	JS_WINDOW_INFORMATION_HEIGHT
-} from '../../../util/browserSripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION } from '../../../util/browserSripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -49,7 +42,7 @@ import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import AccountApproval from '../../UI/AccountApproval';
 import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
-import { addBookmark } from '../../../actions/bookmarks';
+import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import { setTransactionObject } from '../../../actions/transaction';
 import DeviceSize from '../../../util/DeviceSize';
@@ -58,14 +51,15 @@ import SearchApi from 'react-native-search-api';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
-import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import OnboardingWizard from '../../UI/OnboardingWizard';
+import BackupAlert from '../../UI/BackupAlert';
 
-const HOMEPAGE_URL = 'about:blank';
+const { HOMEPAGE_URL } = AppConstants;
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
-const BOTTOM_NAVBAR_HEIGHT = Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : 60;
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -78,17 +72,6 @@ const styles = StyleSheet.create({
 		display: 'none',
 		width: 0,
 		height: 0
-	},
-	icon: {
-		color: colors.grey500,
-		height: 28,
-		lineHeight: 30,
-		textAlign: 'center',
-		width: 36,
-		alignSelf: 'center'
-	},
-	disabledIcon: {
-		color: colors.grey100
 	},
 	progressBarWrapper: {
 		height: 3,
@@ -124,16 +107,19 @@ const styles = StyleSheet.create({
 		paddingTop: 10
 	},
 	optionsWrapperAndroid: {
-		top: 0,
-		right: 0,
-		elevation: 5
+		shadowColor: colors.grey400,
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.5,
+		shadowRadius: 3,
+		bottom: 55,
+		right: 5
 	},
 	optionsWrapperIos: {
 		shadowColor: colors.grey400,
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 75,
+		bottom: 80,
 		right: 3
 	},
 	option: {
@@ -171,46 +157,6 @@ const styles = StyleSheet.create({
 	},
 	webview: {
 		...baseStyles.flexGrow
-	},
-	bottomBar: {
-		backgroundColor: colors.grey000,
-		position: 'absolute',
-		left: 0,
-		right: 0,
-		bottom: 0,
-		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 14 : 12,
-		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
-		flexDirection: 'row',
-		paddingHorizontal: 10,
-		flex: 1
-	},
-	iconSearch: {
-		alignSelf: 'flex-end',
-		alignContent: 'flex-end'
-	},
-	iconMore: {
-		alignSelf: 'flex-end',
-		alignContent: 'flex-end'
-	},
-	iconsLeft: {
-		flex: 1,
-		alignContent: 'flex-start',
-		flexDirection: 'row'
-	},
-	iconsMiddle: {
-		flex: 1,
-		alignContent: 'center',
-		flexDirection: 'row',
-		justifyContent: 'center'
-	},
-	iconsRight: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'flex-end'
-	},
-	tabIcon: {
-		width: 30,
-		height: 30
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -268,13 +214,11 @@ const styles = StyleSheet.create({
 	fullScreenModal: {
 		flex: 1
 	},
-	homepage: {
-		flex: 1,
+	backupAlert: {
 		position: 'absolute',
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0
+		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 60,
+		left: 16,
+		right: 16
 	}
 });
 
@@ -362,6 +306,10 @@ export class BrowserTab extends PureComponent {
 		 */
 		addBookmark: PropTypes.func,
 		/**
+		 * Function to remove bookmarks
+		 */
+		removeBookmark: PropTypes.func,
+		/**
 		 * Array of bookmarks
 		 */
 		bookmarks: PropTypes.array,
@@ -388,13 +336,28 @@ export class BrowserTab extends PureComponent {
 		/**
 		 * Function to update the tab information
 		 */
-		showTabs: PropTypes.func
+		showTabs: PropTypes.func,
+		/**
+		 * Action to set onboarding wizard step
+		 */
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Current onboarding wizard step
+		 */
+		wizardStep: PropTypes.number,
+		/**
+		 * redux flag that indicates if the user set a password
+		 */
+		passwordSet: PropTypes.bool,
+		/**
+		 * redux flag that indicates if the user
+		 * completed the seed phrase backup flow
+		 */
+		seedphraseBackedUp: PropTypes.bool
 	};
 
 	constructor(props) {
 		super(props);
-
-		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
 
 		this.state = {
 			approvedOrigin: false,
@@ -403,9 +366,10 @@ export class BrowserTab extends PureComponent {
 			currentPageUrl: '',
 			currentPageIcon: undefined,
 			entryScriptWeb3: null,
+			homepageScripts: null,
 			fullHostname: '',
 			hostname: '',
-			inputValue: '',
+			inputValue: HOMEPAGE_URL,
 			autocompleteInputValue: '',
 			ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
 			contentId: null,
@@ -414,9 +378,6 @@ export class BrowserTab extends PureComponent {
 			showPhishingModal: false,
 			timeout: false,
 			url: props.initialUrl || HOMEPAGE_URL,
-			scrollAnim,
-			offsetAnim,
-			clampedScroll,
 			contentHeight: 0,
 			forwardEnabled: false,
 			forceReload: false,
@@ -430,38 +391,11 @@ export class BrowserTab extends PureComponent {
 	webview = React.createRef();
 	inputRef = React.createRef();
 	snapshotTimer = null;
-	prevScrollOffset = 0;
 	goingBack = false;
+	wizardScrollAdjusted = false;
 	forwardHistoryStack = [];
 	approvalRequest;
 	accountsRequest;
-
-	clampedScrollValue = 0;
-	offsetValue = 0;
-	scrollValue = 0;
-	scrollStopTimer = null;
-
-	initScrollVariables() {
-		const scrollAnim = Platform.OS === 'ios' ? new Animated.Value(0) : null;
-		const offsetAnim = Platform.OS === 'ios' ? new Animated.Value(0) : null;
-		let clampedScroll = null;
-		if (Platform.OS === 'ios') {
-			clampedScroll = Animated.diffClamp(
-				Animated.add(
-					scrollAnim.interpolate({
-						inputRange: [0, 1],
-						outputRange: [0, 1],
-						extrapolateLeft: 'clamp'
-					}),
-					offsetAnim
-				),
-				0,
-				BOTTOM_NAVBAR_HEIGHT
-			);
-		}
-
-		return { scrollAnim, offsetAnim, clampedScroll };
-	}
 
 	/**
 	 * Check that page metadata is available and call callback
@@ -499,7 +433,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	async componentDidMount() {
-		if (this.state.url !== HOMEPAGE_URL && Platform.OS === 'android' && this.isTabActive()) {
+		if (this.isHomepage(this.state.url) && Platform.OS === 'android' && this.isTabActive()) {
 			this.reload();
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
@@ -633,7 +567,44 @@ export class BrowserTab extends PureComponent {
 			},
 			metamask_isApproved: async ({ hostname }) => ({
 				isApproved: !!this.props.approvedHosts[hostname]
-			})
+			}),
+			metamask_removeFavorite: ({ params }) => {
+				const promise = new Promise((resolve, reject) => {
+					if (!this.isHomepage()) {
+						reject({ error: 'unauthorized' });
+					}
+
+					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
+						{
+							text: strings('browser.cancel'),
+							onPress: () => {
+								resolve({
+									favorites: this.props.bookmarks
+								});
+							},
+							style: 'cancel'
+						},
+						{
+							text: strings('browser.yes'),
+							onPress: () => {
+								const bookmark = { url: params[0] };
+								this.props.removeBookmark(bookmark);
+								resolve({
+									favorites: this.props.bookmarks
+								});
+							}
+						}
+					]);
+				});
+				return promise;
+			},
+			metamask_showTutorial: () => {
+				this.wizardScrollAdjusted = false;
+				this.props.setOnboardingWizardStep(1);
+				this.props.navigation.navigate('WalletView');
+
+				return Promise.resolve({ result: true });
+			}
 		});
 
 		const entryScriptWeb3 =
@@ -647,7 +618,13 @@ export class BrowserTab extends PureComponent {
 				? `'${this.props.network}'`
 				: `'${Networks[this.props.networkType].networkId}'`
 		);
-		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener });
+
+		const homepageScripts = `
+			window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+			window.__mmSearchEngine="${this.props.searchEngine}";
+		`;
+
+		await this.setState({ entryScriptWeb3: updatedentryScriptWeb3 + SPA_urlChangeListener, homepageScripts });
 		Engine.context.AssetsController.hub.on('pendingSuggestedAsset', suggestedAssetMeta => {
 			if (!this.isTabActive()) return false;
 			this.setState({ watchAsset: true, suggestedAssetMeta });
@@ -664,19 +641,7 @@ export class BrowserTab extends PureComponent {
 			this.handleBranchDeeplink(pendingDeeplink);
 		}
 
-		if (Platform.OS === 'ios') {
-			this.state.scrollAnim.addListener(({ value }) => {
-				const diff = value - this.scrollValue;
-				this.scrollValue = value;
-				this.clampedScrollValue = Math.min(Math.max(this.clampedScrollValue + diff, 0), BOTTOM_NAVBAR_HEIGHT);
-			});
-
-			this.state.offsetAnim.addListener(({ value }) => {
-				this.offsetValue = value;
-			});
-		} else {
-			this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
-		}
+		this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
 
 		// Listen to network changes
 		Engine.context.TransactionController.hub.on('networkChange', this.reload);
@@ -713,7 +678,7 @@ export class BrowserTab extends PureComponent {
 	handleAndroidBackPress = () => {
 		if (!this.isTabActive()) return false;
 
-		if (this.state.url === HOMEPAGE_URL && this.props.navigation.getParam('url', null) === null) {
+		if (this.isHomepage() && this.props.navigation.getParam('url', null) === null) {
 			return false;
 		}
 		this.goBack();
@@ -763,11 +728,8 @@ export class BrowserTab extends PureComponent {
 		// Remove all Engine listeners
 		Engine.context.AssetsController.hub.removeAllListeners();
 		Engine.context.TransactionController.hub.removeListener('networkChange', this.reload);
-		if (Platform.OS === 'ios') {
-			this.state.scrollAnim && this.state.scrollAnim.removeAllListeners();
-			this.state.offsetAnim && this.state.offsetAnim.removeAllListeners();
-		} else {
-			this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
+		this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
+		if (Platform.OS === 'android') {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
 		}
 		if (this.unsubscribeFromBranch) {
@@ -820,7 +782,7 @@ export class BrowserTab extends PureComponent {
 	}
 
 	go = async url => {
-		const hasProtocol = url.match(/^[a-z]*:\/\//) || url === HOMEPAGE_URL;
+		const hasProtocol = url.match(/^[a-z]*:\/\//) || this.isHomepage(url);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
 		const urlObj = new URL(sanitizedURL);
 		const { hostname, query, pathname } = urlObj;
@@ -921,58 +883,21 @@ export class BrowserTab extends PureComponent {
 			this.goingBack = false;
 		}, 500);
 
-		if (this.initialUrl && this.state.inputValue !== this.initialUrl) {
-			const { current } = this.webview;
-			current && current.goBack();
-			setTimeout(() => {
-				this.setState({ forwardEnabled: true });
-				this.props.navigation.setParams({
-					...this.props.navigation.state.params,
-					url: this.state.inputValue
-				});
-			}, 100);
-		} else {
-			this.goBackToHomepage();
-		}
+		const { current } = this.webview;
+		current && current.goBack();
+		setTimeout(() => {
+			this.setState({ forwardEnabled: true });
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: this.state.inputValue
+			});
+		}, 100);
 	};
 
-	goBackToHomepage = () => {
+	goBackToHomepage = async () => {
 		this.toggleOptionsIfNeeded();
-		this.props.navigation.setParams({
-			url: null,
-			currentEnsName: null
-		});
-
-		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
-
-		this.setState({
-			approvedOrigin: false,
-			currentEnsName: null,
-			currentPageTitle: '',
-			currentPageUrl: '',
-			currentPageIcon: undefined,
-			fullHostname: '',
-			hostname: '',
-			inputValue: '',
-			autocompleteInputValue: '',
-			contentId: null,
-			contentType: null,
-			ipfsWebsite: false,
-			showApprovalDialog: false,
-			showPhishingModal: false,
-			timeout: false,
-			url: HOMEPAGE_URL,
-			scrollAnim,
-			offsetAnim,
-			clampedScroll,
-			contentHeight: 0,
-			forwardEnabled: false,
-			lastError: null
-		});
-
-		this.updateTabInfo(HOMEPAGE_URL);
-
-		this.initialUrl = null;
+		await this.go(HOMEPAGE_URL);
+		this.reload(true);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 	};
 
@@ -1042,6 +967,11 @@ export class BrowserTab extends PureComponent {
 							Logger.error('Error adding to spotlight', e);
 						}
 					}
+					const homepageScripts = `
+						window.__mmFavorites = ${JSON.stringify(this.props.bookmarks)};
+						window.__mmSearchEngine="${this.props.searchEngine}";
+					`;
+					this.setState({ homepageScripts });
 				}
 			})
 		);
@@ -1112,16 +1042,6 @@ export class BrowserTab extends PureComponent {
 				return;
 			}
 			switch (data.type) {
-				case 'GET_HEIGHT':
-					this.setState({ contentHeight: data.payload.height });
-					// Reset the navbar every time we change the page
-					if (Platform.OS === 'ios') {
-						setTimeout(() => {
-							this.state.scrollAnim.setValue(0);
-							this.state.offsetAnim.setValue(0);
-						}, 100);
-					}
-					break;
 				case 'NAV_CHANGE': {
 					const { url, title } = data.payload;
 					this.setState({
@@ -1132,11 +1052,6 @@ export class BrowserTab extends PureComponent {
 					});
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
 					this.updateTabInfo(data.payload.url);
-					if (Platform.OS === 'ios') {
-						setTimeout(() => {
-							this.resetBottomBarPosition();
-						}, 100);
-					}
 					break;
 				}
 				case 'INPAGE_REQUEST':
@@ -1157,29 +1072,8 @@ export class BrowserTab extends PureComponent {
 		}
 	};
 
-	resetBottomBarPosition() {
-		const { scrollAnim, offsetAnim, clampedScroll } = this.initScrollVariables();
-
-		this.mounted &&
-			this.setState({
-				scrollAnim,
-				offsetAnim,
-				clampedScroll
-			});
-	}
-
 	onPageChange = ({ url }) => {
 		const { ipfsGateway } = this.props;
-		if ((this.goingBack && url === 'about:blank') || (this.initialUrl === url && url === 'about:blank')) {
-			this.goBackToHomepage();
-			return;
-		}
-
-		// Reset the navbar every time we change the page
-		if (Platform.OS === 'ios') {
-			this.resetBottomBarPosition();
-		}
-
 		this.forwardHistoryStack = [];
 		const data = {};
 		const urlObj = new URL(url);
@@ -1237,12 +1131,6 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onLoadEnd = () => {
-		if (Platform.OS === 'ios') {
-			setTimeout(() => {
-				this.state.scrollAnim.setValue(0);
-			}, 100);
-		}
-
 		const { approvedHosts, privacyMode } = this.props;
 		if (!privacyMode || approvedHosts[this.state.fullHostname]) {
 			this.backgroundBridge.enableAccounts();
@@ -1257,16 +1145,18 @@ export class BrowserTab extends PureComponent {
 		}, 500);
 
 		// Let's wait for potential redirects that might break things
-		if (!this.initialUrl || this.initialUrl === HOMEPAGE_URL) {
+		if (!this.initialUrl || this.isHomepage(this.initialUrl)) {
 			setTimeout(() => {
 				this.initialUrl = this.state.inputValue;
 			}, 1000);
 		}
 
-		// We need to get the title of the page and the height
 		const { current } = this.webview;
-		const js = JS_WINDOW_INFORMATION_HEIGHT(Platform.OS);
-		Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		// Inject favorites on the homepage
+		if (this.isHomepage()) {
+			const js = this.state.homepageScripts;
+			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+		}
 	};
 
 	onError = ({ nativeEvent: errorInfo }) => {
@@ -1317,7 +1207,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	renderNonHomeOptions = () => {
-		if (this.state.url === HOMEPAGE_URL) return null;
+		if (this.isHomepage()) return null;
 
 		return (
 			<React.Fragment>
@@ -1341,7 +1231,7 @@ export class BrowserTab extends PureComponent {
 						</Text>
 					</Button>
 				) : null}
-				<Button onPress={this.reload} style={styles.option}>
+				<Button onPress={() => this.reload()} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
@@ -1349,7 +1239,7 @@ export class BrowserTab extends PureComponent {
 						{strings('browser.reload')}
 					</Text>
 				</Button>
-				<Button onPress={this.goBackToHomepage} style={styles.option}>
+				<Button onPress={() => this.goBackToHomepage()} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="home" size={18} style={styles.optionIcon} />
 					</View>
@@ -1385,116 +1275,21 @@ export class BrowserTab extends PureComponent {
 		);
 	};
 
-	handleScroll = e => {
-		if (Platform.OS === 'android') return;
-
-		if (e.contentSize.height < Dimensions.get('window').height - BOTTOM_NAVBAR_HEIGHT) {
-			return;
-		}
-
-		if (this.state.progress < 1) {
-			return;
-		}
-
-		const newOffset = e.contentOffset.y;
-
-		// Avoid wrong position at the beginning
-		if ((this.state.scrollAnim._value === 0 && newOffset > BOTTOM_NAVBAR_HEIGHT) || newOffset <= 0) {
-			return;
-		}
-
-		// Avoid blocking bottom content
-		if (this.state.contentHeight - e.layoutMeasurement.height - newOffset < BOTTOM_NAVBAR_HEIGHT) {
-			return;
-		}
-
-		if (newOffset > this.state.contentHeight - BOTTOM_NAVBAR_HEIGHT) {
-			return;
-		}
-
-		this.state.scrollAnim.setValue(newOffset);
-
-		this.scrollStopTimer = setTimeout(() => {
-			if (Math.abs(this.scrollValue - newOffset) > 1) {
-				this.onScrollStop();
-			}
-		}, 200);
-	};
-
-	onMomentumScrollBegin = () => {
-		if (Platform.OS === 'android') return;
-		clearTimeout(this.scrollStopTimer);
-	};
-
-	onScrollStop = () => {
-		if (Platform.OS === 'android') return;
-		const toValue =
-			this.clampedScrollValue > BOTTOM_NAVBAR_HEIGHT / 2
-				? this.offsetValue + BOTTOM_NAVBAR_HEIGHT
-				: this.offsetValue - BOTTOM_NAVBAR_HEIGHT;
-
-		this.animateBottomNavbar(toValue);
-	};
-
-	animateBottomNavbar(toValue) {
-		Animated.timing(this.state.offsetAnim, {
-			toValue,
-			duration: 300,
-			useNativeDriver: true
-		}).start();
-	}
-
 	showTabs = () => {
 		this.props.showTabs();
 	};
 
-	renderBottomBar = (canGoBack, canGoForward) => {
-		const { clampedScroll } = this.state;
-
-		const bottomBarPosition = clampedScroll.interpolate({
-			inputRange: [0, BOTTOM_NAVBAR_HEIGHT],
-			outputRange: [0, BOTTOM_NAVBAR_HEIGHT],
-			extrapolate: 'clamp'
-		});
-
-		return (
-			<Animated.View style={[styles.bottomBar, { transform: [{ translateY: bottomBarPosition }] }]}>
-				<View style={styles.iconsLeft}>
-					<Icon
-						name="angle-left"
-						disabled={!canGoBack}
-						onPress={this.goBack}
-						size={40}
-						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
-					/>
-					<Icon
-						disabled={!canGoForward}
-						name="angle-right"
-						onPress={this.goForward}
-						size={40}
-						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
-					/>
-				</View>
-				<View style={styles.iconsMiddle}>
-					<TabCountIcon onPress={this.showTabs} style={styles.tabIcon} />
-				</View>
-				<View style={styles.iconsRight}>
-					<IonIcon
-						name="ios-search"
-						onPress={this.showUrlModal}
-						size={30}
-						style={[styles.icon, styles.iconSearch]}
-					/>
-					<MaterialIcon
-						name="more-vert"
-						onPress={this.toggleOptions}
-						size={32}
-						style={[styles.icon, styles.iconMore]}
-					/>
-				</View>
-			</Animated.View>
-		);
-	};
+	renderBottomBar = (canGoBack, canGoForward) => (
+		<BrowserBottomBar
+			canGoBack={canGoBack}
+			canGoForward={canGoForward}
+			goForward={this.goForward}
+			goBack={this.goBack}
+			showTabs={this.showTabs}
+			showUrlModal={this.showUrlModal}
+			toggleOptions={this.toggleOptions}
+		/>
+	);
 
 	isHttps() {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
@@ -1740,12 +1535,34 @@ export class BrowserTab extends PureComponent {
 		return activeTab === id;
 	};
 
+	isHomepage = (url = null) => {
+		const currentPage = url || this.state.inputValue;
+		return getHost(currentPage) === getHost(HOMEPAGE_URL);
+	};
+
+	renderOnboardingWizard = () => {
+		const { wizardStep } = this.props;
+		if ([6, 7].includes(wizardStep)) {
+			if (!this.wizardScrollAdjusted) {
+				setTimeout(() => {
+					this.reload(true);
+				}, 1);
+				this.wizardScrollAdjusted = true;
+			}
+			return <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.homepageRef} />;
+		}
+		return null;
+	};
+
+	backupAlertPress = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
+	};
+
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
-
-		const canGoBackIOS = Platform.OS === 'ios' && url === HOMEPAGE_URL ? false : this.canGoBack();
+		const isHomepage = this.isHomepage();
+		const canGoBack = isHomepage ? false : this.canGoBack();
 		const canGoForward = this.canGoForward();
-
 		const isHidden = !this.isTabActive();
 
 		return (
@@ -1753,42 +1570,40 @@ export class BrowserTab extends PureComponent {
 				style={[styles.wrapper, isHidden && styles.hide]}
 				{...(Platform.OS === 'android' ? { collapsable: false } : {})}
 			>
-				{activated && !forceReload && (
-					<Web3Webview
-						// eslint-disable-next-line react/jsx-no-bind
-						renderError={() => (
-							<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
-						)}
-						injectedOnStartLoadingJavaScript={entryScriptWeb3}
-						onProgress={this.onLoadProgress}
-						onLoadStart={this.onLoadStart}
-						onLoadEnd={this.onLoadEnd}
-						onError={this.onError}
-						onMessage={this.onMessage}
-						onNavigationStateChange={this.onPageChange}
-						ref={this.webview}
-						source={{ uri: url }}
-						style={styles.webview}
-						onScroll={this.handleScroll}
-						onMomentumScrollBegin={this.onMomentumScrollBegin}
-						scrollEventThrottle={1}
-						userAgent={this.getUserAgent()}
-						sendCookies
-						javascriptEnabled
-					/>
-				)}
+				<View style={styles.webview}>
+					{activated && !forceReload && (
+						<Web3Webview
+							// eslint-disable-next-line react/jsx-no-bind
+							renderError={() => (
+								<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
+							)}
+							injectedOnStartLoadingJavaScript={entryScriptWeb3}
+							onProgress={this.onLoadProgress}
+							onLoadStart={this.onLoadStart}
+							onLoadEnd={this.onLoadEnd}
+							onError={this.onError}
+							onMessage={this.onMessage}
+							onNavigationStateChange={this.onPageChange}
+							ref={this.webview}
+							source={{ uri: url }}
+							style={styles.webview}
+							userAgent={this.getUserAgent()}
+							sendCookies
+							javascriptEnabled
+						/>
+					)}
+				</View>
 				{this.renderProgressBar()}
-				{!isHidden && url === HOMEPAGE_URL ? (
-					<View style={styles.homepage}>
-						<BrowserHome goToUrl={this.go} navigation={this.props.navigation} />
-					</View>
-				) : null}
 				{!isHidden && this.renderUrlModal()}
 				{!isHidden && this.renderApprovalModal()}
 				{!isHidden && this.renderPhishingModal()}
 				{!isHidden && this.renderWatchAssetModal()}
 				{!isHidden && this.renderOptions()}
-				{!isHidden && Platform.OS === 'ios' ? this.renderBottomBar(canGoBackIOS, canGoForward) : null}
+				{!isHidden && this.renderBottomBar(canGoBack, canGoForward)}
+				{!isHidden && this.renderOnboardingWizard()}
+				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
+					<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
+				)}
 			</View>
 		);
 	}
@@ -1804,16 +1619,21 @@ const mapStateToProps = state => ({
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
-	activeTab: state.browser.activeTab
+	activeTab: state.browser.activeTab,
+	wizardStep: state.wizard.step,
+	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	passwordSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({
 	approveHost: hostname => dispatch(approveHost(hostname)),
 	addBookmark: bookmark => dispatch(addBookmark(bookmark)),
+	removeBookmark: bookmark => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
 	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
-	toggleNetworkModal: () => dispatch(toggleNetworkModal())
+	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });
 
 export default connect(

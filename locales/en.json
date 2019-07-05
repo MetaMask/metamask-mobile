@@ -458,16 +458,6 @@
 		"gas_price": "Gas Price: (GWEI)",
 		"warning_gas_limit": "Gas limit must be greater than 20999 and less than 7920027"
 	},
-	"home_page": {
-		"lets_get_started": "Let's get started!",
-		"web3_awaits": "The decentralized web awaits",
-		"search_placeholder": "Search or type URL",
-		"backup_alert_title": "Protect your funds",
-		"backup_alert_message": "Tap to save your seed phrase",
-		"bookmarks": "Bookmarks",
-		"no_bookmarks": "You have no favorites Dapps yet",
-		"remove_bookmark_title": "Do you want to remove this site from your favorites?"
-	},
 	"browser": {
 		"title": "Browser",
 		"reload": "Reload",
@@ -496,7 +486,12 @@
 		"tabs_done": "Done",
 		"no_tabs_title": "No Open Tabs",
 		"no_tabs_desc": "To browse the decentralized web, add a new tab",
-		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name"
+		"failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
+		"remove_bookmark_title": "Remove favorite",
+		"remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
+		"yes": "Yes",
+		"backup_alert_title": "Protect your funds",
+		"backup_alert_message": "Tap to save your seed phrase"
 	},
 	"add_favorite": {
 		"title": "Add Favorite",

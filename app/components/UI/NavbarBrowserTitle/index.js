@@ -5,8 +5,6 @@ import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native
 import { colors, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { toggleNetworkModal } from '../../../actions/modals';
-import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -75,23 +73,15 @@ class NavbarBrowserTitle extends Component {
 		/**
 		 * Boolean that specifies if it is a secure website
 		 */
-		https: PropTypes.bool,
-		/**
-		 * Action that toggles the network modal
-		 */
-		toggleNetworkModal: PropTypes.func
+		https: PropTypes.bool
 	};
 
 	onTitlePress = () => {
-		if (this.props.hostname === strings('browser.title')) {
-			this.props.toggleNetworkModal();
-		} else {
-			this.props.navigation.setParams({
-				...this.props.navigation.state.params,
-				url: this.props.url,
-				showUrlModal: true
-			});
-		}
+		this.props.navigation.setParams({
+			...this.props.navigation.state.params,
+			url: this.props.url,
+			showUrlModal: true
+		});
 	};
 
 	render = () => {
@@ -127,10 +117,5 @@ class NavbarBrowserTitle extends Component {
 }
 
 const mapStateToProps = state => ({ network: state.engine.backgroundState.NetworkController });
-const mapDispatchToProps = dispatch => ({
-	toggleNetworkModal: () => dispatch(toggleNetworkModal())
-});
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(NavbarBrowserTitle);
+
+export default connect(mapStateToProps)(NavbarBrowserTitle);

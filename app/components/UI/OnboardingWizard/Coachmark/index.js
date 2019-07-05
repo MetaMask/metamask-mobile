@@ -163,7 +163,7 @@ export default class Coachmark extends Component {
 	componentDidMount = () => {
 		Animated.timing(this.opacity, {
 			toValue: 1,
-			duration: 1000,
+			duration: 500,
 			useNativeDriver: true,
 			isInteraction: false
 		}).start();
@@ -172,7 +172,7 @@ export default class Coachmark extends Component {
 	componentWillUnmount = () => {
 		Animated.timing(this.opacity, {
 			toValue: 0,
-			duration: 1000,
+			duration: 500,
 			useNativeDriver: true,
 			isInteraction: false
 		}).start();

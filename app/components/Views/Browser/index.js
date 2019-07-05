@@ -8,6 +8,7 @@ import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
 import BrowserTab from '../BrowserTab';
+import AppConstants from '../../../core/AppConstants';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -83,7 +84,7 @@ class Browser extends PureComponent {
 				this.tabs[tab.id] = React.createElement(BrowserTab, {
 					id: tab.id,
 					key: `tab_${tab.id}`,
-					initialUrl: tab.url || 'about:blank',
+					initialUrl: tab.url || AppConstants.HOMEPAGE_URL,
 					updateTabInfo: (url, tabID) => this.updateTabInfo(url, tabID),
 					showTabs: () => this.showTabs(),
 					newTab: url => this.newTab(url)
@@ -133,7 +134,7 @@ class Browser extends PureComponent {
 	};
 
 	newTab = url => {
-		this.props.createNewTab(url || 'about:blank');
+		this.props.createNewTab(url || AppConstants.HOMEPAGE_URL);
 		setTimeout(() => {
 			const { tabs } = this.props;
 			this.switchToTab(tabs[tabs.length - 1]);
