@@ -1,0 +1,98 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OfflineMode should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <SafeAreaView
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+  >
+    <Image
+      source={
+        Object {
+          "testUri": "../../../app/images/astronaut.png",
+        }
+      }
+      style={
+        Object {
+          "alignSelf": "center",
+          "height": 200,
+          "justifyContent": "center",
+          "marginBottom": 10,
+          "marginTop": 80,
+          "width": 200,
+        }
+      }
+    />
+    <View
+      style={
+        Object {
+          "alignSelf": "center",
+          "height": 125,
+          "justifyContent": "center",
+          "width": 300,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontSize": 17,
+            "justifyContent": "center",
+            "marginBottom": 10,
+            "textAlign": "center",
+          }
+        }
+      >
+        You're offline
+      </Text>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "flex": 1,
+            "fontSize": 12,
+            "justifyContent": "center",
+            "textAlign": "center",
+          }
+        }
+      >
+        Check your internet connection and try again
+      </Text>
+      <StyledButton
+        containerStyle={
+          Object {
+            "alignSelf": "center",
+            "height": 50,
+            "width": 150,
+          }
+        }
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        type="normal"
+      >
+        Try again
+      </StyledButton>
+    </View>
+  </SafeAreaView>
+</View>
+`;
