@@ -221,6 +221,53 @@ exports[`NetworksSettings should render correctly 1`] = `
         </View>
       </View>
     </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="network-3"
+      onLongPress={[Function]}
+      onPress={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "borderRadius": 100,
+                "height": 15,
+                "marginRight": 16,
+                "marginTop": 2,
+                "width": 15,
+              },
+              Object {
+                "backgroundColor": "#3099f2",
+              },
+            ]
+          }
+        />
+        <View>
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+              }
+            }
+          >
+            Goerli Test Network
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
     <View>
       <Text
         style={
