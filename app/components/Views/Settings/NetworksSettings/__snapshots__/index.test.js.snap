@@ -200,7 +200,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 "width": 15,
               },
               Object {
-                "backgroundColor": "#3099f2",
+                "backgroundColor": "#f6c343",
               },
             ]
           }
@@ -216,7 +216,7 @@ exports[`NetworksSettings should render correctly 1`] = `
               }
             }
           >
-            Goerli Test Network
+            Rinkeby Test Network
           </Text>
         </View>
       </View>
@@ -247,7 +247,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 "width": 15,
               },
               Object {
-                "backgroundColor": "#f6c343",
+                "backgroundColor": "#3099f2",
               },
             ]
           }
@@ -263,7 +263,7 @@ exports[`NetworksSettings should render correctly 1`] = `
               }
             }
           >
-            Rinkeby Test Network
+            Goerli Test Network
           </Text>
         </View>
       </View>

@@ -331,7 +331,7 @@ exports[`NetworkList should render correctly 1`] = `
               "width": 15,
             },
             Object {
-              "backgroundColor": "#3099f2",
+              "backgroundColor": "#f6c343",
             },
           ]
         }
@@ -354,7 +354,7 @@ exports[`NetworkList should render correctly 1`] = `
             }
           }
         >
-          Goerli Test Network
+          Rinkeby Test Network
         </Text>
       </View>
     </TouchableOpacity>
@@ -392,7 +392,7 @@ exports[`NetworkList should render correctly 1`] = `
               "width": 15,
             },
             Object {
-              "backgroundColor": "#f6c343",
+              "backgroundColor": "#3099f2",
             },
           ]
         }
@@ -415,7 +415,7 @@ exports[`NetworkList should render correctly 1`] = `
             }
           }
         >
-          Rinkeby Test Network
+          Goerli Test Network
         </Text>
       </View>
     </TouchableOpacity>
