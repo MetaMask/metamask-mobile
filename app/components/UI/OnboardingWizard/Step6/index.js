@@ -29,11 +29,7 @@ class Step6 extends Component {
 		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func,
-		/**
-		 * Coachmark ref to get position
-		 */
-		coachmarkRef: PropTypes.object
+		setOnboardingWizardStep: PropTypes.func
 	};
 
 	state = {
@@ -44,19 +40,15 @@ class Step6 extends Component {
 	componentDidMount() {
 		// As we're changing the view on this step, we have to make sure Browser is rendered
 		setTimeout(() => {
-			this.getPosition(this.props.coachmarkRef.searchWrapperRef);
-		}, 100);
+			this.getPosition();
+		}, 1200);
 	}
 
 	/**
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
-	getPosition = ref => {
-		ref &&
-			ref.current &&
-			ref.current.measure((ox, oy, width, height, px, py) => {
-				this.setState({ coachmarkTop: py + height, ready: true });
-			});
+	getPosition = () => {
+		this.setState({ coachmarkTop: 300, ready: true });
 	};
 
 	/**

@@ -33,14 +33,17 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       onPress={[Function]}
       size={40}
       style={
-        Object {
-          "alignSelf": "center",
-          "color": "#6a737d",
-          "height": 28,
-          "lineHeight": 30,
-          "textAlign": "center",
-          "width": 36,
-        }
+        Array [
+          Object {
+            "alignSelf": "center",
+            "color": "#6a737d",
+            "height": 28,
+            "lineHeight": 30,
+            "textAlign": "center",
+            "width": 36,
+          },
+          Object {},
+        ]
       }
     />
     <Icon
@@ -50,14 +53,19 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       onPress={[Function]}
       size={40}
       style={
-        Object {
-          "alignSelf": "center",
-          "color": "#d6d9dc",
-          "height": 28,
-          "lineHeight": 30,
-          "textAlign": "center",
-          "width": 36,
-        }
+        Array [
+          Object {
+            "alignSelf": "center",
+            "color": "#6a737d",
+            "height": 28,
+            "lineHeight": 30,
+            "textAlign": "center",
+            "width": 36,
+          },
+          Object {
+            "color": "#d6d9dc",
+          },
+        ]
       }
     />
   </View>

@@ -16,7 +16,6 @@ import {
 } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import Web3Webview from 'react-native-web3-webview';
-import ElevatedView from 'react-native-elevated-view';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -57,6 +56,7 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
+import BackupAlert from '../../UI/BackupAlert';
 
 const { HOMEPAGE_URL } = AppConstants;
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -213,6 +213,12 @@ const styles = StyleSheet.create({
 	},
 	fullScreenModal: {
 		flex: 1
+	},
+	backupAlert: {
+		position: 'absolute',
+		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 20,
+		left: 16,
+		right: 16
 	}
 });
 
@@ -386,6 +392,7 @@ export class BrowserTab extends PureComponent {
 	inputRef = React.createRef();
 	snapshotTimer = null;
 	goingBack = false;
+	wizardScrollAdjusted = false;
 	forwardHistoryStack = [];
 	approvalRequest;
 	accountsRequest;
@@ -591,6 +598,7 @@ export class BrowserTab extends PureComponent {
 				return promise;
 			},
 			metamask_showTutorial: () => {
+				this.wizardScrollAdjusted = false;
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('WalletView');
 
@@ -1533,11 +1541,20 @@ export class BrowserTab extends PureComponent {
 
 	renderOnboardingWizard = () => {
 		const { wizardStep } = this.props;
-		return (
-			[6, 7].includes(wizardStep) && (
-				<OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.homepageRef} />
-			)
-		);
+		if ([6, 7].includes(wizardStep)) {
+			if (!this.wizardScrollAdjusted) {
+				setTimeout(() => {
+					this.reload(true);
+				}, 1);
+				this.wizardScrollAdjusted = true;
+			}
+			return <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.homepageRef} />;
+		}
+		return null;
+	};
+
+	backupAlertPress = () => {
+		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
 	render() {
@@ -1584,19 +1601,7 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderBottomBar(canGoBack, canGoForward)}
 				{!isHidden && this.renderOnboardingWizard()}
 				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
-					<TouchableOpacity style={styles.backupAlert} onPress={this.backupAlertPress}>
-						<ElevatedView elevation={4} style={styles.backupAlertWrapper}>
-							<View style={styles.backupAlertIconWrapper}>
-								<Icon name="info-outline" style={styles.backupAlertIcon} />
-							</View>
-							<View>
-								<Text style={styles.backupAlertTitle}>{strings('home_page.backup_alert_title')}</Text>
-								<Text style={styles.backupAlertMessage}>
-									{strings('home_page.backup_alert_message')}
-								</Text>
-							</View>
-						</ElevatedView>
-					</TouchableOpacity>
+					<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
 				)}
 			</View>
 		);

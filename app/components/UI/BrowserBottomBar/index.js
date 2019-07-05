@@ -111,14 +111,14 @@ export default class BrowserBottomBar extends PureComponent {
 						disabled={!canGoBack}
 						onPress={goBack}
 						size={Platform.OS === 'android' ? 32 : 40}
-						style={{ ...styles.icon, ...(!canGoBack ? styles.disabledIcon : {}) }}
+						style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]}
 					/>
 					<Icon
 						disabled={!canGoForward}
 						name="angle-right"
 						onPress={goForward}
 						size={Platform.OS === 'android' ? 32 : 40}
-						style={{ ...styles.icon, ...(!canGoForward ? styles.disabledIcon : {}) }}
+						style={[styles.icon, !canGoForward ? styles.disabledIcon : {}]}
 					/>
 				</View>
 				<View style={styles.iconsMiddle}>
