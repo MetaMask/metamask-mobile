@@ -127,7 +127,7 @@
     "react-native-tcp": "3.3.0",
     "react-native-vector-icons": "6.4.2",
     "react-native-view-shot": "github:brunobar79/react-native-view-shot#androidx",
-    "react-native-web3-webview": "github:brunobar79/react-native-web3-webview#androidx",
+    "react-native-web3-webview": "2.0.0",
     "react-navigation": "3.3.2",
     "react-redux": "5.1.1",
     "readable-stream": "1.0.33",
