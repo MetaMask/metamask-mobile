@@ -28,7 +28,6 @@ import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
 
 const KEYBOARD_OFFSET = 120;
-const DAI_ADDRESS = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359';
 
 const styles = StyleSheet.create({
 	root: {
@@ -298,7 +297,7 @@ class Deposit extends Component {
 				</View>
 				<View style={[styles.addressGraphic, styles.toGraphic]}>
 					<View style={styles.daiLogoWrapper}>
-						<AssetIcon logo={contractMap[DAI_ADDRESS].logo} customStyle={styles.daiLogo} />
+						<AssetIcon logo={contractMap[AppConstants.DAI_ADDRESS].logo} customStyle={styles.daiLogo} />
 					</View>
 					<Text style={styles.directionText} numberOfLines={1}>
 						{strings('payment_channel.insta_pay')}

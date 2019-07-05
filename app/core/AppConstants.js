@@ -19,5 +19,6 @@ export default {
 			1: '0xdfa6edAe2EC0cF1d4A60542422724A48195A5071'
 		}
 	},
-	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link'
+	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+	DAI_ADDRESS: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359'
 };

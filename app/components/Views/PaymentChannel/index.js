@@ -29,8 +29,9 @@ import Networks from '../../../util/networks';
 import Modal from 'react-native-modal';
 import PaymentChannelWelcome from './PaymentChannelWelcome';
 import AsyncStorage from '@react-native-community/async-storage';
+import AppConstants from '../../../core/AppConstants';
 
-const DAI_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
+const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
