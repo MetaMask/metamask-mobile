@@ -6,6 +6,7 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import DeviceSize from '../../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	main: {
@@ -44,7 +45,7 @@ class Step7 extends Component {
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
 	getPosition = () => {
-		const position = Platform.OS === 'android' ? 85 : 120;
+		const position = Platform.OS === 'android' ? 85 : DeviceSize.isIphoneX() ? 120 : 100;
 		this.setState({ coachmarkTop: position });
 	};
 
