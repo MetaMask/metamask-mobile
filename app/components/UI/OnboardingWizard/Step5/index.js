@@ -50,7 +50,9 @@ class Step5 extends Component {
 	};
 
 	componentDidMount = () => {
-		this.getPosition(this.props.coachmarkRef);
+		setTimeout(() => {
+			this.getPosition(this.props.coachmarkRef);
+		}, 300);
 	};
 
 	/**
@@ -99,6 +101,8 @@ class Step5 extends Component {
 	);
 
 	render() {
+		if (this.state.coachmarkTop === 0) return null;
+
 		return (
 			<View style={styles.main}>
 				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>

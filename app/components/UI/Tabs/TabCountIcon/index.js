@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Platform, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
@@ -45,17 +45,11 @@ class TabCountIcon extends Component {
 
 	render() {
 		const { tabCount, onPress, style } = this.props;
-		if (Platform.OS === 'ios') {
-			return (
-				<TouchableOpacity style={[styles.tabIcon, style]} onPress={onPress}>
-					<Text styles={styles.tabCount}>{tabCount}</Text>
-				</TouchableOpacity>
-			);
-		}
+
 		return (
-			<View style={[styles.tabIcon, style]}>
+			<TouchableOpacity style={[styles.tabIcon, style]} onPress={onPress}>
 				<Text styles={styles.tabCount}>{tabCount}</Text>
-			</View>
+			</TouchableOpacity>
 		);
 	}
 }

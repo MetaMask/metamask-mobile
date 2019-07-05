@@ -3,7 +3,6 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {
 	Alert,
 	Text,
@@ -23,13 +22,14 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import TabCountIcon from '../../UI/Tabs/TabCountIcon';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
-const HOMEPAGE_URL = 'about:blank';
+import { getHost } from '../../../util/browser';
+
+const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = event => {
 	InteractionManager.runAfterInteractions(() => {
@@ -103,19 +103,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		flex: 1
 	},
-	browserRightButtonAndroid: {
-		flex: 1,
-		width: 112,
-		flexDirection: 'row'
-	},
 	browserRightButton: {
-		flex: 1
-	},
-	browserMoreIconAndroid: {
-		alignItems: 'center',
-		width: 36,
-		paddingTop: 10,
-		marginLeft: -7
+		flex: 1,
+		marginRight: Platform.OS === 'android' ? 10 : 0
 	},
 	tabIconAndroidWrapper: {
 		alignItems: 'center',
@@ -303,7 +293,10 @@ export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
 	let hostname = null;
 	let isHttps = false;
-	if (url && url !== HOMEPAGE_URL) {
+
+	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
+
+	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
 		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
@@ -335,31 +328,8 @@ export function getBrowserViewNavbarOptions(navigation) {
 		),
 		headerTitle: <NavbarBrowserTitle navigation={navigation} url={url} hostname={hostname} https={isHttps} />,
 		headerRight: (
-			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
+			<View style={styles.browserRightButton}>
 				<AccountRightButton />
-				{Platform.OS === 'android' ? (
-					<React.Fragment>
-						<TouchableOpacity
-							// eslint-disable-next-line
-							onPress={() => {
-								navigation.navigate('BrowserView', { ...navigation.state.params, showTabs: true });
-							}}
-							style={styles.tabIconAndroidWrapper}
-						>
-							<TabCountIcon style={styles.tabIconAndroid} />
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							// eslint-disable-next-line
-							onPress={() => {
-								navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
-							}}
-							style={styles.browserMoreIconAndroid}
-						>
-							<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
-						</TouchableOpacity>
-					</React.Fragment>
-				) : null}
 			</View>
 		)
 	};
