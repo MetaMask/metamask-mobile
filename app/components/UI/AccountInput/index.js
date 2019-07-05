@@ -179,12 +179,12 @@ class AccountInput extends Component {
 	state = {
 		address: undefined,
 		ensRecipient: undefined,
-		value: undefined
+		value: undefined,
+		inputWidth: Platform.OS === 'android' ? '99%' : undefined
 	};
 
 	componentDidMount = async () => {
 		const { provider } = Engine.context.NetworkController;
-
 		const { address, network, ensRecipient } = this.props;
 
 		const networkHasEnsSupport = this.getNetworkEnsSupport();
@@ -200,6 +200,12 @@ class AccountInput extends Component {
 		} else if (address) {
 			this.setState({ value: address, address });
 		}
+
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		this.state.inputWidth &&
+			setTimeout(() => {
+				this.setState({ inputWidth: '100%' });
+			}, 100);
 	};
 
 	isEnsName = recipient => {
@@ -384,7 +390,7 @@ class AccountInput extends Component {
 								onChangeText={this.onChange}
 								placeholder={placeholder}
 								spellCheck={false}
-								style={styles.input}
+								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
 								value={value}
 								onBlur={this.onBlur}
 								onFocus={this.onInputFocus}

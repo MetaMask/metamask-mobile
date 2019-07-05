@@ -26,9 +26,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that wraps the wraps the "Send" screen
+ * View that wraps the wraps the "PaymentChannelSend" screen
  */
-class Send extends Component {
+class PaymentChannelSend extends Component {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
 
 	static propTypes = {
@@ -159,4 +159,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(Send);
+)(PaymentChannelSend);
