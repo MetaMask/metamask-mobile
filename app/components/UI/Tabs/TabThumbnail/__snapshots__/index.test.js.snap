@@ -55,12 +55,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
       >
-        <Image
-          source={
-            Object {
-              "testUri": "../../../app/images/fox.png",
-            }
-          }
+        <WebsiteIcon
           style={
             Object {
               "alignSelf": "flex-start",
@@ -71,7 +66,9 @@ exports[`TabThumbnail should render correctly 1`] = `
               "width": 22,
             }
           }
-          title="about:blank"
+          title=""
+          transparent={true}
+          url="about:blank"
         />
         <Text
           numberOfLines={1}
@@ -86,9 +83,7 @@ exports[`TabThumbnail should render correctly 1`] = `
               "marginTop": 0,
             }
           }
-        >
-          New tab
-        </Text>
+        />
       </View>
       <TouchableOpacity
         activeOpacity={0.2}

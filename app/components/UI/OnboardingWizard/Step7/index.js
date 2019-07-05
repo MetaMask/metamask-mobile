@@ -1,15 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, View, Text, StyleSheet, Dimensions } from 'react-native';
+import { Platform, View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import DeviceSize from '../../../../util/DeviceSize';
 
-const HEIGHT = Dimensions.get('window').height;
-const INDICATOR_HEIGHT = 10;
-const NAVBAR_HEIGHT = 40;
 const styles = StyleSheet.create({
 	main: {
 		flex: 1
@@ -19,7 +17,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		marginHorizontal: 45
+		marginHorizontal: 35
 	}
 });
 
@@ -32,32 +30,23 @@ class Step7 extends Component {
 		/**
 		 * Callback to call when closing
 		 */
-		onClose: PropTypes.func,
-		/**
-		 * Coachmark ref to get position
-		 */
-		coachmarkRef: PropTypes.object
+		onClose: PropTypes.func
 	};
 
 	state = {
-		coachmarkBottom: 0
+		coachmarkTop: 0
 	};
 
 	componentDidMount() {
-		this.getPosition(this.props.coachmarkRef.homePageContentRef);
+		this.getPosition();
 	}
 
 	/**
 	 * If component ref defined, calculate its position and position coachmark accordingly
 	 */
-	getPosition = ref => {
-		ref &&
-			ref.current &&
-			ref.current.measure((fx, fy, width, height, px, py) => {
-				const coachmarkBottom =
-					HEIGHT - py - NAVBAR_HEIGHT + (Platform.OS === 'ios' ? +INDICATOR_HEIGHT : -INDICATOR_HEIGHT);
-				this.setState({ coachmarkBottom });
-			});
+	getPosition = () => {
+		const position = Platform.OS === 'android' ? 85 : DeviceSize.isIphoneX() ? 120 : 100;
+		this.setState({ coachmarkTop: position });
 	};
 
 	/**
@@ -88,7 +77,7 @@ class Step7 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={[styles.coachmarkContainer, { bottom: this.state.coachmarkBottom }]}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step7.title')}
 						content={this.content()}

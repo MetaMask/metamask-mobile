@@ -22,16 +22,20 @@ export default class SimpleWebview extends Component {
 
 	share = () => {
 		const { navigation } = this.props;
-		const uri = navigation && navigation.getParam('url', 'about:blank');
-		Share.open({
-			url: uri
-		}).catch(err => {
-			Logger.log('Error while trying to share simple web view', err);
-		});
+		const url = navigation && navigation.getParam('url', null);
+		if (url) {
+			Share.open({
+				url
+			}).catch(err => {
+				Logger.log('Error while trying to share simple web view', err);
+			});
+		}
 	};
 
 	render() {
-		const uri = this.props.navigation.getParam('url', 'about:blank');
-		return <Web3Webview source={{ uri }} />;
+		const uri = this.props.navigation.getParam('url', null);
+		if (uri) {
+			return <Web3Webview source={{ uri }} />;
+		}
 	}
 }
