@@ -48,7 +48,7 @@ const NetworkList = {
 export default NetworkList;
 
 export function getAllNetworks() {
-	return ['mainnet', 'ropsten', 'kovan', 'goerli', 'rinkeby'];
+	return ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
 }
 
 export function getNetworkTypeById(id) {
