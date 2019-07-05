@@ -487,7 +487,7 @@ export class BrowserTab extends PureComponent {
 				resolve({
 					meta: {
 						title: this.state.currentPageTitle || '',
-						url: this.state.currentPageUrl
+						url: this.state.currentPageUrl || ''
 					}
 				})
 			);
@@ -581,7 +581,8 @@ export class BrowserTab extends PureComponent {
 					// Otherwise we don't get enough time to load the metadata
 					// (title, icon, etc)
 
-					setTimeout(() => {
+					setTimeout(async () => {
+						await this.getPageMeta();
 						this.setState({ showApprovalDialog: true });
 					}, 1000);
 				}
