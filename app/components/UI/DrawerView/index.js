@@ -45,11 +45,10 @@ import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
-
-const CONNEXT_SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -498,7 +497,7 @@ class DrawerView extends Component {
 
 	goToPaymentChannel = () => {
 		const { providerType } = this.props;
-		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
+		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
 			this.props.navigation.navigate('PaymentChannelView');
 		} else {
 			Alert.alert(

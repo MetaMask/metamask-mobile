@@ -8,7 +8,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-const CONNEXT_SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -75,7 +75,7 @@ class ExperimentalSettings extends Component {
 
 	goToPaymentChannels = () => {
 		const { provider } = Engine.context.NetworkController.state;
-		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
+		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			this.props.navigation.navigate('PaymentChannelView');
 		} else {
 			Alert.alert(
