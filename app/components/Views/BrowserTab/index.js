@@ -1153,7 +1153,7 @@ export class BrowserTab extends PureComponent {
 		const { current } = this.webview;
 		// Inject favorites on the homepage
 		if (this.isHomepage()) {
-			const js = this.state.homepageScripts + this.state.entryScriptWeb3;
+			const js = this.state.homepageScripts;
 			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
 		}
 	};
