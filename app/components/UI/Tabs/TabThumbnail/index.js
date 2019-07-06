@@ -6,8 +6,9 @@ import WebsiteIcon from '../../WebsiteIcon';
 import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { colors, fontStyles } from '../../../../styles/common';
-import URL from 'url-parse';
 import DeviceSize from '../../../../util/DeviceSize';
+import AppConstants from '../../../../core/AppConstants';
+import { getHost } from '../../../../util/browser';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const HOMEPAGE_URL = 'about:blank';
+const { HOMEPAGE_URL } = AppConstants;
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 /**
@@ -128,17 +129,13 @@ export default class TabThumbnail extends Component {
 		onSwitch: PropTypes.func
 	};
 
-	getHostName = () => {
-		const urlObj = new URL(this.props.tab.url);
-		return urlObj.hostname.toLowerCase().replace('www.', '');
-	};
-
 	getContainer = () => (Platform.OS === 'android' ? View : ElevatedView);
 
 	render() {
 		const { isActiveTab, tab, onClose, onSwitch } = this.props;
 		const Container = this.getContainer();
-		const hostname = this.getHostName();
+		const hostname = getHost(tab.url);
+		const isHomepage = hostname === getHost(HOMEPAGE_URL);
 
 		return (
 			<Container style={styles.checkWrapper} elevation={8}>
@@ -148,13 +145,13 @@ export default class TabThumbnail extends Component {
 				>
 					<View style={styles.tabHeader}>
 						<View style={styles.titleButton}>
-							{tab.url !== HOMEPAGE_URL ? (
+							{!isHomepage ? (
 								<WebsiteIcon transparent style={styles.tabFavicon} title={hostname} url={tab.url} />
 							) : (
 								<Image style={styles.tabFavicon} title={tab.url} source={METAMASK_FOX} />
 							)}
 							<Text style={styles.tabSiteName} numberOfLines={1}>
-								{tab.url === HOMEPAGE_URL ? strings('browser.new_tab') : hostname}
+								{isHomepage ? strings('browser.new_tab') : hostname}
 							</Text>
 						</View>
 						<TouchableOpacity

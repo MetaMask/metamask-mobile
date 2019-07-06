@@ -21,5 +21,6 @@ export default {
 		SUPPORTED_NETWORKS: ['mainnet', 'rinkeby']
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
-	DAI_ADDRESS: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359'
+	DAI_ADDRESS: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
+	HOMEPAGE_URL: 'https://metamask-dapps.netlify.com/'
 };
