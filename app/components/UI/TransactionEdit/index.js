@@ -450,7 +450,7 @@ class TransactionEdit extends Component {
 									<TextInput
 										multiline
 										onChangeText={this.updateData}
-										placeholder="Optional"
+										placeholder={strings('transacton.optional')}
 										style={styles.hexData}
 										value={data}
 									/>
