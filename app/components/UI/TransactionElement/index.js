@@ -18,6 +18,10 @@ import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+const {
+	CONNEXT: { CONTRACTS }
+} = AppConstants;
+
 const styles = StyleSheet.create({
 	row: {
 		backgroundColor: colors.white,
@@ -275,9 +279,8 @@ class TransactionElement extends PureComponent {
 				/>
 			);
 		} else if (paymentChannelTransaction) {
-			const isDeposit =
-				AppConstants.CONNEXT.CONTRACTS[networkID] &&
-				addressTo.toLowerCase() === AppConstants.CONNEXT.CONTRACTS[networkID].toLowerCase();
+			const contract = CONTRACTS[networkID];
+			const isDeposit = contract && addressTo.toLowerCase() === contract.toLowerCase();
 			if (isDeposit) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
@@ -490,9 +493,8 @@ class TransactionElement extends PureComponent {
 			exchangeRate
 		} = this.props;
 		let { actionKey } = this.state;
-		const isDeposit =
-			AppConstants.CONNEXT.CONTRACTS[networkID] &&
-			to.toLowerCase() === AppConstants.CONNEXT.CONTRACTS[networkID].toLowerCase();
+		const contract = CONTRACTS[networkID];
+		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
 		actionKey = actionKey && actionKey.replace(strings('unit.eth'), strings('unit.dai'));
 		const totalEth = hexToBN(value);
 		const readableTotalEth = renderFromWei(totalEth);
@@ -507,7 +509,7 @@ class TransactionElement extends PureComponent {
 		const isWithdraw = from === to;
 
 		const transactionDetails = {
-			renderFrom: isWithdraw ? AppConstants.CONNEXT.CONTRACTS[networkID] : renderFullAddress(from),
+			renderFrom: isWithdraw ? contract : renderFullAddress(from),
 			renderTo: renderFullAddress(to),
 			transactionHash,
 			renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
