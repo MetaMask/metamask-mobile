@@ -453,16 +453,6 @@
 		"gas_price": "Precio de Gas: (GWEI)",
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027"
 	},
-	"home_page": {
-		"lets_get_started": "Comencemos!",
-		"web3_awaits": "La web decentralizada te espera",
-		"search_placeholder": "Buscar o ingresar URL",
-		"backup_alert_title": "Proteje tus fondos",
-		"backup_alert_message": "Presiona para salvar tu frase semilla",
-		"bookmarks": "Favoritos",
-		"no_bookmarks": "No tienes favoritos todavía",
-		"remove_bookmark_title": "Deseas eliminar este sitio de tus favoritos?"
-	},
 	"browser": {
 		"title": "Navegador",
 		"reload": "Recargar",
@@ -490,7 +480,12 @@
 		"tabs_done": "Listo",
 		"no_tabs_title": "No hay pestañas abiertas",
 		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña",
-		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS"
+		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS",
+		"remove_bookmark_title": "Eliminar favorito",
+		"remove_bookmark_msg": "Realmente deseas eliminar este sitio de tus favoritos?",
+		"yes": "Si",
+		"backup_alert_title": "Proteje tus fondos",
+		"backup_alert_message": "Presiona para salvar tu frase semilla"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",

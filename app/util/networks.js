@@ -33,6 +33,12 @@ const NetworkList = {
 		chainId: 4,
 		color: '#f6c343'
 	},
+	goerli: {
+		name: 'Goerli Test Network',
+		networkId: 5,
+		chainId: 5,
+		color: '#3099f2'
+	},
 	rpc: {
 		name: 'Private Network',
 		color: colors.grey000
@@ -42,7 +48,7 @@ const NetworkList = {
 export default NetworkList;
 
 export function getAllNetworks() {
-	return ['mainnet', 'ropsten', 'kovan', 'rinkeby'];
+	return ['mainnet', 'ropsten', 'kovan', 'rinkeby', 'goerli'];
 }
 
 export function getNetworkTypeById(id) {

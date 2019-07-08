@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BrowserBottomBar should render correctly 1`] = `
+<ElevatedView
+  elevation={11}
+  style={
+    Object {
+      "backgroundColor": "#f2f3f4",
+      "borderColor": "#bbc0c5",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "height": 86,
+      "paddingBottom": 32,
+      "paddingHorizontal": 10,
+      "paddingTop": 14,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignContent": "flex-start",
+        "flex": 1,
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      disabled={false}
+      name="angle-left"
+      onPress={[Function]}
+      size={40}
+      style={
+        Array [
+          Object {
+            "alignSelf": "center",
+            "color": "#6a737d",
+            "height": 28,
+            "lineHeight": 30,
+            "textAlign": "center",
+            "width": 36,
+          },
+          Object {},
+        ]
+      }
+    />
+    <Icon
+      allowFontScaling={false}
+      disabled={true}
+      name="angle-right"
+      onPress={[Function]}
+      size={40}
+      style={
+        Array [
+          Object {
+            "alignSelf": "center",
+            "color": "#6a737d",
+            "height": 28,
+            "lineHeight": 30,
+            "textAlign": "center",
+            "width": 36,
+          },
+          Object {
+            "color": "#d6d9dc",
+          },
+        ]
+      }
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "alignContent": "center",
+        "flex": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Connect(TabCountIcon)
+      onPress={[Function]}
+      style={
+        Object {
+          "height": 30,
+          "marginTop": 0,
+          "width": 30,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "row",
+        "justifyContent": "flex-end",
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="ios-search"
+      onPress={[Function]}
+      size={30}
+      style={
+        Array [
+          Object {
+            "alignSelf": "center",
+            "color": "#6a737d",
+            "height": 28,
+            "lineHeight": 30,
+            "textAlign": "center",
+            "width": 36,
+          },
+          Object {
+            "alignContent": "flex-start",
+            "alignSelf": "flex-start",
+          },
+        ]
+      }
+    />
+    <Icon
+      allowFontScaling={false}
+      name="more-vert"
+      onPress={[Function]}
+      size={30}
+      style={
+        Array [
+          Object {
+            "alignSelf": "center",
+            "color": "#6a737d",
+            "height": 28,
+            "lineHeight": 30,
+            "textAlign": "center",
+            "width": 36,
+          },
+          Object {
+            "alignContent": "flex-start",
+            "alignSelf": "flex-start",
+          },
+        ]
+      }
+    />
+  </View>
+</ElevatedView>
+`;
