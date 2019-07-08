@@ -180,7 +180,7 @@ class AccountInput extends Component {
 		address: undefined,
 		ensRecipient: undefined,
 		value: undefined,
-		inputWidth: Platform.OS === 'android' ? '99%' : undefined
+		inputEnabled: Platform.OS === 'ios'
 	};
 
 	componentDidMount = async () => {
@@ -202,9 +202,9 @@ class AccountInput extends Component {
 		}
 
 		// Workaround https://github.com/facebook/react-native/issues/9958
-		this.state.inputWidth &&
+		!this.state.inputEnabled &&
 			setTimeout(() => {
-				this.setState({ inputWidth: '100%' });
+				this.setState({ inputEnabled: true });
 			}, 100);
 	};
 
@@ -390,7 +390,8 @@ class AccountInput extends Component {
 								onChangeText={this.onChange}
 								placeholder={placeholder}
 								spellCheck={false}
-								style={[styles.input, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
+								editable={this.state.inputEnabled}
+								style={styles.input}
 								value={value}
 								onBlur={this.onBlur}
 								onFocus={this.onInputFocus}
