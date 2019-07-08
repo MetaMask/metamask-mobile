@@ -26,6 +26,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const KEYBOARD_OFFSET = 120;
 
@@ -297,7 +298,10 @@ class Deposit extends Component {
 				</View>
 				<View style={[styles.addressGraphic, styles.toGraphic]}>
 					<View style={styles.daiLogoWrapper}>
-						<AssetIcon logo={contractMap[AppConstants.DAI_ADDRESS].logo} customStyle={styles.daiLogo} />
+						<AssetIcon
+							logo={contractMap[toChecksumAddress(AppConstants.DAI_ADDRESS)].logo}
+							customStyle={styles.daiLogo}
+						/>
 					</View>
 					<Text style={styles.directionText} numberOfLines={1}>
 						{strings('payment_channel.insta_pay')}
