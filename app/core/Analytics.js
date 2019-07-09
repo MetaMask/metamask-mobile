@@ -1,7 +1,6 @@
 'use strict';
 
 import { NativeModules } from 'react-native';
-import Logger from '../util/Logger';
 const RCTAnalytics = NativeModules.Analytics;
 
 /**
@@ -198,15 +197,14 @@ class Analytics {
 let instance;
 
 export default {
-	init: enabled => {
+	init: async enabled => {
 		instance = new Analytics(enabled);
-		RCTAnalytics.getRemoteVariables().then(vars => {
-			try {
-				instance.remoteVariables = JSON.parse(vars);
-			} catch (e) {
-				Logger.error('Error parsing remotevars', vars);
-			}
-		});
+		try {
+			const vars = await RCTAnalytics.getRemoteVariables();
+			instance.remoteVariables = JSON.parse(vars);
+		} catch (e) {
+			// Do nothing
+		}
 		return instance;
 	},
 	enable() {
@@ -231,7 +229,11 @@ export default {
 		return instance.remoteVariables;
 	},
 	refreshRemoteVariables: async () => {
-		instance.remoteVariables = await RCTAnalytics.getRemoteVariables();
-		return instance.remoteVariables;
+		try {
+			const vars = await RCTAnalytics.getRemoteVariables();
+			instance.remoteVariables = JSON.parse(vars);
+		} catch (e) {
+			// Do nothing
+		}
 	}
 };
