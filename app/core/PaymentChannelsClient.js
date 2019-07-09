@@ -186,6 +186,12 @@ class PaymentChannelsClient {
 
 	async pollConnextState() {
 		const { connext } = this.state;
+		// start polling
+		try {
+			await connext.start();
+		} catch (e) {
+			Logger.error('PC::start', e);
+		}
 		// register connext listeners
 		connext.on('onStateChange', async state => {
 			try {
@@ -209,12 +215,6 @@ class PaymentChannelsClient {
 				Logger.error('PC::onStateChange', e);
 			}
 		});
-		// start polling
-		try {
-			await connext.start();
-		} catch (e) {
-			Logger.error('PC::start', e);
-		}
 	}
 
 	checkPaymentHistory = async () => {
