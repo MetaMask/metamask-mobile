@@ -26,6 +26,7 @@ import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
+import AndroidBackHandler from '../../Views/AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -311,6 +312,7 @@ class PaymentRequestSuccess extends Component {
 						</View>
 					</View>
 				</Modal>
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.closeQRModal} />}
 			</SafeAreaView>
 		);
 	}
