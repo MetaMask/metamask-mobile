@@ -243,9 +243,9 @@ class PaymentChannelsClient {
 					setTimeout(() => {
 						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
 					}, 300);
+					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 				}
 			}
-			await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 		}
 		this.setState({ transactions: paymentHistory });
 	};
