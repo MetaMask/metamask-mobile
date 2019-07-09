@@ -268,7 +268,18 @@ class PaymentChannel extends Component {
 						]
 					);
 				} else {
-					Alert.alert(strings('paymentChannels.disabled_title'), strings('paymentChannels.disabled_message'));
+					Alert.alert(
+						strings('paymentChannels.disabled_title'),
+						strings('paymentChannels.disabled_message'),
+						[
+							{
+								text: strings('paymentChannels.disabled_btn'),
+								onPress: () => {
+									this.props.navigation.pop();
+								}
+							}
+						]
+					);
 				}
 			}
 		});
