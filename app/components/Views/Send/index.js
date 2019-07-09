@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View, Platform } from 'react-native';
 import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -17,6 +17,7 @@ import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTransactionReviewActionKey } from '../../../util/transactions';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -503,6 +504,7 @@ class Send extends Component {
 			) : (
 				this.renderLoader()
 			)}
+			{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.onCancel} />}
 		</SafeAreaView>
 	);
 }
