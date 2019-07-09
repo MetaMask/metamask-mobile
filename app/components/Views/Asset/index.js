@@ -9,6 +9,7 @@ import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -198,6 +199,7 @@ class Asset extends Component {
 						/>
 					)}
 				</View>
+				<AndroidBackHandler navigation={navigation} />
 			</View>
 		);
 	};
