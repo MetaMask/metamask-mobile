@@ -1,12 +1,17 @@
 'use strict';
 
 import { NativeModules } from 'react-native';
+import Logger from '../util/Logger';
 const RCTAnalytics = NativeModules.Analytics;
 
 /**
  * Class to handle analytics through the app
  */
 class Analytics {
+	/**
+	 * Variables defined in Mixpanel
+	 */
+	remoteVariables = {};
 	/**
 	 * Whether the manager has permission to send analytics
 	 */
@@ -193,8 +198,15 @@ class Analytics {
 let instance;
 
 export default {
-	init(enabled) {
+	init: enabled => {
 		instance = new Analytics(enabled);
+		RCTAnalytics.getRemoteVariables().then(vars => {
+			try {
+				instance.remoteVariables = JSON.parse(vars);
+			} catch (e) {
+				Logger.error('Error parsing remotevars', vars);
+			}
+		});
 		return instance;
 	},
 	enable() {
@@ -214,5 +226,12 @@ export default {
 	},
 	trackEventWithParameters(event, parameters) {
 		return instance && instance.trackEventWithParameters(event, parameters);
+	},
+	getRemoteVariables() {
+		return instance.remoteVariables;
+	},
+	refreshRemoteVariables: async () => {
+		instance.remoteVariables = await RCTAnalytics.getRemoteVariables();
+		return instance.remoteVariables;
 	}
 };

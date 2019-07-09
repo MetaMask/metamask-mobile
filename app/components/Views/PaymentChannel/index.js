@@ -31,6 +31,7 @@ import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../../core/AppConstants';
 import { renderFromWei } from '../../../util/number';
+import Analytics from '../../../core/Analytics';
 
 const QR_PADDING = 160;
 
@@ -242,8 +243,34 @@ class PaymentChannel extends Component {
 			this.setState({
 				balance: state.balance,
 				status: state.status,
-				ready: true
+				ready: true,
+				enabled: true
 			});
+
+			const vars = Analytics.getRemoteVariables();
+			if (!vars || !vars.paymentChannelsEnabled) {
+				// If the user has funds we should
+				// withdraw everything automatically
+				if (parseFloat(this.state.balance) > 0) {
+					Alert.alert(
+						strings('paymentChannels.disabled_withdraw_title'),
+						strings('paymentChannels.disabled_withdraw_message'),
+						[
+							{
+								text: strings('paymentChannels.disabled_withdraw_btn'),
+								onPress: () => {
+									this.withdraw();
+									setTimeout(() => {
+										this.props.navigation.pop();
+									}, 1000);
+								}
+							}
+						]
+					);
+				} else {
+					Alert.alert(strings('paymentChannels.disabled_title'), strings('paymentChannels.disabled_message'));
+				}
+			}
 		});
 
 		PaymentChannelsClient.hub.on('state::change', this.onStateChange);

@@ -3,11 +3,17 @@ package io.metamask;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.ReactRootView;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import io.branch.rnbranch.*;
+
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 public class MainActivity extends ReactFragmentActivity {
@@ -26,6 +32,14 @@ public class MainActivity extends ReactFragmentActivity {
 	protected void onStart() {
 		super.onStart();
 		RNBranchModule.initSession(getIntent().getData(), this);
+		try{
+			ApplicationInfo ai = this.getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
+			String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
+			MixpanelAPI.getInstance(this, mixpanelToken);
+		}catch (PackageManager.NameNotFoundException e){
+			Log.d("RCTAnalytics","init:token missing");
+		}
+
 	}
 
 	@Override

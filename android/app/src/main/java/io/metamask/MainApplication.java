@@ -52,9 +52,9 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            new NetInfoPackage(),
-            new RNViewShotPackage(),
-            new LottiePackage(),
+				new NetInfoPackage(),
+            	new RNViewShotPackage(),
+            	new LottiePackage(),
            		new AsyncStoragePackage(),
             	new ReactNativePushNotificationPackage(),
             	new BackgroundTimerPackage(),

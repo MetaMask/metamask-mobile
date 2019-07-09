@@ -877,7 +877,12 @@
 		"heads_up": "Heads up!",
 		"security_reasons": "For security reasons you'll have to wait 5 minutes before trying again",
 		"not_ready": "Not ready",
-		"please_wait": "You still need to wait a bit before making another deposit"
+		"please_wait": "You still need to wait a bit before making another deposit",
+		"disabled_withdraw_title": "Feature disabled",
+		"disabled_withdraw_message": "We had to temporarily disable this feature due to technical reasons. All your funds will be withdrawn automatically and returned to your ethereum account",
+		"disabled_withdraw_btn": "Got it",
+		"disabled_title": "Feature not available",
+		"disabled_message": "This feature has been temporarily disabled. Please try again later..."
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",

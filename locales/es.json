@@ -863,7 +863,12 @@
 		"heads_up": "Aviso",
 		"security_reasons": "Por razones de seguridad deberá esperar 5 minutos antes de intentar nuevamente",
 		"not_ready": "Por favor espere",
-		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito"
+		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito",
+		"disabled_withdraw_title": "Funcionalidad deshabilitada",
+		"disabled_withdraw_message": "Hemos deshabilitado esta funcionalidad por razones técnicas. Todos tus fondos sera transferidos a tu cuenta de ethereum",
+		"disabled_withdraw_btn": "Entendido",
+		"disabled_title": "Funcionalidad deshabilitada",
+		"disabled_message": "Esta funcionalidad ha sido deshabilitada. Por favor intentalo de nuevo..."
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
