@@ -293,7 +293,7 @@ class TransactionElement extends PureComponent {
 					</FadeIn>
 				);
 			}
-			const isWithdraw = addressFrom === addressTo;
+			const isWithdraw = addressFrom === CONTRACTS[networkID];
 			if (isWithdraw) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
@@ -506,10 +506,8 @@ class TransactionElement extends PureComponent {
 			currentCurrency
 		);
 
-		const isWithdraw = from === to;
-
 		const transactionDetails = {
-			renderFrom: isWithdraw ? contract : renderFullAddress(from),
+			renderFrom: renderFullAddress(from),
 			renderTo: renderFullAddress(to),
 			transactionHash,
 			renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),

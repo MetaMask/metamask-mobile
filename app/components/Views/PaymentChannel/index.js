@@ -224,7 +224,7 @@ class PaymentChannel extends Component {
 	};
 
 	handleTransactions = transactions => {
-		const { transactions: onChainTransactions, provider, internalTransactions } = this.props;
+		const { transactions: onChainTransactions, provider, internalTransactions, selectedAddress } = this.props;
 		const parsedTransactions = transactions.map(tx => ({
 			time: Date.parse(tx.createdOn),
 			status: 'confirmed',
@@ -238,6 +238,7 @@ class PaymentChannel extends Component {
 		}));
 		onChainTransactions.forEach(tx => {
 			if (
+				tx.transaction.from.toLowerCase() === selectedAddress.toLowerCase() &&
 				tx.toSmartContract &&
 				Networks[provider.type].networkId.toString() === tx.networkID &&
 				tx.transaction.data.substring(0, 10) === '0xea682e37' &&
@@ -252,7 +253,10 @@ class PaymentChannel extends Component {
 		});
 		internalTransactions &&
 			internalTransactions.forEach(tx => {
-				if (Networks[provider.type].networkId.toString() === tx.networkID) {
+				if (
+					Networks[provider.type].networkId.toString() === tx.networkID &&
+					tx.transaction.to.toLowerCase() === selectedAddress.toLowerCase()
+				) {
 					parsedTransactions.push({
 						...tx,
 						from: undefined,

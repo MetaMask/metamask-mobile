@@ -13,6 +13,10 @@ import AppConstants from './AppConstants';
 import byteArrayToHex from '../util/bytes';
 import Networks from '../util/networks';
 
+const {
+	CONNEXT: { CONTRACTS }
+} = AppConstants;
+
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
 const PUBLIC_URL = 'https://daicard.io';
@@ -284,14 +288,15 @@ class PaymentChannelsClient {
 
 	handleInternalTransactions = txHash => {
 		const { withdrawalPendingValue } = this.state;
+		const networkID = Networks[Engine.context.NetworkController.state.provider.type].networkId.toString();
 		const newInternalTxs = Engine.context.TransactionController.state.internalTransactions || [];
 		newInternalTxs.push({
 			time: Date.now(),
 			status: 'confirmed',
 			paymentChannelTransaction: true,
-			networkID: Networks[Engine.context.NetworkController.state.provider.type].networkId.toString(),
+			networkID,
 			transaction: {
-				from: Engine.context.PreferencesController.state.selectedAddress,
+				from: CONTRACTS[networkID],
 				to: Engine.context.PreferencesController.state.selectedAddress,
 				value: BNToHex(withdrawalPendingValue)
 			},
