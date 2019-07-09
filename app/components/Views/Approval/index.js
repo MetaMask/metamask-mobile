@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, Alert, InteractionManager, Platform } from 'react-native';
+import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -13,7 +13,6 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTransactionReviewActionKey } from '../../../util/transactions';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -256,7 +255,6 @@ class Approval extends Component {
 					transaction={transaction}
 					navigation={this.props.navigation}
 				/>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.onCancel} />}
 			</SafeAreaView>
 		);
 	};
