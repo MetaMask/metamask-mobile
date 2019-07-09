@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, InteractionManager, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, { isKnownNetwork } from '../../../util/networks';
@@ -199,7 +199,7 @@ class Asset extends Component {
 						/>
 					)}
 				</View>
-				<AndroidBackHandler navigation={navigation} />
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={navigation} />}
 			</View>
 		);
 	};

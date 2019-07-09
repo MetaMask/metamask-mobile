@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
+import { ScrollView, View, StyleSheet, Text, SafeAreaView, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
@@ -9,6 +9,7 @@ import { colors, fontStyles } from '../../../styles/common';
 import { setIndividualCollectibleTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	root: {
@@ -98,6 +99,7 @@ class CollectibleView extends Component {
 						</StyledButton>
 					</View>
 				)}
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={navigation} />}
 			</SafeAreaView>
 		);
 	}
