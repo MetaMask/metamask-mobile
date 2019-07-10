@@ -206,10 +206,6 @@ class PaymentChannel extends Component {
 	};
 
 	componentDidMount = async () => {
-		const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
-		if (!paymentChannelFirstTime) {
-			this.setState({ displayWelcomeModal: true });
-		}
 		InteractionManager.runAfterInteractions(async () => {
 			const state = PaymentChannelsClient.getState();
 			this.setState({
@@ -226,11 +222,11 @@ class PaymentChannel extends Component {
 				// withdraw everything automatically
 				if (parseFloat(this.state.balance) > 0) {
 					Alert.alert(
-						strings('paymentChannels.disabled_withdraw_title'),
-						strings('paymentChannels.disabled_withdraw_message'),
+						strings('payment_channel.disabled_withdraw_title'),
+						strings('payment_channel.disabled_withdraw_message'),
 						[
 							{
-								text: strings('paymentChannels.disabled_withdraw_btn'),
+								text: strings('payment_channel.disabled_withdraw_btn'),
 								onPress: () => {
 									this.withdraw();
 									setTimeout(() => {
@@ -242,17 +238,22 @@ class PaymentChannel extends Component {
 					);
 				} else {
 					Alert.alert(
-						strings('paymentChannels.disabled_title'),
-						strings('paymentChannels.disabled_message'),
+						strings('payment_channel.disabled_title'),
+						strings('payment_channel.disabled_message'),
 						[
 							{
-								text: strings('paymentChannels.disabled_btn'),
+								text: strings('payment_channel.disabled_btn'),
 								onPress: () => {
 									this.props.navigation.pop();
 								}
 							}
 						]
 					);
+				}
+			} else {
+				const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+				if (!paymentChannelFirstTime) {
+					this.setState({ displayWelcomeModal: true });
 				}
 			}
 		});
