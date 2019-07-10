@@ -8,6 +8,7 @@
 
 #import "RCTAnalytics.h"
 #import <Mixpanel/Mixpanel.h>
+#import <Mixpanel/MPTweakInline.h>
 
 @implementation RCTAnalytics
 RCT_EXPORT_MODULE()
@@ -24,6 +25,20 @@ RCT_EXPORT_METHOD(optIn:(BOOL) val) {
 RCT_EXPORT_METHOD(trackEvent:(NSDictionary *)event)
 {
   [[Mixpanel sharedInstance] track: [self getCategory:event] properties:[self getInfo:event]];
+}
+
+
+RCT_REMAP_METHOD(getRemoteVariables,
+                 getRemoteVariableWithResolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSString *val = MPTweakValue(@"remoteVariables", @"{}");
+
+  if (val) {
+    resolve(val);
+  } else {
+    resolve(@"{}");
+  }
 }
 
 - (NSString *)getCategory:(NSDictionary *)event{
