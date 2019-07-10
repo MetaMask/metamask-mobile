@@ -60,7 +60,15 @@ class DeeplinkManager {
 				if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
 					// action is the first parth of the pathname
 					const action = urlObj.pathname.split('/')[1];
+
 					switch (action) {
+						case 'wc':
+							if (params && params.uri && params.redirectUrl) {
+								setTimeout(() => {
+									WalletConnect.newSession(params.uri, params.redirectUrl, false);
+								}, 1500);
+							}
+							break;
 						case 'dapp':
 							this.handleBrowserUrl(
 								urlObj.href.replace(`https://${MM_UNIVERSAL_LINK_HOST}/dapp/`, 'https://'),
