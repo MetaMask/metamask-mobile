@@ -8,6 +8,10 @@ const RCTAnalytics = NativeModules.Analytics;
  */
 class Analytics {
 	/**
+	 * Variables defined in Mixpanel
+	 */
+	remoteVariables = {};
+	/**
 	 * Whether the manager has permission to send analytics
 	 */
 	enabled;
@@ -193,8 +197,14 @@ class Analytics {
 let instance;
 
 export default {
-	init(enabled) {
+	init: async enabled => {
 		instance = new Analytics(enabled);
+		try {
+			const vars = await RCTAnalytics.getRemoteVariables();
+			instance.remoteVariables = JSON.parse(vars);
+		} catch (e) {
+			// Do nothing
+		}
 		return instance;
 	},
 	enable() {
@@ -214,5 +224,16 @@ export default {
 	},
 	trackEventWithParameters(event, parameters) {
 		return instance && instance.trackEventWithParameters(event, parameters);
+	},
+	getRemoteVariables() {
+		return instance.remoteVariables;
+	},
+	refreshRemoteVariables: async () => {
+		try {
+			const vars = await RCTAnalytics.getRemoteVariables();
+			instance.remoteVariables = JSON.parse(vars);
+		} catch (e) {
+			// Do nothing
+		}
 	}
 };

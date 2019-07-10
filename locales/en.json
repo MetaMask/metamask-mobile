@@ -907,7 +907,13 @@
 			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",
 			"desc_2": "Made possible by Connext Payment Channels.",
 			"close": "Close"
-		}
+		},
+		"disabled_withdraw_title": "Feature disabled",
+		"disabled_withdraw_message": "We had to temporarily disable this feature due to technical reasons. All your funds will be withdrawn automatically and returned to your ethereum account",
+		"disabled_withdraw_btn": "Got it",
+		"disabled_title": "Feature not available",
+		"disabled_message": "This feature has been temporarily disabled. Please try again later...",
+		"disabled_btn": "OK"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
