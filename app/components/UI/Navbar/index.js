@@ -281,6 +281,29 @@ export function getTransactionOptionsTitle(title, navigation) {
 		headerRight: <View />
 	};
 }
+
+/**
+ * Function that returns the navigation options for InstaPay screend
+ *
+ * @param {string} title - Title name to use with strings
+ * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
+ */
+export function getInstaPayNavigations(title, navigation) {
+	return {
+		headerTitle: <NavbarTitle title={title} disableNetwork />,
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight: <View />
+	};
+}
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
