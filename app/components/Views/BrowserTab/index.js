@@ -406,9 +406,15 @@ export class BrowserTab extends PureComponent {
 		if (!currentPageTitle || currentPageTitle !== {}) {
 			// We need to get the title to add bookmark
 			const { current } = this.webview;
-			Platform.OS === 'ios'
-				? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
-				: current.injectJavaScript(JS_WINDOW_INFORMATION);
+			if (current) {
+				Platform.OS === 'ios'
+					? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
+					: current.injectJavaScript(JS_WINDOW_INFORMATION);
+			} else {
+				setTimeout(() => {
+					this.checkForPageMeta(callback);
+				}, 500);
+			}
 		}
 		setTimeout(() => {
 			callback();
@@ -925,17 +931,16 @@ export class BrowserTab extends PureComponent {
 
 	reload = (force = false) => {
 		this.toggleOptionsIfNeeded();
-		if (!force && Platform.OS === 'ios') {
+		if (!force) {
 			const { current } = this.webview;
 			current && current.reload();
 		} else {
+			const url2Reload = this.state.inputValue;
 			// Force unmount the webview to avoid caching problems
 			this.setState({ forceReload: true }, () => {
 				setTimeout(() => {
 					this.setState({ forceReload: false }, () => {
-						setTimeout(() => {
-							this.go(this.state.inputValue);
-						}, 300);
+						this.go(url2Reload);
 					});
 				}, 300);
 			});
@@ -1162,7 +1167,7 @@ export class BrowserTab extends PureComponent {
 
 		const { current } = this.webview;
 		// Inject favorites on the homepage
-		if (this.isHomepage()) {
+		if (this.isHomepage() && current) {
 			const js = this.state.homepageScripts;
 			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
 		}
@@ -1325,7 +1330,7 @@ export class BrowserTab extends PureComponent {
 
 	clearInputText = () => {
 		const { current } = this.inputRef;
-		current.clear();
+		current && current.clear();
 	};
 
 	onAutocomplete = link => {
@@ -1554,7 +1559,7 @@ export class BrowserTab extends PureComponent {
 		if ([6, 7].includes(wizardStep)) {
 			if (!this.wizardScrollAdjusted) {
 				setTimeout(() => {
-					this.reload(true);
+					this.reload();
 				}, 1);
 				this.wizardScrollAdjusted = true;
 			}
