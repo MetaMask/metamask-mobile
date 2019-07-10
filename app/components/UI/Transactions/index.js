@@ -105,7 +105,8 @@ class Transactions extends PureComponent {
 		/**
 		 * Optional header height
 		 */
-		headerHeight: PropTypes.number
+		headerHeight: PropTypes.number,
+		exchangeRate: PropTypes.number
 	};
 
 	static defaultProps = {
@@ -226,6 +227,7 @@ class Transactions extends PureComponent {
 			tokens={this.props.tokens}
 			collectibleContracts={this.props.collectibleContracts}
 			contractExchangeRates={this.props.contractExchangeRates}
+			exchangeRate={this.props.exchangeRate}
 			conversionRate={this.props.conversionRate}
 			currentCurrency={this.props.currentCurrency}
 			showAlert={this.props.showAlert}

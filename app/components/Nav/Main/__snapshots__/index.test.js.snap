@@ -134,6 +134,8 @@ exports[`Main should render correctly 1`] = `
           "PaymentChannelView": Object {
             "childRouters": Object {
               "PaymentChannel": null,
+              "PaymentChannelDeposit": null,
+              "PaymentChannelSend": null,
             },
             "getActionCreators": [Function],
             "getActionForPathAndParams": [Function],
@@ -422,6 +424,8 @@ exports[`Main should render correctly 1`] = `
             "PaymentChannelView": Object {
               "childRouters": Object {
                 "PaymentChannel": null,
+                "PaymentChannelDeposit": null,
+                "PaymentChannelSend": null,
               },
               "getActionCreators": [Function],
               "getActionForPathAndParams": [Function],
