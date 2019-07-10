@@ -18,44 +18,7 @@ exports[`Browser should render correctly 1`] = `
         "flex": 1,
       }
     }
-  >
-    <Web3Webview
-      injectedOnStartLoadingJavaScript={null}
-      javaScriptEnabled={true}
-      javascriptEnabled={true}
-      messagingEnabled={true}
-      onError={[Function]}
-      onLoadEnd={[Function]}
-      onLoadStart={[Function]}
-      onMessage={[Function]}
-      onNavigationStateChange={[Function]}
-      onProgress={[Function]}
-      openNewWindowInWebView={true}
-      originWhitelist={
-        Array [
-          "http://*",
-          "https://*",
-        ]
-      }
-      renderError={[Function]}
-      saveFormDataDisabled={false}
-      scalesPageToFit={true}
-      sendCookies={true}
-      showDefaultLoader={false}
-      source={
-        Object {
-          "uri": "https://metamask.io",
-        }
-      }
-      style={
-        Object {
-          "flex": 1,
-        }
-      }
-      thirdPartyCookiesEnabled={true}
-      userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1"
-    />
-  </View>
+  />
   <View
     style={
       Object {
@@ -326,7 +289,7 @@ exports[`Browser should render correctly 1`] = `
     />
   </ReactNativeModal>
   <BrowserBottomBar
-    canGoBack={false}
+    canGoBack={true}
     canGoForward={false}
     goBack={[Function]}
     goForward={[Function]}
