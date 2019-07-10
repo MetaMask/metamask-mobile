@@ -638,7 +638,9 @@ export class BrowserTab extends PureComponent {
 			// Expire it to avoid duplicate actions
 			DeeplinkManager.expireDeeplink();
 			// Handle it
-			this.handleBranchDeeplink(pendingDeeplink);
+			setTimeout(() => {
+				this.handleBranchDeeplink(pendingDeeplink);
+			}, 1000);
 		}
 
 		this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
@@ -1080,7 +1082,14 @@ export class BrowserTab extends PureComponent {
 
 		data.fullHostname = urlObj.hostname;
 		if (!this.state.ipfsWebsite) {
-			data.inputValue = url;
+			// If we're coming from a link / internal redirect
+			// We need to re-check if it's an ens url,
+			// then act accordingly
+			if (!this.isENSUrl(url)) {
+				data.inputValue = url;
+			} else {
+				this.go(url);
+			}
 		} else if (url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			if (this.state.contentType === 'ipfs-ns') {
 				data.inputValue = url.replace(

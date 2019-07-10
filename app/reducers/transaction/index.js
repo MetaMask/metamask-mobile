@@ -13,7 +13,8 @@ const initialState = {
 	assetType: undefined,
 	id: undefined,
 	readableValue: undefined,
-	ensRecipient: undefined
+	ensRecipient: undefined,
+	paymentChannelTransaction: false
 };
 
 const getAssetType = selectedAsset => {
@@ -69,6 +70,17 @@ const transactionReducer = (state = initialState, action) => {
 				type: 'TOKENS_TRANSACTION',
 				selectedAsset: action.asset,
 				assetType
+			};
+		}
+		case 'SET_PAYMENT_CHANNEL_TRANSACTION': {
+			const selectedAsset = action.asset;
+			const assetType = getAssetType(selectedAsset);
+			return {
+				...state,
+				type: 'PAYMENT_CHANNEL_TRANSACTION',
+				selectedAsset: action.asset,
+				assetType,
+				paymentChannelTransaction: true
 			};
 		}
 		case 'SET_ETHER_TRANSACTION':

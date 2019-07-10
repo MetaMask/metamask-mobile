@@ -11,6 +11,11 @@ import { toWei, toBN, renderFromWei, BNToHex } from '../util/number';
 import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
 import byteArrayToHex from '../util/bytes';
+import Networks from '../util/networks';
+
+const {
+	CONNEXT: { CONTRACTS }
+} = AppConstants;
 
 // eslint-disable-next-line
 const createInfuraProvider = require('eth-json-rpc-infura/src/createProvider');
@@ -23,11 +28,11 @@ const {
 	HUB_EXCHANGE_CEILING_TOKEN,
 	MIN_DEPOSIT_ETH,
 	MAX_DEPOSIT_TOKEN,
-	BLOCKED_DEPOSIT_DURATION_MINUTES
+	BLOCKED_DEPOSIT_DURATION_MINUTES,
+	SUPPORTED_NETWORKS
 } = AppConstants.CONNEXT;
 
 const HUB_EXCHANGE_CEILING = WEI_PER_ETHER.mul(toBN(HUB_EXCHANGE_CEILING_TOKEN));
-const CONNEXT_SUPPORTED_NETWORKS = ['mainnet', 'rinkeby'];
 const hub = new EventEmitter();
 
 /**
@@ -67,7 +72,9 @@ class PaymentChannelsClient {
 			},
 			depositPending: false,
 			withdrawalPending: false,
-			blocked: false
+			withdrawalPendingValue: undefined,
+			blocked: false,
+			transactions: []
 		};
 	}
 
@@ -183,8 +190,14 @@ class PaymentChannelsClient {
 
 	async pollConnextState() {
 		const { connext } = this.state;
+		// start polling
+		try {
+			await connext.start();
+		} catch (e) {
+			Logger.error('PC::start', e);
+		}
 		// register connext listeners
-		connext.on('onStateChange', state => {
+		connext.on('onStateChange', async state => {
 			try {
 				this.checkForBalanceChange(state);
 				this.setState({
@@ -195,21 +208,17 @@ class PaymentChannelsClient {
 					exchangeRate: state.runtime.exchangeRate ? state.runtime.exchangeRate.rates.DAI : 0
 				});
 				this.checkStatus();
+				const transactions = await this.state.connext.getPaymentHistory();
 				hub.emit('state::change', {
 					balance: this.getBalance(),
 					status: this.state.status,
+					transactions,
 					ready: true
 				});
 			} catch (e) {
 				Logger.error('PC::onStateChange', e);
 			}
 		});
-		// start polling
-		try {
-			await connext.start();
-		} catch (e) {
-			Logger.error('PC::start', e);
-		}
 	}
 
 	checkPaymentHistory = async () => {
@@ -234,10 +243,11 @@ class PaymentChannelsClient {
 					setTimeout(() => {
 						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
 					}, 300);
+					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 				}
 			}
-			await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 		}
+		this.setState({ transactions: paymentHistory });
 	};
 
 	pollAndSwap = async () => {
@@ -276,6 +286,25 @@ class PaymentChannelsClient {
 		}
 	};
 
+	handleInternalTransactions = txHash => {
+		const { withdrawalPendingValue } = this.state;
+		const networkID = Networks[Engine.context.NetworkController.state.provider.type].networkId.toString();
+		const newInternalTxs = Engine.context.TransactionController.state.internalTransactions || [];
+		newInternalTxs.push({
+			time: Date.now(),
+			status: 'confirmed',
+			paymentChannelTransaction: true,
+			networkID,
+			transaction: {
+				from: CONTRACTS[networkID],
+				to: Engine.context.PreferencesController.state.selectedAddress,
+				value: BNToHex(withdrawalPendingValue)
+			},
+			transactionHash: txHash
+		});
+		return newInternalTxs;
+	};
+
 	checkStatus() {
 		const { runtime, status, depositPending, withdrawalPending } = this.state;
 		const newStatus = {
@@ -298,7 +327,9 @@ class PaymentChannelsClient {
 				} else {
 					newStatus.type = 'WITHDRAWAL_SUCCESS';
 					newStatus.txHash = runtime.withdrawal.transactionHash;
-					this.setState({ withdrawalPending: false });
+					const newInternalTxs = this.handleInternalTransactions(newStatus.txHash);
+					Engine.context.TransactionController.update({ internalTransactions: newInternalTxs });
+					this.setState({ withdrawalPending: false, withdrawalPendingValue: undefined });
 				}
 			}
 		}
@@ -388,7 +419,7 @@ class PaymentChannelsClient {
 			};
 
 			await connext.withdraw(withdrawalVal);
-			this.setState({ withdrawalPending: true });
+			this.setState({ withdrawalPending: true, withdrawalPendingValue: toWei(renderFromWei(balanceTokenUser)) });
 		} catch (e) {
 			Logger.error('PC::withdraw', e);
 		}
@@ -409,7 +440,7 @@ const instance = {
 	 */
 	async init(address) {
 		const { provider } = Engine.context.NetworkController.state;
-		if (CONNEXT_SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
+		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
 			client = new PaymentChannelsClient(address);
 			try {
@@ -427,7 +458,8 @@ const instance = {
 	 */
 	getState: () => ({
 		balance: client.getBalance(),
-		status: client.state.status
+		status: client.state.status,
+		transactions: client.state.transactions
 	}),
 	/**
 	 * Method that stops the client from running
@@ -471,7 +503,7 @@ const instance = {
 				return (ETH * MIN_DEPOSIT_ETH).toFixed(2).toString();
 			}
 		}
-		return '0.00';
+		return undefined;
 	},
 	/**
 	 * Function that returns the value of the maximum deposit
@@ -485,7 +517,7 @@ const instance = {
 				return (MAX_DEPOSIT_TOKEN / ETH).toFixed(2).toString();
 			}
 		}
-		return '0.00';
+		return undefined;
 	},
 	/**
 	 *	Returns the current exchange rate for DAI / ETH
