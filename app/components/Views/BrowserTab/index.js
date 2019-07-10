@@ -369,7 +369,7 @@ export class BrowserTab extends PureComponent {
 			homepageScripts: null,
 			fullHostname: '',
 			hostname: '',
-			inputValue: HOMEPAGE_URL,
+			inputValue: props.initialUrl || HOMEPAGE_URL,
 			autocompleteInputValue: '',
 			ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
 			contentId: null,
@@ -433,7 +433,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	async componentDidMount() {
-		if (this.isHomepage(this.state.url) && this.isTabActive()) {
+		if (this.isTabActive()) {
 			this.reload(true);
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
