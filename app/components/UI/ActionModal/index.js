@@ -60,6 +60,7 @@ export default function ActionModal({
 			isVisible={modalVisible}
 			style={styles.modal}
 			onBackdropPress={onRequestClose}
+			onBackButtonPress={onRequestClose}
 			onSwipeComplete={onRequestClose}
 			swipeDirection={'down'}
 		>

@@ -293,6 +293,7 @@ class PaymentRequestSuccess extends Component {
 				<Modal
 					isVisible={this.state.qrModalVisible}
 					onBackdropPress={this.closeQRModal}
+					onBackButtonPress={this.closeQRModal}
 					onSwipeComplete={this.closeQRModal}
 					swipeDirection={'down'}
 					propagateSwipe
