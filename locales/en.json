@@ -26,7 +26,7 @@
 		"step1": {
 			"title": "Welcome to your new wallet!",
 			"content1": "To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH).",
-			"content2": "You can buy a few dollars worth of ETH from an exchange ike Coinbase or simply request a friend."
+			"content2": "You can buy a few dollars worth of ETH from an exchange like Coinbase or simply request a friend."
 		},
 		"step2": {
 			"title": "Your Accounts",
@@ -123,6 +123,7 @@
 		"receive_button": "Receive",
 		"coming_soon": "Coming soon...",
 		"wallet": "Wallet",
+		"insta_pay": "InstaPay",
 		"transaction_history": "Transaction History",
 		"submit_feedback": "Send Feedback",
 		"submit_feedback_message": "Choose the type of feedback to send.",
@@ -146,6 +147,9 @@
 		"title": "Send",
 		"deeplink_failure": "Ooops! Something went wrong! Please try again",
 		"warn_network_change": "Network changed to "
+	},
+	"deposit": {
+		"title": "Deposit"
 	},
 	"receive": {
 		"title": "Receive"
@@ -510,6 +514,7 @@
 		"tx_review_transfer_from": "TRANSFER FROM",
 		"tx_review_unknown": "UNKNOWN METHOD",
 		"tx_review_approve": "APPROVE",
+		"tx_review_instant_payment_deposit": "INSTANT PAYMENT DEPOSIT",
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
@@ -522,6 +527,11 @@
 		"sent": "Sent",
 		"contract_deploy": "Contract Deployment",
 		"to_contract": "New Contract",
+		"instant_payment_deposit": "Instant Payment Deposit",
+		"instant_payment_deposit_tx": "Deposit",
+		"instant_payment_withdraw_tx": "Withdraw",
+		"tx_details_free": "Free",
+		"tx_details_not_available": "Not available",
 		"smart_contract_interaction": "Smart Contract Interaction",
 		"approve": "Approve",
 		"hash": "Hash",
@@ -595,6 +605,7 @@
 	},
 	"unit": {
 		"eth": "ETH",
+		"dai": "DAI",
 		"negative": "-",
 		"divisor": "/",
 		"token_id": "#",
@@ -847,7 +858,7 @@
 		"is_requesting_you_to_pay": "is requesting you to pay",
 		"total": "TOTAL:"
 	},
-	"paymentChannels": {
+	"payment_channel": {
 		"min_deposit": "Min. deposit:",
 		"max_deposit": "Max. deposit:",
 		"in_order_to_use": "In order to start sending instant payments, ",
@@ -877,7 +888,26 @@
 		"heads_up": "Heads up!",
 		"security_reasons": "For security reasons you'll have to wait 5 minutes before trying again",
 		"not_ready": "Not ready",
-		"please_wait": "You still need to wait a bit before making another deposit"
+		"please_wait": "You still need to wait a bit before making another deposit",
+		"send_buttton": "Send",
+		"deposit_buttton": "Deposit",
+		"withdraw_buttton": "Withdraw",
+		"no_funds_title": "No Funds",
+		"no_funds_action": "Deposit Funds",
+		"withdraw_funds": "Withdraw Funds",
+		"no_funds_desc": "Deposit ETH into your InstaPay card to start making instant free payments with DAI.",
+		"confirm": "Confirm",
+		"cancel": "Cancel",
+		"asset_card_desc": "Free Transactions with Connext Payment Channels",
+		"deposit_amount": "Amount to transfer",
+		"load_funds": "Load Funds",
+		"insta_pay": "InstaPay",
+		"welcome": {
+			"title": "Welcome to InstaPay!",
+			"desc_1": "This is an experimental Layer 2 feature to let you send assets to friends without transaction fees.",
+			"desc_2": "Made possible by Connext Payment Channels.",
+			"close": "Close"
+		}
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
