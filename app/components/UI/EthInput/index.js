@@ -152,10 +152,6 @@ class EthInput extends Component {
 		 */
 		onChange: PropTypes.func,
 		/**
-		 * Makes this input readonly
-		 */
-		readonly: PropTypes.bool,
-		/**
 		 * Object containing token balances in the format address => balance
 		 */
 		tokenBalances: PropTypes.object,
@@ -213,7 +209,8 @@ class EthInput extends Component {
 		readableValue: undefined,
 		assets: undefined,
 		secondaryAmount: undefined,
-		internalPrimaryCurrency: this.props.primaryCurrency
+		internalPrimaryCurrency: this.props.primaryCurrency,
+		inputEnabled: Platform.OS === 'ios'
 	};
 
 	/**
@@ -226,6 +223,12 @@ class EthInput extends Component {
 			this.setState({ readableValue: processedReadableValue });
 		}
 		this.props.updateFillMax(false);
+
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		!this.state.inputEnabled &&
+			setTimeout(() => {
+				this.setState({ inputEnabled: true });
+			}, 100);
 	};
 
 	/**
@@ -494,7 +497,9 @@ class EthInput extends Component {
 	 * @returns {object} - View object to render as input field
 	 */
 	renderTokenInput = (image, currency, secondaryAmount, secondaryCurrency) => {
-		const { readonly } = this.props;
+		const {
+			transaction: { paymentChannelTransaction }
+		} = this.props;
 		const { readableValue, assets } = this.state;
 		const selectAssets = assets && assets.length > 1;
 		return (
@@ -505,7 +510,7 @@ class EthInput extends Component {
 						<TextInput
 							autoCapitalize="none"
 							autoCorrect={false}
-							editable={!readonly}
+							editable={this.state.inputEnabled}
 							keyboardType="numeric"
 							numberOfLines={1}
 							onChangeText={this.onChange}
@@ -531,7 +536,7 @@ class EthInput extends Component {
 					)}
 				</View>
 				<View style={[styles.actions]}>
-					{secondaryCurrency && (
+					{!paymentChannelTransaction && secondaryCurrency && (
 						<FontAwesome
 							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)} // eslint-disable-line react/jsx-no-bind
 							name="exchange"
@@ -540,7 +545,7 @@ class EthInput extends Component {
 							style={styles.switch}
 						/>
 					)}
-					{selectAssets && (
+					{!paymentChannelTransaction && selectAssets && (
 						<MaterialIcon
 							onPress={this.onFocus}
 							name={'arrow-drop-down'}

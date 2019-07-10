@@ -295,7 +295,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           allowFontScaling={true}
           multiline={true}
           onChangeText={[Function]}
-          placeholder="Optional"
+          placeholder="[missing \\"en.transacton.optional\\" translation]"
           rejectResponderTermination={true}
           style={
             Object {
