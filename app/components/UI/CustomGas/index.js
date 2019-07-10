@@ -208,7 +208,6 @@ class CustomGas extends Component {
 
 	componentDidMount = async () => {
 		await this.handleFetchBasicEstimates();
-		this.onPressGasAverage();
 		const { ticker } = this.props;
 		if (ticker && ticker !== 'ETH') {
 			this.setState({ advancedCustomGas: true });
