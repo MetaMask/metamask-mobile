@@ -281,8 +281,8 @@ const ICON_IMAGES = {
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
 const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
-const instapay_logo_selected = require('../../../images/mm-instapay-selected.svg'); // eslint-disable-line
-const instapay_logo = require('../../../images/mm-instapay.svg'); // eslint-disable-line
+const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
+const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
 
 /**
  * View component that displays the MetaMask fox
