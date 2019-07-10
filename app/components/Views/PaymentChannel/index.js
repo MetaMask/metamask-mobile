@@ -216,7 +216,7 @@ class PaymentChannel extends Component {
 			this.getBalanceFiat(state.balance);
 
 			const vars = Analytics.getRemoteVariables();
-			if (!vars || !vars.paymentChannelsEnabled) {
+			if (vars && vars.paymentChannelsEnabled === false) {
 				// If the user has funds we should
 				// withdraw everything automatically
 				if (parseFloat(this.state.balance) > 0) {
@@ -226,8 +226,16 @@ class PaymentChannel extends Component {
 						[
 							{
 								text: strings('payment_channel.disabled_withdraw_btn'),
-								onPress: () => {
-									this.withdraw();
+								onPress: async () => {
+									try {
+										this.withdrawing = true;
+										await PaymentChannelsClient.withdrawAll();
+										this.withdrawing = false;
+										Logger.log('withdraw succesful');
+									} catch (e) {
+										this.withdrawing = false;
+										Logger.log('withdraw error', e);
+									}
 									setTimeout(() => {
 										this.props.navigation.pop();
 									}, 1000);
