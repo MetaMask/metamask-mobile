@@ -35,6 +35,9 @@ const styles = StyleSheet.create({
 	content: {
 		alignItems: 'flex-start'
 	},
+	passwordRequiredContent: {
+		marginBottom: 20
+	},
 	title: {
 		fontSize: 32,
 		marginTop: 10,
@@ -264,7 +267,7 @@ export default class AccountBackupStep4 extends Component {
 		const { warningIncorrectPassword } = this.state;
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.content}>
+				<View style={[styles.content, styles.passwordRequiredContent]}>
 					<Text style={styles.title}>{strings('account_backup_step_4.confirm_password')}</Text>
 					<View style={styles.text}>
 						<Text style={styles.label}>{strings('account_backup_step_4.before_continiuing')}</Text>
