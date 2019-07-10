@@ -216,7 +216,7 @@ class PaymentChannel extends Component {
 			this.getBalanceFiat(state.balance);
 
 			const vars = Analytics.getRemoteVariables();
-			if (!vars || !vars.paymentChannelsEnabled) {
+			if (vars && vars.paymentChannelsEnabled === false) {
 				// If the user has funds we should
 				// withdraw everything automatically
 				if (parseFloat(this.state.balance) > 0) {
