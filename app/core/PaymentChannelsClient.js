@@ -221,20 +221,6 @@ class PaymentChannelsClient {
 		});
 	}
 
-	handleIncomingPaymentNotification = async latestPayment => {
-		const latestPaymentID = parseInt(latestPayment.id, 10);
-		const ret = toBN(latestPayment.amount.amountToken).div(WEI_PER_ETHER);
-		const amountToken = ret
-			.toNumber()
-			.toFixed(2)
-			.toString();
-		hideMessage();
-		setTimeout(() => {
-			TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
-		}, 300);
-		await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
-	};
-
 	checkPaymentHistory = async () => {
 		const paymentHistory = await this.state.connext.getPaymentHistory();
 		const lastKnownPaymentIDStr = await AsyncStorage.getItem('@MetaMask:lastKnownInstantPaymentID');
@@ -243,15 +229,24 @@ class PaymentChannelsClient {
 			payment => payment.recipient.toLowerCase() === this.selectedAddress.toLowerCase()
 		);
 		if (latestPayment) {
+			const latestPaymentID = parseInt(latestPayment.id, 10);
 			if (lastKnownPaymentIDStr) {
-				const latestPaymentID = parseInt(latestPayment.id, 10);
 				lastKnownPaymentID = parseInt(lastKnownPaymentIDStr, 10);
 				if (lastKnownPaymentID < latestPaymentID) {
-					this.handleIncomingPaymentNotification(latestPayment);
+					const ret = toBN(latestPayment.amount.amountToken).div(WEI_PER_ETHER);
+					const amountToken = ret
+						.toNumber()
+						.toFixed(2)
+						.toString();
+					hideMessage();
+					setTimeout(() => {
+						TransactionsNotificationManager.showIncomingPaymentNotification(amountToken);
+					}, 300);
+					await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 				}
 			} else {
 				// For first time flow
-				this.handleIncomingPaymentNotification(latestPayment);
+				await AsyncStorage.setItem('@MetaMask:lastKnownInstantPaymentID', latestPaymentID.toString());
 			}
 		}
 		this.setState({ transactions: paymentHistory });
