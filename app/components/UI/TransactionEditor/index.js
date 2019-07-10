@@ -164,7 +164,7 @@ class TransactionEditor extends Component {
 		else if (assetType === 'ERC20') {
 			const res = await this.handleDataGeneration({ value: amount });
 			const gas = mounting ? gasLimit : res.gas;
-			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data });
+			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data: res.data });
 		}
 	};
 
