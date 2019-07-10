@@ -890,16 +890,19 @@ export class BrowserTab extends PureComponent {
 		setTimeout(() => {
 			this.goingBack = false;
 		}, 500);
-
-		const { current } = this.webview;
-		current && current.goBack();
-		setTimeout(() => {
-			this.setState({ forwardEnabled: true });
-			this.props.navigation.setParams({
-				...this.props.navigation.state.params,
-				url: this.state.inputValue
-			});
-		}, 100);
+		if (this.initialUrl === this.state.inputValue) {
+			this.goBackToHomepage();
+		} else {
+			const { current } = this.webview;
+			current && current.goBack();
+			setTimeout(() => {
+				this.setState({ forwardEnabled: true });
+				this.props.navigation.setParams({
+					...this.props.navigation.state.params,
+					url: this.state.inputValue
+				});
+			}, 100);
+		}
 	};
 
 	goBackToHomepage = async () => {
@@ -1559,7 +1562,7 @@ export class BrowserTab extends PureComponent {
 		if ([6, 7].includes(wizardStep)) {
 			if (!this.wizardScrollAdjusted) {
 				setTimeout(() => {
-					this.reload();
+					this.reload(true);
 				}, 1);
 				this.wizardScrollAdjusted = true;
 			}
