@@ -12,6 +12,18 @@ export function newTransaction() {
  *
  * @param {object} transaction - New transaction object
  */
+export function setPaymentChannelTransaction(asset) {
+	return {
+		type: 'SET_PAYMENT_CHANNEL_TRANSACTION',
+		asset
+	};
+}
+
+/**
+ * Sets any attribute in transaction object
+ *
+ * @param {object} transaction - New transaction object
+ */
 export function setTransactionObject(transaction) {
 	return {
 		type: 'SET_TRANSACTION_OBJECT',

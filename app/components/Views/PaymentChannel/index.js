@@ -1,38 +1,37 @@
 import React, { Component } from 'react';
-// eslint-disable-next-line import/no-commonjs
-import Icon from 'react-native-vector-icons/FontAwesome';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import {
 	InteractionManager,
-	Platform,
 	ScrollView,
-	TextInput,
 	Alert,
 	Text,
 	View,
 	SafeAreaView,
 	StyleSheet,
-	ActivityIndicator,
-	TouchableOpacity,
-	Dimensions,
-	Clipboard
+	ActivityIndicator
 } from 'react-native';
 import PropTypes from 'prop-types';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import QRCode from 'react-native-qrcode-svg';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-
 import { connect } from 'react-redux';
-import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
+import { balanceToFiat, toBN } from '../../../util/number';
+import AssetCard from '../AssetCard';
+import Engine from '../../../core/Engine';
+import { toChecksumAddress } from 'ethereumjs-util';
+import { setPaymentChannelTransaction } from '../../../actions/transaction';
+import Transactions from '../../UI/Transactions';
+import { BNToHex } from 'gaba/util';
+import Networks from '../../../util/networks';
+import Modal from 'react-native-modal';
+import PaymentChannelWelcome from './PaymentChannelWelcome';
+import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from '../../../core/AppConstants';
-import { renderFromWei } from '../../../util/number';
 
-const QR_PADDING = 160;
+const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -46,48 +45,19 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingBottom: 0
 	},
-	balance: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	balanceText: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		flex: 1,
-		marginTop: 10,
-		fontSize: 70,
-		...fontStyles.normal
-	},
-	info: {
-		flex: 1,
-		paddingVertical: 15,
-		paddingRight: 20
-	},
 	data: {
-		marginTop: 10,
-		height: 120
-	},
-	buttonWrapper: {
-		paddingVertical: 20,
-		alignItems: 'flex-end',
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'space-between'
-	},
-	noPaddingTop: {
-		paddingTop: 0
+		backgroundColor: colors.grey000,
+		borderBottomColor: colors.grey200,
+		borderBottomWidth: 1
 	},
 	button: {
-		flex: 0,
 		paddingVertical: 5,
-		width: 160,
-		height: 30
+		width: '48%',
+		height: 44
 	},
-	fullButton: {
-		flex: 1,
-		marginBottom: 20,
-		height: 30
+	depositButton: {
+		width: '80%',
+		marginVertical: 15
 	},
 	buttonText: {
 		fontSize: 14
@@ -99,77 +69,23 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
-	input: {
-		width: 160,
-		height: 50,
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		paddingHorizontal: 10
+	assetCardWrapper: {
+		marginTop: 16,
+		marginHorizontal: 20
 	},
-	fullWidthInput: {
-		flex: 1,
-		height: 50,
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		paddingHorizontal: 10,
-		paddingRight: 50,
-		marginTop: 10
+	actionsWrapper: {
+		flexDirection: 'column',
+		marginVertical: 10,
+		marginHorizontal: 20
 	},
-	sectionTitleText: {
-		fontSize: 20,
-		...fontStyles.bold
-	},
-	sectionTitleWrapper: {
-		marginBottom: 15
-	},
-	panel: {
-		flex: 1
-	},
-	panelContent: {
-		paddingVertical: 20,
-		paddingHorizontal: 20
-	},
-	accountWrapper: {
-		flexDirection: 'row'
-	},
-	qrCodeButton: {
-		position: 'absolute',
-		right: 5,
-		top: 10,
-		minHeight: 50,
-		paddingRight: 8,
-		paddingLeft: 12,
+	secondActionsWrapper: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		marginVertical: 10,
+		justifyContent: 'space-between'
 	},
-	qrCodeWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingTop: 0,
-		padding: 15
-	},
-	addressWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 16,
-		paddingVertical: 15,
-		marginTop: 10,
-		borderRadius: 5,
-		backgroundColor: colors.grey000
-	},
-	address: {
-		...fontStyles.normal,
-		fontSize: Platform.OS === 'ios' ? 14 : 20,
-		textAlign: 'center'
-	},
-	explainerText: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 16,
-		marginBottom: 15
-	},
-	explainerTextWrapper: {
-		marginBottom: 20
+	sendButton: {
+		width: '100%',
+		marginVertical: 10
 	},
 	tabUnderlineStyle: {
 		height: 2,
@@ -183,8 +99,28 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		...fontStyles.bold
 	},
-	bold: {
-		...fontStyles.bold
+	noFundsWrapper: {
+		marginHorizontal: 10,
+		marginTop: 40,
+		alignItems: 'center'
+	},
+	transactionsWrapper: {
+		marginHorizontal: 0
+	},
+	noFundsTitle: {
+		...fontStyles.normal,
+		color: colors.grey500,
+		fontSize: 18
+	},
+	noFundsDescription: {
+		...fontStyles.normal,
+		color: colors.grey500,
+		fontSize: 12,
+		margin: 20,
+		textAlign: 'center'
+	},
+	bottomModal: {
+		margin: 0
 	}
 });
 
@@ -194,7 +130,8 @@ const styles = StyleSheet.create({
 /* instant payments
 */
 class PaymentChannel extends Component {
-	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(`Instant Payments`, navigation);
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('payment_channel.insta_pay'), navigation);
 
 	static propTypes = {
 		/**
@@ -202,26 +139,53 @@ class PaymentChannel extends Component {
 		*/
 		navigation: PropTypes.object,
 		/**
-		 * A string that represents the selected address
+		 * Symbol for base asset
 		 */
-		selectedAddress: PropTypes.string,
+		nativeCurrency: PropTypes.string,
 		/**
-		/* Triggers global alert
-		*/
-		showAlert: PropTypes.func,
+		 * Currently-active ISO 4217 currency code
+		 */
+		currentCurrency: PropTypes.string,
 		/**
-		/* List of all available accounts
-		*/
-		accounts: PropTypes.object
+		 * Object containing token exchange rates in the format address => exchangeRate
+		 */
+		contractExchangeRates: PropTypes.object,
+		/**
+		 * ETH-to-current currency conversion rate from CurrencyRateController
+		 */
+		conversionRate: PropTypes.number,
+		/**
+		 * Action that sets a tokens type transaction
+		 */
+		setPaymentChannelTransaction: PropTypes.func,
+		/**
+		 * An array that represents the user transactions on chain
+		 */
+		transactions: PropTypes.array,
+		/**
+		 * An array that represents the user internal transactions
+		 */
+		internalTransactions: PropTypes.array,
+		/**
+		 * NetworkController povider object
+		 */
+		provider: PropTypes.object,
+		/**
+		 * Selected address
+		 */
+		selectedAddress: PropTypes.string
 	};
 
 	state = {
 		balance: '0.00',
+		balanceFiat: undefined,
 		status: { type: null },
 		qrModalVisible: false,
 		sendAmount: '',
 		sendRecipient: '',
-		depositAmount: ''
+		depositAmount: '',
+		exchangeRate: undefined,
+		displayWelcomeModal: false
 	};
 
 	client = null;
@@ -230,84 +194,85 @@ class PaymentChannel extends Component {
 	withdrawing = false;
 
 	onStateChange = state => {
-		this.setState({
-			balance: state.balance,
-			status: state.status
-		});
+		if (state.balance !== this.state.balance || state.status.type !== this.state.status.type) {
+			this.setState({
+				balance: state.balance,
+				status: state.status,
+				transactions: this.handleTransactions(state.transactions)
+			});
+			this.getBalanceFiat(state.balance);
+		}
 	};
 
 	componentDidMount = async () => {
-		InteractionManager.runAfterInteractions(() => {
+		const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+		if (!paymentChannelFirstTime) {
+			this.setState({ displayWelcomeModal: true });
+		}
+		InteractionManager.runAfterInteractions(async () => {
 			const state = PaymentChannelsClient.getState();
 			this.setState({
 				balance: state.balance,
 				status: state.status,
+				transactions: this.handleTransactions(state.transactions),
 				ready: true
 			});
+			this.getBalanceFiat(state.balance);
 		});
-
 		PaymentChannelsClient.hub.on('state::change', this.onStateChange);
-
 		this.mounted = true;
+	};
+
+	handleTransactions = transactions => {
+		const { transactions: onChainTransactions, provider, internalTransactions, selectedAddress } = this.props;
+		const parsedTransactions = transactions.map(tx => ({
+			time: Date.parse(tx.createdOn),
+			status: 'confirmed',
+			id: tx.id.toString(),
+			paymentChannelTransaction: true,
+			transaction: {
+				from: tx.sender,
+				to: tx.recipient,
+				value: BNToHex(toBN(tx.amount.amountToken))
+			}
+		}));
+		onChainTransactions.forEach(tx => {
+			if (
+				tx.transaction.from.toLowerCase() === selectedAddress.toLowerCase() &&
+				tx.toSmartContract &&
+				Networks[provider.type].networkId.toString() === tx.networkID &&
+				tx.transaction.data.substring(0, 10) === '0xea682e37' &&
+				tx.status === 'confirmed'
+			) {
+				parsedTransactions.push({
+					...tx,
+					actionKey: strings('transactions.instant_payment_deposit_tx'),
+					paymentChannelTransaction: true
+				});
+			}
+		});
+		internalTransactions &&
+			internalTransactions.forEach(tx => {
+				if (
+					Networks[provider.type].networkId.toString() === tx.networkID &&
+					tx.transaction.to.toLowerCase() === selectedAddress.toLowerCase()
+				) {
+					parsedTransactions.push({
+						...tx,
+						from: undefined,
+						id: tx.transactionHash,
+						actionKey: strings('transactions.instant_payment_withdraw_tx'),
+						paymentChannelTransaction: true
+					});
+				}
+			});
+		const sortedTransactions = parsedTransactions.sort((a, b) => b.time - a.time);
+		return sortedTransactions;
 	};
 
 	componentWillUnmount() {
 		PaymentChannelsClient.hub.removeListener('state::change', this.onStateChange);
 	}
-
-	deposit = async () => {
-		if (this.depositing) {
-			return;
-		}
-		try {
-			const params = {
-				depositAmount: this.state.depositAmount
-			};
-
-			if (isNaN(params.depositAmount) || params.depositAmount.trim() === '') {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.invalid_amount'));
-				return false;
-			}
-
-			const depositAmountNumber = parseFloat(params.depositAmount);
-			const { MAX_DEPOSIT_TOKEN, getExchangeRate } = PaymentChannelsClient;
-
-			const ETH = parseFloat(getExchangeRate());
-			const maxDepositAmount = (MAX_DEPOSIT_TOKEN / ETH).toFixed(2);
-			const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
-
-			if (depositAmountNumber > maxDepositAmount) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_high'));
-				return false;
-			}
-
-			if (params.depositAmount < minDepositAmount) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.amount_too_low'));
-				return false;
-			}
-
-			const accountBalance = renderFromWei(this.props.accounts[this.props.selectedAddress].balance);
-			if (parseFloat(accountBalance) <= parseFloat(params.depositAmount)) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.insufficient_funds'));
-				return false;
-			}
-
-			Logger.log('About to deposit', params);
-			this.depositing = true;
-			await PaymentChannelsClient.deposit(params);
-			this.setState({ depositAmount: '' });
-			this.depositing = false;
-			Logger.log('Deposit succesful');
-		} catch (e) {
-			if (e.message === 'still_blocked') {
-				Alert.alert(strings('paymentChannels.not_ready'), strings('paymentChannels.please_wait'));
-			} else {
-				Alert.alert(strings('paymentChannels.heads_up'), strings('paymentChannels.security_reasons'));
-				Logger.log('Deposit error', e);
-			}
-			this.depositing = false;
-		}
-	};
 
 	send = async () => {
 		if (this.sending) {
@@ -321,26 +286,27 @@ class PaymentChannel extends Component {
 			};
 
 			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_amount'));
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_amount'));
 				return false;
 			}
 
 			if (!params.sendRecipient) {
-				Alert.alert(strings('paymentChannels.error'), strings('paymentChannels.enter_the_recipient'));
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.enter_the_recipient'));
 			}
 
 			Logger.log('Sending ', params);
 			this.sending = true;
+			this.props.navigation.pop();
 			await PaymentChannelsClient.send(params);
 			this.sending = false;
 
 			Logger.log('Send succesful');
 		} catch (e) {
-			let msg = strings('paymentChannels.unknown_error');
+			let msg = strings('payment_channel.unknown_error');
 			if (e.message === 'insufficient_balance') {
-				msg = strings('paymentChannels.insufficient_balance');
+				msg = strings('payment_channel.insufficient_balance');
 			}
-			Alert.alert(strings('paymentChannels.error'), msg);
+			Alert.alert(strings('payment_channel.error'), msg);
 			Logger.log('buy error error', e);
 			this.sending = false;
 		}
@@ -350,22 +316,97 @@ class PaymentChannel extends Component {
 		if (this.withdrawing) {
 			return;
 		}
-		try {
-			this.withdrawing = true;
-			await PaymentChannelsClient.withdrawAll();
-			this.withdrawing = false;
-			Logger.log('withdraw succesful');
-		} catch (e) {
-			this.withdrawing = false;
-			Logger.log('withdraw error', e);
-		}
+		Alert.alert(
+			strings('payment_channel.withdraw_funds'),
+			`${strings('payment_channel.withdraw_intro')}. ${strings('payment_channel.withdraw_info')}.\n${strings(
+				'payment_channel.withdraw_note'
+			)}.`,
+			[
+				{
+					text: strings('payment_channel.cancel'),
+					onPress: () => false,
+					style: 'cancel'
+				},
+				{
+					text: strings('payment_channel.confirm'),
+					onPress: async () => {
+						try {
+							this.withdrawing = true;
+							await PaymentChannelsClient.withdrawAll();
+							this.withdrawing = false;
+							Logger.log('withdraw succesful');
+						} catch (e) {
+							this.withdrawing = false;
+							Logger.log('withdraw error', e);
+						}
+					}
+				}
+			],
+			{ cancelable: false }
+		);
+	};
+
+	onSend = () => {
+		this.props.setPaymentChannelTransaction({
+			address: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
+			decimals: 18,
+			logo: 'dai.svg',
+			symbol: 'DAI'
+		});
+		this.props.navigation.navigate('PaymentChannelSend');
+	};
+
+	onDeposit = () => {
+		this.props.navigation.navigate('PaymentChannelDeposit');
 	};
 
 	renderInfo() {
+		const { balance, balanceFiat } = this.state;
+		const isDisabled = this.areButtonsDisabled();
+		const noFunds = this.state.balance === '0.00';
 		return (
-			<View style={styles.info}>
-				<View style={styles.balance}>
-					<Text style={styles.balanceText}>$ {this.state.balance}</Text>
+			<View style={styles.data}>
+				<View style={styles.assetCardWrapper}>
+					<AssetCard
+						balance={balance + ' ' + strings('unit.dai')}
+						balanceFiat={balanceFiat}
+						description={strings('payment_channel.asset_card_desc')}
+					/>
+				</View>
+				<View style={styles.actionsWrapper}>
+					{!noFunds && (
+						<View>
+							<StyledButton
+								containerStyle={[styles.button, styles.sendButton]}
+								style={styles.buttonText}
+								type={'confirm'}
+								onPress={this.onSend}
+								disabled={isDisabled || noFunds}
+							>
+								{strings('payment_channel.send_buttton')}
+							</StyledButton>
+							<View style={styles.secondActionsWrapper}>
+								<StyledButton
+									containerStyle={styles.button}
+									style={styles.buttonText}
+									type={'info'}
+									onPress={this.onDeposit}
+									disabled={isDisabled}
+								>
+									{strings('payment_channel.deposit_buttton')}
+								</StyledButton>
+								<StyledButton
+									containerStyle={styles.button}
+									style={styles.buttonText}
+									type={'info'}
+									onPress={this.withdraw}
+									disabled={isDisabled || noFunds}
+								>
+									{strings('payment_channel.withdraw_buttton')}
+								</StyledButton>
+							</View>
+						</View>
+					)}
 				</View>
 			</View>
 		);
@@ -379,6 +420,25 @@ class PaymentChannel extends Component {
 				}
 			}
 		});
+	};
+
+	getBalanceFiat = async balance => {
+		const { TokenRatesController } = Engine.context;
+		const { nativeCurrency, currentCurrency, contractExchangeRates, conversionRate } = this.props;
+		let exchangeRate;
+		if (Object.keys(contractExchangeRates).includes(toChecksumAddress(DAI_ADDRESS))) {
+			exchangeRate = contractExchangeRates[toChecksumAddress(DAI_ADDRESS)];
+		} else {
+			const res = await TokenRatesController.fetchExchangeRate(
+				`contract_addresses=${DAI_ADDRESS}&vs_currencies=${nativeCurrency.toLowerCase()}`
+			);
+			if (!!res && Object.keys(res).includes(DAI_ADDRESS)) {
+				exchangeRate = res[DAI_ADDRESS][nativeCurrency.toLowerCase()];
+			}
+		}
+
+		const balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		this.setState({ balanceFiat, exchangeRate });
 	};
 
 	closeQrModal = () => {
@@ -397,169 +457,42 @@ class PaymentChannel extends Component {
 		return false;
 	};
 
-	renderMinimumsOrSpinner() {
-		const minFiat = PaymentChannelsClient.getMinimumDepositFiat();
-		const maxFiat = PaymentChannelsClient.MAX_DEPOSIT_TOKEN.toFixed(2).toString();
-		const maxETH = PaymentChannelsClient.getMaximumDepositEth();
+	renderNoFunds() {
 		return (
-			<React.Fragment>
-				<Text style={styles.explainerText}>
-					{`${strings('paymentChannels.min_deposit')}`}
-					<Text style={styles.bold}>
-						{PaymentChannelsClient.MIN_DEPOSIT_ETH} ETH (${minFiat})
-					</Text>
-				</Text>
-				<Text style={styles.explainerText}>
-					{`${strings('paymentChannels.max_deposit')}`}
-					<Text style={styles.bold}>
-						{maxETH} ETH (${maxFiat})
-					</Text>
-				</Text>
-			</React.Fragment>
-		);
-	}
-
-	renderDeposit() {
-		const isDisabled = this.areButtonsDisabled();
-		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>
-						{strings('paymentChannels.in_order_to_use')}
-						<Text style={styles.bold}>{strings('paymentChannels.you_need_to_deposit')}</Text>
-					</Text>
-					{this.renderMinimumsOrSpinner()}
-				</View>
-
-				<View style={styles.sectionTitleWrapper}>
-					<Text style={styles.sectionTitleText}>{strings('paymentChannels.deposit_eth')}</Text>
-				</View>
-				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						// eslint-disable-next-line react/jsx-no-bind
-						onChangeText={val => this.setState({ depositAmount: val })}
-						placeholder={strings('paymentChannels.enter_eth_amount')}
-						spellCheck={false}
-						style={styles.input}
-						value={this.state.depositAmount}
-						onBlur={this.onBlur}
-						keyboardType="numeric"
-						numberOfLines={1}
-					/>
+			<View>
+				{this.renderInfo()}
+				<View style={styles.noFundsWrapper}>
+					<Text style={styles.noFundsTitle}>{strings('payment_channel.no_funds_title')}</Text>
+					<Text style={styles.noFundsDescription}>{strings('payment_channel.no_funds_desc')}</Text>
 					<StyledButton
-						containerStyle={styles.button}
+						containerStyle={[styles.button, styles.depositButton]}
 						style={styles.buttonText}
-						type={'confirm'}
-						onPress={this.deposit}
+						type={'info'}
+						onPress={this.onDeposit}
 						testID={'submit-button'}
-						disabled={isDisabled}
 					>
-						{strings('paymentChannels.deposit')}
+						{strings('payment_channel.no_funds_action')}
 					</StyledButton>
 				</View>
-			</React.Fragment>
+			</View>
 		);
 	}
 
-	renderSend() {
-		const isDisabled = this.areButtonsDisabled();
+	renderTransactionsHistory() {
+		const { navigation, conversionRate, currentCurrency, selectedAddress } = this.props;
 		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>{strings('paymentChannels.send_intro')}</Text>
-				</View>
-				<View style={styles.sectionTitleWrapper}>
-					<Text style={styles.sectionTitleText}>{strings('paymentChannels.send_payment')}</Text>
-				</View>
-				<View style={styles.accountWrapper}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						// eslint-disable-next-line react/jsx-no-bind
-						onChangeText={val => this.setState({ sendRecipient: val })}
-						placeholder={strings('paymentChannels.enter_recipient')}
-						spellCheck={false}
-						style={styles.fullWidthInput}
-						value={this.state.sendRecipient}
-						onBlur={this.onBlur}
-					/>
-					<TouchableOpacity onPress={this.scan} style={styles.qrCodeButton}>
-						<Icon name="qrcode" size={Platform.OS === 'android' ? 28 : 28} />
-					</TouchableOpacity>
-				</View>
-				<View style={styles.buttonWrapper}>
-					<TextInput
-						autoCapitalize="none"
-						autoCorrect={false}
-						// eslint-disable-next-line react/jsx-no-bind
-						onChangeText={val => this.setState({ sendAmount: val })}
-						placeholder={strings('paymentChannels.enter_amount')}
-						spellCheck={false}
-						style={styles.input}
-						value={this.state.sendAmount}
-						onBlur={this.onBlur}
-						keyboardType="numeric"
-						numberOfLines={1}
-					/>
-
-					<StyledButton
-						containerStyle={styles.button}
-						style={styles.buttonText}
-						type={'confirm'}
-						onPress={this.send}
-						testID={'submit-button'}
-						disabled={isDisabled}
-					>
-						{strings('paymentChannels.send')}
-					</StyledButton>
-				</View>
-			</React.Fragment>
-		);
-	}
-
-	renderReceive() {
-		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>{strings('paymentChannels.receive_intro')}</Text>
-				</View>
-				<View style={styles.qrCodeWrapper}>
-					<QRCode
-						value={`ethereum:${this.props.selectedAddress}`}
-						size={Dimensions.get('window').width - QR_PADDING}
-					/>
-				</View>
-				<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-					<Text style={styles.address}>{this.props.selectedAddress}</Text>
-				</TouchableOpacity>
-			</React.Fragment>
-		);
-	}
-
-	renderWithdraw() {
-		const isDisabled = this.areButtonsDisabled();
-		return (
-			<React.Fragment>
-				<View style={styles.explainerTextWrapper}>
-					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_intro')}</Text>
-					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_info')}</Text>
-					<Text style={styles.explainerText}>{strings('paymentChannels.withdraw_note')}</Text>
-				</View>
-				<View style={[styles.buttonWrapper, styles.noPaddingTop]}>
-					<StyledButton
-						containerStyle={styles.fullButton}
-						style={styles.buttonText}
-						type={'confirm'}
-						onPress={this.withdraw}
-						testID={'submit-button'}
-						disabled={isDisabled}
-					>
-						{strings('paymentChannels.withdraw')}
-					</StyledButton>
-				</View>
-			</React.Fragment>
+			<ScrollView style={styles.transactionsWrapper}>
+				<Transactions
+					header={this.renderInfo()}
+					navigation={navigation}
+					transactions={this.state.transactions}
+					conversionRate={conversionRate}
+					currentCurrency={currentCurrency}
+					exchangeRate={this.state.exchangeRate}
+					selectedAddress={selectedAddress}
+					loading={false}
+				/>
+			</ScrollView>
 		);
 	}
 
@@ -576,17 +509,6 @@ class PaymentChannel extends Component {
 		);
 	}
 
-	copyAccountToClipboard = async () => {
-		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
-		});
-	};
-
 	renderContent() {
 		if (!this.state.ready) {
 			return (
@@ -595,29 +517,20 @@ class PaymentChannel extends Component {
 				</View>
 			);
 		}
+		const noFunds = this.state.balance === '0.00';
 
 		return (
-			<React.Fragment>
-				<View style={styles.data}>{this.renderInfo()}</View>
-				<View style={styles.panel}>
-					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						<ScrollView tabLabel={strings('paymentChannels.deposit')}>
-							<View style={styles.panelContent}>{this.renderDeposit()}</View>
-						</ScrollView>
-						<ScrollView tabLabel={strings('paymentChannels.send')}>
-							<View style={styles.panelContent}>{this.renderSend()}</View>
-						</ScrollView>
-						<ScrollView tabLabel={strings('paymentChannels.receive')}>
-							<View style={styles.panelContent}>{this.renderReceive()}</View>
-						</ScrollView>
-						<ScrollView tabLabel={strings('paymentChannels.withdraw')}>
-							<View style={styles.panelContent}>{this.renderWithdraw()}</View>
-						</ScrollView>
-					</ScrollableTabView>
-				</View>
-			</React.Fragment>
+			<View>
+				{noFunds && this.renderNoFunds()}
+				{!noFunds && this.renderTransactionsHistory()}
+			</View>
 		);
 	}
+
+	closeWelcomeModal = async () => {
+		await AsyncStorage.setItem('@MetaMask:paymentChannelFirstTime', '1');
+		this.setState({ displayWelcomeModal: false });
+	};
 
 	render() {
 		return (
@@ -629,6 +542,15 @@ class PaymentChannel extends Component {
 				>
 					<View style={styles.wrapper}>{this.renderContent()}</View>
 				</ScrollView>
+				<Modal
+					isVisible={this.state.displayWelcomeModal}
+					onBackdropPress={this.closeWelcomeModal}
+					onSwipeComplete={this.closeWelcomeModal}
+					swipeDirection={'down'}
+					style={styles.bottomModal}
+				>
+					<PaymentChannelWelcome close={this.closeWelcomeModal} />
+				</Modal>
 			</SafeAreaView>
 		);
 	}
@@ -636,11 +558,17 @@ class PaymentChannel extends Component {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	internalTransactions: state.engine.backgroundState.TransactionController.internalTransactions,
+	provider: state.engine.backgroundState.NetworkController.provider
 });
 
 const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
+	setPaymentChannelTransaction: asset => dispatch(setPaymentChannelTransaction(asset))
 });
 
 export default connect(

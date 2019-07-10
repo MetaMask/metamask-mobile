@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN } from '../../../util/number';
+import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -13,6 +13,7 @@ import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
+import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 
 const styles = StyleSheet.create({
 	root: {
@@ -306,8 +307,11 @@ class TransactionEditor extends Component {
 	 */
 	validateAmount = async (allowEmpty = true) => {
 		const {
-			transaction: { assetType }
+			transaction: { assetType, paymentChannelTransaction }
 		} = this.props;
+		if (paymentChannelTransaction) {
+			return this.validatePaymentChannelAmount(allowEmpty);
+		}
 		const validations = {
 			ETH: () => this.validateEtherAmount(allowEmpty),
 			ERC20: async () => await this.validateTokenAmount(allowEmpty),
@@ -415,6 +419,30 @@ class TransactionEditor extends Component {
 	};
 
 	/**
+	 * Validates payment request transaction
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
+	validatePaymentChannelAmount = allowEmpty => {
+		let error;
+		if (!allowEmpty) {
+			const {
+				transaction: { value, readableValue, from }
+			} = this.props;
+			if (!value || !from || !readableValue) {
+				return strings('transaction.invalid_amount');
+			}
+			if (value && !isBN(value)) return strings('transaction.invalid_amount');
+			const state = PaymentChannelsClient.getState();
+			if (isDecimal(state.balance) && parseFloat(readableValue) > parseFloat(state.balance)) {
+				return strings('transaction.insufficient');
+			}
+		}
+		return error;
+	};
+
+	/**
 	 * Validates transaction gas
 	 *
 	 * @returns {string} - String containing error message whether the transaction gas is valid or not
@@ -422,8 +450,10 @@ class TransactionEditor extends Component {
 	validateGas = () => {
 		let error;
 		const {
-			transaction: { gas, gasPrice, from }
+			transaction: { gas, gasPrice, from, paymentChannelTransaction }
 		} = this.props;
+		// If its handling a payment request transaction it won't do any gas validation
+		if (paymentChannelTransaction) return;
 		if (!gas) return strings('transaction.invalid_gas');
 		if (gas && !isBN(gas)) return strings('transaction.invalid_gas');
 		if (!gasPrice) return strings('transaction.invalid_gas_price');

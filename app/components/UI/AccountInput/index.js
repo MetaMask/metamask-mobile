@@ -179,12 +179,12 @@ class AccountInput extends Component {
 	state = {
 		address: undefined,
 		ensRecipient: undefined,
-		value: undefined
+		value: undefined,
+		inputEnabled: Platform.OS === 'ios'
 	};
 
 	componentDidMount = async () => {
 		const { provider } = Engine.context.NetworkController;
-
 		const { address, network, ensRecipient } = this.props;
 
 		const networkHasEnsSupport = this.getNetworkEnsSupport();
@@ -200,6 +200,12 @@ class AccountInput extends Component {
 		} else if (address) {
 			this.setState({ value: address, address });
 		}
+
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		!this.state.inputEnabled &&
+			setTimeout(() => {
+				this.setState({ inputEnabled: true });
+			}, 100);
 	};
 
 	isEnsName = recipient => {
@@ -384,6 +390,7 @@ class AccountInput extends Component {
 								onChangeText={this.onChange}
 								placeholder={placeholder}
 								spellCheck={false}
+								editable={this.state.inputEnabled}
 								style={styles.input}
 								value={value}
 								onBlur={this.onBlur}
