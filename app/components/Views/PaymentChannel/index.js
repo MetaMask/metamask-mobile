@@ -30,6 +30,7 @@ import Modal from 'react-native-modal';
 import PaymentChannelWelcome from './PaymentChannelWelcome';
 import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from '../../../core/AppConstants';
+import Analytics from '../../../core/Analytics';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
@@ -205,10 +206,6 @@ class PaymentChannel extends Component {
 	};
 
 	componentDidMount = async () => {
-		const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
-		if (!paymentChannelFirstTime) {
-			this.setState({ displayWelcomeModal: true });
-		}
 		InteractionManager.runAfterInteractions(async () => {
 			const state = PaymentChannelsClient.getState();
 			this.setState({
@@ -218,6 +215,47 @@ class PaymentChannel extends Component {
 				ready: true
 			});
 			this.getBalanceFiat(state.balance);
+
+			const vars = Analytics.getRemoteVariables();
+			if (!vars || !vars.paymentChannelsEnabled) {
+				// If the user has funds we should
+				// withdraw everything automatically
+				if (parseFloat(this.state.balance) > 0) {
+					Alert.alert(
+						strings('payment_channel.disabled_withdraw_title'),
+						strings('payment_channel.disabled_withdraw_message'),
+						[
+							{
+								text: strings('payment_channel.disabled_withdraw_btn'),
+								onPress: () => {
+									this.withdraw();
+									setTimeout(() => {
+										this.props.navigation.pop();
+									}, 1000);
+								}
+							}
+						]
+					);
+				} else {
+					Alert.alert(
+						strings('payment_channel.disabled_title'),
+						strings('payment_channel.disabled_message'),
+						[
+							{
+								text: strings('payment_channel.disabled_btn'),
+								onPress: () => {
+									this.props.navigation.pop();
+								}
+							}
+						]
+					);
+				}
+			} else {
+				const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+				if (!paymentChannelFirstTime) {
+					this.setState({ displayWelcomeModal: true });
+				}
+			}
 		});
 		PaymentChannelsClient.hub.on('state::change', this.onStateChange);
 		this.mounted = true;

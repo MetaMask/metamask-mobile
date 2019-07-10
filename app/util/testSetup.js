@@ -110,7 +110,8 @@ NativeModules.RNCNetInfo = {
 
 NativeModules.RCTAnalytics = {
 	optIn: jest.fn(),
-	trackEvent: jest.fn()
+	trackEvent: jest.fn(),
+	getRemoteVariables: jest.fn()
 };
 
 NativeModules.PlatformConstants = {

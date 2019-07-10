@@ -10,7 +10,10 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.Promise;
+
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.mixpanel.android.mpmetrics.Tweak;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,6 +24,8 @@ import java.util.HashMap;
 public class RCTAnalytics extends ReactContextBaseJavaModule {
 
 	MixpanelAPI mixpanel;
+    private static Tweak<String> remoteVariables = MixpanelAPI.stringTweak("remoteVariables","{}");
+
 
     public RCTAnalytics(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -47,13 +52,24 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 		this.mixpanel.track(eventCategory, props);
     }
 
-	 @ReactMethod
+	@ReactMethod
     public void optIn(boolean val) {
         if(val){
 			this.mixpanel.optInTracking();
 		}else{
 			this.mixpanel.optOutTracking();
 		}
+    }
+
+    @ReactMethod
+    public void getRemoteVariables(Promise promise) {
+        try{
+            String vars = remoteVariables.get();
+            promise.resolve(vars);
+        } catch (Error e){
+            promise.reject(e);
+        }
+
     }
 
 	private JSONObject toJSONObject(ReadableMap readableMap){

@@ -888,7 +888,13 @@
 			"desc_1": "Esta es una funcionalidad experimental Layer 2 que te permite enviar activos a amigos sin tarifas por transacción.",
 			"desc_2": "Posible gracias a Connext Payment Channels.",
 			"close": "Cerrar"
-		}
+		},
+		"disabled_withdraw_title": "Funcionalidad deshabilitada",
+		"disabled_withdraw_message": "Hemos deshabilitado esta funcionalidad por razones técnicas. Todos tus fondos sera transferidos a tu cuenta de ethereum",
+		"disabled_withdraw_btn": "Entendido",
+		"disabled_title": "Funcionalidad deshabilitada",
+		"disabled_message": "Esta funcionalidad ha sido deshabilitada. Por favor intentalo de nuevo...",
+		"disabled_btn": "OK"
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
