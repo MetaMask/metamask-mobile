@@ -638,7 +638,9 @@ export class BrowserTab extends PureComponent {
 			// Expire it to avoid duplicate actions
 			DeeplinkManager.expireDeeplink();
 			// Handle it
-			this.handleBranchDeeplink(pendingDeeplink);
+			setTimeout(() => {
+				this.handleBranchDeeplink(pendingDeeplink);
+			}, 1000);
 		}
 
 		this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
