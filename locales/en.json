@@ -74,7 +74,7 @@
 		"sync_help_step_four": "4. Scan the QR Code",
 		"sync_from_browser_extension_button": "Scan the QR code",
 		"or": "OR",
-		"import_from_seed_button": "Import using Seed Phrase"
+		"import_from_seed_button": "Import using seed phrase"
 	},
 	"login": {
 		"title": "Welcome Back!",

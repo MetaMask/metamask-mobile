@@ -80,7 +80,8 @@ const styles = StyleSheet.create({
 	buttonDescription: {
 		fontSize: 16,
 		textAlign: 'center',
-		marginBottom: 4
+		marginBottom: 4,
+		color: colors.black
 	},
 	importWrapper: {
 		marginTop: 24
