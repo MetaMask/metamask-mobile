@@ -31,9 +31,9 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start'
 	},
 	ctas: {
-		justifyContent: 'flex-end',
-		height: 250,
-		paddingBottom: 40
+		flex: 1,
+		flexDirection: 'column',
+		marginBottom: 40
 	},
 	termsAndConditions: {
 		paddingTop: 30
@@ -79,6 +79,14 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		color: colors.fontSecondary,
 		...fontStyles.normal
+	},
+	buttonDescription: {
+		fontSize: 16,
+		textAlign: 'center',
+		marginBottom: 4
+	},
+	importWrapper: {
+		marginTop: 24
 	}
 });
 
@@ -186,28 +194,40 @@ class Onboarding extends Component {
 							</View>
 							<View style={styles.ctas}>
 								<View style={styles.ctaWrapper}>
-									<StyledButton
-										type={'blue'}
-										onPress={this.onPressCreate}
-										testID={'onboarding-new-button'}
-									>
-										{strings('onboarding.start_exploring_now')}
-									</StyledButton>
-								</View>
-								<View style={styles.ctaWrapper}>
-									<StyledButton
-										type={'normal'}
-										onPress={this.onPressImport}
-										testID={'onboarding-import-button'}
-									>
-										{strings('onboarding.import_wallet_button')}
-									</StyledButton>
-								</View>
-								<View style={[styles.ctaWrapper, styles.termsAndConditions]}>
-									<TermsAndConditions
-										navigation={this.props.navigation}
-										action={strings('onboarding.start_exploring_now')}
-									/>
+									<View>
+										<Text style={styles.buttonDescription}>
+											{strings('onboarding.new_to_metamask')}
+										</Text>
+										<View style={styles.flexGrow}>
+											<StyledButton
+												type={'blue'}
+												onPress={this.onPressCreate}
+												testID={'onboarding-new-button'}
+											>
+												{strings('onboarding.start_exploring_now')}
+											</StyledButton>
+										</View>
+									</View>
+									<View style={styles.importWrapper}>
+										<Text style={styles.buttonDescription}>
+											{strings('onboarding.already_have_wallet')}
+										</Text>
+										<View style={styles.flexGrow}>
+											<StyledButton
+												type={'normal'}
+												onPress={this.onPressImport}
+												testID={'onboarding-import-button'}
+											>
+												{strings('onboarding.import_wallet_button')}
+											</StyledButton>
+										</View>
+									</View>
+									<View style={[styles.termsAndConditions]}>
+										<TermsAndConditions
+											navigation={this.props.navigation}
+											action={strings('onboarding.start_exploring_now')}
+										/>
+									</View>
 								</View>
 							</View>
 							{this.state.existingUser && (

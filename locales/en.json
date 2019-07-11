@@ -11,9 +11,11 @@
 	"onboarding": {
 		"title": "Welcome to MetaMask",
 		"subtitle": "A browser that connects you to applications on the decentralized web",
-		"import_wallet_button": "Import a wallet",
+		"import_wallet_button": "Sync or import your wallet",
 		"start_exploring_now": "Start exploring",
-		"login": "Login"
+		"login": "Login",
+		"new_to_metamask": "New to MetaMask?",
+		"already_have_wallet": "Already have a wallet?"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Skip Tutorial",

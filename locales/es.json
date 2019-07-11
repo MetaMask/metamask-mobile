@@ -11,9 +11,11 @@
 	"onboarding": {
 		"title": "Bienvenido a MetaMask",
 		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
-		"import_wallet_button": "Importar billetera",
+		"import_wallet_button": "Sincroniza o importa tu billetera",
 		"start_exploring_now": "Comenzar a explorar",
-		"login": "Ingresar"
+		"login": "Ingresar",
+		"new_to_metamask": "Nuevo en MetaMask?",
+		"already_have_wallet": "Ya tienes una billetera?"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
