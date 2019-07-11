@@ -7,7 +7,7 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
@@ -17,9 +17,6 @@ import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 
 const styles = StyleSheet.create({
-	flex: {
-		flex: 1
-	},
 	wrapper: {
 		flex: 1,
 		paddingTop: 10,
@@ -65,12 +62,18 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	separator: {
-		marginTop: 7,
-		marginBottom: -7,
+		marginTop: 8,
+		marginBottom: 8,
 		textAlign: 'center'
 	},
+	ctas: {
+		flex: 1,
+		flexDirection: 'column',
+		marginBottom: 40
+	},
 	ctaWrapper: {
-		marginTop: 10
+		flex: 1,
+		justifyContent: 'flex-end'
 	},
 	loader: {
 		marginTop: 40,
@@ -340,29 +343,32 @@ class ImportWallet extends Component {
 
 	renderInitialView() {
 		return (
-			<View>
-				<Text style={styles.subtitle}>{strings('import_wallet.sync_help')}</Text>
-				<View style={styles.steps}>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_one')}</Text>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_two')}</Text>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_three')}</Text>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
+			<View style={styles.ctas}>
+				<View>
+					<Text style={styles.subtitle}>{strings('import_wallet.sync_help')}</Text>
+					<View style={styles.steps}>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_one')}</Text>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_two')}</Text>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_three')}</Text>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
+					</View>
 				</View>
 				<View style={styles.ctaWrapper}>
-					<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
-						{strings('import_wallet.sync_from_browser_extension_button')}
-					</StyledButton>
-				</View>
-				<Text style={[styles.text, styles.separator]}>{strings('import_wallet.or')}</Text>
-
-				<View style={styles.ctaWrapper}>
-					<StyledButton
-						type={'normal'}
-						onPress={this.onPressImport}
-						testID={'import-wallet-import-from-seed-button'}
-					>
-						{strings('import_wallet.import_from_seed_button')}
-					</StyledButton>
+					<View style={styles.flexGrow}>
+						<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
+							{strings('import_wallet.sync_from_browser_extension_button')}
+						</StyledButton>
+					</View>
+					<Text style={[styles.text, styles.separator]}>{strings('import_wallet.or')}</Text>
+					<View style={styles.flexGrow}>
+						<StyledButton
+							type={'normal'}
+							onPress={this.onPressImport}
+							testID={'import-wallet-import-from-seed-button'}
+						>
+							{strings('import_wallet.import_from_seed_button')}
+						</StyledButton>
+					</View>
 				</View>
 			</View>
 		);
@@ -375,21 +381,27 @@ class ImportWallet extends Component {
 
 	render() {
 		return (
-			<OnboardingScreenWithBg>
-				<ScrollView style={styles.flex} testID={'import-wallet-screen'}>
-					<View style={styles.wrapper}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../../images/sync-icon.png')}
-								style={styles.fox}
-								resizeMethod={'auto'}
-							/>
+			<View style={baseStyles.flexGrow}>
+				<OnboardingScreenWithBg>
+					<ScrollView
+						style={baseStyles.flexGrow}
+						contentContainerStyle={baseStyles.flexGrow}
+						testID={'import-wallet-screen'}
+					>
+						<View style={styles.wrapper}>
+							<View style={styles.logoWrapper}>
+								<Image
+									source={require('../../../images/sync-icon.png')}
+									style={styles.fox}
+									resizeMethod={'auto'}
+								/>
+							</View>
+							<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+							{this.renderContent()}
 						</View>
-						<Text style={styles.title}>{strings('import_wallet.title')}</Text>
-						{this.renderContent()}
-					</View>
-				</ScrollView>
-			</OnboardingScreenWithBg>
+					</ScrollView>
+				</OnboardingScreenWithBg>
+			</View>
 		);
 	}
 }

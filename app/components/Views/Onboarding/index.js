@@ -17,9 +17,6 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
-	flex: {
-		flex: 1
-	},
 	wrapper: {
 		paddingTop: 10,
 		paddingHorizontal: 40,
@@ -29,11 +26,6 @@ const styles = StyleSheet.create({
 	content: {
 		flex: 1,
 		alignItems: 'flex-start'
-	},
-	ctas: {
-		flex: 1,
-		flexDirection: 'column',
-		marginBottom: 40
 	},
 	termsAndConditions: {
 		paddingTop: 30
@@ -66,6 +58,11 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-start',
 		textAlign: 'left',
 		...fontStyles.normal
+	},
+	ctas: {
+		flex: 1,
+		flexDirection: 'column',
+		marginBottom: 40
 	},
 	ctaWrapper: {
 		flex: 1,
@@ -175,7 +172,11 @@ class Onboarding extends Component {
 		return (
 			<View style={baseStyles.flexGrow}>
 				<OnboardingScreenWithBg>
-					<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
+					<ScrollView
+						style={baseStyles.flexGrow}
+						contentContainerStyle={baseStyles.flexGrow}
+						testID={'onboarding-screen'}
+					>
 						<View style={styles.wrapper}>
 							<View style={styles.content}>
 								<View style={styles.foxWrapper}>

@@ -72,7 +72,7 @@
 		"sync_help_step_two": "2. Ve a \"Ajustes\" > \"Avanzado\"",
 		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",
-		"sync_from_browser_extension_button": "Comenzar Sincronización",
+		"sync_from_browser_extension_button": "Escanea el código QR",
 		"or": "o",
 		"import_from_seed_button": "Importar usando frase semilla"
 	},
