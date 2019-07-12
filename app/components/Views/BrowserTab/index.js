@@ -759,7 +759,7 @@ export class BrowserTab extends PureComponent {
 		this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
 		if (Platform.OS === 'android') {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
-			this.drawerEmitter.removeAllListeners();
+			DrawerStatusTracker && DrawerStatusTracker.hub && DrawerStatusTracker.hub.removeAllListeners();
 		}
 		if (this.unsubscribeFromBranch) {
 			this.unsubscribeFromBranch();

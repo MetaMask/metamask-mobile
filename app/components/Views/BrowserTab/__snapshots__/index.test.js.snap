@@ -16,6 +16,7 @@ exports[`Browser should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
+        "zIndex": 1,
       }
     }
   />
