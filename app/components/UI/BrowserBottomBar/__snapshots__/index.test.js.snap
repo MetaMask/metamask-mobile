@@ -55,7 +55,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   <TouchableOpacity
     activeOpacity={0.2}
     delayLongPress={600}
-    disabled={true}
     extraButtonProps={
       Object {
         "rippleColor": "transparent",
@@ -74,7 +73,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      disabled={true}
       name="angle-right"
       size={24}
       style={
