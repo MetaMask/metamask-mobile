@@ -293,6 +293,7 @@ exports[`Browser should render correctly 1`] = `
     canGoForward={false}
     goBack={[Function]}
     goForward={[Function]}
+    goHome={[Function]}
     showTabs={[Function]}
     showUrlModal={[Function]}
     toggleOptions={[Function]}

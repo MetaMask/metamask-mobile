@@ -10,19 +10,24 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       "borderTopWidth": 0.5,
       "flex": 0,
       "flexDirection": "row",
-      "height": 86,
-      "paddingBottom": 32,
-      "paddingHorizontal": 10,
-      "paddingTop": 14,
+      "justifyContent": "space-between",
+      "paddingBottom": 36,
+      "paddingHorizontal": 14,
+      "paddingVertical": 18,
     }
   }
 >
-  <View
+  <TouchableOpacity
+    activeOpacity={0.2}
+    disabled={false}
+    onPress={[Function]}
     style={
       Object {
-        "alignContent": "flex-start",
-        "flex": 1,
-        "flexDirection": "row",
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
       }
     }
   >
@@ -30,37 +35,41 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       allowFontScaling={false}
       disabled={false}
       name="angle-left"
-      onPress={[Function]}
-      size={40}
+      size={24}
       style={
         Array [
           Object {
-            "alignSelf": "center",
             "color": "#6a737d",
-            "height": 28,
-            "lineHeight": 30,
-            "textAlign": "center",
-            "width": 36,
           },
           Object {},
         ]
       }
     />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
     <Icon
       allowFontScaling={false}
-      disabled={true}
       name="angle-right"
-      onPress={[Function]}
-      size={40}
+      size={24}
       style={
         Array [
           Object {
-            "alignSelf": "center",
             "color": "#6a737d",
-            "height": 28,
-            "lineHeight": 30,
-            "textAlign": "center",
-            "width": 36,
+          },
+          Object {
+            "paddingLeft": 3,
           },
           Object {
             "color": "#d6d9dc",
@@ -68,82 +77,100 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         ]
       }
     />
-  </View>
-  <View
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
     style={
       Object {
-        "alignContent": "center",
-        "flex": 1,
-        "flexDirection": "row",
+        "alignItems": "center",
+        "height": 24,
         "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="search"
+      size={24}
+      style={
+        Object {
+          "color": "#6a737d",
+        }
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
       }
     }
   >
     <Connect(TabCountIcon)
-      onPress={[Function]}
       style={
         Object {
-          "height": 30,
+          "height": 24,
           "marginTop": 0,
-          "width": 30,
+          "width": 24,
         }
       }
     />
-  </View>
-  <View
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
     style={
       Object {
         "alignItems": "center",
-        "flex": 1,
-        "flexDirection": "row",
-        "justifyContent": "flex-end",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
       }
     }
   >
     <Icon
       allowFontScaling={false}
-      name="ios-search"
-      onPress={[Function]}
-      size={30}
+      name="home"
+      size={24}
       style={
-        Array [
-          Object {
-            "alignSelf": "center",
-            "color": "#6a737d",
-            "height": 28,
-            "lineHeight": 30,
-            "textAlign": "center",
-            "width": 36,
-          },
-          Object {
-            "alignContent": "flex-start",
-            "alignSelf": "flex-start",
-          },
-        ]
+        Object {
+          "color": "#6a737d",
+        }
       }
     />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
     <Icon
       allowFontScaling={false}
-      name="more-vert"
-      onPress={[Function]}
-      size={30}
+      name="more-horiz"
+      size={24}
       style={
-        Array [
-          Object {
-            "alignSelf": "center",
-            "color": "#6a737d",
-            "height": 28,
-            "lineHeight": 30,
-            "textAlign": "center",
-            "width": 36,
-          },
-          Object {
-            "alignContent": "flex-start",
-            "alignSelf": "flex-start",
-          },
-        ]
+        Object {
+          "color": "#6a737d",
+        }
       }
     />
-  </View>
+  </TouchableOpacity>
 </ElevatedView>
 `;
