@@ -1318,6 +1318,7 @@ export class BrowserTab extends PureComponent {
 			showTabs={this.showTabs}
 			showUrlModal={this.showUrlModal}
 			toggleOptions={this.toggleOptions}
+			goHome={this.goBackToHomepage}
 		/>
 	);
 
