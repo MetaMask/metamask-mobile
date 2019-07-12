@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
 	},
 	backupAlert: {
 		position: 'absolute',
-		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 60,
+		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 70,
 		left: 16,
 		right: 16
 	}
@@ -934,7 +934,7 @@ export class BrowserTab extends PureComponent {
 		if (this.canGoForward()) {
 			this.toggleOptionsIfNeeded();
 			const { current } = this.webview;
-			this.setState({ forwardEnabled: false });
+			this.setState({ forwardEnabled: current.canGoForward() });
 			current && current.goForward();
 			setTimeout(() => {
 				this.props.navigation.setParams({
@@ -1318,6 +1318,7 @@ export class BrowserTab extends PureComponent {
 			showTabs={this.showTabs}
 			showUrlModal={this.showUrlModal}
 			toggleOptions={this.toggleOptions}
+			goHome={this.goBackToHomepage}
 		/>
 	);
 
