@@ -108,43 +108,30 @@ export default class BrowserBottomBar extends PureComponent {
 					<Icon
 						name="angle-left"
 						disabled={!canGoBack}
-						size={Platform.OS === 'android' ? 24 : 24}
+						size={24}
 						style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]}
 					/>
 				</TouchableOpacity>
-				<TouchableOpacity onPress={goForward} style={styles.iconButton} disabled={!canGoForward}>
+				<TouchableOpacity onPress={goForward} style={styles.iconButton}>
 					<Icon
-						disabled={!canGoForward}
 						name="angle-right"
-						size={Platform.OS === 'android' ? 24 : 24}
+						size={24}
 						style={[styles.icon, styles.iconForward, !canGoForward ? styles.disabledIcon : {}]}
 					/>
 				</TouchableOpacity>
 				<TouchableOpacity onPress={showUrlModal} style={styles.iconButton}>
-					<FeatherIcons
-						name="search"
-						size={Platform.OS === 'android' ? 24 : 24}
-						style={[styles.icon, styles.iconSearch]}
-					/>
+					<FeatherIcons name="search" size={24} style={[styles.icon, styles.iconSearch]} />
 				</TouchableOpacity>
 
 				<TouchableOpacity onPress={showTabs} style={styles.iconButton}>
 					<TabCountIcon style={styles.tabIcon} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={goHome} style={styles.iconButton}>
-					<SimpleLineIcons
-						name="home"
-						size={Platform.OS === 'android' ? 24 : 24}
-						style={[styles.icon, styles.iconHome]}
-					/>
+					<SimpleLineIcons name="home" size={24} style={[styles.icon, styles.iconHome]} />
 				</TouchableOpacity>
 
 				<TouchableOpacity onPress={toggleOptions} style={styles.iconButton}>
-					<MaterialIcon
-						name="more-horiz"
-						size={Platform.OS === 'android' ? 24 : 24}
-						style={[styles.icon, styles.iconMore]}
-					/>
+					<MaterialIcon name="more-horiz" size={24} style={[styles.icon, styles.iconMore]} />
 				</TouchableOpacity>
 			</ElevatedView>
 		);
