@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 55,
+		bottom: 65,
 		right: 5
 	},
 	optionsWrapperIos: {
@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 80,
-		right: 3
+		bottom: 90,
+		right: 5
 	},
 	option: {
 		paddingVertical: 10,
