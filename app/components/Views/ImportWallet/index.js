@@ -15,6 +15,7 @@ import StyledButton from '../../UI/StyledButton';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
+import AnimatedFox from 'react-native-animated-fox';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -23,32 +24,23 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 30,
 		paddingBottom: 30
 	},
-	logoWrapper: {
-		alignItems: 'center'
+	foxWrapper: {
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45,
+		marginTop: Platform.OS === 'ios' ? 30 : 0,
+		marginBottom: 0
 	},
-	fox: {
-		marginTop: Platform.OS === 'android' ? 20 : 50,
-		width: 156,
-		height: 97
+	image: {
+		alignSelf: 'center',
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45
 	},
 	title: {
-		fontSize: 32,
-		marginTop: 30,
-		marginBottom: 0,
+		fontSize: 24,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
-		textAlign: 'center',
+		textAlign: 'left',
 		...fontStyles.bold
-	},
-	subtitle: {
-		fontSize: 18,
-		lineHeight: 24,
-		marginTop: 20,
-		marginBottom: 10,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.normal
 	},
 	steps: {
 		marginTop: 10,
@@ -69,7 +61,8 @@ const styles = StyleSheet.create({
 	ctas: {
 		flex: 1,
 		flexDirection: 'column',
-		marginBottom: 40
+		marginBottom: 40,
+		marginTop: 24
 	},
 	ctaWrapper: {
 		flex: 1,
@@ -345,7 +338,6 @@ class ImportWallet extends Component {
 		return (
 			<View style={styles.ctas}>
 				<View>
-					<Text style={styles.subtitle}>{strings('import_wallet.sync_help')}</Text>
 					<View style={styles.steps}>
 						<Text style={styles.text}>{strings('import_wallet.sync_help_step_one')}</Text>
 						<Text style={styles.text}>{strings('import_wallet.sync_help_step_two')}</Text>
@@ -389,14 +381,19 @@ class ImportWallet extends Component {
 						testID={'import-wallet-screen'}
 					>
 						<View style={styles.wrapper}>
-							<View style={styles.logoWrapper}>
-								<Image
-									source={require('../../../images/sync-icon.png')}
-									style={styles.fox}
-									resizeMethod={'auto'}
-								/>
+							<View style={styles.foxWrapper}>
+								{Platform.OS === 'android' ? (
+									<Image
+										source={require('../../../images/fox.png')}
+										style={styles.image}
+										resizeMethod={'auto'}
+									/>
+								) : (
+									<AnimatedFox />
+								)}
 							</View>
 							<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+							<Text style={styles.title}>{strings('import_wallet.sub_title')}</Text>
 							{this.renderContent()}
 						</View>
 					</ScrollView>

@@ -66,9 +66,10 @@
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
 	},
 	"import_wallet": {
-		"title": "Importar Billetera",
-		"sync_help": "Sincroniza tu billetera con la extension",
-		"sync_help_step_one": "1. Ingresa a la extension",
+		"title": "Ya eres usuario de MetaMask?",
+		"sub_title": "Sincroniza con la extensión",
+		"sync_help": "Sincroniza tu billetera con la extensión",
+		"sync_help_step_one": "1. Ingresa a la extensión",
 		"sync_help_step_two": "2. Ve a \"Ajustes\" > \"Avanzado\"",
 		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",

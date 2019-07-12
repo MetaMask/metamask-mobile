@@ -31,15 +31,15 @@ const styles = StyleSheet.create({
 		paddingTop: 30
 	},
 	foxWrapper: {
-		width: Platform.OS === 'ios' ? 100 : 66,
-		height: Platform.OS === 'ios' ? 100 : 66,
-		marginTop: 30,
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45,
+		marginTop: Platform.OS === 'ios' ? 30 : 0,
 		marginBottom: 0
 	},
 	image: {
 		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 100 : 66,
-		height: Platform.OS === 'ios' ? 10 : 66
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45
 	},
 	title: {
 		fontSize: 28,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 16,
 		textAlign: 'center',
-		marginBottom: 4,
+		marginBottom: 8,
 		color: colors.black
 	},
 	importWrapper: {
