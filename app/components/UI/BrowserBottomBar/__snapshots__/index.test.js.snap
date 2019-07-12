@@ -40,6 +40,9 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         Array [
           Object {
             "color": "#6a737d",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
           },
           Object {},
         ]
@@ -67,9 +70,9 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         Array [
           Object {
             "color": "#6a737d",
-          },
-          Object {
-            "paddingLeft": 3,
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
           },
           Object {
             "color": "#d6d9dc",
@@ -98,6 +101,9 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       style={
         Object {
           "color": "#6a737d",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
         }
       }
     />
@@ -140,10 +146,13 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Icon
       allowFontScaling={false}
       name="home"
-      size={24}
+      size={22}
       style={
         Object {
           "color": "#6a737d",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
         }
       }
     />
@@ -164,10 +173,13 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     <Icon
       allowFontScaling={false}
       name="more-horiz"
-      size={24}
+      size={22}
       style={
         Object {
           "color": "#6a737d",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
         }
       }
     />

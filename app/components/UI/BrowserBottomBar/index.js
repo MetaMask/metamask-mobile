@@ -31,9 +31,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		textAlign: 'center'
 	},
-	iconForward: {
-		paddingLeft: 3
-	},
 	tabIcon: {
 		marginTop: 0,
 		width: 24,
@@ -43,7 +40,10 @@ const styles = StyleSheet.create({
 		color: colors.grey100
 	},
 	icon: {
-		color: colors.grey500
+		width: 24,
+		height: 24,
+		color: colors.grey500,
+		textAlign: 'center'
 	}
 });
 
@@ -113,7 +113,7 @@ export default class BrowserBottomBar extends PureComponent {
 					<Icon
 						name="angle-right"
 						size={24}
-						style={[styles.icon, styles.iconForward, !canGoForward ? styles.disabledIcon : {}]}
+						style={[styles.icon, !canGoForward ? styles.disabledIcon : {}]}
 					/>
 				</TouchableOpacity>
 				<TouchableOpacity onPress={showUrlModal} style={styles.iconButton}>
@@ -124,11 +124,11 @@ export default class BrowserBottomBar extends PureComponent {
 					<TabCountIcon style={styles.tabIcon} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={goHome} style={styles.iconButton}>
-					<SimpleLineIcons name="home" size={24} style={styles.icon} />
+					<SimpleLineIcons name="home" size={22} style={styles.icon} />
 				</TouchableOpacity>
 
 				<TouchableOpacity onPress={toggleOptions} style={styles.iconButton}>
-					<MaterialIcon name="more-horiz" size={24} style={styles.icon} />
+					<MaterialIcon name="more-horiz" size={22} style={styles.icon} />
 				</TouchableOpacity>
 			</ElevatedView>
 		);
