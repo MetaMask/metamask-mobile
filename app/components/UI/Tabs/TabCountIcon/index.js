@@ -6,9 +6,9 @@ import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	tabIcon: {
-		borderWidth: Platform.OS === 'android' ? 2 : 3,
+		borderWidth: 2,
 		borderColor: colors.grey500,
-		borderRadius: 8,
+		borderRadius: 6,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},

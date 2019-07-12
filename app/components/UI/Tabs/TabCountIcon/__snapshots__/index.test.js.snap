@@ -9,8 +9,8 @@ exports[`TabCountIcon should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "borderColor": "#6a737d",
-        "borderRadius": 8,
-        "borderWidth": 3,
+        "borderRadius": 6,
+        "borderWidth": 2,
         "justifyContent": "center",
       },
       undefined,
