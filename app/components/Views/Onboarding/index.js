@@ -78,6 +78,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	buttonDescription: {
+		...fontStyles.normal,
 		fontSize: 16,
 		textAlign: 'center',
 		marginBottom: 4,
