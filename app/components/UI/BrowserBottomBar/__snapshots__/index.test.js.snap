@@ -19,13 +19,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
 >
   <TouchableOpacity
     activeOpacity={0.2}
-    delayLongPress={600}
     disabled={false}
-    extraButtonProps={
-      Object {
-        "rippleColor": "transparent",
-      }
-    }
     onPress={[Function]}
     style={
       Object {
@@ -54,12 +48,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   </TouchableOpacity>
   <TouchableOpacity
     activeOpacity={0.2}
-    delayLongPress={600}
-    extraButtonProps={
-      Object {
-        "rippleColor": "transparent",
-      }
-    }
     onPress={[Function]}
     style={
       Object {
@@ -92,12 +80,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   </TouchableOpacity>
   <TouchableOpacity
     activeOpacity={0.2}
-    delayLongPress={600}
-    extraButtonProps={
-      Object {
-        "rippleColor": "transparent",
-      }
-    }
     onPress={[Function]}
     style={
       Object {
@@ -114,23 +96,14 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       name="search"
       size={24}
       style={
-        Array [
-          Object {
-            "color": "#6a737d",
-          },
-          Object {},
-        ]
+        Object {
+          "color": "#6a737d",
+        }
       }
     />
   </TouchableOpacity>
   <TouchableOpacity
     activeOpacity={0.2}
-    delayLongPress={600}
-    extraButtonProps={
-      Object {
-        "rippleColor": "transparent",
-      }
-    }
     onPress={[Function]}
     style={
       Object {
@@ -154,12 +127,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   </TouchableOpacity>
   <TouchableOpacity
     activeOpacity={0.2}
-    delayLongPress={600}
-    extraButtonProps={
-      Object {
-        "rippleColor": "transparent",
-      }
-    }
     style={
       Object {
         "alignItems": "center",
@@ -175,23 +142,14 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       name="home"
       size={24}
       style={
-        Array [
-          Object {
-            "color": "#6a737d",
-          },
-          undefined,
-        ]
+        Object {
+          "color": "#6a737d",
+        }
       }
     />
   </TouchableOpacity>
   <TouchableOpacity
     activeOpacity={0.2}
-    delayLongPress={600}
-    extraButtonProps={
-      Object {
-        "rippleColor": "transparent",
-      }
-    }
     onPress={[Function]}
     style={
       Object {
@@ -208,12 +166,9 @@ exports[`BrowserBottomBar should render correctly 1`] = `
       name="more-horiz"
       size={24}
       style={
-        Array [
-          Object {
-            "color": "#6a737d",
-          },
-          Object {},
-        ]
+        Object {
+          "color": "#6a737d",
+        }
       }
     />
   </TouchableOpacity>

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import TabCountIcon from '../Tabs/TabCountIcon';
@@ -9,7 +9,6 @@ import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import DeviceSize from '../../../util/DeviceSize';
 import { colors } from '../../../styles/common';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const HOME_INDICATOR_HEIGHT = 18;
 
@@ -25,8 +24,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 		justifyContent: 'space-between'
 	},
-	iconSearch: {},
-	iconMore: {},
 	iconButton: {
 		height: 24,
 		width: 24,
@@ -120,18 +117,18 @@ export default class BrowserBottomBar extends PureComponent {
 					/>
 				</TouchableOpacity>
 				<TouchableOpacity onPress={showUrlModal} style={styles.iconButton}>
-					<FeatherIcons name="search" size={24} style={[styles.icon, styles.iconSearch]} />
+					<FeatherIcons name="search" size={24} style={styles.icon} />
 				</TouchableOpacity>
 
 				<TouchableOpacity onPress={showTabs} style={styles.iconButton}>
 					<TabCountIcon style={styles.tabIcon} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={goHome} style={styles.iconButton}>
-					<SimpleLineIcons name="home" size={24} style={[styles.icon, styles.iconHome]} />
+					<SimpleLineIcons name="home" size={24} style={styles.icon} />
 				</TouchableOpacity>
 
 				<TouchableOpacity onPress={toggleOptions} style={styles.iconButton}>
-					<MaterialIcon name="more-horiz" size={24} style={[styles.icon, styles.iconMore]} />
+					<MaterialIcon name="more-horiz" size={24} style={styles.icon} />
 				</TouchableOpacity>
 			</ElevatedView>
 		);
