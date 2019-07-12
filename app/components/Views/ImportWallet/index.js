@@ -18,6 +18,9 @@ import PubNubWrapper from '../../../util/syncWithExtension';
 import AnimatedFox from 'react-native-animated-fox';
 
 const styles = StyleSheet.create({
+	scroll: {
+		flexGrow: 1
+	},
 	wrapper: {
 		flex: 1,
 		paddingTop: 10,
@@ -377,7 +380,7 @@ class ImportWallet extends Component {
 				<OnboardingScreenWithBg>
 					<ScrollView
 						style={baseStyles.flexGrow}
-						contentContainerStyle={baseStyles.flexGrow}
+						contentContainerStyle={styles.scroll}
 						testID={'import-wallet-screen'}
 					>
 						<View style={styles.wrapper}>

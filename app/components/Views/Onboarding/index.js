@@ -17,6 +17,9 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
+	scroll: {
+		flexGrow: 1
+	},
 	wrapper: {
 		paddingTop: 10,
 		paddingHorizontal: 40,
@@ -176,7 +179,7 @@ class Onboarding extends Component {
 				<OnboardingScreenWithBg>
 					<ScrollView
 						style={baseStyles.flexGrow}
-						contentContainerStyle={baseStyles.flexGrow}
+						contentContainerStyle={styles.scroll}
 						testID={'onboarding-screen'}
 					>
 						<View style={styles.wrapper}>
