@@ -224,7 +224,15 @@ class CustomGas extends Component {
 			Logger.log('Error while trying to get gas limit estimates', error);
 			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
 		}
-		const { average, fast, safeLow } = basicGasEstimates;
+
+		// Handle api failure returning same gas prices
+		let { average, fast, safeLow } = basicGasEstimates;
+		if (average === fast && average === safeLow) {
+			average = AVERAGE_GAS;
+			safeLow = LOW_GAS;
+			fast = FAST_GAS;
+		}
+
 		this.setState({
 			averageGwei: convertApiValueToGWEI(average),
 			fastGwei: convertApiValueToGWEI(fast),
