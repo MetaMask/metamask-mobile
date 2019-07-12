@@ -57,6 +57,7 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import BackupAlert from '../../UI/BackupAlert';
+import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -156,7 +157,8 @@ const styles = StyleSheet.create({
 		fontSize: 18
 	},
 	webview: {
-		...baseStyles.flexGrow
+		...baseStyles.flexGrow,
+		zIndex: 1
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -665,7 +667,15 @@ export class BrowserTab extends PureComponent {
 		Engine.context.TransactionController.hub.on('networkChange', this.reload);
 
 		BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
+
+		if (Platform.OS === 'android') {
+			DrawerStatusTracker.hub.on('drawer::open', this.drawerOpenHandler);
+		}
 	}
+
+	drawerOpenHandler = () => {
+		this.dismissTextSelectionIfNeeded();
+	};
 
 	handleDeeplinks = async ({ error, params }) => {
 		if (!this.isTabActive()) return false;
@@ -749,6 +759,7 @@ export class BrowserTab extends PureComponent {
 		this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
 		if (Platform.OS === 'android') {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
+			this.drawerEmitter.removeAllListeners();
 		}
 		if (this.unsubscribeFromBranch) {
 			this.unsubscribeFromBranch();
@@ -1035,6 +1046,19 @@ export class BrowserTab extends PureComponent {
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
 	};
 
+	dismissTextSelectionIfNeeded() {
+		if (this.isTabActive() && Platform.OS === 'android') {
+			const { current } = this.webview;
+			if (current) {
+				setTimeout(() => {
+					const deselectScript = `if (window.getSelection) {window.getSelection().removeAllRanges();}
+					else if (document.selection) {document.selection.empty();}`;
+					current.injectJavaScript(deselectScript);
+				}, 50);
+			}
+		}
+	}
+
 	toggleOptionsIfNeeded() {
 		if (
 			this.props.navigation &&
@@ -1046,6 +1070,8 @@ export class BrowserTab extends PureComponent {
 	}
 
 	toggleOptions = () => {
+		this.dismissTextSelectionIfNeeded();
+
 		this.props.navigation &&
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
