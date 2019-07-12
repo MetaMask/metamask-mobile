@@ -1,66 +1,49 @@
 import React, { PureComponent } from 'react';
-import { Platform, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
 import TabCountIcon from '../Tabs/TabCountIcon';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import IonIcon from 'react-native-vector-icons/Ionicons';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import FeatherIcons from 'react-native-vector-icons/Feather';
 import DeviceSize from '../../../util/DeviceSize';
 import { colors } from '../../../styles/common';
 
+const HOME_INDICATOR_HEIGHT = 18;
+
 const styles = StyleSheet.create({
 	bottomBar: {
-		height: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 86 : Platform.OS === 'android' ? 45 : 60,
 		backgroundColor: Platform.OS === 'android' ? colors.white : colors.grey000,
-		paddingTop: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 14 : Platform.OS === 'android' ? 8 : 12,
-		paddingBottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 32 : 8,
 		flexDirection: 'row',
-		paddingHorizontal: 10,
+		paddingHorizontal: 14,
+		paddingVertical: 18,
+		paddingBottom: DeviceSize.isIphoneX() && Platform.OS === 'ios' ? 18 + HOME_INDICATOR_HEIGHT : 18,
 		flex: 0,
 		borderTopWidth: Platform.OS === 'android' ? 0 : StyleSheet.hairlineWidth,
-		borderColor: colors.grey200
+		borderColor: colors.grey200,
+		justifyContent: 'space-between'
 	},
-	iconSearch: {
-		alignSelf: 'flex-start',
-		alignContent: 'flex-start'
+	iconButton: {
+		height: 24,
+		width: 24,
+		justifyContent: 'center',
+		alignItems: 'center',
+		textAlign: 'center'
 	},
-	iconMore: {
-		alignSelf: 'flex-start',
-		alignContent: 'flex-start'
-	},
-	iconsLeft: {
-		flex: 1,
-		alignContent: 'flex-start',
-		flexDirection: 'row'
-	},
-	iconsMiddle: {
-		flex: 1,
-		alignContent: 'center',
-		flexDirection: 'row',
-		justifyContent: 'center'
-	},
-	iconsRight: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-		alignItems: 'center'
+	iconForward: {
+		paddingLeft: 3
 	},
 	tabIcon: {
-		marginTop: Platform.OS === 'ios' ? 0 : 2,
-		width: Platform.OS === 'ios' ? 30 : 26,
-		height: Platform.OS === 'ios' ? 30 : 26
+		marginTop: 0,
+		width: 24,
+		height: 24
 	},
 	disabledIcon: {
 		color: colors.grey100
 	},
 	icon: {
-		color: colors.grey500,
-		height: 28,
-		lineHeight: 30,
-		textAlign: 'center',
-		width: 36,
-		alignSelf: 'center'
+		color: colors.grey500
 	}
 });
 
@@ -95,49 +78,58 @@ export default class BrowserBottomBar extends PureComponent {
 		 */
 		showUrlModal: PropTypes.func,
 		/**
+		 * Function that redirects to the home screen
+		 */
+		goHome: PropTypes.func,
+		/**
 		 * Function that toggles the options menu
 		 */
 		toggleOptions: PropTypes.func
 	};
 
 	render() {
-		const { canGoBack, goBack, canGoForward, goForward, showTabs, showUrlModal, toggleOptions } = this.props;
+		const {
+			canGoBack,
+			goBack,
+			canGoForward,
+			goForward,
+			showTabs,
+			goHome,
+			showUrlModal,
+			toggleOptions
+		} = this.props;
 
 		return (
 			<ElevatedView elevation={11} style={styles.bottomBar}>
-				<View style={styles.iconsLeft}>
+				<TouchableOpacity onPress={goBack} style={styles.iconButton} disabled={!canGoBack}>
 					<Icon
 						name="angle-left"
 						disabled={!canGoBack}
-						onPress={goBack}
-						size={Platform.OS === 'android' ? 32 : 40}
+						size={24}
 						style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]}
 					/>
+				</TouchableOpacity>
+				<TouchableOpacity onPress={goForward} style={styles.iconButton}>
 					<Icon
-						disabled={!canGoForward}
 						name="angle-right"
-						onPress={goForward}
-						size={Platform.OS === 'android' ? 32 : 40}
-						style={[styles.icon, !canGoForward ? styles.disabledIcon : {}]}
+						size={24}
+						style={[styles.icon, styles.iconForward, !canGoForward ? styles.disabledIcon : {}]}
 					/>
-				</View>
-				<View style={styles.iconsMiddle}>
-					<TabCountIcon onPress={showTabs} style={styles.tabIcon} />
-				</View>
-				<View style={styles.iconsRight}>
-					<IonIcon
-						name="ios-search"
-						onPress={showUrlModal}
-						size={Platform.OS === 'android' ? 24 : 30}
-						style={[styles.icon, styles.iconSearch]}
-					/>
-					<MaterialIcon
-						name="more-vert"
-						onPress={toggleOptions}
-						size={Platform.OS === 'android' ? 26 : 30}
-						style={[styles.icon, styles.iconMore]}
-					/>
-				</View>
+				</TouchableOpacity>
+				<TouchableOpacity onPress={showUrlModal} style={styles.iconButton}>
+					<FeatherIcons name="search" size={24} style={styles.icon} />
+				</TouchableOpacity>
+
+				<TouchableOpacity onPress={showTabs} style={styles.iconButton}>
+					<TabCountIcon style={styles.tabIcon} />
+				</TouchableOpacity>
+				<TouchableOpacity onPress={goHome} style={styles.iconButton}>
+					<SimpleLineIcons name="home" size={24} style={styles.icon} />
+				</TouchableOpacity>
+
+				<TouchableOpacity onPress={toggleOptions} style={styles.iconButton}>
+					<MaterialIcon name="more-horiz" size={24} style={styles.icon} />
+				</TouchableOpacity>
 			</ElevatedView>
 		);
 	}
