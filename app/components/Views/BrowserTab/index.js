@@ -32,7 +32,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost } from '../../../util/browser';
-import { SPA_urlChangeListener, JS_WINDOW_INFORMATION } from '../../../util/browserSripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserSripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -1051,9 +1051,7 @@ export class BrowserTab extends PureComponent {
 			const { current } = this.webview;
 			if (current) {
 				setTimeout(() => {
-					const deselectScript = `if (window.getSelection) {window.getSelection().removeAllRanges();}
-					else if (document.selection) {document.selection.empty();}`;
-					current.injectJavaScript(deselectScript);
+					current.injectJavaScript(JS_DESELECT_TEXT);
 				}, 50);
 			}
 		}

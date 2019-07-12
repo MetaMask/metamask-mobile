@@ -92,3 +92,6 @@ export const JS_WINDOW_INFORMATION_HEIGHT = os => `
 		}
 	})();
 `;
+
+export const JS_DESELECT_TEXT = `if (window.getSelection) {window.getSelection().removeAllRanges();}
+else if (document.selection) {document.selection.empty();}`;
