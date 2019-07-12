@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import com.smixx.fabric.FabricPackage;
 import com.reactnativecommunity.netinfo.NetInfoPackage;
 import fr.greweb.reactnativeviewshot.RNViewShotPackage;
 import com.airbnb.android.react.lottie.LottiePackage;
@@ -24,7 +25,6 @@ import com.peel.react.rnos.RNOSModule;
 import com.oblador.keychain.KeychainPackage;
 import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
 import com.rnfs.RNFSPackage;
-import com.smixx.fabric.FabricPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.tectiv3.aes.RCTAesPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
@@ -52,6 +52,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
+            	new FabricPackage(),
 				new NetInfoPackage(),
             	new RNViewShotPackage(),
             	new LottiePackage(),
