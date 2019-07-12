@@ -76,8 +76,8 @@ const styles = StyleSheet.create({
 		marginBottom: 20
 	},
 	login: {
-		fontSize: 15,
-		color: colors.fontSecondary,
+		fontSize: 18,
+		color: colors.blue,
 		...fontStyles.normal
 	},
 	buttonDescription: {
