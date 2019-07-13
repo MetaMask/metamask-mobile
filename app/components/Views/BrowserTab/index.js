@@ -1265,40 +1265,12 @@ export class BrowserTab extends PureComponent {
 
 		return (
 			<React.Fragment>
-				{Platform.OS === 'android' && this.canGoBack() ? (
-					<Button onPress={this.goBack} style={styles.option}>
-						<View style={styles.optionIconWrapper}>
-							<Icon name="arrow-left" size={18} style={styles.optionIcon} />
-						</View>
-						<Text style={styles.optionText} numberOfLines={1}>
-							{strings('browser.go_back')}
-						</Text>
-					</Button>
-				) : null}
-				{Platform.OS === 'android' && this.canGoForward() ? (
-					<Button onPress={this.goForward} style={styles.option}>
-						<View style={styles.optionIconWrapper}>
-							<Icon name="arrow-right" size={18} style={styles.optionIcon} />
-						</View>
-						<Text style={styles.optionText} numberOfLines={1}>
-							{strings('browser.go_forward')}
-						</Text>
-					</Button>
-				) : null}
 				<Button onPress={() => this.reload()} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
 					<Text style={styles.optionText} numberOfLines={1}>
 						{strings('browser.reload')}
-					</Text>
-				</Button>
-				<Button onPress={() => this.goBackToHomepage()} style={styles.option}>
-					<View style={styles.optionIconWrapper}>
-						<Icon name="home" size={18} style={styles.optionIcon} />
-					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
-						{strings('browser.home')}
 					</Text>
 				</Button>
 				<Button onPress={this.addBookmark} style={styles.option}>

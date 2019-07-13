@@ -17,8 +17,8 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 
 const styles = StyleSheet.create({
-	flex: {
-		flex: 1
+	scroll: {
+		flexGrow: 1
 	},
 	wrapper: {
 		paddingTop: 10,
@@ -30,24 +30,19 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: 'flex-start'
 	},
-	ctas: {
-		justifyContent: 'flex-end',
-		height: 250,
-		paddingBottom: 40
-	},
 	termsAndConditions: {
 		paddingTop: 30
 	},
 	foxWrapper: {
-		width: Platform.OS === 'ios' ? 100 : 66,
-		height: Platform.OS === 'ios' ? 100 : 66,
-		marginTop: 30,
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45,
+		marginTop: Platform.OS === 'ios' ? 30 : 0,
 		marginBottom: 0
 	},
 	image: {
 		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 100 : 66,
-		height: Platform.OS === 'ios' ? 10 : 66
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45
 	},
 	title: {
 		fontSize: 28,
@@ -67,6 +62,11 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		...fontStyles.normal
 	},
+	ctas: {
+		flex: 1,
+		flexDirection: 'column',
+		marginBottom: 40
+	},
 	ctaWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end'
@@ -76,9 +76,19 @@ const styles = StyleSheet.create({
 		marginBottom: 20
 	},
 	login: {
-		fontSize: 15,
-		color: colors.fontSecondary,
+		fontSize: 18,
+		color: colors.blue,
 		...fontStyles.normal
+	},
+	buttonDescription: {
+		...fontStyles.normal,
+		fontSize: 16,
+		textAlign: 'center',
+		marginBottom: 8,
+		color: colors.black
+	},
+	importWrapper: {
+		marginTop: 24
 	}
 });
 
@@ -167,7 +177,11 @@ class Onboarding extends Component {
 		return (
 			<View style={baseStyles.flexGrow}>
 				<OnboardingScreenWithBg>
-					<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
+					<ScrollView
+						style={baseStyles.flexGrow}
+						contentContainerStyle={styles.scroll}
+						testID={'onboarding-screen'}
+					>
 						<View style={styles.wrapper}>
 							<View style={styles.content}>
 								<View style={styles.foxWrapper}>
@@ -186,28 +200,40 @@ class Onboarding extends Component {
 							</View>
 							<View style={styles.ctas}>
 								<View style={styles.ctaWrapper}>
-									<StyledButton
-										type={'blue'}
-										onPress={this.onPressCreate}
-										testID={'onboarding-new-button'}
-									>
-										{strings('onboarding.start_exploring_now')}
-									</StyledButton>
-								</View>
-								<View style={styles.ctaWrapper}>
-									<StyledButton
-										type={'normal'}
-										onPress={this.onPressImport}
-										testID={'onboarding-import-button'}
-									>
-										{strings('onboarding.import_wallet_button')}
-									</StyledButton>
-								</View>
-								<View style={[styles.ctaWrapper, styles.termsAndConditions]}>
-									<TermsAndConditions
-										navigation={this.props.navigation}
-										action={strings('onboarding.start_exploring_now')}
-									/>
+									<View>
+										<Text style={styles.buttonDescription}>
+											{strings('onboarding.new_to_metamask')}
+										</Text>
+										<View style={styles.flexGrow}>
+											<StyledButton
+												type={'blue'}
+												onPress={this.onPressCreate}
+												testID={'onboarding-new-button'}
+											>
+												{strings('onboarding.start_exploring_now')}
+											</StyledButton>
+										</View>
+									</View>
+									<View style={styles.importWrapper}>
+										<Text style={styles.buttonDescription}>
+											{strings('onboarding.already_have_wallet')}
+										</Text>
+										<View style={styles.flexGrow}>
+											<StyledButton
+												type={'normal'}
+												onPress={this.onPressImport}
+												testID={'onboarding-import-button'}
+											>
+												{strings('onboarding.import_wallet_button')}
+											</StyledButton>
+										</View>
+									</View>
+									<View style={[styles.termsAndConditions]}>
+										<TermsAndConditions
+											navigation={this.props.navigation}
+											action={strings('onboarding.start_exploring_now')}
+										/>
+									</View>
 								</View>
 							</View>
 							{this.state.existingUser && (
