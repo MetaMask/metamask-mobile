@@ -222,7 +222,6 @@ class Deposit extends Component {
 			const params = { depositAmount: this.state.amount };
 			Logger.log('About to deposit', params);
 			this.setState({ depositing: true });
-			this.props.navigation.pop();
 			await PaymentChannelsClient.deposit(params);
 			this.setState({ depositing: false });
 			Logger.log('Deposit succesful');
