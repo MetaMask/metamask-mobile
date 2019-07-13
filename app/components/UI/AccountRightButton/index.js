@@ -8,8 +8,11 @@ import { toggleAccountsModal } from '../../../actions/modals';
 const styles = StyleSheet.create({
 	leftButton: {
 		marginTop: 12,
-		marginRight: Platform.OS === 'android' ? 22 : 18,
-		marginBottom: 12
+		marginRight: Platform.OS === 'android' ? 7 : 18,
+		marginLeft: Platform.OS === 'android' ? 7 : 0,
+		marginBottom: 12,
+		alignItems: 'center',
+		justifyContent: 'center'
 	}
 });
 

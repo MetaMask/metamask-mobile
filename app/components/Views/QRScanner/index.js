@@ -76,31 +76,44 @@ export default class QrScanner extends Component {
 
 		let data = {};
 
-		if (content.split('ethereum:').length > 1) {
-			this.shouldReadBarCode = false;
-			data = parse(content);
-			let action = 'send-eth';
-			if (data.function_name === 'transfer') {
-				// Send erc20 token
-				action = 'send-token';
-			}
-			data = { ...data, action };
-		} else if (content.substring(0, 2).toLowerCase() === '0x') {
-			this.shouldReadBarCode = false;
-			data = { target_address: content };
-		} else if (content.split('metamask-sync:').length > 1) {
+		if (content.split('metamask-sync:').length > 1) {
 			this.shouldReadBarCode = false;
 			data = { content };
-		} else if (content.split('wc:').length > 1) {
-			this.shouldReadBarCode = false;
-			data = { walletConnectURI: content };
+			this.props.navigation.state.params.onStartScan(data).then(() => {
+				this.props.navigation.state.params.onScanSuccess(data);
+			});
+			this.mounted = false;
+			this.props.navigation.goBack();
 		} else {
-			// EIP-945 allows scanning arbitrary data
-			data = content;
+			if (content.split('ethereum:').length > 1) {
+				this.shouldReadBarCode = false;
+				data = parse(content);
+				let action = 'send-eth';
+				if (data.function_name === 'transfer') {
+					// Send erc20 token
+					action = 'send-token';
+				}
+				data = { ...data, action };
+			} else if (
+				content.length === 64 ||
+				(content.substring(0, 2).toLowerCase() === '0x' && content.length === 66)
+			) {
+				this.shouldReadBarCode = false;
+				data = { private_key: content.length === 64 ? content : content.substr(2) };
+			} else if (content.substring(0, 2).toLowerCase() === '0x') {
+				this.shouldReadBarCode = false;
+				data = { target_address: content, action: 'send-eth' };
+			} else if (content.split('wc:').length > 1) {
+				this.shouldReadBarCode = false;
+				data = { walletConnectURI: content };
+			} else {
+				// EIP-945 allows scanning arbitrary data
+				data = content;
+			}
+			this.mounted = false;
+			this.props.navigation.goBack();
+			this.props.navigation.state.params.onScanSuccess(data);
 		}
-		this.mounted = false;
-		this.props.navigation.goBack();
-		this.props.navigation.state.params.onScanSuccess(data);
 	};
 
 	onError = error => {
@@ -121,8 +134,12 @@ export default class QrScanner extends Component {
 				type={'back'}
 				onBarCodeRead={this.shouldReadBarCode ? this.onBarCodeRead : null}
 				flashMode={'auto'}
-				permissionDialogTitle={strings('qr_scanner.allow_camera_dialog_title')}
-				permissionDialogMessage={strings('qr_scanner.allow_camera_dialog_message')}
+				androidCameraPermissionOptions={{
+					title: strings('qr_scanner.allow_camera_dialog_title'),
+					message: strings('qr_scanner.allow_camera_dialog_message'),
+					buttonPositive: strings('qr_scanner.ok'),
+					buttonNegative: strings('qr_scanner.cancel')
+				}}
 			>
 				<SafeAreaView style={styles.innerView}>
 					<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>

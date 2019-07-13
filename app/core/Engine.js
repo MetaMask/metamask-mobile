@@ -53,7 +53,10 @@ class Engine {
 	 */
 	constructor(initialState = {}) {
 		if (!Engine.instance) {
-			const { nativeCurrency, currentCurrency } = initialState.CurrencyRateController || {};
+			const { nativeCurrency, currentCurrency } = initialState.CurrencyRateController || {
+				nativeCurrency: 'eth',
+				currentCurrency: 'usd'
+			};
 			this.datamodel = new ComposableController(
 				[
 					new KeyringController({ encryptor }, initialState.KeyringController),
@@ -98,7 +101,12 @@ class Engine {
 					),
 					new NetworkStatusController(),
 					new PhishingController(),
-					new PreferencesController(),
+					new PreferencesController(
+						{},
+						{
+							ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL
+						}
+					),
 					new ShapeShiftController(),
 					new TokenBalancesController(),
 					new TokenRatesController(),

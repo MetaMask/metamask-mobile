@@ -4,6 +4,7 @@
 >
 
     <uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
@@ -43,8 +44,47 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
 		 <!-- Branch URI Scheme -->
+		 <intent-filter android:autoVerify="true">
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+			<data android:scheme="https" android:host="metamask.app.link" />
+			<data android:scheme="https" android:host="metamask-alternate.app.link" />
+			<data android:scheme="https" android:host="metamask.test-app.link" />
+			<data android:scheme="https" android:host="metamask-alternate.test-app.link" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="metamask" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
 		<intent-filter>
 			<data android:scheme="ethereum" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="dapp" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="wc" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="http" />
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+		</intent-filter>
+		<intent-filter>
+			<data android:scheme="https" />
 			<action android:name="android.intent.action.VIEW" />
 			<category android:name="android.intent.category.DEFAULT" />
 			<category android:name="android.intent.category.BROWSABLE" />
@@ -70,6 +110,8 @@
 		android:value="io.metamask"/>
 	  <meta-data  android:name="com.dieam.reactnativepushnotification.notification_color"
 		android:resource="@color/lightgray"/>
+	  <!-- MIXPANEL -->
+	  <meta-data android:name="com.mixpanel.android.mpmetrics.MixpanelAPI.token" android:value="${MM_MIXPANEL_TOKEN}"  />
 
 	  <!-- Branch install referrer tracking (optional) -->
 	  <receiver android:name="io.branch.referral.InstallListener" android:exported="true">
@@ -80,7 +122,7 @@
 
 
 	   <provider
-        android:name="android.support.v4.content.FileProvider"
+        android:name="androidx.core.content.FileProvider"
         android:authorities="io.metamask.provider"
         android:grantUriPermissions="true"
         android:exported="false">

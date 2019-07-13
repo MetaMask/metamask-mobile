@@ -16,7 +16,7 @@ import TabThumbnail from './TabThumbnail';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 
-const THUMB_VERTICAL_MARGIN = 20;
+const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = DeviceSize.isIphoneX() ? 88 : 64;
 const THUMB_HEIGHT = Dimensions.get('window').height / (DeviceSize.isIphone5S() ? 4 : 5) + THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor((Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) / THUMB_HEIGHT);
@@ -234,8 +234,12 @@ export default class Tabs extends PureComponent {
 		);
 	}
 
+	onNewTabPress = () => {
+		this.props.newTab();
+	};
+
 	renderTabActions() {
-		const { tabs, closeAllTabs, newTab, closeTabsView } = this.props;
+		const { tabs, closeAllTabs, closeTabsView } = this.props;
 		return (
 			<View style={styles.tabActions}>
 				<TouchableOpacity style={[styles.tabAction, styles.tabActionleft]} onPress={closeAllTabs}>
@@ -244,7 +248,7 @@ export default class Tabs extends PureComponent {
 					</Text>
 				</TouchableOpacity>
 				<View style={styles.tabAction}>
-					<TouchableOpacity style={styles.newTabIconButton} onPress={newTab}>
+					<TouchableOpacity style={styles.newTabIconButton} onPress={this.onNewTabPress}>
 						<MaterialCommunityIcon name="plus" size={15} style={styles.newTabIcon} />
 					</TouchableOpacity>
 				</View>

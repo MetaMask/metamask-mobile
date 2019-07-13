@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 22,
 		textAlign: 'center',
-		width: 144
+		width: '50%'
 	},
 	summary: {
 		backgroundColor: colors.beige,

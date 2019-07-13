@@ -9,7 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import DeviceSize from '../../../util/DeviceSize';
-import Engine from '../../../core/Engine';
+import { importAccountFromPrivateKey } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -43,6 +43,15 @@ const styles = StyleSheet.create({
 	subtitleText: {
 		fontSize: 18,
 		...fontStyles.bold
+	},
+	scanPkeyRow: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginTop: 20
+	},
+	scanPkeyText: {
+		fontSize: 14,
+		color: colors.blue
 	},
 	icon: {
 		textAlign: 'left',
@@ -136,8 +145,7 @@ export default class ImportPrivateKey extends Component {
 		this.setState({ loading: true });
 		// Import private key
 		try {
-			const { KeyringController } = Engine.context;
-			await KeyringController.importAccountWithStrategy('privateKey', [this.state.privateKey]);
+			await importAccountFromPrivateKey(this.state.privateKey);
 			this.props.navigation.navigate('ImportPrivateKeySuccess');
 			this.setState({ loading: false, privateKey: '' });
 		} catch (e) {
@@ -158,6 +166,20 @@ export default class ImportPrivateKey extends Component {
 
 	dismiss = () => {
 		this.props.navigation.goBack(null);
+	};
+
+	scanPkey = () => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: data => {
+				if (data.private_key) {
+					this.setState({ privateKey: data.private_key }, () => {
+						this.goNext();
+					});
+				} else {
+					Alert.alert(strings('import_private_key.error_title'), strings('import_private_key.error_message'));
+				}
+			}
+		});
 	};
 
 	render() {
@@ -202,6 +224,13 @@ export default class ImportPrivateKey extends Component {
 								placeholder={strings('import_private_key.example')}
 								autoCapitalize={'none'}
 							/>
+							<View style={styles.scanPkeyRow}>
+								<TouchableOpacity onPress={this.scanPkey} style={styles.scanPkey}>
+									<Text style={styles.scanPkeyText}>
+										{strings('import_private_key.or_scan_a_qr_code')}
+									</Text>
+								</TouchableOpacity>
+							</View>
 						</View>
 					</View>
 					<View style={styles.buttonWrapper}>

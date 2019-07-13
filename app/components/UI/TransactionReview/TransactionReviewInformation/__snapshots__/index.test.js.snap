@@ -12,13 +12,17 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
 >
   <View
     style={
-      Object {
-        "alignItems": "center",
-        "borderBottomWidth": 1,
-        "borderColor": "#bbc0c5",
-        "flexDirection": "row",
-        "paddingVertical": 15,
-      }
+      Array [
+        Object {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "paddingVertical": 15,
+        },
+        Object {
+          "borderBottomWidth": 1,
+          "borderColor": "#bbc0c5",
+        },
+      ]
     }
   >
     <Text
@@ -36,25 +40,6 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
       TRANSACTION FEE
     </Text>
     <View>
-      <TouchableOpacity
-        activeOpacity={0.2}
-        onPress={[Function]}
-      >
-        <Text
-          style={
-            Object {
-              "color": "#037dd6",
-              "fontFamily": "Roboto",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "marginBottom": 6,
-              "textAlign": "right",
-            }
-          }
-        >
-          EDIT
-        </Text>
-      </TouchableOpacity>
       <Text
         style={
           Object {

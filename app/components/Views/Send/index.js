@@ -102,17 +102,6 @@ class Send extends Component {
 	}
 
 	/**
-	 * Removes collectible in case an ERC721 asset is being sent
-	 */
-	removeCollectible = () => {
-		const { selectedAsset, assetType } = this.props.transaction;
-		if (assetType === 'ERC721') {
-			const { AssetsController } = Engine.context;
-			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
-		}
-	};
-
-	/**
 	 * Transaction state is erased, ready to create a new clean transaction
 	 */
 	clear = () => {
@@ -188,8 +177,17 @@ class Send extends Component {
 		let newTxMeta;
 		switch (action) {
 			case 'send-eth':
-				newTxMeta = { symbol: 'ETH', assetType: 'ETH', type: 'ETHER_TRANSACTION' };
-				newTxMeta.to = toChecksumAddress(target_address);
+				newTxMeta = {
+					symbol: 'ETH',
+					assetType: 'ETH',
+					type: 'ETHER_TRANSACTION'
+				};
+				if (target_address.toLowerCase().substr(0, 2) === '0x') {
+					newTxMeta.to = toChecksumAddress(target_address);
+				} else {
+					// ENS Name
+					newTxMeta.ensRecipient = target_address;
+				}
 				if (parameters && parameters.value) {
 					newTxMeta.value = toBN(parameters.value);
 					newTxMeta.readableValue = fromWei(newTxMeta.value);
@@ -392,7 +390,6 @@ class Send extends Component {
 			if (transactionMeta.error) {
 				throw transactionMeta.error;
 			}
-			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
@@ -463,7 +460,7 @@ class Send extends Component {
 		return {
 			view: SEND,
 			network: networkType,
-			activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
+			activeCurrency: (selectedAsset && (selectedAsset.symbol || selectedAsset.contractName)) || 'ETH',
 			assetType
 		};
 	};

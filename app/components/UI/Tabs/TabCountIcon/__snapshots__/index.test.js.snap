@@ -1,16 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabCountIcon should render correctly 1`] = `
-<TouchableOpacity
-  activeOpacity={0.2}
-  onPress={[Function]}
+<View
   style={
     Array [
       Object {
         "alignItems": "center",
         "borderColor": "#6a737d",
-        "borderRadius": 8,
-        "borderWidth": 3,
+        "borderRadius": 6,
+        "borderWidth": 2,
         "justifyContent": "center",
       },
       undefined,
@@ -33,5 +31,5 @@ exports[`TabCountIcon should render correctly 1`] = `
   >
     1
   </Text>
-</TouchableOpacity>
+</View>
 `;

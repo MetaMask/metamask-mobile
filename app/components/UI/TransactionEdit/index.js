@@ -7,11 +7,12 @@ import PropTypes from 'prop-types';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit } from '../../../util/number';
+import { toBN, isBN, hexToBN, fromWei, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import CustomGas from '../CustomGas';
 import { addHexPrefix } from 'ethereumjs-util';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
+import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 
 const styles = StyleSheet.create({
 	root: {
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
 	amountRow: {
 		right: 15,
 		left: 15,
-		marginTop: Platform.OS === 'android' ? 205 : 190,
+		marginTop: Platform.OS === 'android' ? 200 : 190,
 		position: 'absolute',
 		zIndex: 4
 	},
@@ -83,8 +84,11 @@ const styles = StyleSheet.create({
 	form: {
 		flex: 1,
 		padding: 16,
-		flexDirection: 'column',
-		minHeight: '100%'
+		flexDirection: 'column'
+	},
+	androidForm: {
+		paddingBottom: 100,
+		minHeight: 500
 	},
 	hexData: {
 		...fontStyles.bold,
@@ -210,7 +214,7 @@ class TransactionEdit extends Component {
 	componentDidMount = () => {
 		const { transaction } = this.props;
 		if (transaction && transaction.value) {
-			this.props.handleUpdateAmount(transaction.value);
+			this.props.handleUpdateAmount(transaction.value, true);
 		}
 		if (transaction && transaction.assetType === 'ETH') {
 			this.props.handleUpdateReadableValue(fromWei(transaction.value));
@@ -227,9 +231,8 @@ class TransactionEdit extends Component {
 	};
 
 	fillMax = () => {
-		const { gas, gasPrice, from, selectedAsset, assetType } = this.props.transaction;
+		const { gas, gasPrice, from, selectedAsset, assetType, paymentChannelTransaction } = this.props.transaction;
 		const { balance } = this.props.accounts[from];
-
 		const { contractBalances } = this.props;
 		let value, readableValue;
 		if (assetType === 'ETH') {
@@ -240,6 +243,10 @@ class TransactionEdit extends Component {
 				? hexToBN(balance).sub(totalGas)
 				: fromWei(0);
 			readableValue = fromWei(value);
+		} else if (paymentChannelTransaction) {
+			const state = PaymentChannelsClient.getState();
+			value = toTokenMinimalUnit(state.balance, selectedAsset.decimals);
+			readableValue = state.balance;
 		} else if (assetType === 'ERC20') {
 			value = hexToBN(contractBalances[selectedAsset.address].toString(16));
 			readableValue = fromTokenMinimalUnit(value, selectedAsset.decimals);
@@ -345,7 +352,17 @@ class TransactionEdit extends Component {
 	render() {
 		const {
 			navigation,
-			transaction: { value, gas, gasPrice, from, to, selectedAsset, readableValue, ensRecipient },
+			transaction: {
+				value,
+				gas,
+				gasPrice,
+				from,
+				to,
+				selectedAsset,
+				readableValue,
+				ensRecipient,
+				paymentChannelTransaction
+			},
 			showHexData
 		} = this.props;
 		const { gasError, toAddressError, toAddressWarning, data, accountSelectIsOpen, ethInputIsOpen } = this.state;
@@ -353,13 +370,17 @@ class TransactionEdit extends Component {
 		return (
 			<View style={styles.root}>
 				<ActionView
-					confirmText={strings('transaction.next')}
+					confirmText={
+						paymentChannelTransaction ? strings('transaction.confirm') : strings('transaction.next')
+					}
+					confirmButtonMode={paymentChannelTransaction ? 'confirm' : 'normal'}
 					onCancelPress={this.props.onCancel}
+					showCancelButton={!paymentChannelTransaction}
 					onConfirmPress={this.review}
 					onTouchablePress={this.closeDropdowns}
 					keyboardShouldPersistTaps={'handled'}
 				>
-					<View style={styles.form}>
+					<View style={[styles.form, Platform.OS === 'android' && !showHexData ? styles.androidForm : {}]}>
 						<View style={[styles.formRow, styles.fromRow]}>
 							<View style={styles.label}>
 								<Text style={styles.labelText}>{strings('transaction.from')}:</Text>
@@ -403,35 +424,39 @@ class TransactionEdit extends Component {
 								isOpen={accountSelectIsOpen}
 							/>
 						</View>
-						<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
-							<View style={styles.label}>
-								<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
-								{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
-							</View>
-							<CustomGas
-								handleGasFeeSelection={this.updateGas}
-								totalGas={totalGas}
-								gas={gas}
-								gasPrice={gasPrice}
-								onPress={this.closeDropdowns}
-							/>
-						</View>
-						<View style={[styles.formRow, styles.row]}>
-							{showHexData && (
+						{!paymentChannelTransaction && (
+							<View style={[styles.formRow, styles.row, styles.notAbsolute]}>
 								<View style={styles.label}>
-									<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+									<Text style={styles.labelText}>{strings('transaction.gas_fee')}:</Text>
+									{gasError ? <Text style={styles.error}>{gasError}</Text> : null}
 								</View>
-							)}
-							{showHexData && (
-								<TextInput
-									multiline
-									onChangeText={this.updateData}
-									placeholder="Optional"
-									style={styles.hexData}
-									value={data}
+								<CustomGas
+									handleGasFeeSelection={this.updateGas}
+									totalGas={totalGas}
+									gas={gas}
+									gasPrice={gasPrice}
+									onPress={this.closeDropdowns}
 								/>
-							)}
-						</View>
+							</View>
+						)}
+						{!paymentChannelTransaction && (
+							<View style={[styles.formRow, styles.row]}>
+								{showHexData && (
+									<View style={styles.label}>
+										<Text style={styles.labelText}>{strings('transaction.hex_data')}:</Text>
+									</View>
+								)}
+								{showHexData && (
+									<TextInput
+										multiline
+										onChangeText={this.updateData}
+										placeholder={strings('transacton.optional')}
+										style={styles.hexData}
+										value={data}
+									/>
+								)}
+							</View>
+						)}
 					</View>
 				</ActionView>
 			</View>
