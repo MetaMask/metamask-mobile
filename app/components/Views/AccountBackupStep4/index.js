@@ -35,6 +35,9 @@ const styles = StyleSheet.create({
 	content: {
 		alignItems: 'flex-start'
 	},
+	passwordRequiredContent: {
+		marginBottom: 20
+	},
 	title: {
 		fontSize: 32,
 		marginTop: 10,
@@ -166,10 +169,14 @@ export default class AccountBackupStep4 extends Component {
 		this.words = this.props.navigation.getParam('words', []);
 		// If the user is going to the backup seed flow directly
 		if (!this.words.length) {
-			const credentials = await SecureKeychain.getGenericPassword();
-			if (credentials) {
-				this.words = await this.tryExportSeedPhrase(credentials.password);
-			} else {
+			try {
+				const credentials = await SecureKeychain.getGenericPassword();
+				if (credentials) {
+					this.words = await this.tryExportSeedPhrase(credentials.password);
+				} else {
+					this.setState({ view: CONFIRM_PASSWORD });
+				}
+			} catch (e) {
 				this.setState({ view: CONFIRM_PASSWORD });
 			}
 		}
@@ -197,7 +204,7 @@ export default class AccountBackupStep4 extends Component {
 			this.setState({ view: SEED_PHRASE, ready: true });
 		} catch (e) {
 			let msg = strings('reveal_credential.warning_incorrect_password');
-			if (e.toString() !== WRONG_PASSWORD_ERROR) {
+			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
 				msg = strings('reveal_credential.unknown_error');
 			}
 			this.setState({
@@ -260,7 +267,7 @@ export default class AccountBackupStep4 extends Component {
 		const { warningIncorrectPassword } = this.state;
 		return (
 			<View style={styles.wrapper}>
-				<View style={styles.content}>
+				<View style={[styles.content, styles.passwordRequiredContent]}>
 					<Text style={styles.title}>{strings('account_backup_step_4.confirm_password')}</Text>
 					<View style={styles.text}>
 						<Text style={styles.label}>{strings('account_backup_step_4.before_continiuing')}</Text>

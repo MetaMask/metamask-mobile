@@ -11,6 +11,7 @@ import {
 	ScrollView,
 	InteractionManager
 } from 'react-native';
+import SvgImage from 'react-native-remote-svg';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
@@ -44,8 +45,10 @@ import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
+import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -265,12 +268,9 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		...fontStyles.bold
 	},
-	onboardingContainer: {
-		position: 'absolute',
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 315 - DeviceSize.getDeviceWidth()
+	instapayLogo: {
+		width: 24,
+		height: 24
 	}
 });
 
@@ -281,6 +281,8 @@ const ICON_IMAGES = {
 	'selected-wallet': require('../../../images/selected-wallet-icon.png')
 };
 const drawerBg = require('../../../images/drawer-bg.png'); // eslint-disable-line
+const instapay_logo_selected = require('../../../images/mm-instapay-selected.png'); // eslint-disable-line
+const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disable-line
 
 /**
  * View component that displays the MetaMask fox
@@ -363,13 +365,23 @@ class DrawerView extends Component {
 		/**
 		 * Frequent RPC list from PreferencesController
 		 */
-		frequentRpcList: PropTypes.array
+		frequentRpcList: PropTypes.array,
+		/**
+		/* flag that determines the state of payment channels
+		*/
+		paymentChannelsEnabled: PropTypes.bool,
+		/**
+		 * Current provider type
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
 		submitFeedback: false,
 		showSecureWalletModal: false
 	};
+
+	browserSectionRef = React.createRef();
 
 	currentBalance = null;
 	previousBalance = null;
@@ -481,6 +493,19 @@ class DrawerView extends Component {
 		this.props.navigation.navigate('BrowserTabHome');
 		this.hideDrawer();
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
+	};
+
+	goToPaymentChannel = () => {
+		const { providerType } = this.props;
+		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
+			this.props.navigation.navigate('PaymentChannelView');
+		} else {
+			Alert.alert(
+				strings('experimental_settings.network_not_supported'),
+				strings('experimental_settings.switch_network')
+			);
+		}
+		this.hideDrawer();
 	};
 
 	showWallet = () => {
@@ -669,7 +694,8 @@ class DrawerView extends Component {
 			network: {
 				provider: { type, rpcTarget }
 			},
-			frequentRpcList
+			frequentRpcList,
+			paymentChannelsEnabled
 		} = this.props;
 		let blockExplorer, blockExplorerName;
 		if (type === 'rpc') {
@@ -691,6 +717,12 @@ class DrawerView extends Component {
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+				},
+				paymentChannelsEnabled && {
+					name: strings('drawer.insta_pay'),
+					icon: <SvgImage source={instapay_logo} style={styles.instapayLogo} />,
+					selectedIcon: <SvgImage source={instapay_logo_selected} style={styles.instapayLogo} />,
+					action: this.goToPaymentChannel
 				},
 				{
 					name: strings('drawer.transaction_history'),
@@ -748,7 +780,7 @@ class DrawerView extends Component {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: `ethereum:${selectedAddress}`
+			message: generateUniversalLinkAddress(selectedAddress)
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
@@ -776,11 +808,7 @@ class DrawerView extends Component {
 			wizard: { step }
 		} = this.props;
 		return (
-			step === 5 && (
-				<View style={styles.onboardingContainer}>
-					<OnboardingWizard navigation={this.props.navigation} />
-				</View>
-			)
+			step === 5 && <OnboardingWizard navigation={this.props.navigation} coachmarkRef={this.browserSectionRef} />
 		);
 	};
 
@@ -879,6 +907,7 @@ class DrawerView extends Component {
 							>
 								{section
 									.filter(item => {
+										if (!item) return undefined;
 										if (item.name.toLowerCase().indexOf('etherscan') !== -1) {
 											return this.hasBlockExplorer(network.provider.type);
 										}
@@ -893,6 +922,7 @@ class DrawerView extends Component {
 													? styles.selectedRoute
 													: null
 											]}
+											ref={item.name === strings('drawer.browser') && this.browserSectionRef}
 											onPress={() => item.action()} // eslint-disable-line
 										>
 											{item.icon
@@ -1010,7 +1040,9 @@ const mapStateToProps = state => ({
 	receiveModalVisible: state.modals.receiveModalVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
 });
 
 const mapDispatchToProps = dispatch => ({

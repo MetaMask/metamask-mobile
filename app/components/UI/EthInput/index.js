@@ -4,8 +4,6 @@ import { Keyboard, ScrollView, Platform, StyleSheet, Text, TextInput, View, Imag
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import {
-	weiToFiat,
-	balanceToFiat,
 	fromTokenMinimalUnit,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
@@ -14,7 +12,8 @@ import {
 	toWei,
 	fiatNumberToWei,
 	isDecimal,
-	weiToFiatNumber
+	weiToFiatNumber,
+	balanceToFiatNumber
 } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import TokenImage from '../TokenImage';
@@ -23,6 +22,7 @@ import ElevatedView from 'react-native-elevated-view';
 import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
 import { getTicker } from '../../../util/transactions';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const styles = StyleSheet.create({
 	root: {
@@ -35,10 +35,12 @@ const styles = StyleSheet.create({
 		paddingVertical: 10,
 		paddingLeft: 14,
 		position: 'relative',
-		backgroundColor: colors.white,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1
+	},
+	wrapper: {
+		flexDirection: 'row'
 	},
 	input: {
 		...fontStyles.bold,
@@ -53,57 +55,72 @@ const styles = StyleSheet.create({
 	},
 	eth: {
 		...fontStyles.bold,
-		marginRight: 30,
+		marginRight: 0,
 		fontSize: 16,
-		paddingTop: Platform.OS === 'android' ? 3 : 0,
+		paddingTop: Platform.OS === 'android' ? 1 : 0,
 		paddingLeft: 10,
 		alignSelf: 'center'
 	},
-	fiatValue: {
+	secondaryValue: {
 		...fontStyles.normal,
 		fontSize: 12
 	},
+	secondaryCurrency: {
+		...fontStyles.normal,
+		fontSize: 12
+	},
+	secondaryValues: {
+		flexDirection: 'row',
+		maxWidth: '70%'
+	},
 	split: {
-		flex: 1,
 		flexDirection: 'row'
+	},
+	splitNoSecondaryAmount: {
+		top: Platform.OS === 'android' ? 5 : 8
 	},
 	ethContainer: {
 		flex: 1,
-		paddingLeft: 6,
-		paddingRight: 10
+		marginLeft: 6,
+		marginRight: 10,
+		maxWidth: '65%'
 	},
 	icon: {
-		paddingBottom: 4,
-		paddingRight: 10,
-		paddingTop: 6
+		paddingVertical: Platform.OS === 'android' ? 8 : 6,
+		marginRight: 10
 	},
 	logo: {
 		width: 22,
 		height: 22,
 		borderRadius: 11
 	},
-	arrow: {
-		color: colors.grey100,
+	actions: {
 		position: 'absolute',
 		right: 10,
-		top: Platform.OS === 'android' ? 20 : 13
+		flexDirection: 'row',
+		top: Platform.OS === 'android' ? 18 : 15
 	},
-	componentContainer: {
+	switch: {
+		transform: [{ rotate: '270deg' }],
+		marginVertical: 3,
+		marginHorizontal: 3
+	},
+	scrollContainer: {
 		position: 'relative',
-		maxHeight: 200,
-		borderRadius: 4
+		maxHeight: 200
 	},
 	optionList: {
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
 		borderRadius: 4,
 		borderWidth: 1,
-		paddingLeft: 14,
-		paddingBottom: 12,
-		width: '100%'
+		paddingHorizontal: 14,
+		paddingVertical: 6,
+		flexGrow: 1
 	},
 	selectableAsset: {
-		paddingTop: 12
+		flex: 1,
+		paddingVertical: 6
 	}
 });
 
@@ -134,10 +151,6 @@ class EthInput extends Component {
 		 * Callback triggered when this input value
 		 */
 		onChange: PropTypes.func,
-		/**
-		 * Makes this input readonly
-		 */
-		readonly: PropTypes.bool,
 		/**
 		 * Object containing token balances in the format address => balance
 		 */
@@ -192,7 +205,13 @@ class EthInput extends Component {
 		ticker: PropTypes.string
 	};
 
-	state = { readableValue: undefined, assets: undefined };
+	state = {
+		readableValue: undefined,
+		assets: undefined,
+		secondaryAmount: undefined,
+		internalPrimaryCurrency: this.props.primaryCurrency,
+		inputEnabled: Platform.OS === 'ios'
+	};
 
 	/**
 	 * Used to 'fillMax' feature. Will process value coming from parent to render corresponding values on input
@@ -204,6 +223,12 @@ class EthInput extends Component {
 			this.setState({ readableValue: processedReadableValue });
 		}
 		this.props.updateFillMax(false);
+
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		!this.state.inputEnabled &&
+			setTimeout(() => {
+				this.setState({ inputEnabled: true });
+			}, 100);
 	};
 
 	/**
@@ -211,14 +236,15 @@ class EthInput extends Component {
 	 */
 	componentDidMount = () => {
 		const { transaction, collectibles } = this.props;
-		const { processedReadableValue } = this.processValue(transaction.readableValue);
+		const processedReadableValue = this.processFromValue(transaction.value);
 		switch (transaction.type) {
 			case 'TOKENS_TRANSACTION':
 				this.setState({
 					assets: [
 						{
 							name: 'Ether',
-							symbol: 'ETH'
+							symbol: 'ETH',
+							isETH: true
 						},
 						...this.props.tokens
 					],
@@ -344,14 +370,11 @@ class EthInput extends Component {
 		};
 		const assetsList = assetsLists[assetType]();
 		return (
-			<ElevatedView elevation={10} style={styles.root}>
-				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
+			<ElevatedView borderRadius={4} elevation={10} style={styles.root}>
+				<ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
-						{assetsList.map(asset => (
-							<View
-								key={asset.address + asset.tokenId || asset.symbol || undefined}
-								style={styles.selectableAsset}
-							>
+						{assetsList.map((asset, i) => (
+							<View key={i} style={styles.selectableAsset}>
 								{this.renderAsset(asset, async () => {
 									await this.selectAsset(asset);
 								})}
@@ -366,48 +389,92 @@ class EthInput extends Component {
 	/**
 	 * Handle value from eth input according to app 'primaryCurrency', transforming either Token or Fiat value to corresponding transaction object value.
 	 *
+	 * @param {String} readableValue - String containing the tx value in readable format
+	 * @param {String} internalPrimaryCurrency - If provided, represents internal primary currency
 	 * @returns {Object} - Object containing BN instance of the value for the transaction and a string containing readable value
+	 * @returns {String} - String containing internalPrimaryCurrency, if not provided will take it from state
 	 */
-	processValue = value => {
+	processValue = (readableValue, internalPrimaryCurrency) => {
 		const {
 			transaction: { selectedAsset, assetType },
 			conversionRate,
-			primaryCurrency,
 			contractExchangeRates
 		} = this.props;
+		internalPrimaryCurrency = internalPrimaryCurrency || this.state.internalPrimaryCurrency;
 		let processedValue, processedReadableValue;
-		const decimal = isDecimal(value);
+		const decimal = isDecimal(readableValue);
 		if (decimal) {
 			// Only for ETH or ERC20, depending on 'primaryCurrency' selected
 			switch (assetType) {
 				case 'ETH':
-					if (primaryCurrency === 'ETH') {
-						processedValue = toWei(value);
-						processedReadableValue = value;
+					if (internalPrimaryCurrency === 'ETH') {
+						processedValue = toWei(readableValue);
+						processedReadableValue = readableValue;
 					} else {
-						processedValue = fiatNumberToWei(value, conversionRate);
-						processedReadableValue = weiToFiatNumber(toWei(value), conversionRate).toString();
+						processedValue = fiatNumberToWei(readableValue, conversionRate);
+						processedReadableValue = weiToFiatNumber(toWei(readableValue), conversionRate).toString();
 					}
 					break;
 				case 'ERC20': {
 					const exchangeRate =
 						selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-					if (primaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+					if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
 						processedValue = fiatNumberToTokenMinimalUnit(
-							value,
+							readableValue,
 							conversionRate,
 							exchangeRate,
 							selectedAsset.decimals
 						);
-						processedReadableValue = balanceToFiat(value, conversionRate, exchangeRate, '');
+						processedReadableValue = balanceToFiatNumber(
+							readableValue,
+							conversionRate,
+							exchangeRate
+						).toString();
 					} else {
-						processedValue = toTokenMinimalUnit(value, selectedAsset.decimals);
-						processedReadableValue = value;
+						processedValue = toTokenMinimalUnit(readableValue, selectedAsset.decimals);
+						processedReadableValue = readableValue;
 					}
 				}
 			}
 		}
 		return { processedValue, processedReadableValue };
+	};
+
+	/**
+	 * Handle generation of readable information for the component from a transaction value
+	 *
+	 * @param {Object} value - Transaction value
+	 * @returns {String} - Readable transaction value depending on primaryCurrency
+	 */
+	processFromValue = value => {
+		if (!value) return undefined;
+		const {
+			transaction: { selectedAsset, assetType },
+			conversionRate,
+			contractExchangeRates
+		} = this.props;
+		const { internalPrimaryCurrency } = this.state;
+		let processedReadableValue;
+		// Only for ETH or ERC20, depending on 'primaryCurrency' selected
+		switch (assetType) {
+			case 'ETH':
+				if (internalPrimaryCurrency === 'ETH') {
+					processedReadableValue = renderFromWei(value);
+				} else {
+					processedReadableValue = weiToFiatNumber(value, conversionRate).toString();
+				}
+				break;
+			case 'ERC20': {
+				const exchangeRate =
+					selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
+				if (internalPrimaryCurrency !== 'ETH' && (exchangeRate && exchangeRate !== 0)) {
+					processedReadableValue = balanceToFiatNumber(value, conversionRate, exchangeRate).toString();
+				} else {
+					processedReadableValue = renderFromTokenMinimalUnit(value, selectedAsset.decimals);
+				}
+			}
+		}
+		return processedReadableValue;
 	};
 
 	/**
@@ -425,21 +492,25 @@ class EthInput extends Component {
 	 *
 	 * @param {object} image - Image object of the asset
 	 * @param {tsring} currency - String containing currency code
-	 * @param {string} conversionRate - String containing amount depending on primary currency
+	 * @param {string} secondaryAmount - String containing amount depending on primary currency
+	 * @param {string} secondaryCurrency - String containing currency code
 	 * @returns {object} - View object to render as input field
 	 */
-	renderTokenInput = (image, currency, convertedAmount) => {
-		const { readonly } = this.props;
-		const { readableValue } = this.state;
+	renderTokenInput = (image, currency, secondaryAmount, secondaryCurrency) => {
+		const {
+			transaction: { paymentChannelTransaction }
+		} = this.props;
+		const { readableValue, assets } = this.state;
+		const selectAssets = assets && assets.length > 1;
 		return (
 			<View style={styles.container}>
 				<View style={styles.icon}>{image}</View>
 				<View style={styles.ethContainer}>
-					<View style={styles.split}>
+					<View style={[styles.split, !secondaryAmount ? styles.splitNoSecondaryAmount : {}]}>
 						<TextInput
 							autoCapitalize="none"
 							autoCorrect={false}
-							editable={!readonly}
+							editable={this.state.inputEnabled}
 							keyboardType="numeric"
 							numberOfLines={1}
 							onChangeText={this.onChange}
@@ -452,10 +523,35 @@ class EthInput extends Component {
 							{currency}
 						</Text>
 					</View>
-					{convertedAmount && (
-						<Text style={styles.fiatValue} numberOfLines={1}>
-							{convertedAmount}
-						</Text>
+					{secondaryAmount !== undefined && (
+						<View style={styles.secondaryValues}>
+							<Text style={styles.secondaryValue} numberOfLines={1}>
+								{secondaryAmount}
+							</Text>
+							<Text style={styles.secondaryCurrency} numberOfLines={1}>
+								{' '}
+								{secondaryCurrency}
+							</Text>
+						</View>
+					)}
+				</View>
+				<View style={[styles.actions]}>
+					{!paymentChannelTransaction && secondaryCurrency && (
+						<FontAwesome
+							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)} // eslint-disable-line react/jsx-no-bind
+							name="exchange"
+							size={18}
+							color={colors.grey100}
+							style={styles.switch}
+						/>
+					)}
+					{!paymentChannelTransaction && selectAssets && (
+						<MaterialIcon
+							onPress={this.onFocus}
+							name={'arrow-drop-down'}
+							size={24}
+							color={colors.grey100}
+						/>
 					)}
 				</View>
 			</View>
@@ -473,61 +569,99 @@ class EthInput extends Component {
 			contractExchangeRates,
 			conversionRate,
 			transaction: { assetType, selectedAsset, value },
-			primaryCurrency,
 			ticker
 		} = this.props;
-		// Depending on 'assetType' return object with corresponding 'convertedAmount', 'currency' and 'image'
+		const { internalPrimaryCurrency } = this.state;
+
+		// Depending on 'assetType' return object with corresponding 'secondaryAmount', 'currency' and 'image'
 		const inputs = {
 			ETH: () => {
-				let convertedAmount, currency;
-				if (primaryCurrency === 'ETH') {
-					convertedAmount = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
+				let secondaryAmount, currency, secondaryCurrency;
+				if (internalPrimaryCurrency === 'ETH') {
+					secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
+					secondaryCurrency = currentCurrency.toUpperCase();
 					currency = getTicker(ticker);
 				} else {
-					convertedAmount = renderFromWei(value) + ' ' + getTicker(ticker);
+					secondaryAmount = renderFromWei(value);
+					secondaryCurrency = getTicker(ticker);
 					currency = currentCurrency.toUpperCase();
 				}
 				const image = <Image source={ethLogo} style={styles.logo} />;
-				return this.renderTokenInput(image, currency, convertedAmount);
+				return this.renderTokenInput(image, currency, secondaryAmount, secondaryCurrency);
 			},
 			ERC20: () => {
 				const exchangeRate =
 					selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
-				let convertedAmount, currency;
+				let secondaryAmount, currency, secondaryCurrency;
 				if (exchangeRate && exchangeRate !== 0) {
-					if (primaryCurrency === 'ETH') {
+					if (internalPrimaryCurrency === 'ETH') {
 						const finalValue = (value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						convertedAmount = balanceToFiat(finalValue, conversionRate, exchangeRate, currentCurrency);
+						secondaryAmount = balanceToFiatNumber(finalValue, conversionRate, exchangeRate).toString();
 						currency = selectedAsset.symbol;
+						secondaryCurrency = currentCurrency.toUpperCase();
 					} else {
 						const finalValue = (value && renderFromTokenMinimalUnit(value, selectedAsset.decimals)) || 0;
-						convertedAmount = finalValue + ' ' + selectedAsset.symbol;
+						secondaryAmount = finalValue.toString();
 						currency = currentCurrency.toUpperCase();
+						secondaryCurrency = selectedAsset.symbol;
 					}
 				} else {
-					convertedAmount = strings('transaction.conversion_not_available');
+					currency =
+						internalPrimaryCurrency === 'ETH'
+							? selectedAsset.symbol
+							: currentCurrency && currentCurrency.toUpperCase();
 				}
+
 				const image = <TokenImage asset={selectedAsset} containerStyle={styles.logo} iconStyle={styles.logo} />;
-				return this.renderTokenInput(image, currency, convertedAmount);
+				return this.renderTokenInput(image, currency, secondaryAmount, secondaryCurrency);
 			},
-			ERC721: () => (
-				<View style={styles.container}>
-					<SelectableAsset
-						title={selectedAsset.name}
-						subTitle={`${strings('unit.token_id')}${selectedAsset.tokenId}`}
-						icon={
-							<CollectibleImage
-								collectible={selectedAsset}
-								containerStyle={styles.logo}
-								iconStyle={styles.logo}
-							/>
-						}
-						asset={selectedAsset}
-					/>
-				</View>
-			)
+			ERC721: () => {
+				const { assets } = this.state;
+				const selectAssets = assets && assets.length > 1;
+				return (
+					<View style={styles.container}>
+						<SelectableAsset
+							title={selectedAsset.name}
+							subTitle={`${strings('unit.token_id')}${selectedAsset.tokenId}`}
+							icon={
+								<CollectibleImage
+									collectible={selectedAsset}
+									containerStyle={styles.logo}
+									iconStyle={styles.logo}
+								/>
+							}
+							asset={selectedAsset}
+						/>
+						<View style={[styles.actions]}>
+							{selectAssets && (
+								<MaterialIcon
+									onPress={this.onFocus}
+									name={'arrow-drop-down'}
+									size={24}
+									color={colors.grey100}
+								/>
+							)}
+						</View>
+					</View>
+				);
+			}
 		};
 		return assetType && inputs[assetType]();
+	};
+
+	/**
+	 * Handle change of primary currency
+	 */
+	switchInternalPrimaryCurrency = secondaryAmount => {
+		const { internalPrimaryCurrency } = this.state;
+		const primarycurrencies = {
+			ETH: 'Fiat',
+			Fiat: 'ETH'
+		};
+		this.setState({
+			readableValue: secondaryAmount,
+			internalPrimaryCurrency: primarycurrencies[internalPrimaryCurrency]
+		});
 	};
 
 	render = () => {
@@ -536,10 +670,7 @@ class EthInput extends Component {
 		const selectAssets = assets && assets.length > 1;
 		return (
 			<View style={styles.root}>
-				{this.renderInput()}
-				{selectAssets && (
-					<MaterialIcon onPress={this.onFocus} name={'arrow-drop-down'} size={24} style={styles.arrow} />
-				)}
+				<View style={styles.wrapper}>{this.renderInput()}</View>
 				{selectAssets && isOpen && this.renderAssetsList()}
 			</View>
 		);

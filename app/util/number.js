@@ -349,6 +349,18 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
 }
 
 /**
+ * Converts BN wei value to wei units in string format
+ *
+ * @param {object} value - Object containing wei value in BN format
+ * @returns {string} - Corresponding wei value
+ */
+export function renderWei(value) {
+	if (!value) return '0';
+	const wei = fromWei(value);
+	const renderWei = wei * Math.pow(10, 18);
+	return renderWei.toString();
+}
+/**
  * Formatc a string number in an string number with at most 5 decimal places
  *
  * @param {string} number - String containing a number

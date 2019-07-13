@@ -147,7 +147,7 @@ class UrlAutocomplete extends Component {
 	);
 
 	render() {
-		if (this.props.input.length < 2) return null;
+		if (this.props.input.length < 2) return <View style={styles.wrapper} />;
 		if (this.state.results.length === 0) {
 			return (
 				<View style={styles.wrapper}>

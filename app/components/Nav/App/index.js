@@ -18,6 +18,7 @@ import Main from '../Main';
 import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
+import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 /**
  * Stack navigator responsible for the onboarding process
@@ -98,6 +99,23 @@ const HomeNav = createDrawerNavigator(
 		drawerWidth: 315
 	}
 );
+
+/**
+ * Drawer status tracking
+ */
+const defaultGetStateForAction = HomeNav.router.getStateForAction;
+DrawerStatusTracker.init();
+HomeNav.router.getStateForAction = (action, state) => {
+	if (action) {
+		if (action.type === 'Navigation/MARK_DRAWER_SETTLING' && action.willShow) {
+			DrawerStatusTracker.setStatus('open');
+		} else if (action.type === 'Navigation/MARK_DRAWER_SETTLING' && !action.willShow) {
+			DrawerStatusTracker.setStatus('closed');
+		}
+	}
+
+	return defaultGetStateForAction(action, state);
+};
 
 /**
  * Top level switch navigator which decides

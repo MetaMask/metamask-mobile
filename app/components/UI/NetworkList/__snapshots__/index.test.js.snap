@@ -360,6 +360,67 @@ exports[`NetworkList should render correctly 1`] = `
     </TouchableOpacity>
     <TouchableOpacity
       activeOpacity={0.2}
+      key="network-3"
+      onPress={[Function]}
+      style={
+        Object {
+          "borderBottomWidth": 0.5,
+          "borderColor": "#d6d9dc",
+          "flexDirection": "row",
+          "paddingHorizontal": 20,
+          "paddingLeft": 45,
+          "paddingVertical": 20,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "marginLeft": 20,
+            "marginTop": 20,
+            "position": "absolute",
+          }
+        }
+      />
+      <View
+        style={
+          Array [
+            Object {
+              "borderRadius": 100,
+              "height": 15,
+              "marginTop": 3,
+              "width": 15,
+            },
+            Object {
+              "backgroundColor": "#3099f2",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "marginLeft": 15,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#000000",
+              "fontFamily": "Roboto",
+              "fontSize": 16,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Goerli Test Network
+        </Text>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
       key="network-0"
       onPress={[Function]}
       style={
@@ -381,15 +442,7 @@ exports[`NetworkList should render correctly 1`] = `
             "position": "absolute",
           }
         }
-      >
-        <Icon
-          allowFontScaling={false}
-          color="#AAAAAA"
-          name="minus-circle"
-          onPress={[Function]}
-          size={20}
-        />
-      </View>
+      />
       <View
         style={
           Array [

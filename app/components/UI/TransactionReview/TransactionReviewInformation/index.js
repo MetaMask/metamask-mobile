@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
@@ -79,10 +79,6 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		marginBottom: 6,
 		textAlign: 'right'
-	},
-	overviewAction: {
-		...fontStyles.nold,
-		color: colors.blue
 	},
 	assetName: {
 		maxWidth: 200
@@ -225,14 +221,9 @@ class TransactionReviewInformation extends Component {
 
 		return (
 			<View style={styles.overview}>
-				<View style={{ ...styles.overviewRow, ...styles.topOverviewRow }}>
+				<View style={[styles.overviewRow, styles.topOverviewRow]}>
 					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
 					<View style={styles.overviewContent}>
-						<TouchableOpacity onPress={this.edit}>
-							<Text style={{ ...styles.overviewInfo, ...styles.overviewAction }}>
-								{strings('transaction.edit').toUpperCase()}
-							</Text>
-						</TouchableOpacity>
 						<Text style={styles.overviewFiat}>{totalGasFiat}</Text>
 						<Text style={styles.overviewEth}>{totalGasEth}</Text>
 					</View>

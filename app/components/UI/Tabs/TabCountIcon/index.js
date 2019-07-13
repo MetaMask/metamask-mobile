@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
-import { Platform, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { Platform, View, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	tabIcon: {
-		borderWidth: Platform.OS === 'android' ? 2 : 3,
+		borderWidth: 2,
 		borderColor: colors.grey500,
-		borderRadius: 8,
+		borderRadius: 6,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
@@ -30,10 +30,6 @@ const styles = StyleSheet.create({
 class TabCountIcon extends Component {
 	static propTypes = {
 		/**
-		 * Shows the tabs view
-		 */
-		onPress: PropTypes.func,
-		/**
 		 * Switches to a specific tab
 		 */
 		tabCount: PropTypes.number,
@@ -44,12 +40,12 @@ class TabCountIcon extends Component {
 	};
 
 	render() {
-		const { tabCount, onPress, style } = this.props;
+		const { tabCount, style } = this.props;
 
 		return (
-			<TouchableOpacity style={[styles.tabIcon, style]} onPress={onPress}>
+			<View style={[styles.tabIcon, style]}>
 				<Text styles={styles.tabCount}>{tabCount}</Text>
-			</TouchableOpacity>
+			</View>
 		);
 	}
 }

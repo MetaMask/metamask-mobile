@@ -4,6 +4,8 @@ import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
+import com.smixx.fabric.FabricPackage;
+import com.reactnativecommunity.netinfo.NetInfoPackage;
 import fr.greweb.reactnativeviewshot.RNViewShotPackage;
 import com.airbnb.android.react.lottie.LottiePackage;
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
@@ -13,8 +15,9 @@ import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import io.branch.rnbranch.RNBranchPackage;
-import io.branch.referral.Branch;
+import io.branch.rnbranch.RNBranchModule;
 import com.web3webview.Web3WebviewPackage;
+import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import cl.json.RNSharePackage;
 import com.bitgo.randombytes.RandomBytesPackage;
@@ -22,7 +25,6 @@ import com.peel.react.rnos.RNOSModule;
 import com.oblador.keychain.KeychainPackage;
 import com.AlexanderZaytsev.RNI18n.RNI18nPackage;
 import com.rnfs.RNFSPackage;
-import com.smixx.fabric.FabricPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.tectiv3.aes.RCTAesPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
@@ -35,7 +37,7 @@ import io.fabric.sdk.android.Fabric;
 import java.util.Arrays;
 import java.util.List;
 
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 
 
 public class MainApplication extends MultiDexApplication implements ShareApplication, ReactApplication {
@@ -50,8 +52,10 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            new RNViewShotPackage(),
-            new LottiePackage(),
+            	new FabricPackage(),
+				new NetInfoPackage(),
+            	new RNViewShotPackage(),
+            	new LottiePackage(),
            		new AsyncStoragePackage(),
             	new ReactNativePushNotificationPackage(),
             	new BackgroundTimerPackage(),
@@ -60,7 +64,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),
 				new RNBranchPackage(),
-				new FabricPackage(),
 				new KeychainPackage(),
 				new RandomBytesPackage(),
 				new RCTAesPackage(),
@@ -70,7 +73,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new RNOSModule(),
 				new RNSharePackage(),
 				new VectorIconsPackage(),
-				new Web3WebviewPackage()
+				new Web3WebviewPackage(),
+				new RCTAnalyticsPackage()
 		);
 		}
 
@@ -90,8 +94,8 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		super.onCreate();
 		if (!BuildConfig.DEBUG){
 			Fabric.with(this, new Crashlytics());
-			Branch.getAutoInstance(this);
 		}
+		RNBranchModule.getAutoInstance(this);
 		SoLoader.init(this, /* native exopackage */ false);
 	}
 

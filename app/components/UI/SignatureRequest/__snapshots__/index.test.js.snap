@@ -34,17 +34,24 @@ exports[`SignatureRequest should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
-              "flex": 1,
-              "flexDirection": "row",
-            }
+            Array [
+              Object {
+                "flex": 1,
+                "flexDirection": "row",
+              },
+              Object {
+                "flex": 1,
+              },
+            ]
           }
         >
           <View
             style={
-              Object {
-                "padding": 5,
-              }
+              Array [
+                Object {
+                  "padding": 5,
+                },
+              ]
             }
           >
             <Component
@@ -52,8 +59,15 @@ exports[`SignatureRequest should render correctly 1`] = `
               diameter={20}
             />
           </View>
-          <View>
+          <View
+            style={
+              Object {
+                "flex": 1,
+              }
+            }
+          >
             <Text
+              numberOfLines={1}
               style={
                 Object {
                   "fontFamily": "Roboto",

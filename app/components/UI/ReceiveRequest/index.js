@@ -30,6 +30,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DeviceSize from '../../../util/DeviceSize';
 import { showAlert } from '../../../actions/alert';
 import GlobalAlert from '../GlobalAlert';
+import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
@@ -187,7 +188,7 @@ class ReceiveRequest extends Component {
 	onShare = () => {
 		const { selectedAddress } = this.props;
 		Share.open({
-			message: `ethereum:${selectedAddress}`
+			message: generateUniversalLinkAddress(selectedAddress)
 		}).catch(err => {
 			Logger.log('Error while trying to share address', err);
 		});
@@ -262,6 +263,7 @@ class ReceiveRequest extends Component {
 
 	render() {
 		const { qrModalVisible, buyModalVisible } = this.state;
+
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<View style={styles.draggerWrapper}>

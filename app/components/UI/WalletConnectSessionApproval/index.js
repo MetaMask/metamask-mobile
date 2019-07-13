@@ -168,7 +168,27 @@ class WalletConnectSessionApproval extends Component {
 		/**
 		 * A string that represents the selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * A boolean to requests permission to autosign
+		 */
+		autosign: PropTypes.bool
+	};
+
+	renderSpecialPermissions = () => {
+		if (this.props.autosign) {
+			return (
+				<View style={styles.permissions}>
+					<Text style={styles.permissionText} numberOfLines={1}>
+						<Text style={styles.permission}> {strings('accountApproval.sign_messages')}</Text>
+						{` `}
+						{strings('accountApproval.on_your_behalf')}
+					</Text>
+					<Icon name="info-circle" color={colors.blue} size={22} />
+				</View>
+			);
+		}
+		return null;
 	};
 
 	render = () => {
@@ -230,6 +250,7 @@ class WalletConnectSessionApproval extends Component {
 							</Text>
 							<Icon name="info-circle" color={colors.blue} size={22} />
 						</View>
+						{this.renderSpecialPermissions()}
 						<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
 					</View>
 				</ActionView>
