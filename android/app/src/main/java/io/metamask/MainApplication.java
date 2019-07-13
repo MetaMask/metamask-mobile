@@ -64,7 +64,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),
 				new RNBranchPackage(),
-				new FabricPackage(),
 				new KeychainPackage(),
 				new RandomBytesPackage(),
 				new RCTAesPackage(),
