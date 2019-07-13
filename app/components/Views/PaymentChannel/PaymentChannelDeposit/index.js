@@ -8,7 +8,6 @@ import {
 	View,
 	StyleSheet,
 	KeyboardAvoidingView,
-	InteractionManager,
 	ActivityIndicator
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -209,9 +208,6 @@ class Deposit extends Component {
 	componentDidMount = () => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
-		InteractionManager.runAfterInteractions(() => {
-			this.amountInput.current && this.amountInput.current.focus();
-		});
 	};
 
 	deposit = async () => {
@@ -222,7 +218,6 @@ class Deposit extends Component {
 			const params = { depositAmount: this.state.amount };
 			Logger.log('About to deposit', params);
 			this.setState({ depositing: true });
-			this.props.navigation.pop();
 			await PaymentChannelsClient.deposit(params);
 			this.setState({ depositing: false });
 			Logger.log('Deposit succesful');
@@ -245,6 +240,7 @@ class Deposit extends Component {
 	validateDeposit = () => {
 		const { selectedAddress, accounts } = this.props;
 		const { amount } = this.state;
+		if (!amount) return;
 		const { balance } = accounts[selectedAddress];
 		let error = undefined;
 		let invalidAmount = false;
@@ -368,6 +364,7 @@ class Deposit extends Component {
 							ref={this.amountInput}
 							onBlur={this.validateDeposit}
 							returnKeyType="done"
+							autoFocus
 						/>
 						<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
 					</View>

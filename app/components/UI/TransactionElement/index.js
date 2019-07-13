@@ -497,14 +497,12 @@ class TransactionElement extends PureComponent {
 		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
 		actionKey = actionKey && actionKey.replace(strings('unit.eth'), strings('unit.dai'));
 		const totalEth = hexToBN(value);
+		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
 		const readableTotalEth = renderFromWei(totalEth);
 		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.dai'));
-		const renderTotalEthFiat = balanceToFiat(
-			parseFloat(readableTotalEth),
-			conversionRate,
-			exchangeRate,
-			currentCurrency
-		);
+		const renderTotalEthFiat = isDeposit
+			? totalEthFiat
+			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
 
 		const transactionDetails = {
 			renderFrom: renderFullAddress(from),
@@ -514,7 +512,7 @@ class TransactionElement extends PureComponent {
 			renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
 			renderValue: renderTotalEth,
 			renderTotalValue: renderTotalEth,
-			renderTotalValueFiat: isDeposit && weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase())
+			renderTotalValueFiat: isDeposit && totalEthFiat
 		};
 
 		const transactionElement = {
