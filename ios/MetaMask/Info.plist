@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.7</string>
+	<string>0.1.8</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -28,6 +28,7 @@
 				<string>ethereum</string>
 				<string>metamask</string>
 				<string>dapp</string>
+				<string>wc</string>
 			</array>
 		</dict>
 	</array>
@@ -69,7 +70,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string></string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>
@@ -122,5 +123,7 @@
 	</dict>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
+	<key>mixpanel_token</key>
+	<string>$(MM_MIXPANEL_TOKEN)</string>
 </dict>
 </plist>

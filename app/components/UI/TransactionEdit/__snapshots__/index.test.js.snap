@@ -24,12 +24,14 @@ exports[`TransactionEdit should render correctly 1`] = `
   >
     <View
       style={
-        Object {
-          "flex": 1,
-          "flexDirection": "column",
-          "minHeight": "100%",
-          "padding": 16,
-        }
+        Array [
+          Object {
+            "flex": 1,
+            "flexDirection": "column",
+            "padding": 16,
+          },
+          Object {},
+        ]
       }
     >
       <View
@@ -293,7 +295,7 @@ exports[`TransactionEdit should render correctly 1`] = `
           allowFontScaling={true}
           multiline={true}
           onChangeText={[Function]}
-          placeholder="Optional"
+          placeholder="[missing \\"en.transacton.optional\\" translation]"
           rejectResponderTermination={true}
           style={
             Object {

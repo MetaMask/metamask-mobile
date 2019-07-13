@@ -6,6 +6,7 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import DeviceSize from '../../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	main: {
@@ -16,7 +17,6 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: Platform.OS === 'ios' ? 150 : 120,
 		marginHorizontal: 45
 	}
 });
@@ -34,12 +34,24 @@ class Step6 extends Component {
 	};
 
 	state = {
-		ready: false
+		ready: false,
+		coachmarkTop: 0
 	};
 
 	componentDidMount() {
-		this.setState({ ready: true });
+		// As we're changing the view on this step, we have to make sure Browser is rendered
+		setTimeout(() => {
+			this.getPosition();
+		}, 1200);
 	}
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = () => {
+		const position = Platform.OS === 'android' ? 270 : DeviceSize.isIphoneX() ? 300 : 270;
+		this.setState({ coachmarkTop: position, ready: true });
+	};
 
 	/**
 	 * Dispatches 'setOnboardingWizardStep' with next step
@@ -73,7 +85,7 @@ class Step6 extends Component {
 		if (!ready) return null;
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step6.title')}
 						content={this.content()}

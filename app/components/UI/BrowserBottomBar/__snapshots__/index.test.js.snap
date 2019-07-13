@@ -1,0 +1,188 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BrowserBottomBar should render correctly 1`] = `
+<ElevatedView
+  elevation={11}
+  style={
+    Object {
+      "backgroundColor": "#f2f3f4",
+      "borderColor": "#bbc0c5",
+      "borderTopWidth": 0.5,
+      "flex": 0,
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "paddingBottom": 36,
+      "paddingHorizontal": 14,
+      "paddingVertical": 18,
+    }
+  }
+>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    disabled={false}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      disabled={false}
+      name="angle-left"
+      size={24}
+      style={
+        Array [
+          Object {
+            "color": "#6a737d",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
+          },
+          Object {},
+        ]
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="angle-right"
+      size={24}
+      style={
+        Array [
+          Object {
+            "color": "#6a737d",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
+          },
+          Object {
+            "color": "#d6d9dc",
+          },
+        ]
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="search"
+      size={24}
+      style={
+        Object {
+          "color": "#6a737d",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
+    <Connect(TabCountIcon)
+      style={
+        Object {
+          "height": 24,
+          "marginTop": 0,
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="home"
+      size={22}
+      style={
+        Object {
+          "color": "#6a737d",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <TouchableOpacity
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Object {
+        "alignItems": "center",
+        "height": 24,
+        "justifyContent": "center",
+        "textAlign": "center",
+        "width": 24,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="more-horiz"
+      size={22}
+      style={
+        Object {
+          "color": "#6a737d",
+          "height": 24,
+          "textAlign": "center",
+          "width": 24,
+        }
+      }
+    />
+  </TouchableOpacity>
+</ElevatedView>
+`;

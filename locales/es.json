@@ -1,6 +1,6 @@
 {
 	"autocomplete": {
-		"placeholder": "Ingrese la dirección web"
+		"placeholder": "Busca o ingresa la dirección web"
 	},
 	"navigation": {
 		"back": "Atrás",
@@ -11,9 +11,11 @@
 	"onboarding": {
 		"title": "Bienvenido a MetaMask",
 		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
-		"import_wallet_button": "Importar billetera",
+		"import_wallet_button": "Sincroniza o importa tu billetera",
 		"start_exploring_now": "Comenzar a explorar",
-		"login": "Ingresar"
+		"login": "Ingresar",
+		"new_to_metamask": "Nuevo en MetaMask?",
+		"already_have_wallet": "Ya tienes una billetera?"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
@@ -31,11 +33,11 @@
 		"step2": {
 			"title": "Tus Cuentas",
 			"content1": "Esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).",
-			"content2": "Puedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+			"content2": "Puedes crear múltiples cuentas en esta billetera presionando el icono de la cuenta."
 		},
 		"step3": {
 			"title": "Editar Nombre",
-			"content1": "'Account 1' no es muy memorable. Porque no nombrar tu cuenta con algo un poco más memorable.",
+			"content1": "Porque no nombrar tu cuenta con algo un poco más memorable.",
 			"content2": "Presiona",
 			"content3": "para editar el nombre de la cuenta."
 		},
@@ -64,13 +66,14 @@
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
 	},
 	"import_wallet": {
-		"title": "Importar Billetera",
-		"sync_help": "Sincroniza tu billetera con la extension",
-		"sync_help_step_one": "1. Ingresa a la extension",
-		"sync_help_step_two": "2. Ve a \"Ajustes\" > \"Avanzado\"",
+		"title": "Ya eres usuario de MetaMask?",
+		"sub_title": "Sincroniza con la extensión",
+		"sync_help": "Sincroniza tu billetera con la extensión",
+		"sync_help_step_one": "1. Ingresa a la extensión",
+		"sync_help_step_two": "2. Ve a Ajustes > Avanzado",
 		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",
-		"sync_from_browser_extension_button": "Comenzar Sincronización",
+		"sync_from_browser_extension_button": "Escanea el código QR",
 		"or": "o",
 		"import_from_seed_button": "Importar usando frase semilla"
 	},
@@ -118,6 +121,7 @@
 		"transfer": "Transferir"
 	},
 	"drawer": {
+		"payment_channel": "Pagos Instantáneos",
 		"send_button": "Enviar",
 		"receive_button": "Recibir",
 		"coming_soon": "Disponible muy pronto...",
@@ -170,7 +174,10 @@
 		"collectible_removed_title": "Coleccionable eliminado!",
 		"collectible_removed_desc": "Si cambias de opinión, puedes agregarlo nuevamente presionando en \"Agregar Coleccionable\"",
 		"remove": "Eliminar",
-		"cancel": "Cancelar"
+		"cancel": "Cancelar",
+		"yes": "Sí",
+		"private_key_detected": "Llave privada detectada",
+		"do_you_want_to_import_this_account": "Deseas importar esta cuenta?"
 	},
 	"transactions_view": {
 		"title": "Transacciones"
@@ -244,7 +251,11 @@
 	"accounts": {
 		"create_new_account": "Crear cuenta nueva",
 		"import_account": "Import una cuenta",
-		"imported": "IMPORTAR"
+		"imported": "IMPORTAR",
+		"remove_account_title": "Eliminar cuenta",
+		"remove_account_message": "Realmente deseas liminar esta cuenta?",
+		"no": "No",
+		"yes_remove_it": "Si, deseo eliminarla"
 	},
 	"app_settings": {
 		"title": "Ajustes",
@@ -314,9 +325,12 @@
 		"network_add_network": "Agregar Red",
 		"network_add": "Agregar",
 		"network_save": "Guardar",
+		"remove_network_title": "Deseas eliminar esta red?",
+		"remove_network": "Eliminar",
+		"cancel_remove_network": "Cancelar",
 		"info_title": "Acerca de MetaMask",
 		"experimental_title": "Experimental",
-		"experimental_desc": "WalletConnect & más...",
+		"experimental_desc": "Canales de Pago, WalletConnect & más...",
 		"legal_title": "Legal",
 		"conversion_title": "Conversión de moneda",
 		"conversion_desc": "Mostrar valores en fiat usando una moneda específica en toda la aplicación.",
@@ -385,10 +399,14 @@
 	},
 	"qr_scanner": {
 		"invalid_qr_code_title": "Código QR Inválido",
-		"invalid_qr_code_message": "El código QR que has escaneado no es válido!",
+		"invalid_qr_code_message": "!El código QR que has escaneado no es válido!",
+		"outdated_qr_code": "Código QR Caducado",
+		"outdated_qr_code_desc": "!Este parece ser un código QR expirado! Por favor, intenta escanear uno nuevo",
 		"allow_camera_dialog_title": "Permite acceso a la cámara",
 		"allow_camera_dialog_message": "Necesitamos tu permiso para escanear códigos QR",
-		"scanning": "escaneando..."
+		"scanning": "escaneando...",
+		"ok": "Ok",
+		"cancel": "Cancelar"
 	},
 	"action_view": {
 		"cancel": "Cancelar",
@@ -410,7 +428,7 @@
 		"hex_data": "Hex Datos",
 		"insufficient": "Fondos insuficientes",
 		"invalid_address": "Dirección inválida",
-		"invalid_amount": "Monto invalido",
+		"invalid_amount": "Monto inválido",
 		"invalid_gas": "Cantidad de gas no válida",
 		"invalid_gas_price": "Precio de gas no válido",
 		"max": "Max",
@@ -438,16 +456,6 @@
 		"gas_price": "Precio de Gas: (GWEI)",
 		"warning_gas_limit": "Límite de gas debe ser mayor a 20999 y menor que 7920027"
 	},
-	"home_page": {
-		"lets_get_started": "Comencemos!",
-		"web3_awaits": "La web decentralizada te espera",
-		"search_placeholder": "Buscar o ingresar URL",
-		"backup_alert_title": "Proteje tus fondos",
-		"backup_alert_message": "Presiona para salvar tu frase semilla",
-		"bookmarks": "Favoritos",
-		"no_bookmarks": "No tienes favoritos todavía",
-		"remove_bookmark_title": "Deseas eliminar este sitio de tus favoritos?"
-	},
 	"browser": {
 		"title": "Navegador",
 		"reload": "Recargar",
@@ -474,7 +482,13 @@
 		"tabs_close_all": "Cerrar Todas",
 		"tabs_done": "Listo",
 		"no_tabs_title": "No hay pestañas abiertas",
-		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña"
+		"no_tabs_desc": "Para navegar la web decentralizada, abre una nueva pestaña",
+		"failed_to_resolve_ens_name": "No pudimos resolver ese nombre ENS",
+		"remove_bookmark_title": "Eliminar favorito",
+		"remove_bookmark_msg": "Realmente deseas eliminar este sitio de tus favoritos?",
+		"yes": "Si",
+		"backup_alert_title": "Proteje tus fondos",
+		"backup_alert_message": "Presiona para salvar tu frase semilla"
 	},
 	"add_favorite": {
 		"title": "Agregar Favorito",
@@ -493,6 +507,7 @@
 		"tx_review_transfer_from": "TRANSFERIR DESDE",
 		"tx_review_unknown": "MÉTODO DESCONOCIDO",
 		"tx_review_approve": "APROBAR",
+		"tx_review_instant_payment_deposit": "DEPOSITO INSTANT PAYMENT",
 		"sent_ether": "Enviaste Ether",
 		"self_sent_ether": "Enviaste Ether a ti mismo",
 		"received_ether": "Recibiste Ether",
@@ -505,6 +520,11 @@
 		"sent": "Enviado",
 		"contract_deploy": "Despliegue de contrato",
 		"to_contract": "Nuevo Contrato",
+		"instant_payment_deposit": "Depósito Instant Payment",
+		"instant_payment_deposit_tx": "Depósito",
+		"instant_payment_withdraw_tx": "Retiro",
+		"tx_details_free": "Gratis",
+		"tx_details_not_available": "No disponible",
 		"smart_contract_interaction": "Interación con contrato inteligente ",
 		"approve": "Aprobar",
 		"hash": "Hash",
@@ -598,6 +618,8 @@
 		"connect": "CONECTAR",
 		"cancel": "CANCELAR",
 		"permission": "Ver tu",
+		"sign_messages": "Firmar mensajes",
+		"on_your_behalf": "en tu nombre",
 		"address": "dirección pública",
 		"warning": "Al elegir Conectar, habilitarás a esta dapp to a ver tu dirección pública. Este es un paso importante para proteger tus datos de potenciales estafas."
 	},
@@ -610,7 +632,8 @@
 		"example": "ej. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
 		"error_title": "Ooops! algo ha salido mal...",
 		"error_message": "No pudimos importar esa llave secreta. Asegúrate de que la hayas ingresado correctamente.",
-		"error_empty_message": "Debes ingresar tu llave privada."
+		"error_empty_message": "Debes ingresar tu llave privada.",
+		"or_scan_a_qr_code": "o escanea un codigo QR"
 	},
 	"import_private_key_success": {
 		"title": "Cuenta importada correctamente!",
@@ -728,13 +751,23 @@
 	},
 	"notifications": {
 		"pending_title": "Transacción enviada!",
+		"pending_deposit_title": "Depósito en progreso!",
+		"pending_withdrawal_title": "Retiro en progreso!",
 		"success_title": "Transacción #{{nonce}} Completa!",
+		"success_deposit_title": "Depósito Completo!",
+		"success_withdrawal_title": "Retiro Completo!",
 		"error_title": "Oops, algo ha salido mal :/",
 		"received_title": "Has recibido {{amount}} {{assetType}}!",
+		"received_payment_title": "Pago instantáneo recibido",
 		"pending_message": "Tu transacción esta en proceso",
+		"pending_deposit_message": "Esperando que el deposito sea compleado",
+		"pending_withdrawal_message": "Esperando que el retiro sea completado",
 		"error_message": "Presiona para ver esta transacción",
 		"success_message": "Presiona para ver esta transacción",
+		"success_deposit_message": "Tus fondos están listos para ser utilizados",
+		"success_withdrawal_message": "Tus fondos han sido transferidos a tu billetera",
 		"received_message": "Presiona para ver esta transacción",
+		"received_payment_message": "Has recibido ${{amount}}!",
 		"prompt_title": "Habilitar Notificationes",
 		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
 		"prompt_ok": "Si",
@@ -783,9 +816,16 @@
 		"coming_soon": "Pronto..."
 	},
 	"experimental_settings": {
+		"payment_channels": "Canales de Pago",
+		"enable_payment_channels": "Habilitar Canales de Pago",
+		"enable_payment_channels_desc": "Esta opción habilitara el cliente de canales de pago de Connext en la app",
+		"payment_channels_desc": "Accede a tu billetera de canales de pago",
+		"payment_channels_cta": "VER BILLETERA",
 		"wallet_connect_dapps": "Sesiones de WalletConnect",
 		"wallet_connect_dapps_desc": "Accede a la lista de sesiones activas de WalletConnect",
-		"wallet_connect_dapps_cta": "VER SESIONES"
+		"wallet_connect_dapps_cta": "VER SESIONES",
+		"network_not_supported": "La red actual no esta soportada",
+		"switch_network": "Cambia a mainnet o rinkeby"
 	},
 	"walletconnect_sessions": {
 		"no_active_sessions": "No tienes sesiones activas",
@@ -794,5 +834,80 @@
 		"cancel": "Cancelar",
 		"session_ended_title": "Sesión Finalizada",
 		"session_ended_desc": "La sesión seleccionada ha sido terminada"
+	},
+	"paymentRequest": {
+		"title": "SOLICITUD DE PAGO",
+		"confirm": "CONFIRMAR",
+		"cancel": "RECHAZAR",
+		"complete_payment_for": "Completa tu pago por:",
+		"total": "TOTAL:"
+	},
+	"payment_channel": {
+		"min_deposit": "Depósito Min.:",
+		"max_deposit": "Depósito Max.:",
+		"in_order_to_use": "Para empezar a utilizar los pagos instantáneos, ",
+		"you_need_to_deposit": "primero debes depositar algo de ETH",
+		"deposit_eth": "DEPOSITAR ETH",
+		"enter_eth_amount": "Ingresa el monto de ETH",
+		"deposit": "DEPOSITAR",
+		"send_intro": "Envia pagos instantáneos de manera gratuita a cualquier otra dirección de Ethereum!",
+		"send_payment": "ENVIAR PAGO",
+		"enter_recipient": "Ingresa el destinatario: 0x...",
+		"enter_amount": "Ingresa el Monto",
+		"send": "ENVIAR",
+		"receive": "RECIBIR",
+		"receive_intro": "Recibe pagos al compartir tu dirección o mostrando to código QR",
+		"withdraw_intro": "Tus fondos sera transferidos a tu cuenta de ethereum",
+		"withdraw_info": "Este proceso puede tardar algunos segundos ya que es una transacción de ETH normal.",
+		"withdraw_note": "NOTA: las tarifas de la transacción serán pagas con tu saldo",
+		"withdraw": "RETIRAR",
+		"error": "Error",
+		"insufficient_funds": "Saldo insuficiente",
+		"enter_the_amount": "Debes ingresar el monto",
+		"enter_the_recipient": "Debes ingresar el destinatario",
+		"invalid_amount": "Monto inválido",
+		"amount_too_high": "El monto excede el máximo permitido. Prueba con un monto menor",
+		"amount_too_low": "El monto es menor al mínimo permitido. Prueba con un monto mayor",
+		"insufficient_balance": "Balance insuficiente",
+		"heads_up": "Aviso",
+		"security_reasons": "Por razones de seguridad deberá esperar 5 minutos antes de intentar nuevamente",
+		"not_ready": "Por favor espere",
+		"please_wait": "Necesitas esperar un breve instante antes de hacer un nuevo deposito",
+		"send_buttton": "Enviar",
+		"deposit_buttton": "Depositar",
+		"withdraw_buttton": "Retirar",
+		"no_funds_title": "Sin Fondos",
+		"no_funds_action": "Depositar Fondos",
+		"withdraw_funds": "Retirar Fondos",
+		"no_funds_desc": "Deposita ETH en tu tarjeta InstaPay para empezar a hacer pagos instantáneos con DAI.",
+		"confirm": "Confirmar",
+		"cancel": "Cancelar",
+		"asset_card_desc": "Transacciones gratis con Connext Payment Channels",
+		"deposit_amount": "Monto a transferir",
+		"load_funds": "Cargar Fondos",
+		"insta_pay": "InstaPay",
+		"welcome": {
+			"title": "Bienvenido a InstaPay!",
+			"desc_1": "Esta es una funcionalidad experimental Layer 2 que te permite enviar activos a amigos sin tarifas por transacción.",
+			"desc_2": "Posible gracias a Connext Payment Channels.",
+			"close": "Cerrar"
+		},
+		"disabled_withdraw_title": "Funcionalidad deshabilitada",
+		"disabled_withdraw_message": "Hemos deshabilitado esta funcionalidad por razones técnicas. Todos tus fondos sera transferidos a tu cuenta de ethereum",
+		"disabled_withdraw_btn": "Entendido",
+		"disabled_title": "Funcionalidad deshabilitada",
+		"disabled_message": "Esta funcionalidad ha sido deshabilitada. Por favor intentalo de nuevo...",
+		"disabled_btn": "OK"
+	},
+	"webview_error": {
+		"title": "Ooops! algo salió mal...",
+		"message": "No pudimos cargar esa página.",
+		"reason": "Motivo",
+		"try_again": "Intentar nuevamente"
+	},
+	"offline_mode": {
+		"title": "Sin Conexión",
+		"text": "Revisa tu conexión de internet e intenta nuevamente",
+		"try_again": "Intentar de nuevo"
 	}
 }

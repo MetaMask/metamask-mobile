@@ -35,7 +35,9 @@ const styles = StyleSheet.create({
 	input: {
 		...fontStyles.bold,
 		backgroundColor: colors.white,
-		marginRight: 24
+		marginRight: 24,
+		paddingLeft: 0,
+		minWidth: 120
 	},
 	qrCodeButton: {
 		minHeight: Platform.OS === 'android' ? 50 : 50,
@@ -46,7 +48,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	accountContainer: {
-		flex: 1,
 		flexDirection: 'row',
 		backgroundColor: colors.white,
 		borderColor: colors.grey100,
@@ -178,12 +179,12 @@ class AccountInput extends Component {
 	state = {
 		address: undefined,
 		ensRecipient: undefined,
-		value: undefined
+		value: undefined,
+		inputEnabled: Platform.OS === 'ios'
 	};
 
 	componentDidMount = async () => {
 		const { provider } = Engine.context.NetworkController;
-
 		const { address, network, ensRecipient } = this.props;
 
 		const networkHasEnsSupport = this.getNetworkEnsSupport();
@@ -191,10 +192,20 @@ class AccountInput extends Component {
 			this.ens = new ENS({ provider, network });
 		}
 		if (ensRecipient) {
-			this.setState({ value: ensRecipient, ensRecipient, address });
+			this.setState({ value: ensRecipient, ensRecipient, address }, () => {
+				// If we have an ENS name predefined
+				// We need to resolve it
+				this.onBlur();
+			});
 		} else if (address) {
 			this.setState({ value: address, address });
 		}
+
+		// Workaround https://github.com/facebook/react-native/issues/9958
+		!this.state.inputEnabled &&
+			setTimeout(() => {
+				this.setState({ inputEnabled: true });
+			}, 100);
 	};
 
 	isEnsName = recipient => {
@@ -318,7 +329,7 @@ class AccountInput extends Component {
 	renderOptionList() {
 		const visibleOptions = this.getVisibleOptions(this.state.value);
 		return (
-			<ElevatedView elevation={10}>
+			<ElevatedView borderRadius={4} elevation={10}>
 				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
@@ -379,6 +390,7 @@ class AccountInput extends Component {
 								onChangeText={this.onChange}
 								placeholder={placeholder}
 								spellCheck={false}
+								editable={this.state.inputEnabled}
 								style={styles.input}
 								value={value}
 								onBlur={this.onBlur}

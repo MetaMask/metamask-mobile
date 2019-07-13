@@ -6,12 +6,12 @@ import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 
-const LOGO_SIZE = 194;
+const LOGO_SIZE = 175;
 const styles = StyleSheet.create({
 	metamaskName: {
 		marginTop: 10,
-		height: 30,
-		width: 190,
+		height: 25,
+		width: 170,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -26,15 +26,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	animation: {
-		width: 125,
-		height: 125,
+		width: 110,
+		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
 	fox: {
-		width: 125,
-		height: 125,
+		width: 110,
+		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -111,6 +111,8 @@ export default class LockScreen extends Component {
 						this.animationName.play();
 					}
 				});
+			} else {
+				this.props.navigation.navigate('Login');
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line

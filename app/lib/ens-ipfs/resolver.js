@@ -1,38 +1,57 @@
 import namehash from 'eth-ens-namehash';
-import multihash from 'multihashes';
 import Eth from 'ethjs-query';
 import EthContract from 'ethjs-contract';
-import registrarAbi from './contracts/registrar';
+import registryAbi from './contracts/registry';
 import resolverAbi from './contracts/resolver';
+import contentHash from 'content-hash';
+import multihash from 'multihashes';
 
 export default async function resolveEnsToIpfsContentId({ provider, name }) {
 	const eth = new Eth(provider);
 	const hash = namehash.hash(name);
 	const contract = new EthContract(eth);
-	// lookup registrar
+	// lookup registry
 	const chainId = Number.parseInt(await eth.net_version(), 10);
-	const registrarAddress = getRegistrarForChainId(chainId);
-	if (!registrarAddress) {
-		throw new Error(`EnsIpfsResolver - no known ens-ipfs registrar for chainId "${chainId}"`);
+	const registryAddress = getRegistryForChainId(chainId);
+	if (!registryAddress) {
+		throw new Error(`EnsIpfsResolver - no known ens-ipfs registry for chainId "${chainId}"`);
 	}
-	const Registrar = contract(registrarAbi).at(registrarAddress);
+	const Registry = contract(registryAbi).at(registryAddress);
 	// lookup resolver
-	const resolverLookupResult = await Registrar.resolver(hash);
+	const resolverLookupResult = await Registry.resolver(hash);
 	const resolverAddress = resolverLookupResult[0];
 	if (hexValueIsEmpty(resolverAddress)) {
 		throw new Error(`EnsIpfsResolver - no resolver found for name "${name}"`);
 	}
 	const Resolver = contract(resolverAbi).at(resolverAddress);
-	// lookup content id
-	const contentLookupResult = await Resolver.content(hash);
-	const contentHash = contentLookupResult[0];
-	if (hexValueIsEmpty(contentHash)) {
-		throw new Error(`EnsIpfsResolver - no content ID found for name "${name}"`);
+	const isEIP1577Compliant = await Resolver.supportsInterface('0xbc1c58d1');
+	const isLegacyResolver = await Resolver.supportsInterface('0xd8389dc5');
+	if (isEIP1577Compliant[0]) {
+		const contentLookupResult = await Resolver.contenthash(hash);
+		const rawContentHash = contentLookupResult[0];
+		const decodedContentHash = contentHash.decode(rawContentHash);
+		const type = contentHash.getCodec(rawContentHash);
+		return { type, hash: decodedContentHash };
 	}
-	const nonPrefixedHex = contentHash.slice(2);
-	const buffer = multihash.fromHexString(nonPrefixedHex);
-	const contentId = multihash.toB58String(multihash.encode(buffer, 'sha2-256'));
-	return contentId;
+	if (isLegacyResolver[0]) {
+		// lookup content id
+		const contentLookupResult = await Resolver.content(hash);
+		const content = contentLookupResult[0];
+		if (hexValueIsEmpty(content)) {
+			throw new Error(`EnsIpfsResolver - no content ID found for name "${name}"`);
+		}
+		const nonPrefixedHex = content.slice(2);
+
+		// Multihash
+		const buffer = multihash.fromHexString(nonPrefixedHex);
+		const contentId = multihash.toB58String(multihash.encode(buffer, 'sha2-256'));
+
+		return { type: 'ipfs-ns', hash: contentId };
+	}
+
+	throw new Error(
+		`EnsIpfsResolver - the resolver for name "${name}" is not standard, it should either supports contenthash() or content()`
+	);
 }
 
 function hexValueIsEmpty(value) {
@@ -45,7 +64,7 @@ function hexValueIsEmpty(value) {
 	].includes(value);
 }
 
-function getRegistrarForChainId(chainId) {
+function getRegistryForChainId(chainId) {
 	switch (chainId) {
 		// mainnet
 		case 1:
@@ -53,5 +72,20 @@ function getRegistrarForChainId(chainId) {
 		// ropsten
 		case 3:
 			return '0x112234455c3a32fd11230c42e7bccd4a84e02010';
+		// rinkeby
+		case 4:
+			return '0xe7410170f87102df0055eb195163a03b7f2bff4a';
+		// goerli
+		case 5:
+			return '0x112234455c3a32fd11230c42e7bccd4a84e02010';
 	}
+}
+
+export function isGatewayUrl(urlObj) {
+	// All IPFS gateway urls start with the path /ipfs/
+	if (urlObj.pathname.substr(0, 6) === '/ipfs/') return true;
+	// All Swarm gateway urls start with the path /bzz:/
+	if (urlObj.pathname.substr(0, 6) === '/bzz:/') return true;
+
+	return false;
 }

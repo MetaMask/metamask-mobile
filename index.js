@@ -11,10 +11,17 @@ useScreens();
 
 // List of warnings that we're ignoring
 YellowBox.ignoreWarnings([
+	'createErrorFromErrorData',
+	'Encountered an error loading page',
+	'Error handling userAuthorizedUpdate',
+	'MaxListenersExceededWarning',
+	'Expected delta of 0 for the fields',
 	'The network request was invalid',
 	'Require cycle',
 	'ListView is deprecated',
 	'WebView has been extracted from react-native core',
+	'Exception was previously raised by watchStore',
+	'StateUpdateController',
 	'this.web3.eth',
 	'collectibles.map',
 	'Warning: bind(): You are binding a component method to the component',

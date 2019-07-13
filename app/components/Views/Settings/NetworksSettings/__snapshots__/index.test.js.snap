@@ -83,6 +83,7 @@ exports[`NetworksSettings should render correctly 1`] = `
     <TouchableOpacity
       activeOpacity={0.2}
       key="network-0"
+      onLongPress={[Function]}
       onPress={[Function]}
     >
       <View
@@ -129,6 +130,7 @@ exports[`NetworksSettings should render correctly 1`] = `
     <TouchableOpacity
       activeOpacity={0.2}
       key="network-1"
+      onLongPress={[Function]}
       onPress={[Function]}
     >
       <View
@@ -175,6 +177,7 @@ exports[`NetworksSettings should render correctly 1`] = `
     <TouchableOpacity
       activeOpacity={0.2}
       key="network-2"
+      onLongPress={[Function]}
       onPress={[Function]}
     >
       <View
@@ -218,6 +221,117 @@ exports[`NetworksSettings should render correctly 1`] = `
         </View>
       </View>
     </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.2}
+      key="network-3"
+      onLongPress={[Function]}
+      onPress={[Function]}
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+            "flexDirection": "row",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        <View
+          style={
+            Array [
+              Object {
+                "borderRadius": 100,
+                "height": 15,
+                "marginRight": 16,
+                "marginTop": 2,
+                "width": 15,
+              },
+              Object {
+                "backgroundColor": "#3099f2",
+              },
+            ]
+          }
+        />
+        <View>
+          <Text
+            style={
+              Object {
+                "color": "#000000",
+                "fontFamily": "Roboto",
+                "fontSize": 16,
+                "fontWeight": "400",
+              }
+            }
+          >
+            Goerli Test Network
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+    <View>
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        RPC Networks
+      </Text>
+      <TouchableOpacity
+        activeOpacity={0.2}
+        key="network-0"
+        onLongPress={[Function]}
+        onPress={[Function]}
+      >
+        <View
+          style={
+            Object {
+              "flex": 1,
+              "flexDirection": "row",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <View
+            style={
+              Array [
+                Object {
+                  "borderRadius": 100,
+                  "height": 15,
+                  "marginRight": 16,
+                  "marginTop": 2,
+                  "width": 15,
+                },
+                Object {
+                  "backgroundColor": "#d6d9dc",
+                  "borderRadius": 100,
+                  "height": 15,
+                  "marginTop": 2,
+                  "width": 15,
+                },
+              ]
+            }
+          />
+          <View>
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                }
+              }
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
   </ScrollViewMock>
   <StyledButton
     disabledContainerStyle={
@@ -235,5 +349,17 @@ exports[`NetworksSettings should render correctly 1`] = `
   >
     Add Network
   </StyledButton>
+  <ActionSheet
+    cancelButtonIndex={1}
+    destructiveButtonIndex={0}
+    onPress={[Function]}
+    options={
+      Array [
+        "Remove",
+        "Cancel",
+      ]
+    }
+    title="Do you want to remove this network?"
+  />
 </View>
 `;

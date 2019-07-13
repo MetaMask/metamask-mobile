@@ -1,8 +1,16 @@
 'use strict';
+
+import { NativeModules } from 'react-native';
+const RCTAnalytics = NativeModules.Analytics;
+
 /**
  * Class to handle analytics through the app
  */
 class Analytics {
+	/**
+	 * Variables defined in Mixpanel
+	 */
+	remoteVariables = {};
 	/**
 	 * Whether the manager has permission to send analytics
 	 */
@@ -30,6 +38,7 @@ class Analytics {
 			this.enabled = enabled;
 			this.listeners = [];
 			Analytics.instance = this;
+			RCTAnalytics.optIn(this.enabled);
 		}
 		return Analytics.instance;
 	}
@@ -39,6 +48,7 @@ class Analytics {
 	 */
 	enable = () => {
 		this.enabled = true;
+		RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -47,6 +57,7 @@ class Analytics {
 	 */
 	disable = () => {
 		this.enabled = false;
+		RCTAnalytics.optIn(this.enabled);
 		this._notify();
 	};
 
@@ -66,6 +77,7 @@ class Analytics {
 	 */
 	trackEvent = event => {
 		if (!this.enabled) return;
+		RCTAnalytics.trackEvent(event);
 		if (__DEV__) {
 			console.log(`Analytics 'trackEvent' - `, event); // eslint-disable-line no-console
 		}
@@ -79,6 +91,10 @@ class Analytics {
 	 */
 	trackEventWithValue = (event, value) => {
 		if (!this.enabled) return;
+		RCTAnalytics.trackEvent({
+			...event,
+			value
+		});
 		if (__DEV__) {
 			console.log(`Analytics 'trackEventWithValue' -`, event, value); // eslint-disable-line no-console
 		}
@@ -92,6 +108,10 @@ class Analytics {
 	 */
 	trackEventWithInfo = (event, info) => {
 		if (!this.enabled) return;
+		RCTAnalytics.trackEvent({
+			...event,
+			info
+		});
 		if (__DEV__) {
 			console.log(`Analytics 'trackEventWithInfo' -`, event, info); // eslint-disable-line no-console
 		}
@@ -106,6 +126,11 @@ class Analytics {
 	 */
 	trackEventWithValueAndInfo = (event, value, info) => {
 		if (!this.enabled) return;
+		RCTAnalytics.trackEvent({
+			...event,
+			value,
+			info
+		});
 		if (__DEV__) {
 			console.log(`Analytics 'trackEventWithValueAndInfo' - `, event, value, info); // eslint-disable-line no-console
 		}
@@ -119,6 +144,10 @@ class Analytics {
 	 */
 	trackEventWithParameters = (event, params) => {
 		if (!this.enabled) return;
+		RCTAnalytics.trackEvent({
+			...event,
+			...params
+		});
 		if (__DEV__) {
 			console.log(`Analytics 'trackEventWithParameters' -`, event, params); // eslint-disable-line no-console
 		}
@@ -133,6 +162,11 @@ class Analytics {
 	 */
 	trackEventWithValueAndParameters = (event, value, params) => {
 		if (!this.enabled) return;
+		RCTAnalytics.trackEvent({
+			...event,
+			...params,
+			value
+		});
 		if (__DEV__) {
 			console.log(`Analytics 'trackEventWithValueAndParameters' -`, event, value, params); // eslint-disable-line no-console
 		}
@@ -148,6 +182,12 @@ class Analytics {
 	 */
 	trackEventWithValueAndInfoAndParameters = (event, value, info, params) => {
 		if (!this.enabled) return;
+		RCTAnalytics.trackEvent({
+			...event,
+			...params,
+			value,
+			info
+		});
 		if (__DEV__) {
 			console.log(`Analytics 'trackEventWithValueAndParameters' - `, event, value, info, params); // eslint-disable-line no-console
 		}
@@ -157,26 +197,43 @@ class Analytics {
 let instance;
 
 export default {
-	init(enabled) {
+	init: async enabled => {
 		instance = new Analytics(enabled);
+		try {
+			const vars = await RCTAnalytics.getRemoteVariables();
+			instance.remoteVariables = JSON.parse(vars);
+		} catch (e) {
+			// Do nothing
+		}
 		return instance;
 	},
 	enable() {
-		return instance.enable();
+		return instance && instance.enable();
 	},
 	disable() {
-		return instance.disable();
+		return instance && instance.disable();
 	},
 	getEnabled() {
-		return instance.enabled;
+		return instance && instance.enabled;
 	},
 	subscribe(listener) {
-		return instance.subscribe(listener);
+		return instance && instance.subscribe(listener);
 	},
 	trackEvent(event) {
-		return instance.trackEvent(event);
+		return instance && instance.trackEvent(event);
 	},
 	trackEventWithParameters(event, parameters) {
-		return instance.trackEventWithParameters(event, parameters);
+		return instance && instance.trackEventWithParameters(event, parameters);
+	},
+	getRemoteVariables() {
+		return instance.remoteVariables;
+	},
+	refreshRemoteVariables: async () => {
+		try {
+			const vars = await RCTAnalytics.getRemoteVariables();
+			instance.remoteVariables = JSON.parse(vars);
+		} catch (e) {
+			// Do nothing
+		}
 	}
 };

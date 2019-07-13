@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import Branch from 'react-native-branch';
 import Engine from '../../../core/Engine';
 import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -9,14 +10,15 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
-
+import DeeplinkManager from '../../../core/DeeplinkManager';
+import Logger from '../../../util/Logger';
 /**
  * Entry Screen that decides which screen to show
  * depending on the state of the user
  * new, existing , logged in or not
  * while showing the fox
  */
-const LOGO_SIZE = 194;
+const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
 const styles = StyleSheet.create({
 	main: {
@@ -25,8 +27,8 @@ const styles = StyleSheet.create({
 	},
 	metamaskName: {
 		marginTop: 10,
-		height: 30,
-		width: 190,
+		height: 25,
+		width: 170,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -43,15 +45,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'center'
 	},
 	animation: {
-		width: 125,
-		height: 125,
+		width: 110,
+		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
 	fox: {
-		width: 125,
-		height: 125,
+		width: 110,
+		height: 110,
 		alignSelf: 'center',
 		alignItems: 'center',
 		justifyContent: 'center'
@@ -79,6 +81,9 @@ class Entry extends Component {
 	opacity = new Animated.Value(1);
 
 	componentDidMount() {
+		DeeplinkManager.init(this.props.navigation);
+		this.unsubscribeFromBranch = Branch.subscribe(this.handleDeeplinks);
+
 		setTimeout(async () => {
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
 			if (existingUser !== null) {
@@ -87,6 +92,23 @@ class Entry extends Component {
 				this.animateAndGoTo('OnboardingRootNav');
 			}
 		}, 100);
+	}
+
+	handleDeeplinks = async ({ error, params }) => {
+		if (error) {
+			Logger.error('Error from Branch: ', error);
+			return;
+		}
+		if (params['+non_branch_link']) {
+			DeeplinkManager.setDeeplink(params['+non_branch_link']);
+		}
+	};
+
+	componentWillUnmount() {
+		if (this.unsubscribeFromBranch) {
+			this.unsubscribeFromBranch();
+			this.unsubscribeFromBranch = null;
+		}
 	}
 
 	animateAndGoTo(view) {

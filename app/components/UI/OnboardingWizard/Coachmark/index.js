@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
 		borderStyle: 'solid',
 		borderLeftWidth: 15,
 		borderRightWidth: 15,
-		borderBottomWidth: 10,
+		borderBottomWidth: 12,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderBottomColor: colors.blue,
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 		borderStyle: 'solid',
 		borderLeftWidth: 15,
 		borderRightWidth: 15,
-		borderTopWidth: 10,
+		borderTopWidth: 12,
 		borderLeftColor: colors.transparent,
 		borderRightColor: colors.transparent,
 		borderTopColor: colors.blue,
@@ -67,34 +67,39 @@ const styles = StyleSheet.create({
 	},
 	topCenter: {
 		marginBottom: 10,
+		bottom: -2,
 		alignItems: 'center'
 	},
 	topLeft: {
 		marginBottom: 10,
+		bottom: -2,
 		alignItems: 'flex-start',
 		marginLeft: 30
 	},
 	topLeftCorner: {
 		marginBottom: 10,
+		bottom: -2,
 		alignItems: 'flex-start',
 		marginLeft: 12
 	},
 	bottomCenter: {
 		marginBottom: 10,
+		top: -2,
 		alignItems: 'center'
 	},
 	bottomLeft: {
 		marginBottom: 10,
+		top: -2,
 		alignItems: 'flex-start',
 		marginLeft: 30
 	},
 	circle: {
-		width: 7,
-		height: 7,
-		borderRadius: 7 / 2,
+		width: 6,
+		height: 6,
+		borderRadius: 6 / 2,
 		backgroundColor: colors.white,
 		opacity: 0.4,
-		margin: 5
+		margin: 3
 	},
 	solidCircle: {
 		opacity: 1
@@ -158,7 +163,7 @@ export default class Coachmark extends Component {
 	componentDidMount = () => {
 		Animated.timing(this.opacity, {
 			toValue: 1,
-			duration: 1000,
+			duration: 500,
 			useNativeDriver: true,
 			isInteraction: false
 		}).start();
@@ -167,7 +172,7 @@ export default class Coachmark extends Component {
 	componentWillUnmount = () => {
 		Animated.timing(this.opacity, {
 			toValue: 0,
-			duration: 1000,
+			duration: 500,
 			useNativeDriver: true,
 			isInteraction: false
 		}).start();
@@ -237,7 +242,7 @@ export default class Coachmark extends Component {
 					{strings('onboarding_wizard.coachmark.progress_back')}
 				</StyledButton>
 				<View style={styles.progessContainer}>
-					{[1, 2, 3, 4, 5].map(i => (
+					{[1, 2, 3, 4, 5, 6].map(i => (
 						<View key={i} style={[styles.circle, currentStep === i ? styles.solidCircle : {}]} />
 					))}
 				</View>

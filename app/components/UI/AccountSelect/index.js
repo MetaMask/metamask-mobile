@@ -9,6 +9,8 @@ import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { weiToFiat, renderFromWei } from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
+import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	root: {
@@ -129,7 +131,11 @@ class AccountSelect extends Component {
 		/**
 		 * Current provider ticker
 		 */
-		ticker: PropTypes.string
+		ticker: PropTypes.string,
+		/**
+		 * Transaction object associated with this transaction
+		 */
+		transaction: PropTypes.object
 	};
 
 	static defaultProps = {
@@ -156,12 +162,21 @@ class AccountSelect extends Component {
 	}
 
 	renderOption(account, onPress) {
-		const { conversionRate, currentCurrency, primaryCurrency, ticker } = this.props;
+		const {
+			conversionRate,
+			currentCurrency,
+			primaryCurrency,
+			ticker,
+			transaction: { paymentChannelTransaction }
+		} = this.props;
 		const balance = hexToBN(account.balance);
 
 		// render balances according to selected 'primaryCurrency'
 		let mainBalance, secondaryBalance;
-		if (primaryCurrency === 'ETH') {
+		if (paymentChannelTransaction) {
+			const state = PaymentChannelsClient.getState();
+			mainBalance = `${state.balance} ${strings('unit.dai')}`;
+		} else if (primaryCurrency === 'ETH') {
 			mainBalance = renderFromWei(balance) + ' ' + getTicker(ticker);
 			secondaryBalance = weiToFiat(balance, conversionRate, currentCurrency.toUpperCase());
 		} else {
@@ -184,7 +199,7 @@ class AccountSelect extends Component {
 						{account.name}
 					</Text>
 					<Text style={styles.info}>{mainBalance}</Text>
-					<Text style={styles.info}>{secondaryBalance}</Text>
+					{secondaryBalance && <Text style={styles.info}>{secondaryBalance}</Text>}
 				</View>
 			</TouchableOpacity>
 		);
@@ -222,7 +237,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	primaryCurrency: state.settings.primaryCurrency,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	transaction: state.transaction
 });
 
 export default connect(mapStateToProps)(AccountSelect);

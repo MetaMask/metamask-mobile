@@ -3,8 +3,17 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { Text, Platform, TouchableOpacity, View, StyleSheet, Image, Keyboard, InteractionManager } from 'react-native';
+import {
+	Alert,
+	Text,
+	Platform,
+	TouchableOpacity,
+	View,
+	StyleSheet,
+	Image,
+	Keyboard,
+	InteractionManager
+} from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -13,11 +22,14 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import TabCountIcon from '../../UI/Tabs/TabCountIcon';
-import WalletConnect from '../../../core/WalletConnect';
+import DeeplinkManager from '../../../core/DeeplinkManager';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-const HOMEPAGE_URL = 'about:blank';
+import { importAccountFromPrivateKey } from '../../../util/address';
+import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
+import { getHost } from '../../../util/browser';
+
+const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = event => {
 	InteractionManager.runAfterInteractions(() => {
@@ -73,7 +85,6 @@ const styles = StyleSheet.create({
 		color: colors.blue
 	},
 	moreIcon: {
-		marginRight: 15,
 		marginTop: 5
 	},
 	flex: {
@@ -92,16 +103,14 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		flex: 1
 	},
-	browserRightButtonAndroid: {
-		flex: 1,
-		width: 95,
-		flexDirection: 'row'
-	},
 	browserRightButton: {
-		flex: 1
+		flex: 1,
+		marginRight: Platform.OS === 'android' ? 10 : 0
 	},
-	browserMoreIconAndroid: {
-		paddingTop: 10
+	tabIconAndroidWrapper: {
+		alignItems: 'center',
+		width: 36,
+		marginLeft: 5
 	},
 	disabled: {
 		opacity: 0.3
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
 	},
 	tabIconAndroid: {
 		marginTop: 13,
-		marginLeft: -10,
+		marginLeft: 0,
 		marginRight: 3,
 		width: 24,
 		height: 24
@@ -272,6 +281,29 @@ export function getTransactionOptionsTitle(title, navigation) {
 		headerRight: <View />
 	};
 }
+
+/**
+ * Function that returns the navigation options for InstaPay screend
+ *
+ * @param {string} title - Title name to use with strings
+ * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
+ */
+export function getInstaPayNavigations(title, navigation) {
+	return {
+		headerTitle: <NavbarTitle title={title} disableNetwork />,
+		headerLeft: (
+			// eslint-disable-next-line react/jsx-no-bind
+			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-arrow-back' : 'ios-arrow-back'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight: <View />
+	};
+}
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
@@ -284,11 +316,14 @@ export function getBrowserViewNavbarOptions(navigation) {
 	const url = navigation.getParam('url', '');
 	let hostname = null;
 	let isHttps = false;
-	if (url && url !== HOMEPAGE_URL) {
-		isHttps = url.toLowerCase().substr(0, 6) === 'https:';
+
+	const isHomepage = url => getHost(url) === getHost(HOMEPAGE_URL);
+
+	if (url && !isHomepage(url)) {
+		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
 		hostname = urlObj.hostname.toLowerCase().replace('www.', '');
-		if (hostname === 'ipfs.io' && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
+		if (isGatewayUrl(urlObj) && url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1) {
 			const ensUrl = navigation.getParam('currentEnsName', '');
 			if (ensUrl) {
 				hostname = ensUrl.toLowerCase().replace('www.', '');
@@ -304,8 +339,6 @@ export function getBrowserViewNavbarOptions(navigation) {
 		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
 	}
 
-	const optionsDisabled = hostname === strings('browser.title');
-
 	return {
 		headerLeft: (
 			<TouchableOpacity onPress={onPress} style={styles.backButton}>
@@ -318,29 +351,8 @@ export function getBrowserViewNavbarOptions(navigation) {
 		),
 		headerTitle: <NavbarBrowserTitle navigation={navigation} url={url} hostname={hostname} https={isHttps} />,
 		headerRight: (
-			<View style={Platform.OS === 'android' ? styles.browserRightButtonAndroid : styles.browserRightButton}>
+			<View style={styles.browserRightButton}>
 				<AccountRightButton />
-				{Platform.OS === 'android' ? (
-					<React.Fragment>
-						<TabCountIcon
-							// eslint-disable-next-line
-							onPress={() => {
-								navigation.navigate('BrowserView', { ...navigation.state.params, showTabs: true });
-							}}
-							style={styles.tabIconAndroid}
-						/>
-						<TouchableOpacity
-							// eslint-disable-next-line
-							onPress={() => {
-								navigation.navigate('BrowserView', { ...navigation.state.params, showOptions: true });
-							}}
-							style={[styles.browserMoreIconAndroid, optionsDisabled ? styles.disabled : null]}
-							disabled={optionsDisabled}
-						>
-							<MaterialIcon name="more-vert" size={20} style={styles.moreIcon} />
-						</TouchableOpacity>
-					</React.Fragment>
-				) : null}
 			</View>
 		)
 	};
@@ -440,6 +452,37 @@ export function getClosableNavigationOptions(title, backButtonText, navigation) 
 
 /**
  * Function that returns the navigation options
+ * for our closable screens,
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getOfflineModalNavbar(navigation) {
+	return {
+		headerStyle: {
+			shadowColor: colors.transparent,
+			elevation: 0,
+			backgroundColor: colors.white,
+			borderBottomWidth: 0
+		},
+		headerLeft:
+			Platform.OS === 'android' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name={'md-arrow-back'} size={24} style={styles.backIcon} />
+				</TouchableOpacity>
+			) : null,
+		headerRight:
+			Platform.OS === 'ios' ? (
+				// eslint-disable-next-line react/jsx-no-bind
+				<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton}>
+					<IonicIcon name="ios-close" size={38} style={[styles.backIcon, styles.backIconIOS]} />
+				</TouchableOpacity>
+			) : null
+	};
+}
+
+/**
+ * Function that returns the navigation options
  * for our wallet screen,
  *
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
@@ -448,8 +491,37 @@ export function getWalletNavbarOptions(title, navigation) {
 	const onScanSuccess = data => {
 		if (data.target_address) {
 			navigation.navigate('SendView', { txMeta: data });
+		} else if (data.private_key) {
+			Alert.alert(
+				strings('wallet.private_key_detected'),
+				strings('wallet.do_you_want_to_import_this_account'),
+				[
+					{
+						text: strings('wallet.cancel'),
+						onPress: () => false,
+						style: 'cancel'
+					},
+					{
+						text: strings('wallet.yes'),
+						onPress: async () => {
+							try {
+								await importAccountFromPrivateKey(data.private_key);
+								navigation.navigate('ImportPrivateKeySuccess');
+							} catch (e) {
+								Alert.alert(
+									strings('import_private_key.error_title'),
+									strings('import_private_key.error_message')
+								);
+							}
+						}
+					}
+				],
+				{ cancelable: false }
+			);
 		} else if (data.walletConnectURI) {
-			WalletConnect.newSession(data.walletConnectURI);
+			setTimeout(() => {
+				DeeplinkManager.parse(data.walletConnectURI);
+			}, 500);
 		}
 	};
 

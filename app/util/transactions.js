@@ -9,6 +9,7 @@ export const TOKEN_METHOD_TRANSFER = 'transfer';
 export const TOKEN_METHOD_APPROVE = 'approve';
 export const TOKEN_METHOD_TRANSFER_FROM = 'transferfrom';
 export const CONTRACT_METHOD_DEPLOY = 'deploy';
+export const CONNEXT_METHOD_DEPOSIT = 'connextdeposit';
 
 export const SEND_ETHER_ACTION_KEY = 'sentEther';
 export const DEPLOY_CONTRACT_ACTION_KEY = 'deploy';
@@ -17,10 +18,12 @@ export const SEND_TOKEN_ACTION_KEY = 'transfer';
 export const TRANSFER_FROM_ACTION_KEY = 'transferfrom';
 export const UNKNOWN_FUNCTION_KEY = 'unknownFunction';
 export const SMART_CONTRACT_INTERACTION_ACTION_KEY = 'smartContractInteraction';
+export const CONNEXT_DEPOSIT_ACTION_KEY = 'connextdeposit';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
 export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
+export const CONNEXT_DEPOSIT = '0xea682e37';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 
 /**
@@ -40,7 +43,8 @@ const reviewActionKeys = {
 	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.tx_review_contract_deployment'),
 	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.tx_review_transfer_from'),
 	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.tx_review_unknown'),
-	[APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve')
+	[APPROVE_ACTION_KEY]: strings('transactions.tx_review_approve'),
+	[CONNEXT_DEPOSIT_ACTION_KEY]: strings('transactions.tx_review_instant_payment_deposit')
 };
 
 /**
@@ -51,7 +55,8 @@ const actionKeys = {
 	[TRANSFER_FROM_ACTION_KEY]: strings('transactions.sent_collectible'),
 	[DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.contract_deploy'),
 	[SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings('transactions.smart_contract_interaction'),
-	[APPROVE_ACTION_KEY]: strings('transactions.approve')
+	[APPROVE_ACTION_KEY]: strings('transactions.approve'),
+	[CONNEXT_DEPOSIT_ACTION_KEY]: strings('transactions.instant_payment_deposit')
 };
 
 /**
@@ -142,6 +147,8 @@ export async function getMethodData(data) {
 		return { name: TOKEN_METHOD_TRANSFER_FROM };
 	} else if (fourByteSignature === APPROVE_FUNCTION_SIGNATURE) {
 		return { name: TOKEN_METHOD_APPROVE };
+	} else if (fourByteSignature === CONNEXT_DEPOSIT) {
+		return { name: CONNEXT_METHOD_DEPOSIT };
 	} else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
 		return { name: CONTRACT_METHOD_DEPLOY };
 	}

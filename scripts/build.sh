@@ -111,6 +111,8 @@ prebuild_ios(){
 		echo "" > ios/debug.xcconfig
 		echo "" > ios/release.xcconfig
 	fi
+	# Required to install mixpanel dep
+	git submodule update --init --recursive
 }
 
 prebuild_android(){
@@ -174,7 +176,6 @@ buildAndroidRelease(){
 		echo $ANDROID_KEYSTORE | base64 --decode > android/keystores/release.keystore
 	fi
 
-	npm i react-native-cli --save-dev
 	node_modules/.bin/react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
 
 	cd android &&

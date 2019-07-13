@@ -101,6 +101,19 @@ NativeModules.RNGestureHandlerModule = {
 	Directions: {}
 };
 
+NativeModules.RNCNetInfo = {
+	getCurrentConnectivity: jest.fn(),
+	isConnectionMetered: jest.fn(),
+	addListener: jest.fn(),
+	removeListeners: jest.fn()
+};
+
+NativeModules.RCTAnalytics = {
+	optIn: jest.fn(),
+	trackEvent: jest.fn(),
+	getRemoteVariables: jest.fn()
+};
+
 NativeModules.PlatformConstants = {
 	forceTouchAvailable: false
 };

@@ -6,6 +6,7 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import DeviceSize from '../../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	main: {
@@ -16,8 +17,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		top: Platform.OS === 'ios' ? 140 : 100,
-		marginHorizontal: 45
+		marginHorizontal: 35
 	}
 });
 
@@ -31,6 +31,22 @@ class Step7 extends Component {
 		 * Callback to call when closing
 		 */
 		onClose: PropTypes.func
+	};
+
+	state = {
+		coachmarkTop: 0
+	};
+
+	componentDidMount() {
+		this.getPosition();
+	}
+
+	/**
+	 * If component ref defined, calculate its position and position coachmark accordingly
+	 */
+	getPosition = () => {
+		const position = Platform.OS === 'android' ? 85 : DeviceSize.isIphoneX() ? 120 : 100;
+		this.setState({ coachmarkTop: position });
 	};
 
 	/**
@@ -61,14 +77,14 @@ class Step7 extends Component {
 	render() {
 		return (
 			<View style={styles.main}>
-				<View style={styles.coachmarkContainer}>
+				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
 					<Coachmark
 						title={strings('onboarding_wizard.step7.title')}
 						content={this.content()}
 						onNext={this.onClose}
 						onBack={this.onBack}
 						onClose={this.onClose}
-						currentStep={5}
+						currentStep={6}
 						bottomIndicatorPosition={'bottomLeft'}
 					/>
 				</View>

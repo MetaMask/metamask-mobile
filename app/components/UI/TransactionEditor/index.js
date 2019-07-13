@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
-import { isBN, hexToBN, toBN } from '../../../util/number';
+import { isBN, hexToBN, toBN, isDecimal } from '../../../util/number';
 import { isValidAddress, toChecksumAddress, BN } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -13,6 +13,7 @@ import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
+import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 
 const styles = StyleSheet.create({
 	root: {
@@ -147,21 +148,23 @@ class TransactionEditor extends Component {
 	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
 	 *
 	 * @param {object} amount - BN object containing transaction amount
+	 * @param {bool} mounting - Whether the view is mounting, in that case it should use the gas from transaction state
 	 */
-	handleUpdateAmount = async amount => {
+	handleUpdateAmount = async (amount, mounting = false) => {
 		const {
-			transaction: { to, data, assetType }
+			transaction: { to, data, assetType, gas: gasLimit }
 		} = this.props;
 
 		// If ETH transaction, there is no need to generate new data
 		if (assetType === 'ETH') {
-			const { gas } = await this.estimateGas({ amount, data, to });
+			const { gas } = mounting ? { gas: gasLimit } : await this.estimateGas({ amount, data, to });
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas) });
 		}
 		// If selectedAsset defined, generates data
 		else if (assetType === 'ERC20') {
-			const { data, gas } = await this.handleDataGeneration({ value: amount });
-			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data });
+			const res = await this.handleDataGeneration({ value: amount });
+			const gas = mounting ? gasLimit : res.gas;
+			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data: res.data });
 		}
 	};
 
@@ -228,7 +231,7 @@ class TransactionEditor extends Component {
 			this.props.setTransactionObject({
 				value: undefined,
 				data: undefined,
-				selectedAsset: { symbol: 'ETH' },
+				selectedAsset: { symbol: 'ETH', isETH: true },
 				gas: hexToBN(gas)
 			});
 		} else {
@@ -306,8 +309,11 @@ class TransactionEditor extends Component {
 	 */
 	validateAmount = async (allowEmpty = true) => {
 		const {
-			transaction: { assetType }
+			transaction: { assetType, paymentChannelTransaction }
 		} = this.props;
+		if (paymentChannelTransaction) {
+			return this.validatePaymentChannelAmount(allowEmpty);
+		}
 		const validations = {
 			ETH: () => this.validateEtherAmount(allowEmpty),
 			ERC20: async () => await this.validateTokenAmount(allowEmpty),
@@ -415,6 +421,30 @@ class TransactionEditor extends Component {
 	};
 
 	/**
+	 * Validates payment request transaction
+	 *
+	 * @param {bool} allowEmpty - Whether the validation allows empty amount or not
+	 * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
+	 */
+	validatePaymentChannelAmount = allowEmpty => {
+		let error;
+		if (!allowEmpty) {
+			const {
+				transaction: { value, readableValue, from }
+			} = this.props;
+			if (!value || !from || !readableValue) {
+				return strings('transaction.invalid_amount');
+			}
+			if (value && !isBN(value)) return strings('transaction.invalid_amount');
+			const state = PaymentChannelsClient.getState();
+			if (isDecimal(state.balance) && parseFloat(readableValue) > parseFloat(state.balance)) {
+				return strings('transaction.insufficient');
+			}
+		}
+		return error;
+	};
+
+	/**
 	 * Validates transaction gas
 	 *
 	 * @returns {string} - String containing error message whether the transaction gas is valid or not
@@ -422,8 +452,10 @@ class TransactionEditor extends Component {
 	validateGas = () => {
 		let error;
 		const {
-			transaction: { gas, gasPrice, from }
+			transaction: { gas, gasPrice, from, paymentChannelTransaction }
 		} = this.props;
+		// If its handling a payment request transaction it won't do any gas validation
+		if (paymentChannelTransaction) return;
 		if (!gas) return strings('transaction.invalid_gas');
 		if (gas && !isBN(gas)) return strings('transaction.invalid_gas');
 		if (!gasPrice) return strings('transaction.invalid_gas_price');

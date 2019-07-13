@@ -3,12 +3,18 @@ package io.metamask;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.ReactRootView;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import io.branch.rnbranch.*;
+
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 public class MainActivity extends ReactFragmentActivity {
 
@@ -25,9 +31,15 @@ public class MainActivity extends ReactFragmentActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		if(!BuildConfig.DEBUG){
-			RNBranchModule.initSession(getIntent().getData(), this);
+		RNBranchModule.initSession(getIntent().getData(), this);
+		try{
+			ApplicationInfo ai = this.getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
+			String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
+			MixpanelAPI.getInstance(this, mixpanelToken);
+		}catch (PackageManager.NameNotFoundException e){
+			Log.d("RCTAnalytics","init:token missing");
 		}
+
 	}
 
 	@Override
@@ -43,7 +55,7 @@ public class MainActivity extends ReactFragmentActivity {
 	@Override
     protected ReactActivityDelegate createReactActivityDelegate() {
         return new ReactActivityDelegate(this, getMainComponentName()) {
-            @Nullable
+            @NonNull
             @Override
             protected Bundle getLaunchOptions() {
                 Bundle bundle = new Bundle();
