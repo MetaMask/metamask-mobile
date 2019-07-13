@@ -214,7 +214,7 @@ class TransactionEdit extends Component {
 	componentDidMount = () => {
 		const { transaction } = this.props;
 		if (transaction && transaction.value) {
-			this.props.handleUpdateAmount(transaction.value);
+			this.props.handleUpdateAmount(transaction.value, true);
 		}
 		if (transaction && transaction.assetType === 'ETH') {
 			this.props.handleUpdateReadableValue(fromWei(transaction.value));

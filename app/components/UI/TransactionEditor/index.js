@@ -148,21 +148,23 @@ class TransactionEditor extends Component {
 	 * If is an asset transaction it generates data to send and estimates gas again with new value and new data
 	 *
 	 * @param {object} amount - BN object containing transaction amount
+	 * @param {bool} mounting - Whether the view is mounting, in that case it should use the gas from transaction state
 	 */
-	handleUpdateAmount = async amount => {
+	handleUpdateAmount = async (amount, mounting = false) => {
 		const {
-			transaction: { to, data, assetType }
+			transaction: { to, data, assetType, gas: gasLimit }
 		} = this.props;
 
 		// If ETH transaction, there is no need to generate new data
 		if (assetType === 'ETH') {
-			const { gas } = await this.estimateGas({ amount, data, to });
+			const { gas } = mounting ? { gas: gasLimit } : await this.estimateGas({ amount, data, to });
 			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas) });
 		}
 		// If selectedAsset defined, generates data
 		else if (assetType === 'ERC20') {
-			const { data, gas } = await this.handleDataGeneration({ value: amount });
-			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data });
+			const res = await this.handleDataGeneration({ value: amount });
+			const gas = mounting ? gasLimit : res.gas;
+			this.props.setTransactionObject({ value: amount, to, gas: hexToBN(gas), data: res.data });
 		}
 	};
 
