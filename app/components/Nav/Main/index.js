@@ -6,7 +6,8 @@ import {
 	StyleSheet,
 	View,
 	PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
-	Platform
+	Platform,
+	Alert
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -73,6 +74,9 @@ import WalletConnectSessionApproval from '../../UI/WalletConnectSessionApproval'
 import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
+import Networks from '../../../util/networks';
+import { CONNEXT_DEPOSIT } from '../../../util/transactions';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -344,7 +348,15 @@ class Main extends Component {
 		/**
 		 * Selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * List of transactions
+		 */
+		transactions: PropTypes.array,
+		/**
+		 * A string representing the network name
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -485,28 +497,66 @@ class Main extends Component {
 		});
 	};
 
-	onUnapprovedTransaction = transactionMeta => {
+	paymentChannelDepositSign = async transactionMeta => {
+		const { TransactionController } = Engine.context;
+		const { transactions } = this.props;
+		try {
+			TransactionController.hub.once(`${transactionMeta.id}:finished`, transactionMeta => {
+				if (transactionMeta.status === 'submitted') {
+					this.setState({ transactionHandled: true });
+					this.props.navigation.pop();
+					TransactionsNotificationManager.watchSubmittedTransaction({
+						...transactionMeta,
+						assetType: transactionMeta.transaction.assetType
+					});
+				} else {
+					throw transactionMeta.error;
+				}
+			});
+
+			const fullTx = transactions.find(({ id }) => id === transactionMeta.id);
+			const updatedTx = { ...fullTx, transaction: transactionMeta.transaction };
+			await TransactionController.updateTransaction(updatedTx);
+			await TransactionController.approveTransaction(transactionMeta.id);
+		} catch (error) {
+			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
+			this.setState({ transactionHandled: false });
+		}
+	};
+
+	onUnapprovedTransaction = async transactionMeta => {
 		if (this.props.transaction.value || this.props.transaction.to) {
 			return;
 		}
-		const {
-			transaction: { value, gas, gasPrice }
-		} = transactionMeta;
-		transactionMeta.transaction.value = hexToBN(value);
-		transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
-		transactionMeta.transaction.gas = hexToBN(gas);
-		transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
-		this.props.setTransactionObject({
-			...{
-				symbol: 'ETH',
-				type: 'ETHER_TRANSACTION',
-				assetType: 'ETH',
-				selectedAsset: { isETH: true, symbol: 'ETH' },
-				id: transactionMeta.id
-			},
-			...transactionMeta.transaction
-		});
-		this.props.navigation.push('ApprovalView');
+		// Check if it's a payment channel deposit transaction to sign
+		const networkId = Networks[this.props.providerType].networkId.toString();
+		if (
+			this.props.paymentChannelsEnabled &&
+			AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(this.props.providerType) &&
+			transactionMeta.transaction.data.substr(0, 10) === CONNEXT_DEPOSIT &&
+			toChecksumAddress(transactionMeta.transaction.to) === AppConstants.CONNEXT.CONTRACTS[networkId]
+		) {
+			await this.paymentChannelDepositSign(transactionMeta);
+		} else {
+			const {
+				transaction: { value, gas, gasPrice }
+			} = transactionMeta;
+			transactionMeta.transaction.value = hexToBN(value);
+			transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
+			transactionMeta.transaction.gas = hexToBN(gas);
+			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
+			this.props.setTransactionObject({
+				...{
+					symbol: 'ETH',
+					type: 'ETHER_TRANSACTION',
+					assetType: 'ETH',
+					selectedAsset: { isETH: true, symbol: 'ETH' },
+					id: transactionMeta.id
+				},
+				...transactionMeta.transaction
+			});
+			this.props.navigation.push('ApprovalView');
+		}
 	};
 
 	handleAppStateChange = appState => {
@@ -733,7 +783,9 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	transaction: state.transaction,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
+	transactions: state.engine.backgroundState.TransactionController.transactions,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
