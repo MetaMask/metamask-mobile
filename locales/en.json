@@ -11,9 +11,11 @@
 	"onboarding": {
 		"title": "Welcome to MetaMask",
 		"subtitle": "A browser that connects you to applications on the decentralized web",
-		"import_wallet_button": "Import a wallet",
+		"import_wallet_button": "Sync or import your wallet",
 		"start_exploring_now": "Start exploring",
-		"login": "Login"
+		"login": "Log in",
+		"new_to_metamask": "New to MetaMask?",
+		"already_have_wallet": "Already have a wallet?"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Skip Tutorial",
@@ -64,15 +66,16 @@
 		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
 	},
 	"import_wallet": {
-		"title": "Import Wallet",
+		"title": "Already a MetaMask user?",
+		"sub_title": "Sync with the extension",
 		"sync_help": "Sync your wallet with the extension",
 		"sync_help_step_one": "1. Open the extension",
-		"sync_help_step_two": "2. Go to \"Settings\" > \"Advanced\"",
+		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
-		"sync_help_step_four": "4. Scan the QR Code",
-		"sync_from_browser_extension_button": "Start Syncing",
+		"sync_help_step_four": "4. Scan the QR Code to start syncing",
+		"sync_from_browser_extension_button": "Scan the QR code",
 		"or": "OR",
-		"import_from_seed_button": "Import using Seed Phrase"
+		"import_from_seed_button": "Import using seed phrase"
 	},
 	"login": {
 		"title": "Welcome Back!",
