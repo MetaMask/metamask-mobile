@@ -33,7 +33,7 @@
 		"step2": {
 			"title": "Tus Cuentas",
 			"content1": "Esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).",
-			"content2": "Puedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+			"content2": "Puedes crear múltiples cuentas en esta billetera presionando el icono de la cuenta."
 		},
 		"step3": {
 			"title": "Editar Nombre",
