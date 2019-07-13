@@ -33,7 +33,7 @@
 		"step2": {
 			"title": "Your Accounts",
 			"content1": "This is your first account, total value, and its unique public address (0x...).",
-			"content2": "You can create multiple accounts within this wallet by typing on profile icon."
+			"content2": "You can create multiple accounts within this wallet by tapping on the profile icon."
 		},
 		"step3": {
 			"title": "Edit Account Name",
