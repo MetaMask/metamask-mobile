@@ -208,6 +208,13 @@ class Deposit extends Component {
 	componentDidMount = () => {
 		const { navigation } = this.props;
 		navigation && navigation.setParams({ mode: 'edit' });
+
+		if (this.amountInput) {
+			setTimeout(() => {
+				const { current } = this.amountInput;
+				current && current.focus();
+			}, 300);
+		}
 	};
 
 	deposit = async () => {
@@ -364,7 +371,6 @@ class Deposit extends Component {
 							ref={this.amountInput}
 							onBlur={this.validateDeposit}
 							returnKeyType="done"
-							autoFocus
 						/>
 						<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
 					</View>
