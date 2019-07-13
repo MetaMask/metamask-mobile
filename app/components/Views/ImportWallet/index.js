@@ -7,7 +7,7 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
@@ -15,10 +15,11 @@ import StyledButton from '../../UI/StyledButton';
 import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
+import AnimatedFox from 'react-native-animated-fox';
 
 const styles = StyleSheet.create({
-	flex: {
-		flex: 1
+	scroll: {
+		flexGrow: 1
 	},
 	wrapper: {
 		flex: 1,
@@ -26,32 +27,23 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 30,
 		paddingBottom: 30
 	},
-	logoWrapper: {
-		alignItems: 'center'
+	foxWrapper: {
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45,
+		marginTop: Platform.OS === 'ios' ? 30 : 0,
+		marginBottom: 0
 	},
-	fox: {
-		marginTop: Platform.OS === 'android' ? 20 : 50,
-		width: 156,
-		height: 97
+	image: {
+		alignSelf: 'center',
+		width: Platform.OS === 'ios' ? 90 : 45,
+		height: Platform.OS === 'ios' ? 90 : 45
 	},
 	title: {
-		fontSize: 32,
-		marginTop: 30,
-		marginBottom: 0,
+		fontSize: 24,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
-		textAlign: 'center',
+		textAlign: 'left',
 		...fontStyles.bold
-	},
-	subtitle: {
-		fontSize: 18,
-		lineHeight: 24,
-		marginTop: 20,
-		marginBottom: 10,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.normal
 	},
 	steps: {
 		marginTop: 10,
@@ -65,12 +57,19 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	separator: {
-		marginTop: 7,
-		marginBottom: -7,
+		marginTop: 8,
+		marginBottom: 8,
 		textAlign: 'center'
 	},
+	ctas: {
+		flex: 1,
+		flexDirection: 'column',
+		marginBottom: 40,
+		marginTop: 24
+	},
 	ctaWrapper: {
-		marginTop: 10
+		flex: 1,
+		justifyContent: 'flex-end'
 	},
 	loader: {
 		marginTop: 40,
@@ -340,29 +339,31 @@ class ImportWallet extends Component {
 
 	renderInitialView() {
 		return (
-			<View>
-				<Text style={styles.subtitle}>{strings('import_wallet.sync_help')}</Text>
-				<View style={styles.steps}>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_one')}</Text>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_two')}</Text>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_three')}</Text>
-					<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
+			<View style={styles.ctas}>
+				<View>
+					<View style={styles.steps}>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_one')}</Text>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_two')}</Text>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_three')}</Text>
+						<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
+					</View>
 				</View>
 				<View style={styles.ctaWrapper}>
-					<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
-						{strings('import_wallet.sync_from_browser_extension_button')}
-					</StyledButton>
-				</View>
-				<Text style={[styles.text, styles.separator]}>{strings('import_wallet.or')}</Text>
-
-				<View style={styles.ctaWrapper}>
-					<StyledButton
-						type={'normal'}
-						onPress={this.onPressImport}
-						testID={'import-wallet-import-from-seed-button'}
-					>
-						{strings('import_wallet.import_from_seed_button')}
-					</StyledButton>
+					<View style={styles.flexGrow}>
+						<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
+							{strings('import_wallet.sync_from_browser_extension_button')}
+						</StyledButton>
+					</View>
+					<Text style={[styles.text, styles.separator]}>{strings('import_wallet.or')}</Text>
+					<View style={styles.flexGrow}>
+						<StyledButton
+							type={'normal'}
+							onPress={this.onPressImport}
+							testID={'import-wallet-import-from-seed-button'}
+						>
+							{strings('import_wallet.import_from_seed_button')}
+						</StyledButton>
+					</View>
 				</View>
 			</View>
 		);
@@ -375,21 +376,32 @@ class ImportWallet extends Component {
 
 	render() {
 		return (
-			<OnboardingScreenWithBg>
-				<ScrollView style={styles.flex} testID={'import-wallet-screen'}>
-					<View style={styles.wrapper}>
-						<View style={styles.logoWrapper}>
-							<Image
-								source={require('../../../images/sync-icon.png')}
-								style={styles.fox}
-								resizeMethod={'auto'}
-							/>
+			<View style={baseStyles.flexGrow}>
+				<OnboardingScreenWithBg>
+					<ScrollView
+						style={baseStyles.flexGrow}
+						contentContainerStyle={styles.scroll}
+						testID={'import-wallet-screen'}
+					>
+						<View style={styles.wrapper}>
+							<View style={styles.foxWrapper}>
+								{Platform.OS === 'android' ? (
+									<Image
+										source={require('../../../images/fox.png')}
+										style={styles.image}
+										resizeMethod={'auto'}
+									/>
+								) : (
+									<AnimatedFox />
+								)}
+							</View>
+							<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+							<Text style={styles.title}>{strings('import_wallet.sub_title')}</Text>
+							{this.renderContent()}
 						</View>
-						<Text style={styles.title}>{strings('import_wallet.title')}</Text>
-						{this.renderContent()}
-					</View>
-				</ScrollView>
-			</OnboardingScreenWithBg>
+					</ScrollView>
+				</OnboardingScreenWithBg>
+			</View>
 		);
 	}
 }

@@ -11,9 +11,11 @@
 	"onboarding": {
 		"title": "Bienvenido a MetaMask",
 		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
-		"import_wallet_button": "Importar billetera",
+		"import_wallet_button": "Sincroniza o importa tu billetera",
 		"start_exploring_now": "Comenzar a explorar",
-		"login": "Ingresar"
+		"login": "Ingresar",
+		"new_to_metamask": "Nuevo en MetaMask?",
+		"already_have_wallet": "Ya tienes una billetera?"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
@@ -64,13 +66,14 @@
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
 	},
 	"import_wallet": {
-		"title": "Importar Billetera",
-		"sync_help": "Sincroniza tu billetera con la extension",
-		"sync_help_step_one": "1. Ingresa a la extension",
-		"sync_help_step_two": "2. Ve a \"Ajustes\" > \"Avanzado\"",
+		"title": "Ya eres usuario de MetaMask?",
+		"sub_title": "Sincroniza con la extensión",
+		"sync_help": "Sincroniza tu billetera con la extensión",
+		"sync_help_step_one": "1. Ingresa a la extensión",
+		"sync_help_step_two": "2. Ve a Ajustes > Avanzado",
 		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",
-		"sync_from_browser_extension_button": "Comenzar Sincronización",
+		"sync_from_browser_extension_button": "Escanea el código QR",
 		"or": "o",
 		"import_from_seed_button": "Importar usando frase semilla"
 	},
