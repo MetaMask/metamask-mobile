@@ -8,7 +8,9 @@ import {
 	View,
 	StyleSheet,
 	KeyboardAvoidingView,
-	ActivityIndicator
+	ActivityIndicator,
+	TouchableWithoutFeedback,
+	Keyboard
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -18,7 +20,7 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import AppConstants from '../../../../core/AppConstants';
-import { renderFromWei, weiToFiat, toWei, isDecimal, isBN } from '../../../../util/number';
+import { weiToFiat, toWei, isDecimal, isBN } from '../../../../util/number';
 import { renderAccountName } from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -27,6 +29,8 @@ import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 
+const TOO_LOW = 'too_low';
+const TOO_HIGH = 'too_high';
 const KEYBOARD_OFFSET = 120;
 
 const styles = StyleSheet.create({
@@ -199,8 +203,9 @@ class Deposit extends Component {
 
 	state = {
 		amount: undefined,
-		invalidAmount: true,
-		depositing: undefined
+		validAmount: false,
+		depositing: undefined,
+		invalidAmountType: undefined
 	};
 
 	amountInput = React.createRef();
@@ -218,7 +223,7 @@ class Deposit extends Component {
 	};
 
 	deposit = async () => {
-		if (this.state.depositing || this.state.invalidAmount) {
+		if (this.state.depositing || !this.state.validAmount) {
 			return;
 		}
 		try {
@@ -240,24 +245,25 @@ class Deposit extends Component {
 		}
 	};
 
-	updateAmount = amount => {
-		this.setState({ amount });
+	updateAmount = async amount => {
+		await this.setState({ amount });
+		this.validateDeposit();
 	};
 
-	validateDeposit = () => {
+	validateDeposit = async () => {
 		const { selectedAddress, accounts } = this.props;
 		const { amount } = this.state;
 		if (!amount) return;
 		const { balance } = accounts[selectedAddress];
-		let error = undefined;
-		let invalidAmount = false;
+		let error, invalidAmountType;
+		let validAmount = true;
 		if (isDecimal(amount) && isBN(toWei(amount))) {
 			if (hexToBN(balance).lt(toWei(amount))) {
-				invalidAmount = true;
+				validAmount = false;
 				error = strings('transaction.insufficient');
 			}
 		} else {
-			invalidAmount = true;
+			validAmount = false;
 			error = strings('transaction.invalid_amount');
 		}
 
@@ -269,21 +275,29 @@ class Deposit extends Component {
 		const minDepositAmount = AppConstants.CONNEXT.MIN_DEPOSIT_ETH;
 
 		if (depositAmountNumber > maxDepositAmount) {
-			Alert.alert(strings('payment_channel.error'), strings('payment_channel.amount_too_high'));
-			invalidAmount = true;
+			validAmount = false;
+			invalidAmountType = TOO_HIGH;
 		}
 
 		if (amount < minDepositAmount) {
-			Alert.alert(strings('payment_channel.error'), strings('payment_channel.amount_too_low'));
-			invalidAmount = true;
+			validAmount = false;
+			invalidAmountType = TOO_LOW;
 		}
 
-		const accountBalance = renderFromWei(this.props.accounts[this.props.selectedAddress].balance);
-		if (parseFloat(accountBalance) <= parseFloat(amount)) {
-			Alert.alert(strings('payment_channel.error'), strings('payment_channel.insufficient_funds'));
-			invalidAmount = true;
+		await this.setState({ validAmount, error, invalidAmountType });
+		return validAmount;
+	};
+
+	promptValidationWarnings = () => {
+		const { invalidAmountType } = this.state;
+		switch (invalidAmountType) {
+			case TOO_HIGH:
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.amount_too_high'));
+				break;
+			case TOO_LOW:
+				Alert.alert(strings('payment_channel.error'), strings('payment_channel.amount_too_low'));
+				break;
 		}
-		this.setState({ invalidAmount, error });
 	};
 
 	renderTransactionDirection() {
@@ -345,63 +359,65 @@ class Deposit extends Component {
 
 	render() {
 		const { conversionRate, currentCurrency } = this.props;
-		const { amount, invalidAmount, error } = this.state;
+		const { amount, validAmount, error } = this.state;
 		const conversionAmount = weiToFiat(
 			toWei((isDecimal(amount) && amount) || 0),
 			conversionRate,
 			currentCurrency.toUpperCase()
 		);
 		return (
-			<View style={styles.root}>
-				{this.renderTransactionDirection()}
-				<View style={styles.wrapper}>
-					<Text style={styles.title}>{strings('payment_channel.deposit_amount')}</Text>
-					<View style={styles.inputWrapper}>
-						<TextInput
-							autoCapitalize="none"
-							autoCorrect={false}
-							keyboardType="numeric"
-							numberOfLines={1}
-							onChangeText={this.updateAmount}
-							placeholder={strings('payment_request.amount_placeholder')}
-							spellCheck={false}
-							value={amount}
-							onSubmitEditing={this.deposit}
-							style={styles.input}
-							ref={this.amountInput}
-							onBlur={this.validateDeposit}
-							returnKeyType="done"
-						/>
-						<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
-					</View>
-
-					<Text style={styles.fiatValue}>{conversionAmount}</Text>
-					{this.renderMinimumsOrSpinner()}
-					{error && <Text style={styles.invalidAmountError}>{error}</Text>}
-
-					<KeyboardAvoidingView
-						style={styles.buttonsWrapper}
-						behavior={'padding'}
-						keyboardVerticalOffset={KEYBOARD_OFFSET}
-						enabled={Platform.OS === 'ios'}
-					>
-						<View style={styles.buttonsContainer}>
-							<StyledButton
-								type={'blue'}
-								onPress={this.deposit}
-								containerStyle={[styles.button]}
-								disabled={!amount || invalidAmount}
-							>
-								{this.state.depositing ? (
-									<ActivityIndicator size="small" color="white" />
-								) : (
-									strings('payment_channel.load_funds')
-								)}
-							</StyledButton>
+			<TouchableWithoutFeedback style={styles.root} onPress={Keyboard.dismiss}>
+				<View style={styles.root}>
+					{this.renderTransactionDirection()}
+					<View style={styles.wrapper}>
+						<Text style={styles.title}>{strings('payment_channel.deposit_amount')}</Text>
+						<View style={styles.inputWrapper}>
+							<TextInput
+								autoCapitalize="none"
+								autoCorrect={false}
+								keyboardType="numeric"
+								numberOfLines={1}
+								onChangeText={this.updateAmount}
+								placeholder={strings('payment_request.amount_placeholder')}
+								spellCheck={false}
+								value={amount}
+								style={styles.input}
+								ref={this.amountInput}
+								returnKeyType="done"
+								onSubmitEditing={this.validateDeposit}
+								onBlur={this.promptValidationWarnings}
+							/>
+							<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
 						</View>
-					</KeyboardAvoidingView>
+
+						<Text style={styles.fiatValue}>{conversionAmount}</Text>
+						{this.renderMinimumsOrSpinner()}
+						{error && <Text style={styles.invalidAmountError}>{error}</Text>}
+
+						<KeyboardAvoidingView
+							style={styles.buttonsWrapper}
+							behavior={'padding'}
+							keyboardVerticalOffset={KEYBOARD_OFFSET}
+							enabled={Platform.OS === 'ios'}
+						>
+							<View style={styles.buttonsContainer}>
+								<StyledButton
+									type={'blue'}
+									onPress={this.deposit}
+									containerStyle={[styles.button]}
+									disabled={!amount || !validAmount}
+								>
+									{this.state.depositing ? (
+										<ActivityIndicator size="small" color="white" />
+									) : (
+										strings('payment_channel.load_funds')
+									)}
+								</StyledButton>
+							</View>
+						</KeyboardAvoidingView>
+					</View>
 				</View>
-			</View>
+			</TouchableWithoutFeedback>
 		);
 	}
 }
