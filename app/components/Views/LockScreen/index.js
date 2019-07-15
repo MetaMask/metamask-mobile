@@ -5,6 +5,7 @@ import LottieView from 'lottie-react-native';
 import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
+import Logger from '../../../util/Logger';
 
 const LOGO_SIZE = 175;
 const styles = StyleSheet.create({
@@ -57,6 +58,7 @@ export default class LockScreen extends Component {
 
 	appState = 'active';
 	locked = true;
+	timedOut = false;
 	firstAnimation = React.createRef();
 	secondAnimation = React.createRef();
 	animationName = React.createRef();
@@ -81,8 +83,27 @@ export default class LockScreen extends Component {
 			this.firstAnimation.play();
 			this.appState = nextAppState;
 			this.unlockKeychain();
+			this.timeoutWatcher();
 		}
 	};
+
+	timeoutWatcher() {
+		setTimeout(() => {
+			if (!this.state.ready) {
+				Logger.log('Lockscreen::timeout - state', this.state);
+				Logger.log('Lockscreen::timeout - appState', this.appState);
+				Logger.log('Lockscreen::timeout - locked', this.locked);
+				Logger.log('Lockscreen::timeout - errorUnlockingKeychain', this.errorUnlockingKeychain);
+				Logger.error('Lockscreen::timeout', `${this.timedOut ? 10 : 5} sec timeout`);
+				// Retry one more time
+				if (!this.timedOut) {
+					this.unlockKeychain();
+					this.timeoutWatcher();
+					this.timedOut = true;
+				}
+			}
+		}, 5000);
+	}
 
 	componentWillUnmount() {
 		this.mounted = false;
@@ -90,15 +111,24 @@ export default class LockScreen extends Component {
 	}
 
 	async unlockKeychain() {
+		let credentials = null;
 		try {
 			// Retreive the credentials
-			const credentials = await SecureKeychain.getGenericPassword();
+			Logger.log('Lockscreen::unlockKeychain - getting credentials');
+			credentials = await SecureKeychain.getGenericPassword();
 			if (credentials) {
+				Logger.log('Lockscreen::unlockKeychain - got credentials', !!credentials.password);
+
 				// Restore vault with existing credentials
 				const { KeyringController } = Engine.context;
+				Logger.log('Lockscreen::unlockKeychain - submitting password');
+
 				await KeyringController.submitPassword(credentials.password);
+				Logger.log('Lockscreen::unlockKeychain - keyring unlocked');
+
 				this.locked = false;
 				this.setState({ ready: true }, () => {
+					Logger.log('Lockscreen::unlockKeychain - state: ready');
 					if (Platform.OS === 'android') {
 						setTimeout(() => {
 							this.secondAnimation.play(0, 25);
@@ -109,13 +139,14 @@ export default class LockScreen extends Component {
 					} else {
 						this.secondAnimation.play();
 						this.animationName.play();
+						Logger.log('Lockscreen::unlockKeychain - playing animations');
 					}
 				});
 			} else {
 				this.props.navigation.navigate('Login');
 			}
 		} catch (error) {
-			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
+			Logger.error('Lockscreen:unlockKeychain', error);
 		}
 	}
 
