@@ -132,7 +132,10 @@ jobs:
           name: build:pre-release
           command:
             |
-              npm run build:android:pre-release
+              npm run build:android:pre-release:bundle
+      - store_artifacts:
+          path: android/app/build/outputs/bundle/release
+          destination: bundle
       - store_artifacts:
           path: android/app/build/outputs/apk/release
           destination: builds

@@ -37,6 +37,7 @@ async function start() {
 	const APK_BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-141427485-gh.circle-artifacts.com/0`;
 
 	const APK_LINK = `${APK_BUILD_LINK_BASE}/builds/app-release.apk`;
+	const AAP_LINK = `${APK_BUILD_LINK_BASE}/bundle/app.aab`;
 
 
 	const content = {
@@ -52,6 +53,12 @@ async function start() {
 				"title_link": APK_LINK,
 				"title" : "Android",
 				"text": "Download APK",
+				"thumb_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png"
+			},
+			{
+				"title_link": AAP_LINK,
+				"title" : "Android App Bundle",
+				"text": "Download AAP",
 				"thumb_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/511px-Android_robot.svg.png"
 			}
 		]
