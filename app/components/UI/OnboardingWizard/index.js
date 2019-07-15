@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Text, Dimensions } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 		right: 0,
 		flex: 1,
 		margin: 0,
-		position: 'absolute'
+		position: 'absolute',
+		backgroundColor: colors.transparent
 	},
 	main: {
 		flex: 1,
@@ -118,7 +119,7 @@ class OnboardingWizard extends Component {
 				backdropOpacity={0}
 				disableAnimation
 				transparent
-				style={[styles.root, { backgroundColor: colors.transparent }]}
+				style={[styles.root, Platform.OS === 'android' ? { minHeight: Dimensions.get('window').height } : {}]}
 			>
 				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
 				{step !== 1 && (
