@@ -47,6 +47,7 @@ exports[`OnboardingWizard should render correctly 1`] = `
   style={
     Array [
       Object {
+        "backgroundColor": "transparent",
         "bottom": 0,
         "flex": 1,
         "left": 0,
@@ -55,9 +56,7 @@ exports[`OnboardingWizard should render correctly 1`] = `
         "right": 0,
         "top": 0,
       },
-      Object {
-        "backgroundColor": "transparent",
-      },
+      Object {},
     ]
   }
   supportedOrientations={
