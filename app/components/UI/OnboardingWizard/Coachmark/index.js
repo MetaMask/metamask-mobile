@@ -4,6 +4,7 @@ import { Animated, View, Text, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
+import onboardingStyles from './../styles';
 
 const styles = StyleSheet.create({
 	coachmark: {
@@ -286,7 +287,7 @@ export default class Coachmark extends Component {
 					</View>
 				)}
 				<View style={[styles.coachmark, coachmarkStyle]}>
-					<View style={styles.titleContainer}>
+					<View style={onboardingStyles.titleContainer}>
 						<Text style={styles.title}>{title}</Text>
 					</View>
 					{content}

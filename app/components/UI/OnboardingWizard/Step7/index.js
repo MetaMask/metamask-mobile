@@ -16,8 +16,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0,
-		marginHorizontal: 35
+		right: 0
 	}
 });
 
@@ -84,6 +83,7 @@ class Step7 extends Component {
 						onNext={this.onClose}
 						onBack={this.onBack}
 						onClose={this.onClose}
+						style={onboardingStyles.coachmark}
 						currentStep={6}
 						bottomIndicatorPosition={'bottomLeft'}
 					/>
