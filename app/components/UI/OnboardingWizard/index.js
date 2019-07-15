@@ -18,6 +18,7 @@ import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import DeviceSize from '../../../util/DeviceSize';
 
+const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
 	root: {
 		top: 0,
@@ -119,7 +120,7 @@ class OnboardingWizard extends Component {
 				backdropOpacity={0}
 				disableAnimation
 				transparent
-				style={[styles.root, Platform.OS === 'android' ? { minHeight: Dimensions.get('window').height } : {}]}
+				style={[styles.root, Platform.OS === 'android' ? { minHeight: MIN_HEIGHT } : {}]}
 			>
 				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
 				{step !== 1 && (
