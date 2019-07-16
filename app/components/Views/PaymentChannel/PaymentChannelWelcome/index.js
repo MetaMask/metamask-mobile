@@ -6,7 +6,6 @@ import StyledButton from '../../../UI/StyledButton';
 import DeviceSize from '../../../../util/DeviceSize';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
-import { SMALL_DEVICE } from '../../../UI/OnboardingWizard/styles';
 
 const styles = StyleSheet.create({
 	container: {
@@ -16,11 +15,11 @@ const styles = StyleSheet.create({
 	},
 	frame: {
 		justifyContent: 'center',
-		marginTop: SMALL_DEVICE ? 5 : 80,
+		marginTop: DeviceSize.isSmallDevice() ? 5 : 80,
 		marginBottom: 10,
 		marginHorizontal: 35,
 		alignSelf: 'center',
-		width: SMALL_DEVICE ? '80%' : '100%'
+		width: DeviceSize.isSmallDevice() ? '80%' : '100%'
 	},
 	content: {
 		flex: 1,

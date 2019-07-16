@@ -2,17 +2,7 @@ import React, { Component } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
-import {
-	ScrollView,
-	Platform,
-	StyleSheet,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
-	Keyboard,
-	Dimensions
-} from 'react-native';
+import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { renderShortAddress } from '../../../util/address';
@@ -24,9 +14,9 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { isValidAddress } from 'ethereumjs-util';
+import DeviceSize from '../../../util/DeviceSize';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-const SMALL_DEVICE = Dimensions.get('window').height < 600;
 
 const styles = StyleSheet.create({
 	root: {
@@ -399,7 +389,9 @@ class AccountInput extends Component {
 								autoCapitalize="none"
 								autoCorrect={false}
 								onChangeText={this.onChange}
-								placeholder={SMALL_DEVICE ? placeholder.substr(0, 13) + '...' : placeholder}
+								placeholder={
+									DeviceSize.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder
+								}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
 								style={styles.input}

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Clipboard, TouchableOpacity, StyleSheet, Text, View, Dimensions } from 'react-native';
+import { Clipboard, TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -14,8 +14,7 @@ import { getEtherscanTransactionUrl, getEtherscanBaseUrl } from '../../../../uti
 import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
-
-const SMALL_DEVICE = Dimensions.get('window').height < 600;
+import DeviceSize from '../../../../util/DeviceSize';
 
 const styles = StyleSheet.create({
 	detailRowWrapper: {
@@ -192,7 +191,7 @@ class TransactionDetails extends PureComponent {
 
 	renderTxHash = transactionHash => {
 		if (!transactionHash) return null;
-		const length = SMALL_DEVICE ? 18 : 20;
+		const length = DeviceSize.isSmallDevice() ? 18 : 20;
 		return (
 			<View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>

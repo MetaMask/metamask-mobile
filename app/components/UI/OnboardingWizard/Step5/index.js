@@ -7,7 +7,8 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../../locales/i18n';
-import onboardingStyles, { SMALL_DEVICE } from './../styles';
+import onboardingStyles from './../styles';
+import DeviceSize from '../../../../util/DeviceSize';
 
 const INDICATOR_HEIGHT = 10;
 const DRAWER_WIDTH = 315;
@@ -109,7 +110,9 @@ class Step5 extends Component {
 				<View
 					style={[
 						styles.coachmarkContainer,
-						SMALL_DEVICE ? { top: this.state.coachmarkBottom } : { top: this.state.coachmarkTop }
+						DeviceSize.isSmallDevice()
+							? { top: this.state.coachmarkBottom }
+							: { top: this.state.coachmarkTop }
 					]}
 				>
 					<Coachmark
@@ -118,8 +121,8 @@ class Step5 extends Component {
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}
-						topIndicatorPosition={!SMALL_DEVICE && 'topLeft'}
-						bottomIndicatorPosition={SMALL_DEVICE && 'bottomLeft'}
+						topIndicatorPosition={!DeviceSize.isSmallDevice() && 'topLeft'}
+						bottomIndicatorPosition={DeviceSize.isSmallDevice() && 'bottomLeft'}
 						currentStep={4}
 					/>
 				</View>
