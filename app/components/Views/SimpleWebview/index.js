@@ -6,6 +6,7 @@ import { getWebviewNavbar } from '../../UI/Navbar';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../../util/Logger';
 import AndroidBackHandler from '../AndroidBackHandler';
+import { baseStyles } from '../../../styles/common';
 
 export default class SimpleWebview extends Component {
 	static navigationOptions = ({ navigation }) => getWebviewNavbar(navigation);
@@ -38,7 +39,7 @@ export default class SimpleWebview extends Component {
 		const uri = this.props.navigation.getParam('url', null);
 		if (uri) {
 			return (
-				<View>
+				<View style={baseStyles.flexGrow}>
 					<Web3Webview source={{ uri }} />
 					{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 				</View>
