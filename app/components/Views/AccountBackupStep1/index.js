@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	scrollviewWrapper: {
-		flex: 1
+		flexGrow: 1
 	},
 	wrapper: {
 		flex: 1,
