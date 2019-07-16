@@ -9,7 +9,6 @@ import Step3 from './Step3';
 import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
-import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
@@ -102,8 +101,7 @@ class OnboardingWizard extends Component {
 			3: <Step3 coachmarkRef={this.props.coachmarkRef} />,
 			4: <Step4 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
 			5: <Step5 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			6: <Step6 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			7: <Step7 coachmarkRef={this.props.coachmarkRef} onClose={this.closeOnboardingWizard} />
+			6: <Step6 coachmarkRef={this.props.coachmarkRef} onClose={this.closeOnboardingWizard} />
 		};
 		return steps[step];
 	};
