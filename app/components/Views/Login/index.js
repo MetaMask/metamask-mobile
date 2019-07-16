@@ -35,14 +35,14 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingHorizontal: 20,
-		paddingTop: 100
+		paddingHorizontal: 20
 	},
 	foxWrapper: {
 		justifyContent: 'center',
 		alignSelf: 'center',
 		width: Platform.OS === 'ios' ? 130 : 100,
-		height: Platform.OS === 'ios' ? 130 : 100
+		height: Platform.OS === 'ios' ? 130 : 100,
+		marginTop: 100
 	},
 	image: {
 		alignSelf: 'center',
