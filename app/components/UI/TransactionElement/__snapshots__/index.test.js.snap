@@ -56,8 +56,10 @@ exports[`TransactionElement should render correctly 1`] = `
           diameter={24}
         />
         <View
+          numberOfLines={1}
           style={
             Object {
+              "flex": 1,
               "marginLeft": 15,
             }
           }
@@ -100,7 +102,7 @@ exports[`TransactionElement should render correctly 1`] = `
           style={
             Object {
               "alignItems": "flex-end",
-              "flex": 1,
+              "flex": 0.6,
             }
           }
         >

@@ -281,7 +281,7 @@ exports[`AccountApproval should render correctly 1`] = `
             "fontFamily": "Roboto",
             "fontSize": 14,
             "fontWeight": "400",
-            "marginTop": 24,
+            "marginVertical": 24,
           }
         }
       >
