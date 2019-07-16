@@ -15,9 +15,6 @@ export default StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 20
 	},
-	leftContent: {
-		textAlign: 'left'
-	},
 	contentContainer: {
 		marginTop: 20
 	}
