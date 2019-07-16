@@ -945,7 +945,7 @@ export class BrowserTab extends PureComponent {
 		if (this.canGoForward()) {
 			this.toggleOptionsIfNeeded();
 			const { current } = this.webview;
-			this.setState({ forwardEnabled: current.canGoForward() });
+			this.setState({ forwardEnabled: current && current.canGoForward() });
 			current && current.goForward();
 			setTimeout(() => {
 				this.props.navigation.setParams({
