@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { StyleSheet, Text, View, InteractionManager, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import ElevatedView from 'react-native-elevated-view';
@@ -14,6 +14,8 @@ import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getHost } from '../../../util/browser';
+
+const SMALL_DEVICE = Dimensions.get('window').height < 600;
 
 const styles = StyleSheet.create({
 	root: {
@@ -37,13 +39,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		fontSize: 20,
+		fontSize: SMALL_DEVICE ? 16 : 20,
 		marginVertical: 24
 	},
 	dappTitle: {
 		...fontStyles.bold,
 		color: colors.fontPrimary,
-		fontSize: 20
+		fontSize: SMALL_DEVICE ? 16 : 20
 	},
 	permissions: {
 		alignItems: 'center',
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 14,
-		marginTop: 24
+		marginVertical: 24
 	},
 	header: {
 		alignItems: 'flex-start',
