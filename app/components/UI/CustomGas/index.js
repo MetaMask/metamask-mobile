@@ -12,9 +12,10 @@ import {
 	convertApiValueToGWEI
 } from '../../../util/custom-gas';
 import { BN } from 'ethereumjs-util';
-import { fromWei } from '../../../util/number';
+import { fromWei, renderWei } from '../../../util/number';
 import Logger from '../../../util/Logger';
 import { getTicker } from '../../../util/transactions';
+import { hexToBN } from 'gaba/util';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -208,10 +209,19 @@ class CustomGas extends Component {
 
 	componentDidMount = async () => {
 		await this.handleFetchBasicEstimates();
-		this.onPressGasAverage();
 		const { ticker } = this.props;
 		if (ticker && ticker !== 'ETH') {
 			this.setState({ advancedCustomGas: true });
+		}
+	};
+
+	componentDidUpdate = prevProps => {
+		if (this.state.advancedCustomGas) {
+			// Handles gas recalculation for custom gas input
+			const actualGasLimitWei = renderWei(hexToBN(this.props.gas));
+			if (renderWei(hexToBN(prevProps.gas)) !== actualGasLimitWei) {
+				this.setState({ customGasLimit: actualGasLimitWei });
+			}
 		}
 	};
 
@@ -224,7 +234,15 @@ class CustomGas extends Component {
 			Logger.log('Error while trying to get gas limit estimates', error);
 			basicGasEstimates = { average: AVERAGE_GAS, safeLow: LOW_GAS, fast: FAST_GAS };
 		}
-		const { average, fast, safeLow } = basicGasEstimates;
+
+		// Handle api failure returning same gas prices
+		let { average, fast, safeLow } = basicGasEstimates;
+		if (average === fast && average === safeLow) {
+			average = AVERAGE_GAS;
+			safeLow = LOW_GAS;
+			fast = FAST_GAS;
+		}
+
 		this.setState({
 			averageGwei: convertApiValueToGWEI(average),
 			fastGwei: convertApiValueToGWEI(fast),

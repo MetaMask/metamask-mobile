@@ -32,7 +32,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost } from '../../../util/browser';
-import { SPA_urlChangeListener, JS_WINDOW_INFORMATION } from '../../../util/browserSripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserSripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
@@ -57,6 +57,7 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import BackupAlert from '../../UI/BackupAlert';
+import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
 const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 55,
+		bottom: 65,
 		right: 5
 	},
 	optionsWrapperIos: {
@@ -119,8 +120,8 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.5,
 		shadowRadius: 3,
-		bottom: 80,
-		right: 3
+		bottom: 90,
+		right: 5
 	},
 	option: {
 		paddingVertical: 10,
@@ -156,7 +157,8 @@ const styles = StyleSheet.create({
 		fontSize: 18
 	},
 	webview: {
-		...baseStyles.flexGrow
+		...baseStyles.flexGrow,
+		zIndex: 1
 	},
 	urlModalContent: {
 		flexDirection: 'row',
@@ -216,7 +218,7 @@ const styles = StyleSheet.create({
 	},
 	backupAlert: {
 		position: 'absolute',
-		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 60,
+		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 70,
 		left: 16,
 		right: 16
 	}
@@ -665,7 +667,15 @@ export class BrowserTab extends PureComponent {
 		Engine.context.TransactionController.hub.on('networkChange', this.reload);
 
 		BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
+
+		if (Platform.OS === 'android') {
+			DrawerStatusTracker.hub.on('drawer::open', this.drawerOpenHandler);
+		}
 	}
+
+	drawerOpenHandler = () => {
+		this.dismissTextSelectionIfNeeded();
+	};
 
 	handleDeeplinks = async ({ error, params }) => {
 		if (!this.isTabActive()) return false;
@@ -749,6 +759,7 @@ export class BrowserTab extends PureComponent {
 		this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
 		if (Platform.OS === 'android') {
 			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
+			DrawerStatusTracker && DrawerStatusTracker.hub && DrawerStatusTracker.hub.removeAllListeners();
 		}
 		if (this.unsubscribeFromBranch) {
 			this.unsubscribeFromBranch();
@@ -934,8 +945,8 @@ export class BrowserTab extends PureComponent {
 		if (this.canGoForward()) {
 			this.toggleOptionsIfNeeded();
 			const { current } = this.webview;
-			this.setState({ forwardEnabled: false });
-			current && current.goForward();
+			this.setState({ forwardEnabled: current && current.canGoForward && current.canGoForward() });
+			current && current.goForward && current.goForward();
 			setTimeout(() => {
 				this.props.navigation.setParams({
 					...this.props.navigation.state.params,
@@ -1035,6 +1046,17 @@ export class BrowserTab extends PureComponent {
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
 	};
 
+	dismissTextSelectionIfNeeded() {
+		if (this.isTabActive() && Platform.OS === 'android') {
+			const { current } = this.webview;
+			if (current) {
+				setTimeout(() => {
+					current.injectJavaScript(JS_DESELECT_TEXT);
+				}, 50);
+			}
+		}
+	}
+
 	toggleOptionsIfNeeded() {
 		if (
 			this.props.navigation &&
@@ -1046,6 +1068,8 @@ export class BrowserTab extends PureComponent {
 	}
 
 	toggleOptions = () => {
+		this.dismissTextSelectionIfNeeded();
+
 		this.props.navigation &&
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
@@ -1241,40 +1265,12 @@ export class BrowserTab extends PureComponent {
 
 		return (
 			<React.Fragment>
-				{Platform.OS === 'android' && this.canGoBack() ? (
-					<Button onPress={this.goBack} style={styles.option}>
-						<View style={styles.optionIconWrapper}>
-							<Icon name="arrow-left" size={18} style={styles.optionIcon} />
-						</View>
-						<Text style={styles.optionText} numberOfLines={1}>
-							{strings('browser.go_back')}
-						</Text>
-					</Button>
-				) : null}
-				{Platform.OS === 'android' && this.canGoForward() ? (
-					<Button onPress={this.goForward} style={styles.option}>
-						<View style={styles.optionIconWrapper}>
-							<Icon name="arrow-right" size={18} style={styles.optionIcon} />
-						</View>
-						<Text style={styles.optionText} numberOfLines={1}>
-							{strings('browser.go_forward')}
-						</Text>
-					</Button>
-				) : null}
 				<Button onPress={() => this.reload()} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
 					<Text style={styles.optionText} numberOfLines={1}>
 						{strings('browser.reload')}
-					</Text>
-				</Button>
-				<Button onPress={() => this.goBackToHomepage()} style={styles.option}>
-					<View style={styles.optionIconWrapper}>
-						<Icon name="home" size={18} style={styles.optionIcon} />
-					</View>
-					<Text style={styles.optionText} numberOfLines={1}>
-						{strings('browser.home')}
 					</Text>
 				</Button>
 				<Button onPress={this.addBookmark} style={styles.option}>
@@ -1318,6 +1314,7 @@ export class BrowserTab extends PureComponent {
 			showTabs={this.showTabs}
 			showUrlModal={this.showUrlModal}
 			toggleOptions={this.toggleOptions}
+			goHome={this.goBackToHomepage}
 		/>
 	);
 
@@ -1585,7 +1582,7 @@ export class BrowserTab extends PureComponent {
 
 	renderOnboardingWizard = () => {
 		const { wizardStep } = this.props;
-		if ([6, 7].includes(wizardStep)) {
+		if ([6].includes(wizardStep)) {
 			if (!this.wizardScrollAdjusted) {
 				setTimeout(() => {
 					this.reload(true);

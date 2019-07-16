@@ -11,9 +11,11 @@
 	"onboarding": {
 		"title": "Welcome to MetaMask",
 		"subtitle": "A browser that connects you to applications on the decentralized web",
-		"import_wallet_button": "Import a wallet",
+		"import_wallet_button": "Sync or import your wallet",
 		"start_exploring_now": "Start exploring",
-		"login": "Login"
+		"login": "Log in",
+		"new_to_metamask": "New to MetaMask?",
+		"already_have_wallet": "Already have a wallet?"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Skip Tutorial",
@@ -25,13 +27,13 @@
 		},
 		"step1": {
 			"title": "Welcome to your new wallet!",
-			"content1": "To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH).",
-			"content2": "You can buy a few dollars worth of ETH from an exchange like Coinbase or simply request a friend."
+			"content1": "To use the blockchain, you need a wallet! some actions cost Ether (ETH).",
+			"content2": "We'll show you how to buy ETH, or you can request some from a friend."
 		},
 		"step2": {
 			"title": "Your Accounts",
 			"content1": "This is your first account, total value, and its unique public address (0x...).",
-			"content2": "You can create multiple accounts within this wallet by typing on profile icon."
+			"content2": "You can create multiple accounts within this wallet by tapping on the profile icon."
 		},
 		"step3": {
 			"title": "Edit Account Name",
@@ -47,16 +49,11 @@
 		},
 		"step5": {
 			"title": "Explore the Browser",
-			"content1": "You can explore blockchain applications (DAPPS) in the",
-			"content2": "Browser."
+			"content1": "You can explore web3 using the browser"
 		},
 		"step6": {
-			"title": "Search Dapps",
-			"content": "Search directly blockchain applications (DAPPS)!"
-		},
-		"step7": {
-			"title": "Featured Dapps",
-			"content": "Start exploring featured blockchain applications (DAPPS)."
+			"title": "Search",
+			"content": "Search for sites, or type a URL if you know where you’re headed."
 		}
 	},
 	"create_wallet": {
@@ -64,15 +61,16 @@
 		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
 	},
 	"import_wallet": {
-		"title": "Import Wallet",
+		"title": "Already a MetaMask user?",
+		"sub_title": "Sync with the extension",
 		"sync_help": "Sync your wallet with the extension",
 		"sync_help_step_one": "1. Open the extension",
-		"sync_help_step_two": "2. Go to \"Settings\" > \"Advanced\"",
+		"sync_help_step_two": "2. Go to Settings > Advanced",
 		"sync_help_step_three": "3. Click on \"Sync with Mobile\"",
-		"sync_help_step_four": "4. Scan the QR Code",
-		"sync_from_browser_extension_button": "Start Syncing",
+		"sync_help_step_four": "4. Scan the QR Code to start syncing",
+		"sync_from_browser_extension_button": "Scan the QR code",
 		"or": "OR",
-		"import_from_seed_button": "Import using Seed Phrase"
+		"import_from_seed_button": "Import using seed phrase"
 	},
 	"login": {
 		"title": "Welcome Back!",

@@ -22,5 +22,5 @@ export default {
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	DAI_ADDRESS: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
-	HOMEPAGE_URL: 'https://dapps.metamask.io/'
+	HOMEPAGE_URL: 'https://home.metamask.io/'
 };

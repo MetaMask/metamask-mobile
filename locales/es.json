@@ -11,9 +11,11 @@
 	"onboarding": {
 		"title": "Bienvenido a MetaMask",
 		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
-		"import_wallet_button": "Importar billetera",
+		"import_wallet_button": "Sincroniza o importa tu billetera",
 		"start_exploring_now": "Comenzar a explorar",
-		"login": "Ingresar"
+		"login": "Ingresar",
+		"new_to_metamask": "Nuevo en MetaMask?",
+		"already_have_wallet": "Ya tienes una billetera?"
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
@@ -25,13 +27,13 @@
 		},
 		"step1": {
 			"title": "Bienvenido a tu Nueva Billetera!",
-			"content1": "Para usar aplicaciones blockchain (DAPPS) necesitas una billetera ya que las acciones en blockchain tienen un costo en Ether (ETH).",
-			"content2": "Puedes comprar unos cuantos dólares de ETH en una bolsa de valores como Coinbase o simplemente solicitar a un amigo."
+			"content1": "Para usar aplicaciones blockchain necesitas una billetera! algunas aplicaciones blockchain tienen un costo en Ether (ETH).",
+			"content2": "Te mostraremos como comprar ETH o simplemente solicitar a un amigo."
 		},
 		"step2": {
 			"title": "Tus Cuentas",
 			"content1": "Esta es tu primera cuenta, el valor total, y su dirección pública única (0x...).",
-			"content2": "Puedes crear múltiples cuentas en esta billetera clickeando el icono de la cuenta."
+			"content2": "Puedes crear múltiples cuentas en esta billetera presionando el icono de la cuenta."
 		},
 		"step3": {
 			"title": "Editar Nombre",
@@ -47,16 +49,11 @@
 		},
 		"step5": {
 			"title": "Explora el Navegador",
-			"content1": "Puedes exprolar aplicaciones blockchain (DAPPS) en el",
-			"content2": "Navegador."
+			"content1": "Puedes explorar la web3 en el navegador"
 		},
 		"step6": {
-			"title": "Buscar Dapps",
-			"content": "Busca aplicaciones blockchain (DAPPS)!"
-		},
-		"step7": {
-			"title": "Dapps Destacadas",
-			"content": "Comienza a explorar las aplicaciones blockchain (DAPPS)."
+			"title": "Buscador",
+			"content": "Busca sitios or ingresa una URL si sabes a donde vas."
 		}
 	},
 	"create_wallet": {
@@ -64,13 +61,14 @@
 		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
 	},
 	"import_wallet": {
-		"title": "Importar Billetera",
-		"sync_help": "Sincroniza tu billetera con la extension",
-		"sync_help_step_one": "1. Ingresa a la extension",
-		"sync_help_step_two": "2. Ve a \"Ajustes\" > \"Avanzado\"",
+		"title": "Ya eres usuario de MetaMask?",
+		"sub_title": "Sincroniza con la extensión",
+		"sync_help": "Sincroniza tu billetera con la extensión",
+		"sync_help_step_one": "1. Ingresa a la extensión",
+		"sync_help_step_two": "2. Ve a Ajustes > Avanzado",
 		"sync_help_step_three": "3. Haz click en \"Sincronizar con mi móvil\"",
 		"sync_help_step_four": "4. Escanea el código QR",
-		"sync_from_browser_extension_button": "Comenzar Sincronización",
+		"sync_from_browser_extension_button": "Escanea el código QR",
 		"or": "o",
 		"import_from_seed_button": "Importar usando frase semilla"
 	},
