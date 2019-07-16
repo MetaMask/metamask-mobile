@@ -31,6 +31,7 @@ import DeviceSize from '../../../util/DeviceSize';
 import { showAlert } from '../../../actions/alert';
 import GlobalAlert from '../GlobalAlert';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
+import { SMALL_DEVICE } from '../OnboardingWizard/styles';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		position: 'absolute',
-		right: Platform.OS === 'ios' ? -40 : -50,
+		right: SMALL_DEVICE ? (Platform.OS === 'ios' ? -30 : -30) : Platform.OS === 'ios' ? -40 : -50,
 		bottom: Platform.OS === 'ios' ? 8 : 10
 	},
 	titleWrapper: {
