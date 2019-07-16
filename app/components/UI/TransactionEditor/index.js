@@ -551,6 +551,13 @@ class TransactionEditor extends Component {
 		onModeChange(EDIT);
 	};
 
+	handleCustomBackPress = () => {
+		if (this.props.mode === REVIEW) {
+			return this.goToEdit();
+		}
+		return this.props.navigation.pop();
+	};
+
 	render = () => {
 		const { mode, transactionConfirmed } = this.props;
 		return (
@@ -582,9 +589,7 @@ class TransactionEditor extends Component {
 						transactionConfirmed={transactionConfirmed}
 					/>
 				)}
-				{Platform.OS === 'android' && (
-					<AndroidBackHandler customBackPress={mode === REVIEW ? this.goToEdit : this.props.navigation.pop} />
-				)}
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.handleCustomBackPress} />}
 			</View>
 		);
 	};
