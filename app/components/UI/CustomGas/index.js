@@ -16,6 +16,7 @@ import { fromWei, renderWei } from '../../../util/number';
 import Logger from '../../../util/Logger';
 import { getTicker } from '../../../util/transactions';
 import { hexToBN } from 'gaba/util';
+import { SMALL_DEVICE } from '../OnboardingWizard/styles';
 
 const AVERAGE_GAS = 20;
 const LOW_GAS = 10;
@@ -59,10 +60,11 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		...fontStyles.normal,
-		fontSize: 12
+		fontSize: SMALL_DEVICE ? 10 : 12
 	},
 	textTitle: {
-		...fontStyles.bold
+		...fontStyles.bold,
+		fontSize: SMALL_DEVICE ? 10 : 14
 	},
 	textTotalGas: {
 		...fontStyles.bold
