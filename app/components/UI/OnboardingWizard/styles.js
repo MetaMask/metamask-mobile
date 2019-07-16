@@ -18,9 +18,6 @@ export default StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: SMALL_DEVICE ? 5 : 20
 	},
-	leftContent: {
-		textAlign: 'left'
-	},
 	titleContainer: {
 		marginBottom: SMALL_DEVICE ? -10 : 0
 	},

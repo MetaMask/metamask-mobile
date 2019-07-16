@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { Platform, TouchableOpacity, View, StyleSheet, Text, Dimensions } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -9,7 +9,6 @@ import Step3 from './Step3';
 import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
-import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
@@ -18,6 +17,7 @@ import ElevatedView from 'react-native-elevated-view';
 import Modal from 'react-native-modal';
 import DeviceSize from '../../../util/DeviceSize';
 
+const MIN_HEIGHT = Dimensions.get('window').height;
 const styles = StyleSheet.create({
 	root: {
 		top: 0,
@@ -26,7 +26,8 @@ const styles = StyleSheet.create({
 		right: 0,
 		flex: 1,
 		margin: 0,
-		position: 'absolute'
+		position: 'absolute',
+		backgroundColor: colors.transparent
 	},
 	main: {
 		flex: 1,
@@ -105,8 +106,7 @@ class OnboardingWizard extends Component {
 			3: <Step3 coachmarkRef={this.props.coachmarkRef} />,
 			4: <Step4 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
 			5: <Step5 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			6: <Step6 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			7: <Step7 coachmarkRef={this.props.coachmarkRef} onClose={this.closeOnboardingWizard} />
+			6: <Step6 coachmarkRef={this.props.coachmarkRef} onClose={this.closeOnboardingWizard} />
 		};
 		return steps[step];
 	};
@@ -123,7 +123,7 @@ class OnboardingWizard extends Component {
 				backdropOpacity={0}
 				disableAnimation
 				transparent
-				style={[styles.root, { backgroundColor: colors.transparent }]}
+				style={[styles.root, Platform.OS === 'android' ? { minHeight: MIN_HEIGHT } : {}]}
 			>
 				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
 				{step !== 1 && (
