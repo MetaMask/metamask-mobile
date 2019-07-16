@@ -1581,7 +1581,7 @@ export class BrowserTab extends PureComponent {
 
 	renderOnboardingWizard = () => {
 		const { wizardStep } = this.props;
-		if ([6, 7].includes(wizardStep)) {
+		if ([6].includes(wizardStep)) {
 			if (!this.wizardScrollAdjusted) {
 				setTimeout(() => {
 					this.reload(true);

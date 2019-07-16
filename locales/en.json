@@ -27,8 +27,8 @@
 		},
 		"step1": {
 			"title": "Welcome to your new wallet!",
-			"content1": "To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH).",
-			"content2": "You can buy a few dollars worth of ETH from an exchange like Coinbase or simply request a friend."
+			"content1": "To use the blockchain, you need a wallet! some actions cost Ether (ETH).",
+			"content2": "We'll show you how to buy ETH, or you can request some from a friend."
 		},
 		"step2": {
 			"title": "Your Accounts",
@@ -49,16 +49,11 @@
 		},
 		"step5": {
 			"title": "Explore the Browser",
-			"content1": "You can explore blockchain applications (DAPPS) in the",
-			"content2": "Browser."
+			"content1": "You can explore web3 using the browser"
 		},
 		"step6": {
-			"title": "Search Dapps",
-			"content": "Search directly blockchain applications (DAPPS)!"
-		},
-		"step7": {
-			"title": "Featured Dapps",
-			"content": "Start exploring featured blockchain applications (DAPPS)."
+			"title": "Search",
+			"content": "Search for sites, or type a URL if you know where you’re headed."
 		}
 	},
 	"create_wallet": {
