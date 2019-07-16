@@ -7,7 +7,7 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from './../styles';
+import onboardingStyles, { SMALL_DEVICE } from './../styles';
 
 const INDICATOR_HEIGHT = 10;
 const DRAWER_WIDTH = 315;
@@ -46,7 +46,8 @@ class Step5 extends Component {
 	};
 
 	state = {
-		coachmarkTop: 0
+		coachmarkTop: 0,
+		coachmarkBottom: 0
 	};
 
 	componentDidMount = () => {
@@ -62,7 +63,7 @@ class Step5 extends Component {
 		ref &&
 			ref.current &&
 			ref.current.measure((a, b, width, height, px, py) => {
-				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT });
+				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT, coachmarkBottom: py - 165 });
 			});
 	};
 
@@ -105,14 +106,20 @@ class Step5 extends Component {
 
 		return (
 			<View style={styles.main}>
-				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
+				<View
+					style={[
+						styles.coachmarkContainer,
+						SMALL_DEVICE ? { top: this.state.coachmarkBottom } : { top: this.state.coachmarkTop }
+					]}
+				>
 					<Coachmark
 						title={strings('onboarding_wizard.step5.title')}
 						content={this.content()}
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}
-						topIndicatorPosition={'topLeft'}
+						topIndicatorPosition={!SMALL_DEVICE && 'topLeft'}
+						bottomIndicatorPosition={SMALL_DEVICE && 'bottomLeft'}
 						currentStep={4}
 					/>
 				</View>

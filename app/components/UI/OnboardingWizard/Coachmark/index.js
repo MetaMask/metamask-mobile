@@ -148,11 +148,11 @@ export default class Coachmark extends Component {
 		/**
 		 * Top indicator position
 		 */
-		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft', 'topLeftCorner']),
+		topIndicatorPosition: PropTypes.oneOf([false, 'topCenter', 'topLeft', 'topLeftCorner']),
 		/**
 		 * Bottom indicator position
 		 */
-		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft'])
+		bottomIndicatorPosition: PropTypes.oneOf([false, 'bottomCenter', 'bottomLeft'])
 	};
 
 	state = {
