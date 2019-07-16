@@ -23,6 +23,7 @@ import CollectibleImage from '../CollectibleImage';
 import SelectableAsset from './SelectableAsset';
 import { getTicker } from '../../../util/transactions';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { SMALL_DEVICE } from '../OnboardingWizard/styles';
 
 const styles = StyleSheet.create({
 	root: {
@@ -51,14 +52,15 @@ const styles = StyleSheet.create({
 		paddingRight: 0,
 		paddingLeft: 0,
 		paddingTop: 0,
-		maxWidth: '70%'
+		maxWidth: SMALL_DEVICE ? '40%' : '70%',
+		minWidth: 35
 	},
 	eth: {
 		...fontStyles.bold,
 		marginRight: 0,
 		fontSize: 16,
 		paddingTop: Platform.OS === 'android' ? 1 : 0,
-		paddingLeft: 10,
+		paddingLeft: SMALL_DEVICE ? 4 : 10,
 		alignSelf: 'center'
 	},
 	secondaryValue: {
@@ -103,7 +105,7 @@ const styles = StyleSheet.create({
 	switch: {
 		transform: [{ rotate: '270deg' }],
 		marginVertical: 3,
-		marginHorizontal: 3
+		marginHorizontal: SMALL_DEVICE ? 0 : 3
 	},
 	scrollContainer: {
 		position: 'relative',
