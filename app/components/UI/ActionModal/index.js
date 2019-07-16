@@ -16,7 +16,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	modalText: {
-		width: 350,
+		alignSelf: 'center',
+		width: '90%',
 		height: 300,
 		backgroundColor: colors.white,
 		borderRadius: 10
