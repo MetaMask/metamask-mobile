@@ -12,7 +12,6 @@ exports[`App should render correctly 1`] = `
       "getChildNavigation": [Function],
       "getScreenProps": [Function],
       "goBack": [Function],
-      "isFirstRouteInParent": [Function],
       "isFocused": [Function],
       "navigate": [Function],
       "router": Object {
@@ -417,7 +416,6 @@ exports[`App should render correctly 1`] = `
         "getChildNavigation": [Function],
         "getScreenProps": [Function],
         "goBack": [Function],
-        "isFirstRouteInParent": [Function],
         "isFocused": [Function],
         "navigate": [Function],
         "router": Object {
