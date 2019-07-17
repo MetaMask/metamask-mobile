@@ -931,7 +931,7 @@ export class BrowserTab extends PureComponent {
 		// Need to wait for nav_change & onPageChanged
 		setTimeout(() => {
 			this.setState({ forwardEnabled: true });
-		}, 800);
+		}, 1000);
 	};
 
 	goBackToHomepage = async () => {
