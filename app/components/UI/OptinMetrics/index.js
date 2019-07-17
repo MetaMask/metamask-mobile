@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -12,6 +12,7 @@ import { NavigationActions } from 'react-navigation';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import AndroidBackHandler from '../../Views/AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	root: {
@@ -229,6 +230,7 @@ class OptinMetrics extends Component {
 						</StyledButton>
 					</View>
 				</ScrollView>
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.onCancel} />}
 			</SafeAreaView>
 		);
 	}
