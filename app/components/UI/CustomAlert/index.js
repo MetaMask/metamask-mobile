@@ -90,7 +90,12 @@ export default class CustomAlert extends Component {
 
 	render() {
 		return (
-			<Modal style={styles.modal} isVisible={this.propTypes} {...this.props}>
+			<Modal
+				style={styles.modal}
+				isVisible={this.propTypes}
+				onBackButtonPress={this.props.onPress}
+				{...this.props}
+			>
 				<View style={styles.content}>
 					<View style={[styles.header, this.props.headerStyle]}>{this.props.headerContent}</View>
 					<View style={styles.body}>

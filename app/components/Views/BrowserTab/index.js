@@ -1402,6 +1402,7 @@ export class BrowserTab extends PureComponent {
 				isVisible={showUrlModal}
 				style={styles.urlModal}
 				onBackdropPress={this.hideUrlModal}
+				onBackButtonPress={this.hideUrlModal}
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
 				backdropOpacity={0.7}
