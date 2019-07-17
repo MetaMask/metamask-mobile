@@ -94,7 +94,7 @@ exports[`WalletConnectSessionApproval should render correctly 1`] = `
             numberOfLines={1}
             style={
               Object {
-                "color": "#999999",
+                "color": "#777777",
                 "fontFamily": "Roboto",
                 "fontSize": 12,
                 "fontWeight": "400",
