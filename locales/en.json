@@ -911,7 +911,9 @@
 		"disabled_withdraw_btn": "Got it",
 		"disabled_title": "Feature not available",
 		"disabled_message": "This feature has been temporarily disabled. Please try again later...",
-		"disabled_btn": "OK"
+		"disabled_btn": "OK",
+		"error_title": "Feature temporarily unavailable",
+		"error_desc": "Our Payment Channels provider is having issues, please try again later."
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",

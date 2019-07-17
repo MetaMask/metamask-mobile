@@ -31,6 +31,7 @@ import PaymentChannelWelcome from './PaymentChannelWelcome';
 import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics';
+import { withNavigationFocus } from 'react-navigation';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
@@ -173,7 +174,11 @@ class PaymentChannel extends Component {
 		/**
 		 * Selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * React navigation prop to know if this view is focused
+		 */
+		isFocused: PropTypes.bool
 	};
 
 	state = {
@@ -185,7 +190,8 @@ class PaymentChannel extends Component {
 		sendRecipient: '',
 		depositAmount: '',
 		exchangeRate: undefined,
-		displayWelcomeModal: false
+		displayWelcomeModal: false,
+		connextStateDisabled: false
 	};
 
 	client = null;
@@ -265,7 +271,16 @@ class PaymentChannel extends Component {
 			}
 		});
 		PaymentChannelsClient.hub.on('state::change', this.onStateChange);
+		PaymentChannelsClient.hub.on('state::cs_chainsaw_error', this.handleChainsawError);
 		this.mounted = true;
+	};
+
+	handleChainsawError = () => {
+		if (this.props.isFocused) {
+			!this.state.connextStateDisabled &&
+				Alert.alert(strings('payment_channel.error_title'), strings('payment_channel.error_desc'));
+			this.setState({ connextStateDisabled: true });
+		}
 	};
 
 	handleTransactions = transactions => {
@@ -495,14 +510,19 @@ class PaymentChannel extends Component {
 	};
 
 	areButtonsDisabled = () => {
-		const { status } = this.state;
+		const { status, connextStateDisabled } = this.state;
 		if (status && status.type) {
 			return status.type.indexOf('_PENDING') !== -1;
+		}
+		if (connextStateDisabled) {
+			return connextStateDisabled;
 		}
 		return false;
 	};
 
 	renderNoFunds() {
+		const isDisabled = this.areButtonsDisabled();
+
 		return (
 			<View>
 				{this.renderInfo()}
@@ -515,6 +535,7 @@ class PaymentChannel extends Component {
 						type={'info'}
 						onPress={this.onDeposit}
 						testID={'submit-button'}
+						disabled={isDisabled}
 					>
 						{strings('payment_channel.no_funds_action')}
 					</StyledButton>
@@ -619,4 +640,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(PaymentChannel);
+)(withNavigationFocus(PaymentChannel));

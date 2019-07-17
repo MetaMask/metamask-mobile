@@ -892,7 +892,9 @@
 		"disabled_withdraw_btn": "Entendido",
 		"disabled_title": "Funcionalidad deshabilitada",
 		"disabled_message": "Esta funcionalidad ha sido deshabilitada. Por favor intentalo de nuevo...",
-		"disabled_btn": "OK"
+		"disabled_btn": "OK",
+		"error_title": "Funcionalidad temporalmente no disponible",
+		"error_desc": "Nuestro proveedor de Canales de Pago tiene problemas, inténtalo de nuevo más tarde."
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
