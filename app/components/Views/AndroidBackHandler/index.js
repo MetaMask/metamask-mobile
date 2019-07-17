@@ -1,6 +1,6 @@
 import { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { BackHandler } from 'react-native';
+import { BackHandler, InteractionManager } from 'react-native';
 
 /**
  * Component that handles android hardware back button
@@ -11,18 +11,19 @@ export default class AndroidBackHandler extends PureComponent {
 		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object,
-		/**
-		 * Custom callback to call on back press
-		 */
 		customBackPress: PropTypes.func
 	};
 
 	componentDidMount() {
-		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+		InteractionManager.runAfterInteractions(() => {
+			BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+		});
 	}
 
 	componentWillUnmount() {
-		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+		InteractionManager.runAfterInteractions(() => {
+			BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+		});
 	}
 
 	handleBackPress = () => {
