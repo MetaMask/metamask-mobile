@@ -178,7 +178,11 @@ class PaymentChannel extends Component {
 		/**
 		 * React navigation prop to know if this view is focused
 		 */
-		isFocused: PropTypes.bool
+		isFocused: PropTypes.bool,
+		/**
+		 * Flag that determines if payment channels are enabled
+		 */
+		paymentChannelsEnabled: PropTypes.bool
 	};
 
 	state = {
@@ -274,6 +278,17 @@ class PaymentChannel extends Component {
 		PaymentChannelsClient.hub.on('state::cs_chainsaw_error', this.handleChainsawError);
 		this.mounted = true;
 	};
+
+	componentDidUpdate(prevProps) {
+		// Handle turning payment channels off from settings
+		if (
+			prevProps.isFocused !== this.props.isFocused &&
+			!this.props.paymentChannelsEnabled &&
+			this.props.isFocused
+		) {
+			this.props.navigation.navigate('BrowserView');
+		}
+	}
 
 	handleChainsawError = () => {
 		if (this.props.isFocused) {
@@ -630,7 +645,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	internalTransactions: state.engine.backgroundState.TransactionController.internalTransactions,
-	provider: state.engine.backgroundState.NetworkController.provider
+	provider: state.engine.backgroundState.NetworkController.provider,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
 });
 
 const mapDispatchToProps = dispatch => ({
