@@ -11,8 +11,13 @@ export default class AndroidBackHandler extends PureComponent {
 		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object,
+		/**
+		 * Custom callback to call on back press event
+		 */
 		customBackPress: PropTypes.func
 	};
+
+	pressed = false;
 
 	componentDidMount() {
 		InteractionManager.runAfterInteractions(() => {
@@ -28,10 +33,15 @@ export default class AndroidBackHandler extends PureComponent {
 
 	handleBackPress = () => {
 		const { navigation, customBackPress } = this.props;
-		if (customBackPress) {
-			customBackPress();
-		} else {
-			navigation && navigation.goBack();
+
+		if (!this.pressed) {
+			this.pressed = true;
+			if (customBackPress) {
+				customBackPress();
+			} else {
+				navigation && navigation.goBack();
+			}
+			setTimeout(() => (this.pressed = false), 300);
 		}
 	};
 
