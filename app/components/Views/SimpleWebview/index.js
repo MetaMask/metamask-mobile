@@ -41,7 +41,7 @@ export default class SimpleWebview extends Component {
 			return (
 				<View style={baseStyles.flexGrow}>
 					<Web3Webview source={{ uri }} />
-					{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
+					{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 				</View>
 			);
 		}

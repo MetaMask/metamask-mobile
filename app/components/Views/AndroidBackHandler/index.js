@@ -11,6 +11,9 @@ export default class AndroidBackHandler extends PureComponent {
 		 * react-navigation object used to switch between screens
 		 */
 		navigation: PropTypes.object,
+		/**
+		 * Custom callback to call on back press
+		 */
 		customBackPress: PropTypes.func
 	};
 
