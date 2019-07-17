@@ -167,7 +167,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
             }
           }
         >
-          Sync with Metamask Extension
+          Sync with MetaMask Extension
         </Text>
         <Text
           style={

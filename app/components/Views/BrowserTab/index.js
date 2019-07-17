@@ -217,6 +217,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	backupAlert: {
+		zIndex: 99999999,
 		position: 'absolute',
 		bottom: Platform.OS === 'ios' ? (DeviceSize.isIphoneX() ? 100 : 90) : 70,
 		left: 16,
@@ -393,9 +394,9 @@ export class BrowserTab extends PureComponent {
 	webview = React.createRef();
 	inputRef = React.createRef();
 	snapshotTimer = null;
+	lastUrlBeforeHome = null;
 	goingBack = false;
 	wizardScrollAdjusted = false;
-	forwardHistoryStack = [];
 	approvalRequest;
 	accountsRequest;
 
@@ -914,26 +915,34 @@ export class BrowserTab extends PureComponent {
 		setTimeout(() => {
 			this.goingBack = false;
 		}, 500);
+
 		if (this.initialUrl === this.state.inputValue) {
 			this.goBackToHomepage();
 		} else {
 			const { current } = this.webview;
 			current && current.goBack();
 			setTimeout(() => {
-				this.setState({ forwardEnabled: true });
 				this.props.navigation.setParams({
 					...this.props.navigation.state.params,
 					url: this.state.inputValue
 				});
 			}, 100);
 		}
+		// Need to wait for nav_change & onPageChanged
+		setTimeout(() => {
+			this.setState({ forwardEnabled: true });
+		}, 1000);
 	};
 
 	goBackToHomepage = async () => {
 		this.toggleOptionsIfNeeded();
+		const lastUrlBeforeHome = this.state.inputValue;
 		await this.go(HOMEPAGE_URL);
 		this.reload(true);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
+		setTimeout(() => {
+			this.lastUrlBeforeHome = lastUrlBeforeHome;
+		}, 1000);
 	};
 
 	close = () => {
@@ -941,19 +950,17 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.pop();
 	};
 
-	goForward = () => {
-		if (this.canGoForward()) {
+	goForward = async () => {
+		const { current } = this.webview;
+		if (this.lastUrlBeforeHome) {
+			this.go(this.lastUrlBeforeHome);
+		} else if (this.canGoForward()) {
 			this.toggleOptionsIfNeeded();
-			const { current } = this.webview;
-			this.setState({ forwardEnabled: current && current.canGoForward && current.canGoForward() });
 			current && current.goForward && current.goForward();
-			setTimeout(() => {
-				this.props.navigation.setParams({
-					...this.props.navigation.state.params,
-					url: this.state.inputValue
-				});
-			}, 100);
 		}
+
+		const forwardEnabled = current && current.canGoForward && (await current.canGoForward());
+		this.setState({ forwardEnabled });
 	};
 
 	reload = (force = false) => {
@@ -1097,6 +1104,7 @@ export class BrowserTab extends PureComponent {
 						currentPageTitle: title,
 						forwardEnabled: false
 					});
+					this.lastUrlBeforeHome = null;
 					this.props.navigation.setParams({ url: data.payload.url, silent: true, showUrlModal: false });
 					this.updateTabInfo(data.payload.url);
 					break;
@@ -1121,9 +1129,9 @@ export class BrowserTab extends PureComponent {
 
 	onPageChange = ({ url }) => {
 		const { ipfsGateway } = this.props;
-		this.forwardHistoryStack = [];
 		const data = {};
 		const urlObj = new URL(url);
+		this.lastUrlBeforeHome = null;
 
 		data.fullHostname = urlObj.hostname;
 		if (!this.state.ipfsWebsite) {
@@ -1165,7 +1173,13 @@ export class BrowserTab extends PureComponent {
 			}
 		}
 		this.updateTabInfo(inputValue);
-		this.setState({ fullHostname, inputValue, autocompleteInputValue: inputValue, hostname });
+		this.setState({
+			fullHostname,
+			inputValue,
+			autocompleteInputValue: inputValue,
+			hostname,
+			forwardEnabled: false
+		});
 	};
 
 	formatHostname(hostname) {
