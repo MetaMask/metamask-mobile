@@ -36,13 +36,13 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		width: Platform.OS === 'ios' ? 90 : 45,
 		height: Platform.OS === 'ios' ? 90 : 45,
-		marginTop: Platform.OS === 'ios' ? 30 : 0,
+		marginTop: 30,
 		marginBottom: 0
 	},
 	image: {
 		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 90 : 45,
-		height: Platform.OS === 'ios' ? 90 : 45
+		width: Platform.OS === 'ios' ? 90 : 60,
+		height: Platform.OS === 'ios' ? 90 : 60
 	},
 	title: {
 		fontSize: 28,
