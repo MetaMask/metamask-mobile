@@ -104,7 +104,6 @@ class WalletConnect {
 							id: payload.id,
 							result: hash
 						});
-						this.redirectIfNeeded();
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
@@ -146,7 +145,6 @@ class WalletConnect {
 							id: payload.id,
 							result: rawSig
 						});
-						this.redirectIfNeeded();
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
@@ -173,7 +171,6 @@ class WalletConnect {
 							id: payload.id,
 							result: rawSig
 						});
-						this.redirectIfNeeded();
 					} catch (error) {
 						this.walletConnector.rejectRequest({
 							id: payload.id,
