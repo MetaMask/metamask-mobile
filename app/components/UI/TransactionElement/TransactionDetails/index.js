@@ -16,6 +16,8 @@ import { connect } from 'react-redux';
 import URL from 'url-parse';
 import DeviceSize from '../../../../util/DeviceSize';
 
+const HASH_LENGTH = DeviceSize.isSmallDevice() ? 18 : 20;
+
 const styles = StyleSheet.create({
 	detailRowWrapper: {
 		flex: 1,
@@ -191,15 +193,14 @@ class TransactionDetails extends PureComponent {
 
 	renderTxHash = transactionHash => {
 		if (!transactionHash) return null;
-		const length = DeviceSize.isSmallDevice() ? 18 : 20;
 		return (
 			<View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.hash')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
 					<Text style={[styles.detailRowText, styles.hash]}>{`${transactionHash.substr(
 						0,
-						length
-					)} ... ${transactionHash.substr(-length)}`}</Text>
+						HASH_LENGTH
+					)} ... ${transactionHash.substr(-HASH_LENGTH)}`}</Text>
 					{this.renderCopyIcon()}
 				</View>
 			</View>
