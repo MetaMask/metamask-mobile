@@ -67,7 +67,7 @@ class Browser extends PureComponent {
 	componentDidMount() {
 		const activeTab = this.props.tabs.find(tab => tab.id === this.props.activeTab);
 		if (activeTab) {
-			activeTab && this.switchToTab(activeTab);
+			this.switchToTab(activeTab);
 		} else {
 			this.props.tabs.length > 0 && this.switchToTab(this.props.tabs[0]);
 		}
