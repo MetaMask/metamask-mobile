@@ -228,7 +228,7 @@ class PaymentRequestSuccess extends Component {
 	};
 
 	render() {
-		const { link, amount, symbol } = this.state;
+		const { link, amount, symbol, qrModalVisible } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<ScrollView style={styles.contentWrapper} contentContainerStyle={styles.scrollViewContainer}>
@@ -291,7 +291,7 @@ class PaymentRequestSuccess extends Component {
 					</View>
 				</ScrollView>
 				<Modal
-					isVisible={this.state.qrModalVisible}
+					isVisible={qrModalVisible}
 					onBackdropPress={this.closeQRModal}
 					onBackButtonPress={this.closeQRModal}
 					onSwipeComplete={this.closeQRModal}
@@ -313,7 +313,11 @@ class PaymentRequestSuccess extends Component {
 						</View>
 					</View>
 				</Modal>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.closeQRModal} />}
+				{Platform.OS === 'android' && (
+					<AndroidBackHandler
+						customBackPress={qrModalVisible ? this.closeQRModal : this.props.navigation.pop}
+					/>
+				)}
 			</SafeAreaView>
 		);
 	}
