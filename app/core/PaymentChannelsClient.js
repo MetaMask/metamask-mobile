@@ -74,7 +74,9 @@ class PaymentChannelsClient {
 			withdrawalPending: false,
 			withdrawalPendingValue: undefined,
 			blocked: false,
-			transactions: []
+			transactions: [],
+			pendingDepositTime: undefined,
+			pendingWithdrawTime: undefined
 		};
 	}
 
@@ -300,7 +302,7 @@ class PaymentChannelsClient {
 	};
 
 	checkStatus() {
-		const { runtime, status, depositPending, withdrawalPending } = this.state;
+		const { runtime, status, depositPending, withdrawalPending, pendingWithdrawTime } = this.state;
 		const newStatus = {
 			reset: status.reset
 		};
@@ -309,6 +311,11 @@ class PaymentChannelsClient {
 			if (depositPending && runtime.deposit.submitted) {
 				if (!runtime.deposit.detected) {
 					newStatus.type = 'DEPOSIT_PENDING';
+					if (pendingWithdrawTime && Date.now() - pendingWithdrawTime > 2000) {
+						this.setState({ pendingDepositTime: undefined });
+					} else {
+						this.setState({ pendingDepositTime: Date.now() });
+					}
 				} else {
 					newStatus.type = 'DEPOSIT_SUCCESS';
 					newStatus.txHash = runtime.deposit.transactionHash;
@@ -318,6 +325,11 @@ class PaymentChannelsClient {
 			if (withdrawalPending && runtime.withdrawal.submitted) {
 				if (!runtime.withdrawal.detected) {
 					newStatus.type = 'WITHDRAWAL_PENDING';
+					if (pendingWithdrawTime && Date.now() - pendingWithdrawTime > 2000) {
+						this.setState({ pendingWithdrawTime: undefined });
+					} else {
+						this.setState({ pendingWithdrawTime: Date.now() });
+					}
 				} else {
 					newStatus.type = 'WITHDRAWAL_SUCCESS';
 					newStatus.txHash = runtime.withdrawal.transactionHash;
