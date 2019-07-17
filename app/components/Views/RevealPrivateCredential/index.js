@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard, Platform } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -11,6 +11,7 @@ import { connect } from 'react-redux';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { showAlert } from '../../../actions/alert';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -287,6 +288,7 @@ class RevealPrivateCredential extends Component {
 						</View>
 					</View>
 				</ActionView>
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</SafeAreaView>
 		);
 	};

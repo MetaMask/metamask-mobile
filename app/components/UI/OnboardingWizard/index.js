@@ -106,6 +106,25 @@ class OnboardingWizard extends Component {
 		return steps[step];
 	};
 
+	getBackButtonBehavior = () => {
+		const {
+			wizard: { step },
+			navigation,
+			setOnboardingWizardStep
+		} = this.props;
+		if (step === 1) {
+			return this.closeOnboardingWizard();
+		} else if (step === 5) {
+			setOnboardingWizardStep(4);
+			navigation.navigate('WalletView');
+			navigation.dispatch(DrawerActions.closeDrawer());
+		} else if (step === 6) {
+			navigation && navigation.openDrawer();
+			setOnboardingWizardStep(5);
+		}
+		return setOnboardingWizardStep(step - 1);
+	};
+
 	render() {
 		const {
 			wizard: { step }
@@ -118,6 +137,7 @@ class OnboardingWizard extends Component {
 				backdropOpacity={0}
 				disableAnimation
 				transparent
+				onBackButtonPress={this.getBackButtonBehavior}
 				style={[styles.root, Platform.OS === 'android' ? { minHeight: MIN_HEIGHT } : {}]}
 			>
 				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
