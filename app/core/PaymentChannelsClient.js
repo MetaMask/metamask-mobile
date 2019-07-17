@@ -265,11 +265,8 @@ class PaymentChannelsClient {
 		}
 		const weiBalance = toBN(channelState.balanceWeiUser);
 		const tokenBalance = toBN(channelState.balanceTokenUser);
-		const hubTokenBalance = toBN(channelState.balanceTokenHub);
 		if (channelState && weiBalance.gt(toBN('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
-			if (hubTokenBalance.gt(weiBalance)) {
-				await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
-			}
+			await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
 		}
 	}
 
