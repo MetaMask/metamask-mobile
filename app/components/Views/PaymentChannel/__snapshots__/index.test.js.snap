@@ -7,6 +7,7 @@ exports[`PaymentChannel should render correctly 1`] = `
   currentCurrency="USD"
   internalTransactions={Array []}
   nativeCurrency="ETH"
+  paymentChannelsEnabled={true}
   provider={
     Object {
       "type": "ropsten",
