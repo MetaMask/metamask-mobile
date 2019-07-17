@@ -1,8 +1,5 @@
 package io.metamask;
 
-import android.app.Application;
-
-import com.crashlytics.android.Crashlytics;
 import com.facebook.react.ReactApplication;
 import com.smixx.fabric.FabricPackage;
 import com.reactnativecommunity.netinfo.NetInfoPackage;
@@ -33,7 +30,6 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 import cl.json.ShareApplication;
-import io.fabric.sdk.android.Fabric;
 import java.util.Arrays;
 import java.util.List;
 
@@ -92,9 +88,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		if (!BuildConfig.DEBUG){
-			Fabric.with(this, new Crashlytics());
-		}
+
 		RNBranchModule.getAutoInstance(this);
 		SoLoader.init(this, /* native exopackage */ false);
 	}

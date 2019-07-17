@@ -4,6 +4,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.core.CrashlyticsCore;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -21,6 +23,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import io.fabric.sdk.android.Fabric;
+
 public class RCTAnalytics extends ReactContextBaseJavaModule {
 
 	MixpanelAPI mixpanel;
@@ -34,6 +38,7 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 	    	String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
 	    	this.mixpanel =
 			    MixpanelAPI.getInstance(reactContext, mixpanelToken);
+
         }catch (PackageManager.NameNotFoundException e){
             Log.d("RCTAnalytics","init:token missing");
         }
@@ -54,11 +59,20 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 
 	@ReactMethod
     public void optIn(boolean val) {
+
+        Crashlytics crashlyticsKit = new Crashlytics.Builder()
+                .core(new CrashlyticsCore.Builder().disabled(false).build())
+                .build();
         if(val){
 			this.mixpanel.optInTracking();
+
 		}else{
 			this.mixpanel.optOutTracking();
+            crashlyticsKit = new Crashlytics.Builder()
+                    .core(new CrashlyticsCore.Builder().disabled(true).build())
+                    .build();
 		}
+        Fabric.with(this.getReactApplicationContext(), crashlyticsKit);
     }
 
     @ReactMethod
