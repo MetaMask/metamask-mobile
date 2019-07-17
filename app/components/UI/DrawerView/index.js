@@ -498,7 +498,7 @@ class DrawerView extends Component {
 	goToPaymentChannel = () => {
 		const { providerType } = this.props;
 		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
-			this.props.navigation.navigate('PaymentChannelView');
+			this.props.navigation.navigate('PaymentChannelHome');
 		} else {
 			Alert.alert(
 				strings('experimental_settings.network_not_supported'),

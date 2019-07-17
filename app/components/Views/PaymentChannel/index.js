@@ -13,7 +13,7 @@ import {
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import { getInstaPayNavigations } from '../../UI/Navbar';
+import getNavbarOptions from '../../UI/Navbar';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
 /* instant payments
 */
 class PaymentChannel extends Component {
-	static navigationOptions = ({ navigation }) => getInstaPayNavigations('payment_channel.insta_pay', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions('payment_channel.insta_pay', navigation);
 
 	static propTypes = {
 		/**
