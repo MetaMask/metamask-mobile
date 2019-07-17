@@ -27,7 +27,7 @@
 		},
 		"step1": {
 			"title": "Bienvenido a tu Nueva Billetera!",
-			"content1": "Para usar aplicaciones blockchain necesitas una billetera! algunas aplicaciones blockchain tienen un costo en Ether (ETH).",
+			"content1": "Para usar aplicaciones blockchain necesitas una billetera! Algunas aplicaciones blockchain tienen un costo en Ether (ETH).",
 			"content2": "Te mostraremos como comprar ETH o simplemente solicitar a un amigo."
 		},
 		"step2": {
@@ -284,7 +284,7 @@
 		"clear_approvals_modal_message": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_browser_history_modal_title": "Borrar historial del navegador?",
 		"clear_browser_history_modal_message": "Estas a punto de borrar todo tu historial de navegación. Estás seguro?",
-		"sync_with_extension": "Sincronizar con la extensión de Metamask ",
+		"sync_with_extension": "Sincronizar con la extensión de MetaMask ",
 		"sync_with_extension_desc": "Esto importará todas las cuentas de la extensión en este dispositivo",
 		"sync": "Sincronizar",
 		"clear_approved_dapps": "BORRAR SITIOS APROBADOS",
@@ -342,7 +342,9 @@
 		"clear_privacy_desc": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
 		"metametrics_title": "Participa en MetaMetrics",
-		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask."
+		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
+		"metametrics_opt_out": "MetaMetrics Deshabilitado",
+		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto."
 	},
 	"app_information": {
 		"title": "Información",

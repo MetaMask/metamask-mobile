@@ -7,8 +7,6 @@
 
 #import "AppDelegate.h"
 
-#import <Fabric/Fabric.h>
-#import <Crashlytics/Crashlytics.h>
 #import <Mixpanel/Mixpanel.h>
 
 #import <React/RCTBridge.h>
@@ -28,10 +26,9 @@
   NSString *mixPanelTokenFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"mixpanel_token"];
 
   NSString *foxCode;
-
+  
   if(foxCodeFromBundle != nil){
     foxCode = foxCodeFromBundle;
-    [Fabric with:@[[Crashlytics class]]];
     [Mixpanel sharedInstanceWithToken:mixPanelTokenFromBundle];
   } else {
     foxCode = @"debug";
