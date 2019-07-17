@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
@@ -13,7 +13,11 @@ import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
+import AndroidBackHandler from '../../Views/AndroidBackHandler';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
+
+const EDIT = 'edit';
+const REVIEW = 'review';
 
 const styles = StyleSheet.create({
 	root: {
@@ -42,7 +46,7 @@ class TransactionEditor extends Component {
 		/**
 		 * Current mode this transaction editor is in
 		 */
-		mode: PropTypes.oneOf(['edit', 'review']),
+		mode: PropTypes.oneOf([EDIT, REVIEW]),
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -542,11 +546,23 @@ class TransactionEditor extends Component {
 		}
 	};
 
+	goToEdit = () => {
+		const { onModeChange } = this.props;
+		onModeChange(EDIT);
+	};
+
+	handleCustomBackPress = () => {
+		if (this.props.mode === REVIEW) {
+			return this.goToEdit();
+		}
+		return this.props.navigation.pop();
+	};
+
 	render = () => {
 		const { mode, transactionConfirmed } = this.props;
 		return (
 			<View style={styles.root}>
-				{mode === 'edit' && (
+				{mode === EDIT && (
 					<TransactionEdit
 						navigation={this.props.navigation}
 						onCancel={this.onCancel}
@@ -564,7 +580,7 @@ class TransactionEditor extends Component {
 						handleUpdateReadableValue={this.handleUpdateReadableValue}
 					/>
 				)}
-				{mode === 'review' && (
+				{mode === REVIEW && (
 					<TransactionReview
 						onCancel={this.onCancel}
 						onConfirm={this.onConfirm}
@@ -573,6 +589,7 @@ class TransactionEditor extends Component {
 						transactionConfirmed={transactionConfirmed}
 					/>
 				)}
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.handleCustomBackPress} />}
 			</View>
 		);
 	};

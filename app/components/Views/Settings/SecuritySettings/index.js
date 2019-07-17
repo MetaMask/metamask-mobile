@@ -15,6 +15,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
+import AndroidBackHandler from '../../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -427,6 +428,7 @@ class Settings extends Component {
 						</View>
 					</ActionModal>
 				</View>
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</ScrollView>
 		);
 	};
