@@ -14,6 +14,7 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { isValidAddress } from 'ethereumjs-util';
+import EthereumAddress from '../EthereumAddress';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -285,9 +286,7 @@ class AccountInput extends Component {
 				<View style={styles.content}>
 					{this.renderAccountName(account.name)}
 					<View>
-						<Text style={styles.address} numberOfLines={1}>
-							{renderShortAddress(account.address)}
-						</Text>
+						<EthereumAddress style={styles.address} address={account.address} type={'short'} />
 					</View>
 				</View>
 			</TouchableOpacity>
