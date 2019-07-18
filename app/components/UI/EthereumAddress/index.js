@@ -14,9 +14,22 @@ import Logger from '../../../util/Logger';
  */
 class EthereumAddress extends Component {
 	static propTypes = {
+		/**
+		 * Styles to be applied to the text component
+		 */
 		style: PropTypes.any,
+		/**
+		 * Address to be rendered and resolved
+		 */
 		address: PropTypes.string,
+		/**
+		 * Type of formatting for the address
+		 * can be "short" or "full"
+		 */
 		type: PropTypes.string,
+		/**
+		 * ID of the current network
+		 */
 		network: PropTypes.string
 	};
 
@@ -100,7 +113,8 @@ class EthereumAddress extends Component {
 }
 
 EthereumAddress.defaultProps = {
-	style: null
+	style: null,
+	type: 'full'
 };
 
 const mapStateToProps = state => ({
