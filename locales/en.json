@@ -899,7 +899,7 @@
 		"confirm": "Confirm",
 		"cancel": "Cancel",
 		"asset_card_desc": "Free Transactions with Connext Payment Channels",
-		"deposit_amount": "Amount to transfer",
+		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
 		"welcome": {
@@ -913,7 +913,11 @@
 		"disabled_withdraw_btn": "Got it",
 		"disabled_title": "Feature not available",
 		"disabled_message": "This feature has been temporarily disabled. Please try again later...",
-		"disabled_btn": "OK"
+		"disabled_btn": "OK",
+		"error_title": "Feature temporarily unavailable",
+		"error_desc": "Our Payment Channels provider is having issues, please try again later.",
+		"ask_a_friend": "Or you can also request from a friend",
+		"receive_funds_action": "Receive Funds"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
