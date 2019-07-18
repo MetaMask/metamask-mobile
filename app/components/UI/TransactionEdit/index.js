@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import AccountInput from '../AccountInput';
 import AccountSelect from '../AccountSelect';
 import ActionView from '../ActionView';
@@ -105,9 +105,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports editing and reviewing a transaction
+ * PureComponent that supports editing and reviewing a transaction
  */
-class TransactionEdit extends Component {
+class TransactionEdit extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', 'Cancel', navigation);
 
 	static propTypes = {

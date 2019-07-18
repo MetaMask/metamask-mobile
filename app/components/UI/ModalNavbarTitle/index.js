@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
@@ -15,9 +15,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * UI Component that renders inside the modal navbar
+ * UI PureComponent that renders inside the modal navbar
  */
-export default class ModalNavbarTitle extends Component {
+export default class ModalNavbarTitle extends PureComponent {
 	static propTypes = {
 		/**
 		 * Name of the current view

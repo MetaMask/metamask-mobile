@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	Platform,
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
  * View that is displayed to first time (new) users
  * while their wallet is created
  */
-class CreateWallet extends Component {
+class CreateWallet extends PureComponent {
 	static navigationOptions = () => ({
 		headerStyle: {
 			shadowColor: 'transparent',

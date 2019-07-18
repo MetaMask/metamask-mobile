@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { BackHandler, InteractionManager } from 'react-native';
 
 /**
- * Component that handles android hardware back button
+ * PureComponent that handles android hardware back button
  */
 export default class AndroidBackHandler extends PureComponent {
 	static propTypes = {

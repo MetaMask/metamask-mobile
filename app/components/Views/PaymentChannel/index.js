@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import {
 	InteractionManager,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
 /* deposit, send, receive and withdraw
 /* instant payments
 */
-class PaymentChannel extends Component {
+class PaymentChannel extends PureComponent {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('payment_channel.insta_pay', navigation, true);
 
 	static propTypes = {

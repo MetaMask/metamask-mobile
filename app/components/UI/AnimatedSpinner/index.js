@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Platform, View, Animated, Easing, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../styles/common';
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class AnimatedSpinner extends Component {
+export default class AnimatedSpinner extends PureComponent {
 	spinValue = new Animated.Value(0);
 
 	state = {

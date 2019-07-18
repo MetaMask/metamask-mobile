@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, StyleSheet, Text, View, Platform, TouchableOpacity, Picker } from 'react-native';
 import { fontStyles, colors, baseStyles } from '../../../styles/common';
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class SelectComponent extends Component {
+export default class SelectComponent extends PureComponent {
 	static propTypes = {
 		/**
 		 * Default value to show

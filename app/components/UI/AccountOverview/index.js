@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Clipboard, Platform, ScrollView, TextInput, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
  * View that's part of the <Wallet /> component
  * which shows information about the selected account
  */
-class AccountOverview extends Component {
+class AccountOverview extends PureComponent {
 	static propTypes = {
 		/**
 		 * String that represents the selected address

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	Animated,
@@ -152,7 +152,7 @@ const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
  * View where users can set restore their account
  * using a seed phrase
  */
-class ImportFromSeed extends Component {
+class ImportFromSeed extends PureComponent {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	ScrollView,
@@ -107,7 +107,7 @@ const openSeaLogo = require('../../../images/opensea-logo-flat-colored-blue.png'
 /**
  * View that contains a collectible contract information as description, total supply and address
  */
-class CollectibleContractInformation extends Component {
+class CollectibleContractInformation extends PureComponent {
 	static propTypes = {
 		/**
 		 * Navigation object required to push

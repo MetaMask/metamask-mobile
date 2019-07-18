@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, Image, Text, View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -57,7 +57,7 @@ const welcomeImage = require('../../../../images/payment-channel-welcome.png'); 
 /**
  * View show a welcome screen for payment channels
  */
-export default class PaymentChannelWelcome extends Component {
+export default class PaymentChannelWelcome extends PureComponent {
 	static propTypes = {
 		/**
 		 * Close modal callback

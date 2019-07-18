@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	Dimensions,
 	Clipboard,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
 /**
  * View to interact with a previously generated payment request link
  */
-class PaymentRequestSuccess extends Component {
+class PaymentRequestSuccess extends PureComponent {
 	static navigationOptions = ({ navigation }) => getPaymentRequestSuccessOptionsTitle(navigation);
 
 	static propTypes = {

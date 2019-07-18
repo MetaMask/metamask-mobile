@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Text, TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 /**
  * Copmonent that provides ability to add custom tokens.
  */
-export default class AddCustomToken extends Component {
+export default class AddCustomToken extends PureComponent {
 	state = {
 		address: '',
 		symbol: '',

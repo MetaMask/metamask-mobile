@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	SafeAreaView,
 	StyleSheet,
@@ -74,7 +74,7 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
 /**
  * View that contains app information
  */
-export default class AppInformation extends Component {
+export default class AppInformation extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(strings('app_settings.info_title'), navigation);
 

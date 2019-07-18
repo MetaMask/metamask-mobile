@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, Platform } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -31,9 +31,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to add assets.
+ * PureComponent that provides ability to add assets.
  */
-export default class AddAsset extends Component {
+export default class AddAsset extends PureComponent {
 	static navigationOptions = ({ navigation }) => getNetworkNavbarOptions('add_asset.title', true, navigation);
 
 	state = {
