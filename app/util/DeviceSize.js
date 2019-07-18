@@ -59,4 +59,8 @@ export default class DeviceSize {
 	static getDeviceWidth() {
 		return Dimensions.get('window').width;
 	}
+
+	static isSmallDevice() {
+		return Dimensions.get('window').height < 600;
+	}
 }

@@ -359,7 +359,7 @@
 	"reveal_credential": {
 		"seed_phrase_title": "Revelar Frase Semilla",
 		"private_key_title": "Mostrar dirección privada",
-		"private_key_title_for_account": "Mostrar dirección privada para la cuenta {{accountName}}",
+		"private_key_title_for_account": "Mostrar dirección privada para la cuenta \"{{accountName}}\"",
 		"cancel": "Cancelar",
 		"confirm": "Siguiente",
 		"seed_phrase_explanation": "Si alguna vez cambias de navegador o de computador, vas a necesitar esta frase semilla para acceder a tus cuentas. Guárdalas en lugar seguro y secreto.",

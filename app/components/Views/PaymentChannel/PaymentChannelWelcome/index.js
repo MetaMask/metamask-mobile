@@ -14,11 +14,12 @@ const styles = StyleSheet.create({
 		paddingBottom: DeviceSize.isIphoneX() ? 32 : 8
 	},
 	frame: {
-		alignSelf: 'center',
 		justifyContent: 'center',
-		marginTop: 80,
+		marginTop: DeviceSize.isSmallDevice() ? 5 : 80,
 		marginBottom: 10,
-		marginHorizontal: 35
+		marginHorizontal: 35,
+		alignSelf: 'center',
+		width: DeviceSize.isSmallDevice() ? '80%' : '100%'
 	},
 	content: {
 		flex: 1,
@@ -75,7 +76,7 @@ export default class PaymentChannelWelcome extends Component {
 					<Text style={styles.text}>{strings('payment_channel.welcome.desc_1')}</Text>
 					<Text />
 					<Text style={styles.text}>{strings('payment_channel.welcome.desc_2')}</Text>
-					<Image source={welcomeImage} style={styles.frame} />
+					<Image source={welcomeImage} style={styles.frame} resizeMode={'contain'} />
 				</View>
 				<View style={styles.buttonWrapper}>
 					<StyledButton type={'normal'} onPress={this.props.close} containerStyle={styles.button}>

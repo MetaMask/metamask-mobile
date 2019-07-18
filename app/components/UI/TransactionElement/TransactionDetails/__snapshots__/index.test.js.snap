@@ -207,6 +207,7 @@ exports[`TransactionDetails should render correctly 1`] = `
     }
   >
     <Text
+      numberOfLines={1}
       style={
         Object {
           "color": "#777777",
@@ -273,6 +274,7 @@ exports[`TransactionDetails should render correctly 1`] = `
     }
   >
     <Text
+      numberOfLines={1}
       style={
         Object {
           "color": "#777777",
