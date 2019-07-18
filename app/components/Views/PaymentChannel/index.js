@@ -440,6 +440,7 @@ class PaymentChannel extends Component {
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
 		const isDisabled = this.areButtonsDisabled();
+		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 		const noFunds = this.state.balance === '0.00';
 		return (
 			<View style={styles.data}>
@@ -451,7 +452,7 @@ class PaymentChannel extends Component {
 					/>
 				</View>
 				<View style={styles.actionsWrapper}>
-					{!noFunds && (
+					{!noFundsAndNoHistory && (
 						<View>
 							<StyledButton
 								containerStyle={[styles.button, styles.sendButton]}
@@ -600,12 +601,12 @@ class PaymentChannel extends Component {
 				</View>
 			);
 		}
-		const noFunds = this.state.balance === '0.00';
+		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 
 		return (
 			<View>
-				{noFunds && this.renderNoFunds()}
-				{!noFunds && this.renderTransactionsHistory()}
+				{noFundsAndNoHistory && this.renderNoFunds()}
+				{!noFundsAndNoHistory && this.renderTransactionsHistory()}
 			</View>
 		);
 	}
