@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapper: {
-		flex: 1,
+		flexGrow: 1,
 		padding: 20
 	},
 	content: {
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 32,
-		marginLeft: 20,
+		marginHorizontal: 10,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	text: {
-		marginLeft: 20,
+		marginHorizontal: 10,
 		marginBottom: 10,
 		justifyContent: 'center'
 	},
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		fontSize: 72,
 		marginTop: 30,
-		marginLeft: 20
+		marginHorizontal: 10
 	},
 	buttonWrapper: {
 		flex: 1,

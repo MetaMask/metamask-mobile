@@ -12,7 +12,7 @@ exports[`AccountBackupStep4 should render correctly 1`] = `
   <ScrollViewMock
     contentContainerStyle={
       Object {
-        "flex": 1,
+        "flexGrow": 1,
       }
     }
     style={
