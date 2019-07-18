@@ -45,7 +45,7 @@ exports[`AccountBackupStep3 should render correctly 1`] = `
         size={15}
         style={
           Object {
-            "color": "#999999",
+            "color": "#777777",
             "fontSize": 28,
           }
         }
