@@ -91,8 +91,11 @@ class EthereumAddress extends Component {
 	};
 
 	render() {
-		Logger.log(this.state.ensName, this.state.address);
-		return <Text style={this.props.style}>{this.state.ensName ? this.state.ensName : this.state.address}</Text>;
+		return (
+			<Text style={this.props.style} numberOfLines={1}>
+				{this.state.ensName ? this.state.ensName : this.state.address}
+			</Text>
+		);
 	}
 }
 
