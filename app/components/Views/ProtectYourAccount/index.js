@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { ScrollView, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, SafeAreaView, StyleSheet, Platform } from 'react-native';
 
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import Emoji from 'react-native-emoji';
 import { strings } from '../../../../locales/i18n';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -13,7 +14,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	wrapper: {
-		flex: 1,
+		flexGrow: 1,
 		padding: 20
 	},
 	content: {
@@ -21,7 +22,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: 32,
-		marginLeft: 20,
+		marginHorizontal: 10,
 		marginTop: 20,
 		marginBottom: 20,
 		color: colors.fontPrimary,
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	text: {
-		marginLeft: 20,
+		marginHorizontal: 10,
 		marginBottom: 10,
 		justifyContent: 'center'
 	},
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
 		textAlign: 'left',
 		fontSize: 72,
 		marginTop: 30,
-		marginLeft: 20
+		marginHorizontal: 10
 	},
 	buttonWrapper: {
 		flex: 1,
@@ -119,6 +120,7 @@ export default class ProtectYourAccount extends Component {
 						</StyledButton>
 					</View>
 				</ScrollView>
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 			</SafeAreaView>
 		);
 	}

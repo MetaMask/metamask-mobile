@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, Platform } from 'react-native';
 
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { colors } from '../../../styles/common';
@@ -8,6 +8,7 @@ import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -83,6 +84,7 @@ export default class Settings extends Component {
 						navigation.push('CompanySettings');
 					}}
 				/>
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={navigation} />}
 			</ScrollView>
 		);
 	};

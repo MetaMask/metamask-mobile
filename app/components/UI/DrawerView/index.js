@@ -34,7 +34,6 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
-import { renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
@@ -49,6 +48,7 @@ import AppConstants from '../../../core/AppConstants';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
+import EthereumAddress from '../EthereumAddress';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -498,7 +498,7 @@ class DrawerView extends Component {
 	goToPaymentChannel = () => {
 		const { providerType } = this.props;
 		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(providerType) !== -1) {
-			this.props.navigation.navigate('PaymentChannelView');
+			this.props.navigation.navigate('PaymentChannelHome');
 		} else {
 			Alert.alert(
 				strings('experimental_settings.network_not_supported'),
@@ -858,7 +858,11 @@ class DrawerView extends Component {
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
 								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
-								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
+								<EthereumAddress
+									address={account.address}
+									style={styles.accountAddress}
+									type={'short'}
+								/>
 								{this.isCurrentAccountImported() && (
 									<View style={styles.importedWrapper}>
 										<Text numberOfLines={1} style={styles.importedText}>
@@ -951,6 +955,7 @@ class DrawerView extends Component {
 				<Modal
 					isVisible={this.props.networkModalVisible}
 					onBackdropPress={this.toggleNetworksModal}
+					onBackButtonPress={this.toggleNetworksModal}
 					onSwipeComplete={this.toggleNetworksModal}
 					swipeDirection={'down'}
 					propagateSwipe
@@ -961,6 +966,7 @@ class DrawerView extends Component {
 					isVisible={this.props.accountsModalVisible}
 					style={styles.bottomModal}
 					onBackdropPress={this.toggleAccountsModal}
+					onBackButtonPress={this.toggleAccountsModal}
 					onSwipeComplete={this.toggleAccountsModal}
 					swipeDirection={'down'}
 					propagateSwipe
@@ -994,6 +1000,7 @@ class DrawerView extends Component {
 				<Modal
 					isVisible={this.props.receiveModalVisible}
 					onBackdropPress={this.toggleReceiveModal}
+					onBackButtonPress={this.toggleReceiveModal}
 					onSwipeComplete={this.toggleReceiveModal}
 					swipeDirection={'down'}
 					propagateSwipe

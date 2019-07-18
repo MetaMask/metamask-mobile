@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors } from '../../../../styles/common';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
+import DeviceSize from '../../../../util/DeviceSize';
 
 const INDICATOR_HEIGHT = 10;
 const DRAWER_WIDTH = 315;
@@ -46,7 +47,8 @@ class Step5 extends Component {
 	};
 
 	state = {
-		coachmarkTop: 0
+		coachmarkTop: 0,
+		coachmarkBottom: 0
 	};
 
 	componentDidMount = () => {
@@ -62,7 +64,7 @@ class Step5 extends Component {
 		ref &&
 			ref.current &&
 			ref.current.measure((a, b, width, height, px, py) => {
-				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT });
+				this.setState({ coachmarkTop: height + py - INDICATOR_HEIGHT, coachmarkBottom: py - 165 });
 			});
 	};
 
@@ -93,10 +95,7 @@ class Step5 extends Component {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>
-				{strings('onboarding_wizard.step5.content1')}
-				<Text style={fontStyles.bold}> {strings('onboarding_wizard.step5.content2')} </Text>
-			</Text>
+			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step5.content1')}</Text>
 		</View>
 	);
 
@@ -105,14 +104,22 @@ class Step5 extends Component {
 
 		return (
 			<View style={styles.main}>
-				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
+				<View
+					style={[
+						styles.coachmarkContainer,
+						DeviceSize.isSmallDevice()
+							? { top: this.state.coachmarkBottom }
+							: { top: this.state.coachmarkTop }
+					]}
+				>
 					<Coachmark
 						title={strings('onboarding_wizard.step5.title')}
 						content={this.content()}
 						onNext={this.onNext}
 						onBack={this.onBack}
 						style={styles.some}
-						topIndicatorPosition={'topLeft'}
+						topIndicatorPosition={!DeviceSize.isSmallDevice() && 'topLeft'}
+						bottomIndicatorPosition={DeviceSize.isSmallDevice() && 'bottomLeft'}
 						currentStep={4}
 					/>
 				</View>

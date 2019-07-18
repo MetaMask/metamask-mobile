@@ -29,7 +29,6 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DeviceSize from '../../../util/DeviceSize';
 import { showAlert } from '../../../actions/alert';
-import GlobalAlert from '../GlobalAlert';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 
 const TOTAL_PADDING = 64;
@@ -104,7 +103,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		position: 'absolute',
-		right: Platform.OS === 'ios' ? -40 : -50,
+		right: DeviceSize.isSmallDevice() ? (Platform.OS === 'ios' ? -30 : -30) : Platform.OS === 'ios' ? -40 : -50,
 		bottom: Platform.OS === 'ios' ? 8 : 10
 	},
 	titleWrapper: {
@@ -310,6 +309,7 @@ class ReceiveRequest extends Component {
 				<Modal
 					isVisible={qrModalVisible}
 					onBackdropPress={this.closeQrModal}
+					onBackButtonPress={this.closeQrModal}
 					onSwipeComplete={this.closeQrModal}
 					swipeDirection={'down'}
 					propagateSwipe
@@ -334,13 +334,13 @@ class ReceiveRequest extends Component {
 								<Text style={styles.address}>{this.props.selectedAddress}</Text>
 							</TouchableOpacity>
 						</View>
-						<GlobalAlert />
 					</View>
 				</Modal>
 				<Modal
 					style={styles.modal}
 					isVisible={buyModalVisible}
 					onBackdropPress={this.onClose}
+					onBackButtonPress={this.onClose}
 					backdropOpacity={0}
 					animationIn={'fadeIn'}
 					animationOut={'fadeOut'}

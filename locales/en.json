@@ -27,8 +27,8 @@
 		},
 		"step1": {
 			"title": "Welcome to your new wallet!",
-			"content1": "To use blockchain applications (DAPPS) you need a wallet because blockchain actions cost Ether (ETH).",
-			"content2": "You can buy a few dollars worth of ETH from an exchange like Coinbase or simply request a friend."
+			"content1": "To use the blockchain, you need a wallet! Some actions cost Ether (ETH).",
+			"content2": "We'll show you how to buy ETH, or you can request some from a friend."
 		},
 		"step2": {
 			"title": "Your Accounts",
@@ -49,16 +49,11 @@
 		},
 		"step5": {
 			"title": "Explore the Browser",
-			"content1": "You can explore blockchain applications (DAPPS) in the",
-			"content2": "Browser."
+			"content1": "You can explore web3 using the browser"
 		},
 		"step6": {
-			"title": "Search Dapps",
-			"content": "Search directly blockchain applications (DAPPS)!"
-		},
-		"step7": {
-			"title": "Featured Dapps",
-			"content": "Start exploring featured blockchain applications (DAPPS)."
+			"title": "Search",
+			"content": "Search for sites, or type a URL if you know where you’re headed."
 		}
 	},
 	"create_wallet": {
@@ -294,7 +289,7 @@
 		"save_rpc_url": "SAVE",
 		"invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
 		"invalid_rpc_url": "Invalid RPC URL",
-		"sync_with_extension": "Sync with Metamask Extension",
+		"sync_with_extension": "Sync with MetaMask Extension",
 		"sync_with_extension_desc": "This will import all extension accounts to this device.",
 		"sync": "SYNC",
 		"clear_approved_dapps": "CLEAR APPROVED DAPPS",
@@ -352,7 +347,9 @@
 		"clear_privacy_desc": "Clear privacy data so all websites must request access to view account information again.",
 		"clear_history_desc": "Choose this option to clear your entire browsing history.",
 		"metametrics_title": "Participate in MetaMetrics",
-		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better."
+		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+		"metametrics_opt_out": "MetaMetrics Opt-out",
+		"metrametrics_restart_required": "You need to restart the app for the changes to take effect."
 	},
 	"app_information": {
 		"title": "Information",
@@ -368,7 +365,7 @@
 		"seed_phrase_title": "Reveal Seed Phrase",
 		"private_key_title": "Show Private Key",
 		"show_private_key": "Show Private Key",
-		"private_key_title_for_account": "Show Private Key for {{accountName}}",
+		"private_key_title_for_account": "Show Private Key for \"{{accountName}}\"",
 		"cancel": "Cancel",
 		"confirm": "Next",
 		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this seed phrase to access your accounts. Save them somewhere safe and secret.",
@@ -902,7 +899,7 @@
 		"confirm": "Confirm",
 		"cancel": "Cancel",
 		"asset_card_desc": "Free Transactions with Connext Payment Channels",
-		"deposit_amount": "Amount to transfer",
+		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
 		"welcome": {
@@ -916,7 +913,11 @@
 		"disabled_withdraw_btn": "Got it",
 		"disabled_title": "Feature not available",
 		"disabled_message": "This feature has been temporarily disabled. Please try again later...",
-		"disabled_btn": "OK"
+		"disabled_btn": "OK",
+		"error_title": "Feature temporarily unavailable",
+		"error_desc": "Our Payment Channels provider is having issues, please try again later.",
+		"ask_a_friend": "Or you can also request from a friend",
+		"receive_funds_action": "Receive Funds"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",

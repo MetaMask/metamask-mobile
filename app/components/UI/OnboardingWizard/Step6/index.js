@@ -16,21 +16,20 @@ const styles = StyleSheet.create({
 		flex: 1,
 		position: 'absolute',
 		left: 0,
-		right: 0,
-		marginHorizontal: 45
+		right: 0
 	}
 });
 
 class Step6 extends Component {
 	static propTypes = {
 		/**
-		 * Object that represents the navigator
-		 */
-		navigation: PropTypes.object,
-		/**
 		 * Dispatch set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Callback to call when closing
+		 */
+		onClose: PropTypes.func
 	};
 
 	state = {
@@ -54,21 +53,19 @@ class Step6 extends Component {
 	};
 
 	/**
-	 * Dispatches 'setOnboardingWizardStep' with next step
-	 * Closing drawer and navigating to 'WalletView'
-	 */
-	onNext = () => {
-		const { setOnboardingWizardStep } = this.props;
-		setOnboardingWizardStep && setOnboardingWizardStep(7);
-	};
-
-	/**
 	 * Dispatches 'setOnboardingWizardStep' with back step, opening drawer
 	 */
 	onBack = () => {
-		const { navigation, setOnboardingWizardStep } = this.props;
-		navigation && navigation.openDrawer();
+		const { setOnboardingWizardStep } = this.props;
 		setOnboardingWizardStep && setOnboardingWizardStep(5);
+	};
+
+	/**
+	 * Calls props onClose
+	 */
+	onClose = () => {
+		const { onClose } = this.props;
+		onClose && onClose();
 	};
 
 	/**
@@ -89,9 +86,11 @@ class Step6 extends Component {
 					<Coachmark
 						title={strings('onboarding_wizard.step6.title')}
 						content={this.content()}
-						onNext={this.onNext}
+						onNext={this.onClose}
 						onBack={this.onBack}
+						style={onboardingStyles.coachmark}
 						topIndicatorPosition={'topCenter'}
+						onClose={this.onClose}
 						currentStep={5}
 					/>
 				</View>

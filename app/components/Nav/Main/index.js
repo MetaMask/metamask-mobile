@@ -135,6 +135,17 @@ const MainNavigator = createStackNavigator(
 						TransactionsView: {
 							screen: TransactionsView
 						}
+					}),
+					PaymentChannelHome: createStackNavigator({
+						PaymentChannelView: {
+							screen: PaymentChannel
+						},
+						PaymentChannelDeposit: {
+							screen: PaymentChannelDeposit
+						},
+						PaymentChannelSend: {
+							screen: PaymentChannelSend
+						}
 					})
 				},
 				{
@@ -149,24 +160,6 @@ const MainNavigator = createStackNavigator(
 				{
 					SimpleWebview: {
 						screen: SimpleWebview
-					}
-				},
-				{
-					mode: 'modal'
-				}
-			)
-		},
-		PaymentChannelView: {
-			screen: createStackNavigator(
-				{
-					PaymentChannel: {
-						screen: PaymentChannel
-					},
-					PaymentChannelDeposit: {
-						screen: PaymentChannelDeposit
-					},
-					PaymentChannelSend: {
-						screen: PaymentChannelSend
 					}
 				},
 				{
@@ -640,6 +633,7 @@ class Main extends Component {
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onSignAction}
+				onBackButtonPress={this.onSignAction}
 				onSwipeComplete={this.onSignAction}
 				swipeDirection={'down'}
 				propagateSwipe
@@ -710,6 +704,7 @@ class Main extends Component {
 				animationInTiming={300}
 				animationOutTiming={300}
 				onSwipeComplete={this.onWalletConnectSessionRejected}
+				onBackButtonPress={this.onWalletConnectSessionRejected}
 				swipeDirection={'down'}
 			>
 				<WalletConnectSessionApproval
@@ -743,6 +738,7 @@ class Main extends Component {
 				animationInTiming={300}
 				animationOutTiming={300}
 				onSwipeComplete={this.onPaymentChannelRequestRejected}
+				onBackButtonPress={this.onPaymentChannelRequestRejected}
 				swipeDirection={'down'}
 			>
 				<PaymentChannelApproval
