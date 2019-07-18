@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import Engine from '../../../core/Engine';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
 import {
 	Alert,
@@ -17,13 +16,12 @@ import {
 } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
-import { renderFromWei } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import { getTicker } from '../../../util/transactions';
+import AccountElement from './AccountElement';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -49,31 +47,6 @@ const styles = StyleSheet.create({
 	},
 	accountsWrapper: {
 		flex: 1
-	},
-	account: {
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-		flexDirection: 'row',
-		paddingHorizontal: 20,
-		paddingVertical: 20,
-		height: 80
-	},
-	accountInfo: {
-		marginLeft: 15,
-		marginRight: 0,
-		flex: 1,
-		flexDirection: 'row'
-	},
-	accountLabel: {
-		fontSize: 18,
-		color: colors.fontPrimary,
-		...fontStyles.normal
-	},
-	accountBalance: {
-		paddingTop: 5,
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.normal
 	},
 	footer: {
 		height: DeviceSize.isIphoneX() ? 140 : 110,
@@ -107,19 +80,6 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		borderWidth: 1,
 		borderColor: colors.grey400
-	},
-	importedView: {
-		flex: 0.5,
-		alignItems: 'center',
-		marginTop: 2
-	},
-	accountMain: {
-		flex: 1,
-		flexDirection: 'column'
-	},
-	selectedWrapper: {
-		flex: 0.2,
-		alignItems: 'flex-end'
 	}
 });
 
@@ -297,26 +257,17 @@ export default class AccountList extends PureComponent {
 		) : null;
 
 		return (
-			<TouchableOpacity
-				style={styles.account}
-				key={`account-${address}`}
-				onPress={() => this.onAccountChange(index)} // eslint-disable-line
-				onLongPress={() => this.onLongPress(address, imported, index)} // eslint-disable-line
-			>
-				<Identicon address={address} diameter={38} />
-				<View style={styles.accountInfo}>
-					<View style={styles.accountMain}>
-						<Text numberOfLines={1} style={[styles.accountLabel]}>
-							{name}
-						</Text>
-						<Text style={styles.accountBalance}>
-							{renderFromWei(balance)} {getTicker(ticker)}
-						</Text>
-					</View>
-					{imported && <View style={styles.importedView}>{imported}</View>}
-					<View style={styles.selectedWrapper}>{selected}</View>
-				</View>
-			</TouchableOpacity>
+			<AccountElement
+				onPress={this.onAccountChange}
+				onLongPress={this.onLongPress}
+				index={index}
+				address={address}
+				imported={imported}
+				balance={balance}
+				ticker={ticker}
+				selected={selected}
+				name={name}
+			/>
 		);
 	};
 
