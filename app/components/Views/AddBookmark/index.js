@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, Text, TextInput, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 /**
  * Copmonent that provides ability to add a bookmark
  */
-export default class AddBookmark extends Component {
+export default class AddBookmark extends PureComponent {
 	static navigationOptions = ({ navigation }) => getNavigationOptionsTitle(strings('add_favorite.title'), navigation);
 
 	state = {

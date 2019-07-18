@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Animated, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
  * View that shows the success message once
  * the sync with the extension is complete
  */
-class SyncWithExtensionSuccess extends Component {
+class SyncWithExtensionSuccess extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object

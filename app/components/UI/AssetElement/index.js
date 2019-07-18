@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 /**
  * Customizable view to render assets in lists
  */
-export default class AssetElement extends Component {
+export default class AssetElement extends PureComponent {
 	static propTypes = {
 		/**
 		 * Content to display in the list element

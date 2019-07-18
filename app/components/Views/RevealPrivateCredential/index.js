@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard, Platform } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
@@ -97,7 +97,7 @@ const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 /**
  * View that displays private account information as private key or seed phrase
  */
-class RevealPrivateCredential extends Component {
+class RevealPrivateCredential extends PureComponent {
 	state = {
 		privateCredential: '',
 		unlocked: false,

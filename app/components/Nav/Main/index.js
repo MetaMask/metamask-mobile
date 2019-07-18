@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	InteractionManager,
 	ActivityIndicator,
@@ -313,7 +313,7 @@ const MainNavigator = createStackNavigator(
 	}
 );
 
-class Main extends Component {
+class Main extends PureComponent {
 	static router = {
 		...MainNavigator.router
 	};

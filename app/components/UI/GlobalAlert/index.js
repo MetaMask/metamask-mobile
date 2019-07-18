@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Modal from 'react-native-modal';
 import { StyleSheet, View, Text } from 'react-native';
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
  * Wrapper component for a global alert
  * connected to redux
  */
-class GlobalAlert extends Component {
+class GlobalAlert extends PureComponent {
 	static propTypes = {
 		/**
 		 * Boolean that determines if the modal should be shown

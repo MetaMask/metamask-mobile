@@ -1,5 +1,5 @@
 'use strict';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	InteractionManager,
 	SafeAreaView,
@@ -58,7 +58,7 @@ const frameImage = require('../../../images/frame.png'); // eslint-disable-line 
 /**
  * View that wraps the QR code scanner screen
  */
-export default class QrScanner extends Component {
+export default class QrScanner extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object that represents the navigator

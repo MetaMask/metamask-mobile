@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	Alert,
 	Clipboard,
@@ -288,7 +288,7 @@ const instapay_logo = require('../../../images/mm-instapay.png'); // eslint-disa
  * View component that displays the MetaMask fox
  * in the middle of the screen
  */
-class DrawerView extends Component {
+class DrawerView extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push new views

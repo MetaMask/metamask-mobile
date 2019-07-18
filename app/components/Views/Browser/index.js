@@ -15,7 +15,7 @@ const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
 const THUMB_HEIGHT = Platform.OS === 'ios' ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
 
 /**
- * Component that wraps all the browser
+ * PureComponent that wraps all the browser
  * individual tabs and the tabs view
  */
 class Browser extends PureComponent {
