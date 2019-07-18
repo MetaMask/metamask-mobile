@@ -34,7 +34,6 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
-import { renderShortAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
@@ -49,6 +48,7 @@ import AppConstants from '../../../core/AppConstants';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
+import EthereumAddress from '../EthereumAddress';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -858,7 +858,11 @@ class DrawerView extends Component {
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
 								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
-								<Text style={styles.accountAddress}>{renderShortAddress(account.address)}</Text>
+								<EthereumAddress
+									address={account.address}
+									style={styles.accountAddress}
+									type={'short'}
+								/>
 								{this.isCurrentAccountImported() && (
 									<View style={styles.importedWrapper}>
 										<Text numberOfLines={1} style={styles.importedText}>
