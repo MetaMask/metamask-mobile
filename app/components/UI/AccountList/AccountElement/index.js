@@ -46,6 +46,19 @@ const styles = StyleSheet.create({
 	selectedWrapper: {
 		flex: 0.2,
 		alignItems: 'flex-end'
+	},
+	importedText: {
+		color: colors.grey400,
+		fontSize: 10,
+		...fontStyles.bold
+	},
+	importedWrapper: {
+		width: 73,
+		paddingHorizontal: 10,
+		paddingVertical: 3,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: colors.grey400
 	}
 });
 

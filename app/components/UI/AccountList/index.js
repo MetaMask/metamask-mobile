@@ -172,6 +172,8 @@ class AccountList extends PureComponent {
 					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
 				}, 1000);
 			});
+			const orderedAccounts = this.getAccounts();
+			await this.setState({ orderedAccounts });
 		});
 	};
 
@@ -183,21 +185,25 @@ class AccountList extends PureComponent {
 		if (this.state.loading) return;
 		this.setState({ loading: true });
 		const { KeyringController } = Engine.context;
-		try {
-			await KeyringController.addNewAccount();
-			const { PreferencesController } = Engine.context;
-			const newIndex = Object.keys(this.props.identities).length - 1;
-			await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
-			this.setState({ selectedAccountIndex: newIndex });
-			setTimeout(() => {
-				this.flatList && this.flatList.current && this.flatList.current.scrollToEnd();
+		requestAnimationFrame(async () => {
+			try {
+				await KeyringController.addNewAccount();
+				const { PreferencesController } = Engine.context;
+				const newIndex = Object.keys(this.props.identities).length - 1;
+				await PreferencesController.update({ selectedAddress: Object.keys(this.props.identities)[newIndex] });
+				this.setState({ selectedAccountIndex: newIndex });
+				setTimeout(() => {
+					this.flatList && this.flatList.current && this.flatList.current.scrollToEnd();
+					this.setState({ loading: false });
+				}, 500);
+				const orderedAccounts = this.getAccounts();
+				await this.setState({ orderedAccounts });
+			} catch (e) {
+				// Restore to the previous index in case anything goes wrong
+				Logger.error('error while trying to add a new account', e); // eslint-disable-line
 				this.setState({ loading: false });
-			}, 500);
-		} catch (e) {
-			// Restore to the previous index in case anything goes wrong
-			Logger.error('error while trying to add a new account', e); // eslint-disable-line
-			this.setState({ loading: false });
-		}
+			}
+		});
 	};
 
 	isImported(allKeyrings, address) {
@@ -243,18 +249,6 @@ class AccountList extends PureComponent {
 		);
 	};
 
-	componentDidUpdate = async () => {
-		if (
-			!this.updating &&
-			Object.keys(this.state.orderedAccounts).length !== Object.keys(this.props.accounts).length
-		) {
-			this.updating = true;
-			const orderedAccounts = this.getAccounts();
-			await this.setState({ orderedAccounts });
-			this.updating = false;
-		}
-	};
-
 	getAccounts() {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
@@ -282,7 +276,6 @@ class AccountList extends PureComponent {
 
 	render() {
 		const { orderedAccounts } = this.state;
-
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<View style={styles.titleWrapper}>
