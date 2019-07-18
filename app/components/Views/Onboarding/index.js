@@ -36,13 +36,13 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		width: Platform.OS === 'ios' ? 90 : 45,
 		height: Platform.OS === 'ios' ? 90 : 45,
-		marginTop: Platform.OS === 'ios' ? 30 : 0,
+		marginTop: 30,
 		marginBottom: 0
 	},
 	image: {
 		alignSelf: 'center',
-		width: Platform.OS === 'ios' ? 90 : 45,
-		height: Platform.OS === 'ios' ? 90 : 45
+		width: Platform.OS === 'ios' ? 90 : 60,
+		height: Platform.OS === 'ios' ? 90 : 60
 	},
 	title: {
 		fontSize: 28,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		textAlign: 'center',
 		marginBottom: 8,
-		color: colors.black
+		color: colors.fontSecondary
 	},
 	importWrapper: {
 		marginTop: 24
@@ -97,13 +97,7 @@ const styles = StyleSheet.create({
  */
 class Onboarding extends Component {
 	static navigationOptions = () => ({
-		headerStyle: {
-			shadowColor: 'transparent',
-			elevation: 0,
-			backgroundColor: 'white',
-			borderBottomWidth: 0
-		},
-		headerTitle: null
+		header: null
 	});
 
 	static propTypes = {
@@ -176,7 +170,7 @@ class Onboarding extends Component {
 	render() {
 		return (
 			<View style={baseStyles.flexGrow}>
-				<OnboardingScreenWithBg>
+				<OnboardingScreenWithBg screen={'b'}>
 					<ScrollView
 						style={baseStyles.flexGrow}
 						contentContainerStyle={styles.scroll}
