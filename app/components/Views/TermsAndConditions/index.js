@@ -9,7 +9,8 @@ const TERMS_AND_CONDITIONS = 'https://metamask.io/terms.html';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.transparent,
-		alignSelf: 'center'
+		alignSelf: 'center',
+		width: 240
 	},
 	text: {
 		...fontStyles.normal,
