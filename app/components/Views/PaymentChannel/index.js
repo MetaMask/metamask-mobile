@@ -8,12 +8,18 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
-	ActivityIndicator
+	ActivityIndicator,
+	TouchableOpacity,
+	Dimensions,
+	Platform,
+	Clipboard
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import { getInstaPayNavigations } from '../../UI/Navbar';
+import QRCode from 'react-native-qrcode-svg';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
+import getNavbarOptions from '../../UI/Navbar';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -31,6 +37,10 @@ import PaymentChannelWelcome from './PaymentChannelWelcome';
 import AsyncStorage from '@react-native-community/async-storage';
 import AppConstants from '../../../core/AppConstants';
 import Analytics from '../../../core/Analytics';
+import { withNavigationFocus } from 'react-navigation';
+import DeviceSize from '../../../util/DeviceSize';
+import { showAlert } from '../../../actions/alert';
+import GlobalAlert from '../../UI/GlobalAlert';
 
 const DAI_ADDRESS = AppConstants.DAI_ADDRESS;
 
@@ -118,10 +128,58 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 		fontSize: 12,
 		margin: 20,
-		textAlign: 'center'
+		textAlign: 'center',
+		width: 250
 	},
 	bottomModal: {
 		margin: 0
+	},
+	detailsWrapper: {
+		padding: 10,
+		alignItems: 'center'
+	},
+	qrCode: {
+		marginBottom: 16,
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 36,
+		paddingBottom: 24,
+		paddingTop: 16,
+		backgroundColor: colors.grey000,
+		borderRadius: 8
+	},
+	qrCodeWrapper: {
+		borderColor: colors.grey300,
+		borderRadius: 8,
+		borderWidth: 1,
+		padding: 15
+	},
+	addressWrapper: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 16,
+		paddingTop: 16,
+		marginTop: 10,
+		borderRadius: 5,
+		backgroundColor: colors.grey000
+	},
+	titleQr: {
+		flexDirection: 'row'
+	},
+	closeIcon: {
+		position: 'absolute',
+		right: DeviceSize.isSmallDevice() ? (Platform.OS === 'ios' ? -30 : -30) : Platform.OS === 'ios' ? -40 : -50,
+		bottom: Platform.OS === 'ios' ? 8 : 10
+	},
+	addressTitle: {
+		fontSize: 16,
+		marginBottom: 16,
+		...fontStyles.normal
+	},
+	address: {
+		...fontStyles.normal,
+		fontSize: Platform.OS === 'ios' ? 14 : 20,
+		textAlign: 'center'
 	}
 });
 
@@ -131,7 +189,7 @@ const styles = StyleSheet.create({
 /* instant payments
 */
 class PaymentChannel extends Component {
-	static navigationOptions = ({ navigation }) => getInstaPayNavigations('payment_channel.insta_pay', navigation);
+	static navigationOptions = ({ navigation }) => getNavbarOptions('payment_channel.insta_pay', navigation, true);
 
 	static propTypes = {
 		/**
@@ -173,7 +231,19 @@ class PaymentChannel extends Component {
 		/**
 		 * Selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * React navigation prop to know if this view is focused
+		 */
+		isFocused: PropTypes.bool,
+		/**
+		 * Flag that determines if payment channels are enabled
+		 */
+		paymentChannelsEnabled: PropTypes.bool,
+		/**
+		/* Triggers global alert
+		*/
+		showAlert: PropTypes.func
 	};
 
 	state = {
@@ -185,7 +255,8 @@ class PaymentChannel extends Component {
 		sendRecipient: '',
 		depositAmount: '',
 		exchangeRate: undefined,
-		displayWelcomeModal: false
+		displayWelcomeModal: false,
+		connextStateDisabled: false
 	};
 
 	client = null;
@@ -194,19 +265,7 @@ class PaymentChannel extends Component {
 	withdrawing = false;
 
 	onStateChange = state => {
-		if (state.balance !== this.state.balance || state.status.type !== this.state.status.type) {
-			this.setState({
-				balance: state.balance,
-				status: state.status,
-				transactions: this.handleTransactions(state.transactions)
-			});
-			this.getBalanceFiat(state.balance);
-		}
-	};
-
-	componentDidMount = async () => {
-		InteractionManager.runAfterInteractions(async () => {
-			const state = PaymentChannelsClient.getState();
+		if (state.balance !== this.state.balance || state.status.type !== this.state.status.type || !this.state.ready) {
 			this.setState({
 				balance: state.balance,
 				status: state.status,
@@ -214,58 +273,105 @@ class PaymentChannel extends Component {
 				ready: true
 			});
 			this.getBalanceFiat(state.balance);
+		}
+	};
 
-			const vars = Analytics.getRemoteVariables();
-			if (vars && vars.paymentChannelsEnabled === false) {
-				// If the user has funds we should
-				// withdraw everything automatically
-				if (parseFloat(this.state.balance) > 0) {
-					Alert.alert(
-						strings('payment_channel.disabled_withdraw_title'),
-						strings('payment_channel.disabled_withdraw_message'),
-						[
-							{
-								text: strings('payment_channel.disabled_withdraw_btn'),
-								onPress: async () => {
-									try {
-										this.withdrawing = true;
-										await PaymentChannelsClient.withdrawAll();
-										this.withdrawing = false;
-										Logger.log('withdraw succesful');
-									} catch (e) {
-										this.withdrawing = false;
-										Logger.log('withdraw error', e);
-									}
-									setTimeout(() => {
-										this.props.navigation.pop();
-									}, 1000);
-								}
-							}
-						]
-					);
-				} else {
-					Alert.alert(
-						strings('payment_channel.disabled_title'),
-						strings('payment_channel.disabled_message'),
-						[
-							{
-								text: strings('payment_channel.disabled_btn'),
-								onPress: () => {
-									this.props.navigation.pop();
-								}
-							}
-						]
-					);
-				}
-			} else {
-				const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
-				if (!paymentChannelFirstTime) {
-					this.setState({ displayWelcomeModal: true });
-				}
-			}
+	componentDidMount() {
+		InteractionManager.runAfterInteractions(() => {
+			this.init();
 		});
-		PaymentChannelsClient.hub.on('state::change', this.onStateChange);
+
 		this.mounted = true;
+	}
+
+	init = () => {
+		setTimeout(() => {
+			PaymentChannelsClient.hub.on('state::change', this.onStateChange);
+			PaymentChannelsClient.hub.on('state::cs_chainsaw_error', this.handleChainsawError);
+		}, 1000);
+		this.checkifEnabled();
+	};
+
+	checkifEnabled = async () => {
+		const vars = Analytics.getRemoteVariables();
+		if (vars && vars.paymentChannelsEnabled === false) {
+			// If the user has funds we should
+			// withdraw everything automatically
+			if (parseFloat(this.state.balance) > 0) {
+				Alert.alert(
+					strings('payment_channel.disabled_withdraw_title'),
+					strings('payment_channel.disabled_withdraw_message'),
+					[
+						{
+							text: strings('payment_channel.disabled_withdraw_btn'),
+							onPress: async () => {
+								try {
+									this.withdrawing = true;
+									await PaymentChannelsClient.withdrawAll();
+									this.withdrawing = false;
+									Logger.log('withdraw succesful');
+								} catch (e) {
+									this.withdrawing = false;
+									Logger.log('withdraw error', e);
+								}
+								setTimeout(() => {
+									this.props.navigation.pop();
+								}, 1000);
+							}
+						}
+					]
+				);
+			} else {
+				Alert.alert(strings('payment_channel.disabled_title'), strings('payment_channel.disabled_message'), [
+					{
+						text: strings('payment_channel.disabled_btn'),
+						onPress: () => {
+							this.props.navigation.pop();
+						}
+					}
+				]);
+			}
+		} else {
+			const paymentChannelFirstTime = await AsyncStorage.getItem('@MetaMask:paymentChannelFirstTime', '');
+			if (!paymentChannelFirstTime) {
+				this.setState({ displayWelcomeModal: true });
+			}
+		}
+	};
+
+	componentDidUpdate(prevProps) {
+		// Handle turning payment channels off from settings
+		if (
+			prevProps.isFocused !== this.props.isFocused &&
+			!this.props.paymentChannelsEnabled &&
+			this.props.isFocused
+		) {
+			this.props.navigation.navigate('BrowserView');
+		}
+		// Reinit on network / account changes
+		if (
+			prevProps.selectedAddress !== this.props.selectedAddress ||
+			prevProps.provider.type !== this.props.provider.type
+		) {
+			this.reinitialize();
+		}
+	}
+
+	reinitialize = () => {
+		Logger.log('reinitialize');
+		this.removeListeners();
+		this.setState({ ready: false });
+		this.init();
+	};
+
+	handleChainsawError = ({ channelState }) => {
+		if (this.props.isFocused) {
+			!this.state.connextStateDisabled &&
+				Alert.alert(strings('payment_channel.error_title'), strings('payment_channel.error_desc'));
+			this.setState({ connextStateDisabled: true });
+			Logger.log('InstaPay:ChainSawError', channelState);
+			Logger.error('InstaPay:ChainSawError');
+		}
 	};
 
 	handleTransactions = transactions => {
@@ -316,8 +422,24 @@ class PaymentChannel extends Component {
 	};
 
 	componentWillUnmount() {
-		PaymentChannelsClient.hub.removeListener('state::change', this.onStateChange);
+		this.removeListeners();
 	}
+
+	removeListeners() {
+		PaymentChannelsClient.hub.removeListener('state::change', this.onStateChange);
+		PaymentChannelsClient.hub.removeListener('state::cs_chainsaw_error', this.handleChainsawError);
+	}
+
+	copyAccountToClipboard = async () => {
+		const { selectedAddress } = this.props;
+		await Clipboard.setString(selectedAddress);
+		this.props.showAlert({
+			isVisible: true,
+			autodismiss: 1500,
+			content: 'clipboard-alert',
+			data: { msg: strings('account_details.account_copied_to_clipboard') }
+		});
+	};
 
 	send = async () => {
 		if (this.sending) {
@@ -408,6 +530,7 @@ class PaymentChannel extends Component {
 	renderInfo() {
 		const { balance, balanceFiat } = this.state;
 		const isDisabled = this.areButtonsDisabled();
+		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 		const noFunds = this.state.balance === '0.00';
 		return (
 			<View style={styles.data}>
@@ -419,7 +542,7 @@ class PaymentChannel extends Component {
 					/>
 				</View>
 				<View style={styles.actionsWrapper}>
-					{!noFunds && (
+					{!noFundsAndNoHistory && (
 						<View>
 							<StyledButton
 								containerStyle={[styles.button, styles.sendButton]}
@@ -495,14 +618,19 @@ class PaymentChannel extends Component {
 	};
 
 	areButtonsDisabled = () => {
-		const { status } = this.state;
+		const { status, connextStateDisabled } = this.state;
 		if (status && status.type) {
 			return status.type.indexOf('_PENDING') !== -1;
+		}
+		if (connextStateDisabled) {
+			return connextStateDisabled;
 		}
 		return false;
 	};
 
 	renderNoFunds() {
+		const isDisabled = this.areButtonsDisabled();
+
 		return (
 			<View>
 				{this.renderInfo()}
@@ -515,8 +643,20 @@ class PaymentChannel extends Component {
 						type={'info'}
 						onPress={this.onDeposit}
 						testID={'submit-button'}
+						disabled={isDisabled}
 					>
 						{strings('payment_channel.no_funds_action')}
+					</StyledButton>
+
+					<Text style={styles.noFundsDescription}>{strings('payment_channel.ask_a_friend')}</Text>
+					<StyledButton
+						containerStyle={[styles.button, styles.depositButton]}
+						style={styles.buttonText}
+						type={'info'}
+						onPress={this.openQrModal}
+						testID={'receive-button'}
+					>
+						{strings('payment_channel.receive_funds_action')}
 					</StyledButton>
 				</View>
 			</View>
@@ -562,12 +702,12 @@ class PaymentChannel extends Component {
 				</View>
 			);
 		}
-		const noFunds = this.state.balance === '0.00';
+		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 
 		return (
 			<View>
-				{noFunds && this.renderNoFunds()}
-				{!noFunds && this.renderTransactionsHistory()}
+				{noFundsAndNoHistory && this.renderNoFunds()}
+				{!noFundsAndNoHistory && this.renderTransactionsHistory()}
 			</View>
 		);
 	}
@@ -596,6 +736,37 @@ class PaymentChannel extends Component {
 				>
 					<PaymentChannelWelcome close={this.closeWelcomeModal} />
 				</Modal>
+				<Modal
+					isVisible={this.state.qrModalVisible}
+					onBackdropPress={this.closeQrModal}
+					onBackButtonPress={this.closeQrModal}
+					onSwipeComplete={this.closeQrModal}
+					swipeDirection={'down'}
+					propagateSwipe
+				>
+					<View style={styles.detailsWrapper}>
+						<View style={styles.qrCode}>
+							<View style={styles.titleQr}>
+								<Text style={styles.addressTitle}>
+									{strings('receive_request.public_address_qr_code')}
+								</Text>
+								<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal}>
+									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
+								</TouchableOpacity>
+							</View>
+							<View style={styles.qrCodeWrapper}>
+								<QRCode
+									value={`ethereum:${this.props.selectedAddress}`}
+									size={Dimensions.get('window').width - 160}
+								/>
+							</View>
+							<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
+								<Text style={styles.address}>{this.props.selectedAddress}</Text>
+							</TouchableOpacity>
+						</View>
+						<GlobalAlert />
+					</View>
+				</Modal>
 			</SafeAreaView>
 		);
 	}
@@ -609,14 +780,16 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	internalTransactions: state.engine.backgroundState.TransactionController.internalTransactions,
-	provider: state.engine.backgroundState.NetworkController.provider
+	provider: state.engine.backgroundState.NetworkController.provider,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
 });
 
 const mapDispatchToProps = dispatch => ({
-	setPaymentChannelTransaction: asset => dispatch(setPaymentChannelTransaction(asset))
+	setPaymentChannelTransaction: asset => dispatch(setPaymentChannelTransaction(asset)),
+	showAlert: config => dispatch(showAlert(config))
 });
 
 export default connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(PaymentChannel);
+)(withNavigationFocus(PaymentChannel));

@@ -1,12 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PaymentChannel should render correctly 1`] = `
-<PaymentChannel
+<withNavigation(withNavigationFocus(PaymentChannel))
   contractExchangeRates={Object {}}
   conversionRate={100}
   currentCurrency="USD"
   internalTransactions={Array []}
   nativeCurrency="ETH"
+  paymentChannelsEnabled={true}
   provider={
     Object {
       "type": "ropsten",
@@ -14,6 +15,7 @@ exports[`PaymentChannel should render correctly 1`] = `
   }
   selectedAddress="0x1"
   setPaymentChannelTransaction={[Function]}
+  showAlert={[Function]}
   transactions={Array []}
 />
 `;

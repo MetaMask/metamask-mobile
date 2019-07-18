@@ -66,7 +66,6 @@ class EthereumAddress extends Component {
 
 	componentDidUpdate(prevProps) {
 		if (prevProps.address !== this.props.address) {
-			Logger.log('address changed');
 			this.formatAndResolveIfNeeded();
 		}
 	}

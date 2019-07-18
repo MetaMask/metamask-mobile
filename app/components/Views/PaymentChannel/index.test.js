@@ -8,6 +8,9 @@ const mockStore = configureMockStore();
 describe('PaymentChannel', () => {
 	it('should render correctly', () => {
 		const initialState = {
+			settings: {
+				paymentChannelsEnabled: true
+			},
 			engine: {
 				backgroundState: {
 					NetworkController: {

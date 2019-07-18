@@ -60,6 +60,20 @@ exports[`App should render correctly 1`] = `
                         "getScreenOptions": [Function],
                         "getStateForAction": [Function],
                       },
+                      "PaymentChannelHome": Object {
+                        "childRouters": Object {
+                          "PaymentChannelDeposit": null,
+                          "PaymentChannelSend": null,
+                          "PaymentChannelView": null,
+                        },
+                        "getActionCreators": [Function],
+                        "getActionForPathAndParams": [Function],
+                        "getComponentForRouteName": [Function],
+                        "getComponentForState": [Function],
+                        "getPathAndParamsForState": [Function],
+                        "getScreenOptions": [Function],
+                        "getStateForAction": [Function],
+                      },
                       "TransactionsHome": Object {
                         "childRouters": Object {
                           "TransactionsView": null,
@@ -115,20 +129,6 @@ exports[`App should render correctly 1`] = `
                   "OfflineModeView": Object {
                     "childRouters": Object {
                       "OfflineMode": null,
-                    },
-                    "getActionCreators": [Function],
-                    "getActionForPathAndParams": [Function],
-                    "getComponentForRouteName": [Function],
-                    "getComponentForState": [Function],
-                    "getPathAndParamsForState": [Function],
-                    "getScreenOptions": [Function],
-                    "getStateForAction": [Function],
-                  },
-                  "PaymentChannelView": Object {
-                    "childRouters": Object {
-                      "PaymentChannel": null,
-                      "PaymentChannelDeposit": null,
-                      "PaymentChannelSend": null,
                     },
                     "getActionCreators": [Function],
                     "getActionForPathAndParams": [Function],
@@ -320,7 +320,7 @@ exports[`App should render correctly 1`] = `
                   Object {
                     "index": 0,
                     "isTransitioning": false,
-                    "key": "id-123-3",
+                    "key": "id-123-4",
                     "routeName": "Home",
                     "routes": Array [
                       Object {
@@ -362,6 +362,19 @@ exports[`App should render correctly 1`] = `
                           },
                         ],
                       },
+                      Object {
+                        "index": 0,
+                        "isTransitioning": false,
+                        "key": "PaymentChannelHome",
+                        "params": undefined,
+                        "routeName": "PaymentChannelHome",
+                        "routes": Array [
+                          Object {
+                            "key": "id-123-3",
+                            "routeName": "PaymentChannelView",
+                          },
+                        ],
+                      },
                     ],
                   },
                 ],
@@ -379,11 +392,11 @@ exports[`App should render correctly 1`] = `
               Object {
                 "index": 0,
                 "isTransitioning": false,
-                "key": "id-123-5",
+                "key": "id-123-6",
                 "routeName": "Onboarding",
                 "routes": Array [
                   Object {
-                    "key": "id-123-4",
+                    "key": "id-123-5",
                     "params": undefined,
                     "routeName": "Onboarding",
                   },
@@ -465,6 +478,20 @@ exports[`App should render correctly 1`] = `
                           "getScreenOptions": [Function],
                           "getStateForAction": [Function],
                         },
+                        "PaymentChannelHome": Object {
+                          "childRouters": Object {
+                            "PaymentChannelDeposit": null,
+                            "PaymentChannelSend": null,
+                            "PaymentChannelView": null,
+                          },
+                          "getActionCreators": [Function],
+                          "getActionForPathAndParams": [Function],
+                          "getComponentForRouteName": [Function],
+                          "getComponentForState": [Function],
+                          "getPathAndParamsForState": [Function],
+                          "getScreenOptions": [Function],
+                          "getStateForAction": [Function],
+                        },
                         "TransactionsHome": Object {
                           "childRouters": Object {
                             "TransactionsView": null,
@@ -520,20 +547,6 @@ exports[`App should render correctly 1`] = `
                     "OfflineModeView": Object {
                       "childRouters": Object {
                         "OfflineMode": null,
-                      },
-                      "getActionCreators": [Function],
-                      "getActionForPathAndParams": [Function],
-                      "getComponentForRouteName": [Function],
-                      "getComponentForState": [Function],
-                      "getPathAndParamsForState": [Function],
-                      "getScreenOptions": [Function],
-                      "getStateForAction": [Function],
-                    },
-                    "PaymentChannelView": Object {
-                      "childRouters": Object {
-                        "PaymentChannel": null,
-                        "PaymentChannelDeposit": null,
-                        "PaymentChannelSend": null,
                       },
                       "getActionCreators": [Function],
                       "getActionForPathAndParams": [Function],
@@ -725,7 +738,7 @@ exports[`App should render correctly 1`] = `
                     Object {
                       "index": 0,
                       "isTransitioning": false,
-                      "key": "id-123-3",
+                      "key": "id-123-4",
                       "routeName": "Home",
                       "routes": Array [
                         Object {
@@ -767,6 +780,19 @@ exports[`App should render correctly 1`] = `
                             },
                           ],
                         },
+                        Object {
+                          "index": 0,
+                          "isTransitioning": false,
+                          "key": "PaymentChannelHome",
+                          "params": undefined,
+                          "routeName": "PaymentChannelHome",
+                          "routes": Array [
+                            Object {
+                              "key": "id-123-3",
+                              "routeName": "PaymentChannelView",
+                            },
+                          ],
+                        },
                       ],
                     },
                   ],
@@ -784,11 +810,11 @@ exports[`App should render correctly 1`] = `
                 Object {
                   "index": 0,
                   "isTransitioning": false,
-                  "key": "id-123-5",
+                  "key": "id-123-6",
                   "routeName": "Onboarding",
                   "routes": Array [
                     Object {
-                      "key": "id-123-4",
+                      "key": "id-123-5",
                       "params": undefined,
                       "routeName": "Onboarding",
                     },
