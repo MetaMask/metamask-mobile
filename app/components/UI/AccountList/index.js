@@ -21,6 +21,7 @@ import Logger from '../../../util/Logger';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import AccountElement from './AccountElement';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
 /**
  * View that contains the list of all the available accounts
  */
-export default class AccountList extends PureComponent {
+class AccountList extends PureComponent {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
@@ -112,6 +113,7 @@ export default class AccountList extends PureComponent {
 
 	flatList = React.createRef();
 	lastPosition = 0;
+	updating = false;
 
 	getInitialSelectedAccountIndex = () => {
 		const { identities, selectedAddress } = this.props;
@@ -241,10 +243,15 @@ export default class AccountList extends PureComponent {
 		);
 	};
 
-	componentDidUpdate = prevProps => {
-		if (Object.keys(prevProps.accounts).length !== Object.keys(this.props.accounts).length) {
+	componentDidUpdate = async () => {
+		if (
+			!this.updating &&
+			Object.keys(this.state.orderedAccounts).length !== Object.keys(this.props.accounts).length
+		) {
+			this.updating = true;
 			const orderedAccounts = this.getAccounts();
-			this.setState({ orderedAccounts });
+			await this.setState({ orderedAccounts });
+			this.updating = false;
 		}
 	};
 
@@ -305,3 +312,9 @@ export default class AccountList extends PureComponent {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts
+});
+
+export default connect(mapStateToProps)(AccountList);
