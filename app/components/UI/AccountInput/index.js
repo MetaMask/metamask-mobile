@@ -38,10 +38,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		marginRight: 24,
 		paddingLeft: 0,
-		minWidth: 120
+		minWidth: DeviceSize.isSmallDevice() ? 100 : 120
 	},
 	qrCodeButton: {
-		minHeight: Platform.OS === 'android' ? 50 : 50,
+		minHeight: 50,
 		paddingRight: 8,
 		paddingLeft: 12,
 		paddingTop: 2,
