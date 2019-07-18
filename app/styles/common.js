@@ -7,7 +7,7 @@
  */
 export const colors = {
 	fontPrimary: '#000000',
-	fontSecondary: '#777777',
+	fontSecondary: '#999999',
 	fontTertiary: '#AAAAAA',
 	fontError: '#D73A49',
 	fontWarning: '#f66a0a',

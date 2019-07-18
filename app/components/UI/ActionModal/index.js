@@ -16,8 +16,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center'
 	},
 	modalText: {
-		alignSelf: 'center',
-		width: '90%',
+		width: 350,
 		height: 300,
 		backgroundColor: colors.white,
 		borderRadius: 10
@@ -61,7 +60,6 @@ export default function ActionModal({
 			isVisible={modalVisible}
 			style={styles.modal}
 			onBackdropPress={onRequestClose}
-			onBackButtonPress={onRequestClose}
 			onSwipeComplete={onRequestClose}
 			swipeDirection={'down'}
 		>

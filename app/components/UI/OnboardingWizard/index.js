@@ -9,6 +9,7 @@ import Step3 from './Step3';
 import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
+import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { DrawerActions } from 'react-navigation-drawer'; // eslint-disable-line
 import { strings } from '../../../../locales/i18n';
@@ -33,12 +34,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.transparent
 	},
-	smallSkipWrapper: {
-		alignItems: 'center',
-		alignSelf: 'center',
-		bottom: Platform.OS === 'ios' ? 30 : 35
-	},
-	largeSkipWrapper: {
+	skipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
 		bottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 98 : 66
@@ -106,28 +102,10 @@ class OnboardingWizard extends Component {
 			3: <Step3 coachmarkRef={this.props.coachmarkRef} />,
 			4: <Step4 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
 			5: <Step5 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
-			6: <Step6 coachmarkRef={this.props.coachmarkRef} onClose={this.closeOnboardingWizard} />
+			6: <Step6 coachmarkRef={this.props.coachmarkRef} navigation={this.props.navigation} />,
+			7: <Step7 coachmarkRef={this.props.coachmarkRef} onClose={this.closeOnboardingWizard} />
 		};
 		return steps[step];
-	};
-
-	getBackButtonBehavior = () => {
-		const {
-			wizard: { step },
-			navigation,
-			setOnboardingWizardStep
-		} = this.props;
-		if (step === 1) {
-			return this.closeOnboardingWizard();
-		} else if (step === 5) {
-			setOnboardingWizardStep(4);
-			navigation.navigate('WalletView');
-			navigation.dispatch(DrawerActions.closeDrawer());
-		} else if (step === 6) {
-			navigation && navigation.openDrawer();
-			setOnboardingWizardStep(5);
-		}
-		return setOnboardingWizardStep(step - 1);
 	};
 
 	render() {
@@ -142,17 +120,13 @@ class OnboardingWizard extends Component {
 				backdropOpacity={0}
 				disableAnimation
 				transparent
-				onBackButtonPress={this.getBackButtonBehavior}
 				style={[styles.root, Platform.OS === 'android' ? { minHeight: MIN_HEIGHT } : {}]}
 			>
 				<View style={styles.main}>{this.onboardingWizardNavigator(step)}</View>
 				{step !== 1 && (
 					<ElevatedView
 						elevation={10}
-						style={[
-							DeviceSize.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
-							Platform.OS === 'ios' ? {} : styles.androidElevated
-						]}
+						style={[styles.skipWrapper, Platform.OS === 'ios' ? {} : styles.androidElevated]}
 					>
 						<TouchableOpacity
 							style={[styles.skip, Platform.OS === 'ios' ? styles.iosTouchable : {}]}

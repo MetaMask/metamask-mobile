@@ -469,9 +469,8 @@ class ImportFromSeed extends Component {
 							blurOnSubmit
 							onSubmitEditing={this.jumpToPassword}
 							returnKeyType={'next'}
-							keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
+							keyboardType={Platform.OS === 'android' ? 'email-address' : 'default'}
 							autoCapitalize="none"
-							autoCorrect={false}
 						/>
 						<View style={styles.field}>
 							<Animated.Text

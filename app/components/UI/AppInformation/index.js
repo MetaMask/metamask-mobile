@@ -8,15 +8,13 @@ import {
 	View,
 	ScrollView,
 	TouchableOpacity,
-	Linking,
-	Platform
+	Linking
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../Navbar';
-import AndroidBackHandler from '../../Views/AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -164,7 +162,6 @@ export default class AppInformation extends Component {
 					</TouchableOpacity>
 				</View>
 			</ScrollView>
-			{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 		</SafeAreaView>
 	);
 }

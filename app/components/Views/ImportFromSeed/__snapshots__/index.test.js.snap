@@ -52,7 +52,6 @@ exports[`ImportFromSeed should render correctly 1`] = `
       <TextInput
         allowFontScaling={true}
         autoCapitalize="none"
-        autoCorrect={false}
         blurOnSubmit={true}
         keyboardType="default"
         multiline={true}
@@ -99,7 +98,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#777777",
+                "color": "#999999",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -167,7 +166,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#777777",
+                "color": "#999999",
                 "fontFamily": "Roboto",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -184,7 +183,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#777777",
+              "color": "#999999",
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
@@ -208,7 +207,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#777777",
+                "color": "#999999",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -273,7 +272,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#777777",
+              "color": "#999999",
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",

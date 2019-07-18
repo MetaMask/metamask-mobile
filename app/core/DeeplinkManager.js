@@ -83,8 +83,6 @@ class DeeplinkManager {
 						case 'payment':
 							this.handlePaymentChannelsUrl(urlObj.pathname.replace('/payment/', ''), params);
 							break;
-						case 'focus':
-							break;
 
 						default:
 							Alert.alert('Error', 'invalid deeplink');

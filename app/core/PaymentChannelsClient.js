@@ -74,8 +74,7 @@ class PaymentChannelsClient {
 			withdrawalPending: false,
 			withdrawalPendingValue: undefined,
 			blocked: false,
-			transactions: [],
-			swapPending: false
+			transactions: []
 		};
 	}
 
@@ -216,9 +215,6 @@ class PaymentChannelsClient {
 					transactions,
 					ready: true
 				});
-				if (state.runtime.channelStatus === 'CS_CHAINSAW_ERROR') {
-					hub.emit('state::cs_chainsaw_error', { channelState: state.persistent.channel });
-				}
 			} catch (e) {
 				Logger.error('PC::onStateChange', e);
 			}
@@ -256,7 +252,6 @@ class PaymentChannelsClient {
 			await this.autoSwap();
 		} catch (e) {
 			Logger.error('PC::autoswap', e);
-			this.setState({ swapPending: false });
 		}
 		setTimeout(() => {
 			this.pollAndSwap();
@@ -265,15 +260,16 @@ class PaymentChannelsClient {
 
 	async autoSwap() {
 		const { channelState, connextState } = this.state;
-		if (!connextState || hasPendingOps(channelState) || this.state.swapPending) {
+		if (!connextState || hasPendingOps(channelState)) {
 			return;
 		}
 		const weiBalance = toBN(channelState.balanceWeiUser);
 		const tokenBalance = toBN(channelState.balanceTokenUser);
+		const hubTokenBalance = toBN(channelState.balanceTokenHub);
 		if (channelState && weiBalance.gt(toBN('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
-			this.setState({ swapPending: true });
-			await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
-			this.setState({ swapPending: false });
+			if (hubTokenBalance.gt(weiBalance)) {
+				await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
+			}
 		}
 	}
 
@@ -371,7 +367,7 @@ class PaymentChannelsClient {
 	};
 
 	send = async ({ sendAmount, sendRecipient }) => {
-		let amount = toWei(sendAmount).toString();
+		const amount = toWei(sendAmount).toString();
 
 		const {
 			connext,
@@ -379,10 +375,6 @@ class PaymentChannelsClient {
 		} = this.state;
 
 		const maxAmount = balanceTokenUser;
-
-		if (sendAmount.toString() === this.getBalance()) {
-			amount = maxAmount;
-		}
 
 		if (toBN(amount).gt(toBN(maxAmount))) {
 			throw new Error('insufficient_balance');
@@ -397,7 +389,7 @@ class PaymentChannelsClient {
 					{
 						recipient: sendRecipient.toLowerCase(),
 						amountWei: '0',
-						amountToken: amount
+						amountToken: toWei(sendAmount).toString()
 					}
 				]
 			};

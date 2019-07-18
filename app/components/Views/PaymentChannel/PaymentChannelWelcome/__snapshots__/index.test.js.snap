@@ -75,7 +75,6 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
       Made possible by Connext Payment Channels.
     </Text>
     <Image
-      resizeMode="contain"
       source={
         Object {
           "testUri": "../../../app/images/payment-channel-welcome.png",
@@ -88,7 +87,6 @@ exports[`PaymentChannelWelcome should render correctly 1`] = `
           "marginBottom": 10,
           "marginHorizontal": 35,
           "marginTop": 80,
-          "width": "100%",
         }
       }
     />

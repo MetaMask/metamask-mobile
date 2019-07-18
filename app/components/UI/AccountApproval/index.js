@@ -37,13 +37,13 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		textAlign: 'center',
 		color: colors.fontPrimary,
-		fontSize: DeviceSize.isSmallDevice() ? 16 : 20,
+		fontSize: 20,
 		marginVertical: 24
 	},
 	dappTitle: {
 		...fontStyles.bold,
 		color: colors.fontPrimary,
-		fontSize: DeviceSize.isSmallDevice() ? 16 : 20
+		fontSize: 20
 	},
 	permissions: {
 		alignItems: 'center',
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 14,
-		marginVertical: 24
+		marginTop: 24
 	},
 	header: {
 		alignItems: 'flex-start',

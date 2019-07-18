@@ -27,8 +27,8 @@
 		},
 		"step1": {
 			"title": "Bienvenido a tu Nueva Billetera!",
-			"content1": "Para usar aplicaciones blockchain necesitas una billetera! Algunas aplicaciones blockchain tienen un costo en Ether (ETH).",
-			"content2": "Te mostraremos como comprar ETH o simplemente solicitar a un amigo."
+			"content1": "Para usar aplicaciones blockchain (DAPPS) necesitas una billetera ya que las acciones en blockchain tienen un costo en Ether (ETH).",
+			"content2": "Puedes comprar unos cuantos dólares de ETH en una bolsa de valores como Coinbase o simplemente solicitar a un amigo."
 		},
 		"step2": {
 			"title": "Tus Cuentas",
@@ -49,11 +49,16 @@
 		},
 		"step5": {
 			"title": "Explora el Navegador",
-			"content1": "Puedes explorar la web3 en el navegador"
+			"content1": "Puedes exprolar aplicaciones blockchain (DAPPS) en el",
+			"content2": "Navegador."
 		},
 		"step6": {
-			"title": "Buscador",
-			"content": "Busca sitios or ingresa una URL si sabes a donde vas."
+			"title": "Buscar Dapps",
+			"content": "Busca aplicaciones blockchain (DAPPS)!"
+		},
+		"step7": {
+			"title": "Dapps Destacadas",
+			"content": "Comienza a explorar las aplicaciones blockchain (DAPPS)."
 		}
 	},
 	"create_wallet": {
@@ -284,7 +289,7 @@
 		"clear_approvals_modal_message": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_browser_history_modal_title": "Borrar historial del navegador?",
 		"clear_browser_history_modal_message": "Estas a punto de borrar todo tu historial de navegación. Estás seguro?",
-		"sync_with_extension": "Sincronizar con la extensión de MetaMask ",
+		"sync_with_extension": "Sincronizar con la extensión de Metamask ",
 		"sync_with_extension_desc": "Esto importará todas las cuentas de la extensión en este dispositivo",
 		"sync": "Sincronizar",
 		"clear_approved_dapps": "BORRAR SITIOS APROBADOS",
@@ -342,9 +347,7 @@
 		"clear_privacy_desc": "Todas las dapps deberán solicitar acceso para ver la información de tu cuenta nuevamente.",
 		"clear_history_desc": "Elige esta opción para borrar todo tu historial de navegación.",
 		"metametrics_title": "Participa en MetaMetrics",
-		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
-		"metametrics_opt_out": "MetaMetrics Deshabilitado",
-		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto."
+		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask."
 	},
 	"app_information": {
 		"title": "Información",
@@ -359,7 +362,7 @@
 	"reveal_credential": {
 		"seed_phrase_title": "Revelar Frase Semilla",
 		"private_key_title": "Mostrar dirección privada",
-		"private_key_title_for_account": "Mostrar dirección privada para la cuenta \"{{accountName}}\"",
+		"private_key_title_for_account": "Mostrar dirección privada para la cuenta {{accountName}}",
 		"cancel": "Cancelar",
 		"confirm": "Siguiente",
 		"seed_phrase_explanation": "Si alguna vez cambias de navegador o de computador, vas a necesitar esta frase semilla para acceder a tus cuentas. Guárdalas en lugar seguro y secreto.",
@@ -880,7 +883,7 @@
 		"confirm": "Confirmar",
 		"cancel": "Cancelar",
 		"asset_card_desc": "Transacciones gratis con Connext Payment Channels",
-		"deposit_amount": "Monto a depositar",
+		"deposit_amount": "Monto a transferir",
 		"load_funds": "Cargar Fondos",
 		"insta_pay": "InstaPay",
 		"welcome": {
@@ -894,11 +897,7 @@
 		"disabled_withdraw_btn": "Entendido",
 		"disabled_title": "Funcionalidad deshabilitada",
 		"disabled_message": "Esta funcionalidad ha sido deshabilitada. Por favor intentalo de nuevo...",
-		"disabled_btn": "OK",
-		"error_title": "Funcionalidad temporalmente no disponible",
-		"error_desc": "Nuestro proveedor de Canales de Pago tiene problemas, inténtalo de nuevo más tarde.",
-		"ask_a_friend": "O también puedes pedirle a un amigo",
-		"receive_funds_action": "Recibir Fondos"
+		"disabled_btn": "OK"
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",

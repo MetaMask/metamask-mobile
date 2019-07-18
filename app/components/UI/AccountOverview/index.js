@@ -7,11 +7,10 @@ import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import { renderFiat } from '../../../util/number';
-import { renderAccountName } from '../../../util/address';
+import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
 import { toggleAccountsModal } from '../../../actions/modals';
-import EthereumAddress from '../EthereumAddress';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -257,7 +256,7 @@ class AccountOverview extends Component {
 						</View>
 						<Text style={styles.amountFiat}>{fiatBalance}</Text>
 						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-							<EthereumAddress address={address} style={styles.address} type={'short'} />
+							<Text style={styles.address}>{renderShortAddress(address)}</Text>
 						</TouchableOpacity>
 					</View>
 				</ScrollView>

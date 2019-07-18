@@ -382,7 +382,7 @@ export default {
 					amount,
 					assetType: ''
 				},
-				callback: () => instance.goTo('PaymentChannelHome')
+				callback: () => instance.goTo('PaymentChannelView')
 			},
 			autoHide: true,
 			duration: 5000

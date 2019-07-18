@@ -1,22 +1,12 @@
 'use strict';
 import React, { Component } from 'react';
-import {
-	InteractionManager,
-	SafeAreaView,
-	Image,
-	Text,
-	TouchableOpacity,
-	View,
-	StyleSheet,
-	Platform
-} from 'react-native';
+import { InteractionManager, SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
 import { parse } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	container: {
@@ -159,7 +149,6 @@ export default class QrScanner extends Component {
 					<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
 				</SafeAreaView>
 			</RNCamera>
-			{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.goBack} />}
 		</View>
 	);
 }

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Text, ScrollView, TouchableOpacity, View, Platform } from 'react-native';
+import { StyleSheet, Text, ScrollView, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -9,7 +9,6 @@ import { strings } from '../../../../../locales/i18n';
 import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import AndroidBackHandler from '../../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -129,7 +128,7 @@ class NetworksSettings extends Component {
 			<TouchableOpacity
 				key={`network-${i}`}
 				onPress={() => this.onPress(network)} // eslint-disable-line
-				onLongPress={() => isCustomRPC && this.showRemoveMenu(network)} // eslint-disable-line
+				onLongPress={() => isCustomRPC && this.showRemoveMenu(network)}
 			>
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
@@ -209,7 +208,6 @@ class NetworksSettings extends Component {
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
 				/>
-				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</View>
 		);
 	}

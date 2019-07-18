@@ -1,8 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { fontStyles, colors } from '../../../styles/common';
-import DeviceSize from '../../../util/DeviceSize';
-
-const SMALL_DEVICE = DeviceSize.isSmallDevice();
 
 export default StyleSheet.create({
 	container: {
@@ -16,19 +13,12 @@ export default StyleSheet.create({
 		color: colors.white,
 		fontSize: 14,
 		textAlign: 'center',
-		marginBottom: SMALL_DEVICE ? 5 : 20
+		marginBottom: 20
 	},
-	titleContainer: {
-		marginBottom: SMALL_DEVICE ? -10 : 0
+	leftContent: {
+		textAlign: 'left'
 	},
 	contentContainer: {
 		marginTop: 20
-	},
-	coachmark: {
-		marginHorizontal: SMALL_DEVICE ? 25 : 45
-	},
-	coachmarkLeft: {
-		marginLeft: SMALL_DEVICE ? 5 : 10,
-		marginRight: SMALL_DEVICE ? 45 : 85
 	}
 });

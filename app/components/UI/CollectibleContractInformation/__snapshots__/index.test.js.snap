@@ -177,7 +177,7 @@ exports[`CollectibleContractInformation should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#777777",
+                "color": "#999999",
                 "fontFamily": "Roboto",
                 "fontSize": 8,
                 "fontWeight": "300",

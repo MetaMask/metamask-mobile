@@ -179,7 +179,6 @@ export default class SelectComponent extends Component {
 			<Modal
 				isVisible={this.state.pickerVisible}
 				onBackdropPress={this.hidePicker}
-				onBackButtonPress={this.hidePicker}
 				style={styles.modal}
 				useNativeDriver
 			>

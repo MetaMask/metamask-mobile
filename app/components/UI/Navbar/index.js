@@ -138,10 +138,9 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
  *
  * @param {string} title - Title in string format
  * @param {Object} navigation - Navigation object required to push new views
- * @param {bool} disableNetwork - Boolean that specifies if the network can be changed, defaults to false
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
-export default function getNavbarOptions(title, navigation, disableNetwork = false) {
+export default function getNavbarOptions(title, navigation) {
 	function onPress() {
 		Keyboard.dismiss();
 		navigation.openDrawer();
@@ -149,7 +148,7 @@ export default function getNavbarOptions(title, navigation, disableNetwork = fal
 	}
 
 	return {
-		headerTitle: <NavbarTitle title={title} disableNetwork={disableNetwork} />,
+		headerTitle: <NavbarTitle title={title} />,
 		headerLeft: (
 			<TouchableOpacity onPress={onPress} style={styles.backButton}>
 				<IonicIcon

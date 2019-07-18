@@ -176,8 +176,10 @@ buildAndroidRelease(){
 		echo $ANDROID_KEYSTORE | base64 --decode > android/keystores/release.keystore
 	fi
 
+	node_modules/.bin/react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
 	# GENERATE APK
-	cd android && ./gradlew assembleRelease
+	cd android && ./gradlew assembleRelease -x bundleReleaseJsAndAssets
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then

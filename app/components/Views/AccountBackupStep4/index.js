@@ -7,6 +7,7 @@ import {
 	View,
 	SafeAreaView,
 	StyleSheet,
+	Platform,
 	TextInput
 } from 'react-native';
 
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	scrollviewWrapper: {
-		flexGrow: 1
+		flex: 1
 	},
 	wrapper: {
 		flex: 1,
@@ -303,7 +304,7 @@ export default class AccountBackupStep4 extends Component {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<ScrollView
-					contentContainerStyle={styles.scrollviewWrapper}
+					contentContainerStyle={Platform.OS === 'android' ? null : styles.scrollviewWrapper}
 					style={styles.mainWrapper}
 					testID={'account-backup-step-4-screen'}
 				>

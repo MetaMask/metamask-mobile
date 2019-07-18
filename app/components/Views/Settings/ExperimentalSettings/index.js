@@ -8,7 +8,6 @@ import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import AndroidBackHandler from '../../AndroidBackHandler';
 import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
@@ -62,7 +61,7 @@ class ExperimentalSettings extends Component {
 		*/
 		setEnablePaymentChannels: PropTypes.func,
 		/**
-		/* Flag that determines the state of payment channels
+		/* flag that determines the state of payment channels
 		*/
 		paymentChannelsEnabled: PropTypes.bool
 	};
@@ -77,7 +76,7 @@ class ExperimentalSettings extends Component {
 	goToPaymentChannels = () => {
 		const { provider } = Engine.context.NetworkController.state;
 		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			this.props.navigation.navigate('PaymentChannelHome');
+			this.props.navigation.navigate('PaymentChannelView');
 		} else {
 			Alert.alert(
 				strings('experimental_settings.network_not_supported'),
@@ -130,7 +129,6 @@ class ExperimentalSettings extends Component {
 						</StyledButton>
 					</View>
 				</View>
-				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</ScrollView>
 		);
 	};

@@ -1,13 +1,12 @@
 'use strict';
 import React, { Component } from 'react';
-import { SafeAreaView, Image, Text, View, StyleSheet, Platform } from 'react-native';
+import { SafeAreaView, Image, Text, View, StyleSheet } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { colors } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
 import { getOfflineModalNavbar } from '../../UI/Navbar';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	container: {
@@ -92,7 +91,6 @@ export default class OfflineMode extends Component {
 						</StyledButton>
 					</View>
 				</SafeAreaView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.tryAgain} />}
 			</View>
 		);
 	}

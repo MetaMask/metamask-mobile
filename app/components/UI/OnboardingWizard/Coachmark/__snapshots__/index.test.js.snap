@@ -51,13 +51,7 @@ exports[`Coachmark should render correctly 1`] = `
       ]
     }
   >
-    <View
-      style={
-        Object {
-          "marginBottom": 0,
-        }
-      }
-    >
+    <View>
       <Text
         style={
           Object {

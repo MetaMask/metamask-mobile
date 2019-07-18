@@ -14,8 +14,6 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { isValidAddress } from 'ethereumjs-util';
-import DeviceSize from '../../../util/DeviceSize';
-import EthereumAddress from '../EthereumAddress';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -39,10 +37,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		marginRight: 24,
 		paddingLeft: 0,
-		minWidth: DeviceSize.isSmallDevice() ? 100 : 120
+		minWidth: 120
 	},
 	qrCodeButton: {
-		minHeight: 50,
+		minHeight: Platform.OS === 'android' ? 50 : 50,
 		paddingRight: 8,
 		paddingLeft: 12,
 		paddingTop: 2,
@@ -287,7 +285,9 @@ class AccountInput extends Component {
 				<View style={styles.content}>
 					{this.renderAccountName(account.name)}
 					<View>
-						<EthereumAddress style={styles.address} address={account.address} type={'short'} />
+						<Text style={styles.address} numberOfLines={1}>
+							{renderShortAddress(account.address)}
+						</Text>
 					</View>
 				</View>
 			</TouchableOpacity>
@@ -388,14 +388,11 @@ class AccountInput extends Component {
 								autoCapitalize="none"
 								autoCorrect={false}
 								onChangeText={this.onChange}
-								placeholder={
-									DeviceSize.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder
-								}
+								placeholder={placeholder}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
 								style={styles.input}
 								value={value}
-								numberOfLines={1}
 								onBlur={this.onBlur}
 								onFocus={this.onInputFocus}
 							/>

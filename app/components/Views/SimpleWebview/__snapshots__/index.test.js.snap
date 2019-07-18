@@ -1,35 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SimpleWebview should render correctly 1`] = `
-<View
-  style={
+<Web3Webview
+  javaScriptEnabled={true}
+  messagingEnabled={true}
+  openNewWindowInWebView={true}
+  originWhitelist={
+    Array [
+      "http://*",
+      "https://*",
+    ]
+  }
+  saveFormDataDisabled={false}
+  scalesPageToFit={true}
+  showDefaultLoader={false}
+  source={
     Object {
-      "flex": 1,
+      "uri": Object {
+        "title": "etherscan",
+        "url": "https://etherscan.io",
+      },
     }
   }
->
-  <Web3Webview
-    javaScriptEnabled={true}
-    messagingEnabled={true}
-    openNewWindowInWebView={true}
-    originWhitelist={
-      Array [
-        "http://*",
-        "https://*",
-      ]
-    }
-    saveFormDataDisabled={false}
-    scalesPageToFit={true}
-    showDefaultLoader={false}
-    source={
-      Object {
-        "uri": Object {
-          "title": "etherscan",
-          "url": "https://etherscan.io",
-        },
-      }
-    }
-    thirdPartyCookiesEnabled={true}
-  />
-</View>
+  thirdPartyCookiesEnabled={true}
+/>
 `;

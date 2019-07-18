@@ -4,7 +4,6 @@ import { Animated, View, Text, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from './../styles';
 
 const styles = StyleSheet.create({
 	coachmark: {
@@ -148,11 +147,11 @@ export default class Coachmark extends Component {
 		/**
 		 * Top indicator position
 		 */
-		topIndicatorPosition: PropTypes.oneOf([false, 'topCenter', 'topLeft', 'topLeftCorner']),
+		topIndicatorPosition: PropTypes.oneOf(['topCenter', 'topLeft', 'topLeftCorner']),
 		/**
 		 * Bottom indicator position
 		 */
-		bottomIndicatorPosition: PropTypes.oneOf([false, 'bottomCenter', 'bottomLeft'])
+		bottomIndicatorPosition: PropTypes.oneOf(['bottomCenter', 'bottomLeft'])
 	};
 
 	state = {
@@ -287,7 +286,7 @@ export default class Coachmark extends Component {
 					</View>
 				)}
 				<View style={[styles.coachmark, coachmarkStyle]}>
-					<View style={onboardingStyles.titleContainer}>
+					<View style={styles.titleContainer}>
 						<Text style={styles.title}>{title}</Text>
 					</View>
 					{content}

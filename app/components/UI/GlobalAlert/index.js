@@ -100,7 +100,6 @@ class GlobalAlert extends Component {
 				style={styles.modal}
 				isVisible={isVisible}
 				onBackdropPress={this.onClose}
-				onBackButtonPress={this.onClose}
 				backdropOpacity={0}
 				animationIn={'fadeIn'}
 				animationOut={'fadeOut'}

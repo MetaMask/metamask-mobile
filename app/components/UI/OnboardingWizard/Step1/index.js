@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Coachmark from '../Coachmark';
 import DeviceSize from '../../../../util/DeviceSize';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		left: 0,
 		right: 0,
-		bottom: DeviceSize.isIphoneX() ? 36 : Platform.OS === 'ios' ? 16 : 36
+		bottom: DeviceSize.isIphoneX() ? 36 : 16
 	}
 });
 
@@ -57,8 +57,12 @@ class Step1 extends Component {
 	 */
 	content = () => (
 		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step1.content1')}</Text>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step1.content2')}</Text>
+			<Text style={[onboardingStyles.content, onboardingStyles.leftContent]}>
+				{strings('onboarding_wizard.step1.content1')}
+			</Text>
+			<Text style={[onboardingStyles.content, onboardingStyles.leftContent]}>
+				{strings('onboarding_wizard.step1.content2')}
+			</Text>
 		</View>
 	);
 

@@ -26,7 +26,6 @@ import Modal from 'react-native-modal';
 import QRCode from 'react-native-qrcode-svg';
 import { renderNumber } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import AndroidBackHandler from '../../Views/AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -228,7 +227,7 @@ class PaymentRequestSuccess extends Component {
 	};
 
 	render() {
-		const { link, amount, symbol, qrModalVisible } = this.state;
+		const { link, amount, symbol } = this.state;
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<ScrollView style={styles.contentWrapper} contentContainerStyle={styles.scrollViewContainer}>
@@ -291,9 +290,8 @@ class PaymentRequestSuccess extends Component {
 					</View>
 				</ScrollView>
 				<Modal
-					isVisible={qrModalVisible}
+					isVisible={this.state.qrModalVisible}
 					onBackdropPress={this.closeQRModal}
-					onBackButtonPress={this.closeQRModal}
 					onSwipeComplete={this.closeQRModal}
 					swipeDirection={'down'}
 					propagateSwipe
@@ -313,11 +311,6 @@ class PaymentRequestSuccess extends Component {
 						</View>
 					</View>
 				</Modal>
-				{Platform.OS === 'android' && (
-					<AndroidBackHandler
-						customBackPress={qrModalVisible ? this.closeQRModal : this.props.navigation.pop}
-					/>
-				)}
 			</SafeAreaView>
 		);
 	}
