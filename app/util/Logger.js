@@ -19,7 +19,7 @@ export default class Logger {
 	static async log(...args) {
 		// TODO use crashlytics opt-in
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log.apply(null, args); // eslint-disable-line no-console
@@ -37,7 +37,7 @@ export default class Logger {
 	static async error(...args) {
 		// TODO use crashlytics opt-in
 		// Check if user passed accepted opt-in to metrics
-		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:onboardingWizard');
+		const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
 		if (__DEV__) {
 			args.unshift('[MetaMask DEBUG]:');
 			console.warn(args); // eslint-disable-line no-console

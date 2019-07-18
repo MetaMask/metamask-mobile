@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { TouchableOpacity, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, ScrollView, Text, View, StyleSheet, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -9,6 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import DeviceSize from '../../../util/DeviceSize';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -119,6 +120,7 @@ class ImportPrivateKeySuccess extends Component {
 						</View>
 					</View>
 				</ScrollView>
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.dismiss} />}
 			</View>
 		);
 	}
