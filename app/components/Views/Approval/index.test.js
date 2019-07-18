@@ -24,7 +24,7 @@ describe('Approval', () => {
 						transactions: []
 					},
 					AddressBookController: {
-						addressBook: []
+						addressBook: {}
 					},
 					NetworkController: {
 						provider: {
