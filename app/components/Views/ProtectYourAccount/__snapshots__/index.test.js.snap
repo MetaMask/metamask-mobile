@@ -12,7 +12,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
   <ScrollViewMock
     contentContainerStyle={
       Object {
-        "flex": 1,
+        "flexGrow": 1,
         "padding": 20,
       }
     }
@@ -36,7 +36,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
         style={
           Object {
             "fontSize": 72,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
             "marginTop": 30,
             "textAlign": "left",
           }
@@ -51,7 +51,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
             "fontWeight": "400",
             "justifyContent": "center",
             "marginBottom": 20,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
             "marginTop": 20,
             "textAlign": "left",
           }
@@ -64,7 +64,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
           Object {
             "justifyContent": "center",
             "marginBottom": 10,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
           }
         }
       >
@@ -88,7 +88,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
           Object {
             "justifyContent": "center",
             "marginBottom": 10,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
           }
         }
       >
@@ -120,7 +120,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
           Object {
             "justifyContent": "center",
             "marginBottom": 10,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
           }
         }
       >
@@ -144,7 +144,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
           Object {
             "justifyContent": "center",
             "marginBottom": 10,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
           }
         }
       >
@@ -176,7 +176,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
           Object {
             "justifyContent": "center",
             "marginBottom": 10,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
           }
         }
       >
@@ -200,7 +200,7 @@ exports[`ProtectYourAccount should render correctly 1`] = `
           Object {
             "justifyContent": "center",
             "marginBottom": 10,
-            "marginLeft": 20,
+            "marginHorizontal": 10,
           }
         }
       >

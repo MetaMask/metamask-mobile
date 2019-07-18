@@ -14,6 +14,7 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { isValidAddress } from 'ethereumjs-util';
+import DeviceSize from '../../../util/DeviceSize';
 import EthereumAddress from '../EthereumAddress';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -38,10 +39,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		marginRight: 24,
 		paddingLeft: 0,
-		minWidth: 120
+		minWidth: DeviceSize.isSmallDevice() ? 100 : 120
 	},
 	qrCodeButton: {
-		minHeight: Platform.OS === 'android' ? 50 : 50,
+		minHeight: 50,
 		paddingRight: 8,
 		paddingLeft: 12,
 		paddingTop: 2,
@@ -387,11 +388,14 @@ class AccountInput extends Component {
 								autoCapitalize="none"
 								autoCorrect={false}
 								onChangeText={this.onChange}
-								placeholder={placeholder}
+								placeholder={
+									DeviceSize.isSmallDevice() ? placeholder.substr(0, 13) + '...' : placeholder
+								}
 								spellCheck={false}
 								editable={this.state.inputEnabled}
 								style={styles.input}
 								value={value}
+								numberOfLines={1}
 								onBlur={this.onBlur}
 								onFocus={this.onInputFocus}
 							/>
