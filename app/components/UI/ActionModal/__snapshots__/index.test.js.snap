@@ -53,10 +53,11 @@ exports[`ActionModal should render correctly 1`] = `
     <View
       style={
         Object {
+          "alignSelf": "center",
           "backgroundColor": "#FFFFFF",
           "borderRadius": 10,
           "height": 300,
-          "width": 350,
+          "width": "90%",
         }
       }
     >

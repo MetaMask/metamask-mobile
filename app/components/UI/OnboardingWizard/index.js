@@ -33,7 +33,12 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.transparent
 	},
-	skipWrapper: {
+	smallSkipWrapper: {
+		alignItems: 'center',
+		alignSelf: 'center',
+		bottom: Platform.OS === 'ios' ? 30 : 35
+	},
+	largeSkipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
 		bottom: Platform.OS === 'ios' && DeviceSize.isIphoneX() ? 98 : 66
@@ -144,7 +149,10 @@ class OnboardingWizard extends Component {
 				{step !== 1 && (
 					<ElevatedView
 						elevation={10}
-						style={[styles.skipWrapper, Platform.OS === 'ios' ? {} : styles.androidElevated]}
+						style={[
+							DeviceSize.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
+							Platform.OS === 'ios' ? {} : styles.androidElevated
+						]}
 					>
 						<TouchableOpacity
 							style={[styles.skip, Platform.OS === 'ios' ? styles.iosTouchable : {}]}

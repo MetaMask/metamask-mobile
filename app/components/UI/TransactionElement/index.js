@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	info: {
+		flex: 1,
 		marginLeft: 15
 	},
 	address: {
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	amounts: {
-		flex: 1,
+		flex: 0.6,
 		alignItems: 'flex-end'
 	},
 	subRow: {
@@ -330,7 +331,7 @@ class TransactionElement extends PureComponent {
 				{this.renderTxTime()}
 				<View style={styles.subRow}>
 					{this.renderTxElementImage(transactionElement)}
-					<View style={styles.info}>
+					<View style={styles.info} numberOfLines={1}>
 						<Text numberOfLines={1} style={styles.address}>
 							{symbol ? symbol + ' ' + actionKey : actionKey}
 						</Text>
