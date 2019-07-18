@@ -312,7 +312,6 @@ exports[`ReceiveRequest should render correctly 1`] = `
           </Text>
         </TouchableOpacity>
       </View>
-      <Connect(GlobalAlert) />
     </View>
   </ReactNativeModal>
   <ReactNativeModal

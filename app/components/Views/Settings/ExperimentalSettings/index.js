@@ -62,7 +62,7 @@ class ExperimentalSettings extends Component {
 		*/
 		setEnablePaymentChannels: PropTypes.func,
 		/**
-		/* flag that determines the state of payment channels
+		/* Flag that determines the state of payment channels
 		*/
 		paymentChannelsEnabled: PropTypes.bool
 	};
@@ -77,7 +77,7 @@ class ExperimentalSettings extends Component {
 	goToPaymentChannels = () => {
 		const { provider } = Engine.context.NetworkController.state;
 		if (AppConstants.CONNEXT.SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
-			this.props.navigation.navigate('PaymentChannelView');
+			this.props.navigation.navigate('PaymentChannelHome');
 		} else {
 			Alert.alert(
 				strings('experimental_settings.network_not_supported'),
