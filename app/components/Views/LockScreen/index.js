@@ -63,6 +63,7 @@ export default class LockScreen extends PureComponent {
 	secondAnimation = React.createRef();
 	animationName = React.createRef();
 	opacity = new Animated.Value(1);
+	unlockAttempts = 0;
 
 	componentDidMount() {
 		// Check if is the app is launching or it went to background mode
@@ -83,27 +84,8 @@ export default class LockScreen extends PureComponent {
 			this.firstAnimation.play();
 			this.appState = nextAppState;
 			this.unlockKeychain();
-			this.timeoutWatcher();
 		}
 	};
-
-	timeoutWatcher() {
-		setTimeout(() => {
-			if (!this.state.ready) {
-				Logger.log('Lockscreen::timeout - state', this.state);
-				Logger.log('Lockscreen::timeout - appState', this.appState);
-				Logger.log('Lockscreen::timeout - locked', this.locked);
-				Logger.log('Lockscreen::timeout - errorUnlockingKeychain', this.errorUnlockingKeychain);
-				Logger.error('Lockscreen::timeout', `${this.timedOut ? 10 : 5} sec timeout`);
-				// Retry one more time
-				if (!this.timedOut) {
-					this.unlockKeychain();
-					this.timeoutWatcher();
-					this.timedOut = true;
-				}
-			}
-		}, 5000);
-	}
 
 	componentWillUnmount() {
 		this.mounted = false;
@@ -111,6 +93,7 @@ export default class LockScreen extends PureComponent {
 	}
 
 	async unlockKeychain() {
+		this.unlockAttempts++;
 		let credentials = null;
 		try {
 			// Retreive the credentials
@@ -146,7 +129,13 @@ export default class LockScreen extends PureComponent {
 				this.props.navigation.navigate('Login');
 			}
 		} catch (error) {
-			Logger.error('Lockscreen:unlockKeychain', error);
+			if (this.unlockAttempts <= 3) {
+				Logger.error('Lockscreen:unlockKeychain', { attemptNumber: this.unlockAttempts, error });
+				this.unlockKeychain();
+			} else {
+				Logger.error('Lockscreen:maxAttemptsReached', { attemptNumber: this.unlockAttempts, error });
+				this.props.navigation.navigate('Login');
+			}
 		}
 	}
 
