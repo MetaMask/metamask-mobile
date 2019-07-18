@@ -98,7 +98,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#999999",
+                "color": "#777777",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -166,7 +166,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#999999",
+                "color": "#777777",
                 "fontFamily": "Roboto",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -183,7 +183,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",
@@ -207,7 +207,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
           style={
             Array [
               Object {
-                "color": "#999999",
+                "color": "#777777",
                 "fontFamily": "Roboto",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -272,7 +272,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "fontFamily": "Roboto",
               "fontSize": 12,
               "fontWeight": "400",

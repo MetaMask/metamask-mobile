@@ -90,7 +90,7 @@ exports[`NetworkList should render correctly 1`] = `
           >
             <Icon
               allowFontScaling={false}
-              color="#999999"
+              color="#777777"
               name="check"
               size={15}
             />
@@ -136,7 +136,7 @@ exports[`NetworkList should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#999999",
+                "color": "#777777",
                 "fontFamily": "Roboto",
                 "fontSize": 12,
                 "fontWeight": "400",
