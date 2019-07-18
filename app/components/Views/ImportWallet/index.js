@@ -377,7 +377,7 @@ class ImportWallet extends Component {
 	render() {
 		return (
 			<View style={baseStyles.flexGrow}>
-				<OnboardingScreenWithBg>
+				<OnboardingScreenWithBg screen={'a'}>
 					<ScrollView
 						style={baseStyles.flexGrow}
 						contentContainerStyle={styles.scroll}
