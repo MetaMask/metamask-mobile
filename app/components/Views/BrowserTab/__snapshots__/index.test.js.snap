@@ -29,6 +29,7 @@ exports[`Browser should render correctly 1`] = `
         "right": 0,
         "top": 0,
         "width": "100%",
+        "zIndex": 999999,
       }
     }
   >
