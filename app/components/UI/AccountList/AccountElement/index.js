@@ -5,6 +5,8 @@ import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import { renderFromWei } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
+import { strings } from '../../../../../locales/i18n';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const styles = StyleSheet.create({
 	account: {
@@ -61,47 +63,34 @@ export default class AccountElement extends PureComponent {
 		 */
 		onLongPress: PropTypes.func.isRequired,
 		/**
-		 * Account index
-		 */
-		index: PropTypes.number,
-		/**
-		 * Account address
-		 */
-		address: PropTypes.string,
-		/**
-		 * Whether the account is imported
-		 */
-		imported: PropTypes.object,
-		/**
-		 * Account balance
-		 */
-		balance: PropTypes.number,
-		/**
 		 * Current ticker
 		 */
 		ticker: PropTypes.string,
-		/**
-		 * Account name
-		 */
-		name: PropTypes.string,
-		/**
-		 * Whether account is selected
-		 */
-		selected: PropTypes.object
+		item: PropTypes.object
 	};
 
 	onPress = () => {
-		const { onPress, index } = this.props;
+		const { onPress } = this.props;
+		const { index } = this.props.item;
 		onPress && onPress(index);
 	};
 
 	onLongPress = () => {
-		const { onLongPress, index, address, imported } = this.props;
+		const { onLongPress } = this.props;
+		const { address, imported, index } = this.props.item;
 		onLongPress && onLongPress(address, imported, index);
 	};
 
 	render() {
-		const { address, imported, balance, ticker, selected, name } = this.props;
+		const { address, balance, ticker, name, isSelected, isImported } = this.props.item;
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
+		const imported = isImported ? (
+			<View style={styles.importedWrapper}>
+				<Text numberOfLines={1} style={styles.importedText}>
+					{strings('accounts.imported')}
+				</Text>
+			</View>
+		) : null;
 		return (
 			<TouchableOpacity
 				style={styles.account}

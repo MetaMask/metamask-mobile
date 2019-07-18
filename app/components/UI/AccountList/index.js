@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import Engine from '../../../core/Engine';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import {
 	Alert,
@@ -67,19 +66,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderTopWidth: StyleSheet.hairlineWidth,
 		borderColor: colors.grey100
-	},
-	importedText: {
-		color: colors.grey400,
-		fontSize: 10,
-		...fontStyles.bold
-	},
-	importedWrapper: {
-		width: 73,
-		paddingHorizontal: 10,
-		paddingVertical: 3,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.grey400
 	}
 });
 
@@ -154,31 +140,33 @@ export default class AccountList extends PureComponent {
 		const previousIndex = this.state.selectedAccountIndex;
 		const { PreferencesController } = Engine.context;
 		const { keyrings } = this.props;
-		try {
-			this.setState({ selectedAccountIndex: newIndex });
+		requestAnimationFrame(async () => {
+			try {
+				this.setState({ selectedAccountIndex: newIndex });
 
-			const allKeyrings =
-				keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
-			const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
+				const allKeyrings =
+					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+				const accountsOrdered = allKeyrings.reduce((list, keyring) => list.concat(keyring.accounts), []);
 
-			await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
+				await PreferencesController.update({ selectedAddress: accountsOrdered[newIndex] });
 
-			this.props.onAccountChange();
+				this.props.onAccountChange();
 
-			InteractionManager.runAfterInteractions(async () => {
+				InteractionManager.runAfterInteractions(async () => {
+					setTimeout(() => {
+						Engine.refreshTransactionHistory();
+					}, 1000);
+				});
+			} catch (e) {
+				// Restore to the previous index in case anything goes wrong
+				this.setState({ selectedAccountIndex: previousIndex });
+				Logger.error('error while trying change the selected account', e); // eslint-disable-line
+			}
+			InteractionManager.runAfterInteractions(() => {
 				setTimeout(() => {
-					Engine.refreshTransactionHistory();
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
 				}, 1000);
 			});
-		} catch (e) {
-			// Restore to the previous index in case anything goes wrong
-			this.setState({ selectedAccountIndex: previousIndex });
-			Logger.error('error while trying change the selected account', e); // eslint-disable-line
-		}
-		InteractionManager.runAfterInteractions(() => {
-			setTimeout(() => {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_SWITCHED_ACCOUNTS);
-			}, 1000);
 		});
 	};
 
@@ -245,29 +233,8 @@ export default class AccountList extends PureComponent {
 
 	renderItem = ({ item }) => {
 		const { ticker } = this.props;
-		const { index, name, address, balance, isSelected, isImported } = item;
-
-		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
-		const imported = isImported ? (
-			<View style={styles.importedWrapper}>
-				<Text numberOfLines={1} style={styles.importedText}>
-					{strings('accounts.imported')}
-				</Text>
-			</View>
-		) : null;
-
 		return (
-			<AccountElement
-				onPress={this.onAccountChange}
-				onLongPress={this.onLongPress}
-				index={index}
-				address={address}
-				imported={imported}
-				balance={balance}
-				ticker={ticker}
-				selected={selected}
-				name={name}
-			/>
+			<AccountElement onPress={this.onAccountChange} onLongPress={this.onLongPress} item={item} ticker={ticker} />
 		);
 	};
 
