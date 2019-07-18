@@ -138,7 +138,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -209,7 +209,7 @@ exports[`TransactionDetails should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#999999",
+          "color": "#777777",
           "flex": 1,
           "fontFamily": "Roboto",
           "fontSize": 12,
@@ -275,7 +275,7 @@ exports[`TransactionDetails should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#999999",
+          "color": "#777777",
           "flex": 1,
           "fontFamily": "Roboto",
           "fontSize": 12,
@@ -349,7 +349,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -368,7 +368,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -400,7 +400,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -419,7 +419,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -451,7 +451,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -470,7 +470,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -502,7 +502,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
@@ -521,7 +521,7 @@ exports[`TransactionDetails should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "#999999",
+              "color": "#777777",
               "flex": 1,
               "fontFamily": "Roboto",
               "fontSize": 12,
