@@ -407,7 +407,9 @@
 		"allow_camera_dialog_message": "We need your permission to scan QR codes",
 		"scanning": "scanning...",
 		"ok": "Ok",
-		"cancel": "Cancel"
+		"cancel": "Cancel",
+		"error": "Error",
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do that, Please go to Settings > Advanced > Sync with MetaMask Extension"
 	},
 	"action_view": {
 		"cancel": "Cancel",
