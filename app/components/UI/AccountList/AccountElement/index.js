@@ -90,8 +90,8 @@ export default class AccountElement extends PureComponent {
 
 	onLongPress = () => {
 		const { onLongPress } = this.props;
-		const { address, imported, index } = this.props.item;
-		onLongPress && onLongPress(address, imported, index);
+		const { address, isImported, index } = this.props.item;
+		onLongPress && onLongPress(address, isImported, index);
 	};
 
 	render() {
