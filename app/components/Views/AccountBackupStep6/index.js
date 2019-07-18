@@ -205,7 +205,7 @@ class AccountBackupStep6 extends Component {
 						<Text style={styles.succesModalText}>{strings('account_backup_step_6.modal_text')}</Text>
 					</CustomAlert>
 				</ScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.showModal} />}
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.props.navigation.pop} />}
 			</SafeAreaView>
 		);
 	}
