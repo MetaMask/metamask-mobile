@@ -106,7 +106,8 @@ export default class AccountList extends PureComponent {
 
 	state = {
 		selectedAccountIndex: 0,
-		loading: false
+		loading: false,
+		orderedAccounts: {}
 	};
 
 	flatList = React.createRef();
@@ -123,11 +124,13 @@ export default class AccountList extends PureComponent {
 
 	componentDidMount() {
 		this.getInitialSelectedAccountIndex();
+		const orderedAccounts = this.getAccounts();
 		InteractionManager.runAfterInteractions(() => {
-			if (this.getAccounts().length > 4) {
+			if (orderedAccounts.length > 4) {
 				this.scrollToCurrentAccount();
 			}
 		});
+		this.setState({ orderedAccounts });
 	}
 
 	scrollToCurrentAccount() {
@@ -238,6 +241,13 @@ export default class AccountList extends PureComponent {
 		);
 	};
 
+	componentDidUpdate = prevProps => {
+		if (Object.keys(prevProps.accounts).length !== Object.keys(this.props.accounts).length) {
+			const orderedAccounts = this.getAccounts();
+			this.setState({ orderedAccounts });
+		}
+	};
+
 	getAccounts() {
 		const { accounts, identities, selectedAddress, keyrings } = this.props;
 		// This is a temporary fix until we can read the state from GABA
@@ -264,7 +274,7 @@ export default class AccountList extends PureComponent {
 	keyExtractor = item => item.address;
 
 	render() {
-		const accounts = this.getAccounts();
+		const { orderedAccounts } = this.state;
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
@@ -272,7 +282,7 @@ export default class AccountList extends PureComponent {
 					<View style={styles.dragger} />
 				</View>
 				<FlatList
-					data={accounts}
+					data={orderedAccounts}
 					keyExtractor={this.keyExtractor}
 					renderItem={this.renderItem}
 					ref={this.flatList}
