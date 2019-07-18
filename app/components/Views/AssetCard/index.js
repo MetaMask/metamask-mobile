@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { View, StyleSheet, Text, ImageBackground } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -56,7 +56,7 @@ const paymentChannelWatermark = require('../../../images/payment-channel-waterma
 /**
  * View that displays an asset card
  */
-export default class AssetCard extends Component {
+export default class AssetCard extends PureComponent {
 	static propTypes = {
 		balance: PropTypes.string,
 		balanceFiat: PropTypes.string,

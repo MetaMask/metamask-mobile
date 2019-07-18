@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Text, StyleSheet, View, PixelRatio } from 'react-native';
 import WebsiteIcon from '../../WebsiteIcon';
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 /**
  * Featured item to be rendered
  */
-export default class FeaturedItem extends Component {
+export default class FeaturedItem extends PureComponent {
 	static propTypes = {
 		/**
 		 * Dapp description

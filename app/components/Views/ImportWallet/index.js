@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Alert, ActivityIndicator, Image, Text, View, ScrollView, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -90,7 +90,7 @@ const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-not
 /**
  * View where users can decide how to import their wallet
  */
-class ImportWallet extends Component {
+class ImportWallet extends PureComponent {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 /**
  * View that displays two action buttons for asset overview
  */
-export default class AssetActionButtons extends Component {
+export default class AssetActionButtons extends PureComponent {
 	static propTypes = {
 		/**
 		 * String to display on left button

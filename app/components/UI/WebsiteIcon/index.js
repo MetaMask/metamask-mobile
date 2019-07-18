@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders a website logo depending of the context
  */
-export default class WebsiteIcon extends Component {
+export default class WebsiteIcon extends PureComponent {
 	static propTypes = {
 		/**
 		 * Style object for image

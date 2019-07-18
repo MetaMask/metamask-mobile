@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	InteractionManager,
@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders receive options
+ * PureComponent that renders receive options
  */
-class ReceiveRequest extends Component {
+class ReceiveRequest extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object

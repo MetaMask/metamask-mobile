@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
 	Switch,
@@ -110,7 +110,7 @@ const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 /**
  * View where returning users can authenticate
  */
-class Login extends Component {
+class Login extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object

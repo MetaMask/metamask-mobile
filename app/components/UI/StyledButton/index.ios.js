@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { ViewPropTypes, Text } from 'react-native';
 import Button from 'react-native-button';
@@ -9,7 +9,7 @@ import getStyles from './styledButtonStyles';
  * for iOS devices
  * see styledButtonStyles.js for available styles
  */
-export default class StyledButton extends Component {
+export default class StyledButton extends PureComponent {
 	static propTypes = {
 		/**
 		 * Children components of the Button
@@ -52,7 +52,7 @@ export default class StyledButton extends Component {
 	};
 
 	static defaultProps = {
-		...Component.defaultProps,
+		...PureComponent.defaultProps,
 		styleDisabled: { opacity: 0.6 },
 		disabledContainerStyle: { opacity: 0.6 }
 	};

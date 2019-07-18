@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for the wallet
  */
-class Wallet extends Component {
+class Wallet extends PureComponent {
 	static navigationOptions = ({ navigation }) => getWalletNavbarOptions('wallet.title', navigation);
 
 	static propTypes = {

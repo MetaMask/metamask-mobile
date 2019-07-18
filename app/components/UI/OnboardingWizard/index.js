@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, TouchableOpacity, View, StyleSheet, Text, Dimensions } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-class OnboardingWizard extends Component {
+class OnboardingWizard extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object that represents the navigator

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../../styles/common';
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 /**
  * View that wraps the wraps the "PaymentChannelSend" screen
  */
-class PaymentChannelSend extends Component {
+class PaymentChannelSend extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
 
 	static propTypes = {

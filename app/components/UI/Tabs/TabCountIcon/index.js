@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Platform, View, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -24,17 +24,17 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders an icon showing
+ * PureComponent that renders an icon showing
  * the current number of open tabs
  */
-class TabCountIcon extends Component {
+class TabCountIcon extends PureComponent {
 	static propTypes = {
 		/**
 		 * Switches to a specific tab
 		 */
 		tabCount: PropTypes.number,
 		/**
-		 * Component styles
+		 * PureComponent styles
 		 */
 		style: PropTypes.any
 	};

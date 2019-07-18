@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Platform, Alert, ActivityIndicator, TouchableOpacity, TextInput, Text, View, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 /**
  * View that's displayed the first time a user receives funds
  */
-export default class ImportPrivateKey extends Component {
+export default class ImportPrivateKey extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

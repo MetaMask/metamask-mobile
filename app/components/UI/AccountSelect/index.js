@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a select element populated with accounts from the current keychain
+ * PureComponent that renders a select element populated with accounts from the current keychain
  */
-class AccountSelect extends Component {
+class AccountSelect extends PureComponent {
 	static propTypes = {
 		/**
 		 * List of accounts from the AccountTrackerController

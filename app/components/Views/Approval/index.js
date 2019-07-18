@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -26,9 +26,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that manages transaction approval from the dapp browser
+ * PureComponent that manages transaction approval from the dapp browser
  */
-class Approval extends Component {
+class Approval extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('approval.title', navigation);
 
 	static propTypes = {

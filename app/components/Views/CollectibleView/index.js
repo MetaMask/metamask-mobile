@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ScrollView, View, StyleSheet, Text, SafeAreaView, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import CollectibleOverview from '../../UI/CollectibleOverview';
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
 /**
  * View that displays a specific collectible asset
  */
-class CollectibleView extends Component {
+class CollectibleView extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to access the props

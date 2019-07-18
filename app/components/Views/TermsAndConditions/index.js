@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 /**
  * View that is displayed in the flow to agree terms and conditions
  */
-export default class TermsAndConditions extends Component {
+export default class TermsAndConditions extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

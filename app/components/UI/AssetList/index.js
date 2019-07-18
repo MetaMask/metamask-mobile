@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -28,9 +28,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to search assets.
+ * PureComponent that provides ability to search assets.
  */
-export default class AssetList extends Component {
+export default class AssetList extends PureComponent {
 	static propTypes = {
 		/**
 		 * Array of assets objects returned from the search

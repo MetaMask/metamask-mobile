@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Platform, TouchableOpacity, View, StyleSheet, Text } from 'react-native';
@@ -39,10 +39,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * UI Component that renders inside the navbar
+ * UI PureComponent that renders inside the navbar
  * showing the view title and the selected network
  */
-class NavbarTitle extends Component {
+class NavbarTitle extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object representing the selected the selected network

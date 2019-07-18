@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Image, StyleSheet, View, Text } from 'react-native';
 import AnimatedFox from 'react-native-animated-fox';
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders custom error page for the browser
  */
-export default class WebviewError extends Component {
+export default class WebviewError extends PureComponent {
 	static propTypes = {
 		/**
 		 * error info
