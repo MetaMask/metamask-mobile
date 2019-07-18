@@ -51,7 +51,7 @@ class Approval extends PureComponent {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array,
+		addressBook: PropTypes.object,
 		/**
 		 * A string representing the network name
 		 */
@@ -161,9 +161,7 @@ class Approval extends PureComponent {
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				// Add to the AddressBook if it's an unkonwn address
 				const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-				const existingContact = addressBook.find(
-					({ address }) => toChecksumAddress(address) === checksummedAddress
-				);
+				const existingContact = addressBook[checksummedAddress];
 				if (!existingContact) {
 					AddressBookController.set(checksummedAddress, '');
 				}

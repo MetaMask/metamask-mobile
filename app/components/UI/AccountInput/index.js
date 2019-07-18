@@ -171,7 +171,7 @@ class AccountInput extends PureComponent {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array,
+		addressBook: PropTypes.object,
 		/**
 		 * Callback close all drowpdowns
 		 */
@@ -296,14 +296,7 @@ class AccountInput extends PureComponent {
 
 	getVisibleOptions = value => {
 		const { accounts, addressBook } = this.props;
-		const addressBookItems = {};
-		if (addressBook.length > 0) {
-			addressBook.forEach(contact => {
-				addressBookItems[contact.address] = contact;
-			});
-		}
-
-		const allAddresses = { ...addressBookItems, ...accounts };
+		const allAddresses = { ...addressBook, ...accounts };
 
 		if (typeof value !== 'undefined' && value.toString().length > 0) {
 			// If it's a valid address we don't show any suggestion
