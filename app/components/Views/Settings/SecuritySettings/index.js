@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -15,6 +15,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
+import AndroidBackHandler from '../../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -262,6 +263,10 @@ class Settings extends Component {
 		} else {
 			Analytics.disable();
 			this.setState({ metricsOptIn: false });
+			Alert.alert(
+				strings('app_settings.metametrics_opt_out'),
+				strings('app_settings.metrametrics_restart_required')
+			);
 		}
 	};
 
@@ -423,6 +428,7 @@ class Settings extends Component {
 						</View>
 					</ActionModal>
 				</View>
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</ScrollView>
 		);
 	};

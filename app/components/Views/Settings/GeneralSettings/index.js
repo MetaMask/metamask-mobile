@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { StyleSheet, Text, ScrollView, View } from 'react-native';
+import { StyleSheet, Text, ScrollView, View, Platform } from 'react-native';
 import { connect } from 'react-redux';
 
 import Engine from '../../../../core/Engine';
@@ -11,6 +11,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setSearchEngine, setPrimaryCurrency } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
+import AndroidBackHandler from '../../AndroidBackHandler';
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
 	a.quote.code.toLocaleLowerCase().localeCompare(b.quote.code.toLocaleLowerCase())
@@ -195,6 +196,7 @@ class Settings extends Component {
 						</View>
 					</View>
 				</View>
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</ScrollView>
 		);
 	}

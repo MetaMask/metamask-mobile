@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { Alert, ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 import ActionSheet from 'react-native-actionsheet';
 import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
+import AndroidBackHandler from '../AndroidBackHandler';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -65,6 +67,13 @@ const styles = StyleSheet.create({
 export default class WalletConnectSessions extends Component {
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(strings(`experimental_settings.wallet_connect_dapps`), navigation);
+
+	static propTypes = {
+		/**
+		/* navigation object required to push new views
+		*/
+		navigation: PropTypes.object
+	};
 
 	state = {
 		sessions: []
@@ -162,6 +171,7 @@ export default class WalletConnectSessions extends Component {
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
 				/>
+				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</SafeAreaView>
 		);
 	};

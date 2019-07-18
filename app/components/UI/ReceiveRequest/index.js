@@ -310,6 +310,7 @@ class ReceiveRequest extends Component {
 				<Modal
 					isVisible={qrModalVisible}
 					onBackdropPress={this.closeQrModal}
+					onBackButtonPress={this.closeQrModal}
 					onSwipeComplete={this.closeQrModal}
 					swipeDirection={'down'}
 					propagateSwipe
@@ -341,6 +342,7 @@ class ReceiveRequest extends Component {
 					style={styles.modal}
 					isVisible={buyModalVisible}
 					onBackdropPress={this.onClose}
+					onBackButtonPress={this.onClose}
 					backdropOpacity={0}
 					animationIn={'fadeIn'}
 					animationOut={'fadeOut'}

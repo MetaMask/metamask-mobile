@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, Alert, TouchableOpacity, Text, View, SafeAreaView, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import Button from '../../UI/Button';
 import Pager from '../../UI/Pager';
 import { strings } from '../../../../locales/i18n';
+import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -121,8 +122,8 @@ export default class AccountBackupStep1 extends Component {
 				{
 					text: strings('account_backup_step_1.cancel_backup_ok'),
 					onPress: () => {
-						this.props.navigation.popToTop();
-						this.props.navigation.goBack(null);
+						// We don't want users with password set to go to that flow again
+						this.props.navigation.navigate('BrowserView');
 					}
 				},
 				{
@@ -204,6 +205,7 @@ export default class AccountBackupStep1 extends Component {
 						</View>
 					</View>
 				</ScrollView>
+				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.dismiss} />}
 			</SafeAreaView>
 		);
 	}
