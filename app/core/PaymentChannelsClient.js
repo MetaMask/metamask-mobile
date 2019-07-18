@@ -371,7 +371,7 @@ class PaymentChannelsClient {
 	};
 
 	send = async ({ sendAmount, sendRecipient }) => {
-		const amount = toWei(sendAmount).toString();
+		let amount = toWei(sendAmount).toString();
 
 		const {
 			connext,
@@ -379,6 +379,10 @@ class PaymentChannelsClient {
 		} = this.state;
 
 		const maxAmount = balanceTokenUser;
+
+		if (sendAmount.toString() === this.getBalance()) {
+			amount = maxAmount;
+		}
 
 		if (toBN(amount).gt(toBN(maxAmount))) {
 			throw new Error('insufficient_balance');
@@ -393,7 +397,7 @@ class PaymentChannelsClient {
 					{
 						recipient: sendRecipient.toLowerCase(),
 						amountWei: '0',
-						amountToken: toWei(sendAmount).toString()
+						amountToken: amount
 					}
 				]
 			};
