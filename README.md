@@ -59,4 +59,4 @@ Visit [Troubleshooting for React Native](https://facebook.github.io/react-native
     
 ## License
 
-TBD
+To be defined...
