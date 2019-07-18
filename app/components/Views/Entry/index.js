@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-class Entry extends Component {
+class Entry extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object

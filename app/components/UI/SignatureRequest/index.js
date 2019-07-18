@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -95,9 +95,9 @@ const styles = StyleSheet.create({
 const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 
 /**
- * Component that renders scrollable content inside signature request user interface
+ * PureComponent that renders scrollable content inside signature request user interface
  */
-class SignatureRequest extends Component {
+class SignatureRequest extends PureComponent {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances

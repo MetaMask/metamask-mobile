@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides an asset icon dependent on OS.
+ * PureComponent that provides an asset icon dependent on OS.
  */
 // eslint-disable-next-line react/display-name
 const AssetIcon = React.memo(props => {

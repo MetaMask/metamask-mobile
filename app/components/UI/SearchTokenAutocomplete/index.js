@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -16,9 +16,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to add searched assets with metadata.
+ * PureComponent that provides ability to add searched assets with metadata.
  */
-export default class SearchTokenAutocomplete extends Component {
+export default class SearchTokenAutocomplete extends PureComponent {
 	state = {
 		searchResults: [],
 		searchQuery: '',

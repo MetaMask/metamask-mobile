@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import Image from 'react-native-remote-svg';
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders an ERC-721 Token image
  */
-export default class CollectibleImage extends Component {
+export default class CollectibleImage extends PureComponent {
 	static propTypes = {
 		/**
 		 * Collectible object (in this case ERC721 token)

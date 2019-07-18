@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Animated, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 /**
  * View that is displayed to first time (new) users
  */
-export default class FadeOutOverlay extends Component {
+export default class FadeOutOverlay extends PureComponent {
 	static propTypes = {
 		style: PropTypes.any,
 		duration: PropTypes.number

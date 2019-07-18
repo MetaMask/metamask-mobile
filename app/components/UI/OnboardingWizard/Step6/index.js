@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Platform, View, Text, StyleSheet } from 'react-native';
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-class Step6 extends Component {
+class Step6 extends PureComponent {
 	static propTypes = {
 		/**
 		 * Dispatch set onboarding wizard step

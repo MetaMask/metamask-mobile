@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, Platform } from 'react-native';
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-class Step1 extends Component {
+class Step1 extends PureComponent {
 	static propTypes = {
 		/**
 		 * Callback called when closing step

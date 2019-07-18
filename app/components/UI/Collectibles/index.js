@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, ScrollView, RefreshControl, FlatList, StyleSheet, Text, View } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
  * View that renders a list of Collectibles
  * also known as ERC-721 Tokens
  */
-export default class Collectibles extends Component {
+export default class Collectibles extends PureComponent {
 	static propTypes = {
 		/**
 		 * Navigation object required to push

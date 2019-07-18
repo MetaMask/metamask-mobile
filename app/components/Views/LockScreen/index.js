@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { StyleSheet, Dimensions, Animated, View, AppState, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 /**
  * Main view component for the Lock screen
  */
-export default class LockScreen extends Component {
+export default class LockScreen extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object

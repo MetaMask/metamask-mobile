@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import { fontStyles, colors } from '../../../../styles/common';
@@ -35,9 +35,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a receive action
+ * PureComponent that renders a receive action
  */
-export default class ReceiveRequestAction extends Component {
+export default class ReceiveRequestAction extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for the Transaction history
  */
-class TransactionsView extends Component {
+class TransactionsView extends PureComponent {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('transactions_view.title', navigation);
 
 	static propTypes = {

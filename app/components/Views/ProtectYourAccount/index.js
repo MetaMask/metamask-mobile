@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ScrollView, Text, View, SafeAreaView, StyleSheet, Platform } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
  * View that is displayed in the flow after detecting that
  * the user received funds for the first time
  */
-export default class ProtectYourAccount extends Component {
+export default class ProtectYourAccount extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

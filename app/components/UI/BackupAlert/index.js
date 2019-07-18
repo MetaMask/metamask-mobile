@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -37,10 +37,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders an alert shown when the
+ * PureComponent that renders an alert shown when the
  * seed phrase hasn't been backed up
  */
-export default class BackupAlert extends Component {
+export default class BackupAlert extends PureComponent {
 	static propTypes = {
 		/**
 		 * The action that will be triggered onPress

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Alert, ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 /**
  * View that displays all the active WalletConnect Sessions
  */
-export default class WalletConnectSessions extends Component {
+export default class WalletConnectSessions extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
 		getNavigationOptionsTitle(strings(`experimental_settings.wallet_connect_dapps`), navigation);
 

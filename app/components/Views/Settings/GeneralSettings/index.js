@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { StyleSheet, Text, ScrollView, View, Platform } from 'react-native';
 import { connect } from 'react-redux';
 
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for general app configurations
  */
-class Settings extends Component {
+class Settings extends PureComponent {
 	static propTypes = {
 		/**
 		/* State current currency
