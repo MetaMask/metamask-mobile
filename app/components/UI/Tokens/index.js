@@ -12,6 +12,7 @@ import Engine from '../../../core/Engine';
 import AssetElement from '../AssetElement';
 import FadeIn from 'react-native-fade-in-image';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -72,7 +73,7 @@ const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 /**
  * View that renders a list of ERC-20 Tokens
  */
-export default class Tokens extends PureComponent {
+class Tokens extends PureComponent {
 	static propTypes = {
 		/**
 		 * Navigation object required to push
@@ -226,3 +227,13 @@ export default class Tokens extends PureComponent {
 		);
 	};
 }
+
+const mapStateToProps = state => ({
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	primaryCurrency: state.settings.primaryCurrency,
+	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates
+});
+
+export default connect(mapStateToProps)(Tokens);
