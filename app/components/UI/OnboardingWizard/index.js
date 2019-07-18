@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
 	smallSkipWrapper: {
 		alignItems: 'center',
 		alignSelf: 'center',
-		bottom: Platform.OS === 'ios' ? 30 : 15
+		bottom: Platform.OS === 'ios' ? 30 : 35
 	},
 	largeSkipWrapper: {
 		alignItems: 'center',
