@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Animated, ViewPropTypes } from 'react-native';
 
@@ -6,7 +6,7 @@ import { Animated, ViewPropTypes } from 'react-native';
  * View that has the ability to fade in / out
  * his children by using the visible prop
  */
-export default class FadeView extends Component {
+export default class FadeView extends PureComponent {
 	static propTypes = {
 		/**
 		 * Determines to show / hide the children components

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	Clipboard,
 	ScrollView,
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
  * View that's shown during the last step of
  * the backup seed phrase flow
  */
-class AccountBackupStep6 extends Component {
+class AccountBackupStep6 extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

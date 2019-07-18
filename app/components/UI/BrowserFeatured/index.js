@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import dappList from '../../../util/featured-dapp-list';
 import FeaturedItem from './FeaturedItem';
 import PropTypes from 'prop-types';
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
 /**
  * Browser features dapps
  */
-export default class BrowserFeatured extends Component {
+export default class BrowserFeatured extends PureComponent {
 	static propTypes = {
 		/*
 		 * Function to be called when tapping on a favorite item

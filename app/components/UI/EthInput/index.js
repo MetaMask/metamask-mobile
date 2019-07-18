@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Keyboard, ScrollView, Platform, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -131,7 +131,7 @@ const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
 /**
  * Form component that allows users to type an amount of ETH and its fiat value is rendered dynamically
  */
-class EthInput extends Component {
+class EthInput extends PureComponent {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-class Step5 extends Component {
+class Step5 extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object that represents the navigator

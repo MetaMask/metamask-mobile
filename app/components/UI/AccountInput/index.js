@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
  * ComboBox form component allowing address input with auto-completion based on
  * the current keychain's accounts
  */
-class AccountInput extends Component {
+class AccountInput extends PureComponent {
 	static propTypes = {
 		/**
 		 * List of accounts from the PreferencesController

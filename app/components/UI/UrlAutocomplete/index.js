@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { TouchableWithoutFeedback, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import dappUrlList from '../../../util/dapp-url-list';
@@ -52,10 +52,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders an autocomplete
+ * PureComponent that renders an autocomplete
  * based on an input string
  */
-class UrlAutocomplete extends Component {
+class UrlAutocomplete extends PureComponent {
 	static propTypes = {
 		/**
 		 * input text for the autocomplete

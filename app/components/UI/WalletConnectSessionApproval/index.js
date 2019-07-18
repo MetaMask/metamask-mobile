@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View } from 'react-native';
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
 /**
  * WalletConnect request approval component
  */
-class WalletConnectSessionApproval extends Component {
+class WalletConnectSessionApproval extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object containing current page title, url, and icon href

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import ActionView from '../ActionView';
 import Identicon from '../Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -113,9 +113,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports reviewing a transaction
+ * PureComponent that supports reviewing a transaction
  */
-class TransactionReview extends Component {
+class TransactionReview extends PureComponent {
 	static propTypes = {
 		/**
 		/* Identities object required to get account name

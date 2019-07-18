@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Animated, View, Text, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default class Coachmark extends Component {
+export default class Coachmark extends PureComponent {
 	static propTypes = {
 		/**
 		 * Custom coachmark style to apply

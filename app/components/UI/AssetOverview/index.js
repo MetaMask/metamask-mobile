@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import AssetIcon from '../AssetIcon';
@@ -56,7 +56,7 @@ const ethLogo = require('../../../images/eth-logo.png'); // eslint-disable-line
  * View that displays the information of a specific asset (Token or ETH)
  * including the overview (Amount, Balance, Symbol, Logo)
  */
-class AssetOverview extends Component {
+class AssetOverview extends PureComponent {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances

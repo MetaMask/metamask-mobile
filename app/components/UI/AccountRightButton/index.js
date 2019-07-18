@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
@@ -17,10 +17,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * UI Component that renders on the top right of the navbar
+ * UI PureComponent that renders on the top right of the navbar
  * showing an identicon for the selectedAddress
  */
-class AccountRightButton extends Component {
+class AccountRightButton extends PureComponent {
 	static propTypes = {
 		/**
 		 * Selected address as string

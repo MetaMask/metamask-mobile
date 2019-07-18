@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TextInput } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports reviewing transaction data
+ * PureComponent that supports reviewing transaction data
  */
-class TransactionReviewData extends Component {
+class TransactionReviewData extends PureComponent {
 	static propTypes = {
 		/**
 		 * Transaction object associated with this transaction

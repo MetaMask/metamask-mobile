@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { baseStyles, colors, fontStyles } from '../../../styles/common';
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 /**
  * Componets that allows to select clicking two options
  */
-export default class PickComponent extends Component {
+export default class PickComponent extends PureComponent {
 	static propTypes = {
 		/**
 		 * Callback to pick an option

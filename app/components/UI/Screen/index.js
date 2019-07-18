@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, SafeAreaView, StatusBar, View } from 'react-native';
 import { colors, baseStyles } from '../../../styles/common';
 /**
  * Base view component providing consistent styling meant to wrap other views
  */
-export default class Screen extends Component {
+export default class Screen extends PureComponent {
 	static propTypes = {
 		/**
 		 * Content to wrap inside this view

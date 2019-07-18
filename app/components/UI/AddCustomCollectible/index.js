@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Platform, Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
@@ -32,9 +32,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that provides ability to add custom collectibles.
+ * PureComponent that provides ability to add custom collectibles.
  */
-class AddCustomCollectible extends Component {
+class AddCustomCollectible extends PureComponent {
 	state = {
 		address: '',
 		tokenId: '',
