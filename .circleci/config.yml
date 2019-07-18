@@ -141,7 +141,7 @@ jobs:
           destination: builds
       - store_artifacts:
           path: sourcemaps/android
-          destination: sourcemaps
+          destination: sourcemaps-android
       - run:
           name: Announcing pre-release
           command: npm run build:announce
@@ -162,7 +162,7 @@ jobs:
           command: npm run build:ios:pre-release
       - store_artifacts:
           path: sourcemaps/ios
-          destination: sourcemaps
+          destination: sourcemaps-ios
 workflows:
   version: 2
   full_test:
