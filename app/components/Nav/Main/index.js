@@ -135,6 +135,17 @@ const MainNavigator = createStackNavigator(
 						TransactionsView: {
 							screen: TransactionsView
 						}
+					}),
+					PaymentChannelHome: createStackNavigator({
+						PaymentChannelView: {
+							screen: PaymentChannel
+						},
+						PaymentChannelDeposit: {
+							screen: PaymentChannelDeposit
+						},
+						PaymentChannelSend: {
+							screen: PaymentChannelSend
+						}
 					})
 				},
 				{
@@ -149,24 +160,6 @@ const MainNavigator = createStackNavigator(
 				{
 					SimpleWebview: {
 						screen: SimpleWebview
-					}
-				},
-				{
-					mode: 'modal'
-				}
-			)
-		},
-		PaymentChannelView: {
-			screen: createStackNavigator(
-				{
-					PaymentChannel: {
-						screen: PaymentChannel
-					},
-					PaymentChannelDeposit: {
-						screen: PaymentChannelDeposit
-					},
-					PaymentChannelSend: {
-						screen: PaymentChannelSend
 					}
 				},
 				{

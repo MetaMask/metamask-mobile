@@ -29,7 +29,6 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DeviceSize from '../../../util/DeviceSize';
 import { showAlert } from '../../../actions/alert';
-import GlobalAlert from '../GlobalAlert';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 
 const TOTAL_PADDING = 64;
@@ -335,7 +334,6 @@ class ReceiveRequest extends Component {
 								<Text style={styles.address}>{this.props.selectedAddress}</Text>
 							</TouchableOpacity>
 						</View>
-						<GlobalAlert />
 					</View>
 				</Modal>
 				<Modal
