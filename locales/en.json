@@ -27,7 +27,7 @@
 		},
 		"step1": {
 			"title": "Welcome to your new wallet!",
-			"content1": "To use the blockchain, you need a wallet! some actions cost Ether (ETH).",
+			"content1": "To use the blockchain, you need a wallet! Some actions cost Ether (ETH).",
 			"content2": "We'll show you how to buy ETH, or you can request some from a friend."
 		},
 		"step2": {
@@ -289,7 +289,7 @@
 		"save_rpc_url": "SAVE",
 		"invalid_rpc_prefix": "URIs require the appropriate HTTPS prefix",
 		"invalid_rpc_url": "Invalid RPC URL",
-		"sync_with_extension": "Sync with Metamask Extension",
+		"sync_with_extension": "Sync with MetaMask Extension",
 		"sync_with_extension_desc": "This will import all extension accounts to this device.",
 		"sync": "SYNC",
 		"clear_approved_dapps": "CLEAR APPROVED DAPPS",
@@ -347,7 +347,9 @@
 		"clear_privacy_desc": "Clear privacy data so all websites must request access to view account information again.",
 		"clear_history_desc": "Choose this option to clear your entire browsing history.",
 		"metametrics_title": "Participate in MetaMetrics",
-		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better."
+		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
+		"metametrics_opt_out": "MetaMetrics Opt-out",
+		"metrametrics_restart_required": "You need to restart the app for the changes to take effect."
 	},
 	"app_information": {
 		"title": "Information",

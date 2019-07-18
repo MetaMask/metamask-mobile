@@ -951,6 +951,7 @@ class DrawerView extends Component {
 				<Modal
 					isVisible={this.props.networkModalVisible}
 					onBackdropPress={this.toggleNetworksModal}
+					onBackButtonPress={this.toggleNetworksModal}
 					onSwipeComplete={this.toggleNetworksModal}
 					swipeDirection={'down'}
 					propagateSwipe
@@ -961,6 +962,7 @@ class DrawerView extends Component {
 					isVisible={this.props.accountsModalVisible}
 					style={styles.bottomModal}
 					onBackdropPress={this.toggleAccountsModal}
+					onBackButtonPress={this.toggleAccountsModal}
 					onSwipeComplete={this.toggleAccountsModal}
 					swipeDirection={'down'}
 					propagateSwipe
@@ -994,6 +996,7 @@ class DrawerView extends Component {
 				<Modal
 					isVisible={this.props.receiveModalVisible}
 					onBackdropPress={this.toggleReceiveModal}
+					onBackButtonPress={this.toggleReceiveModal}
 					onSwipeComplete={this.toggleReceiveModal}
 					swipeDirection={'down'}
 					propagateSwipe
