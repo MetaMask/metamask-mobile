@@ -80,7 +80,8 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		top: 0,
-		position: 'absolute'
+		position: 'absolute',
+		zIndex: 999999
 	},
 	loader: {
 		backgroundColor: colors.white,
