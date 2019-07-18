@@ -14,9 +14,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		position: 'absolute'
 	},
-	some: {
-		marginHorizontal: 45
-	},
 	coachmarkContainer: {
 		flex: 1,
 		left: 0,
@@ -147,7 +144,7 @@ class Step3 extends Component {
 						content={this.content()}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						style={styles.some}
+						style={onboardingStyles.coachmark}
 						topIndicatorPosition={'topCenter'}
 						currentStep={2}
 					/>

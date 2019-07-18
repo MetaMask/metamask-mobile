@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
 	},
 	closeIcon: {
 		position: 'absolute',
-		right: Platform.OS === 'ios' ? -40 : -50,
+		right: DeviceSize.isSmallDevice() ? (Platform.OS === 'ios' ? -30 : -30) : Platform.OS === 'ios' ? -40 : -50,
 		bottom: Platform.OS === 'ios' ? 8 : 10
 	},
 	titleWrapper: {

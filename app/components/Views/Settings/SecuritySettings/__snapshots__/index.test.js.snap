@@ -358,7 +358,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Show Private Key for Account 1
+        Show Private Key for "Account 1"
       </Text>
       <Text
         style={
