@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
 /**
  * View that is displayed to first time (new) users
  */
-class Onboarding extends Component {
+class Onboarding extends PureComponent {
 	static navigationOptions = () => ({
 		header: null
 	});

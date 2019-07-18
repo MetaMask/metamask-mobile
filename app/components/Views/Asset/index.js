@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ActivityIndicator, InteractionManager, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
  * including the overview (Amount, Balance, Symbol, Logo)
  * and also the transaction list
  */
-class Asset extends Component {
+class Asset extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to access the props

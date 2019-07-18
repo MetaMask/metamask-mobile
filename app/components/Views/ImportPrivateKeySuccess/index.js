@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { TouchableOpacity, ScrollView, Text, View, StyleSheet, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 /**
  * View that's displayed the first time a user receives funds
  */
-class ImportPrivateKeySuccess extends Component {
+class ImportPrivateKeySuccess extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

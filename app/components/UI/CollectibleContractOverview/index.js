@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
  * View that displays a specific collectible contract
  * including the overview (name, address, symbol, logo, description, total supply)
  */
-class CollectibleContractOverview extends Component {
+class CollectibleContractOverview extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object that represents the asset to be displayed

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 /**
  * View that displays the information of a specific ERC-721 Token
  */
-export default class CollectibleOverview extends Component {
+export default class CollectibleOverview extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object that represents the collectible to be displayed

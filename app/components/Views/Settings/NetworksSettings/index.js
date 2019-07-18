@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { StyleSheet, Text, ScrollView, TouchableOpacity, View, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for app configurations
  */
-class NetworksSettings extends Component {
+class NetworksSettings extends PureComponent {
 	static propTypes = {
 		/**
 		 * A list of custom RPCs to provide the user

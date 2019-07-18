@@ -1,5 +1,5 @@
 'use strict';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, Image, Text, View, StyleSheet, Platform } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { colors } from '../../../styles/common';
@@ -57,7 +57,7 @@ const astronautImage = require('../../../images/astronaut.png'); // eslint-disab
 /**
  * View that wraps the Offline mode screen
  */
-export default class OfflineMode extends Component {
+export default class OfflineMode extends PureComponent {
 	static navigationOptions = ({ navigation }) => getOfflineModalNavbar(navigation);
 
 	static propTypes = {

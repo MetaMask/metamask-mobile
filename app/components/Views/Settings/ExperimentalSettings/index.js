@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Alert, Platform, Switch, StyleSheet, Text, ScrollView, View } from 'react-native';
 import { connect } from 'react-redux';
 import StyledButton from '../../../UI/StyledButton';
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for app Experimental Settings
  */
-class ExperimentalSettings extends Component {
+class ExperimentalSettings extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push new views

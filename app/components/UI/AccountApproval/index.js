@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, InteractionManager } from 'react-native';
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
 /**
  * Account access approval component
  */
-class AccountApproval extends Component {
+class AccountApproval extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object containing current page title, url, and icon href

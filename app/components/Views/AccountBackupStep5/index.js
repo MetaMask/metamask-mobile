@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	InteractionManager,
 	ScrollView,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
  * View that's shown during the fifth step of
  * the backup seed phrase flow
  */
-class AccountBackupStep5 extends Component {
+class AccountBackupStep5 extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

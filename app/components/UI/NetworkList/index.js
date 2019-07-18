@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
 /**
  * View that contains the list of all the available networks
  */
-export class NetworkList extends Component {
+export class NetworkList extends PureComponent {
 	static propTypes = {
 		/**
 		 * An function to handle the close event

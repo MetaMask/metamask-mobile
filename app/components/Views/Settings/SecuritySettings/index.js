@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Alert, StyleSheet, Switch, Text, ScrollView, Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for app configurations
  */
-class Settings extends Component {
+class Settings extends PureComponent {
 	static propTypes = {
 		/**
 		 * Indicates whether privacy mode is enabled

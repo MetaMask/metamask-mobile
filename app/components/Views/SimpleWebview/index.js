@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { View, Platform } from 'react-native';
 import Web3Webview from 'react-native-web3-webview';
@@ -8,7 +8,7 @@ import Logger from '../../../util/Logger';
 import AndroidBackHandler from '../AndroidBackHandler';
 import { baseStyles } from '../../../styles/common';
 
-export default class SimpleWebview extends Component {
+export default class SimpleWebview extends PureComponent {
 	static navigationOptions = ({ navigation }) => getWebviewNavbar(navigation);
 
 	static propTypes = {

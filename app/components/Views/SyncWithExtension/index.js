@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Alert, ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -60,7 +60,7 @@ const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-not
  * View that initiates the sync process with
  * the MetaMask extension
  */
-class SyncWithExtension extends Component {
+class SyncWithExtension extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object

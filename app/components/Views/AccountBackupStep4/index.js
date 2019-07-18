@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	ActivityIndicator,
 	ScrollView,
@@ -137,7 +137,7 @@ const CONFIRM_PASSWORD = 'confirm_password';
  * View that's shown during the fourth step of
  * the backup seed phrase flow
  */
-export default class AccountBackupStep4 extends Component {
+export default class AccountBackupStep4 extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

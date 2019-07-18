@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Engine from '../../../core/Engine';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Identicon from '../Identicon';
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
 /**
  * View that contains the list of all the available accounts
  */
-export default class AccountList extends Component {
+export default class AccountList extends PureComponent {
 	static propTypes = {
 		/**
 		 * Map of accounts to information objects including balances
