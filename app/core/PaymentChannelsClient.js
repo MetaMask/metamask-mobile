@@ -74,7 +74,8 @@ class PaymentChannelsClient {
 			withdrawalPending: false,
 			withdrawalPendingValue: undefined,
 			blocked: false,
-			transactions: []
+			transactions: [],
+			swapPending: false
 		};
 	}
 
@@ -255,6 +256,7 @@ class PaymentChannelsClient {
 			await this.autoSwap();
 		} catch (e) {
 			Logger.error('PC::autoswap', e);
+			this.setState({ swapPending: false });
 		}
 		setTimeout(() => {
 			this.pollAndSwap();
@@ -263,13 +265,15 @@ class PaymentChannelsClient {
 
 	async autoSwap() {
 		const { channelState, connextState } = this.state;
-		if (!connextState || hasPendingOps(channelState)) {
+		if (!connextState || hasPendingOps(channelState) || this.state.swapPending) {
 			return;
 		}
 		const weiBalance = toBN(channelState.balanceWeiUser);
 		const tokenBalance = toBN(channelState.balanceTokenUser);
 		if (channelState && weiBalance.gt(toBN('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
+			this.setState({ swapPending: true });
 			await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
+			this.setState({ swapPending: false });
 		}
 	}
 
