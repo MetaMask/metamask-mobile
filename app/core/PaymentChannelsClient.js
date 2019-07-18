@@ -216,7 +216,7 @@ class PaymentChannelsClient {
 					ready: true
 				});
 				if (state.runtime.channelStatus === 'CS_CHAINSAW_ERROR') {
-					hub.emit('state::cs_chainsaw_error');
+					hub.emit('state::cs_chainsaw_error', { channelState: state.persistent.channel });
 				}
 			} catch (e) {
 				Logger.error('PC::onStateChange', e);

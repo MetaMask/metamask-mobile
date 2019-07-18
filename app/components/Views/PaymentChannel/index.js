@@ -290,11 +290,13 @@ class PaymentChannel extends Component {
 		}
 	}
 
-	handleChainsawError = () => {
+	handleChainsawError = ({ channelState }) => {
 		if (this.props.isFocused) {
 			!this.state.connextStateDisabled &&
 				Alert.alert(strings('payment_channel.error_title'), strings('payment_channel.error_desc'));
 			this.setState({ connextStateDisabled: true });
+			Logger.log('InstaPay:ChainSawError', channelState);
+			Logger.error('InstaPay:ChainSawError');
 		}
 	};
 
