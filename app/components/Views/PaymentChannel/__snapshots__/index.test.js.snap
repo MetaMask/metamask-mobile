@@ -15,6 +15,7 @@ exports[`PaymentChannel should render correctly 1`] = `
   }
   selectedAddress="0x1"
   setPaymentChannelTransaction={[Function]}
+  showAlert={[Function]}
   transactions={Array []}
 />
 `;
