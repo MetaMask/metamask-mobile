@@ -235,12 +235,14 @@ export async function getTransactionActionKey(transaction) {
  * Returns corresponding transaction type message to show in UI
  *
  * @param {object} tx - Transaction object
- * @param {selectedAddress} selectedAddress - Current account public address
+ * @param {string} selectedAddress - Current account public address
+ * @param {bool} paymentChannelTransaction - Whether is a payment channel transaction
  * @returns {string} - Transaction type message
  */
-export async function getActionKey(tx, selectedAddress, ticker) {
+export async function getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction) {
 	const actionKey = await getTransactionActionKey(tx);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
+		ticker = paymentChannelTransaction ? strings('unit.dai') : ticker;
 		const incoming = toChecksumAddress(tx.transaction.to) === toChecksumAddress(selectedAddress);
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === toChecksumAddress(selectedAddress);
 		return incoming
