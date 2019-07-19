@@ -49,10 +49,6 @@ class Approval extends PureComponent {
 		 */
 		transactions: PropTypes.array,
 		/**
-		 * Map representing the address book
-		 */
-		addressBook: PropTypes.object,
-		/**
 		 * A string representing the network name
 		 */
 		networkType: PropTypes.string
@@ -152,20 +148,13 @@ class Approval extends PureComponent {
 	 * Callback on confirm transaction
 	 */
 	onConfirm = async () => {
-		const { TransactionController, AddressBookController } = Engine.context;
-		const { transactions, addressBook } = this.props;
+		const { TransactionController } = Engine.context;
+		const { transactions } = this.props;
 		let { transaction } = this.props;
 		try {
 			transaction = this.prepareTransaction(transaction);
 
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
-				// Add to the AddressBook if it's an unkonwn address
-				const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-				const existingContact = addressBook[checksummedAddress];
-				if (!existingContact) {
-					AddressBookController.set(checksummedAddress, '');
-				}
-
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();
