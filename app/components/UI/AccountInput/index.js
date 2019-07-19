@@ -223,7 +223,7 @@ class AccountInput extends PureComponent {
 		const { address } = this.state;
 		try {
 			const resolvedAddress = await this.ens.lookup(recipient.trim());
-			if (address !== ZERO_ADDRESS && resolvedAddress !== address) {
+			if (address !== ZERO_ADDRESS && isValidAddress(resolvedAddress)) {
 				this.setState({ address: resolvedAddress, ensRecipient: recipient });
 				return true;
 			}
@@ -314,7 +314,10 @@ class AccountInput extends PureComponent {
 					filteredAddresses[address] = allAddresses[address];
 				}
 			});
-			return filteredAddresses;
+
+			if (filteredAddresses.length > 0) {
+				return filteredAddresses;
+			}
 		}
 		return allAddresses;
 	};
@@ -366,6 +369,10 @@ class AccountInput extends PureComponent {
 		});
 	};
 
+	closeDropdown = () => {
+		// nice to have
+	};
+
 	render = () => {
 		const { value, ensRecipient, address } = this.state;
 		const { placeholder, isOpen } = this.props;
@@ -391,6 +398,7 @@ class AccountInput extends PureComponent {
 								numberOfLines={1}
 								onBlur={this.onBlur}
 								onFocus={this.onInputFocus}
+								onSubmitEditing={this.onFocus}
 							/>
 							<View style={styles.ensView}>
 								{ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
