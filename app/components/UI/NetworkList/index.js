@@ -143,19 +143,21 @@ export class NetworkList extends PureComponent {
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
-	onNetworkChange = async type => {
+	onNetworkChange = type => {
 		const { provider } = this.props;
-		this.props.onClose(false);
-		InteractionManager.runAfterInteractions(() => {
-			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.configure({ nativeCurrency: 'ETH' });
-			NetworkController.setProviderType(type);
-			setTimeout(() => {
-				Engine.refreshTransactionHistory();
-			}, 1000);
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
-				'From Network': provider.type,
-				'To Network': type
+		requestAnimationFrame(() => {
+			this.props.onClose(false);
+			InteractionManager.runAfterInteractions(() => {
+				const { NetworkController, CurrencyRateController } = Engine.context;
+				CurrencyRateController.configure({ nativeCurrency: 'ETH' });
+				NetworkController.setProviderType(type);
+				setTimeout(() => {
+					Engine.refreshTransactionHistory();
+				}, 1000);
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
+					'From Network': provider.type,
+					'To Network': type
+				});
 			});
 		});
 	};
