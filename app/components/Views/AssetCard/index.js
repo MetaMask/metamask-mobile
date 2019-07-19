@@ -31,7 +31,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		fontSize: 10,
 		color: colors.grey500,
-		marginBottom: 20
+		marginBottom: 10,
+		textAlign: 'center'
 	},
 	descriptionWrapper: {
 		flex: 1,
