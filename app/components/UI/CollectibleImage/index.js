@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
-import Image from 'react-native-remote-svg';
+import { StyleSheet, View, Image } from 'react-native';
+import SvgImage from 'react-native-remote-svg';
 import Identicon from '../Identicon';
 import { colors } from '../../../styles/common';
 
@@ -46,6 +46,18 @@ export default class CollectibleImage extends PureComponent {
 		renderFull: PropTypes.bool
 	};
 
+	state = {
+		fallbackImage: null
+	};
+
+	fallback = () => {
+		const {
+			collectible: { address, tokenId }
+		} = this.props;
+
+		this.setState({ fallbackImage: `https://storage.opensea.io/${address.toLowerCase()}/${tokenId}.png` });
+	};
+
 	render = () => {
 		const {
 			collectible: { image, address, tokenId },
@@ -53,15 +65,20 @@ export default class CollectibleImage extends PureComponent {
 			containerStyle,
 			iconStyle
 		} = this.props;
+
+		const isSVG = image && image.substr(-3) === 'svg';
+		const ImageComponent = isSVG ? SvgImage : Image;
+
 		return (
 			<View style={renderFull ? styles.fullWrapper : [styles.listWrapper, containerStyle]}>
 				{image && image.length !== 0 ? (
-					<Image
+					<ImageComponent
 						fadeIn
 						resizeMode={'contain'}
 						placeholderStyle={{ backgroundColor: colors.white }}
-						source={{ uri: image }}
+						source={{ uri: this.state.fallbackImage || image }}
 						style={renderFull ? styles.fullImage : [styles.listImage, iconStyle]}
+						onError={this.fallback}
 					/>
 				) : (
 					<Identicon address={address + tokenId} customStyle={iconStyle} />
