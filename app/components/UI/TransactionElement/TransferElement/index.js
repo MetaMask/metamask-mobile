@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { colors } from '../../../../styles/common';
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 /**
  * View that renders a transfer transaction item, part of transactions list
  */
-export default class TransferElement extends Component {
+export default class TransferElement extends PureComponent {
 	static propTypes = {
 		/**
 		 * Transaction object

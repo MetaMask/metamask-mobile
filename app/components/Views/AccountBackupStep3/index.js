@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ScrollView, Alert, Text, TouchableOpacity, View, SafeAreaView, StyleSheet } from 'react-native';
 
 import PropTypes from 'prop-types';
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
  * View that's shown during the third step of
  * the backup seed phrase flow
  */
-export default class AccountBackupStep3 extends Component {
+export default class AccountBackupStep3 extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views

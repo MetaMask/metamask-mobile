@@ -1,15 +1,15 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
 import ProgressBar from 'react-native-progress/Bar';
 import FadeView from '../FadeView';
 
 /**
- * Component that wraps the ProgressBar
+ * PureComponent that wraps the ProgressBar
  * and allows to fade it in / out
  * via the boolean prop visible
  */
-export default class WebviewProgressBar extends Component {
+export default class WebviewProgressBar extends PureComponent {
 	state = {
 		visible: true
 	};

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View } from 'react-native';
@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports reviewing a transaction information
+ * PureComponent that supports reviewing a transaction information
  */
-class TransactionReviewInformation extends Component {
+class TransactionReviewInformation extends PureComponent {
 	static propTypes = {
 		/**
 		 * ETH to current currency conversion rate

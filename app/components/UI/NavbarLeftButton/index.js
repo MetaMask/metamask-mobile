@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TouchableOpacity, StyleSheet } from 'react-native';
@@ -13,10 +13,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * UI Component that renders on the top left of the navbar
+ * UI PureComponent that renders on the top left of the navbar
  * showing an identicon for the selectedAddress
  */
-class NavbarLeftButton extends Component {
+class NavbarLeftButton extends PureComponent {
 	static propTypes = {
 		/**
 		 * Selected address as string

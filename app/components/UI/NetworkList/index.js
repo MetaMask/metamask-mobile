@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
 /**
  * View that contains the list of all the available networks
  */
-export class NetworkList extends Component {
+export class NetworkList extends PureComponent {
 	static propTypes = {
 		/**
 		 * An function to handle the close event
@@ -143,19 +143,21 @@ export class NetworkList extends Component {
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
-	onNetworkChange = async type => {
+	onNetworkChange = type => {
 		const { provider } = this.props;
-		this.props.onClose(false);
-		InteractionManager.runAfterInteractions(() => {
-			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.configure({ nativeCurrency: 'ETH' });
-			NetworkController.setProviderType(type);
-			setTimeout(() => {
-				Engine.refreshTransactionHistory();
-			}, 1000);
-			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
-				'From Network': provider.type,
-				'To Network': type
+		requestAnimationFrame(() => {
+			this.props.onClose(false);
+			InteractionManager.runAfterInteractions(() => {
+				const { NetworkController, CurrencyRateController } = Engine.context;
+				CurrencyRateController.configure({ nativeCurrency: 'ETH' });
+				NetworkController.setProviderType(type);
+				setTimeout(() => {
+					Engine.refreshTransactionHistory();
+				}, 1000);
+				Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.COMMON_SWITCHED_NETWORKS, {
+					'From Network': provider.type,
+					'To Network': type
+				});
 			});
 		});
 	};

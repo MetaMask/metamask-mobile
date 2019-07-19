@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View, TextInput, SafeAreaView, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
@@ -81,7 +81,7 @@ const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
 /**
  * Main view for app configurations
  */
-class NetworkSettings extends Component {
+class NetworkSettings extends PureComponent {
 	static propTypes = {
 		/**
 		 * A list of custom RPCs to provide the user

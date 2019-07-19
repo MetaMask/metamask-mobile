@@ -407,7 +407,9 @@
 		"allow_camera_dialog_message": "We need your permission to scan QR codes",
 		"scanning": "scanning...",
 		"ok": "Ok",
-		"cancel": "Cancel"
+		"cancel": "Cancel",
+		"error": "Error",
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do that, Please go to Settings > Advanced > Sync with MetaMask Extension"
 	},
 	"action_view": {
 		"cancel": "Cancel",
@@ -898,7 +900,7 @@
 		"no_funds_desc": "Deposit ETH into your InstaPay card to start making instant free payments with DAI.",
 		"confirm": "Confirm",
 		"cancel": "Cancel",
-		"asset_card_desc": "Free Transactions with Connext Payment Channels",
+		"asset_card_desc": "Free Transactions with Connext Payment Channels.\n This is a beta feature. For help, email support@metamask.io",
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",

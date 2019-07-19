@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { InteractionManager, SafeAreaView, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
 /**
  * View that wraps the wraps the "Send" screen
  */
-class Send extends Component {
+class Send extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('send.title', navigation);
 
 	static propTypes = {
@@ -73,7 +73,7 @@ class Send extends Component {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array
+		addressBook: PropTypes.object
 	};
 
 	state = {
@@ -377,9 +377,7 @@ class Send extends Component {
 
 			// Add to the AddressBook if it's an unkonwn address
 			const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-			const existingContact = addressBook.find(
-				({ address }) => toChecksumAddress(address) === checksummedAddress
-			);
+			const existingContact = addressBook[checksummedAddress];
 			if (!existingContact) {
 				AddressBookController.set(checksummedAddress, '');
 			}

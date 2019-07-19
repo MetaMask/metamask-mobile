@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -26,9 +26,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that manages transaction approval from the dapp browser
+ * PureComponent that manages transaction approval from the dapp browser
  */
-class Approval extends Component {
+class Approval extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('approval.title', navigation);
 
 	static propTypes = {
@@ -51,7 +51,7 @@ class Approval extends Component {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array,
+		addressBook: PropTypes.object,
 		/**
 		 * A string representing the network name
 		 */
@@ -161,9 +161,7 @@ class Approval extends Component {
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				// Add to the AddressBook if it's an unkonwn address
 				const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-				const existingContact = addressBook.find(
-					({ address }) => toChecksumAddress(address) === checksummedAddress
-				);
+				const existingContact = addressBook[checksummedAddress];
 				if (!existingContact) {
 					AddressBookController.set(checksummedAddress, '');
 				}

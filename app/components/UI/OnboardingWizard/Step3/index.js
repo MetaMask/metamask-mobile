@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Platform, Text, View, StyleSheet } from 'react-native';
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-class Step3 extends Component {
+class Step3 extends PureComponent {
 	static propTypes = {
 		/**
 		 * String that represents the selected address

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
@@ -83,7 +83,7 @@ const PRIVACY_POLICY = 'https://metamask.io/privacy.html';
 /**
  * View that is displayed in the flow to agree to metrics
  */
-class OptinMetrics extends Component {
+class OptinMetrics extends PureComponent {
 	static navigationOptions = () => getOptinMetricsNavbarOptions();
 
 	static propTypes = {

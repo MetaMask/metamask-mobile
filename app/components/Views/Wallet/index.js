@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -11,7 +11,6 @@ import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
-import { showAlert } from '../../../actions/alert';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
@@ -46,7 +45,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for the wallet
  */
-class Wallet extends Component {
+class Wallet extends PureComponent {
 	static navigationOptions = ({ navigation }) => getWalletNavbarOptions('wallet.title', navigation);
 
 	static propTypes = {
@@ -79,25 +78,9 @@ class Wallet extends Component {
 		 */
 		tokens: PropTypes.array,
 		/**
-		 * An object containing token balances for current account and network in the format address => balance
-		 */
-		tokenBalances: PropTypes.object,
-		/**
-		 * An object containing token exchange rates in the format address => exchangeRate
-		 */
-		tokenExchangeRates: PropTypes.object,
-		/**
 		 * An array that represents the user collectibles
 		 */
 		collectibles: PropTypes.array,
-		/**
-		 * Action that shows the global alert
-		 */
-		showAlert: PropTypes.func.isRequired,
-		/**
-		 * Primary currency, either ETH or Fiat
-		 */
-		primaryCurrency: PropTypes.string,
 		/**
 		 * Current provider ticker
 		 */
@@ -124,27 +107,29 @@ class Wallet extends Component {
 	}
 
 	componentDidMount() {
-		InteractionManager.runAfterInteractions(() => {
+		requestAnimationFrame(() => {
 			this.init();
 		});
 	}
 
 	onRefresh = async () => {
-		this.setState({ refreshing: true });
-		const {
-			AssetsDetectionController,
-			AccountTrackerController,
-			CurrencyRateController,
-			TokenRatesController
-		} = Engine.context;
-		const actions = [
-			AssetsDetectionController.detectAssets(),
-			AccountTrackerController.refresh(),
-			CurrencyRateController.poll(),
-			TokenRatesController.poll()
-		];
-		await Promise.all(actions);
-		this.setState({ refreshing: false });
+		requestAnimationFrame(async () => {
+			this.setState({ refreshing: true });
+			const {
+				AssetsDetectionController,
+				AccountTrackerController,
+				CurrencyRateController,
+				TokenRatesController
+			} = Engine.context;
+			const actions = [
+				AssetsDetectionController.detectAssets(),
+				AccountTrackerController.refresh(),
+				CurrencyRateController.poll(),
+				TokenRatesController.poll()
+			];
+			await Promise.all(actions);
+			this.setState({ refreshing: false });
+		});
 	};
 
 	componentWillUnmount() {
@@ -186,12 +171,8 @@ class Wallet extends Component {
 			identities,
 			selectedAddress,
 			tokens,
-			tokenBalances,
-			tokenExchangeRates,
 			collectibles,
 			navigation,
-			showAlert,
-			primaryCurrency,
 			ticker
 		} = this.props;
 
@@ -220,28 +201,13 @@ class Wallet extends Component {
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		return (
 			<View style={styles.wrapper}>
-				<AccountOverview
-					account={account}
-					navigation={navigation}
-					showAlert={showAlert}
-					currentCurrency={currentCurrency}
-					onRef={this.onRef}
-				/>
+				<AccountOverview account={account} navigation={navigation} onRef={this.onRef} />
 				<ScrollableTabView
 					renderTabBar={this.renderTabBar}
 					// eslint-disable-next-line react/jsx-no-bind
 					onChangeTab={obj => this.onChangeTab(obj)}
 				>
-					<Tokens
-						navigation={navigation}
-						tabLabel={strings('wallet.tokens')}
-						tokens={assets}
-						currentCurrency={currentCurrency}
-						conversionRate={conversionRate}
-						primaryCurrency={primaryCurrency}
-						tokenBalances={tokenBalances}
-						tokenExchangeRates={tokenExchangeRates}
-					/>
+					<Tokens navigation={navigation} tabLabel={strings('wallet.tokens')} tokens={assets} />
 					<CollectibleContracts
 						navigation={navigation}
 						tabLabel={strings('wallet.collectibles')}
@@ -293,20 +259,10 @@ const mapStateToProps = state => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	collectibles: state.engine.backgroundState.AssetsController.collectibles,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	wizardStep: state.wizard.step
 });
 
-const mapDispatchToProps = dispatch => ({
-	showAlert: config => dispatch(showAlert(config))
-});
-
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(Wallet);
+export default connect(mapStateToProps)(Wallet);

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
@@ -77,9 +77,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders watch asset content
+ * PureComponent that renders watch asset content
  */
-class WatchAssetRequest extends Component {
+class WatchAssetRequest extends PureComponent {
 	static propTypes = {
 		/**
 		 * Callback triggered when this message signature is rejected

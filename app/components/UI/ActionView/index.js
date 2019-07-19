@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders scrollable content above configurable buttons
+ * PureComponent that renders scrollable content above configurable buttons
  */
 export default function ActionView({
 	cancelTestID,

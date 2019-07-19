@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
 
@@ -26,7 +26,7 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
  * View component that displays the MetaMask fox
  * in the middle of the screen
  */
-export default class FoxScreen extends Component {
+export default class FoxScreen extends PureComponent {
 	render = () => (
 		<View style={styles.wrapper} testID={'fox-screen'}>
 			<Image source={foxImage} style={styles.image} resizeMethod={'auto'} />

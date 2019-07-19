@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for app configurations
  */
-class AdvancedSettings extends Component {
+class AdvancedSettings extends PureComponent {
 	static propTypes = {
 		/**
 		 * A string that of the chosen ipfs gateway
