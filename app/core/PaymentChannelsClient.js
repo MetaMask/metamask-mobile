@@ -275,6 +275,7 @@ class PaymentChannelsClient {
 	async autoSwap() {
 		const { channelState, connextState } = this.state;
 		if (!connextState || hasPendingOps(channelState) || this.state.swapPending) {
+			this.logCurrentState('PC::autoswap');
 			return;
 		}
 		const weiBalance = toBN(channelState.balanceWeiUser);
@@ -376,7 +377,7 @@ class PaymentChannelsClient {
 			await connext.deposit(data);
 			this.setState({ depositPending: true });
 		} catch (e) {
-			this.logCurrentState('PC::deposit');
+			this.logCurrentState('PC::deposit::exception');
 			Logger.error('PC::deposit', e);
 			throw e;
 		}
