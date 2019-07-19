@@ -41,6 +41,7 @@ const styles = StyleSheet.create({
 	tokenId: {
 		fontSize: 12,
 		marginTop: 4,
+		marginRight: 8,
 		color: colors.grey400,
 		...fontStyles.normal
 	}
@@ -125,7 +126,7 @@ export default class Collectibles extends PureComponent {
 				<CollectibleImage collectible={item} />
 				<View style={styles.rows}>
 					<Text style={styles.name}>{item.name}</Text>
-					<Text style={styles.tokenId}>
+					<Text style={styles.tokenId} numberOfLines={1}>
 						{strings('unit.token_id')}
 						{item.tokenId}
 					</Text>
