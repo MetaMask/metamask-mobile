@@ -261,9 +261,7 @@ class PaymentChannelsClient {
 
 	pollAndSwap = async () => {
 		try {
-			Logger.log('PC::pollAndSwap calling autoSwap');
 			await this.autoSwap();
-			Logger.log('PC::pollAndSwap autoSwap successful');
 		} catch (e) {
 			this.logCurrentState('PC::autoswap');
 			Logger.error('PC::autoswap', e);
