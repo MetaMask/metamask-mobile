@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -115,7 +116,11 @@ class UrlAutocomplete extends PureComponent {
 
 			this.timer = setTimeout(() => {
 				const fuseSearchResult = this.fuse.search(this.props.input);
-				this.updateResults([...fuseSearchResult]);
+				if (Array.isArray(fuseSearchResult)) {
+					this.updateResults([...fuseSearchResult]);
+				} else {
+					this.updateResults([]);
+				}
 			}, 500);
 		}
 	}
@@ -125,7 +130,11 @@ class UrlAutocomplete extends PureComponent {
 	}
 
 	updateResults(results) {
-		this.mounted && this.setState({ results });
+		try {
+			this.mounted && this.setState({ results });
+		} catch (e) {
+			Logger.error('Autocomplete crash', results);
+		}
 	}
 
 	onSubmitInput = () => this.props.onSubmit(this.props.input);

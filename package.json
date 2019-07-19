@@ -28,8 +28,8 @@
     "postinstall": "./scripts/postinstall.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
-    "stacktrace:android": "stack-beautifier sourcemaps/android.js.map -t trace.txt",
-    "stacktrace:ios": "stack-beautifier sourcemaps/ios.js.map -t trace.txt"
+    "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
+    "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt"
   },
   "prettier": {
     "printWidth": 120,
