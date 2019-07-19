@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
 		flexGrow: 1
 	},
 	wrapper: {
-		paddingTop: 10,
+		paddingTop: 60,
 		paddingHorizontal: 40,
 		paddingBottom: 30,
 		flex: 1
