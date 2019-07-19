@@ -65,8 +65,13 @@ export default class CollectibleOverview extends PureComponent {
 
 	render = () => {
 		const {
-			collectible: { name, tokenId, description }
+			collectible: { name, tokenId },
+			collectible
 		} = this.props;
+		let description;
+		if (collectible.description) {
+			description = collectible.description;
+		}
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.basicsWrapper}>
@@ -79,14 +84,14 @@ export default class CollectibleOverview extends PureComponent {
 						{strings('unit.token_id')}
 						{tokenId}
 					</Text>
-					<View style={styles.information}>
-						{description && (
+					{description && (
+						<View style={styles.information}>
 							<View style={styles.row}>
 								<Text style={styles.label}>{strings('collectible.collectible_description')}</Text>
 								<Text style={styles.content}>{description}</Text>
 							</View>
-						)}
-					</View>
+						</View>
+					)}
 				</View>
 			</View>
 		);
