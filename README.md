@@ -1,14 +1,14 @@
 ![MetaMask logo](logo.png?raw=true)
-# MetaMask 
+# MetaMask
 MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
 For up to the minute news, follow our [Twitter](https://twitter.com/metamask_io) or [Medium](https://medium.com/metamask) pages.
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://metamask.github.io/metamask-docs/).
 
-## MetaMask Mobile 
+## MetaMask Mobile
 
-### Building locally 
+### Building locally
 The code is built using React-Native and running code locally requires a Mac or Linux OS.
 
 - Install [Node.js](https://nodejs.org) **version 8 (latest stable) and npm@6**
@@ -17,7 +17,7 @@ The code is built using React-Native and running code locally requires a Mac or 
         - Install npm@6 using `npm install -g npm@6`
 
 - Before starting, you need to install React Native dependencies:
-    - [MacOs](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1) 
+    - [MacOs](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-1)
     - [Linux](https://facebook.github.io/react-native/docs/getting-started.html#installing-dependencies-2)
  -  Now clone this repo and then install all our dependencies
 
@@ -26,7 +26,7 @@ cd MetaMask
 npm i
 ```
 
-- Running the app on Android: 
+- Running the app on Android:
 
 ```bash
 npm run start:android
@@ -39,24 +39,29 @@ npm run start:ios
 ```
 
 ### Running tests:
- - Unit test: 
+ - Unit test:
 ```
 npm run test:unit
-``` 
+```
  - E2E Tests (iOS)
 ```
 npm run test:e2e:ios
-``` 
+```
  - E2E Tests (Android)
 ```
 npm run test:e2e:android
-``` 
+```
 
-    
-### Troubleshooting 
+### Troubleshooting
 
 Visit [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
-    
+
 ## License
 
-To be defined...
+MetaMask Mobile is an exciting development for our team and our ecosystem. We've always been proud to offer the MetaMask browser extension under the MIT open source software license. We are still working through licensing considerations for the mobile application in light of a new delivery medium and our business goals. We are exploring many models, all with a significant open component, but we have not made any final decisions.
+
+The source code for this beta is currently viewable under the below copyright. A license to use the mobile version will be distributed along with the mobile application. We believe it is important for our users to be able inspect and verify our code for trustworthiness, but we also wish to preserve our licensing options until we're certain what is best for MetaMask, our community, and our ecosystem. If you have any questions or comments, we would really appreciate hearing your feedback – you can reach us at mobile@metamask.io
+
+© ConsenSys AG, 2016-2019
+
+You are granted a limited non-exclusive license to inspect and study the code in this repository. There is no associated right to reproduction granted under this license except where reproduction is necessary for inspection and study of the code. You may not otherwise reproduce, distribute, modify or create derivative works of the code without our prior consent. All other rights are expressly reserved.
