@@ -381,9 +381,19 @@ class Send extends PureComponent {
 
 			if (assetType === 'ETH') {
 				checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-			} else {
+			} else if (assetType === 'ERC20') {
 				try {
 					const [addressTo] = decodeTransferData('transfer', transactionMeta.transaction.data);
+					if (addressTo) {
+						checksummedAddress = toChecksumAddress(addressTo);
+					}
+				} catch (e) {
+					Logger.log('Error decoding transfer data', transactionMeta.data);
+				}
+			} else if (assetType === 'ERC721') {
+				try {
+					const data = decodeTransferData('transferFrom', transactionMeta.transaction.data);
+					const addressTo = data[1];
 					if (addressTo) {
 						checksummedAddress = toChecksumAddress(addressTo);
 					}
