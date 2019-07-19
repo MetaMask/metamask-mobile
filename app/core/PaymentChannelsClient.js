@@ -177,6 +177,7 @@ class PaymentChannelsClient {
 				ethprovider
 			});
 		} catch (e) {
+			this.logCurrentState('PC::createClient');
 			Logger.error('PC::createClient', e);
 			throw e;
 		}
@@ -200,7 +201,7 @@ class PaymentChannelsClient {
 			await connext.start();
 			Logger.log('PC::pollConnextState connext.start succesfull');
 		} catch (e) {
-			Logger.log('PC::start:error - state:', this.state);
+			this.logCurrentState('PC::start');
 			Logger.error('PC::start', e);
 		}
 		// register connext listeners
@@ -226,6 +227,7 @@ class PaymentChannelsClient {
 					hub.emit('state::cs_chainsaw_error', { channelState: state.persistent.channel });
 				}
 			} catch (e) {
+				this.logCurrentState('PC::onStateChange');
 				Logger.error('PC::onStateChange', e);
 			}
 		});
@@ -263,6 +265,7 @@ class PaymentChannelsClient {
 			await this.autoSwap();
 			Logger.log('PC::pollAndSwap autoSwap successful');
 		} catch (e) {
+			this.logCurrentState('PC::autoswap');
 			Logger.error('PC::autoswap', e);
 			this.setState({ swapPending: false });
 		}
@@ -375,6 +378,7 @@ class PaymentChannelsClient {
 			await connext.deposit(data);
 			this.setState({ depositPending: true });
 		} catch (e) {
+			this.logCurrentState('PC::deposit');
 			Logger.error('PC::deposit', e);
 			throw e;
 		}
@@ -413,6 +417,7 @@ class PaymentChannelsClient {
 			};
 			await connext.buy(data);
 		} catch (e) {
+			this.logCurrentState('PC::buy');
 			Logger.error('PC::buy', e);
 		}
 	};
@@ -436,6 +441,7 @@ class PaymentChannelsClient {
 			await connext.withdraw(withdrawalVal);
 			this.setState({ withdrawalPending: true, withdrawalPendingValue: toWei(renderFromWei(balanceTokenUser)) });
 		} catch (e) {
+			this.logCurrentState('PC::withdraw');
 			Logger.error('PC::withdraw', e);
 		}
 	};
@@ -443,6 +449,13 @@ class PaymentChannelsClient {
 	stop() {
 		this.state && this.state.connext && this.state.connext.stop();
 	}
+
+	logCurrentState = prefix => {
+		Logger.log(`${prefix}:error - channelState:`, this.state.channelState);
+		Logger.log(`${prefix}:error - connextState:`, this.state.connextState);
+		Logger.log(`${prefix}:error - runtime:`, this.state.runtime);
+		Logger.log(`${prefix}:error - exchangeRate:`, this.state.exchangeRate);
+	};
 }
 
 let client = null;
@@ -467,7 +480,8 @@ const instance = {
 				Logger.log('PC::pollAndSwap');
 				await client.pollAndSwap();
 			} catch (e) {
-				Logger.error('Connext:init', e);
+				client.logCurrentState('PC::init');
+				Logger.error('PC::init', e);
 			}
 		}
 	},
@@ -489,8 +503,6 @@ const instance = {
 			client.stop();
 			removeListeners();
 			hub.removeAllListeners();
-		} else {
-			Logger.error('PAYMENT-CHANNELS', 'client was not running...');
 		}
 	},
 	/**
