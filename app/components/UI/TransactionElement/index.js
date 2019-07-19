@@ -197,8 +197,13 @@ class TransactionElement extends PureComponent {
 
 	componentDidMount = async () => {
 		this.mounted = true;
-		const { tx, selectedAddress, ticker } = this.props;
-		const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker));
+		const {
+			tx,
+			tx: { paymentChannelTransaction },
+			selectedAddress,
+			ticker
+		} = this.props;
+		const actionKey = tx.actionKey || (await getActionKey(tx, selectedAddress, ticker, paymentChannelTransaction));
 		this.mounted && this.setState({ actionKey });
 	};
 
@@ -496,7 +501,11 @@ class TransactionElement extends PureComponent {
 		let { actionKey } = this.state;
 		const contract = CONTRACTS[networkID];
 		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
-		actionKey = actionKey && actionKey.replace(strings('unit.eth'), strings('unit.dai'));
+
+		actionKey = actionKey && actionKey.replace('Ether', strings('unit.dai'));
+		if (actionKey === strings('transactions.sent_ether')) {
+			actionKey = strings('transactions.sent_dai');
+		}
 		const totalEth = hexToBN(value);
 		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
 		const readableTotalEth = renderFromWei(totalEth);
