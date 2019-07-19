@@ -171,7 +171,7 @@ class AccountInput extends PureComponent {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array,
+		addressBook: PropTypes.object,
 		/**
 		 * Callback close all drowpdowns
 		 */
