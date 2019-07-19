@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { Alert, Platform, Switch, StyleSheet, Text, ScrollView, View } from 'react-native';
+import { Alert, Platform, Switch, StyleSheet, Text, ScrollView, View, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
 import StyledButton from '../../../UI/StyledButton';
 import { setEnablePaymentChannels } from '../../../../actions/settings';
@@ -10,6 +10,8 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import AndroidBackHandler from '../../AndroidBackHandler';
 import AppConstants from '../../../../core/AppConstants';
+import ANALYTICS_EVENT_OPTS from '../../../../util/analytics';
+import Analytics from '../../../../core/Analytics';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -88,6 +90,15 @@ class ExperimentalSettings extends PureComponent {
 
 	togglePaymentChannels = enabled => {
 		this.props.setEnablePaymentChannels(enabled);
+		InteractionManager.runAfterInteractions(() => {
+			setTimeout(() => {
+				if (enabled) {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENT_CHANNELS_ENABLED);
+				} else {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENT_CHANNELS_DISABLED);
+				}
+			}, 1000);
+		});
 	};
 
 	render = () => {
