@@ -358,7 +358,7 @@ class PaymentChannel extends PureComponent {
 	}
 
 	reinitialize = () => {
-		Logger.log('reinitialize');
+		Logger.log('PC::reinitialize');
 		this.removeListeners();
 		this.setState({ ready: false });
 		this.init();
