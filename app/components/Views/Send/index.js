@@ -16,7 +16,7 @@ import contractMap from 'eth-contract-metadata';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import { getTransactionReviewActionKey } from '../../../util/transactions';
+import { getTransactionReviewActionKey, decodeTransferData } from '../../../util/transactions';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -376,7 +376,17 @@ class Send extends PureComponent {
 			await TransactionController.approveTransaction(transactionMeta.id);
 
 			// Add to the AddressBook if it's an unkonwn address
-			const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
+			let checksummedAddress = null;
+
+			if (assetType === 'ETH') {
+				checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
+			} else {
+				const [addressTo] = decodeTransferData('transfer', transactionMeta.transaction.data);
+				if (addressTo) {
+					checksummedAddress = toChecksumAddress(addressTo);
+				}
+			}
+
 			const existingContact = addressBook[checksummedAddress];
 			if (!existingContact) {
 				AddressBookController.set(checksummedAddress, '');
