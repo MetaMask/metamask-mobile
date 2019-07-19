@@ -10,6 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import AndroidBackHandler from '../../AndroidBackHandler';
 import AppConstants from '../../../../core/AppConstants';
+import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -87,6 +88,11 @@ class ExperimentalSettings extends PureComponent {
 	};
 
 	togglePaymentChannels = enabled => {
+		if (enabled) {
+			Logger.log('PC::enabled');
+		} else {
+			Logger.log('PC::disabled');
+		}
 		this.props.setEnablePaymentChannels(enabled);
 	};
 
