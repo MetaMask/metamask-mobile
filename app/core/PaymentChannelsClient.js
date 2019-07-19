@@ -273,8 +273,9 @@ class PaymentChannelsClient {
 	};
 
 	async autoSwap() {
-		const { channelState, connextState } = this.state;
-		if (!connextState || hasPendingOps(channelState) || this.state.swapPending) {
+		const { channelState, connextState, swapPending } = this.state;
+		if (!connextState || hasPendingOps(channelState) || swapPending) {
+			!swapPending && this.logCurrentState('PC::autoswap::exception');
 			return;
 		}
 		const weiBalance = toBN(channelState.balanceWeiUser);
