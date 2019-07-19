@@ -50,7 +50,8 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	scrollviewWrapper: {
-		flex: 1
+		flex: 1,
+		minHeight: 600
 	},
 	wrapper: {
 		flex: 1,
