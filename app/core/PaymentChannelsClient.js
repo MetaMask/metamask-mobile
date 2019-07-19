@@ -269,7 +269,7 @@ class PaymentChannelsClient {
 			Logger.error('PC::autoswap', e);
 			this.setState({ swapPending: false });
 		}
-		setTimeout(() => {
+		this.autoswapHandler = setTimeout(() => {
 			this.pollAndSwap();
 		}, 1000);
 	};
@@ -448,6 +448,7 @@ class PaymentChannelsClient {
 
 	stop() {
 		this.state && this.state.connext && this.state.connext.stop();
+		clearTimeout(this.autoswapHandler);
 	}
 
 	logCurrentState = prefix => {
