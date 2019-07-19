@@ -17,6 +17,7 @@ import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { getTransactionReviewActionKey, decodeTransferData } from '../../../util/transactions';
+import Logger from '../../../util/Logger';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -381,9 +382,13 @@ class Send extends PureComponent {
 			if (assetType === 'ETH') {
 				checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
 			} else {
-				const [addressTo] = decodeTransferData('transfer', transactionMeta.transaction.data);
-				if (addressTo) {
-					checksummedAddress = toChecksumAddress(addressTo);
+				try {
+					const [addressTo] = decodeTransferData('transfer', transactionMeta.transaction.data);
+					if (addressTo) {
+						checksummedAddress = toChecksumAddress(addressTo);
+					}
+				} catch (e) {
+					Logger.log('Error decoding transfer data', transactionMeta.data);
 				}
 			}
 
