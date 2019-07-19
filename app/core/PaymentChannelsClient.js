@@ -165,7 +165,9 @@ class PaymentChannelsClient {
 
 		// *** Instantiate the connext client ***
 		try {
+			Logger.log('PC::createClient about to call');
 			const connext = await Connext.createClient(opts);
+			Logger.log('PC::createClient success');
 			this.setState({
 				connext,
 				tokenAddress: connext.opts.tokenAddress,
@@ -190,11 +192,15 @@ class PaymentChannelsClient {
 	};
 
 	async pollConnextState() {
+		Logger.log('PC::createClient success');
 		const { connext } = this.state;
 		// start polling
 		try {
+			Logger.log('PC::pollConnextState connext.start');
 			await connext.start();
+			Logger.log('PC::pollConnextState connext.start succesfull');
 		} catch (e) {
+			Logger.log('PC::start:error - state:', this.state);
 			Logger.error('PC::start', e);
 		}
 		// register connext listeners
@@ -253,7 +259,9 @@ class PaymentChannelsClient {
 
 	pollAndSwap = async () => {
 		try {
+			Logger.log('PC::pollAndSwap calling autoSwap');
 			await this.autoSwap();
+			Logger.log('PC::pollAndSwap autoSwap successful');
 		} catch (e) {
 			Logger.error('PC::autoswap', e);
 			this.setState({ swapPending: false });
@@ -272,7 +280,9 @@ class PaymentChannelsClient {
 		const tokenBalance = toBN(channelState.balanceTokenUser);
 		if (channelState && weiBalance.gt(toBN('0')) && tokenBalance.lte(HUB_EXCHANGE_CEILING)) {
 			this.setState({ swapPending: true });
+			Logger.log('PC::pollAndSwap autoSwap exchanging');
 			await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
+			Logger.log('PC::pollAndSwap autoSwap exchanging succesfull');
 			this.setState({ swapPending: false });
 		}
 	}
@@ -447,10 +457,14 @@ const instance = {
 		const { provider } = Engine.context.NetworkController.state;
 		if (SUPPORTED_NETWORKS.indexOf(provider.type) !== -1) {
 			initListeners();
+			Logger.log('PC::Initialzing payment channels');
 			client = new PaymentChannelsClient(address);
 			try {
+				Logger.log('PC::setConnext', provider);
 				await client.setConnext(provider);
+				Logger.log('PC::pollConnextState');
 				await client.pollConnextState();
+				Logger.log('PC::pollAndSwap');
 				await client.pollAndSwap();
 			} catch (e) {
 				Logger.error('Connext:init', e);
