@@ -118,7 +118,7 @@
     "react-native-push-notification": "github:brunobar79/react-native-push-notification#androidx",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "3.5.2",
-    "react-native-remote-svg": "github:brunobar79/react-native-remote-svg#0fea4be6ec7b1c1ed8d01ed458b4551e7e1ea6bd",
+    "react-native-remote-svg": "github:brunobar79/react-native-remote-svg#9c44219ef67de3535cbec62722f8654c3c17772c",
     "react-native-screens": "1.0.0-alpha.23",
     "react-native-scrollable-tab-view": "github:estebanmino/react-native-scrollable-tab-view#f954274c6260a07c956e2185c611aed24b2f1526",
     "react-native-search-api": "1.2.0",
