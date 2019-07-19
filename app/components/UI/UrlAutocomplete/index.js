@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { TouchableWithoutFeedback, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import dappUrlList from '../../../util/dapp-url-list';
@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { colors, fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -52,10 +53,10 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders an autocomplete
+ * PureComponent that renders an autocomplete
  * based on an input string
  */
-class UrlAutocomplete extends Component {
+class UrlAutocomplete extends PureComponent {
 	static propTypes = {
 		/**
 		 * input text for the autocomplete
@@ -115,7 +116,11 @@ class UrlAutocomplete extends Component {
 
 			this.timer = setTimeout(() => {
 				const fuseSearchResult = this.fuse.search(this.props.input);
-				this.updateResults([...fuseSearchResult]);
+				if (Array.isArray(fuseSearchResult)) {
+					this.updateResults([...fuseSearchResult]);
+				} else {
+					this.updateResults([]);
+				}
 			}, 500);
 		}
 	}
@@ -125,7 +130,11 @@ class UrlAutocomplete extends Component {
 	}
 
 	updateResults(results) {
-		this.mounted && this.setState({ results });
+		try {
+			this.mounted && this.setState({ results });
+		} catch (e) {
+			Logger.error('Autocomplete crash', results);
+		}
 	}
 
 	onSubmitInput = () => this.props.onSubmit(this.props.input);

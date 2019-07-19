@@ -1,5 +1,5 @@
 'use strict';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import {
 	InteractionManager,
 	SafeAreaView,
@@ -8,7 +8,8 @@ import {
 	TouchableOpacity,
 	View,
 	StyleSheet,
-	Platform
+	Platform,
+	Alert
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../../styles/common';
@@ -58,7 +59,7 @@ const frameImage = require('../../../images/frame.png'); // eslint-disable-line 
 /**
  * View that wraps the QR code scanner screen
  */
-export default class QrScanner extends Component {
+export default class QrScanner extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -84,16 +85,24 @@ export default class QrScanner extends Component {
 		if (!this.mounted) return false;
 		const content = response.data;
 
+		if (!content) return false;
+
 		let data = {};
 
 		if (content.split('metamask-sync:').length > 1) {
 			this.shouldReadBarCode = false;
 			data = { content };
-			this.props.navigation.state.params.onStartScan(data).then(() => {
-				this.props.navigation.state.params.onScanSuccess(data);
-			});
-			this.mounted = false;
-			this.props.navigation.goBack();
+			if (this.props.navigation.state.params.onStartScan) {
+				this.props.navigation.state.params.onStartScan(data).then(() => {
+					this.props.navigation.state.params.onScanSuccess(data);
+				});
+				this.mounted = false;
+				this.props.navigation.goBack();
+			} else {
+				Alert.alert(strings('qr_scanner.error'), strings('qr_scanner.attempting_sync_from_wallet_error'));
+				this.mounted = false;
+				this.props.navigation.goBack();
+			}
 		} else {
 			if (content.split('ethereum:').length > 1) {
 				this.shouldReadBarCode = false;

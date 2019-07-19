@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
@@ -93,9 +93,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a selector to choose either fast, average or slow gas fee
+ * PureComponent that renders a selector to choose either fast, average or slow gas fee
  */
-class CustomGas extends Component {
+class CustomGas extends PureComponent {
 	static propTypes = {
 		/**
 		/* conversion rate of ETH - FIAT

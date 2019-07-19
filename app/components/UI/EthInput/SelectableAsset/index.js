@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
@@ -23,9 +23,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that renders a selectable asset
+ * PureComponent that renders a selectable asset
  */
-export default class SelectableAsset extends Component {
+export default class SelectableAsset extends PureComponent {
 	static propTypes = {
 		asset: PropTypes.object,
 		/**

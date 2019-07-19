@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 /**
  * View that displays the information of a specific ERC-721 Token
  */
-export default class CollectibleOverview extends Component {
+export default class CollectibleOverview extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object that represents the collectible to be displayed
@@ -65,8 +65,13 @@ export default class CollectibleOverview extends Component {
 
 	render = () => {
 		const {
-			collectible: { name, tokenId, description }
+			collectible: { name, tokenId },
+			collectible
 		} = this.props;
+		let description;
+		if (collectible.description) {
+			description = collectible.description;
+		}
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.basicsWrapper}>
@@ -79,14 +84,14 @@ export default class CollectibleOverview extends Component {
 						{strings('unit.token_id')}
 						{tokenId}
 					</Text>
-					<View style={styles.information}>
-						{description && (
+					{description && (
+						<View style={styles.information}>
 							<View style={styles.row}>
 								<Text style={styles.label}>{strings('collectible.collectible_description')}</Text>
 								<Text style={styles.content}>{description}</Text>
 							</View>
-						)}
-					</View>
+						</View>
+					)}
 				</View>
 			</View>
 		);

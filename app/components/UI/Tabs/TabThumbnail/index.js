@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Platform, View, Image, TouchableOpacity, StyleSheet, Text, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
@@ -106,10 +106,10 @@ const { HOMEPAGE_URL } = AppConstants;
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 /**
- * Component that renders an a thumbnail
+ * PureComponent that renders an a thumbnail
  * that represents an existing tab
  */
-export default class TabThumbnail extends Component {
+export default class TabThumbnail extends PureComponent {
 	static propTypes = {
 		/**
 		 * The tab info

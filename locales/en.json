@@ -86,7 +86,7 @@
 		"confirm_password": "Confirm Password",
 		"create_button": "NEXT",
 		"import_with_seed_phrase": "Import with seed phrase",
-		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
 		"password_strength": "Password strength:",
 		"strength_weak": "Weak",
@@ -106,7 +106,7 @@
 		"confirm_password": "Confirm Password",
 		"import_button": "IMPORT",
 		"cancel_button": "Cancel",
-		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
 		"seed_word_count_error": "The seed needs to be 12 words"
 	},
@@ -407,7 +407,9 @@
 		"allow_camera_dialog_message": "We need your permission to scan QR codes",
 		"scanning": "scanning...",
 		"ok": "Ok",
-		"cancel": "Cancel"
+		"cancel": "Cancel",
+		"error": "Error",
+		"attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do that, Please go to Settings > Advanced > Sync with MetaMask Extension"
 	},
 	"action_view": {
 		"cancel": "Cancel",
@@ -518,6 +520,9 @@
 		"sent_ether": "Sent Ether",
 		"self_sent_ether": "Sent Yourself Ether",
 		"received_ether": "Received Ether",
+		"sent_dai": "Sent DAI",
+		"self_sent_dai": "Sent Yourself DAI",
+		"received_dai": "Received DAI",
 		"sent_tokens": "Sent Tokens",
 		"ether": "Ether",
 		"sent_unit": "Sent {{unit}}",
@@ -898,7 +903,7 @@
 		"no_funds_desc": "Deposit ETH into your InstaPay card to start making instant free payments with DAI.",
 		"confirm": "Confirm",
 		"cancel": "Cancel",
-		"asset_card_desc": "Free Transactions with Connext Payment Channels",
+		"asset_card_desc": "Free Transactions with Connext Payment Channels.\n This is a beta feature. For help, email support@metamask.io",
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",

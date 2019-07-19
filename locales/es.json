@@ -403,7 +403,9 @@
 		"allow_camera_dialog_message": "Necesitamos tu permiso para escanear códigos QR",
 		"scanning": "escaneando...",
 		"ok": "Ok",
-		"cancel": "Cancelar"
+		"cancel": "Cancelar",
+		"error": "Error",
+		"attempting_sync_from_wallet_error": "Hemos detectado que quieres sincronizar con la extensión de MetaMask. Para eso ve a Ajustes > Avanzado > Sincronizar con la extensión de MetaMask"
 	},
 	"action_view": {
 		"cancel": "Cancelar",
@@ -508,6 +510,9 @@
 		"sent_ether": "Enviaste Ether",
 		"self_sent_ether": "Enviaste Ether a ti mismo",
 		"received_ether": "Recibiste Ether",
+		"sent_dai": "Enviaste DAI",
+		"self_sent_dai": "Enviaste DAI a ti mismo",
+		"received_dai": "Recibiste DAI",
 		"sent_tokens": "Enviaste Tokens",
 		"ether": "Ether",
 		"sent_unit": "Enviaste {{unit}}",
@@ -879,7 +884,7 @@
 		"no_funds_desc": "Deposita ETH en tu tarjeta InstaPay para empezar a hacer pagos instantáneos con DAI.",
 		"confirm": "Confirmar",
 		"cancel": "Cancelar",
-		"asset_card_desc": "Transacciones gratis con Connext Payment Channels",
+		"asset_card_desc": "Transacciones gratis con Connext Payment Channels.\n Esta es una funcionalidad beta. Por ayuda, contacta support@metamask.io",
 		"deposit_amount": "Monto a depositar",
 		"load_funds": "Cargar Fondos",
 		"insta_pay": "InstaPay",

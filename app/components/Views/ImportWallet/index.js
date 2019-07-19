@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Platform, Alert, ActivityIndicator, Image, Text, View, ScrollView, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -23,15 +23,15 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingTop: 10,
+		paddingTop: 0,
 		paddingHorizontal: 30,
 		paddingBottom: 30
 	},
 	foxWrapper: {
 		width: Platform.OS === 'ios' ? 90 : 45,
 		height: Platform.OS === 'ios' ? 90 : 45,
-		marginTop: Platform.OS === 'ios' ? 30 : 0,
-		marginBottom: 0
+		marginTop: 0,
+		marginBottom: 20
 	},
 	image: {
 		alignSelf: 'center',
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	steps: {
-		marginTop: 10,
+		marginTop: 50,
 		marginBottom: 30
 	},
 	text: {
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end'
 	},
 	loader: {
-		marginTop: 40,
+		marginTop: 180,
 		justifyContent: 'center',
 		textAlign: 'center'
 	},
@@ -90,7 +90,7 @@ const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-not
 /**
  * View where users can decide how to import their wallet
  */
-class ImportWallet extends Component {
+class ImportWallet extends PureComponent {
 	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
@@ -384,19 +384,25 @@ class ImportWallet extends Component {
 						testID={'import-wallet-screen'}
 					>
 						<View style={styles.wrapper}>
-							<View style={styles.foxWrapper}>
-								{Platform.OS === 'android' ? (
-									<Image
-										source={require('../../../images/fox.png')}
-										style={styles.image}
-										resizeMethod={'auto'}
-									/>
-								) : (
-									<AnimatedFox />
-								)}
-							</View>
-							<Text style={styles.title}>{strings('import_wallet.title')}</Text>
-							<Text style={styles.title}>{strings('import_wallet.sub_title')}</Text>
+							{!this.state.loading && (
+								<View style={styles.foxWrapper}>
+									{Platform.OS === 'android' ? (
+										<Image
+											source={require('../../../images/fox.png')}
+											style={styles.image}
+											resizeMethod={'auto'}
+										/>
+									) : (
+										<AnimatedFox />
+									)}
+								</View>
+							)}
+							{!this.state.loading && (
+								<React.Fragment>
+									<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+									<Text style={styles.title}>{strings('import_wallet.sub_title')}</Text>
+								</React.Fragment>
+							)}
 							{this.renderContent()}
 						</View>
 					</ScrollView>

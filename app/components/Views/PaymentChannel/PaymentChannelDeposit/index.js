@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import {
 	Platform,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
 /* deposit, send, receive and withdraw
 /* instant payments
 */
-class Deposit extends Component {
+class Deposit extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('deposit.title', navigation);
 
 	static propTypes = {

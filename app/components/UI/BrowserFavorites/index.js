@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { Dimensions, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
 /**
  * Browser favorite sites
  */
-export default class BrowserFavorites extends Component {
+export default class BrowserFavorites extends PureComponent {
 	static propTypes = {
 		/**
 		 * Array containing all the bookmark items

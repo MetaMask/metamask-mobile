@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Text } from 'react-native';
 import { connect } from 'react-redux';
@@ -12,7 +12,7 @@ import Logger from '../../../util/Logger';
  * View that renders an ethereum address
  * or its ENS name when supports reverse lookup
  */
-class EthereumAddress extends Component {
+class EthereumAddress extends PureComponent {
 	static propTypes = {
 		/**
 		 * Styles to be applied to the text component

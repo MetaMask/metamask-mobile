@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
  * including the overview (name, address, symbol, logo, description, total supply)
  * and also individual collectibles list
  */
-class Collectible extends Component {
+class Collectible extends PureComponent {
 	static propTypes = {
 		/**
 		 * Array of assets (in this case Collectibles)

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Platform } from 'react-native';
 import { colors } from '../../../styles/common';
@@ -27,9 +27,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that supports editing and reviewing a transaction
+ * PureComponent that supports editing and reviewing a transaction
  */
-class TransactionEditor extends Component {
+class TransactionEditor extends PureComponent {
 	static propTypes = {
 		/**
 		 * List of accounts from the AccountTrackerController

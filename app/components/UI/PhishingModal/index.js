@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ScrollView, View, Text, Image, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
-export default class PhishingModal extends Component {
+export default class PhishingModal extends PureComponent {
 	static propTypes = {
 		/**
 		 * name of the blacklisted url

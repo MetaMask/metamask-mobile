@@ -332,7 +332,7 @@ class TransactionDetails extends PureComponent {
 						<Text style={styles.gasTitle}>{strings('transaction.gasCancelFee')}</Text>
 						<View style={styles.cancelFeeWrapper}>
 							<Text style={styles.cancelFee}>
-								{renderFromWei(existingGasPriceDecimal * CANCEL_RATE)} {strings('unit.eth')}
+								{renderFromWei(Math.floor(existingGasPriceDecimal * CANCEL_RATE))} {strings('unit.eth')}
 							</Text>
 						</View>
 						<Text style={styles.modalText}>{strings('transaction.cancel_tx_message')}</Text>

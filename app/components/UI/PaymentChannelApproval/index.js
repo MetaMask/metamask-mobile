@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Platform, Animated, StyleSheet, Text, View } from 'react-native';
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
 /**
  * Payment channel request approval component
  */
-class PaymentChannelApproval extends Component {
+class PaymentChannelApproval extends PureComponent {
 	static propTypes = {
 		/**
 		 * Object containing current title, amount and detail

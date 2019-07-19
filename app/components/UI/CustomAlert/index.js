@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { ViewPropTypes, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import Modal from 'react-native-modal';
@@ -37,10 +37,10 @@ const styles = StyleSheet.create({
 });
 
 /**
-/* Component that renders our custom alerts, which contains
+/* PureComponent that renders our custom alerts, which contains
 /* a header with an image, body and footer with a button
 */
-export default class CustomAlert extends Component {
+export default class CustomAlert extends PureComponent {
 	static propTypes = {
 		/**
 		/* Style of the header view
@@ -55,7 +55,7 @@ export default class CustomAlert extends Component {
 		*/
 		titleText: PropTypes.string,
 		/**
-		/* Component that contains the content of the modal
+		/* PureComponent that contains the content of the modal
 		*/
 		bodyContent: PropTypes.element,
 		/**

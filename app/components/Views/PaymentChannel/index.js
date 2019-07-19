@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 import {
 	InteractionManager,
@@ -50,7 +50,8 @@ const styles = StyleSheet.create({
 		flex: 1
 	},
 	scrollviewWrapper: {
-		flex: 1
+		flex: 1,
+		minHeight: 600
 	},
 	wrapper: {
 		flex: 1,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
 /* deposit, send, receive and withdraw
 /* instant payments
 */
-class PaymentChannel extends Component {
+class PaymentChannel extends PureComponent {
 	static navigationOptions = ({ navigation }) => getNavbarOptions('payment_channel.insta_pay', navigation, true);
 
 	static propTypes = {
@@ -358,7 +359,7 @@ class PaymentChannel extends Component {
 	}
 
 	reinitialize = () => {
-		Logger.log('reinitialize');
+		Logger.log('PC::reinitialize');
 		this.removeListeners();
 		this.setState({ ready: false });
 		this.init();

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { TextInput, View, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -46,9 +46,9 @@ const fuse = new Fuse(contractList, {
 });
 
 /**
- * Component that provides ability to search assets.
+ * PureComponent that provides ability to search assets.
  */
-export default class AssetSearch extends Component {
+export default class AssetSearch extends PureComponent {
 	state = {
 		searchQuery: ''
 	};

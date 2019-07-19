@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
@@ -26,9 +26,9 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Component that manages transaction approval from the dapp browser
+ * PureComponent that manages transaction approval from the dapp browser
  */
-class Approval extends Component {
+class Approval extends PureComponent {
 	static navigationOptions = ({ navigation }) => getTransactionOptionsTitle('approval.title', navigation);
 
 	static propTypes = {
@@ -48,10 +48,6 @@ class Approval extends Component {
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
-		/**
-		 * Map representing the address book
-		 */
-		addressBook: PropTypes.array,
 		/**
 		 * A string representing the network name
 		 */
@@ -152,22 +148,13 @@ class Approval extends Component {
 	 * Callback on confirm transaction
 	 */
 	onConfirm = async () => {
-		const { TransactionController, AddressBookController } = Engine.context;
-		const { transactions, addressBook } = this.props;
+		const { TransactionController } = Engine.context;
+		const { transactions } = this.props;
 		let { transaction } = this.props;
 		try {
 			transaction = this.prepareTransaction(transaction);
 
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
-				// Add to the AddressBook if it's an unkonwn address
-				const checksummedAddress = toChecksumAddress(transactionMeta.transaction.to);
-				const existingContact = addressBook.find(
-					({ address }) => toChecksumAddress(address) === checksummedAddress
-				);
-				if (!existingContact) {
-					AddressBookController.set(checksummedAddress, '');
-				}
-
 				if (transactionMeta.status === 'submitted') {
 					this.setState({ transactionHandled: true });
 					this.props.navigation.pop();

@@ -14,8 +14,9 @@ exports[`CollectibleImage should render correctly 1`] = `
     ]
   }
 >
-  <MyImage
+  <Image
     fadeIn={true}
+    onError={[Function]}
     placeholderStyle={
       Object {
         "backgroundColor": "#FFFFFF",

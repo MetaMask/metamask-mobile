@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Identicon from '../Identicon';
 import PropTypes from 'prop-types';
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
  * ComboBox form component allowing address input with auto-completion based on
  * the current keychain's accounts
  */
-class AccountInput extends Component {
+class AccountInput extends PureComponent {
 	static propTypes = {
 		/**
 		 * List of accounts from the PreferencesController
@@ -171,7 +171,7 @@ class AccountInput extends Component {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.array,
+		addressBook: PropTypes.object,
 		/**
 		 * Callback close all drowpdowns
 		 */
@@ -223,7 +223,7 @@ class AccountInput extends Component {
 		const { address } = this.state;
 		try {
 			const resolvedAddress = await this.ens.lookup(recipient.trim());
-			if (address !== ZERO_ADDRESS && resolvedAddress !== address) {
+			if (address !== ZERO_ADDRESS && isValidAddress(resolvedAddress)) {
 				this.setState({ address: resolvedAddress, ensRecipient: recipient });
 				return true;
 			}
@@ -296,14 +296,7 @@ class AccountInput extends Component {
 
 	getVisibleOptions = value => {
 		const { accounts, addressBook } = this.props;
-		const addressBookItems = {};
-		if (addressBook.length > 0) {
-			addressBook.forEach(contact => {
-				addressBookItems[contact.address] = contact;
-			});
-		}
-
-		const allAddresses = { ...addressBookItems, ...accounts };
+		const allAddresses = { ...addressBook, ...accounts };
 
 		if (typeof value !== 'undefined' && value.toString().length > 0) {
 			// If it's a valid address we don't show any suggestion
@@ -321,7 +314,10 @@ class AccountInput extends Component {
 					filteredAddresses[address] = allAddresses[address];
 				}
 			});
-			return filteredAddresses;
+
+			if (filteredAddresses.length > 0) {
+				return filteredAddresses;
+			}
 		}
 		return allAddresses;
 	};
@@ -373,6 +369,10 @@ class AccountInput extends Component {
 		});
 	};
 
+	closeDropdown = () => {
+		// nice to have
+	};
+
 	render = () => {
 		const { value, ensRecipient, address } = this.state;
 		const { placeholder, isOpen } = this.props;
@@ -398,6 +398,7 @@ class AccountInput extends Component {
 								numberOfLines={1}
 								onBlur={this.onBlur}
 								onFocus={this.onInputFocus}
+								onSubmitEditing={this.onFocus}
 							/>
 							<View style={styles.ensView}>
 								{ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
