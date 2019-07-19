@@ -11,7 +11,8 @@ const styles = StyleSheet.create({
 		...StyleSheet.absoluteFillObject,
 		backgroundColor: colors.white,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
+		zIndex: 99999999999999
 	},
 	foxWrapper: {
 		backgroundColor: colors.white,
