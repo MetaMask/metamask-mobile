@@ -199,7 +199,7 @@ class PaymentChannelsClient {
 		try {
 			Logger.log('PC::pollConnextState connext.start');
 			await connext.start();
-			Logger.log('PC::pollConnextState connext.start succesfull');
+			Logger.log('PC::pollConnextState connext.start succesful');
 		} catch (e) {
 			this.logCurrentState('PC::start');
 			Logger.error('PC::start', e);
@@ -285,7 +285,7 @@ class PaymentChannelsClient {
 			this.setState({ swapPending: true });
 			Logger.log('PC::pollAndSwap autoSwap exchanging');
 			await this.state.connext.exchange(channelState.balanceWeiUser, 'wei');
-			Logger.log('PC::pollAndSwap autoSwap exchanging succesfull');
+			Logger.log('PC::pollAndSwap autoSwap exchanging succesful');
 			this.setState({ swapPending: false });
 		}
 	}
