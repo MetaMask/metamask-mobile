@@ -268,7 +268,8 @@ class AccountOverview extends PureComponent {
 
 const mapStateToProps = state => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
