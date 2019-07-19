@@ -498,14 +498,9 @@ class TransactionElement extends PureComponent {
 			currentCurrency,
 			exchangeRate
 		} = this.props;
-		let { actionKey } = this.state;
+		const { actionKey } = this.state;
 		const contract = CONTRACTS[networkID];
 		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
-
-		actionKey = actionKey && actionKey.replace('Ether', strings('unit.dai'));
-		if (actionKey === strings('transactions.sent_ether')) {
-			actionKey = strings('transactions.sent_dai');
-		}
 		const totalEth = hexToBN(value);
 		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
 		const readableTotalEth = renderFromWei(totalEth);
