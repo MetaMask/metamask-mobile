@@ -74,7 +74,7 @@ class Send extends PureComponent {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.object
+		addressBook: PropTypes.array
 	};
 
 	state = {
