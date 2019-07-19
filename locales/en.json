@@ -900,7 +900,7 @@
 		"no_funds_desc": "Deposit ETH into your InstaPay card to start making instant free payments with DAI.",
 		"confirm": "Confirm",
 		"cancel": "Cancel",
-		"asset_card_desc": "Free Transactions with Connext Payment Channels",
+		"asset_card_desc": "Free Transactions with Connext Payment Channels.\n This is a beta feature. For help, email support@metamask.io",
 		"deposit_amount": "Amount to deposit",
 		"load_funds": "Load Funds",
 		"insta_pay": "InstaPay",
