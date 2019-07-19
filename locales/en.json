@@ -86,7 +86,7 @@
 		"confirm_password": "Confirm Password",
 		"create_button": "NEXT",
 		"import_with_seed_phrase": "Import with seed phrase",
-		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
 		"password_strength": "Password strength:",
 		"strength_weak": "Weak",
@@ -106,7 +106,7 @@
 		"confirm_password": "Confirm Password",
 		"import_button": "IMPORT",
 		"cancel_button": "Cancel",
-		"password_length_error": "The password needs to be at least 8 chars long",
+		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
 		"seed_word_count_error": "The seed needs to be 12 words"
 	},
