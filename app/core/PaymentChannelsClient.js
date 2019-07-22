@@ -571,7 +571,7 @@ const instance = {
 	 * returns the entire state of the client
 	 * only used for debugging purposes
 	 */
-	dump: () => client.state
+	dump: () => (client && client.state) || {}
 };
 
 const reloadClient = () => {
