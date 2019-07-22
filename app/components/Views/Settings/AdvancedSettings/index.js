@@ -3,6 +3,7 @@ import React, { PureComponent } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, Platform, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
@@ -224,6 +225,31 @@ class AdvancedSettings extends PureComponent {
 		}
 	};
 
+	downloadInstapayStateLogs = async () => {
+		const appName = DeviceInfo.getApplicationName();
+		const appVersion = DeviceInfo.getVersion();
+		const buildNumber = DeviceInfo.getBuildNumber();
+		const path = RNFS.DocumentDirectoryPath + `/instapay-logs-v${appVersion}-(${buildNumber}).json`;
+
+		try {
+			const data = JSON.stringify(PaymentChannelsClient.dump());
+
+			let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
+			// // Android accepts attachements as BASE64
+			if (Platform.OS === 'ios') {
+				await RNFS.writeFile(path, data, 'utf8');
+				url = path;
+			}
+			await Share.open({
+				subject: `${appName} Instapay logs -  v${appVersion} (${buildNumber})`,
+				title: `${appName} Instapay logs -  v${appVersion} (${buildNumber})`,
+				url
+			});
+		} catch (err) {
+			Logger.error('Instapay log error', err);
+		}
+	};
+
 	setIpfsGateway = ipfsGateway => {
 		const { PreferencesController } = Engine.context;
 		PreferencesController.setIpfsGateway(ipfsGateway);
@@ -317,6 +343,17 @@ class AdvancedSettings extends PureComponent {
 								containerStyle={styles.syncConfirm}
 							>
 								{strings('app_settings.state_logs_button')}
+							</StyledButton>
+						</View>
+						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.instapay_state_logs')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.instapay_state_logs_desc')}</Text>
+							<StyledButton
+								type="info"
+								onPress={this.downloadInstapayStateLogs}
+								containerStyle={styles.syncConfirm}
+							>
+								{strings('app_settings.instapay_state_logs_button')}
 							</StyledButton>
 						</View>
 					</View>
