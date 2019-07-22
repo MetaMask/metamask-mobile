@@ -112,6 +112,10 @@ class AdvancedSettings extends PureComponent {
 		 */
 		showHexData: PropTypes.bool,
 		/**
+		 * Indicates whether InstaPay is ON or OFF
+		 */
+		paymentChannelsEnabled: PropTypes.bool,
+		/**
 		 * Called to toggle show hex data
 		 */
 		setShowHexData: PropTypes.func,
@@ -232,7 +236,10 @@ class AdvancedSettings extends PureComponent {
 		const path = RNFS.DocumentDirectoryPath + `/instapay-logs-v${appVersion}-(${buildNumber}).json`;
 
 		try {
-			const data = JSON.stringify(PaymentChannelsClient.dump());
+			const dump = PaymentChannelsClient.dump();
+			dump.connext = !!dump.connext;
+			delete dump.ethprovider;
+			const data = JSON.stringify(dump);
 
 			let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
 			// // Android accepts attachements as BASE64
@@ -256,7 +263,7 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	render = () => {
-		const { showHexData, ipfsGateway } = this.props;
+		const { showHexData, ipfsGateway, paymentChannelsEnabled } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
 		return (
 			<SafeAreaView style={baseStyles.flexGrow}>
@@ -345,17 +352,19 @@ class AdvancedSettings extends PureComponent {
 								{strings('app_settings.state_logs_button')}
 							</StyledButton>
 						</View>
-						<View style={styles.setting}>
-							<Text style={styles.title}>{strings('app_settings.instapay_state_logs')}</Text>
-							<Text style={styles.desc}>{strings('app_settings.instapay_state_logs_desc')}</Text>
-							<StyledButton
-								type="info"
-								onPress={this.downloadInstapayStateLogs}
-								containerStyle={styles.syncConfirm}
-							>
-								{strings('app_settings.instapay_state_logs_button')}
-							</StyledButton>
-						</View>
+						{paymentChannelsEnabled && (
+							<View style={styles.setting}>
+								<Text style={styles.title}>{strings('app_settings.instapay_state_logs')}</Text>
+								<Text style={styles.desc}>{strings('app_settings.instapay_state_logs_desc')}</Text>
+								<StyledButton
+									type="info"
+									onPress={this.downloadInstapayStateLogs}
+									containerStyle={styles.syncConfirm}
+								>
+									{strings('app_settings.instapay_state_logs_button')}
+								</StyledButton>
+							</View>
+						)}
 					</View>
 				</KeyboardAwareScrollView>
 				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
@@ -367,6 +376,7 @@ class AdvancedSettings extends PureComponent {
 const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	showHexData: state.settings.showHexData,
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	fullState: state
 });
 
