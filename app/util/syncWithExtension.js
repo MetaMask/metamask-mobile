@@ -59,7 +59,7 @@ export default class PubNubWrapper {
 					setTimeout(() => {
 						if (this.timeout) {
 							Logger.error('Sync::timeout');
-							reject();
+							reject('sync-timeout');
 						} else {
 							resolve();
 						}

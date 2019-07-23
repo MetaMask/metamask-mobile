@@ -159,12 +159,20 @@ class ImportWallet extends PureComponent {
 			await this.pubnubWrapper.startSync();
 			return true;
 		} catch (e) {
-			!firstAttempt && this.props.navigation.goBack();
-			!firstAttempt &&
-				Alert.alert(
-					strings('sync_with_extension.outdated_qr_code'),
-					strings('sync_with_extension.outdated_qr_code_desc')
-				);
+			if (!firstAttempt) {
+				this.props.navigation.goBack();
+				if (e.toString() === 'sync-timeout') {
+					Alert.alert(
+						strings('sync_with_extension.outdated_qr_code'),
+						strings('sync_with_extension.outdated_qr_code_desc')
+					);
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.something_wrong'),
+						strings('sync_with_extension.something_wrong_desc')
+					);
+				}
+			}
 			Logger.log('Sync::startSync', firstAttempt);
 			Logger.log('Sync::startSync', e.toString());
 			Logger.error('Sync::startSync', e);
