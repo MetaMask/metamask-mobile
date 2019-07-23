@@ -165,7 +165,7 @@ class ImportWallet extends PureComponent {
 					strings('sync_with_extension.outdated_qr_code'),
 					strings('sync_with_extension.outdated_qr_code_desc')
 				);
-			Logger.error('Sync failed at startSync first attempt', firstAttempt);
+			Logger.error('Sync::startSync', firstAttempt);
 			return false;
 		}
 	};
@@ -266,7 +266,7 @@ class ImportWallet extends PureComponent {
 			this.dataToSync = null;
 			this.props.navigation.push('SyncWithExtensionSuccess');
 		} catch (e) {
-			Logger.error('Sync failed', e);
+			Logger.error('Sync::disconnect', e);
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 			this.setState({ loading: false });
 			this.props.navigation.goBack();

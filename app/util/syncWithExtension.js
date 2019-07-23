@@ -58,7 +58,7 @@ export default class PubNubWrapper {
 				() => {
 					setTimeout(() => {
 						if (this.timeout) {
-							Logger.error('Sync failed at start sync expired code timeout');
+							Logger.error('Sync::timeout');
 							reject();
 						} else {
 							resolve();
@@ -146,7 +146,7 @@ export default class PubNubWrapper {
 				if (message.event === 'error-sync') {
 					this.timeout = false;
 					this.disconnectWebsockets();
-					Logger.error('Sync failed', message, this.incomingDataStr);
+					Logger.error('Sync::error-sync', message, this.incomingDataStr);
 					onErrorSync();
 				}
 				if (message.event === 'syncing-data') {
@@ -157,7 +157,7 @@ export default class PubNubWrapper {
 							const data = JSON.parse(this.incomingDataStr);
 							onSyncingData(data);
 						} catch (e) {
-							Logger.error('Sync failed at parsing', e);
+							Logger.error('Sync::parsing', e);
 						}
 					}
 				}
