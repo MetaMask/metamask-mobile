@@ -129,6 +129,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  * If value is less than 5 precision decimals will show '< 0.00001'
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
+	tokenValue = handleSemicolonInValue(tokenValue);
 	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
 	const minimalUnitNumber = parseFloat(minimalUnit);
 	let renderMinimalUnit;
@@ -327,7 +328,7 @@ export function fiatNumberToWei(fiat, conversionRate) {
 /**
  * Calculates fiat balance of an asset
  *
- * @param {number} balance - Number corresponding to a balance of an asset
+ * @param {number|string} balance - Number corresponding to a balance of an asset
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {number} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
@@ -337,6 +338,7 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === 0) {
 		return undefined;
 	}
+	balance = handleSemicolonInValue(balance);
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }

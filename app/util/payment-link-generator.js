@@ -1,5 +1,6 @@
 import { build } from 'eth-url-parser';
 import AppConstants from '../core/AppConstants';
+import { handleSemicolonInValue } from './number';
 
 /**
  * Generate a universal link / app link based on EIP-681 / EIP-831 URLs
@@ -34,6 +35,7 @@ export function generateUniversalLinkRequest(ethereum_link) {
  * @returns Payment request link, it could throw if errors are found
  */
 export function generateETHLink(receiverAddress, value, chainId) {
+	value = handleSemicolonInValue(value);
 	const data = {
 		chain_id: chainId,
 		function_name: undefined,
@@ -57,6 +59,7 @@ export function generateETHLink(receiverAddress, value, chainId) {
  * @returns Payment request link, it could throw if errors are found
  */
 export function generateERC20Link(receiverAddress, assetAddress, value, chainId) {
+	value = handleSemicolonInValue(value);
 	const data = {
 		chain_id: chainId,
 		function_name: 'transfer',
