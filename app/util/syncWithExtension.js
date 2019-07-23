@@ -58,6 +58,7 @@ export default class PubNubWrapper {
 				() => {
 					setTimeout(() => {
 						if (this.timeout) {
+							Logger.error('Sync failed at start sync expired code timeout');
 							reject();
 						} else {
 							resolve();
