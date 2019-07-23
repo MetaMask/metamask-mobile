@@ -346,13 +346,14 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 /**
  * Calculates fiat balance of an asset and returns a number
  *
- * @param {number} balance - Number corresponding to a balance of an asset
+ * @param {number|string} balance - Number or string corresponding to a balance of an asset
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {number} exchangeRate - Asset to ETH conversion rate
  * @param {number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance
  */
 export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decimalsToShow = 5) {
+	balance = handleSemicolonInValue(balance);
 	const base = Math.pow(10, decimalsToShow);
 	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
