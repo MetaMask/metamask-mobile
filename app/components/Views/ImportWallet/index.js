@@ -165,7 +165,9 @@ class ImportWallet extends PureComponent {
 					strings('sync_with_extension.outdated_qr_code'),
 					strings('sync_with_extension.outdated_qr_code_desc')
 				);
-			Logger.error('Sync::startSync', firstAttempt);
+			Logger.log('Sync::startSync', firstAttempt);
+			Logger.log('Sync::startSync', e.toString());
+			Logger.error('Sync::startSync', e);
 			return false;
 		}
 	};

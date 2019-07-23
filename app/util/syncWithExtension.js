@@ -140,6 +140,7 @@ export default class PubNubWrapper {
 		this.pubnub.addListener({
 			message: ({ channel, message }) => {
 				if (channel !== this.channelName || !message) {
+					Logger.log('Sync::message', channel !== this.channelName, !message);
 					Logger.error('Sync::message', channel !== this.channelName, !message);
 					this.timeout = false;
 					return false;
@@ -147,7 +148,7 @@ export default class PubNubWrapper {
 				if (message.event === 'error-sync') {
 					this.timeout = false;
 					this.disconnectWebsockets();
-					Logger.error('Sync::error-sync', message, this.incomingDataStr);
+					Logger.error('Sync::error-sync');
 					onErrorSync();
 				}
 				if (message.event === 'syncing-data') {
@@ -158,6 +159,7 @@ export default class PubNubWrapper {
 							const data = JSON.parse(this.incomingDataStr);
 							onSyncingData(data);
 						} catch (e) {
+							Logger.log('Sync::parsing', e.toString());
 							Logger.error('Sync::parsing', e);
 						}
 					}
