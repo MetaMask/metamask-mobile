@@ -72,18 +72,23 @@ export default class LockScreen extends PureComponent {
 		this.mounted = true;
 	}
 
-	waitForEngine() {
-		setTimeout(() => {
-			Engine.context ? this.unlockKeychain() : this.waitForEngine();
-		}, 100);
-	}
-
 	handleAppStateChange = async nextAppState => {
 		// Try to unlock when coming from the background
 		if (this.locked && this.appState !== 'active' && nextAppState === 'active') {
 			this.firstAnimation.play();
 			this.appState = nextAppState;
+			// Avoid trying to unlock with the app in background
+			this.attemptUnlock();
+		}
+	};
+
+	attemptUnlock = () => {
+		if (Platform.OS === 'android') {
 			this.unlockKeychain();
+		} else {
+			setTimeout(() => {
+				this.unlockKeychain();
+			}, 500);
 		}
 	};
 
@@ -131,7 +136,7 @@ export default class LockScreen extends PureComponent {
 		} catch (error) {
 			if (this.unlockAttempts <= 3) {
 				Logger.error('Lockscreen:unlockKeychain', { attemptNumber: this.unlockAttempts, error });
-				this.unlockKeychain();
+				this.attemptUnlock();
 			} else {
 				Logger.error('Lockscreen:maxAttemptsReached', { attemptNumber: this.unlockAttempts, error });
 				this.props.navigation.navigate('Login');

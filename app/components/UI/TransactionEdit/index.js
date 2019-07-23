@@ -274,7 +274,7 @@ class TransactionEdit extends PureComponent {
 		await this.setState({ toFocused: true });
 		const validated = !(await this.validate());
 		if (validated) {
-			if (data) {
+			if (data && data.substr(0, 2) !== '0x') {
 				this.updateData(addHexPrefix(data));
 			}
 			onModeChange && onModeChange('review');
