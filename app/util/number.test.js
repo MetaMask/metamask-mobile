@@ -17,7 +17,8 @@ import {
 	fiatNumberToTokenMinimalUnit,
 	balanceToFiat,
 	balanceToFiatNumber,
-	renderFiat
+	renderFiat,
+	handleSemicolonInValue
 } from './number';
 import numberToBN from 'number-to-bn';
 
@@ -254,5 +255,13 @@ describe('Number utils :: renderFiat', () => {
 	it('renderFiat', () => {
 		expect(renderFiat(0.1, 'usd')).toEqual('0.1 USD');
 		expect(renderFiat(0.0010000001, 'usd')).toEqual('0.001 USD');
+	});
+});
+
+describe('Number utils :: handleSemicolonInValue', () => {
+	it('handleSemicolonInValue', () => {
+		expect(handleSemicolonInValue(0, 1)).toEqual(0, 1);
+		expect(handleSemicolonInValue('0,1')).toEqual('0.1');
+		expect(handleSemicolonInValue('0.1')).toEqual('0.1');
 	});
 });
