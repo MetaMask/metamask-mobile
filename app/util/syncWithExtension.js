@@ -140,6 +140,7 @@ export default class PubNubWrapper {
 		this.pubnub.addListener({
 			message: ({ channel, message }) => {
 				if (channel !== this.channelName || !message) {
+					Logger.error('Sync::message', channel !== this.channelName, !message);
 					this.timeout = false;
 					return false;
 				}
