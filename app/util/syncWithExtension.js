@@ -4,7 +4,7 @@ import Logger from './Logger';
 const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
 const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
 
-const EXPIRED_CODE_TIMEOUT = 1000;
+const EXPIRED_CODE_TIMEOUT = 2000;
 
 export default class PubNubWrapper {
 	pubnub;
