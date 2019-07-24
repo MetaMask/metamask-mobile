@@ -280,6 +280,11 @@ class Settings extends PureComponent {
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			} else {
 				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				// If the user enables biometrics, we're trying to read the password
+				// immediately so we get the permission prompt
+				if (Platform.OS === 'ios') {
+					await SecureKeychain.getGenericPassword();
+				}
 			}
 
 			this.props.passwordSet();
