@@ -7,18 +7,6 @@ import gabaUtils from 'gaba/util';
 import numberToBN from 'number-to-bn';
 
 /**
- * Handles semicolon in value, replacing it with a point
- *
- * @param {number|string|Object} value - Value to check
- */
-export function handleSemicolonInValue(value) {
-	if (typeof value === 'string' && value.includes(',')) {
-		return value.replace(',', '.');
-	}
-	return value;
-}
-
-/**
  * Converts a BN object to a hex string with a '0x' prefix
  *
  * @param {Object} value - BN instance to convert to a hex string
@@ -36,7 +24,6 @@ export function BNToHex(value) {
  * @returns {string} - String containing the new number
  */
 export function fromWei(value = 0, unit = 'ether') {
-	value = handleSemicolonInValue(value);
 	return convert.fromWei(value, unit);
 }
 
@@ -48,7 +35,6 @@ export function fromWei(value = 0, unit = 'ether') {
  * @returns {string} - String containing the new number
  */
 export function fromTokenMinimalUnit(minimalInput, decimals) {
-	minimalInput = handleSemicolonInValue(minimalInput);
 	let minimal = numberToBN(minimalInput);
 	const negative = minimal.lt(new BN(0));
 	const base = toBN(Math.pow(10, decimals).toString());
@@ -77,7 +63,6 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
  * @returns {Object} - BN instance containing the new number
  */
 export function toTokenMinimalUnit(tokenValue, decimals) {
-	tokenValue = handleSemicolonInValue(tokenValue);
 	const base = toBN(Math.pow(10, decimals).toString());
 	let value = convert.numberToString(tokenValue);
 	const negative = value.substring(0, 1) === '-';
@@ -129,7 +114,6 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
  * If value is less than 5 precision decimals will show '< 0.00001'
  */
 export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow = 5) {
-	tokenValue = handleSemicolonInValue(tokenValue);
 	const minimalUnit = fromTokenMinimalUnit(tokenValue, decimals);
 	const minimalUnitNumber = parseFloat(minimalUnit);
 	let renderMinimalUnit;
@@ -152,7 +136,6 @@ export function renderFromTokenMinimalUnit(tokenValue, decimals, decimalsToShow 
  * @returns {Object} - The converted balance as BN instance
  */
 export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate, decimals) {
-	fiat = handleSemicolonInValue(fiat);
 	const floatFiatConverted = parseFloat(fiat) / (conversionRate * exchangeRate);
 	const base = Math.pow(10, decimals);
 	let weiNumber = floatFiatConverted * base;
@@ -171,7 +154,6 @@ export function fiatNumberToTokenMinimalUnit(fiat, conversionRate, exchangeRate,
  * If value is less than 5 precision decimals will show '< 0.00001'
  */
 export function renderFromWei(value, decimalsToShow = 5) {
-	value = handleSemicolonInValue(value);
 	const wei = fromWei(value);
 	const weiNumber = parseFloat(wei);
 	let renderWei;
@@ -222,7 +204,6 @@ export function isBN(value) {
  * @returns {boolean} - True if the string is a valid decimal
  */
 export function isDecimal(value) {
-	value = handleSemicolonInValue(value);
 	return Number.isFinite(parseFloat(value)) && !Number.isNaN(parseFloat(value)) && !isNaN(+value);
 }
 
@@ -233,7 +214,6 @@ export function isDecimal(value) {
  * @returns {Object} - BN instance
  */
 export function toBN(value) {
-	value = handleSemicolonInValue(value);
 	return new BN(value);
 }
 
@@ -245,7 +225,6 @@ export function toBN(value) {
  * @returns {Object} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
-	value = handleSemicolonInValue(value);
 	return convert.toWei(value, unit);
 }
 
@@ -257,7 +236,6 @@ export function toWei(value, unit = 'ether') {
  * @returns {Object} - BN instance containing the new number
  */
 export function toGwei(value, unit = 'ether') {
-	value = handleSemicolonInValue(value);
 	return fromWei(value, unit) * 1000000000;
 }
 
@@ -269,7 +247,6 @@ export function toGwei(value, unit = 'ether') {
  * @returns {string} - String instance containing the renderable number
  */
 export function renderToGwei(value, unit = 'ether') {
-	value = handleSemicolonInValue(value);
 	const gwei = fromWei(value, unit) * 1000000000;
 	let gweiFixed = parseFloat(Math.round(gwei));
 	gweiFixed = isNaN(gweiFixed) ? 0 : gweiFixed;
@@ -317,7 +294,6 @@ export function weiToFiatNumber(wei, conversionRate, decimalsToShow = 5) {
  * @returns {Object} - The converted balance as BN instance
  */
 export function fiatNumberToWei(fiat, conversionRate) {
-	fiat = handleSemicolonInValue(fiat);
 	const floatFiatConverted = parseFloat(fiat) / conversionRate;
 	const base = Math.pow(10, 18);
 	const weiNumber = Math.trunc(base * floatFiatConverted);
@@ -338,7 +314,6 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 	if (balance === undefined || balance === null || exchangeRate === undefined || exchangeRate === 0) {
 		return undefined;
 	}
-	balance = handleSemicolonInValue(balance);
 	const fiatFixed = balanceToFiatNumber(balance, conversionRate, exchangeRate);
 	return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
@@ -353,7 +328,6 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
  * @returns {Number} - The converted balance
  */
 export function balanceToFiatNumber(balance, conversionRate, exchangeRate, decimalsToShow = 5) {
-	balance = handleSemicolonInValue(balance);
 	const base = Math.pow(10, decimalsToShow);
 	let fiatFixed = parseFloat(Math.round(balance * conversionRate * exchangeRate * base) / base);
 	fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
@@ -383,7 +357,6 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
  */
 export function renderWei(value) {
 	if (!value) return '0';
-	value = handleSemicolonInValue(value);
 	const wei = fromWei(value);
 	const renderWei = wei * Math.pow(10, 18);
 	return renderWei.toString();
@@ -395,7 +368,6 @@ export function renderWei(value) {
  * @returns {string} - String number with none or at most 5 decimal places
  */
 export function renderNumber(number) {
-	number = handleSemicolonInValue(number);
 	const index = number.indexOf('.');
 	if (index === 0) return number;
 	return number.substring(0, index + 6);

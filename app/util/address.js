@@ -7,7 +7,7 @@ import Engine from '../core/Engine';
  * @returns {String} - String corresponding to full checksummed address
  */
 export function renderFullAddress(address) {
-	return toChecksumAddress(address);
+	return address && toChecksumAddress(address);
 }
 
 /**

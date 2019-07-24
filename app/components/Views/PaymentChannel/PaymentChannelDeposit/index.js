@@ -252,8 +252,9 @@ class Deposit extends PureComponent {
 
 	validateDeposit = async () => {
 		const { selectedAddress, accounts } = this.props;
-		const { amount } = this.state;
+		let { amount } = this.state;
 		if (!amount) return;
+		amount = amount.replace(',', '.');
 		const { balance } = accounts[selectedAddress];
 		let error, invalidAmountType;
 		let validAmount = true;
@@ -360,8 +361,9 @@ class Deposit extends PureComponent {
 	render() {
 		const { conversionRate, currentCurrency } = this.props;
 		const { amount, validAmount, error } = this.state;
+		const decimalAmount = amount && amount.replace(',', '.');
 		const conversionAmount = weiToFiat(
-			toWei((isDecimal(amount) && amount) || 0),
+			toWei((isDecimal(decimalAmount) && decimalAmount) || 0),
 			conversionRate,
 			currentCurrency.toUpperCase()
 		);
