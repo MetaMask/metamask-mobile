@@ -158,7 +158,6 @@ class TransactionEditor extends PureComponent {
 		const {
 			transaction: { to, data, assetType, gas: gasLimit }
 		} = this.props;
-
 		// If ETH transaction, there is no need to generate new data
 		if (assetType === 'ETH') {
 			const { gas } = mounting ? { gas: gasLimit } : await this.estimateGas({ amount, data, to });

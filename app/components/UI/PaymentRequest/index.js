@@ -470,12 +470,12 @@ class PaymentRequest extends PureComponent {
 		const { conversionRate, contractExchangeRates } = this.props;
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let res;
-		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle
+		// If primary currency is not crypo we need to know if there are conversion and exchange rates to handle0,
 		// fiat conversion for the payment request
 		if (internalPrimaryCurrency !== 'ETH' && conversionRate && (exchangeRate || selectedAsset.isETH)) {
-			res = this.handleFiatPrimaryCurrency(amount);
+			res = this.handleFiatPrimaryCurrency(amount && amount.replace(',', '.'));
 		} else {
-			res = this.handleETHPrimaryCurrency(amount);
+			res = this.handleETHPrimaryCurrency(amount && amount.replace(',', '.'));
 		}
 		const { cryptoAmount, secondaryAmount, symbol } = res;
 		this.setState({ amount, cryptoAmount, secondaryAmount, symbol, showError: false });

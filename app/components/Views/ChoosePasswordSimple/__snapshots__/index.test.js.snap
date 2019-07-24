@@ -1,0 +1,309 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChoosePasswordSimple should render correctly 1`] = `
+<SafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "padding": 20,
+      }
+    }
+    testID="choose-password-screen"
+  >
+    <KeyboardAwareScrollViewMock
+      enableAutomaticScroll={true}
+      enableOnAndroid={false}
+      enableResetScrollToCoords={true}
+      extraHeight={75}
+      extraScrollHeight={0}
+      keyboardOpeningTime={250}
+      resetScrollToCoords={
+        Object {
+          "x": 0,
+          "y": 0,
+        }
+      }
+      style={
+        Object {
+          "flex": 1,
+          "padding": 20,
+        }
+      }
+      viewIsInsideTabBar={false}
+    >
+      <View
+        testID="create-password-screen"
+      >
+        <View
+          style={
+            Object {
+              "alignItems": "flex-start",
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "justifyContent": "center",
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 23,
+                  "textAlign": "left",
+                }
+              }
+            >
+              You'll use this password to unlock your MetaMask wallet only on this device.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            Object {
+              "marginBottom": 10,
+              "marginTop": 20,
+            }
+          }
+        >
+          <AnimatedComponent
+            style={
+              Array [
+                Object {
+                  "color": "#777777",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "marginLeft": 5,
+                  "marginTop": -35,
+                  "position": "absolute",
+                  "textAlign": "left",
+                },
+                Object {
+                  "transform": Array [
+                    Object {
+                      "scale": 1,
+                    },
+                    Object {
+                      "translateX": 0,
+                    },
+                    Object {
+                      "translateY": 50,
+                    },
+                  ],
+                },
+              ]
+            }
+          >
+            New Password
+          </AnimatedComponent>
+          <TextInput
+            allowFontScaling={true}
+            autoCapitalize="none"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder=""
+            rejectResponderTermination={true}
+            returnKeyType="next"
+            secureTextEntry={true}
+            style={
+              Object {
+                "borderBottomColor": "#d6d9dc",
+                "borderBottomWidth": 1,
+                "borderRadius": 4,
+                "fontFamily": "Roboto",
+                "fontSize": 20,
+                "fontWeight": "400",
+                "paddingLeft": 0,
+                "paddingVertical": 10,
+              }
+            }
+            testID="input-password"
+            underlineColorAndroid="#d6d9dc"
+            value=""
+          />
+          <TouchableOpacity
+            activeOpacity={0.2}
+            onPress={[Function]}
+            style={
+              Object {
+                "alignSelf": "flex-end",
+                "backgroundColor": "#FFFFFF",
+                "marginTop": 8,
+                "position": "absolute",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "color": "#777777",
+                  "fontFamily": "Roboto",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "height": 20,
+                  "marginLeft": 5,
+                  "marginTop": 10,
+                  "textAlign": "left",
+                }
+              }
+            >
+              Show
+            </Text>
+          </TouchableOpacity>
+          <Text
+            style={
+              Object {
+                "color": "#777777",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "height": 20,
+                "marginLeft": 5,
+                "marginTop": 10,
+                "textAlign": "left",
+              }
+            }
+          />
+        </View>
+        <View
+          style={
+            Object {
+              "marginBottom": 10,
+              "marginTop": 20,
+            }
+          }
+        >
+          <AnimatedComponent
+            style={
+              Array [
+                Object {
+                  "color": "#777777",
+                  "fontFamily": "Roboto",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "marginLeft": 5,
+                  "marginTop": -35,
+                  "position": "absolute",
+                  "textAlign": "left",
+                },
+                Object {
+                  "transform": Array [
+                    Object {
+                      "scale": 1,
+                    },
+                    Object {
+                      "translateX": 0,
+                    },
+                    Object {
+                      "translateY": 50,
+                    },
+                  ],
+                },
+              ]
+            }
+          >
+            Confirm Password
+          </AnimatedComponent>
+          <TextInput
+            allowFontScaling={true}
+            autoCapitalize="none"
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder=""
+            rejectResponderTermination={true}
+            returnKeyType="done"
+            secureTextEntry={true}
+            style={
+              Object {
+                "borderBottomColor": "#d6d9dc",
+                "borderBottomWidth": 1,
+                "borderRadius": 4,
+                "fontFamily": "Roboto",
+                "fontSize": 20,
+                "fontWeight": "400",
+                "paddingLeft": 0,
+                "paddingVertical": 10,
+              }
+            }
+            testID="input-password-confirm"
+            underlineColorAndroid="#d6d9dc"
+            value=""
+          />
+          <View
+            style={
+              Object {
+                "alignSelf": "flex-end",
+                "marginTop": 8,
+                "position": "absolute",
+              }
+            }
+          />
+          <Text
+            style={
+              Object {
+                "color": "#777777",
+                "fontFamily": "Roboto",
+                "fontSize": 12,
+                "fontWeight": "400",
+                "height": 20,
+                "marginLeft": 5,
+                "marginTop": 10,
+                "textAlign": "left",
+              }
+            }
+          >
+            Must be at least 8 characters
+          </Text>
+        </View>
+      </View>
+    </KeyboardAwareScrollViewMock>
+    <View
+      style={
+        Object {
+          "marginTop": 20,
+          "paddingHorizontal": 10,
+        }
+      }
+    >
+      <StyledButton
+        disabled={true}
+        disabledContainerStyle={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        onPress={[Function]}
+        styleDisabled={
+          Object {
+            "opacity": 0.6,
+          }
+        }
+        testID="submit-button"
+        type="blue"
+      >
+        NEXT
+      </StyledButton>
+    </View>
+  </View>
+</SafeAreaView>
+`;

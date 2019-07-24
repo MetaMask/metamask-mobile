@@ -5,6 +5,7 @@ import { BN } from 'ethereumjs-util';
 import convert from 'ethjs-unit';
 import gabaUtils from 'gaba/util';
 import numberToBN from 'number-to-bn';
+
 /**
  * Converts a BN object to a hex string with a '0x' prefix
  *
@@ -189,7 +190,7 @@ export function hexToBN(value) {
 /**
  * Checks if a value is a BN instance
  *
- * @param {*} value - Value to check
+ * @param {object} value - Value to check
  * @returns {boolean} - True if the value is a BN instance
  */
 export function isBN(value) {
@@ -303,7 +304,7 @@ export function fiatNumberToWei(fiat, conversionRate) {
 /**
  * Calculates fiat balance of an asset
  *
- * @param {number} balance - Number corresponding to a balance of an asset
+ * @param {number|string} balance - Number corresponding to a balance of an asset
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {number} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
@@ -320,7 +321,7 @@ export function balanceToFiat(balance, conversionRate, exchangeRate, currencyCod
 /**
  * Calculates fiat balance of an asset and returns a number
  *
- * @param {number} balance - Number corresponding to a balance of an asset
+ * @param {number|string} balance - Number or string corresponding to a balance of an asset
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {number} exchangeRate - Asset to ETH conversion rate
  * @param {number} decimalsToShow - Decimals to 5

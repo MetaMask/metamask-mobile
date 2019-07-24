@@ -60,19 +60,15 @@ public class RCTAnalytics extends ReactContextBaseJavaModule {
 	@ReactMethod
     public void optIn(boolean val) {
 
-        Crashlytics crashlyticsKit = new Crashlytics.Builder()
-                .core(new CrashlyticsCore.Builder().disabled(false).build())
-                .build();
+
         if(val){
 			this.mixpanel.optInTracking();
+            Fabric.with(this.getReactApplicationContext(), new Crashlytics());
 
 		}else{
 			this.mixpanel.optOutTracking();
-            crashlyticsKit = new Crashlytics.Builder()
-                    .core(new CrashlyticsCore.Builder().disabled(true).build())
-                    .build();
 		}
-        Fabric.with(this.getReactApplicationContext(), crashlyticsKit);
+
     }
 
     @ReactMethod
