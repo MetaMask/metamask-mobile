@@ -563,7 +563,9 @@
 		"warning_ok_button": "SI",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Código QR inválido",
-		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
+		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí",
+		"something_wrong": "Ooops! algo salió mal...",
+		"something_wrong_desc": "Tenemos problemas al intentar sincronizar tu billetera. Por favor, intenta de nuevo más tarde o importa tu billetera usando tu frase semilla"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",

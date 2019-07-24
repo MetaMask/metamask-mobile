@@ -4,7 +4,7 @@ import Logger from './Logger';
 const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
 const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
 
-const EXPIRED_CODE_TIMEOUT = 1000;
+const EXPIRED_CODE_TIMEOUT = 2000;
 
 export default class PubNubWrapper {
 	pubnub;
@@ -58,7 +58,8 @@ export default class PubNubWrapper {
 				() => {
 					setTimeout(() => {
 						if (this.timeout) {
-							reject();
+							Logger.error('Sync::timeout');
+							reject('sync-timeout');
 						} else {
 							resolve();
 						}
@@ -139,13 +140,15 @@ export default class PubNubWrapper {
 		this.pubnub.addListener({
 			message: ({ channel, message }) => {
 				if (channel !== this.channelName || !message) {
+					Logger.log('Sync::message', channel !== this.channelName, !message);
+					Logger.error('Sync::message', channel !== this.channelName, !message);
 					this.timeout = false;
 					return false;
 				}
 				if (message.event === 'error-sync') {
 					this.timeout = false;
 					this.disconnectWebsockets();
-					Logger.error('Sync failed', message, this.incomingDataStr);
+					Logger.error('Sync::error-sync');
 					onErrorSync();
 				}
 				if (message.event === 'syncing-data') {
@@ -156,7 +159,8 @@ export default class PubNubWrapper {
 							const data = JSON.parse(this.incomingDataStr);
 							onSyncingData(data);
 						} catch (e) {
-							Logger.error('Sync failed at parsing', e);
+							Logger.log('Sync::parsing', e.toString());
+							Logger.error('Sync::parsing', e);
 						}
 					}
 				}
