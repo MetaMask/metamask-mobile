@@ -450,7 +450,7 @@ class PaymentChannel extends PureComponent {
 		try {
 			const params = {
 				sendRecipient: this.state.sendRecipient,
-				sendAmount: this.state.sendAmount
+				sendAmount: this.state.sendAmount.replace(',', '.')
 			};
 
 			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {
