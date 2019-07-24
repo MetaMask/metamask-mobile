@@ -575,7 +575,9 @@
 		"invalid_qr_code": "Invalid QR Code",
 		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to \"Settings\" > \"Advanced\" > Sync with Mobile in the browser extension and scan the QR there",
 		"outdated_qr_code": "Expired QR Code",
-		"outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one"
+		"outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one",
+		"something_wrong": "Ooops! Something went wrong...",
+		"something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your seed phrase"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",
