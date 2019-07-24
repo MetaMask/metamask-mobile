@@ -140,6 +140,14 @@ class ChoosePasswordSimple extends PureComponent {
 		error: null
 	};
 
+	startX = 0;
+	startY = 0;
+	width = 100;
+	height = 24;
+	initialScale = 1;
+	endX = 0;
+	endY = 50;
+
 	mounted = true;
 	passive = false;
 
@@ -225,13 +233,7 @@ class ChoosePasswordSimple extends PureComponent {
 	};
 
 	render() {
-		const startX = 0;
-		const startY = 0;
-		const width = 100;
-		const height = 24;
-		const initialScale = 1;
-		const endX = 0;
-		const endY = 50;
+		const { startX, startY, width, height, initialScale, endX, endY } = this;
 
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
