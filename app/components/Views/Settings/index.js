@@ -9,6 +9,7 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import AndroidBackHandler from '../AndroidBackHandler';
 import { withNavigationFocus } from 'react-navigation';
+import { connect } from 'react-redux';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -103,4 +104,4 @@ class Settings extends PureComponent {
 	};
 }
 
-export default withNavigationFocus(Settings);
+export default connect()(withNavigationFocus(Settings));
