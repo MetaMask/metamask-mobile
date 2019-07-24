@@ -484,7 +484,7 @@ class EthInput extends PureComponent {
 	 */
 	onChange = value => {
 		const { onChange } = this.props;
-		const { processedValue } = this.processValue(value);
+		const { processedValue } = this.processValue(value && value.replace(',', '.'));
 		onChange && onChange(processedValue, value);
 		this.setState({ readableValue: value });
 	};
