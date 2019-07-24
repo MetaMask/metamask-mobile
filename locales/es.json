@@ -348,7 +348,8 @@
 		"metametrics_title": "Participa en MetaMetrics",
 		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
 		"metametrics_opt_out": "MetaMetrics Deshabilitado",
-		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto."
+		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto.",
+		"create_password": "Crear Contraseña"
 	},
 	"app_information": {
 		"title": "Información",
