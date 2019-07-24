@@ -11,11 +11,15 @@ import StyledButton from '../../../UI/StyledButton';
 import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
+import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
 import AndroidBackHandler from '../../AndroidBackHandler';
+import { passwordSet } from '../../../../actions/user';
+import Engine from '../../../../core/Engine';
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -98,6 +102,10 @@ class Settings extends PureComponent {
 		 */
 		setPrivacyMode: PropTypes.func,
 		/**
+		 * Called to set the passwordSet flag
+		 */
+		passwordSet: PropTypes.func,
+		/**
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
@@ -125,6 +133,10 @@ class Settings extends PureComponent {
 		 * Active search engine
 		 */
 		lockTime: PropTypes.number,
+		/**
+		 * List of keyrings
+		 */
+		keyrings: PropTypes.array,
 		/**
 		 * Selected address as string
 		 */
@@ -208,21 +220,84 @@ class Settings extends PureComponent {
 
 	onBiometryChange = async enabled => {
 		this.setState({ biometryChoice: enabled });
+
 		const credentials = await SecureKeychain.getGenericPassword();
-		if (credentials) {
+		if (credentials && credentials.password !== '') {
+			this.storeCredentials(credentials.password, enabled, false);
+		} else {
+			this.props.navigation.navigate('ChoosePasswordSimple', {
+				onPasswordSet: password => {
+					this.storeCredentials(password, enabled, true);
+				}
+			});
+		}
+	};
+
+	storeCredentials = async (password, enabled, restore) => {
+		try {
 			await SecureKeychain.resetGenericPassword();
+
+			if (restore) {
+				Logger.log('SecuritySettings::Restoring wallet from SecuritySettings after setting password');
+				// We have to restore the entire keyring
+				// to re-encrypt it with a new password
+				const { KeyringController, PreferencesController } = Engine.context;
+				const { keyrings, selectedAddress } = this.props;
+				const mnemonic = await KeyringController.exportSeedPhrase('');
+				const seed = JSON.stringify(mnemonic).replace(/"/g, '');
+
+				// Also regenerate the accounts
+				let accountLength = 1;
+				const allKeyrings =
+					keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+				for (const keyring of allKeyrings) {
+					if (keyring.type === 'HD Key Tree') {
+						accountLength = keyring.accounts.length;
+						break;
+					}
+				}
+				Logger.log('SecuritySettings::Got the account count');
+				await KeyringController.createNewVaultAndRestore(password, seed);
+				Logger.log('SecuritySettings::Keyring created and re-encrypted');
+				for (let i = 0; i < accountLength - 1; i++) {
+					await KeyringController.addNewAccount();
+				}
+				Logger.log('SecuritySettings::selecting address');
+				// Finally set the same selected address
+				await PreferencesController.update({ selectedAddress: toChecksumAddress(selectedAddress) });
+				Logger.log('SecuritySettings::restore complete');
+			}
+
 			const authOptions = {
 				accessControl: enabled
 					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
 					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
 			};
-			await SecureKeychain.setGenericPassword('metamask-user', credentials.password, authOptions);
+			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 
 			if (!enabled) {
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 			} else {
 				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+				// If the user enables biometrics, we're trying to read the password
+				// immediately so we get the permission prompt
+				if (Platform.OS === 'ios') {
+					await SecureKeychain.getGenericPassword();
+				}
 			}
+
+			this.props.passwordSet();
+			if (enabled && this.props.lockTime === -1) {
+				Logger.log('Setting locktime to ', AppConstants.DEFAULT_LOCK_TIMEOUT);
+				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+			} else {
+				Logger.log('Locktime was set to', this.props.lockTime);
+			}
+		} catch (e) {
+			Logger.error('SecuritySettings:biometrics', e);
+			// Return the switch to the previous value
+			this.setState({ biometryChoice: !enabled });
 		}
 	};
 
@@ -441,14 +516,16 @@ const mapStateToProps = state => ({
 	privacyMode: state.privacy.privacyMode,
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	keyrings: state.engine.backgroundState.KeyringController.keyrings
 });
 
 const mapDispatchToProps = dispatch => ({
 	clearBrowserHistory: () => dispatch(clearHistory()),
 	clearHosts: () => dispatch(clearHosts()),
 	setLockTime: lockTime => dispatch(setLockTime(lockTime)),
-	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled))
+	setPrivacyMode: enabled => dispatch(setPrivacyMode(enabled)),
+	passwordSet: () => dispatch(passwordSet())
 });
 
 export default connect(
