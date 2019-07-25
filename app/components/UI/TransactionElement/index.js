@@ -425,8 +425,8 @@ class TransactionElement extends PureComponent {
 		const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
 
 		const transactionDetails = {
-			renderFrom: renderFullAddress(from),
-			renderTo: renderFullAddress(to),
+			renderFrom: from ? renderFullAddress(from) : strings('transactions.tx_details_not_available'),
+			renderTo: to ? renderFullAddress(to) : strings('transactions.tx_details_not_available'),
 			transactionHash,
 			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
