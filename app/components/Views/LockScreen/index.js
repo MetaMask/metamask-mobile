@@ -135,7 +135,6 @@ export default class LockScreen extends PureComponent {
 			}
 		} catch (error) {
 			if (this.unlockAttempts <= 3) {
-				Logger.error('Lockscreen:unlockKeychain', { attemptNumber: this.unlockAttempts, error });
 				this.attemptUnlock();
 			} else {
 				Logger.error('Lockscreen:maxAttemptsReached', { attemptNumber: this.unlockAttempts, error });
