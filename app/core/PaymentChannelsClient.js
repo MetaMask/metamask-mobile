@@ -566,7 +566,12 @@ const instance = {
 	 *	Event emitter instance that allows to subscribe
 	 *  to the events emitted by the instance
 	 */
-	hub
+	hub,
+	/**
+	 * returns the entire state of the client
+	 * only used for debugging purposes
+	 */
+	dump: () => (client && client.state) || {}
 };
 
 const reloadClient = () => {

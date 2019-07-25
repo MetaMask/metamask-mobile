@@ -261,9 +261,11 @@
 		"ipfs_gateway_down": "IPFS gateway actual está desconectado",
 		"ipfs_gateway_desc": "Elige tu IPFS gateway preferida.",
 		"state_logs": "Logs de Estado",
+		"instapay_state_logs": "Logs de Instapay",
 		"reveal_seed_words": "Revelar Palabras de Semilla",
 		"reset_account": "Reiniciar Cuenta",
 		"state_logs_button": "DESCARGAR LOGS DE ESTADO",
+		"instapay_state_logs_button": "OBTENER LOGS DE INSTAPAY",
 		"reveal_seed_words_button": "REVELAR PALABRAS DE SEMILLA",
 		"reset_account_button": "REINICIAR CUENTA",
 		"reset_account_confirm_button": "REINICIAR",
@@ -276,6 +278,8 @@
 		"search_engine": "Motor de Búsqueda",
 		"auto_lock": "Bloqueo automático",
 		"auto_lock_desc": "Elige la cantidad de tiempo para que la aplicación se bloquee automáticamente.",
+		"state_logs_desc": "Esto nos ayudará a investigar cualquier problema con la app. Envíalo a mobile@metamask.io",
+		"instapay_state_logs_desc": "Esto nos ayudará a investigar problemas con InstaPay. Envíalo a mobile@metamask.io",
 		"autolock_immediately": "Inmediatamente",
 		"autolock_never": "Nunca",
 		"autolock_after": "Luego de {{time}} segundos",
@@ -344,7 +348,8 @@
 		"metametrics_title": "Participa en MetaMetrics",
 		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
 		"metametrics_opt_out": "MetaMetrics Deshabilitado",
-		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto."
+		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto.",
+		"create_password": "Crear Contraseña"
 	},
 	"app_information": {
 		"title": "Información",
@@ -559,7 +564,9 @@
 		"warning_ok_button": "SI",
 		"warning_cancel_button": "NO",
 		"invalid_qr_code": "Código QR inválido",
-		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí"
+		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí",
+		"something_wrong": "Ooops! algo salió mal...",
+		"something_wrong_desc": "Tenemos problemas al intentar sincronizar tu billetera. Por favor, intenta de nuevo más tarde o importa tu billetera usando tu frase semilla"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",

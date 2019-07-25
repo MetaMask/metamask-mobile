@@ -143,6 +143,33 @@ class SyncWithExtension extends PureComponent {
 		}
 	};
 
+	startSync = async firstAttempt => {
+		try {
+			this.initWebsockets();
+			await this.pubnubWrapper.startSync();
+			return true;
+		} catch (e) {
+			if (!firstAttempt) {
+				this.props.navigation.goBack();
+				if (e.toString() === 'sync-timeout') {
+					Alert.alert(
+						strings('sync_with_extension.outdated_qr_code'),
+						strings('sync_with_extension.outdated_qr_code_desc')
+					);
+				} else {
+					Alert.alert(
+						strings('sync_with_extension.something_wrong'),
+						strings('sync_with_extension.something_wrong_desc')
+					);
+				}
+			}
+			Logger.log('Sync::startSync', firstAttempt);
+			Logger.log('Sync::startSync', e.toString());
+			Logger.error('Sync::startSync', e);
+			return false;
+		}
+	};
+
 	showQrCode = () => {
 		this.props.navigation.push('QRScanner', {
 			onStartScan: async data => {
@@ -158,21 +185,12 @@ class SyncWithExtension extends PureComponent {
 				}
 			},
 			onScanSuccess: async data => {
-				try {
-					if (data.content && data.content.search('metamask-sync:') !== -1) {
-						this.initWebsockets();
-						await this.pubnubWrapper.startSync();
-					} else {
-						Alert.alert(
-							strings('sync_with_extension.invalid_qr_code'),
-							strings('sync_with_extension.invalid_qr_code_desc')
-						);
-					}
-				} catch (e) {
-					this.props.navigation.goBack();
+				if (data.content && data.content.search('metamask-sync:') !== -1) {
+					(await this.startSync(true)) || (await this.startSync(false));
+				} else {
 					Alert.alert(
-						strings('sync_with_extension.outdated_qr_code'),
-						strings('sync_with_extension.outdated_qr_code_desc')
+						strings('sync_with_extension.invalid_qr_code'),
+						strings('sync_with_extension.invalid_qr_code_desc')
 					);
 				}
 			}
@@ -262,7 +280,7 @@ class SyncWithExtension extends PureComponent {
 			this.dataToSync = null;
 			this.props.navigation.push('SyncWithExtensionSuccess');
 		} catch (e) {
-			Logger.error('Sync failed', e);
+			Logger.error('Sync::disconnect', e);
 			Alert.alert(strings('sync_with_extension.error_title'), strings('sync_with_extension.error_message'));
 			this.setState({ loading: false });
 			this.props.navigation.goBack();

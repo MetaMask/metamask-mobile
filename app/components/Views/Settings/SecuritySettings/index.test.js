@@ -14,7 +14,8 @@ describe('SecuritySettings', () => {
 			engine: {
 				backgroundState: {
 					PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
-					AccountTrackerController: { accounts: {} }
+					AccountTrackerController: { accounts: {} },
+					KeyringController: { keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }] }
 				}
 			}
 		};

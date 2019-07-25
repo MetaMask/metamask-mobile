@@ -186,6 +186,7 @@ exports[`App should render correctly 1`] = `
                   "SettingsView": Object {
                     "childRouters": Object {
                       "AdvancedSettings": null,
+                      "ChoosePasswordSimple": null,
                       "CompanySettings": null,
                       "ExperimentalSettings": null,
                       "GeneralSettings": null,
@@ -604,6 +605,7 @@ exports[`App should render correctly 1`] = `
                     "SettingsView": Object {
                       "childRouters": Object {
                         "AdvancedSettings": null,
+                        "ChoosePasswordSimple": null,
                         "CompanySettings": null,
                         "ExperimentalSettings": null,
                         "GeneralSettings": null,

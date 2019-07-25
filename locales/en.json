@@ -266,9 +266,11 @@
 		"search_engine": "Search Engine",
 		"new_RPC_URL": "New RPC Network",
 		"state_logs": "State Logs",
+		"instapay_state_logs": "InstaPay Logs",
 		"auto_lock": "Auto-lock",
 		"auto_lock_desc": "Choose the amount of time before the application automatically locks.",
 		"state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it via email to mobile@metamask.io",
+		"instapay_state_logs_desc": "This will help MetaMask debug issues with InstaPay. Please send it via email to mobile@metamask.io",
 		"autolock_immediately": "Immediately",
 		"autolock_never": "Never",
 		"autolock_after": "After {{time}} seconds",
@@ -276,6 +278,7 @@
 		"reveal_seed_words": "Reveal Seed Words",
 		"reset_account": "Reset Account",
 		"state_logs_button": "DOWNLOAD STATE LOGS",
+		"instapay_state_logs_button": "GET INSTAPAY LOGS",
 		"reveal_seed_words_button": "REVEAL SEED WORDS",
 		"reset_account_button": "RESET ACCOUNT",
 		"reset_account_confirm_button": "RESET",
@@ -349,7 +352,8 @@
 		"metametrics_title": "Participate in MetaMetrics",
 		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
-		"metrametrics_restart_required": "You need to restart the app for the changes to take effect."
+		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
+		"create_password": "Create Password"
 	},
 	"app_information": {
 		"title": "Information",
@@ -572,7 +576,9 @@
 		"invalid_qr_code": "Invalid QR Code",
 		"invalid_qr_code_desc": "This isn't the right QR code! To sync with your browser extension, go to \"Settings\" > \"Advanced\" > Sync with Mobile in the browser extension and scan the QR there",
 		"outdated_qr_code": "Expired QR Code",
-		"outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one"
+		"outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one",
+		"something_wrong": "Ooops! Something went wrong...",
+		"something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your seed phrase"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",
