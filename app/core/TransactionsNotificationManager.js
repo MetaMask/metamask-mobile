@@ -50,6 +50,12 @@ class TransactionsNotificationManager {
 		if (this._backgroundMode) {
 			let title = '';
 			let message = '';
+			let nonce = '';
+
+			if (data && data.message && data.message.transaction && data.message.transaction.nonce) {
+				nonce = data.message.transaction.nonce;
+			}
+
 			switch (data.type) {
 				case 'pending':
 					title = strings('notifications.pending_title');
@@ -64,17 +70,15 @@ class TransactionsNotificationManager {
 					message = strings('notifications.pending_withdrawal_message');
 					break;
 				case 'success':
-					title = strings('notifications.success_title', { nonce: data.message.transaction.nonce });
+					title = strings('notifications.success_title', { nonce });
 					message = strings('notifications.success_message');
 					break;
 				case 'success_withdrawal':
-					title = strings('notifications.success_withdrawal_title', {
-						nonce: data.message.transaction.nonce
-					});
+					title = strings('notifications.success_withdrawal_title');
 					message = strings('notifications.success_withdrawal_message');
 					break;
 				case 'success_deposit':
-					title = strings('notifications.success_deposit_title', { nonce: data.message.transaction.nonce });
+					title = strings('notifications.success_deposit_title');
 					message = strings('notifications.success_deposit_message');
 					break;
 				case 'error':
