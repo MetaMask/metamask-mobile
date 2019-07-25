@@ -80,13 +80,11 @@ class TransactionsNotificationManager {
 					message = strings('notifications.success_message');
 					break;
 				case 'success_withdrawal':
-					title = strings('notifications.success_withdrawal_title', {
-						nonce
-					});
+					title = strings('notifications.success_withdrawal_title');
 					message = strings('notifications.success_withdrawal_message');
 					break;
 				case 'success_deposit':
-					title = strings('notifications.success_deposit_title', { nonce });
+					title = strings('notifications.success_deposit_title');
 					message = strings('notifications.success_deposit_message');
 					break;
 				case 'error':
