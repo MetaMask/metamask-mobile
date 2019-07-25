@@ -6,7 +6,6 @@ import Engine from './Engine';
 import Networks, { isKnownNetwork } from '../util/networks';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { hexToBN, renderFromWei } from '../util/number';
-import Logger from '../util/Logger';
 import { strings } from '../../locales/i18n';
 import { Alert, AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -56,9 +55,6 @@ class TransactionsNotificationManager {
 			if (data && data.message && data.message.transaction) {
 				if (data.message.transaction.nonce) {
 					nonce = data.message.transaction.nonce;
-				} else {
-					Logger.log('BG_NOTIFICATION:MISSING NONCE', data);
-					Logger.error('BG_NOTIFICATION:MISSING NONCE');
 				}
 			}
 
