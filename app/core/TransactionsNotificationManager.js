@@ -52,10 +52,8 @@ class TransactionsNotificationManager {
 			let message = '';
 			let nonce = '';
 
-			if (data && data.message && data.message.transaction) {
-				if (data.message.transaction.nonce) {
-					nonce = data.message.transaction.nonce;
-				}
+			if (data && data.message && data.message.transaction && data.message.transaction.nonce) {
+				nonce = data.message.transaction.nonce;
 			}
 
 			switch (data.type) {
