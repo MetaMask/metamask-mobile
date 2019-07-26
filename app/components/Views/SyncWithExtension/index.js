@@ -14,7 +14,6 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -324,7 +323,6 @@ class SyncWithExtension extends PureComponent {
 				<Text style={styles.title}>{strings('sync_with_extension.title')}</Text>
 				{this.renderContent()}
 			</View>
-			{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 		</SafeAreaView>
 	);
 }

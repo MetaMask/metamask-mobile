@@ -16,7 +16,6 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics';
-import AndroidBackHandler from '../../AndroidBackHandler';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -503,7 +502,6 @@ class Settings extends PureComponent {
 						</View>
 					</ActionModal>
 				</View>
-				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</ScrollView>
 		);
 	};
