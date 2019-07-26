@@ -558,7 +558,7 @@ class Main extends PureComponent {
 							paymentChannelRequestCompleted: false
 						});
 					});
-				}, 800);
+				}, 1500);
 			}, 800);
 		});
 
