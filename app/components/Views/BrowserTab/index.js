@@ -60,7 +60,6 @@ import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
-const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -820,7 +819,7 @@ export class BrowserTab extends PureComponent {
 		const urlObj = new URL(url);
 		const { hostname } = urlObj;
 		const tld = hostname.split('.').pop();
-		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+		if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
 			return true;
 		}
 		return false;

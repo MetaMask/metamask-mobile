@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Platform, Animated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Animated, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import ElevatedView from 'react-native-elevated-view';
@@ -10,15 +10,22 @@ import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 import WebsiteIcon from '../WebsiteIcon';
-import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { renderAccountName } from '../../../util/address';
+import EthereumAddress from '../EthereumAddress';
 
 const styles = StyleSheet.create({
 	root: {
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: Platform.OS === 'ios' ? '62%' : '80%',
+		minHeight: Platform.OS === 'ios' ? '65%' : '80%',
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+	},
+	emptyContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: colors.white
 	},
 	wrapper: {
 		paddingHorizontal: 25
@@ -202,9 +209,31 @@ class PaymentChannelApproval extends PureComponent {
 			.toFixed(2)
 			.toString();
 
+	renderAddressOrEns = (to, ensName) => {
+		if (!to) return null;
+
+		if (ensName) {
+			return <Text style={styles.selectedAddress}>{ensName}</Text>;
+		}
+
+		return <EthereumAddress style={styles.selectedAddress} address={to} type={'short'} />;
+	};
+
+	renderLoader = () => (
+		<View style={styles.root}>
+			<View style={styles.emptyContainer}>
+				<ActivityIndicator style={styles.loader} size="small" />
+			</View>
+		</View>
+	);
+
 	render = () => {
+		if (!this.props.info) {
+			return this.renderLoader();
+		}
+
 		const {
-			info: { title, detail, to },
+			info: { title, detail, to, ensName },
 			onConfirm,
 			onCancel,
 			selectedAddress,
@@ -278,17 +307,17 @@ class PaymentChannelApproval extends PureComponent {
 										{title}
 									</Text>
 								) : (
-									<Text style={styles.selectedAddress}>{renderShortAddress(to)}</Text>
+									this.renderAddressOrEns(to, ensName)
 								)}
 							</View>
 						</View>
 						<Text style={styles.intro}>{strings('paymentRequest.is_requesting_you_to_pay')}</Text>
 						<View style={styles.total}>
-							<Text style={styles.totalPrice}> ${formattedAmount}</Text>
+							<Text style={styles.totalPrice}>{formattedAmount} DAI</Text>
 						</View>
 						{detail && (
 							<View style={styles.permissions}>
-								<Text style={styles.permissionText} numberOfLines={1}>
+								<Text style={styles.permissionText}>
 									<Text style={styles.permission}> {detail}</Text>
 								</Text>
 							</View>
