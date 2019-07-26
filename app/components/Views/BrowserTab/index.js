@@ -974,7 +974,11 @@ export class BrowserTab extends PureComponent {
 		this.toggleOptionsIfNeeded();
 		const lastUrlBeforeHome = this.state.inputValue;
 		await this.go(HOMEPAGE_URL);
-		this.reload(true);
+		if (lastUrlBeforeHome === HOMEPAGE_URL) {
+			this.reload();
+		} else {
+			this.reload(true);
+		}
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
 			this.lastUrlBeforeHome = lastUrlBeforeHome;
@@ -1000,12 +1004,12 @@ export class BrowserTab extends PureComponent {
 	};
 
 	reload = (force = false) => {
-		this.isReloading = true;
 		this.toggleOptionsIfNeeded();
 		if (!force) {
 			const { current } = this.webview;
 			current && current.reload();
 		} else {
+			this.isReloading = true;
 			const url2Reload = this.state.inputValue;
 			// Force unmount the webview to avoid caching problems
 			this.setState({ forceReload: true }, () => {
