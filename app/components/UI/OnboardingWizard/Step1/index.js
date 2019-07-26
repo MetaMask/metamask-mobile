@@ -64,7 +64,7 @@ class Step1 extends PureComponent {
 
 	render() {
 		return (
-			<View style={styles.main}>
+			<View style={styles.main} testID={'onboarding-wizard-step1-view'}>
 				<View style={styles.coachmarkContainer}>
 					<Coachmark
 						title={strings('onboarding_wizard.step1.title')}
