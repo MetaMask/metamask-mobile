@@ -13,6 +13,7 @@ import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
+import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
 import FlashMessage from 'react-native-flash-message';
 import BackgroundTimer from 'react-native-background-timer';
@@ -79,6 +80,7 @@ import Networks from '../../../util/networks';
 import { CONNEXT_DEPOSIT } from '../../../util/transactions';
 import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import { isENS } from '../../../util/address';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -470,7 +472,8 @@ class Main extends PureComponent {
 
 	initializePaymentChannels = () => {
 		PaymentChannelsClient.init(this.props.selectedAddress);
-		PaymentChannelsClient.hub.on('payment::request', request => {
+		PaymentChannelsClient.hub.on('payment::request', async request => {
+			const validRequest = { ...request };
 			// Validate amount
 			if (isNaN(request.amount)) {
 				Alert.alert(
@@ -492,7 +495,51 @@ class Main extends PureComponent {
 				return;
 			}
 
-			this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
+			// Check if ENS and resolve the address before sending
+			if (isENS(request.to)) {
+				this.setState(
+					{
+						paymentChannelRequest: true,
+						paymentChannelRequestInfo: null
+					},
+					() => {
+						InteractionManager.runAfterInteractions(async () => {
+							const {
+								state: { network },
+								provider
+							} = Engine.context.NetworkController;
+							const ensProvider = new ENS({ provider, network });
+							try {
+								const resolvedAddress = await ensProvider.lookup(request.to.trim());
+								if (isValidAddress(resolvedAddress)) {
+									validRequest.to = resolvedAddress;
+									validRequest.ensName = request.to;
+									this.setState({
+										paymentChannelRequest: true,
+										paymentChannelRequestInfo: validRequest
+									});
+									return;
+								}
+							} catch (e) {
+								Logger.log('Error with payment request', request);
+							}
+							Alert.alert(
+								strings('payment_channel_request.title_error'),
+								strings('payment_channel_request.address_error_message')
+							);
+							this.setState({
+								paymentChannelRequest: false,
+								paymentChannelRequestInfo: null
+							});
+						});
+					}
+				);
+			} else {
+				this.setState({
+					paymentChannelRequest: true,
+					paymentChannelRequestInfo: validRequest
+				});
+			}
 		});
 
 		PaymentChannelsClient.hub.on('payment::complete', () => {

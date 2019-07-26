@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Platform, Animated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Animated, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionView from '../ActionView';
 import ElevatedView from 'react-native-elevated-view';
@@ -20,6 +20,12 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 10,
 		minHeight: Platform.OS === 'ios' ? '62%' : '80%',
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
+	},
+	emptyContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: colors.white
 	},
 	wrapper: {
 		paddingHorizontal: 25
@@ -203,19 +209,31 @@ class PaymentChannelApproval extends PureComponent {
 			.toFixed(2)
 			.toString();
 
-	renderAddressOrEns = to => {
+	renderAddressOrEns = (to, ensName) => {
 		if (!to) return null;
 
-		if (to.substring(0, 2).toLowerCase() === '0x') {
-			return <EthereumAddress style={styles.selectedAddress} address={to} type={'short'} />;
+		if (ensName) {
+			return <Text style={styles.selectedAddress}>{ensName}</Text>;
 		}
 
-		return <Text style={styles.selectedAddress}>{to}</Text>;
+		return <EthereumAddress style={styles.selectedAddress} address={to} type={'short'} />;
 	};
 
+	renderLoader = () => (
+		<View style={styles.root}>
+			<View style={styles.emptyContainer}>
+				<ActivityIndicator style={styles.loader} size="small" />
+			</View>
+		</View>
+	);
+
 	render = () => {
+		if (!this.props.info) {
+			return this.renderLoader();
+		}
+
 		const {
-			info: { title, detail, to },
+			info: { title, detail, to, ensName },
 			onConfirm,
 			onCancel,
 			selectedAddress,
@@ -289,7 +307,7 @@ class PaymentChannelApproval extends PureComponent {
 										{title}
 									</Text>
 								) : (
-									this.renderAddressOrEns(to)
+									this.renderAddressOrEns(to, ensName)
 								)}
 							</View>
 						</View>
