@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "scripts": {
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
