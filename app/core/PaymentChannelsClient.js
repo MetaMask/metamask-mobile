@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 // eslint-disable-next-line
 import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
+
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
 import { toWei, toBN, renderFromWei, BNToHex } from '../util/number';
@@ -591,8 +592,18 @@ const reloadClient = () => {
 };
 
 const onPaymentConfirm = async request => {
-	await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
-	hub.emit('payment::complete', request);
+	try {
+		const balance = parseFloat(instance.getState().balance);
+		const sendAmount = parseFloat(request.amount);
+		if (balance < sendAmount) {
+			hub.emit('payment::error', 'insufficient_balance');
+		} else {
+			await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
+			hub.emit('payment::complete', request);
+		}
+	} catch (e) {
+		hub.emit('payment::error', e.toString());
+	}
 };
 
 function initListeners() {

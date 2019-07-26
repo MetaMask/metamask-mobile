@@ -13,6 +13,7 @@ import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
+import ENS from 'ethjs-ens';
 import GlobalAlert from '../../UI/GlobalAlert';
 import FlashMessage from 'react-native-flash-message';
 import BackgroundTimer from 'react-native-background-timer';
@@ -60,7 +61,7 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
-import I18n from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -77,7 +78,9 @@ import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDepo
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
 import { CONNEXT_DEPOSIT } from '../../../util/transactions';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
+import { isENS } from '../../../util/address';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -469,13 +472,109 @@ class Main extends PureComponent {
 
 	initializePaymentChannels = () => {
 		PaymentChannelsClient.init(this.props.selectedAddress);
-		PaymentChannelsClient.hub.on('payment::request', request => {
-			this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
+		PaymentChannelsClient.hub.on('payment::request', async request => {
+			const validRequest = { ...request };
+			// Validate amount
+			if (isNaN(request.amount)) {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.amount_error_message')
+				);
+				return;
+			}
+
+			const isAddress = !request.to || request.to.substring(0, 2).toLowerCase() === '0x';
+			const isInvalidAddress = isAddress && !isValidAddress(request.to);
+
+			// Validate address
+			if (isInvalidAddress || (!isAddress && !isENS(request.to))) {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.address_error_message')
+				);
+				return;
+			}
+
+			// Check if ENS and resolve the address before sending
+			if (isENS(request.to)) {
+				this.setState(
+					{
+						paymentChannelRequest: true,
+						paymentChannelRequestInfo: null
+					},
+					() => {
+						InteractionManager.runAfterInteractions(async () => {
+							const {
+								state: { network },
+								provider
+							} = Engine.context.NetworkController;
+							const ensProvider = new ENS({ provider, network });
+							try {
+								const resolvedAddress = await ensProvider.lookup(request.to.trim());
+								if (isValidAddress(resolvedAddress)) {
+									validRequest.to = resolvedAddress;
+									validRequest.ensName = request.to;
+									this.setState({
+										paymentChannelRequest: true,
+										paymentChannelRequestInfo: validRequest
+									});
+									return;
+								}
+							} catch (e) {
+								Logger.log('Error with payment request', request);
+							}
+							Alert.alert(
+								strings('payment_channel_request.title_error'),
+								strings('payment_channel_request.address_error_message')
+							);
+							this.setState({
+								paymentChannelRequest: false,
+								paymentChannelRequestInfo: null
+							});
+						});
+					}
+				);
+			} else {
+				this.setState({
+					paymentChannelRequest: true,
+					paymentChannelRequestInfo: validRequest
+				});
+			}
 		});
 
 		PaymentChannelsClient.hub.on('payment::complete', () => {
 			// show the success screen
 			this.setState({ paymentChannelRequestCompleted: true });
+			// hide the modal and reset state
+			setTimeout(() => {
+				setTimeout(() => {
+					this.setState({
+						paymentChannelRequest: false,
+						paymentChannelRequestLoading: false,
+						paymentChannelRequestInfo: {}
+					});
+					setTimeout(() => {
+						this.setState({
+							paymentChannelRequestCompleted: false
+						});
+					});
+				}, 1500);
+			}, 800);
+		});
+
+		PaymentChannelsClient.hub.on('payment::error', error => {
+			if (error === 'INVALID_ENS_NAME') {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.address_error_message')
+				);
+			} else if (error.indexOf('insufficient_balance') !== -1) {
+				Alert.alert(
+					strings('payment_channel_request.error'),
+					strings('payment_channel_request.balance_error_message')
+				);
+			}
+
 			// hide the modal and reset state
 			setTimeout(() => {
 				setTimeout(() => {
