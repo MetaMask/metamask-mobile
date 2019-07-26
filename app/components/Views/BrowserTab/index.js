@@ -398,6 +398,7 @@ export class BrowserTab extends PureComponent {
 	lastUrlBeforeHome = null;
 	goingBack = false;
 	wizardScrollAdjusted = false;
+	isReloading = false;
 	approvalRequest;
 	accountsRequest;
 
@@ -453,9 +454,16 @@ export class BrowserTab extends PureComponent {
 						from: payload.params[0],
 						...pageMeta
 					});
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			personal_sign: async payload => {
@@ -467,9 +475,15 @@ export class BrowserTab extends PureComponent {
 						from: payload.params[1],
 						...pageMeta
 					});
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			eth_signTypedData: async payload => {
@@ -484,9 +498,15 @@ export class BrowserTab extends PureComponent {
 						},
 						'V1'
 					);
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			eth_signTypedData_v3: async payload => {
@@ -501,9 +521,15 @@ export class BrowserTab extends PureComponent {
 						},
 						'V3'
 					);
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			eth_requestAccounts: ({ hostname, params }) => {
@@ -524,7 +550,7 @@ export class BrowserTab extends PureComponent {
 						this.setState({ showApprovalDialog: true });
 					}, 1000);
 				}
-				return promise;
+				return !this.isReloading && promise;
 			},
 			eth_accounts: ({ id, jsonrpc, hostname }) => {
 				const { approvedHosts, privacyMode, selectedAddress } = this.props;
@@ -537,9 +563,10 @@ export class BrowserTab extends PureComponent {
 				} else {
 					this.accountsRequest.resolve({ id, jsonrpc, result: [] });
 				}
-				return promise;
+				return !this.isReloading && promise;
 			},
 			web3_clientVersion: payload =>
+				!this.isReloading &&
 				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id }),
 			wallet_scanQRCode: payload => {
 				const promise = new Promise((resolve, reject) => {
@@ -558,7 +585,7 @@ export class BrowserTab extends PureComponent {
 						}
 					});
 				});
-				return promise;
+				return !this.isReloading && promise;
 			},
 			wallet_watchAsset: async ({ params }) => {
 				const {
@@ -567,11 +594,12 @@ export class BrowserTab extends PureComponent {
 				} = params;
 				const { AssetsController } = Engine.context;
 				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
-				return suggestionResult.result;
+				return !this.isReloading && suggestionResult.result;
 			},
-			metamask_isApproved: async ({ hostname }) => ({
-				isApproved: !!this.props.approvedHosts[hostname]
-			}),
+			metamask_isApproved: async ({ hostname }) =>
+				!this.isReloading && {
+					isApproved: !!this.props.approvedHosts[hostname]
+				},
 			metamask_removeFavorite: ({ params }) => {
 				const promise = new Promise((resolve, reject) => {
 					if (!this.isHomepage()) {
@@ -600,14 +628,14 @@ export class BrowserTab extends PureComponent {
 						}
 					]);
 				});
-				return promise;
+				return !this.isReloading && promise;
 			},
 			metamask_showTutorial: () => {
 				this.wizardScrollAdjusted = false;
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('WalletView');
 
-				return Promise.resolve({ result: true });
+				return !this.isReloading && Promise.resolve({ result: true });
 			},
 			metamask_showAutocomplete: () => {
 				this.fromHomepage = true;
@@ -623,7 +651,7 @@ export class BrowserTab extends PureComponent {
 					}
 				);
 
-				return Promise.resolve({ result: true });
+				return !this.isReloading && Promise.resolve({ result: true });
 			}
 		});
 
@@ -965,6 +993,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	reload = (force = false) => {
+		this.isReloading = true;
 		this.toggleOptionsIfNeeded();
 		if (!force) {
 			const { current } = this.webview;
@@ -980,6 +1009,9 @@ export class BrowserTab extends PureComponent {
 				}, 300);
 			});
 		}
+		setTimeout(() => {
+			this.isReloading = false;
+		}, 1500);
 	};
 
 	addBookmark = () => {
