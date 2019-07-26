@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Platform } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { colors } from '../../../styles/common';
 import TransactionReview from '../TransactionReview';
 import TransactionEdit from '../TransactionEdit';
@@ -13,7 +13,6 @@ import { setTransactionObject } from '../../../actions/transaction';
 import Engine from '../../../core/Engine';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import contractMap from 'eth-contract-metadata';
-import AndroidBackHandler from '../../Views/AndroidBackHandler';
 import PaymentChannelsClient from '../../../core/PaymentChannelsClient';
 
 const EDIT = 'edit';
@@ -588,7 +587,6 @@ class TransactionEditor extends PureComponent {
 						transactionConfirmed={transactionConfirmed}
 					/>
 				)}
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.handleCustomBackPress} />}
 			</View>
 		);
 	};

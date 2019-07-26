@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TextInput, SafeAreaView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
 import { colors, fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
@@ -12,7 +12,6 @@ import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AndroidBackHandler from '../../../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -397,7 +396,6 @@ class NetworkSettings extends PureComponent {
 						</View>
 					)}
 				</KeyboardAwareScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 			</SafeAreaView>
 		);
 	}
