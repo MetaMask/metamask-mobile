@@ -10,7 +10,6 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import DeviceSize from '../../../util/DeviceSize';
 import { importAccountFromPrivateKey } from '../../../util/address';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -249,7 +248,6 @@ export default class ImportPrivateKey extends PureComponent {
 						</StyledButton>
 					</View>
 				</KeyboardAwareScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.dismiss} />}
 			</View>
 		);
 	}

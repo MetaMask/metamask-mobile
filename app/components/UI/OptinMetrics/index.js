@@ -178,8 +178,7 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press policy
 	 */
 	onPressPolicy = () => {
-		const { navigation } = this.props;
-		navigation.navigate('Webview', {
+		this.props.navigation.navigate('Webview', {
 			url: PRIVACY_POLICY,
 			title: strings('privacy_policy.title')
 		});

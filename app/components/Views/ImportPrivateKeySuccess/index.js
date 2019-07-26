@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { TouchableOpacity, ScrollView, Text, View, StyleSheet, Platform } from 'react-native';
+import { TouchableOpacity, ScrollView, Text, View, StyleSheet, InteractionManager, BackHandler } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { colors, fontStyles } from '../../../styles/common';
@@ -9,7 +9,6 @@ import { strings } from '../../../../locales/i18n';
 import DeviceSize from '../../../util/DeviceSize';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -65,7 +64,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * View that's displayed the first time a user receives funds
+ * View that's displayed the first time imports account
  */
 class ImportPrivateKeySuccess extends PureComponent {
 	static propTypes = {
@@ -90,6 +89,19 @@ class ImportPrivateKeySuccess extends PureComponent {
 		} catch (e) {
 			Logger.error('Error while refreshing imported pkey', e);
 		}
+		InteractionManager.runAfterInteractions(() => {
+			BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+		});
+	};
+
+	componentWillUnmount() {
+		InteractionManager.runAfterInteractions(() => {
+			BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+		});
+	}
+
+	handleBackPress = () => {
+		this.props.navigation.popToTop();
 	};
 
 	dismiss = () => {
@@ -120,7 +132,6 @@ class ImportPrivateKeySuccess extends PureComponent {
 						</View>
 					</View>
 				</ScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.dismiss} />}
 			</View>
 		);
 	}

@@ -43,6 +43,9 @@ const OnboardingNav = createStackNavigator(
 		},
 		OptinMetrics: {
 			screen: OptinMetrics
+		},
+		Webview: {
+			screen: SimpleWebview
 		}
 	},
 	{
@@ -64,18 +67,6 @@ const OnboardingRootNav = createStackNavigator(
 		},
 		QRScanner: {
 			screen: QRScanner
-		},
-		Webview: {
-			screen: createStackNavigator(
-				{
-					SimpleWebview: {
-						screen: SimpleWebview
-					}
-				},
-				{
-					mode: 'modal'
-				}
-			)
 		}
 	},
 	{
