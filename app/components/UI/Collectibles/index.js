@@ -89,7 +89,7 @@ export default class Collectibles extends PureComponent {
 	);
 
 	onItemPress = collectible => {
-		this.props.navigation.push('CollectibleView', {
+		this.props.navigation.navigate('CollectibleView', {
 			...collectible,
 			contractName: this.props.collectibleContract.name
 		});

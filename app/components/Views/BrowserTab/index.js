@@ -701,6 +701,14 @@ export class BrowserTab extends PureComponent {
 		if (Platform.OS === 'android') {
 			DrawerStatusTracker.hub.on('drawer::open', this.drawerOpenHandler);
 		}
+
+		// Handle hardwareBackPress event only for browser, not components rendered on top
+		this.props.navigation.addListener('willFocus', () => {
+			BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
+		});
+		this.props.navigation.addListener('willBlur', () => {
+			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
+		});
 	}
 
 	drawerOpenHandler = () => {
