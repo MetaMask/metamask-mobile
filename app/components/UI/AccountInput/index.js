@@ -5,19 +5,17 @@ import PropTypes from 'prop-types';
 import { ScrollView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
-import { renderShortAddress } from '../../../util/address';
+import { renderShortAddress, isENS } from '../../../util/address';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import ElevatedView from 'react-native-elevated-view';
 import ENS from 'ethjs-ens';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
 import { isValidAddress } from 'ethereumjs-util';
 import DeviceSize from '../../../util/DeviceSize';
 import EthereumAddress from '../EthereumAddress';
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	root: {
@@ -211,8 +209,7 @@ class AccountInput extends PureComponent {
 	};
 
 	isEnsName = recipient => {
-		const rec = recipient && recipient.split('.');
-		if (!rec || rec.length === 1 || !AppConstants.supportedTLDs.includes(rec[rec.length - 1])) {
+		if (!isENS(recipient)) {
 			this.setState({ ensRecipient: undefined });
 			return false;
 		}
@@ -223,7 +220,7 @@ class AccountInput extends PureComponent {
 		const { address } = this.state;
 		try {
 			const resolvedAddress = await this.ens.lookup(recipient.trim());
-			if (address !== ZERO_ADDRESS && isValidAddress(resolvedAddress)) {
+			if (address !== AppConstants.ZERO_ADDRESS && isValidAddress(resolvedAddress)) {
 				this.setState({ address: resolvedAddress, ensRecipient: recipient });
 				return true;
 			}

@@ -940,5 +940,12 @@
 		"title": "You're offline",
 		"text": "Check your internet connection and try again",
 		"try_again": "Try again"
+	},
+	"payment_channel_request": {
+		"title_error": "Invalid request",
+		"error": "Error",
+		"amount_error_message": "The amount must be a number",
+		"address_error_message": "The address is invalid",
+		"balance_error_message": "Insufficient balance"
 	}
 }
