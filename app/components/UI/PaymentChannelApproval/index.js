@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		minHeight: Platform.OS === 'ios' ? '62%' : '80%',
+		minHeight: Platform.OS === 'ios' ? '65%' : '80%',
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
 	emptyContainer: {
@@ -317,7 +317,7 @@ class PaymentChannelApproval extends PureComponent {
 						</View>
 						{detail && (
 							<View style={styles.permissions}>
-								<Text style={styles.permissionText} numberOfLines={1}>
+								<Text style={styles.permissionText}>
 									<Text style={styles.permission}> {detail}</Text>
 								</Text>
 							</View>
