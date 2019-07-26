@@ -135,7 +135,7 @@ exports[`OptinMetrics should render correctly 1`] = `
             }
           }
         >
-          Send anonymied click & pageview events
+          Send anonymized click & pageview events
         </Text>
       </View>
       <View

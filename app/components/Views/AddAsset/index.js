@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Platform } from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -93,7 +92,6 @@ export default class AddAsset extends PureComponent {
 						testID={'add-custom-collectible'}
 					/>
 				)}
-				{Platform.OS === 'android' && <AndroidBackHandler navigation={navigation} />}
 			</SafeAreaView>
 		);
 	};

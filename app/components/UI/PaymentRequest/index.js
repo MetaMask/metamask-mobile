@@ -36,7 +36,6 @@ import StyledButton from '../StyledButton';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { generateETHLink, generateERC20Link, generateUniversalLinkRequest } from '../../../util/payment-link-generator';
 import NetworkList from '../../../util/networks';
-import AndroidBackHandler from '../../Views/AndroidBackHandler';
 
 const KEYBOARD_OFFSET = 120;
 const styles = StyleSheet.create({
@@ -635,11 +634,6 @@ class PaymentRequest extends PureComponent {
 				>
 					{mode === MODE_SELECT ? this.renderSelectAssets() : this.renderEnterAmount()}
 				</KeyboardAwareScrollView>
-				{Platform.OS === 'android' && (
-					<AndroidBackHandler
-						customBackPress={mode === MODE_SELECT ? this.props.navigation.pop : this.goToAssetSelection}
-					/>
-				)}
 			</SafeAreaView>
 		);
 	}
