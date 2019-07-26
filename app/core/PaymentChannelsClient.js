@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 // eslint-disable-next-line
 import * as Connext from 'connext';
 import EthQuery from 'ethjs-query';
+import ENS from 'ethjs-ens';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import { hideMessage } from 'react-native-flash-message';
 import { toWei, toBN, renderFromWei, BNToHex } from '../util/number';
@@ -12,6 +13,8 @@ import { EventEmitter } from 'events';
 import AppConstants from './AppConstants';
 import byteArrayToHex from '../util/bytes';
 import Networks from '../util/networks';
+import { isENS } from '../util/address';
+import { isValidAddress } from 'ethereumjs-util';
 
 const {
 	CONNEXT: { CONTRACTS }
@@ -591,8 +594,40 @@ const reloadClient = () => {
 };
 
 const onPaymentConfirm = async request => {
-	await instance.send({ sendAmount: request.amount, sendRecipient: request.to });
-	hub.emit('payment::complete', request);
+	let sendRecipient = request.to;
+	// Check if ENS and resolve the address before sending
+	if (isENS(request.to)) {
+		const {
+			state: { network },
+			provider
+		} = Engine.context.NetworkController;
+		const ensProvider = new ENS({ provider, network });
+		try {
+			const resolvedAddress = await ensProvider.lookup(request.to.trim());
+			if (isValidAddress(resolvedAddress)) {
+				sendRecipient = resolvedAddress;
+			} else {
+				hub.emit('payment::error', 'INVALID_ENS_NAME');
+				return;
+			}
+		} catch {
+			hub.emit('payment::error', 'INVALID_ENS_NAME');
+			return;
+		}
+	}
+
+	try {
+		const balance = parseFloat(instance.getState().balance);
+		const sendAmount = parseFloat(request.amount);
+		if (balance < sendAmount) {
+			hub.emit('payment::error', 'insufficient_balance');
+		} else {
+			await instance.send({ sendAmount: request.amount, sendRecipient });
+			hub.emit('payment::complete', request);
+		}
+	} catch (e) {
+		hub.emit('payment::error', e.toString());
+	}
 };
 
 function initListeners() {

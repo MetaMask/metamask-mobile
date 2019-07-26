@@ -60,7 +60,7 @@ import TransactionsNotificationManager from '../../../core/TransactionsNotificat
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
-import I18n from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -77,7 +77,8 @@ import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDepo
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
 import { CONNEXT_DEPOSIT } from '../../../util/transactions';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
+import { isENS } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -470,12 +471,63 @@ class Main extends PureComponent {
 	initializePaymentChannels = () => {
 		PaymentChannelsClient.init(this.props.selectedAddress);
 		PaymentChannelsClient.hub.on('payment::request', request => {
+			// Validate amount
+			if (isNaN(request.amount)) {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.amount_error_message')
+				);
+				return;
+			}
+
+			const isAddress = !request.to || request.to.substring(0, 2).toLowerCase() === '0x';
+			const isInvalidAddress = isAddress && !isValidAddress(request.to);
+
+			// Validate address
+			if (isInvalidAddress || (!isAddress && !isENS(request.to))) {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.address_error_message')
+				);
+				return;
+			}
+
 			this.setState({ paymentChannelRequest: true, paymentChannelRequestInfo: request });
 		});
 
 		PaymentChannelsClient.hub.on('payment::complete', () => {
 			// show the success screen
 			this.setState({ paymentChannelRequestCompleted: true });
+			// hide the modal and reset state
+			setTimeout(() => {
+				setTimeout(() => {
+					this.setState({
+						paymentChannelRequest: false,
+						paymentChannelRequestLoading: false,
+						paymentChannelRequestInfo: {}
+					});
+					setTimeout(() => {
+						this.setState({
+							paymentChannelRequestCompleted: false
+						});
+					});
+				}, 800);
+			}, 800);
+		});
+
+		PaymentChannelsClient.hub.on('payment::error', error => {
+			if (error === 'INVALID_ENS_NAME') {
+				Alert.alert(
+					strings('payment_channel_request.title_error'),
+					strings('payment_channel_request.address_error_message')
+				);
+			} else if (error.indexOf('insufficient_balance') !== -1) {
+				Alert.alert(
+					strings('payment_channel_request.error'),
+					strings('payment_channel_request.balance_error_message')
+				);
+			}
+
 			// hide the modal and reset state
 			setTimeout(() => {
 				setTimeout(() => {

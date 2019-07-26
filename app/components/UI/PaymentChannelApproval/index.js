@@ -10,7 +10,8 @@ import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import DeviceSize from '../../../util/DeviceSize';
 import WebsiteIcon from '../WebsiteIcon';
-import { renderAccountName, renderShortAddress } from '../../../util/address';
+import { renderAccountName } from '../../../util/address';
+import EthereumAddress from '../EthereumAddress';
 
 const styles = StyleSheet.create({
 	root: {
@@ -202,6 +203,16 @@ class PaymentChannelApproval extends PureComponent {
 			.toFixed(2)
 			.toString();
 
+	renderAddressOrEns = to => {
+		if (!to) return null;
+
+		if (to.substring(0, 2).toLowerCase() === '0x') {
+			return <EthereumAddress style={styles.selectedAddress} address={to} type={'short'} />;
+		}
+
+		return <Text style={styles.selectedAddress}>{to}</Text>;
+	};
+
 	render = () => {
 		const {
 			info: { title, detail, to },
@@ -278,13 +289,13 @@ class PaymentChannelApproval extends PureComponent {
 										{title}
 									</Text>
 								) : (
-									<Text style={styles.selectedAddress}>{renderShortAddress(to)}</Text>
+									this.renderAddressOrEns(to)
 								)}
 							</View>
 						</View>
 						<Text style={styles.intro}>{strings('paymentRequest.is_requesting_you_to_pay')}</Text>
 						<View style={styles.total}>
-							<Text style={styles.totalPrice}> ${formattedAmount}</Text>
+							<Text style={styles.totalPrice}>{formattedAmount} DAI</Text>
 						</View>
 						{detail && (
 							<View style={styles.permissions}>
