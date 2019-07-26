@@ -27,7 +27,7 @@ import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
-import AppInformation from '../../UI/AppInformation';
+import AppInformation from '../../Views/Settings/AppInformation';
 import Wallet from '../../Views/Wallet';
 import TransactionsView from '../../Views/TransactionsView';
 import SyncWithExtension from '../../Views/SyncWithExtension';

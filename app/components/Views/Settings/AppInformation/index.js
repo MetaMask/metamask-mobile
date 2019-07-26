@@ -8,15 +8,13 @@ import {
 	View,
 	ScrollView,
 	TouchableOpacity,
-	Linking,
-	Platform
+	Linking
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../Navbar';
-import AndroidBackHandler from '../../Views/AndroidBackHandler';
+import { strings } from '../../../../../locales/i18n';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -69,7 +67,7 @@ const styles = StyleSheet.create({
 	}
 });
 
-const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
+const foxImage = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 /**
  * View that contains app information
@@ -164,7 +162,6 @@ export default class AppInformation extends PureComponent {
 					</TouchableOpacity>
 				</View>
 			</ScrollView>
-			{Platform.OS === 'android' && <AndroidBackHandler navigation={this.props.navigation} />}
 		</SafeAreaView>
 	);
 }
