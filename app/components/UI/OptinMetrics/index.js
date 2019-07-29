@@ -140,8 +140,7 @@ class OptinMetrics extends PureComponent {
 	 */
 	handleBackPress = () => {
 		if (this.props.isFocused) {
-			// FIX MESSAGES
-			Alert.alert('Heads up!', 'Feel free to disagree or accept data analytics');
+			Alert.alert(strings('onboarding.optin_back_title'), strings('onboarding.optin_back_desc'));
 			return true;
 		}
 	};

@@ -15,7 +15,9 @@
 		"start_exploring_now": "Start exploring",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
-		"already_have_wallet": "Already have a wallet?"
+		"already_have_wallet": "Already have a wallet?",
+		"optin_back_title": "Heads up!",
+		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings."
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Skip Tutorial",
