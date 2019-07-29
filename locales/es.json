@@ -15,7 +15,9 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar",
 		"new_to_metamask": "Nuevo en MetaMask?",
-		"already_have_wallet": "Ya tienes una billetera?"
+		"already_have_wallet": "Ya tienes una billetera?",
+		"optin_back_title": "Aviso",
+		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración."
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",

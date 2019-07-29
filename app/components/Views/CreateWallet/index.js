@@ -21,7 +21,7 @@ import { passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { NavigationActions } from 'react-navigation';
+import { NavigationActions, withNavigationFocus } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -104,12 +104,20 @@ class CreateWallet extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * React navigation prop to know if this view is focused
+		 */
+		isFocused: PropTypes.bool
 	};
 
 	// Temporary disabling the back button so users can't go back
 	// while creating the wallet
-	handleBackPress = () => true;
+	handleBackPress = () => {
+		if (this.props.isFocused) {
+			return true;
+		}
+	};
 
 	componentDidMount() {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
@@ -187,4 +195,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	null,
 	mapDispatchToProps
-)(CreateWallet);
+)(withNavigationFocus(CreateWallet));
