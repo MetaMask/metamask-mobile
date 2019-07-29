@@ -74,7 +74,11 @@ class Send extends PureComponent {
 		/**
 		 * Map representing the address book
 		 */
-		addressBook: PropTypes.object
+		addressBook: PropTypes.object,
+		/**
+		 * A string representing the network name
+		 */
+		providerType: PropTypes.string
 	};
 
 	state = {
@@ -341,6 +345,17 @@ class Send extends PureComponent {
 	});
 
 	/**
+	 * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
+	 */
+	removeCollectible = () => {
+		const { selectedAsset, assetType, providerType } = this.props.transaction;
+		if (assetType === 'ERC721' && providerType !== 'mainnet') {
+			const { AssetsController } = Engine.context;
+			AssetsController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
+		}
+	};
+
+	/**
 	 * Cancels transaction and close send screen before clear transaction state
 	 *
 	 * @param if - Transaction id
@@ -413,6 +428,7 @@ class Send extends PureComponent {
 			if (transactionMeta.error) {
 				throw transactionMeta.error;
 			}
+			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
@@ -536,7 +552,8 @@ const mapStateToProps = state => ({
 	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
 	transaction: state.transaction,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
-	tokens: state.engine.backgroundState.AssetsController.tokens
+	tokens: state.engine.backgroundState.AssetsController.tokens,
+	providerType: state.engine.backgroundState.NetworkController.provider.type
 });
 
 const mapDispatchToProps = dispatch => ({
