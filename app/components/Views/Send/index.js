@@ -428,7 +428,6 @@ class Send extends PureComponent {
 			if (transactionMeta.error) {
 				throw transactionMeta.error;
 			}
-			this.removeCollectible();
 			this.setState({ transactionConfirmed: false, transactionSubmitted: true });
 			this.props.navigation.pop();
 			InteractionManager.runAfterInteractions(() => {
@@ -436,6 +435,7 @@ class Send extends PureComponent {
 					...transactionMeta,
 					assetType: transaction.assetType
 				});
+				this.removeCollectible();
 			});
 		} catch (error) {
 			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
