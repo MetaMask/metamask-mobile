@@ -438,7 +438,7 @@ export class BrowserTab extends PureComponent {
 
 	async componentDidMount() {
 		if (this.isTabActive()) {
-			this.reload(true);
+			this.reload(true, true);
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
 		}
@@ -1003,13 +1003,15 @@ export class BrowserTab extends PureComponent {
 		this.setState({ forwardEnabled });
 	};
 
-	reload = (force = false) => {
+	reload = (force = false, isInitialReload = false) => {
 		this.toggleOptionsIfNeeded();
 		if (!force) {
 			const { current } = this.webview;
 			current && current.reload();
 		} else {
-			this.isReloading = true;
+			if (!isInitialReload) {
+				this.isReloading = true;
+			}
 			const url2Reload = this.state.inputValue;
 			// Force unmount the webview to avoid caching problems
 			this.setState({ forceReload: true }, () => {
@@ -1019,10 +1021,12 @@ export class BrowserTab extends PureComponent {
 					});
 				}, 300);
 			});
+			if (!isInitialReload) {
+				setTimeout(() => {
+					this.isReloading = false;
+				}, 1500);
+			}
 		}
-		setTimeout(() => {
-			this.isReloading = false;
-		}, 1500);
 	};
 
 	addBookmark = () => {
