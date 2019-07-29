@@ -547,16 +547,14 @@ class Main extends PureComponent {
 			this.setState({ paymentChannelRequestCompleted: true });
 			// hide the modal and reset state
 			setTimeout(() => {
+				this.setState({
+					paymentChannelRequest: false,
+					paymentChannelRequestLoading: false,
+					paymentChannelRequestInfo: {}
+				});
 				setTimeout(() => {
 					this.setState({
-						paymentChannelRequest: false,
-						paymentChannelRequestLoading: false,
-						paymentChannelRequestInfo: {}
-					});
-					setTimeout(() => {
-						this.setState({
-							paymentChannelRequestCompleted: false
-						});
+						paymentChannelRequestCompleted: false
 					});
 				}, 1500);
 			}, 800);
