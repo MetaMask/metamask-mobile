@@ -133,6 +133,12 @@ export default class QrScanner extends PureComponent {
 		});
 	};
 
+	onStatusChange = event => {
+		if (event.cameraStatus === 'NOT_AUTHORIZED') {
+			this.props.navigation.goBack();
+		}
+	};
+
 	render = () => (
 		<View style={styles.container}>
 			<RNCamera
@@ -148,6 +154,7 @@ export default class QrScanner extends PureComponent {
 					buttonPositive: strings('qr_scanner.ok'),
 					buttonNegative: strings('qr_scanner.cancel')
 				}}
+				onStatusChange={this.onStatusChange}
 			>
 				<SafeAreaView style={styles.innerView}>
 					<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
