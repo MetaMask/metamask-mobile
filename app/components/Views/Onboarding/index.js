@@ -142,7 +142,7 @@ class Onboarding extends PureComponent {
 	onPressCreate = () => {
 		const { existingUser } = this.state;
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-		const action = () => this.props.navigation.push('CreateWallet');
+		const action = () => this.props.navigation.navigate('CreateWallet');
 		if (existingUser) {
 			this.alertExistingUser(action);
 		} else {
