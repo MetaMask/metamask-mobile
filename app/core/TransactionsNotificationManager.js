@@ -97,11 +97,8 @@ class TransactionsNotificationManager {
 					message = strings('notifications.received_message');
 					break;
 				case 'received_payment':
-					title = strings('notifications.received_payment_title', {
-						amount: data.message.transaction.amount,
-						assetType: data.message.transaction.assetType
-					});
-					message = strings('notifications.received_payment_message');
+					title = strings('notifications.received_payment_title');
+					message = strings('notifications.received_payment_message', data.message.transaction.amount);
 					break;
 			}
 
