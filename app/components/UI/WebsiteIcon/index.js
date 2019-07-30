@@ -18,7 +18,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.white,
 		fontSize: 24,
-		textAlign: 'center'
+		textAlign: 'center',
+		textTransform: 'uppercase'
 	}
 });
 
@@ -60,13 +61,6 @@ export default class WebsiteIcon extends PureComponent {
 		title: undefined
 	};
 
-	componentDidMount() {
-		const { url } = this.props;
-		const apiLogoUrl = { uri: this.getIconUrl(url) };
-		const title = typeof this.props.title === 'string' ? this.props.title : getHost(url);
-		this.setState({ title: title.substring(0, 1).toUpperCase(), apiLogoUrl });
-	}
-
 	/**
 	 * Get image url from favicon api
 	 */
@@ -83,8 +77,10 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	render = () => {
-		const { renderIconUrlError, title, apiLogoUrl } = this.state;
-		const { viewStyle, style, textStyle, transparent } = this.props;
+		const { renderIconUrlError } = this.state;
+		const { viewStyle, style, textStyle, transparent, url } = this.props;
+		const apiLogoUrl = { uri: this.getIconUrl(url) };
+		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);
 
 		if (renderIconUrlError && title) {
 			return (
