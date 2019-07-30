@@ -4,13 +4,12 @@ import ENS from 'ethjs-ens';
 
 /**
  * Utility class with the single responsibility
- * of caching ENSCache
+ * of caching ENS names
  */
 class ENSCache {
 	static cache = {};
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export default async function doENSReverseLookup(address, network) {
 	const cache = ENSCache.cache[address];
 	if (cache) {
