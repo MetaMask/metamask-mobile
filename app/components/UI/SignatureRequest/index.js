@@ -12,6 +12,7 @@ import WebsiteIcon from '../WebsiteIcon';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { getHost } from '../../../util/browser';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -148,14 +149,17 @@ class SignatureRequest extends PureComponent {
 	renderPageInformation = () => {
 		const {
 			domain,
-			currentPageInformation: { title, url }
+			currentPageInformation: { url },
+			currentPageInformation
 		} = this.props;
+		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : getHost(url);
+		const name = domain && typeof domain.name === 'string';
 		return (
 			<View style={styles.domainWrapper}>
 				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
 				<Text style={styles.domainTitle}>{title}</Text>
 				<Text style={styles.domainText}>{url}</Text>
-				{domain && <Text style={styles.domainText}>{domain.name}</Text>}
+				{name && <Text style={styles.domainText}>{name}</Text>}
 			</View>
 		);
 	};
