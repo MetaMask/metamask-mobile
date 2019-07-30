@@ -402,7 +402,9 @@ class Main extends PureComponent {
 						data = notification.data;
 					}
 					if (data && data.action === 'tx') {
-						TransactionsNotificationManager.setTransactionToView(data.id);
+						if (data.id) {
+							TransactionsNotificationManager.setTransactionToView(data.id);
+						}
 						this.props.navigation.navigate('TransactionsHome');
 					}
 
