@@ -139,21 +139,29 @@ class UrlAutocomplete extends PureComponent {
 
 	onSubmitInput = () => this.props.onSubmit(this.props.input);
 
-	renderUrlOption = (url, name, onPress) => (
-		<TouchableOpacity containerStyle={styles.item} onPress={onPress} key={url}>
-			<View style={styles.itemWrapper}>
-				<WebsiteIcon style={styles.bookmarkIco} url={url} title={name} textStyle={styles.fallbackTextStyle} />
-				<View style={styles.textContent}>
-					<Text style={styles.name} numberOfLines={1}>
-						{name || getHost(url)}
-					</Text>
-					<Text style={styles.url} numberOfLines={1}>
-						{url}
-					</Text>
+	renderUrlOption = (url, name, onPress) => {
+		name = typeof name === 'string' ? name : getHost(url);
+		return (
+			<TouchableOpacity containerStyle={styles.item} onPress={onPress} key={url}>
+				<View style={styles.itemWrapper}>
+					<WebsiteIcon
+						style={styles.bookmarkIco}
+						url={url}
+						title={name}
+						textStyle={styles.fallbackTextStyle}
+					/>
+					<View style={styles.textContent}>
+						<Text style={styles.name} numberOfLines={1}>
+							{name}
+						</Text>
+						<Text style={styles.url} numberOfLines={1}>
+							{url}
+						</Text>
+					</View>
 				</View>
-			</View>
-		</TouchableOpacity>
-	);
+			</TouchableOpacity>
+		);
+	};
 
 	render() {
 		if (this.props.input.length < 2) return <View style={styles.wrapper} />;
