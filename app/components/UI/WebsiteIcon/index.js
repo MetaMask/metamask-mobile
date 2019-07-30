@@ -55,8 +55,17 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	state = {
-		renderIconUrlError: false
+		renderIconUrlError: false,
+		apiLogoUrl: undefined,
+		title: undefined
 	};
+
+	componentDidMount() {
+		const { url } = this.props;
+		const apiLogoUrl = { uri: this.getIconUrl(url) };
+		const title = typeof this.props.title === 'string' ? this.props.title : getHost(url);
+		this.setState({ title: title.substring(0, 1).toUpperCase(), apiLogoUrl });
+	}
 
 	/**
 	 * Get image url from favicon api
@@ -74,15 +83,14 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	render = () => {
-		const { renderIconUrlError } = this.state;
-		const { url, viewStyle, style, title, textStyle, transparent } = this.props;
-		const apiLogoUrl = { uri: this.getIconUrl(url) };
+		const { renderIconUrlError, title, apiLogoUrl } = this.state;
+		const { viewStyle, style, textStyle, transparent } = this.props;
 
 		if (renderIconUrlError && title) {
 			return (
 				<View style={viewStyle}>
 					<View style={[styles.fallback, style]}>
-						<Text style={[styles.fallbackText, textStyle]}>{title.substring(0, 1).toUpperCase()}</Text>
+						<Text style={[styles.fallbackText, textStyle]}>{title}</Text>
 					</View>
 				</View>
 			);
