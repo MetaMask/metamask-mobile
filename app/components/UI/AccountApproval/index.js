@@ -241,6 +241,7 @@ class AccountApproval extends PureComponent {
 			selectedAddress,
 			identities
 		} = this.props;
+		const host = getHost(url);
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -258,9 +259,9 @@ class AccountApproval extends PureComponent {
 					<View style={styles.wrapper}>
 						<View style={styles.header}>
 							<View style={styles.dapp}>
-								<WebsiteIcon style={styles.icon} title={title} url={url} />
+								<WebsiteIcon style={styles.icon} title={title || host} url={url} />
 								<Text style={styles.headerTitle} numberOfLines={1}>
-									{title || getHost(url)}
+									{title || host}
 								</Text>
 								<Text style={styles.headerUrl} numberOfLines={1}>
 									{url}
