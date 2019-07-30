@@ -26,4 +26,23 @@ describe('Onboarding wizard opt-out', () => {
 		// Check that the wizard is not visible anymore
 		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
 	});
+
+	it('should tap on take a tour on browser then skip tutorial', async () => {
+		// Check that we are on the Browser page
+		await TestHelpers.checkIfVisible('browser-screen');
+		// Scroll to bottom of browser view
+		await TestHelpers.swipe('browser-screen', 'up');
+		// Tap on the Take a tour box
+		await element(by.id('browser-screen')).tapAtPoint({ x: 215, y: 555 });
+		// Check that we are on the wallet screen
+		await TestHelpers.checkIfExists('wallet-screen');
+		// Check that the onboarding wizard is present
+		await TestHelpers.checkIfVisible('onboarding-wizard-step1-view');
+		// Check that Take the tour CTA is visible and tap it
+		await TestHelpers.waitAndTap('onboarding-wizard-next-button');
+		// Tap on Skip Tutorial
+		await TestHelpers.tapByText('Skip Tutorial');
+		// Check that the wizard is not visible anymore
+		await TestHelpers.checkIfNotVisible('onboarding-wizard-step1-view');
+	});
 });
