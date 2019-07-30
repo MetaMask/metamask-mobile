@@ -84,16 +84,28 @@ class NavbarBrowserTitle extends PureComponent {
 		});
 	};
 
+	getNetworkName(network) {
+		let name = { ...Networks.rpc, color: null }.name;
+
+		if (network && network.provider) {
+			if (network.provider.nickname) {
+				name = network.provider.nickname;
+			} else if (network.provider.type) {
+				const currentNetwork = Networks[network.provider.type];
+				if (currentNetwork && currentNetwork.name) {
+					name = currentNetwork.name;
+				}
+			}
+		}
+
+		return name;
+	}
+
 	render = () => {
 		const { https, network, hostname } = this.props;
-		let name = null;
 		const color = (Networks[network.provider.type] && Networks[network.provider.type].color) || null;
+		const name = this.getNetworkName(network);
 
-		if (network.provider.nickname) {
-			name = network.provider.nickname;
-		} else {
-			name = Networks[network.provider.type].name || { ...Networks.rpc, color: null }.name;
-		}
 		return (
 			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
