@@ -223,7 +223,7 @@ class OptinMetrics extends PureComponent {
 
 	render() {
 		return (
-			<SafeAreaView style={styles.root}>
+			<SafeAreaView style={styles.root} testID={'metaMetrics-OptIn'}>
 				<ScrollView style={styles.root}>
 					<View style={styles.wrapper}>
 						<Text style={styles.title}>{strings('privacy_policy.description_title')}</Text>
@@ -238,6 +238,7 @@ class OptinMetrics extends PureComponent {
 							containerStyle={[styles.button, styles.cancel]}
 							type={'cancel'}
 							onPress={this.onCancel}
+							testID={'cancel-button'}
 						>
 							{strings('privacy_policy.decline')}
 						</StyledButton>
@@ -245,6 +246,7 @@ class OptinMetrics extends PureComponent {
 							containerStyle={[styles.button, styles.confirm]}
 							type={'confirm'}
 							onPress={this.onConfirm}
+							testID={'agree-button'}
 						>
 							{strings('privacy_policy.agree')}
 						</StyledButton>

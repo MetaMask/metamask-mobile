@@ -1695,6 +1695,7 @@ export class BrowserTab extends PureComponent {
 							userAgent={this.getUserAgent()}
 							sendCookies
 							javascriptEnabled
+							testID={'browser-webview'}
 						/>
 					)}
 				</View>
