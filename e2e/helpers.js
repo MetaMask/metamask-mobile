@@ -17,6 +17,10 @@ export default class TestHelpers {
 			.tap();
 	}
 
+	static tapAtPoint(elementId, point) {
+		return element(by.id(elementId)).tapAtPoint(point);
+	}
+
 	static async typeText(elementId, text) {
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.waitAndTap(elementId);

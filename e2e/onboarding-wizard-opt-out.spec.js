@@ -33,7 +33,7 @@ describe('Onboarding wizard opt-out', () => {
 		// Scroll to bottom of browser view
 		await TestHelpers.swipe('browser-screen', 'up');
 		// Tap on the Take a tour box
-		await element(by.id('browser-screen')).tapAtPoint({ x: 215, y: 555 });
+		await TestHelpers.tapAtPoint('browser-screen', { x: 215, y: 555 });
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfExists('wallet-screen');
 		// Check that the onboarding wizard is present
