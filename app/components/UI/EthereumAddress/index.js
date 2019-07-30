@@ -1,13 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text } from 'react-native';
+import { InteractionManager, Text } from 'react-native';
 import { connect } from 'react-redux';
-import ENS from 'ethjs-ens';
-import networkMap from 'ethjs-ens/lib/network-map.json';
-import Engine from '../../../core/Engine';
 import { renderShortAddress, renderFullAddress } from '../../../util/address';
-import Logger from '../../../util/Logger';
-
+import { doENSReverseLookup } from '../../../util/ENSUtils';
 /**
  * View that renders an ethereum address
  * or its ENS name when supports reverse lookup
@@ -55,18 +51,17 @@ class EthereumAddress extends PureComponent {
 		return formattedAddress;
 	}
 
-	getNetworkEnsSupport = () => {
-		const { network } = this.props;
-		return Boolean(networkMap[network]);
-	};
-
 	componentDidMount() {
-		this.doReverseLookup();
+		InteractionManager.runAfterInteractions(() => {
+			this.doReverseLookup();
+		});
 	}
 
 	componentDidUpdate(prevProps) {
 		if (prevProps.address !== this.props.address) {
-			this.formatAndResolveIfNeeded();
+			requestAnimationFrame(() => {
+				this.formatAndResolveIfNeeded();
+			});
 		}
 	}
 
@@ -79,27 +74,12 @@ class EthereumAddress extends PureComponent {
 	}
 
 	doReverseLookup = async () => {
-		const { provider } = Engine.context.NetworkController;
 		const { network, address } = this.props;
-
-		const networkHasEnsSupport = this.getNetworkEnsSupport();
-		if (networkHasEnsSupport) {
-			this.ens = new ENS({ provider, network });
-			try {
-				const name = await this.ens.reverse(address);
-				const resolvedAddress = await this.ens.lookup(name);
-				if (address.toLowerCase() === resolvedAddress.toLowerCase()) {
-					this.setState({ ensName: name });
-				}
-			} catch (e) {
-				// Ignore errors about errors without ENS records
-				if (e.toString().indexOf('ENS name not defined.') === -1) {
-					Logger.log('address', this.props.address);
-					Logger.log('netork', this.props.network);
-					Logger.error('ENS reverse lookup error', e);
-				}
-			}
-		}
+		try {
+			const name = await doENSReverseLookup(address, network);
+			this.setState({ ensName: name });
+			// eslint-disable-next-line no-empty
+		} catch (e) {}
 	};
 
 	render() {
