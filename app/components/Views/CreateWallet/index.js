@@ -161,7 +161,7 @@ class CreateWallet extends PureComponent {
 
 	render() {
 		return (
-			<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'onboarding-screen'}>
+			<ScrollView style={styles.flex} contentContainerStyle={styles.flex} testID={'create-wallet-screen'}>
 				<View style={styles.wrapper}>
 					<View style={styles.content}>
 						<View style={styles.foxWrapper}>
