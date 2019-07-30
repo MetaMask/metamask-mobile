@@ -447,7 +447,7 @@ class PaymentChannelsClient {
 	};
 
 	stop() {
-		this.state && this.state.connext && this.state.connext.stop();
+		this.state && this.state.connext && this.state.connext.stop && this.state.connext.stop();
 		clearTimeout(this.autoswapHandler);
 	}
 
