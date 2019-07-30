@@ -242,9 +242,7 @@ class AccountApproval extends PureComponent {
 			selectedAddress,
 			identities
 		} = this.props;
-		const host = getHost(url);
-		// title can be {}
-		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : host;
+		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : getHost(url);
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>

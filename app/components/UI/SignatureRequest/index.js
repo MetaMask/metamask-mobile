@@ -152,9 +152,7 @@ class SignatureRequest extends PureComponent {
 			currentPageInformation: { url },
 			currentPageInformation
 		} = this.props;
-		const host = getHost(url);
-		// title can be {}
-		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : host;
+		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : getHost(url);
 		const name = domain && typeof domain.name === 'string';
 		return (
 			<View style={styles.domainWrapper}>
