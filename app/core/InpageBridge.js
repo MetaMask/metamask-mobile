@@ -178,6 +178,9 @@ class InpageBridge {
 	 * @param {Function} callback - Function called when operation completes
 	 */
 	sendAsync(payload, callback) {
+		if (!window.postMessageToNative) {
+			throw new Error('Bridge not ready');
+		}
 		const random = Math.floor(Math.random() * 100 + 1);
 		if (typeof payload === 'string') {
 			// Support dapps calling sendAsync('some_method') even though this is not
@@ -220,13 +223,31 @@ class InpageBridge {
 			// Temporary fix for peepeth calling
 			// ethereum.enable with the wrong context
 			const self = this || window.ethereum;
-			self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
-				if (error) {
-					reject(error);
-					return;
+			try {
+				self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+					if (error) {
+						reject(error);
+						return;
+					}
+					resolve(result);
+				});
+			} catch (e) {
+				if (e.toString().indexOf('Bridge not ready') !== -1) {
+					// Wait 1s and retry
+
+					setTimeout(() => {
+						self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+							if (error) {
+								reject(error);
+								return;
+							}
+							resolve(result);
+						});
+					}, 1000);
+				} else {
+					throw e;
 				}
-				resolve(result);
-			});
+			}
 		});
 	}
 
