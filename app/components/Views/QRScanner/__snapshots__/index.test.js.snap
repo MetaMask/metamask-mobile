@@ -22,6 +22,7 @@ exports[`QrScanner should render correctly 1`] = `
     flashMode="auto"
     onBarCodeRead={[Function]}
     onMountError={[Function]}
+    onStatusChange={[Function]}
     style={
       Object {
         "flex": 1,
