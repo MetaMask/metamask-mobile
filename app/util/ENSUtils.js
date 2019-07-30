@@ -11,7 +11,7 @@ class ENSCache {
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export async function doENSReverseLookup(address, network) {
+export default async function doENSReverseLookup(address, network) {
 	const cache = ENSCache.cache[address];
 	if (cache) {
 		return Promise.resolve(cache);
