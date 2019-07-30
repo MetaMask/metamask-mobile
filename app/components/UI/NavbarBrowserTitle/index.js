@@ -103,14 +103,8 @@ class NavbarBrowserTitle extends PureComponent {
 
 	render = () => {
 		const { https, network, hostname } = this.props;
-		let name = null;
 		const color = (Networks[network.provider.type] && Networks[network.provider.type].color) || null;
-
-		if (network.provider.nickname) {
-			name = network.provider.nickname;
-		} else {
-			name = this.getNetworkName(network);
-		}
+		const name = this.getNetworkName(network);
 
 		return (
 			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
