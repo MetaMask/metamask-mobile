@@ -84,6 +84,23 @@ class NavbarBrowserTitle extends PureComponent {
 		});
 	};
 
+	getNetworkName(network) {
+		let name = { ...Networks.rpc, color: null }.name;
+
+		if (network && network.provider) {
+			if (network.provider.nickname) {
+				name = network.provider.nickname;
+			} else if (network.provider.type) {
+				const currentNetwork = Networks[network.provider.type];
+				if (currentNetwork && currentNetwork.name) {
+					name = currentNetwork.name;
+				}
+			}
+		}
+
+		return name;
+	}
+
 	render = () => {
 		const { https, network, hostname } = this.props;
 		let name = null;
@@ -92,8 +109,9 @@ class NavbarBrowserTitle extends PureComponent {
 		if (network.provider.nickname) {
 			name = network.provider.nickname;
 		} else {
-			name = Networks[network.provider.type].name || { ...Networks.rpc, color: null }.name;
+			name = this.getNetworkName(network);
 		}
+
 		return (
 			<TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
 				<View style={styles.currentUrlWrapper}>
