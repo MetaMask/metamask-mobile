@@ -179,14 +179,7 @@ class Entry extends PureComponent {
 
 	renderAnimations() {
 		if (!this.state.viewToGo) {
-			return (
-				<LottieView
-					// eslint-disable-next-line react/jsx-no-bind
-					style={styles.animation}
-					autoPlay
-					source={require('../../../animations/bounce.json')}
-				/>
-			);
+			return <LottieView style={styles.animation} autoPlay source={require('../../../animations/bounce.json')} />;
 		}
 
 		return (
