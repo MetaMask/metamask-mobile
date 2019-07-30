@@ -15,6 +15,7 @@ import Logger from '../../../../util/Logger';
 import { connect } from 'react-redux';
 import URL from 'url-parse';
 import DeviceSize from '../../../../util/DeviceSize';
+import EthereumAddress from '../../EthereumAddress';
 
 const HASH_LENGTH = DeviceSize.isSmallDevice() ? 18 : 20;
 
@@ -341,16 +342,12 @@ class TransactionDetails extends PureComponent {
 				{this.renderTxHash(this.props.transactionDetails.transactionHash)}
 				<Text style={styles.detailRowTitle}>{strings('transactions.from')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText} numberOfLines={1}>
-						{this.props.transactionDetails.renderFrom}
-					</Text>
+					<EthereumAddress style={styles.detailRowText} address={this.props.transactionDetails.renderFrom} />
 					{this.renderCopyFromIcon()}
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.to')}</Text>
 				<View style={[styles.detailRowInfo, styles.singleRow]}>
-					<Text style={styles.detailRowText} numberOfLines={1}>
-						{this.props.transactionDetails.renderTo}
-					</Text>
+					<EthereumAddress style={styles.detailRowText} address={this.props.transactionDetails.renderTo} />
 					{this.renderCopyToIcon()}
 				</View>
 				<Text style={styles.detailRowTitle}>{strings('transactions.details')}</Text>
