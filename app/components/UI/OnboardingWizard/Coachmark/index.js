@@ -266,10 +266,20 @@ export default class Coachmark extends PureComponent {
 	 */
 	renderActionButtons = () => (
 		<View style={styles.actions}>
-			<StyledButton containerStyle={styles.actionButton} type={'transparent'} onPress={this.onBack}>
+			<StyledButton
+				containerStyle={styles.actionButton}
+				type={'transparent'}
+				onPress={this.onBack}
+				testID={'onboarding-wizard-back-button'}
+			>
 				{strings('onboarding_wizard.coachmark.action_back')}
 			</StyledButton>
-			<StyledButton containerStyle={styles.actionButton} type={'normal'} onPress={this.onNext}>
+			<StyledButton
+				containerStyle={styles.actionButton}
+				type={'normal'}
+				onPress={this.onNext}
+				testID={'onboarding-wizard-next-button'}
+			>
 				{strings('onboarding_wizard.coachmark.action_next')}
 			</StyledButton>
 		</View>

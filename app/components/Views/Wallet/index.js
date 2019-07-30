@@ -239,10 +239,9 @@ class Wallet extends PureComponent {
 	};
 
 	render = () => (
-		<View style={baseStyles.flexGrow}>
+		<View style={baseStyles.flexGrow} testID={'wallet-screen'}>
 			<ScrollView
 				style={styles.wrapper}
-				testID={'wallet-screen'}
 				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
 			>
 				{this.props.selectedAddress ? this.renderContent() : this.renderLoader()}

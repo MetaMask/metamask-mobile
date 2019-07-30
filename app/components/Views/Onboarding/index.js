@@ -169,13 +169,9 @@ class Onboarding extends PureComponent {
 
 	render() {
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={baseStyles.flexGrow} testID={'home-screen'}>
 				<OnboardingScreenWithBg screen={'b'}>
-					<ScrollView
-						style={baseStyles.flexGrow}
-						contentContainerStyle={styles.scroll}
-						testID={'onboarding-screen'}
-					>
+					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							<View style={styles.content}>
 								<View style={styles.foxWrapper}>
@@ -202,7 +198,7 @@ class Onboarding extends PureComponent {
 											<StyledButton
 												type={'blue'}
 												onPress={this.onPressCreate}
-												testID={'onboarding-new-button'}
+												testID={'start-exploring-button'}
 											>
 												{strings('onboarding.start_exploring_now')}
 											</StyledButton>
