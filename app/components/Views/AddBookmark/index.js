@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, Text, TextInput, View, StyleSheet, Platform } from 'react-native';
+import { SafeAreaView, Text, TextInput, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { colors, fontStyles } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -124,7 +123,6 @@ export default class AddBookmark extends PureComponent {
 					</View>
 				</View>
 			</ActionView>
-			{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.cancelAddBookmark} />}
 		</SafeAreaView>
 	);
 }

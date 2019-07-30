@@ -1,14 +1,12 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, ScrollView, Platform } from 'react-native';
-
+import { StyleSheet, ScrollView, InteractionManager } from 'react-native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { colors } from '../../../styles/common';
 import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -21,7 +19,7 @@ const styles = StyleSheet.create({
 /**
  * Main view for app configurations
  */
-export default class Settings extends PureComponent {
+class Settings extends PureComponent {
 	static navigationOptions = ({ navigation }) =>
 		getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation);
 
@@ -32,60 +30,67 @@ export default class Settings extends PureComponent {
 		navigation: PropTypes.object
 	};
 
-	render = () => {
-		/* eslint-disable */
-		/* prettier-ignore */
-		const { navigation } = this.props;
-		return (
-			<ScrollView style={styles.wrapper}>
-				<SettingsDrawer
-					description={strings('app_settings.general_desc')}
-					onPress={() => {
-						Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_GENERAL);
-						navigation.push('GeneralSettings');
-					}}
-					title={strings('app_settings.general_title')}
-				/>
-				<SettingsDrawer
-					description={strings('app_settings.advanced_desc')}
-					onPress={() => {
-						Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ADVANCED);
-						navigation.push('AdvancedSettings');
-					}}
-					title={strings('app_settings.advanced_title')}
-				/>
-				<SettingsDrawer
-					description={strings('app_settings.security_desc')}
-					onPress={() => {
-						Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_SECURITY_AND_PRIVACY);
-						navigation.push('SecuritySettings');
-					}}
-					title={strings('app_settings.security_title')}
-				/>
-				<SettingsDrawer
-					title={strings('app_settings.networks_title')}
-					description={strings('app_settings.networks_desc')}
-					onPress={() => {
-						navigation.push('NetworksSettings');
-					}}
-				/>
-				<SettingsDrawer
-					title={strings('app_settings.experimental_title')}
-					description={strings('app_settings.experimental_desc')}
-					onPress={() => {
-						Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_EXPERIMENTAL);
-						navigation.push('ExperimentalSettings');
-					}}
-				/>
-				<SettingsDrawer
-					title={strings('app_settings.info_title')}
-					onPress={() => {
-						Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ABOUT);
-						navigation.push('CompanySettings');
-					}}
-				/>
-				{Platform.OS === 'android' && <AndroidBackHandler navigation={navigation} />}
-			</ScrollView>
-		);
+	onPressGeneral = () => {
+		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_GENERAL));
+		this.props.navigation.push('GeneralSettings');
 	};
+
+	onPressAdvanced = () => {
+		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ADVANCED));
+		this.props.navigation.push('AdvancedSettings');
+	};
+
+	onPressSecurity = () => {
+		InteractionManager.runAfterInteractions(() =>
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_SECURITY_AND_PRIVACY)
+		);
+		this.props.navigation.push('SecuritySettings');
+	};
+
+	onPressNetworks = () => {
+		this.props.navigation.push('NetworksSettings');
+	};
+
+	onPressExperimental = () => {
+		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_EXPERIMENTAL));
+		this.props.navigation.push('ExperimentalSettings');
+	};
+
+	onPressInfo = () => {
+		InteractionManager.runAfterInteractions(() => Analytics.trackEvent(ANALYTICS_EVENT_OPTS.SETTINGS_ABOUT));
+		this.props.navigation.push('CompanySettings');
+	};
+
+	render = () => (
+		<ScrollView style={styles.wrapper}>
+			<SettingsDrawer
+				description={strings('app_settings.general_desc')}
+				onPress={this.onPressGeneral}
+				title={strings('app_settings.general_title')}
+			/>
+			<SettingsDrawer
+				description={strings('app_settings.advanced_desc')}
+				onPress={this.onPressAdvanced}
+				title={strings('app_settings.advanced_title')}
+			/>
+			<SettingsDrawer
+				description={strings('app_settings.security_desc')}
+				onPress={this.onPressSecurity}
+				title={strings('app_settings.security_title')}
+			/>
+			<SettingsDrawer
+				title={strings('app_settings.networks_title')}
+				description={strings('app_settings.networks_desc')}
+				onPress={this.onPressNetworks}
+			/>
+			<SettingsDrawer
+				title={strings('app_settings.experimental_title')}
+				description={strings('app_settings.experimental_desc')}
+				onPress={this.onPressExperimental}
+			/>
+			<SettingsDrawer title={strings('app_settings.info_title')} onPress={this.onPressInfo} />
+		</ScrollView>
+	);
 }
+
+export default Settings;

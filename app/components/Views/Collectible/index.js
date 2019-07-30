@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { RefreshControl, ScrollView, View, StyleSheet, Platform } from 'react-native';
+import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { colors } from '../../../styles/common';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
@@ -10,7 +10,6 @@ import Engine from '../../../core/Engine';
 import Modal from 'react-native-modal';
 import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
-import AndroidBackHandler from '../AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -125,7 +124,6 @@ class Collectible extends PureComponent {
 						collectibleContract={collectibleContract}
 					/>
 				</Modal>
-				{Platform.OS === 'android' && <AndroidBackHandler navigation={navigation} />}
 			</View>
 		);
 	};

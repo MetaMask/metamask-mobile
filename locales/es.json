@@ -15,7 +15,9 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar",
 		"new_to_metamask": "Nuevo en MetaMask?",
-		"already_have_wallet": "Ya tienes una billetera?"
+		"already_have_wallet": "Ya tienes una billetera?",
+		"optin_back_title": "Aviso",
+		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración."
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
@@ -776,7 +778,7 @@
 		"success_deposit_message": "Tus fondos están listos para ser utilizados",
 		"success_withdrawal_message": "Tus fondos han sido transferidos a tu billetera",
 		"received_message": "Presiona para ver esta transacción",
-		"received_payment_message": "Has recibido ${{amount}}!",
+		"received_payment_message": "Has recibido {{amount}} DAI",
 		"prompt_title": "Habilitar Notificationes",
 		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
 		"prompt_ok": "Si",
@@ -922,5 +924,12 @@
 		"title": "Sin Conexión",
 		"text": "Revisa tu conexión de internet e intenta nuevamente",
 		"try_again": "Intentar de nuevo"
+	},
+	"payment_channel_request": {
+		"title_error": "Solicitud Inválida",
+		"error": "Error",
+		"amount_error_message": "El monto debe ser un número",
+		"address_error_message": "La dirección no es válida",
+		"balance_error_message": "Balance insuficiente"
 	}
 }

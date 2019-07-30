@@ -60,7 +60,6 @@ import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
-const SUPPORTED_TOP_LEVEL_DOMAINS = ['eth', 'test'];
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -398,6 +397,7 @@ export class BrowserTab extends PureComponent {
 	lastUrlBeforeHome = null;
 	goingBack = false;
 	wizardScrollAdjusted = false;
+	isReloading = false;
 	approvalRequest;
 	accountsRequest;
 
@@ -438,7 +438,7 @@ export class BrowserTab extends PureComponent {
 
 	async componentDidMount() {
 		if (this.isTabActive()) {
-			this.reload(true);
+			this.reload(true, true);
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
 		}
@@ -453,9 +453,16 @@ export class BrowserTab extends PureComponent {
 						from: payload.params[0],
 						...pageMeta
 					});
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			personal_sign: async payload => {
@@ -467,9 +474,15 @@ export class BrowserTab extends PureComponent {
 						from: payload.params[1],
 						...pageMeta
 					});
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			eth_signTypedData: async payload => {
@@ -484,9 +497,15 @@ export class BrowserTab extends PureComponent {
 						},
 						'V1'
 					);
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			eth_signTypedData_v3: async payload => {
@@ -501,9 +520,15 @@ export class BrowserTab extends PureComponent {
 						},
 						'V3'
 					);
-					return Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.resolve({ result: rawSig, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				} catch (error) {
-					return Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id });
+					return (
+						!this.isReloading &&
+						Promise.reject({ error: error.message, jsonrpc: payload.jsonrpc, id: payload.id })
+					);
 				}
 			},
 			eth_requestAccounts: ({ hostname, params }) => {
@@ -524,7 +549,7 @@ export class BrowserTab extends PureComponent {
 						this.setState({ showApprovalDialog: true });
 					}, 1000);
 				}
-				return promise;
+				return !this.isReloading && promise;
 			},
 			eth_accounts: ({ id, jsonrpc, hostname }) => {
 				const { approvedHosts, privacyMode, selectedAddress } = this.props;
@@ -537,9 +562,10 @@ export class BrowserTab extends PureComponent {
 				} else {
 					this.accountsRequest.resolve({ id, jsonrpc, result: [] });
 				}
-				return promise;
+				return !this.isReloading && promise;
 			},
 			web3_clientVersion: payload =>
+				!this.isReloading &&
 				Promise.resolve({ result: 'MetaMask/0.1.0/Alpha/Mobile', jsonrpc: payload.jsonrpc, id: payload.id }),
 			wallet_scanQRCode: payload => {
 				const promise = new Promise((resolve, reject) => {
@@ -558,7 +584,7 @@ export class BrowserTab extends PureComponent {
 						}
 					});
 				});
-				return promise;
+				return !this.isReloading && promise;
 			},
 			wallet_watchAsset: async ({ params }) => {
 				const {
@@ -567,11 +593,12 @@ export class BrowserTab extends PureComponent {
 				} = params;
 				const { AssetsController } = Engine.context;
 				const suggestionResult = await AssetsController.watchAsset({ address, symbol, decimals, image }, type);
-				return suggestionResult.result;
+				return !this.isReloading && suggestionResult.result;
 			},
-			metamask_isApproved: async ({ hostname }) => ({
-				isApproved: !!this.props.approvedHosts[hostname]
-			}),
+			metamask_isApproved: async ({ hostname }) =>
+				!this.isReloading && {
+					isApproved: !!this.props.approvedHosts[hostname]
+				},
 			metamask_removeFavorite: ({ params }) => {
 				const promise = new Promise((resolve, reject) => {
 					if (!this.isHomepage()) {
@@ -600,14 +627,14 @@ export class BrowserTab extends PureComponent {
 						}
 					]);
 				});
-				return promise;
+				return !this.isReloading && promise;
 			},
 			metamask_showTutorial: () => {
 				this.wizardScrollAdjusted = false;
 				this.props.setOnboardingWizardStep(1);
 				this.props.navigation.navigate('WalletView');
 
-				return Promise.resolve({ result: true });
+				return !this.isReloading && Promise.resolve({ result: true });
 			},
 			metamask_showAutocomplete: () => {
 				this.fromHomepage = true;
@@ -623,7 +650,7 @@ export class BrowserTab extends PureComponent {
 					}
 				);
 
-				return Promise.resolve({ result: true });
+				return !this.isReloading && Promise.resolve({ result: true });
 			}
 		});
 
@@ -673,6 +700,14 @@ export class BrowserTab extends PureComponent {
 		if (Platform.OS === 'android') {
 			DrawerStatusTracker.hub.on('drawer::open', this.drawerOpenHandler);
 		}
+
+		// Handle hardwareBackPress event only for browser, not components rendered on top
+		this.props.navigation.addListener('willFocus', () => {
+			BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBackPress);
+		});
+		this.props.navigation.addListener('willBlur', () => {
+			BackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBackPress);
+		});
 	}
 
 	drawerOpenHandler = () => {
@@ -784,7 +819,7 @@ export class BrowserTab extends PureComponent {
 		const urlObj = new URL(url);
 		const { hostname } = urlObj;
 		const tld = hostname.split('.').pop();
-		if (SUPPORTED_TOP_LEVEL_DOMAINS.indexOf(tld.toLowerCase()) !== -1) {
+		if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
 			return true;
 		}
 		return false;
@@ -939,7 +974,11 @@ export class BrowserTab extends PureComponent {
 		this.toggleOptionsIfNeeded();
 		const lastUrlBeforeHome = this.state.inputValue;
 		await this.go(HOMEPAGE_URL);
-		this.reload(true);
+		if (lastUrlBeforeHome === HOMEPAGE_URL) {
+			this.reload();
+		} else {
+			this.reload(true);
+		}
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
 			this.lastUrlBeforeHome = lastUrlBeforeHome;
@@ -964,12 +1003,15 @@ export class BrowserTab extends PureComponent {
 		this.setState({ forwardEnabled });
 	};
 
-	reload = (force = false) => {
+	reload = (force = false, isInitialReload = false) => {
 		this.toggleOptionsIfNeeded();
 		if (!force) {
 			const { current } = this.webview;
 			current && current.reload();
 		} else {
+			if (!isInitialReload) {
+				this.isReloading = true;
+			}
 			const url2Reload = this.state.inputValue;
 			// Force unmount the webview to avoid caching problems
 			this.setState({ forceReload: true }, () => {
@@ -979,6 +1021,11 @@ export class BrowserTab extends PureComponent {
 					});
 				}, 300);
 			});
+			if (!isInitialReload) {
+				setTimeout(() => {
+					this.isReloading = false;
+				}, 1500);
+			}
 		}
 	};
 
@@ -1489,7 +1536,10 @@ export class BrowserTab extends PureComponent {
 	};
 
 	renderApprovalModal = () => {
-		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon } = this.state;
+		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon, inputValue } = this.state;
+		const url =
+			currentPageUrl && currentPageUrl.length && currentPageUrl !== 'localhost' ? currentPageUrl : inputValue;
+
 		return (
 			<Modal
 				isVisible={showApprovalDialog}
@@ -1506,7 +1556,7 @@ export class BrowserTab extends PureComponent {
 				<AccountApproval
 					onCancel={this.onAccountsReject}
 					onConfirm={this.onAccountsConfirm}
-					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl, icon: currentPageIcon }}
+					currentPageInformation={{ title: currentPageTitle, url, icon: currentPageIcon }}
 				/>
 			</Modal>
 		);

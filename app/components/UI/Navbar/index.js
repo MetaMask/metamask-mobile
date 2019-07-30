@@ -523,6 +523,10 @@ export function getWalletNavbarOptions(title, navigation) {
 			setTimeout(() => {
 				DeeplinkManager.parse(data.walletConnectURI);
 			}, 500);
+		} else if (data && data.indexOf(AppConstants.MM_UNIVERSAL_LINK_HOST) !== -1) {
+			setTimeout(() => {
+				DeeplinkManager.parse(data);
+			}, 500);
 		}
 	};
 

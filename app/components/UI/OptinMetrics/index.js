@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -8,11 +8,10 @@ import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
-import { NavigationActions } from 'react-navigation';
+import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import AndroidBackHandler from '../../Views/AndroidBackHandler';
 
 const styles = StyleSheet.create({
 	root: {
@@ -94,7 +93,11 @@ class OptinMetrics extends PureComponent {
 		/**
 		 * Action to set onboarding wizard step
 		 */
-		setOnboardingWizardStep: PropTypes.func
+		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * React navigation prop to know if this view is focused
+		 */
+		isFocused: PropTypes.bool
 	};
 
 	actionsList = [
@@ -123,6 +126,24 @@ class OptinMetrics extends PureComponent {
 			description: strings('privacy_policy.action_description_6')
 		}
 	];
+
+	componentDidMount() {
+		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+	}
+
+	componentWillUnmount() {
+		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+	}
+
+	/**
+	 * Temporary disabling the back button so users can't go back
+	 */
+	handleBackPress = () => {
+		if (this.props.isFocused) {
+			Alert.alert(strings('onboarding.optin_back_title'), strings('onboarding.optin_back_desc'));
+			return true;
+		}
+	};
 
 	/**
 	 * Action to be triggered when pressing any button
@@ -179,8 +200,7 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press policy
 	 */
 	onPressPolicy = () => {
-		const { navigation } = this.props;
-		navigation.navigate('Webview', {
+		this.props.navigation.navigate('Webview', {
 			url: PRIVACY_POLICY,
 			title: strings('privacy_policy.title')
 		});
@@ -232,7 +252,6 @@ class OptinMetrics extends PureComponent {
 						</StyledButton>
 					</View>
 				</ScrollView>
-				{Platform.OS === 'android' && <AndroidBackHandler customBackPress={this.onCancel} />}
 			</SafeAreaView>
 		);
 	}
@@ -245,4 +264,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
 	null,
 	mapDispatchToProps
-)(OptinMetrics);
+)(withNavigationFocus(OptinMetrics));

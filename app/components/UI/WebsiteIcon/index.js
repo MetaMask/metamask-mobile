@@ -18,7 +18,8 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.white,
 		fontSize: 24,
-		textAlign: 'center'
+		textAlign: 'center',
+		textTransform: 'uppercase'
 	}
 });
 
@@ -75,14 +76,15 @@ export default class WebsiteIcon extends PureComponent {
 
 	render = () => {
 		const { renderIconUrlError } = this.state;
-		const { url, viewStyle, style, title, textStyle, transparent } = this.props;
+		const { viewStyle, style, textStyle, transparent, url } = this.props;
 		const apiLogoUrl = { uri: this.getIconUrl(url) };
+		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);
 
 		if (renderIconUrlError && title) {
 			return (
 				<View style={viewStyle}>
 					<View style={[styles.fallback, style]}>
-						<Text style={[styles.fallbackText, textStyle]}>{title.substring(0, 1).toUpperCase()}</Text>
+						<Text style={[styles.fallbackText, textStyle]}>{title}</Text>
 					</View>
 				</View>
 			);

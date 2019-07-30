@@ -7,7 +7,7 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
-      "minHeight": "62%",
+      "minHeight": "65%",
       "paddingBottom": 20,
     }
   }
@@ -218,8 +218,8 @@ exports[`PaymentChannelApproval should render correctly 1`] = `
             }
           }
         >
-           $
           1.00
+           DAI
         </Text>
       </View>
     </View>

@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { ActivityIndicator, InteractionManager, View, StyleSheet, Platform } from 'react-native';
+import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, { isKnownNetwork } from '../../../util/networks';
@@ -9,8 +9,6 @@ import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
-import AndroidBackHandler from '../AndroidBackHandler';
-import { withNavigationFocus } from 'react-navigation';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -59,11 +57,7 @@ class Asset extends PureComponent {
 		/**
 		 * An array that represents the user transactions
 		 */
-		transactions: PropTypes.array,
-		/**
-		 * React navigation prop to know if this view is focused
-		 */
-		isFocused: PropTypes.bool
+		transactions: PropTypes.array
 	};
 
 	state = {
@@ -178,8 +172,7 @@ class Asset extends PureComponent {
 			conversionRate,
 			currentCurrency,
 			selectedAddress,
-			networkType,
-			isFocused
+			networkType
 		} = this.props;
 
 		return (
@@ -205,7 +198,6 @@ class Asset extends PureComponent {
 						/>
 					)}
 				</View>
-				{isFocused && Platform.OS === 'android' && <AndroidBackHandler navigation={navigation} />}
 			</View>
 		);
 	};
@@ -219,4 +211,4 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions
 });
 
-export default connect(mapStateToProps)(withNavigationFocus(Asset));
+export default connect(mapStateToProps)(Asset);
