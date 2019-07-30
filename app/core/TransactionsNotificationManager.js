@@ -111,7 +111,9 @@ class TransactionsNotificationManager {
 				smallIcon: 'ic_notification_small'
 			};
 
-			const extraData = { action: 'tx', id: data.message.transaction.id };
+			const id = (data && data.message && data.message.transaction && data.message.transaction.id) || null;
+
+			const extraData = { action: 'tx', id };
 			if (Platform.OS === 'android') {
 				pushData.tag = JSON.stringify(extraData);
 			} else {
@@ -119,7 +121,9 @@ class TransactionsNotificationManager {
 			}
 			PushNotification.localNotification(pushData);
 
-			this._transactionToView.push(data.message.transaction.id);
+			if (id) {
+				this._transactionToView.push(id);
+			}
 		} else {
 			showMessage(data);
 		}
