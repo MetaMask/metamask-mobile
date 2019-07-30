@@ -56,9 +56,7 @@ export default class WebsiteIcon extends PureComponent {
 	};
 
 	state = {
-		renderIconUrlError: false,
-		apiLogoUrl: undefined,
-		title: undefined
+		renderIconUrlError: false
 	};
 
 	/**
