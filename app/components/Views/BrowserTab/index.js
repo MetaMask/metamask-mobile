@@ -1536,7 +1536,10 @@ export class BrowserTab extends PureComponent {
 	};
 
 	renderApprovalModal = () => {
-		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon } = this.state;
+		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon, inputValue } = this.state;
+		const url =
+			currentPageUrl && currentPageUrl.length && currentPageUrl !== 'localhost' ? currentPageUrl : inputValue;
+
 		return (
 			<Modal
 				isVisible={showApprovalDialog}
@@ -1553,7 +1556,7 @@ export class BrowserTab extends PureComponent {
 				<AccountApproval
 					onCancel={this.onAccountsReject}
 					onConfirm={this.onAccountsConfirm}
-					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl, icon: currentPageIcon }}
+					currentPageInformation={{ title: currentPageTitle, url, icon: currentPageIcon }}
 				/>
 			</Modal>
 		);
