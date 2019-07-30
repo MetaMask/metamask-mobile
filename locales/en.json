@@ -795,7 +795,7 @@
 		"success_withdrawal_message": "Your funds have been moved to your wallet",
 		"cancelled_message": "Tap to view this transaction",
 		"received_message": "Tap to view this transaction",
-		"received_payment_message": "You received ${{amount}}!",
+		"received_payment_message": "You received {{amount}} DAI",
 		"prompt_title": "Enable Push Notifications",
 		"prompt_desc": "Enable notifications so MetaMask can let you know when you've received ETH or when your transactions have been confirmed.",
 		"prompt_ok": "Yes",
