@@ -778,7 +778,7 @@
 		"success_deposit_message": "Tus fondos están listos para ser utilizados",
 		"success_withdrawal_message": "Tus fondos han sido transferidos a tu billetera",
 		"received_message": "Presiona para ver esta transacción",
-		"received_payment_message": "Has recibido ${{amount}}!",
+		"received_payment_message": "Has recibido {{amount}} DAI",
 		"prompt_title": "Habilitar Notificationes",
 		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
 		"prompt_ok": "Si",
