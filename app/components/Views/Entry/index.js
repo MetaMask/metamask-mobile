@@ -115,9 +115,9 @@ class Entry extends PureComponent {
 		this.setState({ viewToGo: view }, () => {
 			if (Platform.OS === 'android') {
 				setTimeout(() => {
-					this.animation.play(0, 25);
+					this.animation ? this.animation.play(0, 25) : this.onAnimationFinished();
 					setTimeout(() => {
-						this.animationName.play();
+						this.animationName && this.animationName.play();
 					}, 1);
 				}, 50);
 			} else {
@@ -179,14 +179,7 @@ class Entry extends PureComponent {
 
 	renderAnimations() {
 		if (!this.state.viewToGo) {
-			return (
-				<LottieView
-					// eslint-disable-next-line react/jsx-no-bind
-					style={styles.animation}
-					autoPlay
-					source={require('../../../animations/bounce.json')}
-				/>
-			);
+			return <LottieView style={styles.animation} autoPlay source={require('../../../animations/bounce.json')} />;
 		}
 
 		return (
