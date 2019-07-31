@@ -351,7 +351,7 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTransferFromElement = () => {
+	decodeTransferFromTx = () => {
 		const {
 			tx: {
 				transaction: { gas, gasPrice, data, to },
@@ -404,7 +404,7 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
-	renderConfirmElement = () => {
+	decodeConfirmTx = () => {
 		const {
 			tx: {
 				transaction: { value, gas, gasPrice, from, to },
@@ -417,7 +417,7 @@ class TransactionElement extends PureComponent {
 		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
 		const renderTotalEth = renderFromWei(totalEth) + ' ' + ticker;
-		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
+		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
@@ -432,7 +432,7 @@ class TransactionElement extends PureComponent {
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalValue) + ' ' + ticker,
-			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency.toUpperCase())
+			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency)
 		};
 
 		const transactionElement = {
@@ -446,7 +446,7 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
-	renderDeploymentElement = () => {
+	decodeDeploymentTx = () => {
 		const {
 			tx: {
 				transaction: { value, gas, gasPrice, to, from },
@@ -462,7 +462,7 @@ class TransactionElement extends PureComponent {
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
 		const renderTotalEth = renderFromWei(totalGas) + ' ' + ticker;
-		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
+		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
 		const transactionElement = {
@@ -481,13 +481,13 @@ class TransactionElement extends PureComponent {
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalEth) + ' ' + ticker,
-			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase())
+			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency)
 		};
 
 		return [transactionElement, transactionDetails];
 	};
 
-	renderPaymentChannelTx = () => {
+	decodePaymentChannelTx = () => {
 		const {
 			tx: {
 				networkID,
@@ -502,7 +502,7 @@ class TransactionElement extends PureComponent {
 		const contract = CONTRACTS[networkID];
 		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
 		const totalEth = hexToBN(value);
-		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
+		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 		const readableTotalEth = renderFromWei(totalEth);
 		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.dai'));
 		const renderTotalEthFiat = isDeposit
@@ -565,23 +565,23 @@ class TransactionElement extends PureComponent {
 			);
 		}
 		if (paymentChannelTransaction) {
-			[transactionElement, transactionDetails] = this.renderPaymentChannelTx();
+			[transactionElement, transactionDetails] = this.decodePaymentChannelTx();
 		} else {
 			switch (actionKey) {
 				case strings('transactions.sent_collectible'):
-					[transactionElement, transactionDetails] = this.renderTransferFromElement(totalGas);
+					[transactionElement, transactionDetails] = this.decodeTransferFromTx(totalGas);
 					break;
 				case strings('transactions.contract_deploy'):
-					[transactionElement, transactionDetails] = this.renderDeploymentElement(totalGas);
+					[transactionElement, transactionDetails] = this.decodeDeploymentTx(totalGas);
 					break;
 				default:
-					[transactionElement, transactionDetails] = this.renderConfirmElement(totalGas);
+					[transactionElement, transactionDetails] = this.decodeConfirmTx(totalGas);
 			}
 		}
 		return (
 			<TouchableHighlight
 				style={styles.row}
-				onPress={this.onPressItem} // eslint-disable-line react/jsx-no-bind
+				onPress={this.onPressItem}
 				underlayColor={colors.grey000}
 				activeOpacity={1}
 			>
