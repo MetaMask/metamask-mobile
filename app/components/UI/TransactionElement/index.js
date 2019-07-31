@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
 		fontSize: 9,
 		letterSpacing: 0.5,
 		width: 75,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	amount: {
@@ -338,7 +339,7 @@ class TransactionElement extends PureComponent {
 						<Text numberOfLines={1} style={styles.address}>
 							{symbol ? symbol + ' ' + actionKey : actionKey}
 						</Text>
-						<Text style={[styles.status, this.getStatusStyle(status)]}>{status.toUpperCase()}</Text>
+						<Text style={[styles.status, this.getStatusStyle(status)]}>{status}</Text>
 					</View>
 					<View style={styles.amounts}>
 						<Text style={styles.amount}>{value}</Text>
