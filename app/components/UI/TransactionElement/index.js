@@ -375,9 +375,12 @@ class TransactionElement extends PureComponent {
 			? strings('unit.token_id') + tokenId + ' ' + collectible.symbol
 			: strings('unit.token_id') + tokenId;
 
+		const renderFrom = renderFullAddress(addressFrom);
+		const renderTo = renderFullAddress(addressTo);
+
 		const transactionDetails = {
-			renderFrom: renderFullAddress(addressFrom),
-			renderTo: renderFullAddress(addressTo),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderValue: renderCollectible,
 			renderGas: parseInt(gas, 16).toString(),
@@ -394,8 +397,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo,
-			addressFrom,
+			addressTo: renderTo,
+			addressFrom: renderFrom,
 			actionKey,
 			value: `${strings('unit.token_id')}${tokenId}`,
 			fiatValue: collectible ? collectible.symbol : undefined
@@ -424,9 +427,12 @@ class TransactionElement extends PureComponent {
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 		const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
 
+		const renderFrom = renderFullAddress(from);
+		const renderTo = renderFullAddress(to);
+
 		const transactionDetails = {
-			renderFrom: from ? renderFullAddress(from) : strings('transactions.tx_details_not_available'),
-			renderTo: to ? renderFullAddress(to) : strings('transactions.tx_details_not_available'),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
@@ -436,8 +442,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo: to,
-			addressFrom: from,
+			addressTo: renderTo,
+			addressFrom: renderFrom,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat
@@ -449,7 +455,7 @@ class TransactionElement extends PureComponent {
 	decodeDeploymentTx = () => {
 		const {
 			tx: {
-				transaction: { value, gas, gasPrice, to, from },
+				transaction: { value, gas, gasPrice, from },
 				transactionHash
 			},
 			conversionRate,
@@ -465,17 +471,20 @@ class TransactionElement extends PureComponent {
 		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
+		const renderFrom = renderFullAddress(from);
+		const renderTo = strings('transactions.to_contract');
+
 		const transactionElement = {
-			addressTo: to,
-			addressFrom: from,
+			addressTo: renderTo,
+			addressFrom: renderFrom,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
 			contractDeployment: true
 		};
 		const transactionDetails = {
-			renderFrom: renderFullAddress(from),
-			renderTo: strings('transactions.to_contract'),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
@@ -509,9 +518,12 @@ class TransactionElement extends PureComponent {
 			? totalEthFiat
 			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
 
+		const renderFrom = renderFullAddress(from);
+		const renderTo = renderFullAddress(to);
+
 		const transactionDetails = {
-			renderFrom: renderFullAddress(from),
-			renderTo: renderFullAddress(to),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
 			renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
@@ -521,8 +533,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo: to,
-			addressFrom: from,
+			addressTo: renderFrom,
+			addressFrom: renderFrom,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
