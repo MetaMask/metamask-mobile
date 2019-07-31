@@ -254,8 +254,8 @@ class TransactionElement extends PureComponent {
 
 	renderTxElementImage = transactionElement => {
 		const {
-			addressTo,
-			addressFrom,
+			renderTo,
+			renderFrom,
 			actionKey,
 			contractDeployment = false,
 			paymentChannelTransaction
@@ -263,7 +263,6 @@ class TransactionElement extends PureComponent {
 		const {
 			tx: { networkID }
 		} = this.props;
-		const checksumAddress = toChecksumAddress(addressTo);
 		let logo;
 
 		if (contractDeployment) {
@@ -273,12 +272,12 @@ class TransactionElement extends PureComponent {
 				</FadeIn>
 			);
 		} else if (actionKey === strings('transactions.smart_contract_interaction')) {
-			if (checksumAddress in contractMap) {
-				logo = contractMap[checksumAddress].logo;
+			if (renderTo in contractMap) {
+				logo = contractMap[renderTo].logo;
 			}
 			return (
 				<TokenImage
-					asset={{ address: addressTo, logo }}
+					asset={{ address: renderTo, logo }}
 					containerStyle={styles.tokenImageStyle}
 					iconStyle={styles.tokenImageStyle}
 					logoDefined
@@ -286,7 +285,7 @@ class TransactionElement extends PureComponent {
 			);
 		} else if (paymentChannelTransaction) {
 			const contract = CONTRACTS[networkID];
-			const isDeposit = contract && addressTo.toLowerCase() === contract.toLowerCase();
+			const isDeposit = contract && renderTo.toLowerCase() === contract.toLowerCase();
 			if (isDeposit) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
@@ -299,7 +298,7 @@ class TransactionElement extends PureComponent {
 					</FadeIn>
 				);
 			}
-			const isWithdraw = addressFrom === CONTRACTS[networkID];
+			const isWithdraw = renderFrom === CONTRACTS[networkID];
 			if (isWithdraw) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
@@ -313,7 +312,7 @@ class TransactionElement extends PureComponent {
 				);
 			}
 		}
-		return <Identicon address={addressTo} diameter={24} />;
+		return <Identicon address={renderTo} diameter={24} />;
 	};
 
 	/**
@@ -325,11 +324,10 @@ class TransactionElement extends PureComponent {
 		const {
 			tx: { status }
 		} = this.props;
-		const { addressTo, actionKey, value, fiatValue = false } = transactionElement;
-		const checksumAddress = toChecksumAddress(addressTo);
+		const { renderTo, actionKey, value, fiatValue = false } = transactionElement;
 		let symbol;
-		if (checksumAddress in contractMap) {
-			symbol = contractMap[checksumAddress].symbol;
+		if (renderTo in contractMap) {
+			symbol = contractMap[renderTo].symbol;
 		}
 		return (
 			<View style={styles.rowOnly}>
@@ -397,8 +395,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo: renderTo,
-			addressFrom: renderFrom,
+			renderTo,
+			renderFrom,
 			actionKey,
 			value: `${strings('unit.token_id')}${tokenId}`,
 			fiatValue: collectible ? collectible.symbol : undefined
@@ -442,8 +440,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo: renderTo,
-			addressFrom: renderFrom,
+			renderTo,
+			renderFrom,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat
@@ -475,8 +473,8 @@ class TransactionElement extends PureComponent {
 		const renderTo = strings('transactions.to_contract');
 
 		const transactionElement = {
-			addressTo: renderTo,
-			addressFrom: renderFrom,
+			renderTo,
+			renderFrom,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
@@ -533,8 +531,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo: renderFrom,
-			addressFrom: renderFrom,
+			renderFrom,
+			renderTo,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
