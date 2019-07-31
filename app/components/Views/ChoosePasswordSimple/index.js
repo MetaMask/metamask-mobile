@@ -366,7 +366,7 @@ class ChoosePasswordSimple extends PureComponent {
 								</Text>
 							</View>
 
-							{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+							{!!this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 						</View>
 					</KeyboardAwareScrollView>
 					<View style={styles.ctaWrapper}>
