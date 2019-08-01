@@ -146,17 +146,19 @@ class Onboarding extends PureComponent {
 
 	onPressCreate = () => {
 		const { existingUser } = this.state;
-		InteractionManager.runAfterInteractions(async () => {
-			if (Analytics.getEnabled()) {
-				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-				return;
-			}
-			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
-			if (!metricsOptIn) {
-				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-			}
-		});
-		const action = () => this.props.navigation.navigate('CreateWallet');
+		const action = () => {
+			this.props.navigation.navigate('CreateWallet');
+			InteractionManager.runAfterInteractions(async () => {
+				if (Analytics.getEnabled()) {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
+					return;
+				}
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				if (!metricsOptIn) {
+					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
+				}
+			});
+		};
 		if (existingUser) {
 			this.alertExistingUser(action);
 		} else {

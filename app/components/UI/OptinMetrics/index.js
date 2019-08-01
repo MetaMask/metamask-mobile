@@ -199,12 +199,12 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press cancel
 	 */
 	onCancel = async () => {
-		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
+		//	await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
 		Analytics.disable();
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
+			this.props.eraseOnboardingEvent();
 		});
-		this.props.eraseOnboardingEvent();
 		this.continue();
 	};
 
@@ -212,11 +212,12 @@ class OptinMetrics extends PureComponent {
 	 * Callback on press confirm
 	 */
 	onConfirm = async () => {
-		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
+		//	await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 		Analytics.enable();
 		InteractionManager.runAfterInteractions(() => {
 			this.props.event && Analytics.trackEvent(this.props.event);
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
+			this.props.eraseOnboardingEvent();
 		});
 		this.continue();
 	};
