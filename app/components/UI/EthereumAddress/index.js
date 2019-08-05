@@ -4,6 +4,9 @@ import { InteractionManager, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { renderShortAddress, renderFullAddress } from '../../../util/address';
 import doENSReverseLookup from '../../../util/ENSUtils';
+import Logger from '../../../util/Logger';
+import { isValidAddress } from 'ethereumjs-util';
+
 /**
  * View that renders an ethereum address
  * or its ENS name when supports reverse lookup
@@ -41,12 +44,14 @@ class EthereumAddress extends PureComponent {
 	}
 
 	formatAddress(rawAddress, type) {
-		let formattedAddress;
+		let formattedAddress = rawAddress;
 
-		if (type && type === 'short') {
-			formattedAddress = renderShortAddress(rawAddress);
-		} else {
-			formattedAddress = renderFullAddress(rawAddress);
+		if (isValidAddress(rawAddress)) {
+			if (type && type === 'short') {
+				formattedAddress = renderShortAddress(rawAddress);
+			} else {
+				formattedAddress = renderFullAddress(rawAddress);
+			}
 		}
 		return formattedAddress;
 	}

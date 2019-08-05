@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
-import { Dimensions, Platform } from 'react-native';
+import { View, Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { createNewTab, closeAllTabs, closeTab, setActiveTab, updateTab } from '../../../actions/browser';
 import Tabs from '../../UI/Tabs';
@@ -9,6 +9,7 @@ import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
 import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
+import { baseStyles } from '../../../styles/common';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -259,10 +260,10 @@ class Browser extends PureComponent {
 
 	render() {
 		return (
-			<React.Fragment>
+			<View style={baseStyles.flexGrow} testID={'browser-screen'}>
 				{this.renderBrowserTabs()}
 				{this.renderTabsView()}
-			</React.Fragment>
+			</View>
 		);
 	}
 }

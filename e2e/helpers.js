@@ -2,7 +2,7 @@ export default class TestHelpers {
 	static async waitAndTap(elementId) {
 		await waitFor(element(by.id(elementId)))
 			.toBeVisible()
-			.withTimeout(3000);
+			.withTimeout(5000);
 
 		return element(by.id(elementId)).tap();
 	}
@@ -15,6 +15,10 @@ export default class TestHelpers {
 		return element(by.text(text))
 			.atIndex(0)
 			.tap();
+	}
+
+	static tapAtPoint(elementId, point) {
+		return element(by.id(elementId)).tapAtPoint(point);
 	}
 
 	static async typeText(elementId, text) {
@@ -60,10 +64,24 @@ export default class TestHelpers {
 		await element(by.id(elementId)).swipe(direction);
 	}
 
+	static async scrollTo(scrollviewId, edge) {
+		await element(by.id(scrollviewId)).scrollTo(edge);
+	}
+
 	static checkIfVisible(elementId) {
 		return waitFor(element(by.id(elementId)))
 			.toBeVisible()
 			.withTimeout(10000);
+	}
+
+	static checkIfNotVisible(elementId) {
+		return waitFor(element(by.id(elementId)))
+			.toBeNotVisible()
+			.withTimeout(10000);
+	}
+
+	static checkIfExists(elementId) {
+		return expect(element(by.id(elementId))).toExist();
 	}
 
 	static checkIfHasText(elementId, text) {
