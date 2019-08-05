@@ -127,8 +127,8 @@ class Asset extends PureComponent {
 			if (symbol.toUpperCase() !== 'ETH' && tokenAddress !== '') {
 				txs = txs.filter(
 					tx =>
-						tx.transaction.from.toLowerCase() === tokenAddress.toLowerCase() ||
-						tx.transaction.to.toLowerCase() === tokenAddress.toLowerCase()
+						(tx.transaction.from && tx.transaction.from.toLowerCase()) === tokenAddress.toLowerCase() ||
+						(tx.transaction.to && tx.transaction.to.toLowerCase()) === tokenAddress.toLowerCase()
 				);
 			}
 
