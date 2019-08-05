@@ -407,7 +407,7 @@ class PaymentChannel extends PureComponent {
 			internalTransactions.forEach(tx => {
 				if (
 					Networks[provider.type].networkId.toString() === tx.networkID &&
-					tx.transaction.to.toLowerCase() === selectedAddress.toLowerCase()
+					(tx.transaction.to && tx.transaction.to.toLowerCase()) === selectedAddress.toLowerCase()
 				) {
 					parsedTransactions.push({
 						...tx,

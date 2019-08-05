@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
 		fontSize: 9,
 		letterSpacing: 0.5,
 		width: 75,
+		textTransform: 'uppercase',
 		...fontStyles.bold
 	},
 	amount: {
@@ -254,8 +255,8 @@ class TransactionElement extends PureComponent {
 
 	renderTxElementImage = transactionElement => {
 		const {
-			addressTo,
-			addressFrom,
+			renderTo,
+			renderFrom,
 			actionKey,
 			contractDeployment = false,
 			paymentChannelTransaction
@@ -263,7 +264,6 @@ class TransactionElement extends PureComponent {
 		const {
 			tx: { networkID }
 		} = this.props;
-		const checksumAddress = toChecksumAddress(addressTo);
 		let logo;
 
 		if (contractDeployment) {
@@ -273,12 +273,12 @@ class TransactionElement extends PureComponent {
 				</FadeIn>
 			);
 		} else if (actionKey === strings('transactions.smart_contract_interaction')) {
-			if (checksumAddress in contractMap) {
-				logo = contractMap[checksumAddress].logo;
+			if (renderTo in contractMap) {
+				logo = contractMap[renderTo].logo;
 			}
 			return (
 				<TokenImage
-					asset={{ address: addressTo, logo }}
+					asset={{ address: renderTo, logo }}
 					containerStyle={styles.tokenImageStyle}
 					iconStyle={styles.tokenImageStyle}
 					logoDefined
@@ -286,7 +286,7 @@ class TransactionElement extends PureComponent {
 			);
 		} else if (paymentChannelTransaction) {
 			const contract = CONTRACTS[networkID];
-			const isDeposit = contract && addressTo.toLowerCase() === contract.toLowerCase();
+			const isDeposit = contract && renderTo.toLowerCase() === contract.toLowerCase();
 			if (isDeposit) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
@@ -299,7 +299,7 @@ class TransactionElement extends PureComponent {
 					</FadeIn>
 				);
 			}
-			const isWithdraw = addressFrom === CONTRACTS[networkID];
+			const isWithdraw = renderFrom === CONTRACTS[networkID];
 			if (isWithdraw) {
 				return (
 					<FadeIn style={styles.paymentChannelTransactionIconWrapper}>
@@ -313,7 +313,7 @@ class TransactionElement extends PureComponent {
 				);
 			}
 		}
-		return <Identicon address={addressTo} diameter={24} />;
+		return <Identicon address={renderTo} diameter={24} />;
 	};
 
 	/**
@@ -325,11 +325,10 @@ class TransactionElement extends PureComponent {
 		const {
 			tx: { status }
 		} = this.props;
-		const { addressTo, actionKey, value, fiatValue = false } = transactionElement;
-		const checksumAddress = toChecksumAddress(addressTo);
+		const { renderTo, actionKey, value, fiatValue = false } = transactionElement;
 		let symbol;
-		if (checksumAddress in contractMap) {
-			symbol = contractMap[checksumAddress].symbol;
+		if (renderTo in contractMap) {
+			symbol = contractMap[renderTo].symbol;
 		}
 		return (
 			<View style={styles.rowOnly}>
@@ -340,7 +339,7 @@ class TransactionElement extends PureComponent {
 						<Text numberOfLines={1} style={styles.address}>
 							{symbol ? symbol + ' ' + actionKey : actionKey}
 						</Text>
-						<Text style={[styles.status, this.getStatusStyle(status)]}>{status.toUpperCase()}</Text>
+						<Text style={[styles.status, this.getStatusStyle(status)]}>{status}</Text>
 					</View>
 					<View style={styles.amounts}>
 						<Text style={styles.amount}>{value}</Text>
@@ -351,7 +350,7 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderTransferFromElement = () => {
+	decodeTransferFromTx = () => {
 		const {
 			tx: {
 				transaction: { gas, gasPrice, data, to },
@@ -375,9 +374,12 @@ class TransactionElement extends PureComponent {
 			? strings('unit.token_id') + tokenId + ' ' + collectible.symbol
 			: strings('unit.token_id') + tokenId;
 
+		const renderFrom = renderFullAddress(addressFrom);
+		const renderTo = renderFullAddress(addressTo);
+
 		const transactionDetails = {
-			renderFrom: renderFullAddress(addressFrom),
-			renderTo: renderFullAddress(addressTo),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderValue: renderCollectible,
 			renderGas: parseInt(gas, 16).toString(),
@@ -394,8 +396,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo,
-			addressFrom,
+			renderTo,
+			renderFrom,
 			actionKey,
 			value: `${strings('unit.token_id')}${tokenId}`,
 			fiatValue: collectible ? collectible.symbol : undefined
@@ -404,7 +406,7 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
-	renderConfirmElement = () => {
+	decodeConfirmTx = () => {
 		const {
 			tx: {
 				transaction: { value, gas, gasPrice, from, to },
@@ -417,27 +419,30 @@ class TransactionElement extends PureComponent {
 		const { actionKey } = this.state;
 		const totalEth = hexToBN(value);
 		const renderTotalEth = renderFromWei(totalEth) + ' ' + ticker;
-		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
+		const renderTotalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 
 		const gasBN = hexToBN(gas);
 		const gasPriceBN = hexToBN(gasPrice);
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 		const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
 
+		const renderFrom = renderFullAddress(from);
+		const renderTo = renderFullAddress(to);
+
 		const transactionDetails = {
-			renderFrom: from ? renderFullAddress(from) : strings('transactions.tx_details_not_available'),
-			renderTo: to ? renderFullAddress(to) : strings('transactions.tx_details_not_available'),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalValue) + ' ' + ticker,
-			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency.toUpperCase())
+			renderTotalValueFiat: weiToFiat(totalValue, conversionRate, currentCurrency)
 		};
 
 		const transactionElement = {
-			addressTo: to,
-			addressFrom: from,
+			renderTo,
+			renderFrom,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat
@@ -446,10 +451,10 @@ class TransactionElement extends PureComponent {
 		return [transactionElement, transactionDetails];
 	};
 
-	renderDeploymentElement = () => {
+	decodeDeploymentTx = () => {
 		const {
 			tx: {
-				transaction: { value, gas, gasPrice, to, from },
+				transaction: { value, gas, gasPrice, from },
 				transactionHash
 			},
 			conversionRate,
@@ -462,32 +467,35 @@ class TransactionElement extends PureComponent {
 		const totalGas = isBN(gasBN) && isBN(gasPriceBN) ? gasBN.mul(gasPriceBN) : toBN('0x0');
 
 		const renderTotalEth = renderFromWei(totalGas) + ' ' + ticker;
-		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
+		const renderTotalEthFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 
+		const renderFrom = renderFullAddress(from);
+		const renderTo = strings('transactions.to_contract');
+
 		const transactionElement = {
-			addressTo: to,
-			addressFrom: from,
+			renderTo,
+			renderFrom,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
 			contractDeployment: true
 		};
 		const transactionDetails = {
-			renderFrom: renderFullAddress(from),
-			renderTo: strings('transactions.to_contract'),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderValue: renderFromWei(value) + ' ' + ticker,
 			renderGas: parseInt(gas, 16).toString(),
 			renderGasPrice: renderToGwei(gasPrice),
 			renderTotalValue: renderFromWei(totalEth) + ' ' + ticker,
-			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase())
+			renderTotalValueFiat: weiToFiat(totalEth, conversionRate, currentCurrency)
 		};
 
 		return [transactionElement, transactionDetails];
 	};
 
-	renderPaymentChannelTx = () => {
+	decodePaymentChannelTx = () => {
 		const {
 			tx: {
 				networkID,
@@ -502,16 +510,19 @@ class TransactionElement extends PureComponent {
 		const contract = CONTRACTS[networkID];
 		const isDeposit = contract && to.toLowerCase() === contract.toLowerCase();
 		const totalEth = hexToBN(value);
-		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
+		const totalEthFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 		const readableTotalEth = renderFromWei(totalEth);
 		const renderTotalEth = readableTotalEth + ' ' + (isDeposit ? strings('unit.eth') : strings('unit.dai'));
 		const renderTotalEthFiat = isDeposit
 			? totalEthFiat
 			: balanceToFiat(parseFloat(readableTotalEth), conversionRate, exchangeRate, currentCurrency);
 
+		const renderFrom = renderFullAddress(from);
+		const renderTo = renderFullAddress(to);
+
 		const transactionDetails = {
-			renderFrom: renderFullAddress(from),
-			renderTo: renderFullAddress(to),
+			renderFrom,
+			renderTo,
 			transactionHash,
 			renderGas: gas ? parseInt(gas, 16).toString() : strings('transactions.tx_details_not_available'),
 			renderGasPrice: gasPrice ? renderToGwei(gasPrice) : strings('transactions.tx_details_not_available'),
@@ -521,8 +532,8 @@ class TransactionElement extends PureComponent {
 		};
 
 		const transactionElement = {
-			addressTo: to,
-			addressFrom: from,
+			renderFrom,
+			renderTo,
 			actionKey,
 			value: renderTotalEth,
 			fiatValue: renderTotalEthFiat,
@@ -565,23 +576,23 @@ class TransactionElement extends PureComponent {
 			);
 		}
 		if (paymentChannelTransaction) {
-			[transactionElement, transactionDetails] = this.renderPaymentChannelTx();
+			[transactionElement, transactionDetails] = this.decodePaymentChannelTx();
 		} else {
 			switch (actionKey) {
 				case strings('transactions.sent_collectible'):
-					[transactionElement, transactionDetails] = this.renderTransferFromElement(totalGas);
+					[transactionElement, transactionDetails] = this.decodeTransferFromTx(totalGas);
 					break;
 				case strings('transactions.contract_deploy'):
-					[transactionElement, transactionDetails] = this.renderDeploymentElement(totalGas);
+					[transactionElement, transactionDetails] = this.decodeDeploymentTx(totalGas);
 					break;
 				default:
-					[transactionElement, transactionDetails] = this.renderConfirmElement(totalGas);
+					[transactionElement, transactionDetails] = this.decodeConfirmTx(totalGas);
 			}
 		}
 		return (
 			<TouchableHighlight
 				style={styles.row}
-				onPress={this.onPressItem} // eslint-disable-line react/jsx-no-bind
+				onPress={this.onPressItem}
 				underlayColor={colors.grey000}
 				activeOpacity={1}
 			>
