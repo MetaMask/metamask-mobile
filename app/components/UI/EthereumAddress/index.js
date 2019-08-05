@@ -7,6 +7,7 @@ import networkMap from 'ethjs-ens/lib/network-map.json';
 import Engine from '../../../core/Engine';
 import { renderShortAddress, renderFullAddress } from '../../../util/address';
 import Logger from '../../../util/Logger';
+import { isValidAddress } from 'ethereumjs-util';
 
 /**
  * View that renders an ethereum address
@@ -45,12 +46,14 @@ class EthereumAddress extends PureComponent {
 	}
 
 	formatAddress(rawAddress, type) {
-		let formattedAddress;
+		let formattedAddress = rawAddress;
 
-		if (type && type === 'short') {
-			formattedAddress = renderShortAddress(rawAddress);
-		} else {
-			formattedAddress = renderFullAddress(rawAddress);
+		if (isValidAddress(rawAddress)) {
+			if (type && type === 'short') {
+				formattedAddress = renderShortAddress(rawAddress);
+			} else {
+				formattedAddress = renderFullAddress(rawAddress);
+			}
 		}
 		return formattedAddress;
 	}
