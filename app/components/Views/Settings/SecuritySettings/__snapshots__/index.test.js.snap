@@ -358,6 +358,46 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
+        Sign in with device passcode?
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 18,
+          }
+        }
+      >
+        <Switch
+          ios_backgroundColor="#f2f3f4"
+          onValueChange={[Function]}
+          trackColor={
+            Object {
+              "false": "#f2f3f4",
+              "true": "#037dd6",
+            }
+          }
+          value={false}
+        />
+      </View>
+    </View>
+    <View
+      style={
+        Object {
+          "marginTop": 50,
+        }
+      }
+    >
+      <Text
+        style={
+          Object {
+            "color": "#000000",
+            "fontFamily": "Roboto",
+            "fontSize": 20,
+            "fontWeight": "400",
+            "lineHeight": 20,
+          }
+        }
+      >
         Show Private Key for "Account 1"
       </Text>
       <Text

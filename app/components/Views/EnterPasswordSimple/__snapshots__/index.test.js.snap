@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EnterPasswordSimple should render correctly 1`] = `
+<_class
+  emulateUnlessSupported={true}
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "padding": 20,
+      }
+    }
+    testID="enter-password-screen"
+  >
+    <KeyboardAwareScrollViewMock
+      enableAutomaticScroll={true}
+      enableOnAndroid={false}
+      enableResetScrollToCoords={true}
+      extraHeight={75}
+      extraScrollHeight={0}
+      keyboardOpeningTime={250}
+      resetScrollToCoords={
+        Object {
+          "x": 0,
+          "y": 0,
+        }
+      }
+      style={
+        Object {
+          "flex": 1,
+          "padding": 20,
+        }
+      }
+      viewIsInsideTabBar={false}
+    >
+      <View
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <View>
+          <Text
+            style={
+              Object {
+                "marginBottom": 15,
+              }
+            }
+          >
+            Please enter your password in order to continue
+          </Text>
+          <TextInput
+            allowFontScaling={true}
+            onChangeText={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Password"
+            rejectResponderTermination={true}
+            secureTextEntry={true}
+            style={
+              Object {
+                "borderColor": "#f2f3f4",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "padding": 10,
+              }
+            }
+            underlineColorAndroid="transparent"
+          />
+        </View>
+        <View
+          style={
+            Object {
+              "marginTop": 20,
+              "paddingHorizontal": 10,
+            }
+          }
+        >
+          <StyledButton
+            disabled={false}
+            disabledContainerStyle={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            onPress={[Function]}
+            styleDisabled={
+              Object {
+                "opacity": 0.6,
+              }
+            }
+            testID="submit-button"
+            type="blue"
+          >
+            Confirm
+          </StyledButton>
+        </View>
+      </View>
+    </KeyboardAwareScrollViewMock>
+  </View>
+</_class>
+`;

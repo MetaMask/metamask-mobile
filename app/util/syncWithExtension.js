@@ -4,7 +4,7 @@ import Logger from './Logger';
 const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
 const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
 
-const EXPIRED_CODE_TIMEOUT = 3000;
+const EXPIRED_CODE_TIMEOUT = 30000;
 
 export default class PubNubWrapper {
 	pubnub;
@@ -28,6 +28,7 @@ export default class PubNubWrapper {
 		});
 		this.cipherKey = cipherKey;
 		this.channelName = channelName;
+		this.lastReceivedPkg = -1;
 	}
 
 	/**
@@ -151,8 +152,9 @@ export default class PubNubWrapper {
 					Logger.error('Sync::error-sync');
 					onErrorSync();
 				}
-				if (message.event === 'syncing-data') {
+				if (message.event === 'syncing-data' && message.currentPkg > this.lastReceivedPkg) {
 					this.timeout = false;
+					this.lastReceivedPkg = message.currentPkg;
 					this.incomingDataStr += message.data;
 					if (message.totalPkg === message.currentPkg) {
 						try {
