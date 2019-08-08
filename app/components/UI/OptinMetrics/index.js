@@ -22,7 +22,7 @@ import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
-import { eraseOnboardingEvent } from '../../../actions/onboarding';
+import { clearOnboardingEvents } from '../../../actions/onboarding';
 
 const styles = StyleSheet.create({
 	root: {
@@ -110,13 +110,13 @@ class OptinMetrics extends PureComponent {
 		 */
 		isFocused: PropTypes.bool,
 		/**
-		 * Onboarding event created in previous onboarding views
+		 * Onboarding events array created in previous onboarding views
 		 */
-		event: PropTypes.object,
+		events: PropTypes.array,
 		/**
 		 * Action to erase any event stored in onboarding state
 		 */
-		eraseOnboardingEvent: PropTypes.func
+		clearOnboardingEvents: PropTypes.func
 	};
 
 	actionsList = [
@@ -202,8 +202,11 @@ class OptinMetrics extends PureComponent {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
 		Analytics.disable();
 		InteractionManager.runAfterInteractions(() => {
+			if (this.props.events && this.props.events.length) {
+				this.props.events.forEach(e => Analytics.trackEvent(e));
+			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
-			this.props.eraseOnboardingEvent();
+			this.props.clearOnboardingEvents();
 		});
 		this.continue();
 	};
@@ -215,9 +218,11 @@ class OptinMetrics extends PureComponent {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 		Analytics.enable();
 		InteractionManager.runAfterInteractions(() => {
-			this.props.event && Analytics.trackEvent(this.props.event);
+			if (this.props.events && this.props.events.length) {
+				this.props.events.forEach(e => Analytics.trackEvent(e));
+			}
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
-			this.props.eraseOnboardingEvent();
+			this.props.clearOnboardingEvents();
 		});
 		this.continue();
 	};
@@ -284,12 +289,12 @@ class OptinMetrics extends PureComponent {
 }
 
 const mapStateToProps = state => ({
-	event: state.onboarding.event
+	events: state.onboarding.events
 });
 
 const mapDispatchToProps = dispatch => ({
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
-	eraseOnboardingEvent: () => dispatch(eraseOnboardingEvent())
+	clearOnboardingEvents: () => dispatch(clearOnboardingEvents())
 });
 
 export default connect(

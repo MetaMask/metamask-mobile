@@ -13,9 +13,8 @@ export function saveOnboardingEvent(event) {
 /**
  * Erases any event stored in state
  */
-export function eraseOnboardingEvent() {
+export function clearOnboardingEvents() {
 	return {
-		type: 'SAVE_EVENT',
-		event: undefined
+		type: 'CLEAR_EVENTS'
 	};
 }
