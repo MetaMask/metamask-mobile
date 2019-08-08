@@ -5,7 +5,7 @@ const initialState = {
 };
 
 /**
- * Reducer to keep track of user oboarding actions to send it to analytics if thw user
+ * Reducer to keep track of user oboarding actions to send it to analytics if the user
  * decides to optin after finishing onboarding flow
  */
 const onboardingReducer = (state = initialState, action) => {
