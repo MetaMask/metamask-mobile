@@ -85,7 +85,8 @@
 		"title": "Ingresa tu contraseña",
 		"desc": "Por favor, ingresa tu contraseña para continuar",
 		"password": "Contraseña",
-		"confirm_button": "Confirmar"
+		"confirm_button": "Confirmar",
+		"error": "Error"
 	},
 	"choose_password": {
 		"title": "Crea tu contraseña",

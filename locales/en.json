@@ -85,7 +85,8 @@
 		"title": "Enter your password",
 		"desc": "Please enter your password in order to continue",
 		"password": "Password",
-		"confirm_button": "Confirm"
+		"confirm_button": "Confirm",
+		"error": "Error"
 	},
 	"choose_password": {
 		"title": "Create password",

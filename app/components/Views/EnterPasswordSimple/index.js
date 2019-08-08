@@ -60,13 +60,8 @@ export default class EnterPasswordSimple extends PureComponent {
 
 	onPressConfirm = async () => {
 		if (this.state.loading) return;
-		let error = null;
 		if (this.state.password.length < 8) {
-			error = strings('choose_password.password_length_error');
-		}
-
-		if (error) {
-			Alert.alert('Error', error);
+			Alert.alert(strings('enter_password.error'), strings('choose_password.password_length_error'));
 		} else {
 			this.props.navigation.state.params.onPasswordSet(this.state.password);
 			this.props.navigation.pop();
