@@ -356,6 +356,9 @@ class PaymentChannel extends PureComponent {
 		) {
 			this.reinitialize();
 		}
+		if (prevProps.currentCurrency !== this.props.currentCurrency) {
+			this.getBalanceFiat(this.state.balance);
+		}
 	}
 
 	reinitialize = () => {
