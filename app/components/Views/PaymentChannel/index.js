@@ -244,7 +244,11 @@ class PaymentChannel extends PureComponent {
 		/**
 		/* Triggers global alert
 		*/
-		showAlert: PropTypes.func
+		showAlert: PropTypes.func,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -536,12 +540,20 @@ class PaymentChannel extends PureComponent {
 		const isDisabled = this.areButtonsDisabled();
 		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 		const noFunds = this.state.balance === '0.00';
+		let mainBalance, secondaryBalance;
+		if (this.props.primaryCurrency === 'ETH') {
+			mainBalance = balance + ' ' + strings('unit.dai');
+			secondaryBalance = balanceFiat;
+		} else {
+			mainBalance = balanceFiat;
+			secondaryBalance = balance + ' ' + strings('unit.dai');
+		}
 		return (
 			<View style={styles.data}>
 				<View style={styles.assetCardWrapper}>
 					<AssetCard
-						balance={balance + ' ' + strings('unit.dai')}
-						balanceFiat={balanceFiat}
+						balance={mainBalance}
+						balanceFiat={secondaryBalance}
 						description={strings('payment_channel.asset_card_desc')}
 					/>
 				</View>
@@ -785,7 +797,8 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	internalTransactions: state.engine.backgroundState.TransactionController.internalTransactions,
 	provider: state.engine.backgroundState.NetworkController.provider,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
