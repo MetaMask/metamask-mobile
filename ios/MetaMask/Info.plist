@@ -71,6 +71,10 @@
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Allow MetaMask to save an image to your Photo Library</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow MetaMask to access a images from your Photo Library</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>
