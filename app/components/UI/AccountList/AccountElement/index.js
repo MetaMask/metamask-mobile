@@ -121,7 +121,7 @@ export default class AccountElement extends PureComponent {
 							{renderFromWei(balance)} {getTicker(ticker)}
 						</Text>
 					</View>
-					{imported && <View style={styles.importedView}>{imported}</View>}
+					{!!imported && <View style={styles.importedView}>{imported}</View>}
 					<View style={styles.selectedWrapper}>{selected}</View>
 				</View>
 			</TouchableOpacity>

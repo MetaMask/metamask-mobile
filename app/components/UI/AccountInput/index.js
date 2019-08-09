@@ -398,7 +398,7 @@ class AccountInput extends PureComponent {
 								onSubmitEditing={this.onFocus}
 							/>
 							<View style={styles.ensView}>
-								{ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
+								{!!ensRecipient && <Text style={styles.ensAddress}>{renderShortAddress(address)}</Text>}
 							</View>
 						</View>
 					</View>

@@ -394,7 +394,7 @@ class Deposit extends PureComponent {
 
 						<Text style={styles.fiatValue}>{conversionAmount}</Text>
 						{this.renderMinimumsOrSpinner()}
-						{error && <Text style={styles.invalidAmountError}>{error}</Text>}
+						{!!error && <Text style={styles.invalidAmountError}>{error}</Text>}
 
 						<KeyboardAvoidingView
 							style={styles.buttonsWrapper}
