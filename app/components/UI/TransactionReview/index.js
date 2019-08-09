@@ -279,7 +279,7 @@ class TransactionReview extends PureComponent {
 					<View>
 						<TransactionReviewSummary actionKey={actionKey} />
 						<View style={styles.reviewForm}>{this.renderTransactionDetails()}</View>
-						{error && <Text style={styles.error}>{error}</Text>}
+						{!!error && <Text style={styles.error}>{error}</Text>}
 					</View>
 				</ActionView>
 			</View>

@@ -199,7 +199,7 @@ class AccountSelect extends PureComponent {
 						{account.name}
 					</Text>
 					<Text style={styles.info}>{mainBalance}</Text>
-					{secondaryBalance && <Text style={styles.info}>{secondaryBalance}</Text>}
+					{!!secondaryBalance && <Text style={styles.info}>{secondaryBalance}</Text>}
 				</View>
 			</TouchableOpacity>
 		);
