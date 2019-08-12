@@ -1012,9 +1012,13 @@ export class BrowserTab extends PureComponent {
 			if (!isInitialReload) {
 				this.isReloading = true;
 			}
+			// As we're reloading to other url we should remove this callback
+			this.approvalRequest = undefined;
 			const url2Reload = this.state.inputValue;
 			// Force unmount the webview to avoid caching problems
 			this.setState({ forceReload: true }, () => {
+				// Make sure we're not calling last mounted webview during this time threshold
+				this.webview.current = null;
 				setTimeout(() => {
 					this.setState({ forceReload: false }, () => {
 						this.go(url2Reload);
@@ -1527,12 +1531,14 @@ export class BrowserTab extends PureComponent {
 		this.setState({ showApprovalDialog: false });
 		approveHost(this.state.fullHostname);
 		this.backgroundBridge.enableAccounts();
-		this.approvalRequest.resolve([selectedAddress]);
+		this.approvalRequest && this.approvalRequest.resolve && this.approvalRequest.resolve([selectedAddress]);
 	};
 
 	onAccountsReject = () => {
 		this.setState({ showApprovalDialog: false });
-		this.approvalRequest.reject('User rejected account access');
+		this.approvalRequest &&
+			this.approvalRequest.reject &&
+			this.approvalRequest.reject('User rejected account access');
 	};
 
 	renderApprovalModal = () => {
