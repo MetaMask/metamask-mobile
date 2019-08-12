@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Alert, ActivityIndicator, Image, Text, View, ScrollView, StyleSheet } from 'react-native';
+import {
+	Platform,
+	Alert,
+	ActivityIndicator,
+	Image,
+	Text,
+	View,
+	ScrollView,
+	StyleSheet,
+	InteractionManager
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -16,6 +26,9 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import AnimatedFox from 'react-native-animated-fox';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -120,7 +133,11 @@ class ImportWallet extends PureComponent {
 		/**
 		 * Selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Save onboarding event to state
+		 */
+		saveOnboardingEvent: PropTypes.func
 	};
 
 	seedwords = null;
@@ -297,7 +314,19 @@ class ImportWallet extends PureComponent {
 
 	onPressImport = () => {
 		const { existingUser } = this.state;
-		const action = () => this.props.navigation.push('ImportFromSeed');
+		const action = () => {
+			this.props.navigation.push('ImportFromSeed');
+			InteractionManager.runAfterInteractions(async () => {
+				if (Analytics.getEnabled()) {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
+					return;
+				}
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				if (!metricsOptIn) {
+					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
+				}
+			});
+		};
 		if (existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -324,24 +353,17 @@ class ImportWallet extends PureComponent {
 			);
 			return false;
 		}
-
-		if (this.props.navigation.getParam('existingUser', false)) {
-			Alert.alert(
-				strings('sync_with_extension.warning_title'),
-				strings('sync_with_extension.warning_message'),
-				[
-					{
-						text: strings('sync_with_extension.warning_cancel_button'),
-						onPress: () => false,
-						style: 'cancel'
-					},
-					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
-				],
-				{ cancelable: false }
-			);
-		} else {
-			this.showQrCode();
-		}
+		InteractionManager.runAfterInteractions(async () => {
+			if (Analytics.getEnabled()) {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+				return;
+			}
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			if (!metricsOptIn) {
+				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+			}
+		});
+		this.showQrCode();
 	};
 
 	renderLoader() {
@@ -439,7 +461,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	passwordHasBeenSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time)),
-	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
 });
 
 export default connect(

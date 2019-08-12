@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
+import { Platform, Text, View, ScrollView, StyleSheet, Image, Alert, InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import AnimatedFox from 'react-native-animated-fox';
@@ -15,6 +15,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -108,7 +109,11 @@ class Onboarding extends PureComponent {
 		/**
 		 * redux flag that indicates if the user set a password
 		 */
-		passwordSet: PropTypes.bool
+		passwordSet: PropTypes.bool,
+		/**
+		 * Save onboarding event to state
+		 */
+		saveOnboardingEvent: PropTypes.func
 	};
 
 	state = {
@@ -141,8 +146,19 @@ class Onboarding extends PureComponent {
 
 	onPressCreate = () => {
 		const { existingUser } = this.state;
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
-		const action = () => this.props.navigation.navigate('CreateWallet');
+		const action = () => {
+			this.props.navigation.navigate('CreateWallet');
+			InteractionManager.runAfterInteractions(async () => {
+				if (Analytics.getEnabled()) {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
+					return;
+				}
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				if (!metricsOptIn) {
+					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_CREATE_NEW_WALLET);
+				}
+			});
+		};
 		if (existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -152,7 +168,16 @@ class Onboarding extends PureComponent {
 
 	onPressImport = () => {
 		this.props.navigation.push('ImportWallet');
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+		InteractionManager.runAfterInteractions(async () => {
+			if (Analytics.getEnabled()) {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+				return;
+			}
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			if (!metricsOptIn) {
+				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WALLET);
+			}
+		});
 	};
 
 	alertExistingUser = callback => {
@@ -246,4 +271,11 @@ const mapStateToProps = state => ({
 	passwordSet: state.user.passwordSet
 });
 
-export default connect(mapStateToProps)(Onboarding);
+const mapDispatchToProps = dispatch => ({
+	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
+});
+
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(Onboarding);
