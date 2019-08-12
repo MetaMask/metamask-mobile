@@ -559,7 +559,7 @@ class ImportFromSeed extends PureComponent {
 
 						{this.renderSwitch()}
 
-						{this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+						{!!this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
 
 						<View style={styles.ctaWrapper}>
 							<StyledButton

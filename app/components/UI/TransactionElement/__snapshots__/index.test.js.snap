@@ -89,6 +89,7 @@ exports[`TransactionElement should render correctly 1`] = `
                   "paddingHorizontal": 5,
                   "paddingVertical": 3,
                   "textAlign": "center",
+                  "textTransform": "uppercase",
                   "width": 75,
                 },
                 null,
