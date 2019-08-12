@@ -7,7 +7,11 @@ const mockStore = configureMockStore();
 
 describe('OptinMetrics', () => {
 	it('should render correctly', () => {
-		const initialState = {};
+		const initialState = {
+			onboarding: {
+				event: 'event'
+			}
+		};
 
 		const wrapper = shallow(<OptinMetrics />, {
 			context: { store: mockStore(initialState) }
