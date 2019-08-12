@@ -246,7 +246,7 @@ export default class TransferElement extends PureComponent {
 		let [transactionElement, transactionDetails] = this.state.isCollectible
 			? this.getCollectibleTransfer(totalGas)
 			: this.getTokenTransfer(totalGas);
-		transactionElement = { ...transactionElement, ...{ addressTo } };
+		transactionElement = { ...transactionElement, renderTo: addressTo };
 		transactionDetails = {
 			...transactionDetails,
 			...{

@@ -1,6 +1,8 @@
 import { toChecksumAddress } from 'ethereumjs-util';
 import Engine from '../core/Engine';
 import AppConstants from '../core/AppConstants';
+import { strings } from '../../locales/i18n';
+
 /**
  * Returns full checksummed address
  *
@@ -8,7 +10,7 @@ import AppConstants from '../core/AppConstants';
  * @returns {String} - String corresponding to full checksummed address
  */
 export function renderFullAddress(address) {
-	return toChecksumAddress(address);
+	return address ? toChecksumAddress(address) : strings('transactions.tx_details_not_available');
 }
 
 /**
