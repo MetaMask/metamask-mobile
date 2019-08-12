@@ -33,7 +33,6 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      disabled={false}
       name="angle-left"
       size={24}
       style={
@@ -51,6 +50,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
   </TouchableOpacity>
   <TouchableOpacity
     activeOpacity={0.2}
+    disabled={true}
     onPress={[Function]}
     style={
       Object {
