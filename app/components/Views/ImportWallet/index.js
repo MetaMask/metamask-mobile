@@ -304,7 +304,13 @@ class ImportWallet extends PureComponent {
 			} catch (e) {
 				Logger.error('User cancelled biometrics permission', e);
 				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 			}
+		} else {
+			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+			await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 		}
 
 		try {
