@@ -114,7 +114,8 @@ export function decodeTransferData(type, data) {
 			const bufferEncodedAddress = rawEncode(['address'], [addHexPrefix(encodedAddress)]);
 			return [
 				addHexPrefix(rawDecode(['address'], bufferEncodedAddress)[0]),
-				parseInt(encodedAmount, 16).toString()
+				parseInt(encodedAmount, 16).toString(),
+				encodedAmount
 			];
 		}
 		case 'transferFrom': {

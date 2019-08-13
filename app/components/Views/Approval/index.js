@@ -149,10 +149,17 @@ class Approval extends PureComponent {
 	 */
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
-		const { transactions } = this.props;
+		const {
+			transactions,
+			transaction: { assetType, selectedAsset }
+		} = this.props;
 		let { transaction } = this.props;
 		try {
-			transaction = this.prepareTransaction(transaction);
+			if (assetType === 'ETH') {
+				transaction = this.prepareTransaction(transaction);
+			} else {
+				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
+			}
 
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
