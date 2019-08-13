@@ -6,7 +6,7 @@ import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
-import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import { newTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
@@ -262,8 +262,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction()),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	newTransaction: () => dispatch(newTransaction())
 });
 
 export default connect(
