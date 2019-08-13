@@ -257,14 +257,32 @@ class Engine {
 			KeyringController,
 			PreferencesController,
 			NetworkController,
-			TransactionController
+			TransactionController,
+			AssetsController
 		} = this.datamodel.context;
+
+		// Select same network ?
+		await NetworkController.setProviderType(network.provider.type);
 
 		// Recreate accounts
 		await KeyringController.createNewVaultAndRestore(pass, seed);
 		for (let i = 0; i < accounts.hd.length - 1; i++) {
 			await KeyringController.addNewAccount();
 		}
+
+		// Sync tokens
+		const allTokens = {};
+		Object.keys(preferences.accountTokens).forEach(address => {
+			const checksummedAddress = toChecksumAddress(address);
+			allTokens[checksummedAddress] = {};
+			Object.keys(preferences.accountTokens[address]).forEach(
+				networkType =>
+					(allTokens[checksummedAddress][networkType] = preferences.accountTokens[address][networkType].map(
+						token => ({ ...token, address: toChecksumAddress(token.address) })
+					))
+			);
+		});
+		await AssetsController.update({ allTokens });
 
 		// Restore preferences
 		const updatedPref = { ...preferences, identities: {} };
@@ -301,8 +319,6 @@ class Engine {
 			}))
 		});
 
-		// Select same network ?
-		await NetworkController.setProviderType(network.provider.type);
 		return true;
 	};
 }
