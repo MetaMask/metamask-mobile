@@ -96,7 +96,7 @@ export default class AssetList extends PureComponent {
 								<View style={styles.assetIcon}>{this.renderLogo(searchResults[i])}</View>
 								<View style={styles.assetInfo}>
 									<Text style={styles.textSymbol}>{symbol}</Text>
-									{name && <Text style={styles.text}>{name}</Text>}
+									{!!name && <Text style={styles.text}>{name}</Text>}
 								</View>
 							</View>
 						</StyledButton>
