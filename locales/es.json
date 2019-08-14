@@ -453,7 +453,8 @@
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
 		"optional": "Opcional",
-		"no_address_for_ens": "No existe dirección para nombre ENS"
+		"no_address_for_ens": "No existe dirección para nombre ENS",
+		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta"
 	},
 	"custom_gas": {
 		"advanced_options": "Opciones Avanzadas",

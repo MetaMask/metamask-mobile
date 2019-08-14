@@ -8,12 +8,13 @@ import {
 	renderFromWei,
 	fromTokenMinimalUnit
 } from '../../../../util/number';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { APPROVE_FUNCTION_SIGNATURE, decodeTransferData } from '../../../../util/transactions';
 import contractMap from 'eth-contract-metadata';
 import { toChecksumAddress } from 'ethereumjs-util';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
 	confirmBadge: {
@@ -44,6 +45,22 @@ const styles = StyleSheet.create({
 		color: colors.grey400,
 		fontSize: 24,
 		textTransform: 'uppercase'
+	},
+	warning: {
+		flex: 1,
+		flexDirection: 'row',
+		borderColor: colors.grey400,
+		borderBottomWidth: 1,
+		padding: 16,
+		backgroundColor: colors.yellow100
+	},
+	warningText: {
+		flex: 1,
+		...fontStyles.normal,
+		marginHorizontal: 8,
+		color: colors.grey500,
+		textAlign: 'justify',
+		fontSize: 12
 	}
 });
 
@@ -145,19 +162,25 @@ class TransactionReviewSummary extends PureComponent {
 		const { actionKey } = this.props;
 		const { assetAmount, conversionRate, fiatValue } = this.state;
 		return (
-			<View style={styles.summary}>
-				<Text style={styles.confirmBadge} numberOfLines={1}>
-					{actionKey}
-				</Text>
+			<View style={baseStyles.flexGrow}>
+				<View style={styles.warning}>
+					<IonicIcon name={'ios-alert'} size={28} color={colors.grey500} />
+					<Text style={styles.warningText}>{`${strings('transaction.approve_warning')} ${assetAmount}`}</Text>
+				</View>
+				<View style={styles.summary}>
+					<Text style={styles.confirmBadge} numberOfLines={1}>
+						{actionKey}
+					</Text>
 
-				{!conversionRate ? (
-					<Text style={styles.summaryFiat}>{assetAmount}</Text>
-				) : (
-					<View>
-						<Text style={styles.summaryFiat}>{fiatValue}</Text>
-						<Text style={styles.summaryEth}>{assetAmount}</Text>
-					</View>
-				)}
+					{!conversionRate ? (
+						<Text style={styles.summaryFiat}>{assetAmount}</Text>
+					) : (
+						<View>
+							<Text style={styles.summaryFiat}>{fiatValue}</Text>
+							<Text style={styles.summaryEth}>{assetAmount}</Text>
+						</View>
+					)}
+				</View>
 			</View>
 		);
 	};

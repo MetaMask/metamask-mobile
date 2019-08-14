@@ -461,7 +461,8 @@
 		"cancel_tx_title": "Attempt to cancel?",
 		"cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the canellation attempt is successful, you will be charged the transaction fee above.",
 		"nevermind": "Nevermind",
-		"gasCancelFee": "Gas Cancellation Fee"
+		"gasCancelFee": "Gas Cancellation Fee",
+		"approve_warning": "By approving this action, you grant permission for this contract to spend up to"
 	},
 	"custom_gas": {
 		"advanced_options": "Advanced Options",
