@@ -118,7 +118,7 @@ class TransactionReviewSummary extends PureComponent {
 		} else {
 			[assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
 		}
-		this.setState({ assetAmount, conversionRate, fiatValue });
+		this.setState({ assetAmount, conversionRate, fiatValue, approveTransaction });
 	};
 
 	getRenderValues = () => {
@@ -160,13 +160,17 @@ class TransactionReviewSummary extends PureComponent {
 
 	render = () => {
 		const { actionKey } = this.props;
-		const { assetAmount, conversionRate, fiatValue } = this.state;
+		const { assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		return (
 			<View style={baseStyles.flexGrow}>
-				<View style={styles.warning}>
-					<IonicIcon name={'ios-alert'} size={28} color={colors.grey500} />
-					<Text style={styles.warningText}>{`${strings('transaction.approve_warning')} ${assetAmount}`}</Text>
-				</View>
+				{!!approveTransaction && (
+					<View style={styles.warning}>
+						<IonicIcon name={'ios-alert'} size={28} color={colors.grey500} />
+						<Text style={styles.warningText}>{`${strings(
+							'transaction.approve_warning'
+						)} ${assetAmount}`}</Text>
+					</View>
+				)}
 				<View style={styles.summary}>
 					<Text style={styles.confirmBadge} numberOfLines={1}>
 						{actionKey}
