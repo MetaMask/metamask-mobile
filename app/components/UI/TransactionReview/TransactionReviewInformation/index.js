@@ -196,7 +196,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
 							{amountToken + ' ' + selectedAsset.symbol}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
+						<Text style={styles.overviewEth}>{`${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
