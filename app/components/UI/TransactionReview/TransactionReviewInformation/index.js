@@ -127,7 +127,26 @@ class TransactionReviewInformation extends PureComponent {
 	state = {
 		toFocused: false,
 		amountError: '',
-		actionKey: strings('transactions.tx_review_confirm')
+		actionKey: strings('transactions.tx_review_confirm'),
+		totalGas: undefined,
+		totalGasFiat: undefined,
+		totalGasEth: undefined,
+		totalFiat: undefined,
+		totalValue: undefined
+	};
+
+	componentDidMount = () => {
+		const {
+			transaction: { gas, gasPrice },
+			currentCurrency,
+			conversionRate
+		} = this.props;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
+		const totalGasEth = `${renderFromWei(totalGas)} ${strings('unit.eth')}`;
+
+		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
+		this.setState({ totalGas, totalGasFiat, totalGasEth, totalFiat, totalValue });
 	};
 
 	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
@@ -144,15 +163,14 @@ class TransactionReviewInformation extends PureComponent {
 		edit && edit();
 	};
 
-	getRenderTotals = () => {
+	getRenderTotals = (totalGas, totalGasFiat) => {
 		const {
-			transaction: { value, gas, gasPrice, selectedAsset, assetType },
+			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
+
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
@@ -204,17 +222,7 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	render() {
-		const {
-			transaction: { gas, gasPrice },
-			currentCurrency,
-			conversionRate
-		} = this.props;
-		const { amountError } = this.state;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-		const totalGasEth = `${renderFromWei(totalGas)} ${strings('unit.eth')}`;
-
-		const [totalFiat, totalValue] = this.getRenderTotals()();
+		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
 
 		return (
 			<View style={styles.overview}>
@@ -237,14 +245,14 @@ class TransactionReviewInformation extends PureComponent {
 					</View>
 				</View>
 
-				{amountError ? (
+				{!!amountError && (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
 						<Text style={styles.overviewAlertText}>
 							{strings('transaction.alert')}: {amountError}.
 						</Text>
 					</View>
-				) : null}
+				)}
 			</View>
 		);
 	}
