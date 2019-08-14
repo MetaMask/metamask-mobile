@@ -45,10 +45,13 @@ export function setTokensTransaction(asset) {
 
 /**
  * Enable Ether only to send in a transaction
+ *
+ * @param {object} transaction - Transaction additional object
  */
-export function setEtherTransaction() {
+export function setEtherTransaction(transaction) {
 	return {
-		type: 'SET_ETHER_TRANSACTION'
+		type: 'SET_ETHER_TRANSACTION',
+		transaction
 	};
 }
 

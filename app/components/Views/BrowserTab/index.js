@@ -44,7 +44,6 @@ import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import { setTransactionObject } from '../../../actions/transaction';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
@@ -320,10 +319,6 @@ export class BrowserTab extends PureComponent {
 		 * String representing the current search engine
 		 */
 		searchEngine: PropTypes.string,
-		/**
-		 * Action that sets a transaction
-		 */
-		setTransactionObject: PropTypes.func,
 		/**
 		 * Function to store the a page in the browser history
 		 */
@@ -1743,7 +1738,6 @@ const mapDispatchToProps = dispatch => ({
 	removeBookmark: bookmark => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
-	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });
