@@ -373,7 +373,7 @@ class EthInput extends PureComponent {
 		const assetsList = assetsLists[assetType]();
 		return (
 			<ElevatedView borderRadius={4} elevation={10} style={styles.root}>
-				<ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'}>
+				<ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'} nestedScrollEnabled>
 					<View style={styles.optionList}>
 						{assetsList.map((asset, i) => (
 							<View key={i} style={styles.selectableAsset}>
