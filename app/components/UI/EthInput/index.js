@@ -538,7 +538,7 @@ class EthInput extends PureComponent {
 					)}
 				</View>
 				<View style={[styles.actions]}>
-					{!paymentChannelTransaction && secondaryCurrency && (
+					{secondaryCurrency && (
 						<FontAwesome
 							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)} // eslint-disable-line react/jsx-no-bind
 							name="exchange"
