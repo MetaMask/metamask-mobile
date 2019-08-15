@@ -820,21 +820,13 @@ export class BrowserTab extends PureComponent {
 		return false;
 	}
 
-	isAllowedUrl = url => {
-		const urlObj = new URL(url);
+	isAllowedUrl = hostname => {
 		const { PhishingController } = Engine.context;
-		return (
-			(this.props.whitelist && this.props.whitelist.includes(urlObj.hostname)) ||
-			(PhishingController && !PhishingController.test(urlObj.hostname))
-		);
+		const { whitelist } = this.props;
+		return (whitelist && whitelist.includes(hostname)) || !PhishingController.test(hostname);
 	};
 
-	handleNotAllowedUrl = (urlToGo, hostname) => {
-		let host = hostname;
-		if (!host) {
-			const urlObj = new URL(urlToGo);
-			host = urlObj.hostname;
-		}
+	handleNotAllowedUrl = urlToGo => {
 		this.blockedUrl = urlToGo;
 		setTimeout(() => {
 			this.setState({ showPhishingModal: true });
@@ -876,7 +868,7 @@ export class BrowserTab extends PureComponent {
 		}
 		const urlToGo = contentUrl || sanitizedURL;
 
-		if (this.isAllowedUrl(urlToGo)) {
+		if (this.isAllowedUrl(hostname)) {
 			this.setState({
 				url: urlToGo,
 				progress: 0,
@@ -891,7 +883,7 @@ export class BrowserTab extends PureComponent {
 
 			return sanitizedURL;
 		}
-		this.handleNotAllowedUrl(urlToGo, hostname);
+		this.handleNotAllowedUrl(urlToGo);
 		return null;
 	};
 
@@ -1326,7 +1318,7 @@ export class BrowserTab extends PureComponent {
 
 		return (
 			<React.Fragment>
-				<Button onPress={() => this.reload()} style={styles.option}>
+				<Button onPress={this.reload} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
