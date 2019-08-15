@@ -827,7 +827,8 @@
 		"copy_to_clipboard": "Copy to Clipboard",
 		"qr_code": "QR Code",
 		"send_link": "Send Link",
-		"request_qr_code": "Payment Request QR Code"
+		"request_qr_code": "Payment Request QR Code",
+		"balance": "Balance"
 	},
 	"receive_request": {
 		"title": "Receive",

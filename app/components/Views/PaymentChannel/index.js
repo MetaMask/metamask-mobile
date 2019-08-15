@@ -24,7 +24,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
-import { balanceToFiat, toBN } from '../../../util/number';
+import { toBN, balanceToFiatNumber } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -621,7 +621,8 @@ class PaymentChannel extends PureComponent {
 			}
 		}
 
-		const balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		const balanceFiat =
+			exchangeRate && `${balanceToFiatNumber(balance, conversionRate, exchangeRate)} ${currentCurrency}`;
 		this.setState({ balanceFiat, exchangeRate });
 	};
 
