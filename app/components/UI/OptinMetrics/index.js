@@ -1,5 +1,15 @@
 import React, { PureComponent } from 'react';
-import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler, Alert } from 'react-native';
+import {
+	View,
+	SafeAreaView,
+	Text,
+	StyleSheet,
+	TouchableOpacity,
+	ScrollView,
+	BackHandler,
+	Alert,
+	InteractionManager
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles, colors } from '../../../styles/common';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -12,6 +22,7 @@ import { NavigationActions, withNavigationFocus } from 'react-navigation';
 import StyledButton from '../StyledButton';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { clearOnboardingEvents } from '../../../actions/onboarding';
 
 const styles = StyleSheet.create({
 	root: {
@@ -97,7 +108,15 @@ class OptinMetrics extends PureComponent {
 		/**
 		 * React navigation prop to know if this view is focused
 		 */
-		isFocused: PropTypes.bool
+		isFocused: PropTypes.bool,
+		/**
+		 * Onboarding events array created in previous onboarding views
+		 */
+		events: PropTypes.array,
+		/**
+		 * Action to erase any event stored in onboarding state
+		 */
+		clearOnboardingEvents: PropTypes.func
 	};
 
 	actionsList = [
@@ -182,7 +201,13 @@ class OptinMetrics extends PureComponent {
 	onCancel = async () => {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'denied');
 		Analytics.disable();
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
+		InteractionManager.runAfterInteractions(() => {
+			if (this.props.events && this.props.events.length) {
+				this.props.events.forEach(e => Analytics.trackEvent(e));
+			}
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_OUT);
+			this.props.clearOnboardingEvents();
+		});
 		this.continue();
 	};
 
@@ -192,7 +217,13 @@ class OptinMetrics extends PureComponent {
 	onConfirm = async () => {
 		await AsyncStorage.setItem('@MetaMask:metricsOptIn', 'agreed');
 		Analytics.enable();
-		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
+		InteractionManager.runAfterInteractions(() => {
+			if (this.props.events && this.props.events.length) {
+				this.props.events.forEach(e => Analytics.trackEvent(e));
+			}
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_METRICS_OPT_IN);
+			this.props.clearOnboardingEvents();
+		});
 		this.continue();
 	};
 
@@ -257,11 +288,16 @@ class OptinMetrics extends PureComponent {
 	}
 }
 
+const mapStateToProps = state => ({
+	events: state.onboarding.events
+});
+
 const mapDispatchToProps = dispatch => ({
-	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
+	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step)),
+	clearOnboardingEvents: () => dispatch(clearOnboardingEvents())
 });
 
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(withNavigationFocus(OptinMetrics));

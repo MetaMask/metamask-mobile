@@ -86,7 +86,11 @@ const transactionReducer = (state = initialState, action) => {
 		case 'SET_ETHER_TRANSACTION':
 			return {
 				...state,
-				type: 'ETHER_TRANSACTION'
+				symbol: 'ETH',
+				assetType: 'ETH',
+				selectedAsset: { isETH: true, symbol: 'ETH' },
+				type: 'ETHER_TRANSACTION',
+				...action.transaction
 			};
 		case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
 			return {
