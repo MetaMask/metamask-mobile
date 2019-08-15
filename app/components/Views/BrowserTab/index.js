@@ -58,7 +58,8 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
-const { HOMEPAGE_URL, HOMEPAGE_HOST } = AppConstants;
+const { HOMEPAGE_URL } = AppConstants;
+const HOMEPAGE_HOST = 'home.metamask.io';
 
 const styles = StyleSheet.create({
 	wrapper: {
