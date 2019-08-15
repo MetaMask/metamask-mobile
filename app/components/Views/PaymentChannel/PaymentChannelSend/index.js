@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { newTransaction } from '../../../../actions/transaction';
 import PaymentChannelsClient from '../../../../core/PaymentChannelsClient';
 import Logger from '../../../../util/Logger';
+import { fromTokenMinimalUnit } from '../../../../util/number';
 
 const EDIT = 'edit';
 
@@ -93,7 +94,7 @@ class PaymentChannelSend extends PureComponent {
 		try {
 			const params = {
 				sendRecipient: transaction.to,
-				sendAmount: transaction.readableValue.replace(',', '.')
+				sendAmount: fromTokenMinimalUnit(transaction.value, 18)
 			};
 
 			if (isNaN(params.sendAmount) || params.sendAmount.trim() === '') {

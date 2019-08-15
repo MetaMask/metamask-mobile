@@ -810,7 +810,8 @@
 		"copy_to_clipboard": "Copiar al Portapapeles",
 		"qr_code": "Código QR",
 		"send_link": "Enviar Enlace",
-		"request_qr_code": "Código QR de solicitud de pago"
+		"request_qr_code": "Código QR de solicitud de pago",
+		"balance": "Balance"
 	},
 	"receive_request": {
 		"title": "Recibir",
