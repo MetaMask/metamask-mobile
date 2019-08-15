@@ -840,30 +840,19 @@ export class BrowserTab extends PureComponent {
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//) || this.isHomepage(url);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		const urlObj = new URL(sanitizedURL);
-		const { hostname, query, pathname } = urlObj;
+		const { hostname, query, pathname } = new URL(sanitizedURL);
 
-		let currentEnsName = null;
-		let contentId = null;
-		let contentUrl = null;
-		let contentType = null;
+		let contentId, contentUrl, contentType;
 		if (this.isENSUrl(sanitizedURL)) {
-			const { url: tmpUrl, hash, type } = await this.handleIpfsContent(sanitizedURL, {
-				hostname,
-				query,
-				pathname
-			});
-			contentUrl = tmpUrl;
+			const { url, type, hash } = await this.handleIpfsContent({ hostname, query, pathname });
+			contentUrl = url;
 			contentType = type;
-			if (contentUrl) {
-				const urlObj = new URL(sanitizedURL);
-				currentEnsName = urlObj.hostname;
-				contentId = hash;
-			}
+			contentId = hash;
+
 			// Needed for the navbar to mask the URL
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
-				currentEnsName: urlObj.hostname
+				currentEnsName: hostname
 			});
 		}
 		const urlToGo = contentUrl || sanitizedURL;
@@ -874,20 +863,19 @@ export class BrowserTab extends PureComponent {
 				progress: 0,
 				ipfsWebsite: !!contentUrl,
 				inputValue: sanitizedURL,
-				currentEnsName,
+				currentEnsName: hostname,
 				contentId,
 				contentType,
 				hostname: this.formatHostname(hostname)
 			});
 			this.updateTabInfo(sanitizedURL);
-
 			return sanitizedURL;
 		}
 		this.handleNotAllowedUrl(urlToGo);
 		return null;
 	};
 
-	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
+	async handleIpfsContent({ hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
 		const { ipfsGateway } = this.props;
 		let gatewayUrl;
@@ -914,7 +902,7 @@ export class BrowserTab extends PureComponent {
 		} catch (err) {
 			Logger.error('Failed to resolve ENS name', err);
 			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
-			return null;
+			return {};
 		}
 	}
 
