@@ -56,13 +56,15 @@ const styles = StyleSheet.create({
 		color: colors.grey500,
 		flex: 1,
 		fontSize: 12,
-		minWidth: 30
+		minWidth: 30,
+		textTransform: 'uppercase'
 	},
 	overviewFiat: {
 		...fontStyles.bold,
 		color: colors.fontPrimary,
 		fontSize: 24,
-		textAlign: 'right'
+		textAlign: 'right',
+		textTransform: 'uppercase'
 	},
 	overviewAccent: {
 		color: colors.blue
@@ -71,14 +73,16 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.grey500,
 		fontSize: 16,
-		textAlign: 'right'
+		textAlign: 'right',
+		textTransform: 'uppercase'
 	},
 	overviewInfo: {
 		...fontStyles.normal,
 		color: colors.grey500,
 		fontSize: 12,
 		marginBottom: 6,
-		textAlign: 'right'
+		textAlign: 'right',
+		textTransform: 'uppercase'
 	},
 	assetName: {
 		maxWidth: 200
@@ -123,7 +127,26 @@ class TransactionReviewInformation extends PureComponent {
 	state = {
 		toFocused: false,
 		amountError: '',
-		actionKey: strings('transactions.tx_review_confirm')
+		actionKey: strings('transactions.tx_review_confirm'),
+		totalGas: undefined,
+		totalGasFiat: undefined,
+		totalGasEth: undefined,
+		totalFiat: undefined,
+		totalValue: undefined
+	};
+
+	componentDidMount = () => {
+		const {
+			transaction: { gas, gasPrice },
+			currentCurrency,
+			conversionRate
+		} = this.props;
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
+		const totalGasEth = `${renderFromWei(totalGas)} ${strings('unit.eth')}`;
+
+		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
+		this.setState({ totalGas, totalGasFiat, totalGasEth, totalFiat, totalValue });
 	};
 
 	getTotalFiat = (asset, totalGas, conversionRate, exchangeRate, currentCurrency, amountToken) => {
@@ -132,7 +155,7 @@ class TransactionReviewInformation extends PureComponent {
 		const balanceFiat = balanceToFiatNumber(parseFloat(amountToken), conversionRate, exchangeRate);
 		const base = Math.pow(10, 5);
 		total = ((parseFloat(gasFeeFiat) + parseFloat(balanceFiat)) * base) / base;
-		return `${total} ${currentCurrency.toUpperCase()}`;
+		return `${total} ${currentCurrency}`;
 	};
 
 	edit = () => {
@@ -140,24 +163,20 @@ class TransactionReviewInformation extends PureComponent {
 		edit && edit();
 	};
 
-	getRenderTotals = () => {
+	getRenderTotals = (totalGas, totalGasFiat) => {
 		const {
-			transaction: { value, gas, gasPrice, selectedAsset, assetType },
+			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
 			conversionRate,
 			contractExchangeRates
 		} = this.props;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
+
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
-				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency.toUpperCase());
+				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 				const totalValue = (
-					<Text style={styles.overviewEth}>
-						{' '}
-						{renderFromWei(totalEth).toString() + ' ' + strings('unit.eth')}{' '}
-					</Text>
+					<Text style={styles.overviewEth}>{`${renderFromWei(totalEth)} ${strings('unit.eth')} `}</Text>
 				);
 				return [totalFiat, totalValue];
 			},
@@ -177,9 +196,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
 							{amountToken + ' ' + selectedAsset.symbol}
 						</Text>
-						<Text style={styles.overviewEth}>
-							{' + ' + renderFromWei(totalGas).toString() + ' ' + strings('unit.eth')}
-						</Text>
+						<Text style={styles.overviewEth}>{`${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -194,9 +211,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={styles.overviewEth}>
 							{' (#' + selectedAsset.tokenId + ')'}
 						</Text>
-						<Text style={styles.overviewEth}>
-							{' + ' + renderFromWei(totalGas).toString() + ' ' + strings('unit.eth')}
-						</Text>
+						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -207,22 +222,12 @@ class TransactionReviewInformation extends PureComponent {
 	};
 
 	render() {
-		const {
-			transaction: { gas, gasPrice },
-			currentCurrency,
-			conversionRate
-		} = this.props;
-		const { amountError } = this.state;
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
-		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency.toUpperCase());
-		const totalGasEth = renderFromWei(totalGas).toString() + ' ' + strings('unit.eth');
-
-		const [totalFiat, totalValue] = this.getRenderTotals()();
+		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
 
 		return (
 			<View style={styles.overview}>
 				<View style={[styles.overviewRow, styles.topOverviewRow]}>
-					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee').toUpperCase()}</Text>
+					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee')}</Text>
 					<View style={styles.overviewContent}>
 						<Text style={styles.overviewFiat}>{totalGasFiat}</Text>
 						<Text style={styles.overviewEth}>{totalGasEth}</Text>
@@ -230,25 +235,24 @@ class TransactionReviewInformation extends PureComponent {
 				</View>
 
 				<View style={styles.overviewRow}>
-					<Text style={styles.overviewLabel}>{strings('transaction.total').toUpperCase()}</Text>
+					<Text style={styles.overviewLabel}>{strings('transaction.total')}</Text>
 					<View style={styles.overviewContent}>
 						<Text style={styles.overviewInfo}>
-							{strings('transaction.amount').toUpperCase()} +{' '}
-							{strings('transaction.gas_fee').toUpperCase()}
+							{`${strings('transaction.amount')} ${strings('transaction.gas_fee')}`}
 						</Text>
 						<Text style={[styles.overviewFiat, styles.overviewAccent]}>{totalFiat}</Text>
 						{totalValue}
 					</View>
 				</View>
 
-				{amountError ? (
+				{!!amountError && (
 					<View style={styles.overviewAlert}>
 						<MaterialIcon name={'error'} size={20} style={styles.overviewAlertIcon} />
 						<Text style={styles.overviewAlertText}>
 							{strings('transaction.alert')}: {amountError}.
 						</Text>
 					</View>
-				) : null}
+				)}
 			</View>
 		);
 	}
