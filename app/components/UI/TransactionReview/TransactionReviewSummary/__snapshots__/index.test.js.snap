@@ -4,39 +4,48 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": undefined,
-      "padding": 16,
+      "flex": 1,
     }
   }
 >
-  <Text
-    numberOfLines={1}
+  <View
     style={
       Object {
-        "alignItems": "center",
-        "borderColor": "#848c96",
-        "borderRadius": 4,
-        "borderWidth": 1,
-        "color": "#848c96",
-        "fontFamily": "Roboto",
-        "fontSize": 12,
-        "fontWeight": "400",
-        "lineHeight": 22,
-        "textAlign": "center",
-        "width": "50%",
+        "backgroundColor": undefined,
+        "padding": 16,
       }
     }
-  />
-  <Text
-    style={
-      Object {
-        "color": "#000000",
-        "fontFamily": "Roboto",
-        "fontSize": 44,
-        "fontWeight": "400",
-        "paddingVertical": 4,
+  >
+    <Text
+      numberOfLines={1}
+      style={
+        Object {
+          "alignItems": "center",
+          "borderColor": "#848c96",
+          "borderRadius": 4,
+          "borderWidth": 1,
+          "color": "#848c96",
+          "fontFamily": "Roboto",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "lineHeight": 22,
+          "textAlign": "center",
+          "width": "50%",
+        }
       }
-    }
-  />
+    />
+    <Text
+      style={
+        Object {
+          "color": "#000000",
+          "fontFamily": "Roboto",
+          "fontSize": 44,
+          "fontWeight": "400",
+          "paddingVertical": 4,
+          "textTransform": "uppercase",
+        }
+      }
+    />
+  </View>
 </View>
 `;
