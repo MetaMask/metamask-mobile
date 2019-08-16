@@ -16,6 +16,9 @@ describe('TransactionReviewSummary', () => {
 					CurrencyRateController: {
 						currentCurrency: 'usd',
 						conversionRate: 0.1
+					},
+					AssetsController: {
+						tokens: []
 					}
 				}
 			},
