@@ -4,7 +4,7 @@ import Logger from './Logger';
 const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-notation
 const SUB_KEY = process.env['MM_PUBNUB_SUB_KEY']; // eslint-disable-line dot-notation
 
-const EXPIRED_CODE_TIMEOUT = 2000;
+const EXPIRED_CODE_TIMEOUT = 30000;
 
 export default class PubNubWrapper {
 	pubnub;
@@ -28,6 +28,7 @@ export default class PubNubWrapper {
 		});
 		this.cipherKey = cipherKey;
 		this.channelName = channelName;
+		this.lastReceivedPkg = -1;
 	}
 
 	/**
@@ -137,7 +138,7 @@ export default class PubNubWrapper {
 	 * @param {func} onSyncingData - Callback to be called in presence of an 'syncing-data' event
 	 */
 	addMessageListener(onErrorSync, onSyncingData) {
-		this.pubnub.addListener({
+		this.pubnubListener = {
 			message: ({ channel, message }) => {
 				if (channel !== this.channelName || !message) {
 					Logger.log('Sync::message', channel !== this.channelName, !message);
@@ -151,8 +152,9 @@ export default class PubNubWrapper {
 					Logger.error('Sync::error-sync');
 					onErrorSync();
 				}
-				if (message.event === 'syncing-data') {
+				if (message.event === 'syncing-data' && message.currentPkg > this.lastReceivedPkg) {
 					this.timeout = false;
+					this.lastReceivedPkg = message.currentPkg;
 					this.incomingDataStr += message.data;
 					if (message.totalPkg === message.currentPkg) {
 						try {
@@ -165,7 +167,9 @@ export default class PubNubWrapper {
 					}
 				}
 			}
-		});
+		};
+
+		this.pubnub.addListener(this.pubnubListener);
 	}
 
 	/**
@@ -183,7 +187,7 @@ export default class PubNubWrapper {
 	 */
 	disconnectWebsockets() {
 		if (this.pubnub && this.pubnubListener) {
-			this.pubnub.disconnect(this.pubnubListener);
+			this.pubnub.removeListener(this.pubnubListener);
 		}
 	}
 }

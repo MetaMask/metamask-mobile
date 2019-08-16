@@ -265,6 +265,7 @@ class SyncWithExtension extends PureComponent {
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
 				} catch (e) {
 					Logger.error('User cancelled biometrics permission', e);
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				}
 			}
 		}
