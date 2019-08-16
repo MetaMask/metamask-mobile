@@ -10,6 +10,7 @@ exports[`PaymentChannel should render correctly 1`] = `
   paymentChannelsEnabled={true}
   provider={
     Object {
+      "ticker": "ETH",
       "type": "ropsten",
     }
   }
