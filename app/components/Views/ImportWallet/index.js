@@ -273,32 +273,34 @@ class ImportWallet extends PureComponent {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				this.setState({ biometryType, biometryChoice: true });
-			}
 
-			Alert.alert(
-				strings('sync_with_extension.allow_biometrics_title', { biometrics: biometryType }),
-				strings('sync_with_extension.allow_biometrics_desc', { biometrics: biometryType }),
-				[
-					{
-						text: strings('sync_with_extension.warning_cancel_button'),
-						onPress: async () => {
-							await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-							await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
-							this.finishSync({ biometrics: false, password });
+				Alert.alert(
+					strings('sync_with_extension.allow_biometrics_title', { biometrics: biometryType }),
+					strings('sync_with_extension.allow_biometrics_desc', { biometrics: biometryType }),
+					[
+						{
+							text: strings('sync_with_extension.warning_cancel_button'),
+							onPress: async () => {
+								await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+								await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+								this.finishSync({ biometrics: false, password });
+							},
+							style: 'cancel'
 						},
-						style: 'cancel'
-					},
-					{
-						text: strings('sync_with_extension.warning_ok_button'),
-						onPress: async () => {
-							await AsyncStorage.setItem('@MetaMask:biometryChoice', biometryType);
-							await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
-							this.finishSync({ biometrics: true, biometryType, password });
+						{
+							text: strings('sync_with_extension.warning_ok_button'),
+							onPress: async () => {
+								await AsyncStorage.setItem('@MetaMask:biometryChoice', biometryType);
+								await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+								this.finishSync({ biometrics: true, biometryType, password });
+							}
 						}
-					}
-				],
-				{ cancelable: false }
-			);
+					],
+					{ cancelable: false }
+				);
+			} else {
+				this.finishSync({ biometrics: false, password });
+			}
 		} else {
 			this.finishSync({ biometrics: false, password });
 		}

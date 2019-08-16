@@ -523,7 +523,7 @@ class Settings extends PureComponent {
 							</View>
 						</View>
 					)}
-					{!this.state.biometryChoice && (
+					{biometryType && !this.state.biometryChoice && (
 						<View style={styles.setting}>
 							<Text style={styles.title}>
 								{Platform.OS === 'ios'

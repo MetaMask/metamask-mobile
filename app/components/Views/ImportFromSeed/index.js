@@ -257,8 +257,8 @@ class ImportFromSeed extends PureComponent {
 						await SecureKeychain.getGenericPassword();
 					}
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled', 'true');
-					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled', 'true');
+					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
 				} else {
 					if (this.state.rememberMe) {
 						await SecureKeychain.setGenericPassword('metamask-user', this.state.password, {
