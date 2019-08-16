@@ -181,8 +181,12 @@ class Login extends PureComponent {
 
 				if (!this.state.biometryChoice) {
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 				} else {
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
 				}
 			} else {
 				if (this.state.rememberMe) {
