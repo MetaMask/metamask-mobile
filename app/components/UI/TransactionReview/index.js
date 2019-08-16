@@ -16,6 +16,9 @@ import TransactionReviewSummary from './TransactionReviewSummary';
 import { renderAccountName } from '../../../util/address';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import contractMap from 'eth-contract-metadata';
+import { toChecksumAddress } from 'ethereumjs-util';
+import AssetIcon from '../AssetIcon';
 
 const FONT_SIZE = PixelRatio.get() < 2 ? 12 : 16;
 const styles = StyleSheet.create({
@@ -109,7 +112,16 @@ const styles = StyleSheet.create({
 	},
 	ensRecipient: { ...fontStyles.bold, fontSize: FONT_SIZE },
 	ensAddress: { ...fontStyles.normal, fontSize: 10 },
-	addressWrapper: { flex: 1 }
+	addressWrapper: { flex: 1 },
+	contractLogo: {
+		height: 24,
+		width: 24,
+		backgroundColor: colors.white
+	},
+	contractLogoWrapper: {
+		backgroundColor: colors.white,
+		alignItems: 'flex-start'
+	}
 });
 
 /**
@@ -185,11 +197,7 @@ class TransactionReview extends PureComponent {
 			transaction: { to, ensRecipient },
 			identities
 		} = this.props;
-		let child = (
-			<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
-				{renderAccountName(to, identities)}
-			</Text>
-		);
+		let child;
 		if (ensRecipient) {
 			child = (
 				<View style={styles.ensRecipientContainer}>
@@ -201,15 +209,38 @@ class TransactionReview extends PureComponent {
 					</Text>
 				</View>
 			);
+		} else {
+			child = (
+				<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
+					{renderAccountName(to, identities)}
+				</Text>
+			);
 		}
-		return child;
+		return (
+			<View style={[styles.addressGraphic, styles.toGraphic]}>
+				<Identicon address={to} diameter={18} />
+				{child}
+			</View>
+		);
 	};
+
+	renderToContractDirection = contract => (
+		<View style={[styles.addressGraphic, styles.toGraphic]}>
+			<View style={styles.contractLogoWrapper}>
+				<AssetIcon logo={contract.logo} customStyle={styles.contractLogo} />
+			</View>
+			<Text style={[styles.addressText, styles.addressWrapper]} numberOfLines={1}>
+				{contract.name}
+			</Text>
+		</View>
+	);
 
 	renderTransactionDirection = () => {
 		const {
 			transaction: { from, to },
 			identities
 		} = this.props;
+		const contract = contractMap[toChecksumAddress(to)];
 		return (
 			<View style={styles.graphic}>
 				<View style={[styles.addressGraphic, styles.fromGraphic]}>
@@ -221,10 +252,7 @@ class TransactionReview extends PureComponent {
 				<View style={styles.arrow}>
 					<MaterialIcon name={'arrow-forward'} size={22} style={styles.arrowIcon} />
 				</View>
-				<View style={[styles.addressGraphic, styles.toGraphic]}>
-					<Identicon address={to} diameter={18} />
-					{this.renderToAddressDirection()}
-				</View>
+				{contract === undefined ? this.renderToAddressDirection() : this.renderToContractDirection(contract)}
 			</View>
 		);
 	};

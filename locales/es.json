@@ -453,7 +453,8 @@
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
 		"optional": "Opcional",
-		"no_address_for_ens": "No existe dirección para nombre ENS"
+		"no_address_for_ens": "No existe dirección para nombre ENS",
+		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta"
 	},
 	"custom_gas": {
 		"advanced_options": "Opciones Avanzadas",
@@ -810,7 +811,8 @@
 		"copy_to_clipboard": "Copiar al Portapapeles",
 		"qr_code": "Código QR",
 		"send_link": "Enviar Enlace",
-		"request_qr_code": "Código QR de solicitud de pago"
+		"request_qr_code": "Código QR de solicitud de pago",
+		"balance": "Balance"
 	},
 	"receive_request": {
 		"title": "Recibir",

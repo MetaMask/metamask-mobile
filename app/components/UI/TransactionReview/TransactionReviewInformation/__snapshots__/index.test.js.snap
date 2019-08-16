@@ -34,10 +34,11 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           "fontSize": 12,
           "fontWeight": "600",
           "minWidth": 30,
+          "textTransform": "uppercase",
         }
       }
     >
-      TRANSACTION FEE
+      Transaction Fee
     </Text>
     <View>
       <Text
@@ -48,10 +49,11 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
             "fontSize": 24,
             "fontWeight": "600",
             "textAlign": "right",
+            "textTransform": "uppercase",
           }
         }
       >
-        0 USD
+        0 usd
       </Text>
       <Text
         style={
@@ -61,6 +63,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
             "fontSize": 16,
             "fontWeight": "400",
             "textAlign": "right",
+            "textTransform": "uppercase",
           }
         }
       >
@@ -86,10 +89,11 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           "fontSize": 12,
           "fontWeight": "600",
           "minWidth": 30,
+          "textTransform": "uppercase",
         }
       }
     >
-      TOTAL
+      Total
     </Text>
     <View>
       <Text
@@ -101,13 +105,11 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
             "fontWeight": "400",
             "marginBottom": 6,
             "textAlign": "right",
+            "textTransform": "uppercase",
           }
         }
       >
-        AMOUNT
-         +
-         
-        TRANSACTION FEE
+        Amount Transaction Fee
       </Text>
       <Text
         style={
@@ -118,6 +120,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
               "fontSize": 24,
               "fontWeight": "600",
               "textAlign": "right",
+              "textTransform": "uppercase",
             },
             Object {
               "color": "#037dd6",

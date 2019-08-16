@@ -21,8 +21,17 @@ describe('PaymentChannelDeposit', () => {
 					PreferencesController: {
 						selectedAddress: '0x1',
 						identities: { '0x1': { name: 'Account 1' } }
+					},
+					NetworkController: {
+						provider: {
+							type: 'ropsten',
+							ticker: 'ETH'
+						}
 					}
 				}
+			},
+			settings: {
+				primaryCurrency: 'usd'
 			}
 		};
 
