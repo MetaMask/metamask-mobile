@@ -81,6 +81,13 @@
 		"go_back": "Go Back",
 		"invalid_password": "Invalid password"
 	},
+	"enter_password": {
+		"title": "Enter your password",
+		"desc": "Please enter your password in order to continue",
+		"password": "Password",
+		"confirm_button": "Confirm",
+		"error": "Error"
+	},
 	"choose_password": {
 		"title": "Create password",
 		"subtitle": "You'll use this password to unlock your MetaMask wallet only on this device.",
@@ -355,7 +362,9 @@
 		"metametrics_description": "Participate in MetaMetrics to help us make MetaMask better.",
 		"metametrics_opt_out": "MetaMetrics Opt-out",
 		"metrametrics_restart_required": "You need to restart the app for the changes to take effect.",
-		"create_password": "Create Password"
+		"create_password": "Create Password",
+		"invalid_password": "Invalid password",
+		"invalid_password_message": "The password was not correct. Please try again."
 	},
 	"app_information": {
 		"title": "Information",
@@ -581,7 +590,9 @@
 		"outdated_qr_code": "Expired QR Code",
 		"outdated_qr_code_desc": "This seems to be an expired QR code!  Please try scanning a new one",
 		"something_wrong": "Ooops! Something went wrong...",
-		"something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your seed phrase"
+		"something_wrong_desc": "We are having issues while trying to sync your wallet. Please try again later or import your wallet using your seed phrase",
+		"allow_biometrics_title": "Do you want to enable {{biometrics}}?",
+		"allow_biometrics_desc": "You can use {{biometrics}} to authenticate on MetaMask"
 	},
 	"sync_with_extension_success": {
 		"title": "Sync completed",
@@ -629,7 +640,9 @@
 	"biometrics": {
 		"enable_touchid": "Sign In with Touch ID?",
 		"enable_faceid": "Sign In with Face ID?",
-		"enable_fingerprint": "Sign In with Fingerprint?"
+		"enable_fingerprint": "Sign In with Fingerprint?",
+		"enable_device_passcode_ios": "Sign in with device passcode?",
+		"enable_device_passcode_android": "Sign in with device PIN?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Authentication required",

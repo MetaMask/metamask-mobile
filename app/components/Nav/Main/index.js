@@ -44,6 +44,7 @@ import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
 import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
+import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep2 from '../../Views/AccountBackupStep2';
@@ -209,6 +210,9 @@ const MainNavigator = createStackNavigator(
 				},
 				ChoosePasswordSimple: {
 					screen: ChoosePasswordSimple
+				},
+				EnterPasswordSimple: {
+					screen: EnterPasswordSimple
 				}
 			})
 		},
