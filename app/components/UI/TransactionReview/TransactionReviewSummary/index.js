@@ -8,9 +8,13 @@ import {
 	renderFromWei,
 	fromTokenMinimalUnit
 } from '../../../../util/number';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
+import { APPROVE_FUNCTION_SIGNATURE, decodeTransferData } from '../../../../util/transactions';
+import contractMap from 'eth-contract-metadata';
+import { toChecksumAddress } from 'ethereumjs-util';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 const styles = StyleSheet.create({
 	confirmBadge: {
@@ -33,12 +37,30 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.fontPrimary,
 		fontSize: 44,
-		paddingVertical: 4
+		paddingVertical: 4,
+		textTransform: 'uppercase'
 	},
 	summaryEth: {
 		...fontStyles.normal,
 		color: colors.grey400,
-		fontSize: 24
+		fontSize: 24,
+		textTransform: 'uppercase'
+	},
+	warning: {
+		flex: 1,
+		flexDirection: 'row',
+		borderColor: colors.grey400,
+		borderBottomWidth: 1,
+		padding: 16,
+		backgroundColor: colors.yellow100
+	},
+	warningText: {
+		flex: 1,
+		...fontStyles.normal,
+		marginHorizontal: 8,
+		color: colors.grey500,
+		textAlign: 'left',
+		fontSize: 12
 	}
 });
 
@@ -66,7 +88,37 @@ class TransactionReviewSummary extends PureComponent {
 		/**
 		 * Transaction corresponding action key
 		 */
-		actionKey: PropTypes.string
+		actionKey: PropTypes.string,
+		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array
+	};
+
+	state = {
+		assetAmount: undefined,
+		conversionRate: undefined,
+		fiatValue: undefined
+	};
+
+	componentDidMount = () => {
+		const {
+			transaction: { data, to },
+			tokens
+		} = this.props;
+		let assetAmount, conversionRate, fiatValue;
+		const approveTransaction = data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
+		if (approveTransaction) {
+			let contract = contractMap[toChecksumAddress(to)];
+			if (!contract) {
+				contract = tokens.find(({ address }) => address === toChecksumAddress(to));
+			}
+			const symbol = (contract && contract.symbol) || 'ERC20';
+			assetAmount = `${decodeTransferData('transfer', data)[1]} ${symbol}`;
+		} else {
+			[assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
+		}
+		this.setState({ assetAmount, conversionRate, fiatValue, approveTransaction });
 	};
 
 	getRenderValues = () => {
@@ -77,14 +129,15 @@ class TransactionReviewSummary extends PureComponent {
 		} = this.props;
 		const values = {
 			ETH: () => {
-				const assetAmount = renderFromWei(value).toString() + ' ' + strings('unit.eth');
+				const assetAmount = `${renderFromWei(value)} ${strings('unit.eth')}`;
 				const conversionRate = this.props.conversionRate;
-				const fiatValue = weiToFiat(value, conversionRate, currentCurrency.toUpperCase());
+				const fiatValue = weiToFiat(value, conversionRate, currentCurrency);
 				return [assetAmount, conversionRate, fiatValue];
 			},
 			ERC20: () => {
-				const assetAmount =
-					renderFromTokenMinimalUnit(value, selectedAsset.decimals) + ' ' + selectedAsset.symbol;
+				const assetAmount = `${renderFromTokenMinimalUnit(value, selectedAsset.decimals)} ${
+					selectedAsset.symbol
+				}`;
 				const conversionRate = contractExchangeRates[selectedAsset.address];
 				const fiatValue = balanceToFiat(
 					(value && fromTokenMinimalUnit(value, selectedAsset.decimals)) || 0,
@@ -107,21 +160,31 @@ class TransactionReviewSummary extends PureComponent {
 
 	render = () => {
 		const { actionKey } = this.props;
-		const [assetAmount, conversionRate, fiatValue] = this.getRenderValues()();
+		const { assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		return (
-			<View style={styles.summary}>
-				<Text style={styles.confirmBadge} numberOfLines={1}>
-					{actionKey}
-				</Text>
-
-				{!conversionRate ? (
-					<Text style={styles.summaryFiat}>{assetAmount}</Text>
-				) : (
-					<View>
-						<Text style={styles.summaryFiat}>{fiatValue}</Text>
-						<Text style={styles.summaryEth}>{assetAmount}</Text>
+			<View style={baseStyles.flexGrow}>
+				{!!approveTransaction && (
+					<View style={styles.warning}>
+						<IonicIcon name={'ios-alert'} size={28} color={colors.grey500} />
+						<Text style={styles.warningText}>{`${strings(
+							'transaction.approve_warning'
+						)} ${assetAmount}`}</Text>
 					</View>
 				)}
+				<View style={styles.summary}>
+					<Text style={styles.confirmBadge} numberOfLines={1}>
+						{actionKey}
+					</Text>
+
+					{!conversionRate ? (
+						<Text style={styles.summaryFiat}>{assetAmount}</Text>
+					) : (
+						<View>
+							<Text style={styles.summaryFiat}>{fiatValue}</Text>
+							<Text style={styles.summaryEth}>{assetAmount}</Text>
+						</View>
+					)}
+				</View>
 			</View>
 		);
 	};
@@ -131,6 +194,7 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transaction: state.transaction
 });
 
