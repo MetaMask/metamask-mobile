@@ -81,6 +81,13 @@
 		"go_back": "Atrás",
 		"invalid_password": "Contraseña incorrecta"
 	},
+	"enter_password": {
+		"title": "Ingresa tu contraseña",
+		"desc": "Por favor, ingresa tu contraseña para continuar",
+		"password": "Contraseña",
+		"confirm_button": "Confirmar",
+		"error": "Error"
+	},
 	"choose_password": {
 		"title": "Crea tu contraseña",
 		"subtitle": "Utilizarás esta contraseña para acceder a tu billetera de MetaMask solamente en este dispositivo.",
@@ -351,7 +358,9 @@
 		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
 		"metametrics_opt_out": "MetaMetrics Deshabilitado",
 		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto.",
-		"create_password": "Crear Contraseña"
+		"create_password": "Crear Contraseña",
+		"invalid_password": "Contraseña inválida",
+		"invalid_password_message": "La contraseña no es correcta. Por favor inténtalo de nuevo."
 	},
 	"app_information": {
 		"title": "Información",
@@ -569,7 +578,9 @@
 		"invalid_qr_code": "Código QR inválido",
 		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí",
 		"something_wrong": "Ooops! algo salió mal...",
-		"something_wrong_desc": "Tenemos problemas al intentar sincronizar tu billetera. Por favor, intenta de nuevo más tarde o importa tu billetera usando tu frase semilla"
+		"something_wrong_desc": "Tenemos problemas al intentar sincronizar tu billetera. Por favor, intenta de nuevo más tarde o importa tu billetera usando tu frase semilla",
+		"allow_biometrics_title": "Deseas habilitar {{biometrics}}?",
+		"allow_biometrics_desc": "Puedes utilizar {{biometrics}} para autenticarte en MetaMask"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",
@@ -614,7 +625,9 @@
 	"biometrics": {
 		"enable_touchid": "Ingresar con Touch ID?",
 		"enable_faceid": "Ingresar con Face ID?",
-		"enable_fingerprint": "Ingresar con Huella Digital?"
+		"enable_fingerprint": "Ingresar con Huella Digital?",
+		"enable_device_passcode_ios": "Ingresar con el código de seguridad del móvil?",
+		"enable_device_passcode_android": "Ingresar con el PIN del móvil?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Autenticación requerida",

@@ -147,9 +147,10 @@ class Login extends PureComponent {
 
 	async componentDidMount() {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
+		const passcodeDisabled = await AsyncStorage.getItem('@MetaMask:passcodeDisabled');
+		if (passcodeDisabled !== 'true' && biometryType) {
 			let enabled = true;
-			const previouslyDisabled = await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			const previouslyDisabled = await AsyncStorage.getItem('@MetaMask:biometryChoiceDisabled');
 			if (previouslyDisabled && previouslyDisabled === 'true') {
 				enabled = false;
 			}
@@ -169,7 +170,6 @@ class Login extends PureComponent {
 
 			// Restore vault with user entered password
 			await KeyringController.submitPassword(this.state.password);
-
 			if (this.state.biometryType) {
 				const authOptions = {
 					accessControl: this.state.biometryChoice
@@ -181,8 +181,12 @@ class Login extends PureComponent {
 
 				if (!this.state.biometryChoice) {
 					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+					await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+					await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 				} else {
 					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+					await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
 				}
 			} else {
 				if (this.state.rememberMe) {
