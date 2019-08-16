@@ -20,7 +20,15 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import AppConstants from '../../../../core/AppConstants';
-import { weiToFiat, toWei, isDecimal, isBN } from '../../../../util/number';
+import {
+	weiToFiat,
+	toWei,
+	isDecimal,
+	weiToFiatNumber,
+	fiatNumberToWei,
+	renderFromWei,
+	fromWei
+} from '../../../../util/number';
 import { renderAccountName } from '../../../../util/address';
 import Identicon from '../../../UI/Identicon';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -28,6 +36,7 @@ import contractMap from 'eth-contract-metadata';
 import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { getTicker } from '../../../../util/transactions';
 
 const TOO_LOW = 'too_low';
 const TOO_HIGH = 'too_high';
@@ -166,6 +175,9 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontSize: 12,
 		...fontStyles.normal
+	},
+	secondaryValues: {
+		flexDirection: 'row'
 	}
 });
 
@@ -198,14 +210,23 @@ class Deposit extends PureComponent {
 		/**
 		/* Identities object required to get account name
 		*/
-		identities: PropTypes.object
+		identities: PropTypes.object,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
 		amount: undefined,
 		validAmount: false,
 		depositing: undefined,
-		invalidAmountType: undefined
+		invalidAmountType: undefined,
+		value: undefined
 	};
 
 	amountInput = React.createRef();
@@ -227,7 +248,7 @@ class Deposit extends PureComponent {
 			return;
 		}
 		try {
-			const params = { depositAmount: this.state.amount.replace(',', '.') };
+			const params = { depositAmount: fromWei(this.state.value) };
 			Logger.log('About to deposit', params);
 			this.setState({ depositing: true });
 			await PaymentChannelsClient.deposit(params);
@@ -246,20 +267,30 @@ class Deposit extends PureComponent {
 	};
 
 	updateAmount = async amount => {
-		await this.setState({ amount });
+		const { conversionRate, primaryCurrency } = this.props;
+		let processedValue;
+		const pointAmount = amount.replace(',', '.');
+		const validDecimal = isDecimal(pointAmount);
+		if (validDecimal) {
+			if (primaryCurrency === 'ETH') {
+				processedValue = toWei(pointAmount);
+			} else {
+				processedValue = fiatNumberToWei(pointAmount, conversionRate);
+			}
+		}
+		await this.setState({ amount, value: processedValue });
 		this.validateDeposit();
 	};
 
 	validateDeposit = async () => {
 		const { selectedAddress, accounts } = this.props;
-		let { amount } = this.state;
+		const { value, amount } = this.state;
 		if (!amount) return;
-		amount = amount.replace(',', '.');
 		const { balance } = accounts[selectedAddress];
 		let error, invalidAmountType;
 		let validAmount = true;
-		if (isDecimal(amount) && isBN(toWei(amount))) {
-			if (hexToBN(balance).lt(toWei(amount))) {
+		if (isDecimal(amount.replace(',', '.'))) {
+			if (hexToBN(balance).lt(value)) {
 				validAmount = false;
 				error = strings('transaction.insufficient');
 			}
@@ -268,7 +299,7 @@ class Deposit extends PureComponent {
 			error = strings('transaction.invalid_amount');
 		}
 
-		const depositAmountNumber = parseFloat(amount);
+		const depositAmountNumber = parseFloat(fromWei(value));
 		const { MAX_DEPOSIT_TOKEN, getExchangeRate } = PaymentChannelsClient;
 
 		const ETH = parseFloat(getExchangeRate());
@@ -280,7 +311,7 @@ class Deposit extends PureComponent {
 			invalidAmountType = TOO_HIGH;
 		}
 
-		if (amount < minDepositAmount) {
+		if (depositAmountNumber < minDepositAmount) {
 			validAmount = false;
 			invalidAmountType = TOO_LOW;
 		}
@@ -359,14 +390,18 @@ class Deposit extends PureComponent {
 	}
 
 	render() {
-		const { conversionRate, currentCurrency } = this.props;
-		const { amount, validAmount, error } = this.state;
-		const decimalAmount = amount && amount.replace(',', '.');
-		const conversionAmount = weiToFiat(
-			toWei((isDecimal(decimalAmount) && decimalAmount) || 0),
-			conversionRate,
-			currentCurrency.toUpperCase()
-		);
+		const { conversionRate, currentCurrency, ticker, primaryCurrency } = this.props;
+		const { amount, validAmount, error, value } = this.state;
+		let secondaryAmount, currency, secondaryCurrency;
+		if (primaryCurrency === 'ETH') {
+			secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
+			secondaryCurrency = currentCurrency.toUpperCase();
+			currency = getTicker(ticker);
+		} else {
+			secondaryAmount = renderFromWei(value);
+			secondaryCurrency = getTicker(ticker);
+			currency = currentCurrency.toUpperCase();
+		}
 		return (
 			<TouchableWithoutFeedback style={styles.root} onPress={Keyboard.dismiss}>
 				<View style={styles.root}>
@@ -389,10 +424,19 @@ class Deposit extends PureComponent {
 								onSubmitEditing={this.validateDeposit}
 								onBlur={this.promptValidationWarnings}
 							/>
-							<Text style={styles.inputCurrency}>{strings('unit.eth')}</Text>
+							<Text style={styles.inputCurrency}>{currency}</Text>
 						</View>
 
-						<Text style={styles.fiatValue}>{conversionAmount}</Text>
+						{secondaryAmount !== undefined && (
+							<View style={styles.secondaryValues}>
+								<Text style={styles.fiatValue} numberOfLines={1}>
+									{secondaryAmount}
+								</Text>
+								<Text style={styles.fiatValue} numberOfLines={1}>
+									{' ' + secondaryCurrency}
+								</Text>
+							</View>
+						)}
 						{this.renderMinimumsOrSpinner()}
 						{!!error && <Text style={styles.invalidAmountError}>{error}</Text>}
 
@@ -429,7 +473,9 @@ const mapStateToProps = state => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	identities: state.engine.backgroundState.PreferencesController.identities
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 export default connect(mapStateToProps)(Deposit);
