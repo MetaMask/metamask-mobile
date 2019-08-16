@@ -60,6 +60,11 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
 
+const USER_AGENT =
+	Platform.OS === 'android'
+		? 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36'
+		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1';
+
 const styles = StyleSheet.create({
 	wrapper: {
 		...baseStyles.flexGrow,
@@ -1205,7 +1210,8 @@ export class BrowserTab extends PureComponent {
 			inputValue,
 			autocompleteInputValue: inputValue,
 			hostname,
-			forwardEnabled: false
+			forwardEnabled: false,
+			url
 		});
 	};
 
@@ -1601,13 +1607,6 @@ export class BrowserTab extends PureComponent {
 		);
 	}
 
-	getUserAgent() {
-		if (Platform.OS === 'android') {
-			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
-		}
-		return 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1';
-	}
-
 	onLoadStart = () => {
 		this.backgroundBridge.disableAccounts();
 	};
@@ -1644,6 +1643,15 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
+	shouldStartLoadWithRequest = ({ url }) => {
+		const { hostname } = new URL(url);
+		if (this.isAllowedUrl(hostname)) {
+			return true;
+		}
+		this.handleNotAllowedUrl(url);
+		return false;
+	};
+
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
 		const isHomepage = this.isHomepage();
@@ -1673,10 +1681,11 @@ export class BrowserTab extends PureComponent {
 							ref={this.webview}
 							source={{ uri: url }}
 							style={styles.webview}
-							userAgent={this.getUserAgent()}
+							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
 							testID={'browser-webview'}
+							onShouldStartLoadWithRequest={this.shouldStartLoadWithRequest}
 						/>
 					)}
 				</View>
