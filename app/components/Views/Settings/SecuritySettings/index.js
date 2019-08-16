@@ -241,6 +241,7 @@ class Settings extends PureComponent {
 			}
 
 			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
 
 			const credentials = await SecureKeychain.getGenericPassword();
 			if (credentials && credentials.password !== '') {
