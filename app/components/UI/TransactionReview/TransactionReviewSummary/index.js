@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		marginHorizontal: 8,
 		color: colors.grey500,
-		textAlign: 'justify',
+		textAlign: 'left',
 		fontSize: 12
 	}
 });
