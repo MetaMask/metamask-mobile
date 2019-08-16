@@ -101,6 +101,10 @@ class Settings extends PureComponent {
 		 */
 		setPrivacyMode: PropTypes.func,
 		/**
+		 * Boolean that determines if the user has set a password before
+		 */
+		passwordHasBeenSet: PropTypes.bool,
+		/**
 		 * Called to set the passwordSet flag
 		 */
 		passwordSet: PropTypes.func,
@@ -158,7 +162,8 @@ class Settings extends PureComponent {
 		biometryChoice: null,
 		biometryType: null,
 		browserHistoryModalVisible: false,
-		metricsOptIn: false
+		metricsOptIn: false,
+		passcodeChoice: false
 	};
 
 	autolockOptions = [
@@ -207,32 +212,82 @@ class Settings extends PureComponent {
 	componentDidMount = async () => {
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		let bioEnabled = false;
+		let passcodeEnabled = false;
 		if (biometryType) {
 			const biometryChoice = await AsyncStorage.getItem('@MetaMask:biometryChoice');
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
 				bioEnabled = true;
+			} else {
+				const passcodeChoice = await AsyncStorage.getItem('@MetaMask:passcodeChoice');
+				if (passcodeChoice !== '' && passcodeChoice === 'true') {
+					passcodeEnabled = true;
+				}
 			}
 		}
 		const metricsOptIn = Analytics.getEnabled();
-		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn });
+		this.setState({ biometryType, biometryChoice: bioEnabled, metricsOptIn, passcodeChoice: passcodeEnabled });
 	};
 
-	onBiometryChange = async enabled => {
-		this.setState({ biometryChoice: enabled });
+	onSecuritySettingChange = async (enabled, type) => {
+		if (type === 'biometrics') {
+			this.setState({ biometryChoice: enabled });
 
-		const credentials = await SecureKeychain.getGenericPassword();
-		if (credentials && credentials.password !== '') {
-			this.storeCredentials(credentials.password, enabled, false);
+			// If we're disabling biometrics, let's enable device passcode / pin
+			//  by default because if we disable both we lose the password
+			if (!enabled) {
+				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+				this.onSecuritySettingChange(true, 'passcode');
+				return;
+			}
+
+			await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+			await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+
+			const credentials = await SecureKeychain.getGenericPassword();
+			if (credentials && credentials.password !== '') {
+				this.storeCredentials(credentials.password, enabled, false, type);
+			} else if (this.props.passwordHasBeenSet) {
+				this.props.navigation.navigate('EnterPasswordSimple', {
+					onPasswordSet: password => {
+						this.storeCredentials(password, true, false, type, true);
+					}
+				});
+			} else {
+				this.props.navigation.navigate('ChoosePasswordSimple', {
+					onPasswordSet: password => {
+						this.storeCredentials(password, enabled, true, type);
+					}
+				});
+			}
 		} else {
-			this.props.navigation.navigate('ChoosePasswordSimple', {
-				onPasswordSet: password => {
-					this.storeCredentials(password, enabled, true);
-				}
-			});
+			this.setState({ passcodeChoice: enabled });
+
+			if (!enabled) {
+				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+			} else {
+				await AsyncStorage.removeItem('@MetaMask:passcodeDisabled');
+			}
+
+			const credentials = await SecureKeychain.getGenericPassword();
+			if (credentials && credentials.password !== '') {
+				this.storeCredentials(credentials.password, enabled, false, type);
+			} else if (this.props.passwordHasBeenSet) {
+				this.props.navigation.navigate('EnterPasswordSimple', {
+					onPasswordSet: password => {
+						this.storeCredentials(password, true, false, type, true);
+					}
+				});
+			} else {
+				this.props.navigation.navigate('ChoosePasswordSimple', {
+					onPasswordSet: password => {
+						this.storeCredentials(password, enabled, true, type);
+					}
+				});
+			}
 		}
 	};
 
-	storeCredentials = async (password, enabled, restore) => {
+	storeCredentials = async (password, enabled, restore, type, validate = false) => {
 		try {
 			await SecureKeychain.resetGenericPassword();
 
@@ -267,26 +322,42 @@ class Settings extends PureComponent {
 				Logger.log('SecuritySettings::restore complete');
 			}
 
-			const authOptions = {
-				accessControl: enabled
-					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
-			};
-			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
-			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			// When there's no need to restore and we just need
+			// to store the existing password in the keychain,
+			// we need to validate it first
+			if (validate) {
+				await Engine.context.KeyringController.exportSeedPhrase(password);
+			}
 
-			if (!enabled) {
-				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
-			} else {
-				await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
-				// If the user enables biometrics, we're trying to read the password
-				// immediately so we get the permission prompt
-				if (Platform.OS === 'ios') {
-					await SecureKeychain.getGenericPassword();
+			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
+			if (enabled) {
+				const authOptions = {
+					accessControl:
+						type === 'biometrics'
+							? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
+							: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+				};
+				await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+
+				if (type === 'biometrics') {
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', this.state.biometryType);
+					await AsyncStorage.removeItem('@MetaMask:passcodeChoice');
+					// If the user enables biometrics, we're trying to read the password
+					// immediately so we get the permission prompt
+					if (Platform.OS === 'ios') {
+						await SecureKeychain.getGenericPassword();
+					}
+				} else {
+					await AsyncStorage.setItem('@MetaMask:passcodeChoice', 'true');
+					await AsyncStorage.removeItem('@MetaMask:biometryChoice');
 				}
+			} else {
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.removeItem('@MetaMask:passcodeChoice');
 			}
 
 			this.props.passwordSet();
+
 			if (enabled && this.props.lockTime === -1) {
 				Logger.log('Setting locktime to ', AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -294,9 +365,16 @@ class Settings extends PureComponent {
 				Logger.log('Locktime was set to', this.props.lockTime);
 			}
 		} catch (e) {
+			if (e.message === 'Invalid password') {
+				Alert.alert(strings('app_settings.invalid_password'), strings('app_settings.invalid_password_message'));
+			}
 			Logger.error('SecuritySettings:biometrics', e);
 			// Return the switch to the previous value
-			this.setState({ biometryChoice: !enabled });
+			if (type === 'biometrics') {
+				this.setState({ biometryChoice: !enabled });
+			} else {
+				this.setState({ passcodeChoice: !enabled });
+			}
 		}
 	};
 
@@ -433,8 +511,31 @@ class Settings extends PureComponent {
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
-									onValueChange={biometryChoice => this.onBiometryChange(biometryChoice)} // eslint-disable-line react/jsx-no-bind
+									onValueChange={biometryChoice =>
+										this.onSecuritySettingChange(biometryChoice, 'biometrics')
+									} // eslint-disable-line react/jsx-no-bind
 									value={this.state.biometryChoice}
+									trackColor={
+										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
+									}
+									ios_backgroundColor={colors.grey000}
+								/>
+							</View>
+						</View>
+					)}
+					{biometryType && !this.state.biometryChoice && (
+						<View style={styles.setting}>
+							<Text style={styles.title}>
+								{Platform.OS === 'ios'
+									? strings(`biometrics.enable_device_passcode_ios`)
+									: strings(`biometrics.enable_device_passcode_android`)}
+							</Text>
+							<View style={styles.switchElement}>
+								<Switch
+									onValueChange={passcodeChoice =>
+										this.onSecuritySettingChange(passcodeChoice, 'passcode')
+									} // eslint-disable-line react/jsx-no-bind
+									value={this.state.passcodeChoice}
 									trackColor={
 										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
 									}
@@ -515,7 +616,8 @@ const mapStateToProps = state => ({
 	selectedAddress: toChecksumAddress(state.engine.backgroundState.PreferencesController.selectedAddress),
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 	identities: state.engine.backgroundState.PreferencesController.identities,
-	keyrings: state.engine.backgroundState.KeyringController.keyrings
+	keyrings: state.engine.backgroundState.KeyringController.keyrings,
+	passwordHasBeenSet: state.user.passwordSet
 });
 
 const mapDispatchToProps = dispatch => ({

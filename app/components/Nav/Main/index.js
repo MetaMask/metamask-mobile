@@ -44,6 +44,7 @@ import QrScanner from '../../Views/QRScanner';
 import LockScreen from '../../Views/LockScreen';
 import ProtectYourAccount from '../../Views/ProtectYourAccount';
 import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
+import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
 import AccountBackupStep2 from '../../Views/AccountBackupStep2';
@@ -65,8 +66,8 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { hexToBN, fromWei } from '../../../util/number';
-import { setTransactionObject } from '../../../actions/transaction';
+import { hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
+import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
@@ -77,10 +78,11 @@ import PaymentChannelApproval from '../../UI/PaymentChannelApproval';
 import PaymentChannelDeposit from '../../Views/PaymentChannel/PaymentChannelDeposit';
 import PaymentChannelSend from '../../Views/PaymentChannel/PaymentChannelSend';
 import Networks from '../../../util/networks';
-import { CONNEXT_DEPOSIT } from '../../../util/transactions';
+import { CONNEXT_DEPOSIT, getMethodData, TOKEN_METHOD_TRANSFER, decodeTransferData } from '../../../util/transactions';
 import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import { isENS } from '../../../util/address';
 import Logger from '../../../util/Logger';
+import contractMap from 'eth-contract-metadata';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -208,6 +210,9 @@ const MainNavigator = createStackNavigator(
 				},
 				ChoosePasswordSimple: {
 					screen: ChoosePasswordSimple
+				},
+				EnterPasswordSimple: {
+					screen: EnterPasswordSimple
 				}
 			})
 		},
@@ -337,6 +342,10 @@ class Main extends PureComponent {
 		 * Flag that determines if payment channels are enabled
 		 */
 		paymentChannelsEnabled: PropTypes.bool,
+		/**
+		 * Action that sets an ETH transaction
+		 */
+		setEtherTransaction: PropTypes.func,
 		/**
 		 * Action that sets a transaction
 		 */
@@ -635,22 +644,44 @@ class Main extends PureComponent {
 			await this.paymentChannelDepositSign(transactionMeta);
 		} else {
 			const {
-				transaction: { value, gas, gasPrice }
+				transaction: { value, gas, gasPrice, data, to }
 			} = transactionMeta;
-			transactionMeta.transaction.value = hexToBN(value);
-			transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
+
 			transactionMeta.transaction.gas = hexToBN(gas);
 			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
-			this.props.setTransactionObject({
-				...{
-					symbol: 'ETH',
-					type: 'ETHER_TRANSACTION',
-					assetType: 'ETH',
-					selectedAsset: { isETH: true, symbol: 'ETH' },
-					id: transactionMeta.id
-				},
-				...transactionMeta.transaction
-			});
+
+			if (
+				value === '0x0' &&
+				data !== '0x' &&
+				to &&
+				contractMap[toChecksumAddress(to)] &&
+				(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
+			) {
+				const decodedData = decodeTransferData('transfer', data);
+				const asset = contractMap[toChecksumAddress(to)];
+
+				transactionMeta.transaction.value = hexToBN(decodedData[2]);
+				transactionMeta.transaction.readableValue = renderFromTokenMinimalUnit(
+					hexToBN(decodedData[2]),
+					asset.decimals
+				);
+				transactionMeta.transaction.to = decodedData[0];
+
+				this.props.setTransactionObject({
+					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
+					selectedAsset: asset,
+					id: transactionMeta.id,
+					...transactionMeta.transaction
+				});
+			} else {
+				transactionMeta.transaction.value = hexToBN(value);
+				transactionMeta.transaction.readableValue = fromWei(transactionMeta.transaction.value);
+
+				this.props.setEtherTransaction({
+					id: transactionMeta.id,
+					...transactionMeta.transaction
+				});
+			}
 			this.props.navigation.push('ApprovalView');
 		}
 	};
@@ -888,7 +919,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	setTransactionObject: asset => dispatch(setTransactionObject(asset))
+	setEtherTransaction: transaction => dispatch(setEtherTransaction(transaction)),
+	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
 });
 
 export default connect(

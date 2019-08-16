@@ -6,7 +6,7 @@ import TransactionEditor from '../../UI/TransactionEditor';
 import { BNToHex, hexToBN } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { colors } from '../../../styles/common';
-import { newTransaction, setTransactionObject } from '../../../actions/transaction';
+import { newTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import TransactionsNotificationManager from '../../../core/TransactionsNotificationManager';
@@ -149,10 +149,17 @@ class Approval extends PureComponent {
 	 */
 	onConfirm = async () => {
 		const { TransactionController } = Engine.context;
-		const { transactions } = this.props;
+		const {
+			transactions,
+			transaction: { assetType, selectedAsset }
+		} = this.props;
 		let { transaction } = this.props;
 		try {
-			transaction = this.prepareTransaction(transaction);
+			if (assetType === 'ETH') {
+				transaction = this.prepareTransaction(transaction);
+			} else {
+				transaction = this.prepareAssetTransaction(transaction, selectedAsset);
+			}
 
 			TransactionController.hub.once(`${transaction.id}:finished`, transactionMeta => {
 				if (transactionMeta.status === 'submitted') {
@@ -255,8 +262,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	newTransaction: () => dispatch(newTransaction()),
-	setTransactionObject: transaction => dispatch(setTransactionObject(transaction))
+	newTransaction: () => dispatch(newTransaction())
 });
 
 export default connect(

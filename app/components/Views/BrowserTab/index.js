@@ -31,7 +31,7 @@ import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, { getHost } from '../../../util/browser';
+import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserSripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
@@ -44,7 +44,6 @@ import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import { setTransactionObject } from '../../../actions/transaction';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
@@ -60,6 +59,7 @@ import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
+const HOMEPAGE_HOST = 'home.metamask.io';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -320,10 +320,6 @@ export class BrowserTab extends PureComponent {
 		 * String representing the current search engine
 		 */
 		searchEngine: PropTypes.string,
-		/**
-		 * Action that sets a transaction
-		 */
-		setTransactionObject: PropTypes.func,
 		/**
 		 * Function to store the a page in the browser history
 		 */
@@ -1012,9 +1008,13 @@ export class BrowserTab extends PureComponent {
 			if (!isInitialReload) {
 				this.isReloading = true;
 			}
+			// As we're reloading to other url we should remove this callback
+			this.approvalRequest = undefined;
 			const url2Reload = this.state.inputValue;
 			// Force unmount the webview to avoid caching problems
 			this.setState({ forceReload: true }, () => {
+				// Make sure we're not calling last mounted webview during this time threshold
+				this.webview.current = null;
 				setTimeout(() => {
 					this.setState({ forceReload: false }, () => {
 						this.go(url2Reload);
@@ -1527,12 +1527,14 @@ export class BrowserTab extends PureComponent {
 		this.setState({ showApprovalDialog: false });
 		approveHost(this.state.fullHostname);
 		this.backgroundBridge.enableAccounts();
-		this.approvalRequest.resolve([selectedAddress]);
+		this.approvalRequest && this.approvalRequest.resolve && this.approvalRequest.resolve([selectedAddress]);
 	};
 
 	onAccountsReject = () => {
 		this.setState({ showApprovalDialog: false });
-		this.approvalRequest.reject('User rejected account access');
+		this.approvalRequest &&
+			this.approvalRequest.reject &&
+			this.approvalRequest.reject('User rejected account access');
 	};
 
 	renderApprovalModal = () => {
@@ -1642,7 +1644,8 @@ export class BrowserTab extends PureComponent {
 
 	isHomepage = (url = null) => {
 		const currentPage = url || this.state.inputValue;
-		return getHost(currentPage) === getHost(HOMEPAGE_URL);
+		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
+		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
 	};
 
 	renderOnboardingWizard = () => {
@@ -1737,7 +1740,6 @@ const mapDispatchToProps = dispatch => ({
 	removeBookmark: bookmark => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
-	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });

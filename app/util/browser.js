@@ -25,8 +25,25 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
 	return sanitizedURL;
 }
 
+/**
+ * Return host from url string
+ *
+ * @param {string} url - String containing url
+ * @returns {string} - String corresponding to host
+ */
 export function getHost(url) {
 	const urlObj = new URL(url);
 	const { hostname } = urlObj;
 	return hostname;
+}
+
+/**
+ * Return an URL object from url string
+ *
+ * @param {string} url - String containing url
+ * @returns {object} - URL object
+ */
+export function getUrlObj(url) {
+	const urlObj = new URL(url);
+	return urlObj;
 }

@@ -139,7 +139,7 @@ class CustomGas extends PureComponent {
 		ready: false,
 		advancedCustomGas: false,
 		customGasPrice: '10',
-		customGasLimit: this.props.gas.toNumber().toString(),
+		customGasLimit: fromWei(this.props.gas, 'wei'),
 		warningGasLimit: '',
 		warningGasPrice: ''
 	};
@@ -203,7 +203,7 @@ class CustomGas extends PureComponent {
 					break;
 			}
 		} else {
-			this.setState({ customGasLimit: gas.toNumber().toString() });
+			this.setState({ customGasLimit: fromWei(gas, 'wei') });
 			this.props.handleGasFeeSelection(gas, apiEstimateModifiedToWEI(customGasPrice));
 		}
 		this.setState({ advancedCustomGas: !advancedCustomGas });

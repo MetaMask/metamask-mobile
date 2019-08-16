@@ -159,7 +159,7 @@ class SignatureRequest extends PureComponent {
 				<WebsiteIcon style={styles.domainLogo} viewStyle={styles.assetLogo} title={title} url={url} />
 				<Text style={styles.domainTitle}>{title}</Text>
 				<Text style={styles.domainText}>{url}</Text>
-				{name && <Text style={styles.domainText}>{name}</Text>}
+				{!!name && <Text style={styles.domainText}>{name}</Text>}
 			</View>
 		);
 	};

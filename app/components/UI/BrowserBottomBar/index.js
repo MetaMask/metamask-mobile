@@ -102,14 +102,9 @@ export default class BrowserBottomBar extends PureComponent {
 		return (
 			<ElevatedView elevation={11} style={styles.bottomBar}>
 				<TouchableOpacity onPress={goBack} style={styles.iconButton} disabled={!canGoBack}>
-					<Icon
-						name="angle-left"
-						disabled={!canGoBack}
-						size={24}
-						style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]}
-					/>
+					<Icon name="angle-left" size={24} style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]} />
 				</TouchableOpacity>
-				<TouchableOpacity onPress={goForward} style={styles.iconButton}>
+				<TouchableOpacity onPress={goForward} style={styles.iconButton} disabled={!canGoForward}>
 					<Icon
 						name="angle-right"
 						size={24}

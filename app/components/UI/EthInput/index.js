@@ -373,7 +373,7 @@ class EthInput extends PureComponent {
 		const assetsList = assetsLists[assetType]();
 		return (
 			<ElevatedView borderRadius={4} elevation={10} style={styles.root}>
-				<ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'}>
+				<ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'} nestedScrollEnabled>
 					<View style={styles.optionList}>
 						{assetsList.map((asset, i) => (
 							<View key={i} style={styles.selectableAsset}>
@@ -538,7 +538,7 @@ class EthInput extends PureComponent {
 					)}
 				</View>
 				<View style={[styles.actions]}>
-					{!paymentChannelTransaction && secondaryCurrency && (
+					{secondaryCurrency && (
 						<FontAwesome
 							onPress={() => this.switchInternalPrimaryCurrency(secondaryAmount)} // eslint-disable-line react/jsx-no-bind
 							name="exchange"
