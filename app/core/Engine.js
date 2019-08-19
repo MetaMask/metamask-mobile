@@ -278,13 +278,16 @@ class Engine {
 			allTokens[checksummedAddress] = {};
 			Object.keys(preferences.accountTokens[address]).forEach(
 				networkType =>
-					(allTokens[checksummedAddress][networkType] = preferences.accountTokens[address][networkType]
-						.filter(({ address }) =>
-							networkType === 'mainnet' && contractMap[toChecksumAddress(address)]
-								? contractMap[toChecksumAddress(address)].erc20
-								: true
-						)
-						.map(token => ({ ...token, address: toChecksumAddress(token.address) })))
+					(allTokens[checksummedAddress][networkType] =
+						networkType !== 'mainnet'
+							? preferences.accountTokens[address][networkType]
+							: preferences.accountTokens[address][networkType]
+									.filter(({ address }) =>
+										contractMap[toChecksumAddress(address)]
+											? contractMap[toChecksumAddress(address)].erc20
+											: true
+									)
+									.map(token => ({ ...token, address: toChecksumAddress(token.address) })))
 			);
 		});
 		await AssetsController.update({ allTokens });
