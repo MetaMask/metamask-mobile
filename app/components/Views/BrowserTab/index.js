@@ -965,11 +965,6 @@ export class BrowserTab extends PureComponent {
 		}, 1000);
 	};
 
-	close = () => {
-		this.toggleOptionsIfNeeded();
-		this.props.navigation.pop();
-	};
-
 	goForward = async () => {
 		const { current } = this.webview;
 		if (this.lastUrlBeforeHome) {
@@ -1356,18 +1351,22 @@ export class BrowserTab extends PureComponent {
 		this.props.showTabs();
 	};
 
-	renderBottomBar = (canGoBack, canGoForward) => (
-		<BrowserBottomBar
-			canGoBack={canGoBack}
-			canGoForward={canGoForward}
-			goForward={this.goForward}
-			goBack={this.goBack}
-			showTabs={this.showTabs}
-			showUrlModal={this.showUrlModal}
-			toggleOptions={this.toggleOptions}
-			goHome={this.goBackToHomepage}
-		/>
-	);
+	renderBottomBar = () => {
+		const canGoBack = !this.isHomepage();
+		const canGoForward = this.canGoForward();
+		return (
+			<BrowserBottomBar
+				canGoBack={canGoBack}
+				canGoForward={canGoForward}
+				goForward={this.goForward}
+				goBack={this.goBack}
+				showTabs={this.showTabs}
+				showUrlModal={this.showUrlModal}
+				toggleOptions={this.toggleOptions}
+				goHome={this.goBackToHomepage}
+			/>
+		);
+	};
 
 	isHttps() {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
@@ -1581,15 +1580,11 @@ export class BrowserTab extends PureComponent {
 	};
 
 	goBackToSafety = () => {
-		if (this.canGoBack()) {
-			this.blockedUrl === this.state.url && this.goBack();
-			setTimeout(() => {
-				this.mounted && this.setState({ showPhishingModal: false });
-				this.blockedUrl = undefined;
-			}, 500);
-		} else {
-			this.close();
-		}
+		this.blockedUrl === this.state.url && this.goBack();
+		setTimeout(() => {
+			this.mounted && this.setState({ showPhishingModal: false });
+			this.blockedUrl = undefined;
+		}, 500);
 	};
 
 	renderPhishingModal() {
@@ -1621,8 +1616,6 @@ export class BrowserTab extends PureComponent {
 	onLoadStart = () => {
 		this.backgroundBridge.disableAccounts();
 	};
-
-	canGoBack = () => true;
 
 	canGoForward = () => this.state.forwardEnabled;
 
@@ -1656,9 +1649,6 @@ export class BrowserTab extends PureComponent {
 
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
-		const isHomepage = this.isHomepage();
-		const canGoBack = isHomepage ? false : this.canGoBack();
-		const canGoForward = this.canGoForward();
 		const isHidden = !this.isTabActive();
 
 		return (
@@ -1696,7 +1686,7 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderPhishingModal()}
 				{!isHidden && this.renderWatchAssetModal()}
 				{!isHidden && this.renderOptions()}
-				{!isHidden && this.renderBottomBar(canGoBack, canGoForward)}
+				{!isHidden && this.renderBottomBar()}
 				{!isHidden && this.renderOnboardingWizard()}
 				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
 					<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
