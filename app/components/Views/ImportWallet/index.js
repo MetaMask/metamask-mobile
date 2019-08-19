@@ -273,18 +273,67 @@ class ImportWallet extends PureComponent {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				this.setState({ biometryType, biometryChoice: true });
-			}
 
+				Alert.alert(
+					strings('sync_with_extension.allow_biometrics_title', { biometrics: biometryType }),
+					strings('sync_with_extension.allow_biometrics_desc', { biometrics: biometryType }),
+					[
+						{
+							text: strings('sync_with_extension.warning_cancel_button'),
+							onPress: async () => {
+								await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+								await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+								this.finishSync({ biometrics: false, password });
+							},
+							style: 'cancel'
+						},
+						{
+							text: strings('sync_with_extension.warning_ok_button'),
+							onPress: async () => {
+								await AsyncStorage.setItem('@MetaMask:biometryChoice', biometryType);
+								await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+								this.finishSync({ biometrics: true, biometryType, password });
+							}
+						}
+					],
+					{ cancelable: false }
+				);
+			} else {
+				this.finishSync({ biometrics: false, password });
+			}
+		} else {
+			this.finishSync({ biometrics: false, password });
+		}
+	}
+
+	finishSync = async opts => {
+		if (opts.biometrics) {
 			const authOptions = {
-				accessControl: this.state.biometryChoice
-					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
 			};
-			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+			await SecureKeychain.setGenericPassword('metamask-user', opts.password, authOptions);
+
+			// If the user enables biometrics, we're trying to read the password
+			// immediately so we get the permission prompt
+			try {
+				if (Platform.OS === 'ios') {
+					await SecureKeychain.getGenericPassword();
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', opts.biometryType);
+				}
+			} catch (e) {
+				Logger.error('User cancelled biometrics permission', e);
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+			}
+		} else {
+			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+			await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 		}
 
 		try {
-			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: opts.password });
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -298,7 +347,7 @@ class ImportWallet extends PureComponent {
 			this.setState({ loading: false });
 			this.props.navigation.goBack();
 		}
-	}
+	};
 
 	alertExistingUser = callback => {
 		Alert.alert(

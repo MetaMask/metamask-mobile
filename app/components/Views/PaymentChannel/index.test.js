@@ -15,7 +15,8 @@ describe('PaymentChannel', () => {
 				backgroundState: {
 					NetworkController: {
 						provider: {
-							type: 'ropsten'
+							type: 'ropsten',
+							ticker: 'ETH'
 						}
 					},
 					TransactionController: {

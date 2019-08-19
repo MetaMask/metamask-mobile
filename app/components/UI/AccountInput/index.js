@@ -323,7 +323,7 @@ class AccountInput extends PureComponent {
 		const visibleOptions = this.getVisibleOptions(this.state.value);
 		return (
 			<ElevatedView borderRadius={4} elevation={10}>
-				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'}>
+				<ScrollView style={styles.componentContainer} keyboardShouldPersistTaps={'handled'} nestedScrollEnabled>
 					<View style={styles.optionList}>
 						{Object.keys(visibleOptions).map(address =>
 							this.renderOption(visibleOptions[address], () => {

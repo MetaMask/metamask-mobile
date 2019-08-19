@@ -24,7 +24,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
-import { balanceToFiat, toBN } from '../../../util/number';
+import { toBN, balanceToFiatNumber } from '../../../util/number';
 import AssetCard from '../AssetCard';
 import Engine from '../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -244,7 +244,11 @@ class PaymentChannel extends PureComponent {
 		/**
 		/* Triggers global alert
 		*/
-		showAlert: PropTypes.func
+		showAlert: PropTypes.func,
+		/**
+		 * Primary currency, either ETH or Fiat
+		 */
+		primaryCurrency: PropTypes.string
 	};
 
 	state = {
@@ -355,6 +359,9 @@ class PaymentChannel extends PureComponent {
 			prevProps.provider.type !== this.props.provider.type
 		) {
 			this.reinitialize();
+		}
+		if (prevProps.currentCurrency !== this.props.currentCurrency) {
+			this.getBalanceFiat(this.state.balance);
 		}
 	}
 
@@ -533,12 +540,20 @@ class PaymentChannel extends PureComponent {
 		const isDisabled = this.areButtonsDisabled();
 		const noFundsAndNoHistory = this.state.balance === '0.00' && !this.state.transactions.length;
 		const noFunds = this.state.balance === '0.00';
+		let mainBalance, secondaryBalance;
+		if (this.props.primaryCurrency === 'ETH') {
+			mainBalance = balance + ' ' + strings('unit.dai');
+			secondaryBalance = balanceFiat;
+		} else {
+			mainBalance = balanceFiat;
+			secondaryBalance = balance + ' ' + strings('unit.dai');
+		}
 		return (
 			<View style={styles.data}>
 				<View style={styles.assetCardWrapper}>
 					<AssetCard
-						balance={balance + ' ' + strings('unit.dai')}
-						balanceFiat={balanceFiat}
+						balance={mainBalance}
+						balanceFiat={secondaryBalance}
 						description={strings('payment_channel.asset_card_desc')}
 					/>
 				</View>
@@ -606,7 +621,8 @@ class PaymentChannel extends PureComponent {
 			}
 		}
 
-		const balanceFiat = exchangeRate && balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
+		const balanceFiat =
+			exchangeRate && `${balanceToFiatNumber(balance, conversionRate, exchangeRate)} ${currentCurrency}`;
 		this.setState({ balanceFiat, exchangeRate });
 	};
 
@@ -782,7 +798,8 @@ const mapStateToProps = state => ({
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	internalTransactions: state.engine.backgroundState.TransactionController.internalTransactions,
 	provider: state.engine.backgroundState.NetworkController.provider,
-	paymentChannelsEnabled: state.settings.paymentChannelsEnabled
+	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
+	primaryCurrency: state.settings.primaryCurrency
 });
 
 const mapDispatchToProps = dispatch => ({
