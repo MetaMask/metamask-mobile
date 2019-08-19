@@ -1165,6 +1165,10 @@ export class BrowserTab extends PureComponent {
 		const urlObj = new URL(url);
 		this.lastUrlBeforeHome = null;
 
+		if (!this.state.showPhishingModal && !this.isAllowedUrl(urlObj.hostname)) {
+			this.handleNotAllowedUrl(url);
+		}
+
 		data.fullHostname = urlObj.hostname;
 		if (!this.state.ipfsWebsite) {
 			// If we're coming from a link / internal redirect
@@ -1555,12 +1559,15 @@ export class BrowserTab extends PureComponent {
 	};
 
 	continueToPhishingSite = () => {
+		const { url } = this.state;
 		const urlObj = new URL(this.blockedUrl);
 		this.props.addToWhitelist(urlObj.hostname);
 		this.setState({ showPhishingModal: false });
-		setTimeout(() => {
-			this.go(this.blockedUrl);
-		}, 1000);
+		this.blockedUrl !== url &&
+			setTimeout(() => {
+				this.go(this.blockedUrl);
+				this.blockedUrl = undefined;
+			}, 1000);
 	};
 
 	goToEtherscam = () => {
@@ -1575,7 +1582,11 @@ export class BrowserTab extends PureComponent {
 
 	goBackToSafety = () => {
 		if (this.canGoBack()) {
-			this.mounted && this.setState({ showPhishingModal: false });
+			this.blockedUrl === this.state.url && this.goBack();
+			setTimeout(() => {
+				this.mounted && this.setState({ showPhishingModal: false });
+				this.blockedUrl = undefined;
+			}, 500);
 		} else {
 			this.close();
 		}
@@ -1643,15 +1654,6 @@ export class BrowserTab extends PureComponent {
 		this.props.navigation.navigate('AccountBackupStep1');
 	};
 
-	shouldStartLoadWithRequest = ({ url }) => {
-		const { hostname } = new URL(url);
-		if (this.isAllowedUrl(hostname)) {
-			return true;
-		}
-		this.handleNotAllowedUrl(url);
-		return false;
-	};
-
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
 		const isHomepage = this.isHomepage();
@@ -1685,7 +1687,6 @@ export class BrowserTab extends PureComponent {
 							sendCookies
 							javascriptEnabled
 							testID={'browser-webview'}
-							onShouldStartLoadWithRequest={this.shouldStartLoadWithRequest}
 						/>
 					)}
 				</View>
