@@ -57,7 +57,7 @@
     "@react-native-community/async-storage": "1.2.0",
     "@react-native-community/netinfo": "github:brunobar79/react-native-netinfo#androidx",
     "@tradle/react-native-http": "2.0.1",
-    "@walletconnect/react-native": "1.0.0-beta.25",
+    "@walletconnect/react-native": "1.0.0-beta.32",
     "asyncstorage-down": "4.2.0",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
