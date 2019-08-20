@@ -28,6 +28,7 @@ import AppConstants from './AppConstants';
 import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
+import contractMap from 'eth-contract-metadata';
 
 const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
 const encryptor = new Encryptor();
@@ -277,9 +278,16 @@ class Engine {
 			allTokens[checksummedAddress] = {};
 			Object.keys(preferences.accountTokens[address]).forEach(
 				networkType =>
-					(allTokens[checksummedAddress][networkType] = preferences.accountTokens[address][networkType].map(
-						token => ({ ...token, address: toChecksumAddress(token.address) })
-					))
+					(allTokens[checksummedAddress][networkType] =
+						networkType !== 'mainnet'
+							? preferences.accountTokens[address][networkType]
+							: preferences.accountTokens[address][networkType]
+									.filter(({ address }) =>
+										contractMap[toChecksumAddress(address)]
+											? contractMap[toChecksumAddress(address)].erc20
+											: true
+									)
+									.map(token => ({ ...token, address: toChecksumAddress(token.address) })))
 			);
 		});
 		await AssetsController.update({ allTokens });
