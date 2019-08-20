@@ -817,8 +817,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	isENSUrl(url) {
-		const urlObj = new URL(url);
-		const { hostname } = urlObj;
+		const { hostname } = new URL(url);
 		const tld = hostname.split('.').pop();
 		if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
 			return true;
@@ -932,19 +931,14 @@ export class BrowserTab extends PureComponent {
 		setTimeout(() => {
 			this.goingBack = false;
 		}, 500);
-
-		if (this.initialUrl === this.state.inputValue) {
-			this.goBackToHomepage();
-		} else {
-			const { current } = this.webview;
-			current && current.goBack();
-			setTimeout(() => {
-				this.props.navigation.setParams({
-					...this.props.navigation.state.params,
-					url: this.state.inputValue
-				});
-			}, 100);
-		}
+		const { current } = this.webview;
+		current && current.goBack();
+		setTimeout(() => {
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: this.state.inputValue
+			});
+		}, 100);
 		// Need to wait for nav_change & onPageChanged
 		setTimeout(() => {
 			this.setState({ forwardEnabled: true });
@@ -960,6 +954,12 @@ export class BrowserTab extends PureComponent {
 		} else {
 			this.reload(true);
 		}
+		setTimeout(() => {
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: HOMEPAGE_URL
+			});
+		}, 100);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
 			this.lastUrlBeforeHome = lastUrlBeforeHome;
@@ -1156,6 +1156,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onPageChange = ({ url }) => {
+		if (url === this.state.url) return;
 		const { ipfsGateway } = this.props;
 		const data = {};
 		const urlObj = new URL(url);
