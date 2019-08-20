@@ -237,10 +237,12 @@ class AccountApproval extends PureComponent {
 
 	render = () => {
 		const {
-			currentPageInformation: { title, url },
+			currentPageInformation: { url },
+			currentPageInformation,
 			selectedAddress,
 			identities
 		} = this.props;
+		const title = typeof currentPageInformation.title === 'string' ? currentPageInformation.title : getHost(url);
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
@@ -260,7 +262,7 @@ class AccountApproval extends PureComponent {
 							<View style={styles.dapp}>
 								<WebsiteIcon style={styles.icon} title={title} url={url} />
 								<Text style={styles.headerTitle} numberOfLines={1}>
-									{title || getHost(url)}
+									{title}
 								</Text>
 								<Text style={styles.headerUrl} numberOfLines={1}>
 									{url}

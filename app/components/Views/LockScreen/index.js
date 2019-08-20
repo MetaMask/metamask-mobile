@@ -119,9 +119,9 @@ export default class LockScreen extends PureComponent {
 					Logger.log('Lockscreen::unlockKeychain - state: ready');
 					if (Platform.OS === 'android') {
 						setTimeout(() => {
-							this.secondAnimation.play(0, 25);
+							this.secondAnimation ? this.secondAnimation.play(0, 25) : this.onAnimationFinished();
 							setTimeout(() => {
-								this.animationName.play();
+								this.animationName && this.animationName.play();
 							}, 1);
 						}, 50);
 					} else {

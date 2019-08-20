@@ -1,6 +1,16 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Platform, Alert, ActivityIndicator, Image, Text, View, ScrollView, StyleSheet } from 'react-native';
+import {
+	Platform,
+	Alert,
+	ActivityIndicator,
+	Image,
+	Text,
+	View,
+	ScrollView,
+	StyleSheet,
+	InteractionManager
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -16,6 +26,9 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import AnimatedFox from 'react-native-animated-fox';
+import Analytics from '../../../core/Analytics';
+import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { saveOnboardingEvent } from '../../../actions/onboarding';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -120,7 +133,11 @@ class ImportWallet extends PureComponent {
 		/**
 		 * Selected address
 		 */
-		selectedAddress: PropTypes.string
+		selectedAddress: PropTypes.string,
+		/**
+		 * Save onboarding event to state
+		 */
+		saveOnboardingEvent: PropTypes.func
 	};
 
 	seedwords = null;
@@ -256,18 +273,67 @@ class ImportWallet extends PureComponent {
 			const biometryType = await SecureKeychain.getSupportedBiometryType();
 			if (biometryType) {
 				this.setState({ biometryType, biometryChoice: true });
-			}
 
+				Alert.alert(
+					strings('sync_with_extension.allow_biometrics_title', { biometrics: biometryType }),
+					strings('sync_with_extension.allow_biometrics_desc', { biometrics: biometryType }),
+					[
+						{
+							text: strings('sync_with_extension.warning_cancel_button'),
+							onPress: async () => {
+								await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+								await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+								this.finishSync({ biometrics: false, password });
+							},
+							style: 'cancel'
+						},
+						{
+							text: strings('sync_with_extension.warning_ok_button'),
+							onPress: async () => {
+								await AsyncStorage.setItem('@MetaMask:biometryChoice', biometryType);
+								await AsyncStorage.removeItem('@MetaMask:biometryChoiceDisabled');
+								this.finishSync({ biometrics: true, biometryType, password });
+							}
+						}
+					],
+					{ cancelable: false }
+				);
+			} else {
+				this.finishSync({ biometrics: false, password });
+			}
+		} else {
+			this.finishSync({ biometrics: false, password });
+		}
+	}
+
+	finishSync = async opts => {
+		if (opts.biometrics) {
 			const authOptions = {
-				accessControl: this.state.biometryChoice
-					? SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
-					: SecureKeychain.ACCESS_CONTROL.DEVICE_PASSCODE
+				accessControl: SecureKeychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE
 			};
-			await SecureKeychain.setGenericPassword('metamask-user', password, authOptions);
+			await SecureKeychain.setGenericPassword('metamask-user', opts.password, authOptions);
+
+			// If the user enables biometrics, we're trying to read the password
+			// immediately so we get the permission prompt
+			try {
+				if (Platform.OS === 'ios') {
+					await SecureKeychain.getGenericPassword();
+					await AsyncStorage.setItem('@MetaMask:biometryChoice', opts.biometryType);
+				}
+			} catch (e) {
+				Logger.error('User cancelled biometrics permission', e);
+				await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+				await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+				await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
+			}
+		} else {
+			await AsyncStorage.removeItem('@MetaMask:biometryChoice');
+			await AsyncStorage.setItem('@MetaMask:biometryChoiceDisabled', 'true');
+			await AsyncStorage.setItem('@MetaMask:passcodeDisabled', 'true');
 		}
 
 		try {
-			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: password });
+			await Engine.sync({ ...this.dataToSync, seed: this.seedWords, pass: opts.password });
 			await AsyncStorage.setItem('@MetaMask:existingUser', 'true');
 			this.props.passwordHasBeenSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
@@ -281,7 +347,7 @@ class ImportWallet extends PureComponent {
 			this.setState({ loading: false });
 			this.props.navigation.goBack();
 		}
-	}
+	};
 
 	alertExistingUser = callback => {
 		Alert.alert(
@@ -297,7 +363,19 @@ class ImportWallet extends PureComponent {
 
 	onPressImport = () => {
 		const { existingUser } = this.state;
-		const action = () => this.props.navigation.push('ImportFromSeed');
+		const action = () => {
+			this.props.navigation.push('ImportFromSeed');
+			InteractionManager.runAfterInteractions(async () => {
+				if (Analytics.getEnabled()) {
+					Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
+					return;
+				}
+				const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+				if (!metricsOptIn) {
+					this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_IMPORT_WITH_SEEDPHRASE);
+				}
+			});
+		};
 		if (existingUser) {
 			this.alertExistingUser(action);
 		} else {
@@ -324,24 +402,17 @@ class ImportWallet extends PureComponent {
 			);
 			return false;
 		}
-
-		if (this.props.navigation.getParam('existingUser', false)) {
-			Alert.alert(
-				strings('sync_with_extension.warning_title'),
-				strings('sync_with_extension.warning_message'),
-				[
-					{
-						text: strings('sync_with_extension.warning_cancel_button'),
-						onPress: () => false,
-						style: 'cancel'
-					},
-					{ text: strings('sync_with_extension.warning_ok_button'), onPress: () => this.showQrCode() }
-				],
-				{ cancelable: false }
-			);
-		} else {
-			this.showQrCode();
-		}
+		InteractionManager.runAfterInteractions(async () => {
+			if (Analytics.getEnabled()) {
+				Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+				return;
+			}
+			const metricsOptIn = await AsyncStorage.getItem('@MetaMask:metricsOptIn');
+			if (!metricsOptIn) {
+				this.props.saveOnboardingEvent(ANALYTICS_EVENT_OPTS.ONBOARDING_SELECTED_SYNC_WITH_EXTENSION);
+			}
+		});
+		this.showQrCode();
 	};
 
 	renderLoader() {
@@ -439,7 +510,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
 	passwordHasBeenSet: () => dispatch(passwordSet()),
 	setLockTime: time => dispatch(setLockTime(time)),
-	seedphraseBackedUp: () => dispatch(seedphraseBackedUp())
+	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
+	saveOnboardingEvent: event => dispatch(saveOnboardingEvent(event))
 });
 
 export default connect(

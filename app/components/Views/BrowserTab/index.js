@@ -31,7 +31,7 @@ import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, { getHost } from '../../../util/browser';
+import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserSripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
@@ -44,7 +44,6 @@ import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import { setTransactionObject } from '../../../actions/transaction';
 import DeviceSize from '../../../util/DeviceSize';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
@@ -60,6 +59,7 @@ import BackupAlert from '../../UI/BackupAlert';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
+const HOMEPAGE_HOST = 'home.metamask.io';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -321,10 +321,6 @@ export class BrowserTab extends PureComponent {
 		 */
 		searchEngine: PropTypes.string,
 		/**
-		 * Action that sets a transaction
-		 */
-		setTransactionObject: PropTypes.func,
-		/**
 		 * Function to store the a page in the browser history
 		 */
 		addToBrowserHistory: PropTypes.func,
@@ -438,7 +434,7 @@ export class BrowserTab extends PureComponent {
 
 	async componentDidMount() {
 		if (this.isTabActive()) {
-			this.reload(true);
+			this.reload(true, true);
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
 		}
@@ -1003,26 +999,34 @@ export class BrowserTab extends PureComponent {
 		this.setState({ forwardEnabled });
 	};
 
-	reload = (force = false) => {
+	reload = (force = false, isInitialReload = false) => {
 		this.toggleOptionsIfNeeded();
 		if (!force) {
 			const { current } = this.webview;
 			current && current.reload();
 		} else {
-			this.isReloading = true;
+			if (!isInitialReload) {
+				this.isReloading = true;
+			}
+			// As we're reloading to other url we should remove this callback
+			this.approvalRequest = undefined;
 			const url2Reload = this.state.inputValue;
 			// Force unmount the webview to avoid caching problems
 			this.setState({ forceReload: true }, () => {
+				// Make sure we're not calling last mounted webview during this time threshold
+				this.webview.current = null;
 				setTimeout(() => {
 					this.setState({ forceReload: false }, () => {
 						this.go(url2Reload);
 					});
 				}, 300);
 			});
+			if (!isInitialReload) {
+				setTimeout(() => {
+					this.isReloading = false;
+				}, 1500);
+			}
 		}
-		setTimeout(() => {
-			this.isReloading = false;
-		}, 1500);
 	};
 
 	addBookmark = () => {
@@ -1523,16 +1527,21 @@ export class BrowserTab extends PureComponent {
 		this.setState({ showApprovalDialog: false });
 		approveHost(this.state.fullHostname);
 		this.backgroundBridge.enableAccounts();
-		this.approvalRequest.resolve([selectedAddress]);
+		this.approvalRequest && this.approvalRequest.resolve && this.approvalRequest.resolve([selectedAddress]);
 	};
 
 	onAccountsReject = () => {
 		this.setState({ showApprovalDialog: false });
-		this.approvalRequest.reject('User rejected account access');
+		this.approvalRequest &&
+			this.approvalRequest.reject &&
+			this.approvalRequest.reject('User rejected account access');
 	};
 
 	renderApprovalModal = () => {
-		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon } = this.state;
+		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon, inputValue } = this.state;
+		const url =
+			currentPageUrl && currentPageUrl.length && currentPageUrl !== 'localhost' ? currentPageUrl : inputValue;
+
 		return (
 			<Modal
 				isVisible={showApprovalDialog}
@@ -1549,7 +1558,7 @@ export class BrowserTab extends PureComponent {
 				<AccountApproval
 					onCancel={this.onAccountsReject}
 					onConfirm={this.onAccountsConfirm}
-					currentPageInformation={{ title: currentPageTitle, url: currentPageUrl, icon: currentPageIcon }}
+					currentPageInformation={{ title: currentPageTitle, url, icon: currentPageIcon }}
 				/>
 			</Modal>
 		);
@@ -1635,7 +1644,8 @@ export class BrowserTab extends PureComponent {
 
 	isHomepage = (url = null) => {
 		const currentPage = url || this.state.inputValue;
-		return getHost(currentPage) === getHost(HOMEPAGE_URL);
+		const { host: currentHost, pathname: currentPathname } = getUrlObj(currentPage);
+		return currentHost === HOMEPAGE_HOST && currentPathname === '/';
 	};
 
 	renderOnboardingWizard = () => {
@@ -1688,6 +1698,7 @@ export class BrowserTab extends PureComponent {
 							userAgent={this.getUserAgent()}
 							sendCookies
 							javascriptEnabled
+							testID={'browser-webview'}
 						/>
 					)}
 				</View>
@@ -1729,7 +1740,6 @@ const mapDispatchToProps = dispatch => ({
 	removeBookmark: bookmark => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: url => dispatch(addToWhitelist(url)),
-	setTransactionObject: asset => dispatch(setTransactionObject(asset)),
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });

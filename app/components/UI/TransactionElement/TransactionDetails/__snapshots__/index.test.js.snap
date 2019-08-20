@@ -206,8 +206,8 @@ exports[`TransactionDetails should render correctly 1`] = `
       ]
     }
   >
-    <Text
-      numberOfLines={1}
+    <Connect(EthereumAddress)
+      address="0x0"
       style={
         Object {
           "color": "#777777",
@@ -217,9 +217,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           "fontWeight": "400",
         }
       }
-    >
-      0x0
-    </Text>
+    />
     <TouchableOpacity
       activeOpacity={0.2}
       onPress={[Function]}
@@ -273,8 +271,8 @@ exports[`TransactionDetails should render correctly 1`] = `
       ]
     }
   >
-    <Text
-      numberOfLines={1}
+    <Connect(EthereumAddress)
+      address="0x1"
       style={
         Object {
           "color": "#777777",
@@ -284,9 +282,7 @@ exports[`TransactionDetails should render correctly 1`] = `
           "fontWeight": "400",
         }
       }
-    >
-      0x1
-    </Text>
+    />
     <TouchableOpacity
       activeOpacity={0.2}
       onPress={[Function]}

@@ -3,12 +3,13 @@ import { View, StyleSheet, Text, ImageBackground } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		borderRadius: 8,
-		height: 200
+		minHeight: 200
 	},
 	contentWrapper: {
 		marginHorizontal: 30,
@@ -20,12 +21,14 @@ const styles = StyleSheet.create({
 	},
 	balance: {
 		...fontStyles.normal,
-		fontSize: 40
+		fontSize: 40,
+		textTransform: 'uppercase'
 	},
 	balanceFiat: {
 		...fontStyles.normal,
 		fontSize: 12,
-		color: colors.grey200
+		color: colors.grey200,
+		textTransform: 'uppercase'
 	},
 	description: {
 		...fontStyles.normal,
@@ -74,7 +77,7 @@ export default class AssetCard extends PureComponent {
 					imageStyle={styles.watermarkImage}
 				>
 					<View style={styles.contentWrapper}>
-						<Text style={styles.title}>Balance</Text>
+						<Text style={styles.title}>{strings('payment_request.balance')}</Text>
 						<Text style={styles.balance}>{balance}</Text>
 						<Text style={styles.balanceFiat}>{balanceFiat}</Text>
 					</View>

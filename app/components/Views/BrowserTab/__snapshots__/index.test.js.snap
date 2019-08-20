@@ -190,7 +190,7 @@ exports[`Browser should render correctly 1`] = `
         Object {
           "icon": undefined,
           "title": "",
-          "url": "",
+          "url": "https://metamask.io",
         }
       }
       onCancel={[Function]}

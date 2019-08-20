@@ -15,7 +15,9 @@
 		"start_exploring_now": "Comenzar a explorar",
 		"login": "Ingresar",
 		"new_to_metamask": "Nuevo en MetaMask?",
-		"already_have_wallet": "Ya tienes una billetera?"
+		"already_have_wallet": "Ya tienes una billetera?",
+		"optin_back_title": "Aviso",
+		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración."
 	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
@@ -78,6 +80,13 @@
 		"login_button": "INGRESAR",
 		"go_back": "Atrás",
 		"invalid_password": "Contraseña incorrecta"
+	},
+	"enter_password": {
+		"title": "Ingresa tu contraseña",
+		"desc": "Por favor, ingresa tu contraseña para continuar",
+		"password": "Contraseña",
+		"confirm_button": "Confirmar",
+		"error": "Error"
 	},
 	"choose_password": {
 		"title": "Crea tu contraseña",
@@ -349,7 +358,9 @@
 		"metametrics_description": "Participa en MetaMetrics para ayudarnos a mejorar MetaMask.",
 		"metametrics_opt_out": "MetaMetrics Deshabilitado",
 		"metrametrics_restart_required": "Necesitas reiniciar la app para que los entren en efecto.",
-		"create_password": "Crear Contraseña"
+		"create_password": "Crear Contraseña",
+		"invalid_password": "Contraseña inválida",
+		"invalid_password_message": "La contraseña no es correcta. Por favor inténtalo de nuevo."
 	},
 	"app_information": {
 		"title": "Información",
@@ -451,7 +462,8 @@
 		"value_not_available": "No disponible",
 		"rate_not_available": "Conversión no disponible",
 		"optional": "Opcional",
-		"no_address_for_ens": "No existe dirección para nombre ENS"
+		"no_address_for_ens": "No existe dirección para nombre ENS",
+		"approve_warning": "Al aprobar esta acción, otorgas permiso para que este contrato gaste hasta"
 	},
 	"custom_gas": {
 		"advanced_options": "Opciones Avanzadas",
@@ -566,7 +578,9 @@
 		"invalid_qr_code": "Código QR inválido",
 		"invalid_qr_code_desc": "Este no es el código QR correcto! Para sincronizar con la extensión del navegador, accede a  \"Ajustes\" > \"Avanzado\" > Syncronizar con el móvil en la extensión del navegador y escanea el código QR que aparece ahí",
 		"something_wrong": "Ooops! algo salió mal...",
-		"something_wrong_desc": "Tenemos problemas al intentar sincronizar tu billetera. Por favor, intenta de nuevo más tarde o importa tu billetera usando tu frase semilla"
+		"something_wrong_desc": "Tenemos problemas al intentar sincronizar tu billetera. Por favor, intenta de nuevo más tarde o importa tu billetera usando tu frase semilla",
+		"allow_biometrics_title": "Deseas habilitar {{biometrics}}?",
+		"allow_biometrics_desc": "Puedes utilizar {{biometrics}} para autenticarte en MetaMask"
 	},
 	"sync_with_extension_success": {
 		"title": "Sincronización completa",
@@ -611,7 +625,9 @@
 	"biometrics": {
 		"enable_touchid": "Ingresar con Touch ID?",
 		"enable_faceid": "Ingresar con Face ID?",
-		"enable_fingerprint": "Ingresar con Huella Digital?"
+		"enable_fingerprint": "Ingresar con Huella Digital?",
+		"enable_device_passcode_ios": "Ingresar con el código de seguridad del móvil?",
+		"enable_device_passcode_android": "Ingresar con el PIN del móvil?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Autenticación requerida",
@@ -776,7 +792,7 @@
 		"success_deposit_message": "Tus fondos están listos para ser utilizados",
 		"success_withdrawal_message": "Tus fondos han sido transferidos a tu billetera",
 		"received_message": "Presiona para ver esta transacción",
-		"received_payment_message": "Has recibido ${{amount}}!",
+		"received_payment_message": "Has recibido {{amount}} DAI",
 		"prompt_title": "Habilitar Notificationes",
 		"prompt_desc": "Habilita las notificationes asi MetaMask puede avisarte cuando recibes ETH o cuando tus transacciones fueron confirmadas.",
 		"prompt_ok": "Si",
@@ -808,7 +824,8 @@
 		"copy_to_clipboard": "Copiar al Portapapeles",
 		"qr_code": "Código QR",
 		"send_link": "Enviar Enlace",
-		"request_qr_code": "Código QR de solicitud de pago"
+		"request_qr_code": "Código QR de solicitud de pago",
+		"balance": "Balance"
 	},
 	"receive_request": {
 		"title": "Recibir",

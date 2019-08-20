@@ -11,6 +11,7 @@ describe('SecuritySettings', () => {
 			privacy: { approvedHosts: {}, privacyMode: true },
 			browser: { history: [] },
 			settings: { lockTime: 1000 },
+			user: { passwordSet: true },
 			engine: {
 				backgroundState: {
 					PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
