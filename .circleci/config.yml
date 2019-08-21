@@ -42,7 +42,7 @@ jobs:
   prep-node-deps:
     <<: *defaults
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     steps:
       - checkout
       - restore_cache: *restore-node-cache
@@ -56,7 +56,7 @@ jobs:
   lint:
     <<: *defaults
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     steps:
       - checkout
       - attach_workspace:
@@ -67,7 +67,7 @@ jobs:
     <<: *defaults
     parallelism: 3
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     steps:
       - checkout
       - attach_workspace:
@@ -100,7 +100,7 @@ jobs:
   upload-coverage:
     <<: *defaults
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     steps:
       - checkout
       - attach_workspace:
@@ -111,7 +111,7 @@ jobs:
   all-tests-pass:
     <<: *defaults
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:10
     steps:
       - run:
           name:  All Tests Passed
