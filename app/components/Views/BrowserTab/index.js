@@ -52,6 +52,7 @@ import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { resemblesAddress } from '../../../util/address';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -60,10 +61,6 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
-
-function resemblesAddress(string) {
-	return string.length === 2 + 20 * 2;
-}
 
 const styles = StyleSheet.create({
 	wrapper: {
