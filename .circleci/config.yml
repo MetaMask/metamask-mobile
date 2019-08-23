@@ -1,19 +1,19 @@
 aliases:
   - &restore-cache
     keys:
-      - v1.0.4-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.4-{{ .Branch }}
+      - v1.0.5-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.5-{{ .Branch }}
 
   - &save-cache
-    key: v1.0.4-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.5-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
   - &restore-node-cache
     keys:
-      - v1.0.4-node-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.4-node-{{ .Branch }}
+      - v1.0.5-node-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.5-node-{{ .Branch }}
   - &save-node-cache
-    key: v1.0.4-node-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.5-node-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
 
