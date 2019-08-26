@@ -1211,8 +1211,7 @@ export class BrowserTab extends PureComponent {
 			inputValue,
 			autocompleteInputValue: inputValue,
 			hostname,
-			forwardEnabled: false,
-			url
+			forwardEnabled: false
 		});
 	};
 
@@ -1560,11 +1559,10 @@ export class BrowserTab extends PureComponent {
 	};
 
 	continueToPhishingSite = () => {
-		const { url } = this.state;
 		const urlObj = new URL(this.blockedUrl);
 		this.props.addToWhitelist(urlObj.hostname);
 		this.setState({ showPhishingModal: false });
-		this.blockedUrl !== url &&
+		this.blockedUrl !== this.state.inputValue &&
 			setTimeout(() => {
 				this.go(this.blockedUrl);
 				this.blockedUrl = undefined;
@@ -1582,7 +1580,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	goBackToSafety = () => {
-		this.blockedUrl === this.state.url && this.goBack();
+		this.blockedUrl === this.state.inputValue && this.goBack();
 		setTimeout(() => {
 			this.mounted && this.setState({ showPhishingModal: false });
 			this.blockedUrl = undefined;
