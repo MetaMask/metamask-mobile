@@ -109,7 +109,7 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
           }
         }
       >
-        Amount Transaction Fee
+        Amount + Transaction Fee
       </Text>
       <Text
         style={
