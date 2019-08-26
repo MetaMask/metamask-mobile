@@ -394,6 +394,7 @@ export class BrowserTab extends PureComponent {
 
 	webview = React.createRef();
 	inputRef = React.createRef();
+	ensIgnoreList = [];
 	snapshotTimer = null;
 	lastUrlBeforeHome = null;
 	goingBack = false;
@@ -820,7 +821,10 @@ export class BrowserTab extends PureComponent {
 		const { hostname } = new URL(url);
 		const tld = hostname.split('.').pop();
 		if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
-			return true;
+			// Make sure it's not in the ignore list
+			if (this.ensIgnoreList.indexOf(hostname) === -1) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -849,7 +853,7 @@ export class BrowserTab extends PureComponent {
 
 		let contentId, contentUrl, contentType;
 		if (this.isENSUrl(sanitizedURL)) {
-			const { url, type, hash } = await this.handleIpfsContent({ hostname, query, pathname });
+			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
 			contentUrl = url;
 			contentType = type;
 			contentId = hash;
@@ -880,7 +884,7 @@ export class BrowserTab extends PureComponent {
 		return null;
 	};
 
-	async handleIpfsContent({ hostname, pathname, query }) {
+	async handleIpfsContent(fullUrl, { hostname, pathname, query }) {
 		const { provider } = Engine.context.NetworkController;
 		const { ipfsGateway } = this.props;
 		let gatewayUrl;
@@ -905,9 +909,16 @@ export class BrowserTab extends PureComponent {
 				type
 			};
 		} catch (err) {
+			// This is a TLD that might be a normal website
+			// For example .XYZ and might be more in the future
+			if (hostname.substr(-4) !== '.eth' && err.toString().indexOf('is not standard') !== -1) {
+				this.ensIgnoreList.push(hostname);
+				this.go(fullUrl);
+				return { url: null };
+			}
 			Logger.error('Failed to resolve ENS name', err);
 			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
-			return {};
+			return { url: null };
 		}
 	}
 

@@ -677,7 +677,7 @@
 	},
 	"import_private_key_success": {
 		"title": "Account succesfully imported!",
-		"description_one": "You'll be now able to view your account in MetaMask."
+		"description_one": "You'll now be able to view your account in MetaMask."
 	},
 	"first_incoming_transaction": {
 		"title": "{{asset}} was deposited in your account",
