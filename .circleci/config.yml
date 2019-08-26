@@ -19,11 +19,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        npm install
-
-  - &clear-bad-deps
-      |
-        rm -rf node_modules/websocket/.git
+        rm -rf node_modules/websocket/.git && npm install
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -37,7 +33,6 @@ jobs:
     steps:
       - checkout
       - restore_cache: *restore-cache
-      - run: *clear-bad-deps
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
