@@ -114,6 +114,9 @@ export default class QrScanner extends PureComponent {
 			} else if (content.split('wc:').length > 1) {
 				this.shouldReadBarCode = false;
 				data = { walletConnectURI: content };
+			} else if (content.split(' ').length === 12) {
+				this.shouldReadBarCode = false;
+				data = { seed: content };
 			} else {
 				// EIP-945 allows scanning arbitrary data
 				data = content;
