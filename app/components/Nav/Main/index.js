@@ -83,6 +83,7 @@ import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import { isENS } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
+import { BN } from 'gaba';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -359,6 +360,10 @@ class Main extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
@@ -634,32 +639,44 @@ class Main extends PureComponent {
 			return;
 		}
 		// Check if it's a payment channel deposit transaction to sign
+		const to = toChecksumAddress(transactionMeta.transaction.to);
 		const networkId = Networks[this.props.providerType].networkId.toString();
 		if (
 			this.props.paymentChannelsEnabled &&
 			AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(this.props.providerType) &&
 			transactionMeta.transaction.data.substr(0, 10) === CONNEXT_DEPOSIT &&
-			toChecksumAddress(transactionMeta.transaction.to) === AppConstants.CONNEXT.CONTRACTS[networkId]
+			to === AppConstants.CONNEXT.CONTRACTS[networkId]
 		) {
 			await this.paymentChannelDepositSign(transactionMeta);
 		} else {
 			const {
-				transaction: { value, gas, gasPrice, data, to }
+				transaction: { value, gas, gasPrice, data }
 			} = transactionMeta;
-
+			const { AssetsContractController } = Engine.context;
 			transactionMeta.transaction.gas = hexToBN(gas);
 			transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
 
 			if (
-				value === '0x0' &&
+				(value === '0x0' || !value) &&
 				data !== '0x' &&
 				to &&
-				contractMap[toChecksumAddress(to)] &&
 				(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
 			) {
-				const decodedData = decodeTransferData('transfer', data);
-				const asset = contractMap[toChecksumAddress(to)];
+				let asset = this.props.tokens.find(({ address }) => address === to);
+				if (!asset && contractMap[to]) {
+					asset = contractMap[to];
+				} else if (!asset) {
+					try {
+						asset = {};
+						asset.decimals = await AssetsContractController.getTokenDecimals(to);
+						asset.symbol = await AssetsContractController.getAssetSymbol(to);
+					} catch (e) {
+						// This could fail when requesting a transfer in other network
+						asset = { symbol: 'ERC20', decimals: new BN(0) };
+					}
+				}
 
+				const decodedData = decodeTransferData('transfer', data);
 				transactionMeta.transaction.value = hexToBN(decodedData[2]);
 				transactionMeta.transaction.readableValue = renderFromTokenMinimalUnit(
 					hexToBN(decodedData[2]),
@@ -913,6 +930,7 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	transaction: state.transaction,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	providerType: state.engine.backgroundState.NetworkController.provider.type
