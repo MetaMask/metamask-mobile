@@ -19,7 +19,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        npm install
+        rm -rf node_modules/websocket/.git && npm install
 
 defaults: &defaults
   working_directory: ~/MetaMask
