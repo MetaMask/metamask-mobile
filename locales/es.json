@@ -391,7 +391,9 @@
 		"private_key_copied": "Dirección privada copiada en el portapapeles",
 		"warning_incorrect_password": "Contraseña incorrecta",
 		"unknown_error": "No pudimos acceder a tu cuenta. Inténtalo nuevamente.",
-		"seed_warning": "Esta es la frase semilla de tu billetera. Es muy sensitiva. NO LA COMPARTAS CON NADIE."
+		"seed_warning": "Esta es la frase semilla de tu billetera. Es muy sensitiva. NO LA COMPARTAS CON NADIE.",
+		"text": "TEXT",
+		"qr_code": "QR CODE"
 	},
 	"asset_overview": {
 		"send_button": "Enviar",

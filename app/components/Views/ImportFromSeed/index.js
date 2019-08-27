@@ -143,6 +143,17 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
+	},
+	qrCode: {
+		marginTop: -50,
+		marginBottom: 30,
+		alignSelf: 'flex-end',
+		marginRight: 10,
+		borderWidth: 1,
+		borderRadius: 6,
+		borderColor: colors.grey100,
+		paddingVertical: 4,
+		paddingHorizontal: 6
 	}
 });
 
@@ -423,6 +434,16 @@ class ImportFromSeed extends PureComponent {
 		}
 	}
 
+	onQrCodePress = () => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: meta => {
+				if (meta && meta.seed) {
+					this.setState({ seed: meta.seed });
+				}
+			}
+		});
+	};
+
 	render() {
 		const startX = 0;
 		const startY = 0;
@@ -472,6 +493,9 @@ class ImportFromSeed extends PureComponent {
 							autoCapitalize="none"
 							autoCorrect={false}
 						/>
+						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
+							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
+						</TouchableOpacity>
 						<View style={styles.field}>
 							<Animated.Text
 								style={[

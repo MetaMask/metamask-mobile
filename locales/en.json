@@ -396,7 +396,9 @@
 		"private_key_copied": "Private key copied to clipboard",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
-		"seed_warning": "This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE."
+		"seed_warning": "This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE.",
+		"text": "TEXT",
+		"qr_code": "QR CODE"
 	},
 	"asset_overview": {
 		"send_button": "Send",
