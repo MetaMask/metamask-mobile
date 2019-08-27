@@ -86,6 +86,7 @@ exports[`ImportFromSeed should render correctly 1`] = `
         }
         testID="input-seed-phrase"
         underlineColorAndroid="transparent"
+        value=""
       />
       <TouchableOpacity
         activeOpacity={0.2}
