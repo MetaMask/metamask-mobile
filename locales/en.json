@@ -188,7 +188,9 @@
 		"cancel": "Cancel",
 		"yes": "Yes",
 		"private_key_detected": "Private key detected",
-		"do_you_want_to_import_this_account": "Do you want to import this account?"
+		"do_you_want_to_import_this_account": "Do you want to import this account?",
+		"error": "Error",
+		"logout_to_import_seed": "You need to log out first in order to import a seed phrase."
 	},
 	"transactions_view": {
 		"title": "Transactions"
