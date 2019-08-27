@@ -1323,7 +1323,7 @@ export class BrowserTab extends PureComponent {
 
 		return (
 			<React.Fragment>
-				<Button onPress={this.reload} style={styles.option}>
+				<Button onPress={() => this.reload()} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
