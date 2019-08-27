@@ -118,7 +118,9 @@
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
 		"password_dont_match": "Las contraseñas no coinciden",
 		"seed_word_count_error": "La frase debe contener 12 palabras",
-		"error": "Error"
+		"error": "Error",
+		"invalid_qr_code_title": "Código QR Inválido",
+		"invalid_qr_code_message": "Este código QR no representa una frase semilla válida"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",

@@ -440,7 +440,10 @@ class ImportFromSeed extends PureComponent {
 				if (meta && meta.seed) {
 					this.setState({ seed: meta.seed });
 				} else {
-					Alert.alert(strings('import_from_seed.error'), strings('import_from_seed.seed_word_count_error'));
+					Alert.alert(
+						strings('import_from_seed.invalid_qr_code_title'),
+						strings('import_from_seed.invalid_qr_code_message')
+					);
 				}
 			}
 		});
