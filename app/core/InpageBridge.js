@@ -339,8 +339,8 @@ window.ethereum._metamask = new Proxy(
 		 * @returns {Promise<boolean>} - Promise resolving to true if accounts have been previously enabled for this domain
 		 */
 		isApproved: async () => {
-			const { isApproved } = await window.ethereum.send('metamask_isApproved');
-			return isApproved;
+			const response = await window.ethereum.send('metamask_isApproved');
+			return response ? response.isApproved : false;
 		},
 
 		/**

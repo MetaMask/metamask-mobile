@@ -86,7 +86,32 @@ exports[`ImportFromSeed should render correctly 1`] = `
         }
         testID="input-seed-phrase"
         underlineColorAndroid="transparent"
+        value=""
       />
+      <TouchableOpacity
+        activeOpacity={0.2}
+        onPress={[Function]}
+        style={
+          Object {
+            "alignSelf": "flex-end",
+            "borderColor": "#d6d9dc",
+            "borderRadius": 6,
+            "borderWidth": 1,
+            "marginBottom": 30,
+            "marginRight": 10,
+            "marginTop": -50,
+            "paddingHorizontal": 6,
+            "paddingVertical": 4,
+          }
+        }
+      >
+        <Icon
+          allowFontScaling={false}
+          color="#777777"
+          name="qrcode"
+          size={20}
+        />
+      </TouchableOpacity>
       <View
         style={
           Object {

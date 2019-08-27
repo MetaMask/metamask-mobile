@@ -7,7 +7,11 @@ const mockStore = configureMockStore();
 
 describe('Entry', () => {
 	it('should render correctly', () => {
-		const initialState = {};
+		const initialState = {
+			user: {
+				passwordSet: false
+			}
+		};
 
 		const wrapper = shallow(<Entry />, {
 			context: { store: mockStore(initialState) }
