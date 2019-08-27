@@ -117,7 +117,10 @@
 		"cancel_button": "Cancel",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
-		"seed_word_count_error": "The seed needs to be 12 words"
+		"seed_word_count_error": "The seed needs to be 12 words",
+		"error": "Error",
+		"invalid_qr_code_title": "Invalid QR Code",
+		"invalid_qr_code_message": "This QR code doesn't represent a valid seed phrase"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -185,7 +188,9 @@
 		"cancel": "Cancel",
 		"yes": "Yes",
 		"private_key_detected": "Private key detected",
-		"do_you_want_to_import_this_account": "Do you want to import this account?"
+		"do_you_want_to_import_this_account": "Do you want to import this account?",
+		"error": "Error",
+		"logout_to_import_seed": "You need to log out first in order to import a seed phrase."
 	},
 	"transactions_view": {
 		"title": "Transactions"
@@ -396,7 +401,9 @@
 		"private_key_copied": "Private key copied to clipboard",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
-		"seed_warning": "This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE."
+		"seed_warning": "This is your wallet's 12 word phrase. This is a very sensitive phrase. DO NOT SHARE THIS WITH ANYONE.",
+		"text": "TEXT",
+		"qr_code": "QR CODE"
 	},
 	"asset_overview": {
 		"send_button": "Send",

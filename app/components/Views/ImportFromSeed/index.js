@@ -143,6 +143,17 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		marginTop: 8,
 		alignSelf: 'flex-end'
+	},
+	qrCode: {
+		marginTop: -50,
+		marginBottom: 30,
+		alignSelf: 'flex-end',
+		marginRight: 10,
+		borderWidth: 1,
+		borderRadius: 6,
+		borderColor: colors.grey100,
+		paddingVertical: 4,
+		paddingHorizontal: 6
 	}
 });
 
@@ -235,7 +246,7 @@ class ImportFromSeed extends PureComponent {
 		}
 
 		if (error) {
-			Alert.alert('Error', error);
+			Alert.alert(strings('import_from_seed.error'), error);
 		} else {
 			try {
 				this.setState({ loading: true });
@@ -423,6 +434,21 @@ class ImportFromSeed extends PureComponent {
 		}
 	}
 
+	onQrCodePress = () => {
+		this.props.navigation.navigate('QRScanner', {
+			onScanSuccess: meta => {
+				if (meta && meta.seed) {
+					this.setState({ seed: meta.seed });
+				} else {
+					Alert.alert(
+						strings('import_from_seed.invalid_qr_code_title'),
+						strings('import_from_seed.invalid_qr_code_message')
+					);
+				}
+			}
+		});
+	};
+
 	render() {
 		const startX = 0;
 		const startY = 0;
@@ -458,7 +484,7 @@ class ImportFromSeed extends PureComponent {
 					<View testID={'import-from-seed-screen'}>
 						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
 						<TextInput
-							value={this.state.seedWords}
+							value={this.state.seed}
 							numberOfLines={3}
 							multiline
 							style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
@@ -472,6 +498,9 @@ class ImportFromSeed extends PureComponent {
 							autoCapitalize="none"
 							autoCorrect={false}
 						/>
+						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
+							<Icon name="qrcode" size={20} color={colors.fontSecondary} />
+						</TouchableOpacity>
 						<View style={styles.field}>
 							<Animated.Text
 								style={[
