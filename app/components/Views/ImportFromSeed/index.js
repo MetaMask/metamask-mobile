@@ -246,7 +246,7 @@ class ImportFromSeed extends PureComponent {
 		}
 
 		if (error) {
-			Alert.alert('Error', error);
+			Alert.alert(strings('import_from_seed.error'), error);
 		} else {
 			try {
 				this.setState({ loading: true });
@@ -439,6 +439,8 @@ class ImportFromSeed extends PureComponent {
 			onScanSuccess: meta => {
 				if (meta && meta.seed) {
 					this.setState({ seed: meta.seed });
+				} else {
+					Alert.alert(strings('import_from_seed.error'), strings('import_from_seed.seed_word_count_error'));
 				}
 			}
 		});

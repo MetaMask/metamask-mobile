@@ -117,7 +117,8 @@
 		"cancel_button": "Cancel",
 		"password_length_error": "The password needs to be at least 8 characters long",
 		"password_dont_match": "Passwords don't match",
-		"seed_word_count_error": "The seed needs to be 12 words"
+		"seed_word_count_error": "The seed needs to be 12 words",
+		"error": "Error"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",

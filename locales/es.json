@@ -117,7 +117,8 @@
 		"cancel_button": "Cancelar",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
 		"password_dont_match": "Las contraseñas no coinciden",
-		"seed_word_count_error": "La frase debe contener 12 palabras"
+		"seed_word_count_error": "La frase debe contener 12 palabras",
+		"error": "Error"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
