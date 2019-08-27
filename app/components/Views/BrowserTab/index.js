@@ -1190,6 +1190,9 @@ export class BrowserTab extends PureComponent {
 		const { ipfsGateway } = this.props;
 		const data = {};
 		const urlObj = new URL(url);
+		if (urlObj.protocol.indexOf('http') === -1) {
+			return;
+		}
 		this.lastUrlBeforeHome = null;
 
 		data.fullHostname = urlObj.hostname;
