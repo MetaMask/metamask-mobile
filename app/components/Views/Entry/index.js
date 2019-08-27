@@ -67,6 +67,10 @@ class Entry extends PureComponent {
 		 */
 		navigation: PropTypes.object,
 		/**
+		 * Boolean flag that determines if password has been set
+		 */
+		passwordSet: PropTypes.bool,
+		/**
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func
@@ -168,8 +172,10 @@ class Entry extends PureComponent {
 					this.props.setOnboardingWizardStep(1);
 					this.animateAndGoTo('WalletView');
 				}
-			} else {
+			} else if (this.props.passwordSet) {
 				this.animateAndGoTo('Login');
+			} else {
+				this.animateAndGoTo('OnboardingRootNav');
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line
@@ -222,7 +228,11 @@ const mapDispatchToProps = dispatch => ({
 	setOnboardingWizardStep: step => dispatch(setOnboardingWizardStep(step))
 });
 
+const mapStateToProps = state => ({
+	passwordSet: state.user.passwordSet
+});
+
 export default connect(
-	null,
+	mapStateToProps,
 	mapDispatchToProps
 )(Entry);
