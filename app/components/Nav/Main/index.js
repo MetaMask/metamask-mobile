@@ -360,6 +360,10 @@ class Main extends PureComponent {
 		 */
 		selectedAddress: PropTypes.string,
 		/**
+		 * Array of ERC20 assets
+		 */
+		tokens: PropTypes.array,
+		/**
 		 * List of transactions
 		 */
 		transactions: PropTypes.array,
@@ -658,11 +662,12 @@ class Main extends PureComponent {
 				to &&
 				(await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
 			) {
-				let asset = {};
-				if (contractMap[to]) {
+				let asset = this.props.tokens.find(({ address }) => address === to);
+				if (!asset && contractMap[to]) {
 					asset = contractMap[to];
-				} else {
+				} else if (!asset) {
 					try {
+						asset = {};
 						asset.decimals = await AssetsContractController.getTokenDecimals(to);
 						asset.symbol = await AssetsContractController.getAssetSymbol(to);
 					} catch (e) {
@@ -925,6 +930,7 @@ const mapStateToProps = state => ({
 	lockTime: state.settings.lockTime,
 	transaction: state.transaction,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	tokens: state.engine.backgroundState.AssetsController.tokens,
 	transactions: state.engine.backgroundState.TransactionController.transactions,
 	paymentChannelsEnabled: state.settings.paymentChannelsEnabled,
 	providerType: state.engine.backgroundState.NetworkController.provider.type
