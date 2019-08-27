@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, Dimensions, Animated, View, AppState, Platform } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
 import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -44,12 +45,16 @@ const styles = StyleSheet.create({
 /**
  * Main view component for the Lock screen
  */
-export default class LockScreen extends PureComponent {
+class LockScreen extends PureComponent {
 	static propTypes = {
 		/**
 		 * The navigator object
 		 */
-		navigation: PropTypes.object
+		navigation: PropTypes.object,
+		/**
+		 * Boolean flag that determines if password has been set
+		 */
+		passwordSet: PropTypes.bool
 	};
 
 	state = {
@@ -130,8 +135,10 @@ export default class LockScreen extends PureComponent {
 						Logger.log('Lockscreen::unlockKeychain - playing animations');
 					}
 				});
-			} else {
+			} else if (this.props.passwordSet) {
 				this.props.navigation.navigate('Login');
+			} else {
+				this.props.navigation.navigate('OnboardingRootNav');
 			}
 		} catch (error) {
 			if (this.unlockAttempts <= 3) {
@@ -205,3 +212,12 @@ export default class LockScreen extends PureComponent {
 		);
 	}
 }
+
+const mapStateToProps = state => ({
+	passwordSet: state.user.passwordSet
+});
+
+export default connect(
+	mapStateToProps,
+	null
+)(LockScreen);
