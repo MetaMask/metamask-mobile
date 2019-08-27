@@ -481,7 +481,7 @@ class ImportFromSeed extends PureComponent {
 					<View testID={'import-from-seed-screen'}>
 						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
 						<TextInput
-							value={this.state.seedWords}
+							value={this.state.seed}
 							numberOfLines={3}
 							multiline
 							style={[styles.seedPhrase, this.state.inputWidth ? { width: this.state.inputWidth } : {}]}
