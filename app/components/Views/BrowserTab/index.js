@@ -52,6 +52,7 @@ import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { resemblesAddress } from '../../../util/address';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -470,10 +471,19 @@ export class BrowserTab extends PureComponent {
 			personal_sign: async payload => {
 				const { PersonalMessageManager } = Engine.context;
 				try {
+					const firstParam = payload.params[0];
+					const secondParam = payload.params[1];
+					const params = {
+						data: firstParam,
+						from: secondParam
+					};
+					if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
+						params.data = secondParam;
+						params.from = firstParam;
+					}
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-						data: payload.params[0],
-						from: payload.params[1],
+						...params,
 						...pageMeta
 					});
 					return (
@@ -512,6 +522,22 @@ export class BrowserTab extends PureComponent {
 			},
 			eth_signTypedData_v3: async payload => {
 				const { TypedMessageManager } = Engine.context;
+
+				let data;
+				try {
+					data = JSON.parse(payload.params[1]);
+				} catch (e) {
+					throw new Error('Data must be passed as a valid JSON string.');
+				}
+				const chainId = data.domain.chainId;
+				const activeChainId =
+					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+
+				// eslint-disable-next-line eqeqeq
+				if (chainId && chainId != activeChainId) {
+					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+				}
+
 				try {
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
