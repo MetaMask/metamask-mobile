@@ -77,3 +77,12 @@ export function isENS(name) {
 	}
 	return true;
 }
+
+/**
+ * Determines if a given string looks like a valid Ethereum address
+ *
+ * @param {address} string
+ */
+export function resemblesAddress(address) {
+	return address.length === 2 + 20 * 2;
+}

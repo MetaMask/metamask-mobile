@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard } from 'react-native';
+import { Dimensions, SafeAreaView, StyleSheet, View, Text, TextInput, TouchableOpacity, Clipboard } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
@@ -11,6 +11,9 @@ import { connect } from 'react-redux';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { showAlert } from '../../../actions/alert';
+import QRCode from 'react-native-qrcode-svg';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -50,6 +53,9 @@ const styles = StyleSheet.create({
 	rowWrapper: {
 		padding: 20
 	},
+	contentWrapper: {
+		paddingVertical: 20
+	},
 	warningWrapper: {
 		backgroundColor: colors.red000
 	},
@@ -88,6 +94,28 @@ const styles = StyleSheet.create({
 	},
 	enterPassword: {
 		marginBottom: 15
+	},
+	tabContent: {
+		padding: 20
+	},
+	qrCodeWrapper: {
+		marginTop: 20,
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	tabUnderlineStyle: {
+		height: 2,
+		backgroundColor: colors.blue
+	},
+	tabStyle: {
+		paddingBottom: 0,
+		backgroundColor: colors.beige
+	},
+	textStyle: {
+		fontSize: 12,
+		letterSpacing: 0.5,
+		...fontStyles.bold
 	}
 });
 
@@ -211,6 +239,19 @@ class RevealPrivateCredential extends PureComponent {
 		});
 	};
 
+	renderTabBar() {
+		return (
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.blue}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.textStyle}
+			/>
+		);
+	}
+
 	render = () => {
 		const { unlocked, privateCredential } = this.state;
 		const {
@@ -242,32 +283,42 @@ class RevealPrivateCredential extends PureComponent {
 							</View>
 						</View>
 
-						<View style={styles.rowWrapper}>
+						<View style={styles.contentWrapper}>
 							{unlocked ? (
-								<View>
-									<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
-									<View style={styles.seedPhraseView}>
-										<TextInput
-											value={privateCredential}
-											numberOfLines={3}
-											multiline
-											selectTextOnFocus
-											style={styles.seedPhrase}
-											editable={false}
-											testID={'private-credential-text'}
-										/>
-										<TouchableOpacity
-											style={styles.privateCredentialAction}
-											onPress={this.copyPrivateCredentialToClipboard}
-											testID={'private-credential-touchable'}
-										>
-											<Icon style={styles.actionIcon} name="copy" size={18} />
-											<Text style={styles.actionText}>
-												{strings('reveal_credential.copy_to_clipboard')}
-											</Text>
-										</TouchableOpacity>
+								<ScrollableTabView renderTabBar={this.renderTabBar}>
+									<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
+										<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
+										<View style={styles.seedPhraseView}>
+											<TextInput
+												value={privateCredential}
+												numberOfLines={3}
+												multiline
+												selectTextOnFocus
+												style={styles.seedPhrase}
+												editable={false}
+												testID={'private-credential-text'}
+											/>
+											<TouchableOpacity
+												style={styles.privateCredentialAction}
+												onPress={this.copyPrivateCredentialToClipboard}
+												testID={'private-credential-touchable'}
+											>
+												<Icon style={styles.actionIcon} name="copy" size={18} />
+												<Text style={styles.actionText}>
+													{strings('reveal_credential.copy_to_clipboard')}
+												</Text>
+											</TouchableOpacity>
+										</View>
 									</View>
-								</View>
+									<View tabLabel={strings(`reveal_credential.qr_code`)} style={styles.tabContent}>
+										<View style={styles.qrCodeWrapper}>
+											<QRCode
+												value={privateCredential}
+												size={Dimensions.get('window').width - 160}
+											/>
+										</View>
+									</View>
+								</ScrollableTabView>
 							) : (
 								<View>
 									<Text style={styles.enterPassword}>
