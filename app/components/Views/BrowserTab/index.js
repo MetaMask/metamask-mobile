@@ -413,9 +413,10 @@ export class BrowserTab extends PureComponent {
 		if (!currentPageTitle || currentPageTitle !== {}) {
 			// We need to get the title to add bookmark
 			const { current } = this.webview;
-			Platform.OS === 'ios'
-				? current && current.evaluateJavaScript(JS_WINDOW_INFORMATION)
-				: current && current.injectJavaScript(JS_WINDOW_INFORMATION);
+			current &&
+				(Platform.OS === 'ios'
+					? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
+					: current.injectJavaScript(JS_WINDOW_INFORMATION));
 		}
 		setTimeout(() => {
 			callback();
@@ -435,13 +436,9 @@ export class BrowserTab extends PureComponent {
 		});
 	}
 
-	reloadFromError = () => {
-		this.reload(true);
-	};
-
 	async componentDidMount() {
 		if (this.isTabActive()) {
-			this.reload(true, true);
+			this.initialReload();
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
 		}
@@ -989,7 +986,7 @@ export class BrowserTab extends PureComponent {
 		if (lastUrlBeforeHome === HOMEPAGE_URL) {
 			this.reload();
 		} else {
-			this.reload(true);
+			this.forceReload();
 		}
 		setTimeout(() => {
 			this.props.navigation.setParams({
@@ -1016,34 +1013,35 @@ export class BrowserTab extends PureComponent {
 		this.setState({ forwardEnabled });
 	};
 
-	reload = (force = false, isInitialReload = false) => {
+	reload = () => {
 		this.toggleOptionsIfNeeded();
-		if (!force) {
-			const { current } = this.webview;
-			current && current.reload();
-		} else {
-			if (!isInitialReload) {
-				this.isReloading = true;
-			}
-			// As we're reloading to other url we should remove this callback
-			this.approvalRequest = undefined;
-			const url2Reload = this.state.inputValue;
-			// Force unmount the webview to avoid caching problems
-			this.setState({ forceReload: true }, () => {
-				// Make sure we're not calling last mounted webview during this time threshold
-				this.webview.current = null;
-				setTimeout(() => {
-					this.setState({ forceReload: false }, () => {
-						this.go(url2Reload);
-					});
-				}, 300);
-			});
-			if (!isInitialReload) {
-				setTimeout(() => {
-					this.isReloading = false;
-				}, 1500);
-			}
-		}
+		const { current } = this.webview;
+		current && current.reload();
+	};
+
+	forceReload = () => {
+		this.toggleOptionsIfNeeded();
+		// As we're reloading to other url we should remove this callback
+		this.approvalRequest = undefined;
+		const url2Reload = this.state.inputValue;
+		// Force unmount the webview to avoid caching problems
+		this.setState({ forceReload: true }, () => {
+			// Make sure we're not calling last mounted webview during this time threshold
+			this.webview.current = null;
+			setTimeout(() => {
+				this.setState({ forceReload: false }, () => {
+					this.go(url2Reload);
+				});
+			}, 300);
+		});
+	};
+
+	initialReload = () => {
+		this.isReloading = true;
+		this.forceReload();
+		setTimeout(() => {
+			this.isReloading = false;
+		}, 1500);
 	};
 
 	addBookmark = () => {
@@ -1352,7 +1350,7 @@ export class BrowserTab extends PureComponent {
 
 		return (
 			<React.Fragment>
-				<Button onPress={() => this.reload()} style={styles.option}>
+				<Button onPress={this.reload} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
@@ -1438,9 +1436,7 @@ export class BrowserTab extends PureComponent {
 		if (this.isHomepage()) {
 			const { current } = this.webview;
 			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-			Platform.OS === 'ios'
-				? current && current.evaluateJavaScript(blur)
-				: current && current.injectJavaScript(blur);
+			current && (Platform.OS === 'ios' ? current.evaluateJavaScript(blur) : current.injectJavaScript(blur));
 		}
 	};
 
@@ -1675,7 +1671,7 @@ export class BrowserTab extends PureComponent {
 		if ([6].includes(wizardStep)) {
 			if (!this.wizardScrollAdjusted) {
 				setTimeout(() => {
-					this.reload(true);
+					this.forceReload();
 				}, 1);
 				this.wizardScrollAdjusted = true;
 			}
@@ -1702,7 +1698,7 @@ export class BrowserTab extends PureComponent {
 						<Web3Webview
 							// eslint-disable-next-line react/jsx-no-bind
 							renderError={() => (
-								<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
+								<WebviewError error={this.state.lastError} onReload={this.forceReload} />
 							)}
 							injectedOnStartLoadingJavaScript={entryScriptWeb3}
 							onProgress={this.onLoadProgress}
