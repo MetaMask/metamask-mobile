@@ -1161,6 +1161,7 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onMessage = ({ nativeEvent: { data } }) => {
+		if (!this.webview.current) return;
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			if (!data || !data.type) {
