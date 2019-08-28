@@ -1019,11 +1019,8 @@ export class BrowserTab extends PureComponent {
 		current && current.reload();
 	};
 
-	forceReload = (isInitialReload = false) => {
+	forceReload = () => {
 		this.toggleOptionsIfNeeded();
-		if (!isInitialReload) {
-			this.isReloading = true;
-		}
 		// As we're reloading to other url we should remove this callback
 		this.approvalRequest = undefined;
 		const url2Reload = this.state.inputValue;
@@ -1037,11 +1034,6 @@ export class BrowserTab extends PureComponent {
 				});
 			}, 300);
 		});
-		if (!isInitialReload) {
-			setTimeout(() => {
-				this.isReloading = false;
-			}, 1500);
-		}
 	};
 
 	initialReload = () => {
