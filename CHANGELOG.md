@@ -3,6 +3,7 @@
 ## Current Develop Branch
 
 ## v0.2.4 - Aug 28 2019
+- [#1036](https://github.com/MetaMask/metamask-mobile/pull/1036): Bugfix: browser crash (#1036)
 - [#1007](https://github.com/MetaMask/metamask-mobile/pull/1007): Bugfix: phishing alerts (#1007)
 - [#1023](https://github.com/MetaMask/metamask-mobile/pull/1023): Fix forkdelta.app (#1023)
 - [#1017](https://github.com/MetaMask/metamask-mobile/pull/1017): Allow ENS available TLDs that are not ENS names (#1017)
