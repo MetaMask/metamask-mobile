@@ -2,6 +2,7 @@
 
 exports[`Entry should render correctly 1`] = `
 <Entry
+  passwordSet={false}
   setOnboardingWizardStep={[Function]}
 />
 `;

@@ -117,7 +117,10 @@
 		"cancel_button": "Cancelar",
 		"password_length_error": "La contraseña debe contener al menos 8 caracteres",
 		"password_dont_match": "Las contraseñas no coinciden",
-		"seed_word_count_error": "La frase debe contener 12 palabras"
+		"seed_word_count_error": "La frase debe contener 12 palabras",
+		"error": "Error",
+		"invalid_qr_code_title": "Código QR Inválido",
+		"invalid_qr_code_message": "Este código QR no representa una frase semilla válida"
 	},
 	"bottom_tab_bar": {
 		"dapps": "ÐApps",
@@ -181,7 +184,9 @@
 		"cancel": "Cancelar",
 		"yes": "Sí",
 		"private_key_detected": "Llave privada detectada",
-		"do_you_want_to_import_this_account": "Deseas importar esta cuenta?"
+		"do_you_want_to_import_this_account": "Deseas importar esta cuenta?",
+		"error": "Error",
+		"logout_to_import_seed": "Primero debes cerrar la sesión para poder importar una nueva frase semilla."
 	},
 	"transactions_view": {
 		"title": "Transacciones"
@@ -391,7 +396,9 @@
 		"private_key_copied": "Dirección privada copiada en el portapapeles",
 		"warning_incorrect_password": "Contraseña incorrecta",
 		"unknown_error": "No pudimos acceder a tu cuenta. Inténtalo nuevamente.",
-		"seed_warning": "Esta es la frase semilla de tu billetera. Es muy sensitiva. NO LA COMPARTAS CON NADIE."
+		"seed_warning": "Esta es la frase semilla de tu billetera. Es muy sensitiva. NO LA COMPARTAS CON NADIE.",
+		"text": "TEXT",
+		"qr_code": "QR CODE"
 	},
 	"asset_overview": {
 		"send_button": "Enviar",
