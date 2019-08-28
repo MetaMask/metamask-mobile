@@ -1,6 +1,16 @@
 # Changelog
 
 ## Current Develop Branch
+
+## v0.2.4 - Aug 28 2019
+- [#1007](https://github.com/MetaMask/metamask-mobile/pull/1007): Bugfix: phishing alerts (#1007)
+- [#1023](https://github.com/MetaMask/metamask-mobile/pull/1023): Fix forkdelta.app (#1023)
+- [#1017](https://github.com/MetaMask/metamask-mobile/pull/1017): Allow ENS available TLDs that are not ENS names (#1017)
+- [#1016](https://github.com/MetaMask/metamask-mobile/pull/1016): update copy on account import (#1016)
+- [#1014](https://github.com/MetaMask/metamask-mobile/pull/1014): Upgrade to node 10 and gaba 1.6.0 (#1014)
+- [#1013](https://github.com/MetaMask/metamask-mobile/pull/1013): add auto-changelog (#1013)
+- [#1005](https://github.com/MetaMask/metamask-mobile/pull/1005): bugfix: block ERC721 on sync (#1005)
+- [#1009](https://github.com/MetaMask/metamask-mobile/pull/1009): Bugfix: Allow file uploads on android (#1009)
 - [#1008](https://github.com/MetaMask/metamask-mobile/pull/1008): bump walletconnect (#1008)
 
 ## v0.2.3 - Aug 19 2019
