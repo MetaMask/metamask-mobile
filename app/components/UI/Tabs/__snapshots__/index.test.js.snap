@@ -29,10 +29,12 @@ exports[`Tabs should render correctly 1`] = `
     }
   >
     <TabThumbnail
-      isActiveTab={true}
+      isActiveTab={false}
+      key="1"
       onSwitch={[Function]}
       tab={
         Object {
+          "id": 1,
           "image": "",
           "url": "about:blank",
         }
