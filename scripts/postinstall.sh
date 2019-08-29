@@ -139,7 +139,8 @@ else
 fi
 
 echo "14. Remove UIWebview deps"
-rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RNCWebView.h
-rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RNCWebView.m
-rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RNCWebViewManager.h
-rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RNCWebViewManager.m
+rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebView.h
+rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebView.h
+rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebView.m
+rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebViewManager.h
+rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebViewManager.m
