@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "scripts": {
     "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
@@ -29,7 +29,8 @@
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
     "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
     "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
-    "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt"
+    "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
+    "update-changelog": "./scripts/auto-changelog.sh"
   },
   "prettier": {
     "printWidth": 120,
@@ -79,7 +80,7 @@
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
-    "gaba": "1.5.1",
+    "gaba": "1.6.0",
     "https-browserify": "0.0.1",
     "jsc-android": "236355.1.1",
     "lottie-react-native": "github:brunobar79/lottie-react-native#25f818decdc0f9157506f3cca629d0db5971d75f",
@@ -93,7 +94,7 @@
     "react-native": "0.59.10",
     "react-native-actionsheet": "2.4.2",
     "react-native-aes-crypto": "github:brunobar79/react-native-aes#495bf43f119f6ee5998e7e42b9cb02bb39a5a524",
-    "react-native-animated-fox": "github:brunobar79/react-native-animated-fox#6854027bc6262882a1348391c370f3e2a027122c",
+    "react-native-animated-fox": "github:brunobar79/react-native-animated-fox#813096236bd765da465647c31b2d392e1d114d3f",
     "react-native-background-timer": "2.1.1",
     "react-native-branch": "github:brunobar79/react-native-branch-deep-linking-attribution#androidx",
     "react-native-browser-polyfill": "0.1.2",
@@ -128,7 +129,7 @@
     "react-native-tcp": "3.3.0",
     "react-native-vector-icons": "6.4.2",
     "react-native-view-shot": "github:brunobar79/react-native-view-shot#androidx",
-    "react-native-web3-webview": "2.1.0",
+    "react-native-web3-webview": "2.1.3",
     "react-navigation": "3.11.1",
     "react-redux": "5.1.1",
     "readable-stream": "1.0.33",

@@ -210,6 +210,7 @@ describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
 		const exchangeRates = [10, 1, 3, 3, 7, 2.17];
 		const fiatValues = ['100', '123', '300', '1111.111', '9.999', '100'];
 		let i = 0;
+
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
 			numberToBN('1000000000000000000')
 		);
@@ -223,7 +224,7 @@ describe('Number utils :: fiatNumberToTokenMinimalUnit', () => {
 		);
 		i = 3;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(
-			numberToBN('205761296296296000')
+			numberToBN('205761296296296300')
 		);
 		i = 4;
 		expect(fiatNumberToTokenMinimalUnit(fiatValues[i], conversionRates[i], exchangeRates[i], decimals[i])).toEqual(

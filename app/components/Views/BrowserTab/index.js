@@ -52,6 +52,7 @@ import Branch from 'react-native-branch';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
+import { resemblesAddress } from '../../../util/address';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -60,6 +61,11 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 
 const { HOMEPAGE_URL } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
+
+const USER_AGENT =
+	Platform.OS === 'android'
+		? 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36'
+		: 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -389,6 +395,7 @@ export class BrowserTab extends PureComponent {
 
 	webview = React.createRef();
 	inputRef = React.createRef();
+	ensIgnoreList = [];
 	snapshotTimer = null;
 	lastUrlBeforeHome = null;
 	goingBack = false;
@@ -406,9 +413,10 @@ export class BrowserTab extends PureComponent {
 		if (!currentPageTitle || currentPageTitle !== {}) {
 			// We need to get the title to add bookmark
 			const { current } = this.webview;
-			Platform.OS === 'ios'
-				? current && current.evaluateJavaScript(JS_WINDOW_INFORMATION)
-				: current && current.injectJavaScript(JS_WINDOW_INFORMATION);
+			current &&
+				(Platform.OS === 'ios'
+					? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
+					: current.injectJavaScript(JS_WINDOW_INFORMATION));
 		}
 		setTimeout(() => {
 			callback();
@@ -428,13 +436,9 @@ export class BrowserTab extends PureComponent {
 		});
 	}
 
-	reloadFromError = () => {
-		this.reload(true);
-	};
-
 	async componentDidMount() {
 		if (this.isTabActive()) {
-			this.reload(true, true);
+			this.initialReload();
 		} else if (this.isTabActive() && this.isENSUrl(this.state.url)) {
 			this.go(this.state.url);
 		}
@@ -464,10 +468,19 @@ export class BrowserTab extends PureComponent {
 			personal_sign: async payload => {
 				const { PersonalMessageManager } = Engine.context;
 				try {
+					const firstParam = payload.params[0];
+					const secondParam = payload.params[1];
+					const params = {
+						data: firstParam,
+						from: secondParam
+					};
+					if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
+						params.data = secondParam;
+						params.from = firstParam;
+					}
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-						data: payload.params[0],
-						from: payload.params[1],
+						...params,
 						...pageMeta
 					});
 					return (
@@ -506,6 +519,22 @@ export class BrowserTab extends PureComponent {
 			},
 			eth_signTypedData_v3: async payload => {
 				const { TypedMessageManager } = Engine.context;
+
+				let data;
+				try {
+					data = JSON.parse(payload.params[1]);
+				} catch (e) {
+					throw new Error('Data must be passed as a valid JSON string.');
+				}
+				const chainId = data.domain.chainId;
+				const activeChainId =
+					this.props.networkType === 'rpc' ? this.props.network : Networks[this.props.networkType].networkId;
+
+				// eslint-disable-next-line eqeqeq
+				if (chainId && chainId != activeChainId) {
+					throw new Error(`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`);
+				}
+
 				try {
 					const pageMeta = await this.getPageMeta();
 					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
@@ -812,30 +841,24 @@ export class BrowserTab extends PureComponent {
 	};
 
 	isENSUrl(url) {
-		const urlObj = new URL(url);
-		const { hostname } = urlObj;
+		const { hostname } = new URL(url);
 		const tld = hostname.split('.').pop();
 		if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
-			return true;
+			// Make sure it's not in the ignore list
+			if (this.ensIgnoreList.indexOf(hostname) === -1) {
+				return true;
+			}
 		}
 		return false;
 	}
 
-	isAllowedUrl = url => {
-		const urlObj = new URL(url);
+	isAllowedUrl = hostname => {
 		const { PhishingController } = Engine.context;
-		return (
-			(this.props.whitelist && this.props.whitelist.includes(urlObj.hostname)) ||
-			(PhishingController && !PhishingController.test(urlObj.hostname))
-		);
+		const { whitelist } = this.props;
+		return (whitelist && whitelist.includes(hostname)) || !PhishingController.test(hostname);
 	};
 
-	handleNotAllowedUrl = (urlToGo, hostname) => {
-		let host = hostname;
-		if (!host) {
-			const urlObj = new URL(urlToGo);
-			host = urlObj.hostname;
-		}
+	handleNotAllowedUrl = urlToGo => {
 		this.blockedUrl = urlToGo;
 		setTimeout(() => {
 			this.setState({ showPhishingModal: true });
@@ -849,50 +872,39 @@ export class BrowserTab extends PureComponent {
 	go = async url => {
 		const hasProtocol = url.match(/^[a-z]*:\/\//) || this.isHomepage(url);
 		const sanitizedURL = hasProtocol ? url : `${this.props.defaultProtocol}${url}`;
-		const urlObj = new URL(sanitizedURL);
-		const { hostname, query, pathname } = urlObj;
+		const { hostname, query, pathname } = new URL(sanitizedURL);
 
-		let currentEnsName = null;
-		let contentId = null;
-		let contentUrl = null;
-		let contentType = null;
+		let contentId, contentUrl, contentType;
 		if (this.isENSUrl(sanitizedURL)) {
-			const { url: tmpUrl, hash, type } = await this.handleIpfsContent(sanitizedURL, {
-				hostname,
-				query,
-				pathname
-			});
-			contentUrl = tmpUrl;
+			const { url, type, hash } = await this.handleIpfsContent(sanitizedURL, { hostname, query, pathname });
+			contentUrl = url;
 			contentType = type;
-			if (contentUrl) {
-				const urlObj = new URL(sanitizedURL);
-				currentEnsName = urlObj.hostname;
-				contentId = hash;
-			}
+			contentId = hash;
+
 			// Needed for the navbar to mask the URL
 			this.props.navigation.setParams({
 				...this.props.navigation.state.params,
-				currentEnsName: urlObj.hostname
+				currentEnsName: hostname
 			});
 		}
 		const urlToGo = contentUrl || sanitizedURL;
 
-		if (this.isAllowedUrl(urlToGo)) {
+		if (this.isAllowedUrl(hostname)) {
 			this.setState({
 				url: urlToGo,
 				progress: 0,
 				ipfsWebsite: !!contentUrl,
 				inputValue: sanitizedURL,
-				currentEnsName,
+				currentEnsName: hostname,
 				contentId,
 				contentType,
-				hostname: this.formatHostname(hostname)
+				hostname: this.formatHostname(hostname),
+				fullHostname: hostname
 			});
 			this.updateTabInfo(sanitizedURL);
-
 			return sanitizedURL;
 		}
-		this.handleNotAllowedUrl(urlToGo, hostname);
+		this.handleNotAllowedUrl(urlToGo);
 		return null;
 	};
 
@@ -921,9 +933,16 @@ export class BrowserTab extends PureComponent {
 				type
 			};
 		} catch (err) {
+			// This is a TLD that might be a normal website
+			// For example .XYZ and might be more in the future
+			if (hostname.substr(-4) !== '.eth' && err.toString().indexOf('is not standard') !== -1) {
+				this.ensIgnoreList.push(hostname);
+				this.go(fullUrl);
+				return { url: null };
+			}
 			Logger.error('Failed to resolve ENS name', err);
 			Alert.alert(strings('browser.error'), strings('browser.failed_to_resolve_ens_name'));
-			return null;
+			return { url: null };
 		}
 	}
 
@@ -947,19 +966,14 @@ export class BrowserTab extends PureComponent {
 		setTimeout(() => {
 			this.goingBack = false;
 		}, 500);
-
-		if (this.initialUrl === this.state.inputValue) {
-			this.goBackToHomepage();
-		} else {
-			const { current } = this.webview;
-			current && current.goBack();
-			setTimeout(() => {
-				this.props.navigation.setParams({
-					...this.props.navigation.state.params,
-					url: this.state.inputValue
-				});
-			}, 100);
-		}
+		const { current } = this.webview;
+		current && current.goBack();
+		setTimeout(() => {
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: this.state.inputValue
+			});
+		}, 100);
 		// Need to wait for nav_change & onPageChanged
 		setTimeout(() => {
 			this.setState({ forwardEnabled: true });
@@ -973,17 +987,18 @@ export class BrowserTab extends PureComponent {
 		if (lastUrlBeforeHome === HOMEPAGE_URL) {
 			this.reload();
 		} else {
-			this.reload(true);
+			this.forceReload();
 		}
+		setTimeout(() => {
+			this.props.navigation.setParams({
+				...this.props.navigation.state.params,
+				url: HOMEPAGE_URL
+			});
+		}, 100);
 		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
 		setTimeout(() => {
 			this.lastUrlBeforeHome = lastUrlBeforeHome;
 		}, 1000);
-	};
-
-	close = () => {
-		this.toggleOptionsIfNeeded();
-		this.props.navigation.pop();
 	};
 
 	goForward = async () => {
@@ -999,34 +1014,35 @@ export class BrowserTab extends PureComponent {
 		this.setState({ forwardEnabled });
 	};
 
-	reload = (force = false, isInitialReload = false) => {
+	reload = () => {
 		this.toggleOptionsIfNeeded();
-		if (!force) {
-			const { current } = this.webview;
-			current && current.reload();
-		} else {
-			if (!isInitialReload) {
-				this.isReloading = true;
-			}
-			// As we're reloading to other url we should remove this callback
-			this.approvalRequest = undefined;
-			const url2Reload = this.state.inputValue;
-			// Force unmount the webview to avoid caching problems
-			this.setState({ forceReload: true }, () => {
-				// Make sure we're not calling last mounted webview during this time threshold
-				this.webview.current = null;
-				setTimeout(() => {
-					this.setState({ forceReload: false }, () => {
-						this.go(url2Reload);
-					});
-				}, 300);
-			});
-			if (!isInitialReload) {
-				setTimeout(() => {
-					this.isReloading = false;
-				}, 1500);
-			}
-		}
+		const { current } = this.webview;
+		current && current.reload();
+	};
+
+	forceReload = () => {
+		this.toggleOptionsIfNeeded();
+		// As we're reloading to other url we should remove this callback
+		this.approvalRequest = undefined;
+		const url2Reload = this.state.inputValue;
+		// Force unmount the webview to avoid caching problems
+		this.setState({ forceReload: true }, () => {
+			// Make sure we're not calling last mounted webview during this time threshold
+			this.webview.current = null;
+			setTimeout(() => {
+				this.setState({ forceReload: false }, () => {
+					this.go(url2Reload);
+				});
+			}, 300);
+		});
+	};
+
+	initialReload = () => {
+		this.isReloading = true;
+		this.forceReload();
+		setTimeout(() => {
+			this.isReloading = false;
+		}, 1500);
 	};
 
 	addBookmark = () => {
@@ -1176,10 +1192,18 @@ export class BrowserTab extends PureComponent {
 	};
 
 	onPageChange = ({ url }) => {
+		if (url === this.state.url) return;
 		const { ipfsGateway } = this.props;
 		const data = {};
 		const urlObj = new URL(url);
+		if (urlObj.protocol.indexOf('http') === -1) {
+			return;
+		}
 		this.lastUrlBeforeHome = null;
+
+		if (!this.state.showPhishingModal && !this.isAllowedUrl(urlObj.hostname)) {
+			this.handleNotAllowedUrl(url);
+		}
 
 		data.fullHostname = urlObj.hostname;
 		if (!this.state.ipfsWebsite) {
@@ -1327,7 +1351,7 @@ export class BrowserTab extends PureComponent {
 
 		return (
 			<React.Fragment>
-				<Button onPress={() => this.reload()} style={styles.option}>
+				<Button onPress={this.reload} style={styles.option}>
 					<View style={styles.optionIconWrapper}>
 						<Icon name="refresh" size={15} style={styles.optionIcon} />
 					</View>
@@ -1367,18 +1391,22 @@ export class BrowserTab extends PureComponent {
 		this.props.showTabs();
 	};
 
-	renderBottomBar = (canGoBack, canGoForward) => (
-		<BrowserBottomBar
-			canGoBack={canGoBack}
-			canGoForward={canGoForward}
-			goForward={this.goForward}
-			goBack={this.goBack}
-			showTabs={this.showTabs}
-			showUrlModal={this.showUrlModal}
-			toggleOptions={this.toggleOptions}
-			goHome={this.goBackToHomepage}
-		/>
-	);
+	renderBottomBar = () => {
+		const canGoBack = !this.isHomepage();
+		const canGoForward = this.canGoForward();
+		return (
+			<BrowserBottomBar
+				canGoBack={canGoBack}
+				canGoForward={canGoForward}
+				goForward={this.goForward}
+				goBack={this.goBack}
+				showTabs={this.showTabs}
+				showUrlModal={this.showUrlModal}
+				toggleOptions={this.toggleOptions}
+				goHome={this.goBackToHomepage}
+			/>
+		);
+	};
 
 	isHttps() {
 		return this.state.inputValue.toLowerCase().substr(0, 6) === 'https:';
@@ -1409,9 +1437,7 @@ export class BrowserTab extends PureComponent {
 		if (this.isHomepage()) {
 			const { current } = this.webview;
 			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-			Platform.OS === 'ios'
-				? current && current.evaluateJavaScript(blur)
-				: current && current.injectJavaScript(blur);
+			current && (Platform.OS === 'ios' ? current.evaluateJavaScript(blur) : current.injectJavaScript(blur));
 		}
 	};
 
@@ -1573,9 +1599,11 @@ export class BrowserTab extends PureComponent {
 		const urlObj = new URL(this.blockedUrl);
 		this.props.addToWhitelist(urlObj.hostname);
 		this.setState({ showPhishingModal: false });
-		setTimeout(() => {
-			this.go(this.blockedUrl);
-		}, 1000);
+		this.blockedUrl !== this.state.inputValue &&
+			setTimeout(() => {
+				this.go(this.blockedUrl);
+				this.blockedUrl = undefined;
+			}, 1000);
 	};
 
 	goToEtherscam = () => {
@@ -1589,11 +1617,11 @@ export class BrowserTab extends PureComponent {
 	};
 
 	goBackToSafety = () => {
-		if (this.canGoBack()) {
+		this.blockedUrl === this.state.inputValue && this.goBack();
+		setTimeout(() => {
 			this.mounted && this.setState({ showPhishingModal: false });
-		} else {
-			this.close();
-		}
+			this.blockedUrl = undefined;
+		}, 500);
 	};
 
 	renderPhishingModal() {
@@ -1622,18 +1650,9 @@ export class BrowserTab extends PureComponent {
 		);
 	}
 
-	getUserAgent() {
-		if (Platform.OS === 'android') {
-			return 'Mozilla/5.0 (Linux; Android 8.1.0; Android SDK built for x86 Build/OSM1.180201.023) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.98 Mobile Safari/537.36';
-		}
-		return 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1';
-	}
-
 	onLoadStart = () => {
 		this.backgroundBridge.disableAccounts();
 	};
-
-	canGoBack = () => true;
 
 	canGoForward = () => this.state.forwardEnabled;
 
@@ -1653,7 +1672,7 @@ export class BrowserTab extends PureComponent {
 		if ([6].includes(wizardStep)) {
 			if (!this.wizardScrollAdjusted) {
 				setTimeout(() => {
-					this.reload(true);
+					this.forceReload();
 				}, 1);
 				this.wizardScrollAdjusted = true;
 			}
@@ -1668,9 +1687,6 @@ export class BrowserTab extends PureComponent {
 
 	render() {
 		const { entryScriptWeb3, url, forceReload, activated } = this.state;
-		const isHomepage = this.isHomepage();
-		const canGoBack = isHomepage ? false : this.canGoBack();
-		const canGoForward = this.canGoForward();
 		const isHidden = !this.isTabActive();
 
 		return (
@@ -1683,7 +1699,7 @@ export class BrowserTab extends PureComponent {
 						<Web3Webview
 							// eslint-disable-next-line react/jsx-no-bind
 							renderError={() => (
-								<WebviewError error={this.state.lastError} onReload={this.reloadFromError} />
+								<WebviewError error={this.state.lastError} onReload={this.forceReload} />
 							)}
 							injectedOnStartLoadingJavaScript={entryScriptWeb3}
 							onProgress={this.onLoadProgress}
@@ -1695,7 +1711,7 @@ export class BrowserTab extends PureComponent {
 							ref={this.webview}
 							source={{ uri: url }}
 							style={styles.webview}
-							userAgent={this.getUserAgent()}
+							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
 							testID={'browser-webview'}
@@ -1708,7 +1724,7 @@ export class BrowserTab extends PureComponent {
 				{!isHidden && this.renderPhishingModal()}
 				{!isHidden && this.renderWatchAssetModal()}
 				{!isHidden && this.renderOptions()}
-				{!isHidden && this.renderBottomBar(canGoBack, canGoForward)}
+				{!isHidden && this.renderBottomBar()}
 				{!isHidden && this.renderOnboardingWizard()}
 				{!isHidden && this.props.passwordSet && !this.props.seedphraseBackedUp && (
 					<BackupAlert onPress={this.backupAlertPress} style={styles.backupAlert} />
