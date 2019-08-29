@@ -19,7 +19,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && npm install
+        rm -rf node_modules/websocket/.git && yarn install
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -61,7 +61,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm run lint
+      - run: yarn lint
 
   test-unit:
     <<: *defaults
@@ -72,7 +72,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm run test:unit -- -w 3
+      - run: yarn test:unit -- -w 3
     #   - persist_to_workspace:
     #       root: .
     #       paths:
@@ -93,7 +93,7 @@ jobs:
               brew update
               brew tap wix/brew
               brew install --HEAD applesimutils
-              npm install -g detox-cli
+              yarn install -g detox-cli
       - run: echo $IOS_ENV | tr "|" "\n" > .ios.env
       - run: detox clean-framework-cache && detox build-framework-cache
       - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
@@ -105,7 +105,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm install codecov
+      - run: yarn install codecov
       - run: ./node_modules/bin/codecov
 
   all-tests-pass:
@@ -132,7 +132,7 @@ jobs:
           name: build:pre-release
           command:
             |
-              npm run build:android:pre-release:bundle
+              yarn build:android:pre-release:bundle
       - store_artifacts:
           path: android/app/build/outputs/bundle/release
           destination: bundle
@@ -144,7 +144,7 @@ jobs:
           destination: sourcemaps-android
       - run:
           name: Announcing pre-release
-          command: npm run build:announce
+          command: yarn build:announce
   publish-pre-release-ios:
     macos:
       xcode: 10.2.0
@@ -159,7 +159,7 @@ jobs:
           at: ~/MetaMask
       - run:
           name: pre-release
-          command: npm run build:ios:pre-release
+          command: yarn build:ios:pre-release
       - store_artifacts:
           path: sourcemaps/ios
           destination: sourcemaps-ios

@@ -3,7 +3,7 @@
   "version": "0.2.4",
   "private": true,
   "scripts": {
-    "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && npm start -- --reset-cache",
+    "restart-packager-clean": "watchman watch-del-all && rm -rf $TMPDIR/react-* && yarn start -- --reset-cache",
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "lint": "eslint '**/*.js' --ignore-path=.prettierignore",
     "lint:fix": "eslint '**/*.js' --fix --ignore-path=.prettierignore",
@@ -19,10 +19,10 @@
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/",
     "test:unit:update": "time jest -u ./app/",
-    "test:e2e": "npm run test:e2e:ios && npm run test:e2e:android",
+    "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
     "postinstall": "./scripts/postinstall.sh",
@@ -210,13 +210,13 @@
     "configurations": {
       "ios.sim.debug": {
         "binaryPath": "ios/build/MetaMask/Build/Products/Debug-iphonesimulator/MetaMask.app",
-        "build": "npm run start:ios",
+        "build": "yarn start:ios",
         "type": "ios.simulator",
         "name": "iPhone X"
       },
       "ios.sim.release": {
         "binaryPath": "ios/build/MetaMask/Build/Products/Release-iphonesimulator/MetaMask.app",
-        "build": "npm run build:ios:release",
+        "build": "yarn build:ios:release",
         "type": "ios.simulator",
         "name": "iPhone X"
       },
