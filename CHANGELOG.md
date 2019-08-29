@@ -3,7 +3,7 @@
 ## Current Develop Branch
 
 ## v0.2.4 - Aug 28 2019
-- [#1037](https://github.com/MetaMask/metamask-mobile/pull/1037) - Fix walletconnect
+- [#1037](https://github.com/MetaMask/metamask-mobile/pull/1037) - Fix walletconnect (#1037)
 - [#1036](https://github.com/MetaMask/metamask-mobile/pull/1036): Bugfix: browser crash (#1036)
 - [#1034](https://github.com/MetaMask/metamask-mobile/pull/1034): Bump 0.2.4 (#1034)
 - [#1027](https://github.com/MetaMask/metamask-mobile/pull/1027): Improvement: approval token transfer data (#1027)
