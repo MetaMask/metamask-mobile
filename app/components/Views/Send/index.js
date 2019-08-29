@@ -176,8 +176,6 @@ class Send extends PureComponent {
 			ensRecipient = recipient;
 		} else if (recipient && recipient.toLowerCase().substr(0, 2) === '0x') {
 			to = toChecksumAddress(recipient);
-		} else {
-			to = recipient;
 		}
 		return { ensRecipient, to };
 	};
