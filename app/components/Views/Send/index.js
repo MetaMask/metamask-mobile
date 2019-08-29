@@ -205,7 +205,7 @@ class Send extends PureComponent {
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
 					selectedAsset
 				};
-				if (parameters.address.toLowerCase().substr(0, 2) === '0x') {
+				if (parameters.address && parameters.address.toLowerCase().substr(0, 2) === '0x') {
 					newTxMeta.to = toChecksumAddress(parameters.address);
 				} else {
 					// ENS Name
