@@ -644,6 +644,7 @@ class Main extends PureComponent {
 		if (
 			this.props.paymentChannelsEnabled &&
 			AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(this.props.providerType) &&
+			transactionMeta.transaction.data &&
 			transactionMeta.transaction.data.substr(0, 10) === CONNEXT_DEPOSIT &&
 			to === AppConstants.CONNEXT.CONTRACTS[networkId]
 		) {
