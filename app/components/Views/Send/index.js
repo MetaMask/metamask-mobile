@@ -205,7 +205,12 @@ class Send extends PureComponent {
 					type: 'INDIVIDUAL_TOKEN_TRANSACTION',
 					selectedAsset
 				};
-				newTxMeta.to = toChecksumAddress(parameters.address);
+				if (parameters.address.toLowerCase().substr(0, 2) === '0x') {
+					newTxMeta.to = toChecksumAddress(parameters.address);
+				} else {
+					// ENS Name
+					newTxMeta.ensRecipient = parameters.address;
+				}
 				if (parameters && parameters.uint256) {
 					newTxMeta.value = toTokenMinimalUnit(parameters.uint256, selectedAsset.decimals);
 					newTxMeta.readableValue = String(
