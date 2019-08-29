@@ -898,7 +898,8 @@ export class BrowserTab extends PureComponent {
 				currentEnsName: hostname,
 				contentId,
 				contentType,
-				hostname: this.formatHostname(hostname)
+				hostname: this.formatHostname(hostname),
+				fullHostname: hostname
 			});
 			this.updateTabInfo(sanitizedURL);
 			return sanitizedURL;
