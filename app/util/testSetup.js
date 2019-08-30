@@ -106,7 +106,8 @@ NativeModules.RNCNetInfo = {
 	getCurrentConnectivity: jest.fn(),
 	isConnectionMetered: jest.fn(),
 	addListener: jest.fn(),
-	removeListeners: jest.fn()
+	removeListeners: jest.fn(),
+	getCurrentState: jest.fn(() => Promise.resolve())
 };
 
 NativeModules.RCTAnalytics = {
