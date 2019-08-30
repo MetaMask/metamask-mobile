@@ -7129,9 +7129,9 @@ lottie-ios@2.5.0:
   resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-2.5.0.tgz#55c808e785d4a6933b0c10b395530b17098b05de"
   integrity sha1-VcgI54XUppM7DBCzlVMLFwmLBd4=
 
-"lottie-react-native@github:brunobar79/lottie-react-native#e832475cf870eae32506bf73cbd96a757967b8f5":
-  version "3.0.0"
-  resolved "https://codeload.github.com/brunobar79/lottie-react-native/tar.gz/e832475cf870eae32506bf73cbd96a757967b8f5"
+"lottie-react-native@github:brunobar79/lottie-react-native#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106":
+  version "3.0.1"
+  resolved "https://codeload.github.com/brunobar79/lottie-react-native/tar.gz/7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106"
   dependencies:
     invariant "^2.2.2"
     lottie-ios "2.5.0"
@@ -9403,8 +9403,8 @@ react-native-background-timer@2.1.1:
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
 "react-native-branch@github:brunobar79/react-native-branch-deep-linking-attribution#androidx":
-  version "3.0.0-beta.3"
-  resolved "https://codeload.github.com/brunobar79/react-native-branch-deep-linking-attribution/tar.gz/29f41541e7ebc12e3885ed4bdb97c562edcaf5cb"
+  version "3.1.1"
+  resolved "https://codeload.github.com/brunobar79/react-native-branch-deep-linking-attribution/tar.gz/f455eb7fa317644978ebddd8a3afb80c73951f85"
 
 react-native-browser-polyfill@0.1.2:
   version "0.1.2"
