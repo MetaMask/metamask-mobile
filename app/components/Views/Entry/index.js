@@ -4,7 +4,7 @@ import { Platform, Animated, Dimensions, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Branch from 'react-native-branch';
 import Engine from '../../../core/Engine';
-import LottieView from 'lottie-react-native'; // eslint-disable-line import/no-unresolved
+import LottieView from 'lottie-react-native';
 import SecureKeychain from '../../../core/SecureKeychain';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { NavigationActions } from 'react-navigation';

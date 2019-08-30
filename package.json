@@ -83,7 +83,7 @@
     "gaba": "1.6.0",
     "https-browserify": "0.0.1",
     "jsc-android": "236355.1.1",
-    "lottie-react-native": "github:brunobar79/lottie-react-native#25f818decdc0f9157506f3cca629d0db5971d75f",
+    "lottie-react-native": "github:brunobar79/lottie-react-native#e832475cf870eae32506bf73cbd96a757967b8f5",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "path": "0.12.7",

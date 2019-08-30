@@ -3522,7 +3522,7 @@ eslint-plugin-babel@^5.2.1:
   dependencies:
     eslint-rule-composer "^0.3.0"
 
-eslint-plugin-import@^2.14.0, eslint-plugin-import@^2.18.2:
+eslint-plugin-import@2.18.2, eslint-plugin-import@^2.14.0:
   version "2.18.2"
   resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.18.2.tgz#02f1180b90b077b33d447a17a2326ceb400aceb6"
   integrity sha512-5ohpsHAiUBRNaBWAF08izwUGlbrJoJJ+W9/TBwsGoR1MnlgfwMIKrFeSjWbt6moabiXW9xNvtFz+97KHRfI4HQ==
@@ -7129,9 +7129,9 @@ lottie-ios@2.5.0:
   resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-2.5.0.tgz#55c808e785d4a6933b0c10b395530b17098b05de"
   integrity sha1-VcgI54XUppM7DBCzlVMLFwmLBd4=
 
-"lottie-react-native@github:brunobar79/lottie-react-native#25f818decdc0f9157506f3cca629d0db5971d75f":
+"lottie-react-native@github:brunobar79/lottie-react-native#e832475cf870eae32506bf73cbd96a757967b8f5":
   version "3.0.0"
-  resolved "https://codeload.github.com/brunobar79/lottie-react-native/tar.gz/25f818decdc0f9157506f3cca629d0db5971d75f"
+  resolved "https://codeload.github.com/brunobar79/lottie-react-native/tar.gz/e832475cf870eae32506bf73cbd96a757967b8f5"
   dependencies:
     invariant "^2.2.2"
     lottie-ios "2.5.0"
