@@ -219,11 +219,17 @@ class EthInput extends PureComponent {
 	 * Used to 'fillMax' feature. Will process value coming from parent to render corresponding values on input
 	 */
 	componentDidUpdate = () => {
+		this.handleComponentDidUpdate();
+	};
+
+	handleComponentDidUpdate = () => {
 		const { fillMax, readableValue } = this.props;
+
 		if (fillMax) {
 			const { processedReadableValue } = this.processValue(readableValue);
 			this.setState({ readableValue: processedReadableValue });
 		}
+
 		this.props.updateFillMax(false);
 
 		// Workaround https://github.com/facebook/react-native/issues/9958
