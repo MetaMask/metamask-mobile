@@ -157,7 +157,7 @@ buildIosRelease(){
 		echo "Build started..."
 		cd ios && bundle install && bundle exec fastlane prerelease
 		# Generate sourcemaps
-		npm run sourcemaps:ios
+		yarn sourcemaps:ios
 	else
 		react-native run-ios  --configuration Release
 	fi
@@ -186,7 +186,7 @@ buildAndroidRelease(){
 
 	if [ "$PRE_RELEASE" = true ] ; then
 		# Generate sourcemaps
-		npm run sourcemaps:android
+		yarn sourcemaps:android
 	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
