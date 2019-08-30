@@ -389,7 +389,8 @@ export class BrowserTab extends PureComponent {
 			suggestedAssetMeta: undefined,
 			watchAsset: false,
 			activated: props.id === props.activeTab,
-			lastError: null
+			lastError: null,
+			showApprovalDialogHostname: undefined
 		};
 	}
 
@@ -571,7 +572,7 @@ export class BrowserTab extends PureComponent {
 
 					setTimeout(async () => {
 						await this.getPageMeta();
-						this.setState({ showApprovalDialog: true });
+						this.setState({ showApprovalDialog: true, showApprovalDialogHostname: hostname });
 					}, 1000);
 				}
 				return !this.isReloading && promise;
@@ -1550,24 +1551,31 @@ export class BrowserTab extends PureComponent {
 
 	onAccountsConfirm = () => {
 		const { approveHost, selectedAddress } = this.props;
-		this.setState({ showApprovalDialog: false });
+		this.setState({ showApprovalDialog: false, showApprovalDialogHostname: undefined });
 		approveHost(this.state.fullHostname);
 		this.backgroundBridge.enableAccounts();
 		this.approvalRequest && this.approvalRequest.resolve && this.approvalRequest.resolve([selectedAddress]);
 	};
 
 	onAccountsReject = () => {
-		this.setState({ showApprovalDialog: false });
+		this.setState({ showApprovalDialog: false, showApprovalDialogHostname: undefined });
 		this.approvalRequest &&
 			this.approvalRequest.reject &&
 			this.approvalRequest.reject('User rejected account access');
 	};
 
 	renderApprovalModal = () => {
-		const { showApprovalDialog, currentPageTitle, currentPageUrl, currentPageIcon, inputValue } = this.state;
+		const {
+			showApprovalDialogHostname,
+			currentPageTitle,
+			currentPageUrl,
+			currentPageIcon,
+			inputValue
+		} = this.state;
 		const url =
 			currentPageUrl && currentPageUrl.length && currentPageUrl !== 'localhost' ? currentPageUrl : inputValue;
-
+		const showApprovalDialog =
+			this.state.showApprovalDialog && showApprovalDialogHostname === new URL(url).hostname;
 		return (
 			<Modal
 				isVisible={showApprovalDialog}
