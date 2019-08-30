@@ -10,7 +10,7 @@ import {
 	TouchableOpacity,
 	Linking
 } from 'react-native';
-import DeviceInfo from 'react-native-device-info';
+import { getApplicationName, getVersion, getBuildNumber } from 'react-native-device-info';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
@@ -123,9 +123,9 @@ export default class AppInformation extends PureComponent {
 	};
 
 	getAppInfo = () => {
-		const appName = DeviceInfo.getApplicationName();
-		const appVersion = DeviceInfo.getVersion();
-		const buildNumber = DeviceInfo.getBuildNumber();
+		const appName = getApplicationName();
+		const appVersion = getVersion();
+		const buildNumber = getBuildNumber();
 
 		return `${appName} v${appVersion} (${buildNumber})`;
 	};
