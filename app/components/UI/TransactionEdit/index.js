@@ -226,8 +226,12 @@ class TransactionEdit extends PureComponent {
 
 	componentDidUpdate = prevProps => {
 		if (this.props.transaction.data !== prevProps.transaction.data) {
-			this.setState({ data: this.props.transaction.data });
+			this.onTransactionDataChange();
 		}
+	};
+
+	onTransactionDataChange = () => {
+		this.setState({ data: this.props.transaction.data });
 	};
 
 	fillMax = () => {

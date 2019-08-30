@@ -38,7 +38,7 @@ import Engine from '../../../core/Engine';
 import { setTokensTransaction } from '../../../actions/transaction';
 import findFirstIncomingTransaction from '../../../util/accountSecurity';
 import ActionModal from '../ActionModal';
-import DeviceInfo from 'react-native-device-info';
+import { getVersion, getBuildNumber, getSystemName, getAPILevel, getSystemVersion } from 'react-native-device-info';
 import Logger from '../../../util/Logger';
 import DeviceSize from '../../../util/DeviceSize';
 import OnboardingWizard from '../OnboardingWizard';
@@ -595,10 +595,10 @@ class DrawerView extends PureComponent {
 	};
 
 	goToFeedback = formId => {
-		const appVersion = DeviceInfo.getVersion();
-		const buildNumber = DeviceInfo.getBuildNumber();
-		const systemName = DeviceInfo.getSystemName();
-		const systemVersion = systemName === 'Android' ? DeviceInfo.getAPILevel() : DeviceInfo.getSystemVersion();
+		const appVersion = getVersion();
+		const buildNumber = getBuildNumber();
+		const systemName = getSystemName();
+		const systemVersion = systemName === 'Android' ? getAPILevel() : getSystemVersion();
 		this.goToBrowserUrl(
 			`https://docs.google.com/forms/d/e/${formId}/viewform?entry.649573346=${systemName}+${systemVersion}+MM+${appVersion}+(${buildNumber})`,
 			strings('drawer.feedback')
