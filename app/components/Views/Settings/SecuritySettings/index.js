@@ -511,9 +511,9 @@ class Settings extends PureComponent {
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
-									onValueChange={biometryChoice =>
-										this.onSecuritySettingChange(biometryChoice, 'biometrics')
-									} // eslint-disable-line react/jsx-no-bind
+									onValueChange={(
+										biometryChoice // eslint-disable-line react/jsx-no-bind
+									) => this.onSecuritySettingChange(biometryChoice, 'biometrics')}
 									value={this.state.biometryChoice}
 									trackColor={
 										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
@@ -532,9 +532,9 @@ class Settings extends PureComponent {
 							</Text>
 							<View style={styles.switchElement}>
 								<Switch
-									onValueChange={passcodeChoice =>
-										this.onSecuritySettingChange(passcodeChoice, 'passcode')
-									} // eslint-disable-line react/jsx-no-bind
+									onValueChange={(
+										passcodeChoice // eslint-disable-line react/jsx-no-bind
+									) => this.onSecuritySettingChange(passcodeChoice, 'passcode')}
 									value={this.state.passcodeChoice}
 									trackColor={
 										Platform.OS === 'ios' ? { true: colors.blue, false: colors.grey000 } : null
