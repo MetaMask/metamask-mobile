@@ -831,7 +831,11 @@ class DrawerView extends PureComponent {
 							<Image source={metamask_fox} style={styles.metamaskFox} resizeMethod={'auto'} />
 							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 						</View>
-						<TouchableOpacity style={styles.settings} onPress={this.showSettings}>
+						<TouchableOpacity
+							style={styles.settings}
+							testID={`settings-button`}
+							onPress={this.showSettings}
+						>
 							<FeatherIcon name="settings" size={22} style={styles.settingsIcon} />
 						</TouchableOpacity>
 					</View>
