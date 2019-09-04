@@ -267,6 +267,7 @@ class RevealPrivateCredential extends PureComponent {
 					cancelText={strings('reveal_credential.cancel')}
 					confirmText={strings('reveal_credential.confirm')}
 					onCancelPress={this.cancel}
+					testID={`next-button`}
 					onConfirmPress={this.tryUnlock}
 					showConfirmButton={!unlocked}
 				>
@@ -326,13 +327,15 @@ class RevealPrivateCredential extends PureComponent {
 									</Text>
 									<TextInput
 										style={styles.input}
+										testID={'private-credential-password-text-input'}
 										placeholder={'Password'}
 										onChangeText={this.onPasswordChange}
 										secureTextEntry
 										onSubmitEditing={this.tryUnlock}
-										testID={'private-credential-password-text-input'}
 									/>
-									<Text style={styles.warningText}>{this.state.warningIncorrectPassword}</Text>
+									<Text style={styles.warningText} testID={'password-warning'}>
+										{this.state.warningIncorrectPassword}
+									</Text>
 								</View>
 							)}
 						</View>
