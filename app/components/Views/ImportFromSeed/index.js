@@ -519,6 +519,7 @@ class ImportFromSeed extends PureComponent {
 							<TextInput
 								ref={this.passwordInput}
 								style={styles.input}
+								testID={'input-password-field'}
 								value={this.state.password}
 								onChangeText={this.onPasswordChange} // eslint-disable-line  react/jsx-no-bind
 								secureTextEntry={this.state.secureTextEntry}
@@ -564,6 +565,7 @@ class ImportFromSeed extends PureComponent {
 							<TextInput
 								ref={this.confirmPasswordInput}
 								style={styles.input}
+								testID={'input-password-field-confirm'}
 								value={this.state.confirmPassword}
 								onChangeText={this.onPasswordConfirmChange} // eslint-disable-line  react/jsx-no-bind
 								secureTextEntry={this.state.secureTextEntry}
@@ -587,7 +589,11 @@ class ImportFromSeed extends PureComponent {
 
 						{this.renderSwitch()}
 
-						{!!this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+						{!!this.state.error && (
+							<Text style={styles.errorMsg} testID={'invalid-seed-phrase'}>
+								{this.state.error}
+							</Text>
+						)}
 
 						<View style={styles.ctaWrapper}>
 							<StyledButton
