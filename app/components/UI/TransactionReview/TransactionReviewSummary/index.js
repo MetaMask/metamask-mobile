@@ -92,7 +92,11 @@ class TransactionReviewSummary extends PureComponent {
 		/**
 		 * Array of ERC20 assets
 		 */
-		tokens: PropTypes.array
+		tokens: PropTypes.array,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -125,11 +129,12 @@ class TransactionReviewSummary extends PureComponent {
 		const {
 			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
-			contractExchangeRates
+			contractExchangeRates,
+			ticker
 		} = this.props;
 		const values = {
 			ETH: () => {
-				const assetAmount = `${renderFromWei(value)} ${strings('unit.eth')}`;
+				const assetAmount = `${renderFromWei(value)} ${ticker}`;
 				const conversionRate = this.props.conversionRate;
 				const fiatValue = weiToFiat(value, conversionRate, currentCurrency);
 				return [assetAmount, conversionRate, fiatValue];
@@ -195,7 +200,8 @@ const mapStateToProps = state => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	tokens: state.engine.backgroundState.AssetsController.tokens,
-	transaction: state.transaction
+	transaction: state.transaction,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(TransactionReviewSummary);

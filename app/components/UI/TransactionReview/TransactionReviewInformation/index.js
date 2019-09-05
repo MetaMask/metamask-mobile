@@ -121,7 +121,11 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Callback for transaction edition
 		 */
-		edit: PropTypes.func
+		edit: PropTypes.func,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -139,11 +143,12 @@ class TransactionReviewInformation extends PureComponent {
 		const {
 			transaction: { gas, gasPrice },
 			currentCurrency,
-			conversionRate
+			conversionRate,
+			ticker
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-		const totalGasEth = `${renderFromWei(totalGas)} ${strings('unit.eth')}`;
+		const totalGasEth = `${renderFromWei(totalGas)} ${ticker}`;
 
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		this.setState({ totalGas, totalGasFiat, totalGasEth, totalFiat, totalValue });
@@ -168,16 +173,15 @@ class TransactionReviewInformation extends PureComponent {
 			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
 			conversionRate,
-			contractExchangeRates
+			contractExchangeRates,
+			ticker
 		} = this.props;
 
 		const totals = {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
-				const totalValue = (
-					<Text style={styles.overviewEth}>{`${renderFromWei(totalEth)} ${strings('unit.eth')} `}</Text>
-				);
+				const totalValue = <Text style={styles.overviewEth}>{`${renderFromWei(totalEth)} ${ticker} `}</Text>;
 				return [totalFiat, totalValue];
 			},
 			ERC20: () => {
@@ -196,7 +200,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
 							{amountToken + ' ' + selectedAsset.symbol}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
+						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${ticker}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -211,7 +215,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={styles.overviewEth}>
 							{' (#' + selectedAsset.tokenId + ')'}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
+						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${ticker}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -262,7 +266,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	transaction: state.transaction
+	transaction: state.transaction,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(TransactionReviewInformation);
