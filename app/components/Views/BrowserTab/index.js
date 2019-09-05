@@ -1315,7 +1315,7 @@ export class BrowserTab extends PureComponent {
 		const showOptions = (this.props.navigation && this.props.navigation.getParam('showOptions', false)) || false;
 		if (showOptions) {
 			return (
-				<TouchableWithoutFeedback onPress={this.toggleOptions}>
+				<TouchableWithoutFeedback onPress={this.toggleOptions} testID={'options-button'}>
 					<View style={styles.optionsOverlay}>
 						<View
 							style={[
@@ -1491,6 +1491,7 @@ export class BrowserTab extends PureComponent {
 						autoCapitalize="none"
 						autoCorrect={false}
 						clearButtonMode="while-editing"
+						testID={'url-input'}
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
@@ -1506,7 +1507,7 @@ export class BrowserTab extends PureComponent {
 							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
 						</TouchableOpacity>
 					) : (
-						<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
+						<TouchableOpacity style={styles.cancelButton} testID={'cancel-url'} onPress={this.hideUrlModal}>
 							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
 						</TouchableOpacity>
 					)}

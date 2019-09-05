@@ -106,6 +106,10 @@ export default class TestHelpers {
 		return expect(element(by.text(text))).toBeVisible();
 	}
 
+	static checkIfElementHasString(elementID, text) {
+		return expect(element(by.id(elementID))).toString(text);
+	}
+
 	static relaunchApp() {
 		return device.launchApp({ newInstance: true });
 	}

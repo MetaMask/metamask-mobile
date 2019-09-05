@@ -111,7 +111,7 @@ export default class BrowserBottomBar extends PureComponent {
 						style={[styles.icon, !canGoForward ? styles.disabledIcon : {}]}
 					/>
 				</TouchableOpacity>
-				<TouchableOpacity onPress={showUrlModal} style={styles.iconButton}>
+				<TouchableOpacity onPress={showUrlModal} style={styles.iconButton} testID={'search-button'}>
 					<FeatherIcons name="search" size={24} style={styles.icon} />
 				</TouchableOpacity>
 
