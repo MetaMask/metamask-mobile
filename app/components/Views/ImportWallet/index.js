@@ -465,13 +465,9 @@ class ImportWallet extends PureComponent {
 
 	render() {
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={baseStyles.flexGrow} testID={'import-wallet-screen'}>
 				<OnboardingScreenWithBg screen={'a'}>
-					<ScrollView
-						style={baseStyles.flexGrow}
-						contentContainerStyle={styles.scroll}
-						testID={'import-wallet-screen'}
-					>
+					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
 							{!this.state.loading && (
 								<View style={styles.foxWrapper}>
