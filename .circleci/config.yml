@@ -1,25 +1,25 @@
 aliases:
   - &restore-cache
     keys:
-      - v1.0.6-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.6-{{ .Branch }}
+      - v1.0.7-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.7-{{ .Branch }}
 
   - &save-cache
-    key: v1.0.6-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.7-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
   - &restore-node-cache
     keys:
-      - v1.0.6-node-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.6-node-{{ .Branch }}
+      - v1.0.7-node-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.7-node-{{ .Branch }}
   - &save-node-cache
-    key: v1.0.6-node-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.7-node-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000
 
 defaults: &defaults
   working_directory: ~/MetaMask
