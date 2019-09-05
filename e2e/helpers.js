@@ -2,7 +2,7 @@ export default class TestHelpers {
 	static async waitAndTap(elementId) {
 		await waitFor(element(by.id(elementId)))
 			.toBeVisible()
-			.withTimeout(5000);
+			.withTimeout(8000);
 
 		return element(by.id(elementId)).tap();
 	}
@@ -46,6 +46,16 @@ export default class TestHelpers {
 		if (device.getPlatform() === 'android') {
 			device.pressBack();
 		}
+	}
+
+	static async selectAllAndClear(elementId) {
+		await TestHelpers.tapByText('Select All');
+		return element(by.id(elementId)).tapBackspaceKey();
+	}
+
+	static async tapAndLongPress(elementId) {
+		await TestHelpers.tap(elementId);
+		return element(by.id(elementId)).longPress();
 	}
 
 	static tapAlertWithButton(text) {

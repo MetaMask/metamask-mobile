@@ -301,6 +301,7 @@ class Login extends PureComponent {
 						<Text style={styles.label}>{strings('login.password')}</Text>
 						<TextInput
 							style={styles.input}
+							testID={'login-password-input'}
 							value={this.state.password}
 							onChangeText={this.setPassword}
 							secureTextEntry
@@ -314,9 +315,13 @@ class Login extends PureComponent {
 
 					{this.renderSwitch()}
 
-					{!!this.state.error && <Text style={styles.errorMsg}>{this.state.error}</Text>}
+					{!!this.state.error && (
+						<Text style={styles.errorMsg} testID={'invalid-password-error'}>
+							{this.state.error}
+						</Text>
+					)}
 
-					<View style={styles.ctaWrapper}>
+					<View style={styles.ctaWrapper} testID={'log-in-button'}>
 						<StyledButton type={'confirm'} onPress={this.onLogin}>
 							{this.state.loading ? (
 								<ActivityIndicator size="small" color="white" />
