@@ -101,10 +101,20 @@ export default class BrowserBottomBar extends PureComponent {
 
 		return (
 			<ElevatedView elevation={11} style={styles.bottomBar}>
-				<TouchableOpacity onPress={goBack} style={styles.iconButton} disabled={!canGoBack}>
+				<TouchableOpacity
+					onPress={goBack}
+					style={styles.iconButton}
+					testID={'go-back-button'}
+					disabled={!canGoBack}
+				>
 					<Icon name="angle-left" size={24} style={[styles.icon, !canGoBack ? styles.disabledIcon : {}]} />
 				</TouchableOpacity>
-				<TouchableOpacity onPress={goForward} style={styles.iconButton} disabled={!canGoForward}>
+				<TouchableOpacity
+					onPress={goForward}
+					style={styles.iconButton}
+					testID={'go-forward-button'}
+					disabled={!canGoForward}
+				>
 					<Icon
 						name="angle-right"
 						size={24}
@@ -115,14 +125,14 @@ export default class BrowserBottomBar extends PureComponent {
 					<FeatherIcons name="search" size={24} style={styles.icon} />
 				</TouchableOpacity>
 
-				<TouchableOpacity onPress={showTabs} style={styles.iconButton}>
+				<TouchableOpacity onPress={showTabs} style={styles.iconButton} testID={'show-tabs-button'}>
 					<TabCountIcon style={styles.tabIcon} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={goHome} style={styles.iconButton}>
 					<SimpleLineIcons name="home" size={22} style={styles.icon} />
 				</TouchableOpacity>
 
-				<TouchableOpacity onPress={toggleOptions} style={styles.iconButton}>
+				<TouchableOpacity onPress={toggleOptions} style={styles.iconButton} testID={'options-button'}>
 					<MaterialIcon name="more-horiz" size={22} style={styles.icon} />
 				</TouchableOpacity>
 			</ElevatedView>

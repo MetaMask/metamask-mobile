@@ -1315,7 +1315,7 @@ export class BrowserTab extends PureComponent {
 		const showOptions = (this.props.navigation && this.props.navigation.getParam('showOptions', false)) || false;
 		if (showOptions) {
 			return (
-				<TouchableWithoutFeedback onPress={this.toggleOptions} testID={'options-button'}>
+				<TouchableWithoutFeedback onPress={this.toggleOptions}>
 					<View style={styles.optionsOverlay}>
 						<View
 							style={[
@@ -1485,7 +1485,7 @@ export class BrowserTab extends PureComponent {
 				animationOutTiming={300}
 				useNativeDriver
 			>
-				<View style={styles.urlModalContent}>
+				<View style={styles.urlModalContent} testID={'url-modal'}>
 					<TextInput
 						ref={this.inputRef}
 						autoCapitalize="none"
@@ -1723,7 +1723,6 @@ export class BrowserTab extends PureComponent {
 							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
-							testID={'browser-webview'}
 						/>
 					)}
 				</View>
