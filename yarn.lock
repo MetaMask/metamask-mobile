@@ -9653,10 +9653,10 @@ react-native-vector-icons@6.4.2:
   version "2.6.0"
   resolved "https://codeload.github.com/brunobar79/react-native-view-shot/tar.gz/17a65dc27222a78ad8942de3d536d7171bb2eb76"
 
-react-native-web3-webview@2.1.3:
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/react-native-web3-webview/-/react-native-web3-webview-2.1.3.tgz#7154cdb8208222298bd570b9e49ee4ad8527844e"
-  integrity sha512-drCLDbfHpgKQXFAG5bXCK7WO2NjlsjiChn8XAls9p10/b8Z9fhB6q1luTYC1C6eO7YGmvY2HHPg/TtGDrqU5pg==
+react-native-web3-webview@2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/react-native-web3-webview/-/react-native-web3-webview-2.1.4.tgz#0e48576b1a0da175ade2d3407df3b436432a7219"
+  integrity sha512-FRjN/B+0HfXG9lB0rwe2FWWnkPFi+yWM+MGMno8LzSDPrTxayMYr7C76JKDwzw3qUNI3R1NP/oQSAiuwBKHK7w==
   dependencies:
     fbjs "^0.8.3"
 
