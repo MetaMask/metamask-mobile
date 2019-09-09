@@ -111,23 +111,6 @@ exports[`TransactionReviewInformation should render correctly 1`] = `
       >
         Amount + Transaction Fee
       </Text>
-      <Text
-        style={
-          Array [
-            Object {
-              "color": "#000000",
-              "fontFamily": "Roboto",
-              "fontSize": 24,
-              "fontWeight": "600",
-              "textAlign": "right",
-              "textTransform": "uppercase",
-            },
-            Object {
-              "color": "#037dd6",
-            },
-          ]
-        }
-      />
     </View>
   </View>
 </View>
