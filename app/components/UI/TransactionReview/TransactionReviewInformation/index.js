@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 		minWidth: 30,
 		textTransform: 'uppercase'
 	},
-	overviewFiat: {
+	overviewPrimary: {
 		...fontStyles.bold,
 		color: colors.fontPrimary,
 		fontSize: 24,
@@ -183,7 +183,9 @@ class TransactionReviewInformation extends PureComponent {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 				const totalValue = (
-					<Text style={styles.overviewEth}>{`${renderFromWei(totalEth)} ${getTicker(ticker)} `}</Text>
+					<Text
+						style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
+					>{`${renderFromWei(totalEth)} ${getTicker(ticker)} `}</Text>
 				);
 				return [totalFiat, totalValue];
 			},
@@ -203,7 +205,9 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
 							{amountToken + ' ' + selectedAsset.symbol}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
+						<Text
+							style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
+						>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -230,14 +234,16 @@ class TransactionReviewInformation extends PureComponent {
 
 	render() {
 		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
+		const gasPrimary = totalGasFiat || totalGasEth;
+		const gasSeconday = totalGasFiat ? totalGasEth : null;
 
 		return (
 			<View style={styles.overview}>
 				<View style={[styles.overviewRow, styles.topOverviewRow]}>
 					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee')}</Text>
 					<View style={styles.overviewContent}>
-						<Text style={styles.overviewFiat}>{totalGasFiat}</Text>
-						<Text style={styles.overviewEth}>{totalGasEth}</Text>
+						<Text style={styles.overviewPrimary}>{gasPrimary}</Text>
+						{!!gasSeconday && <Text style={styles.overviewEth}>{totalGasEth}</Text>}
 					</View>
 				</View>
 
@@ -247,7 +253,9 @@ class TransactionReviewInformation extends PureComponent {
 						<Text style={styles.overviewInfo}>
 							{`${strings('transaction.amount')} + ${strings('transaction.gas_fee')}`}
 						</Text>
-						<Text style={[styles.overviewFiat, styles.overviewAccent]}>{totalFiat}</Text>
+						{!!totalFiat && (
+							<Text style={[styles.overviewPrimary, styles.overviewAccent]}>{totalFiat}</Text>
+						)}
 						{totalValue}
 					</View>
 				</View>
