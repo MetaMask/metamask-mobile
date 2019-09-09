@@ -14,6 +14,7 @@ import {
 	renderFromWei
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
+import { getTicker } from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -148,7 +149,7 @@ class TransactionReviewInformation extends PureComponent {
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-		const totalGasEth = `${renderFromWei(totalGas)} ${ticker}`;
+		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		this.setState({ totalGas, totalGasFiat, totalGasEth, totalFiat, totalValue });
@@ -181,7 +182,9 @@ class TransactionReviewInformation extends PureComponent {
 			ETH: () => {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
-				const totalValue = <Text style={styles.overviewEth}>{`${renderFromWei(totalEth)} ${ticker} `}</Text>;
+				const totalValue = (
+					<Text style={styles.overviewEth}>{`${renderFromWei(totalEth)} ${getTicker(ticker)} `}</Text>
+				);
 				return [totalFiat, totalValue];
 			},
 			ERC20: () => {
@@ -200,7 +203,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
 							{amountToken + ' ' + selectedAsset.symbol}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${ticker}`}</Text>
+						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -215,7 +218,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={styles.overviewEth}>
 							{' (#' + selectedAsset.tokenId + ')'}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${ticker}`}</Text>
+						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
