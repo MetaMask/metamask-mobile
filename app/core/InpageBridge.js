@@ -148,6 +148,44 @@ class InpageBridge {
 		this._network = undefined; // INITIAL_NETWORK
 		this._selectedAddress = undefined; // INITIAL_SELECTED_ADDRESS
 		this._subscribe();
+
+		/**
+		 * Called by dapps to request access to user accounts
+		 *
+		 * @param {object} params - Configuration object for account access
+		 * @returns {Promise<Array<string>>} - Promise resolving to array of user accounts
+		 */
+		this.enable = params =>
+			new Promise((resolve, reject) => {
+				// Temporary fix for peepeth calling
+				// ethereum.enable with the wrong context
+				const self = this || window.ethereum;
+				try {
+					self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+						if (error) {
+							reject(error);
+							return;
+						}
+						resolve(result);
+					});
+				} catch (e) {
+					if (e.toString().indexOf('Bridge not ready') !== -1) {
+						// Wait 1s and retry
+
+						setTimeout(() => {
+							self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
+								if (error) {
+									reject(error);
+									return;
+								}
+								resolve(result);
+							});
+						}, 1000);
+					} else {
+						throw e;
+					}
+				}
+			});
 	}
 
 	/**
@@ -209,45 +247,6 @@ class InpageBridge {
 		window.postMessageToNative({
 			payload,
 			type: 'INPAGE_REQUEST'
-		});
-	}
-
-	/**
-	 * Called by dapps to request access to user accounts
-	 *
-	 * @param {object} params - Configuration object for account access
-	 * @returns {Promise<Array<string>>} - Promise resolving to array of user accounts
-	 */
-	enable(params) {
-		return new Promise((resolve, reject) => {
-			// Temporary fix for peepeth calling
-			// ethereum.enable with the wrong context
-			const self = this || window.ethereum;
-			try {
-				self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
-					if (error) {
-						reject(error);
-						return;
-					}
-					resolve(result);
-				});
-			} catch (e) {
-				if (e.toString().indexOf('Bridge not ready') !== -1) {
-					// Wait 1s and retry
-
-					setTimeout(() => {
-						self.sendAsync({ method: 'eth_requestAccounts', params }, (error, result) => {
-							if (error) {
-								reject(error);
-								return;
-							}
-							resolve(result);
-						});
-					}, 1000);
-				} else {
-					throw e;
-				}
-			}
 		});
 	}
 
