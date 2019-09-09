@@ -41,9 +41,10 @@ class InpageBridge {
 		const oldNetwork = this._network;
 		this._selectedAddress = state.selectedAddress && state.selectedAddress.toLowerCase();
 		this._network = state.network;
-
-		this._selectedAddress !== oldAddress && this.emit('accountsChanged', [this._selectedAddress]);
-		this._network !== oldNetwork && this.emit('networkChanged', this._network);
+		oldAddress !== undefined &&
+			this._selectedAddress !== oldAddress &&
+			this.emit('accountsChanged', [this._selectedAddress]);
+		oldNetwork !== undefined && this._network !== oldNetwork && this.emit('networkChanged', this._network);
 
 		// Legacy web3 support
 		if (window.web3 && window.web3.eth) {
