@@ -1748,7 +1748,7 @@ const mapStateToProps = state => ({
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress.toLowerCase(),
 	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
