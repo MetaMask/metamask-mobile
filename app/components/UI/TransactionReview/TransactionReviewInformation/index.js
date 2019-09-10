@@ -14,6 +14,7 @@ import {
 	renderFromWei
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
+import { getTicker } from '../../../../util/transactions';
 
 const styles = StyleSheet.create({
 	overview: {
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
 		minWidth: 30,
 		textTransform: 'uppercase'
 	},
-	overviewFiat: {
+	overviewPrimary: {
 		...fontStyles.bold,
 		color: colors.fontPrimary,
 		fontSize: 24,
@@ -121,7 +122,11 @@ class TransactionReviewInformation extends PureComponent {
 		/**
 		 * Callback for transaction edition
 		 */
-		edit: PropTypes.func
+		edit: PropTypes.func,
+		/**
+		 * Current provider ticker
+		 */
+		ticker: PropTypes.string
 	};
 
 	state = {
@@ -139,11 +144,12 @@ class TransactionReviewInformation extends PureComponent {
 		const {
 			transaction: { gas, gasPrice },
 			currentCurrency,
-			conversionRate
+			conversionRate,
+			ticker
 		} = this.props;
 		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-		const totalGasEth = `${renderFromWei(totalGas)} ${strings('unit.eth')}`;
+		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();
 		this.setState({ totalGas, totalGasFiat, totalGasEth, totalFiat, totalValue });
@@ -168,7 +174,8 @@ class TransactionReviewInformation extends PureComponent {
 			transaction: { value, selectedAsset, assetType },
 			currentCurrency,
 			conversionRate,
-			contractExchangeRates
+			contractExchangeRates,
+			ticker
 		} = this.props;
 
 		const totals = {
@@ -176,7 +183,9 @@ class TransactionReviewInformation extends PureComponent {
 				const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
 				const totalFiat = weiToFiat(totalEth, conversionRate, currentCurrency);
 				const totalValue = (
-					<Text style={styles.overviewEth}>{`${renderFromWei(totalEth)} ${strings('unit.eth')} `}</Text>
+					<Text
+						style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
+					>{`${renderFromWei(totalEth)} ${getTicker(ticker)} `}</Text>
 				);
 				return [totalFiat, totalValue];
 			},
@@ -196,7 +205,9 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={[styles.overviewEth, styles.assetName]}>
 							{amountToken + ' ' + selectedAsset.symbol}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
+						<Text
+							style={totalFiat ? styles.overviewEth : [styles.overviewPrimary, styles.overviewAccent]}
+						>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -211,7 +222,7 @@ class TransactionReviewInformation extends PureComponent {
 						<Text numberOfLines={1} style={styles.overviewEth}>
 							{' (#' + selectedAsset.tokenId + ')'}
 						</Text>
-						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${strings('unit.eth')}`}</Text>
+						<Text style={styles.overviewEth}>{` + ${renderFromWei(totalGas)} ${getTicker(ticker)}`}</Text>
 					</View>
 				);
 				return [totalFiat, totalValue];
@@ -223,14 +234,16 @@ class TransactionReviewInformation extends PureComponent {
 
 	render() {
 		const { amountError, totalGasFiat, totalGasEth, totalFiat, totalValue } = this.state;
+		const gasPrimary = totalGasFiat || totalGasEth;
+		const gasSeconday = totalGasFiat ? totalGasEth : null;
 
 		return (
 			<View style={styles.overview}>
 				<View style={[styles.overviewRow, styles.topOverviewRow]}>
 					<Text style={styles.overviewLabel}>{strings('transaction.gas_fee')}</Text>
 					<View style={styles.overviewContent}>
-						<Text style={styles.overviewFiat}>{totalGasFiat}</Text>
-						<Text style={styles.overviewEth}>{totalGasEth}</Text>
+						<Text style={styles.overviewPrimary}>{gasPrimary}</Text>
+						{!!gasSeconday && <Text style={styles.overviewEth}>{totalGasEth}</Text>}
 					</View>
 				</View>
 
@@ -240,7 +253,9 @@ class TransactionReviewInformation extends PureComponent {
 						<Text style={styles.overviewInfo}>
 							{`${strings('transaction.amount')} + ${strings('transaction.gas_fee')}`}
 						</Text>
-						<Text style={[styles.overviewFiat, styles.overviewAccent]}>{totalFiat}</Text>
+						{!!totalFiat && (
+							<Text style={[styles.overviewPrimary, styles.overviewAccent]}>{totalFiat}</Text>
+						)}
 						{totalValue}
 					</View>
 				</View>
@@ -262,7 +277,8 @@ const mapStateToProps = state => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	transaction: state.transaction
+	transaction: state.transaction,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker
 });
 
 export default connect(mapStateToProps)(TransactionReviewInformation);
