@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { View } from 'react-native';
-import Web3Webview from 'react-native-web3-webview';
+import { WebView } from 'react-native-webview';
 import { getWebviewNavbar } from '../../UI/Navbar';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../../util/Logger';
@@ -39,7 +39,7 @@ export default class SimpleWebview extends PureComponent {
 		if (uri) {
 			return (
 				<View style={baseStyles.flexGrow}>
-					<Web3Webview source={{ uri }} />
+					<WebView source={{ uri }} />
 				</View>
 			);
 		}

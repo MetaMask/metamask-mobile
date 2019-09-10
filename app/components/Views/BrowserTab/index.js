@@ -15,7 +15,7 @@ import {
 	InteractionManager
 } from 'react-native';
 import { withNavigation } from 'react-navigation';
-import Web3Webview from 'react-native-web3-webview';
+import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -1704,7 +1704,7 @@ export class BrowserTab extends PureComponent {
 			>
 				<View style={styles.webview}>
 					{activated && !forceReload && (
-						<Web3Webview
+						<WebView
 							// eslint-disable-next-line react/jsx-no-bind
 							renderError={() => (
 								<WebviewError error={this.state.lastError} onReload={this.forceReload} />

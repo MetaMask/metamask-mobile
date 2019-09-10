@@ -3461,7 +3461,7 @@ escape-html@~1.0.3:
   resolved "https://registry.yarnpkg.com/escape-html/-/escape-html-1.0.3.tgz#0258eae4d3d0c0974de1c169188ef0051d1d1988"
   integrity sha1-Aljq5NPQwJdN4cFpGI7wBR0dGYg=
 
-escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.4, escape-string-regexp@^1.0.5:
+escape-string-regexp@1.0.5, escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.4, escape-string-regexp@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
@@ -4621,7 +4621,7 @@ fbjs-scripts@^1.0.0:
     semver "^5.1.0"
     through2 "^2.0.0"
 
-fbjs@^0.8.3, fbjs@^0.8.9:
+fbjs@^0.8.9:
   version "0.8.17"
   resolved "https://registry.yarnpkg.com/fbjs/-/fbjs-0.8.17.tgz#c4d598ead6949112653d6588b01a5cdcd9f90fdd"
   integrity sha1-xNWY6taUkRJlPWWIsBpc3Nn5D90=
@@ -5682,7 +5682,7 @@ inquirer@^6.2.2:
     strip-ansi "^5.1.0"
     through "^2.3.6"
 
-invariant@^2.2.2, invariant@^2.2.4:
+invariant@2.2.4, invariant@^2.2.2, invariant@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
   integrity sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==
@@ -9386,9 +9386,9 @@ react-native-animatable@^1.2.4:
   dependencies:
     prop-types "^15.5.10"
 
-"react-native-animated-fox@github:brunobar79/react-native-animated-fox#813096236bd765da465647c31b2d392e1d114d3f":
+"react-native-animated-fox@github:brunobar79/react-native-animated-fox#4515395b0d8c3855630790ab3f806ed35579b23d":
   version "1.0.0"
-  resolved "https://codeload.github.com/brunobar79/react-native-animated-fox/tar.gz/813096236bd765da465647c31b2d392e1d114d3f"
+  resolved "https://codeload.github.com/brunobar79/react-native-animated-fox/tar.gz/4515395b0d8c3855630790ab3f806ed35579b23d"
   dependencies:
     prop-types "^15.5.10"
 
@@ -9569,9 +9569,9 @@ react-native-randombytes@3.5.2:
     buffer "^4.9.1"
     sjcl "^1.0.3"
 
-"react-native-remote-svg@github:brunobar79/react-native-remote-svg#9c44219ef67de3535cbec62722f8654c3c17772c":
+"react-native-remote-svg@github:brunobar79/react-native-remote-svg#19e7d85fd23902d5d462be28036ed081c4991df2":
   version "1.4.3"
-  resolved "https://codeload.github.com/brunobar79/react-native-remote-svg/tar.gz/9c44219ef67de3535cbec62722f8654c3c17772c"
+  resolved "https://codeload.github.com/brunobar79/react-native-remote-svg/tar.gz/19e7d85fd23902d5d462be28036ed081c4991df2"
 
 react-native-safe-area-view@^0.14.1:
   version "0.14.7"
@@ -9653,12 +9653,13 @@ react-native-vector-icons@6.4.2:
   version "2.6.0"
   resolved "https://codeload.github.com/brunobar79/react-native-view-shot/tar.gz/17a65dc27222a78ad8942de3d536d7171bb2eb76"
 
-react-native-web3-webview@2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/react-native-web3-webview/-/react-native-web3-webview-2.1.4.tgz#0e48576b1a0da175ade2d3407df3b436432a7219"
-  integrity sha512-FRjN/B+0HfXG9lB0rwe2FWWnkPFi+yWM+MGMno8LzSDPrTxayMYr7C76JKDwzw3qUNI3R1NP/oQSAiuwBKHK7w==
+react-native-webview@^7.0.5:
+  version "7.0.5"
+  resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-7.0.5.tgz#1dd9d4f2856bda86a40222eca3612bf2152bacd3"
+  integrity sha512-FWY3tjbyV3Uhuw1JxJ0zs2HspJ5HAsIfkJaquURsVWQnTdZPnkSQjHWQp0PzGIwJ1PPVOA/gnhRmd7SZU/Br5Q==
   dependencies:
-    fbjs "^0.8.3"
+    escape-string-regexp "1.0.5"
+    invariant "2.2.4"
 
 react-native@0.59.10:
   version "0.59.10"

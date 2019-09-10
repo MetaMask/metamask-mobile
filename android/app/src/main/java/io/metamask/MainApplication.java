@@ -1,6 +1,7 @@
 package io.metamask;
 
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.smixx.fabric.FabricPackage;
 import com.reactnativecommunity.netinfo.NetInfoPackage;
 import fr.greweb.reactnativeviewshot.RNViewShotPackage;
@@ -48,6 +49,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
+            new RNCWebViewPackage(),
             	new FabricPackage(),
 				new NetInfoPackage(),
             	new RNViewShotPackage(),
