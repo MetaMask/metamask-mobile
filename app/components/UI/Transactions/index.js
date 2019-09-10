@@ -220,6 +220,7 @@ class Transactions extends PureComponent {
 		<TransactionElement
 			tx={item}
 			i={index}
+			testID={'txn-item'}
 			selectedAddress={this.props.selectedAddress}
 			selected={!!this.state.selectedTx.get(item.id)}
 			onPressItem={this.toggleDetailsView}
@@ -264,7 +265,7 @@ class Transactions extends PureComponent {
 	}
 
 	render = () => (
-		<View testID={'transactions'} style={styles.wrapper}>
+		<View style={styles.wrapper} testID={'transactions-screen'}>
 			{this.renderContent()}
 		</View>
 	);

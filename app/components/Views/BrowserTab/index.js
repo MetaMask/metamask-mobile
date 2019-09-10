@@ -1485,12 +1485,13 @@ export class BrowserTab extends PureComponent {
 				animationOutTiming={300}
 				useNativeDriver
 			>
-				<View style={styles.urlModalContent}>
+				<View style={styles.urlModalContent} testID={'url-modal'}>
 					<TextInput
 						ref={this.inputRef}
 						autoCapitalize="none"
 						autoCorrect={false}
 						clearButtonMode="while-editing"
+						testID={'url-input'}
 						onChangeText={this.onURLChange}
 						onSubmitEditing={this.onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
@@ -1506,7 +1507,11 @@ export class BrowserTab extends PureComponent {
 							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
 						</TouchableOpacity>
 					) : (
-						<TouchableOpacity style={styles.cancelButton} onPress={this.hideUrlModal}>
+						<TouchableOpacity
+							style={styles.cancelButton}
+							testID={'cancel-url-button'}
+							onPress={this.hideUrlModal}
+						>
 							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
 						</TouchableOpacity>
 					)}
@@ -1722,7 +1727,6 @@ export class BrowserTab extends PureComponent {
 							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
-							testID={'browser-webview'}
 						/>
 					)}
 				</View>
