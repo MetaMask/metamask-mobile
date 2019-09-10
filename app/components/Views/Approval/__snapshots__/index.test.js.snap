@@ -8,6 +8,7 @@ exports[`Approval should render correctly 1`] = `
       "flex": 1,
     }
   }
+  testID="confirm-transaction-screen"
 >
   <Connect(TransactionEditor)
     mode="review"

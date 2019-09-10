@@ -8,7 +8,7 @@ exports[`Transactions should render correctly 1`] = `
       "flex": 1,
     }
   }
-  testID="transactions"
+  testID="transactions-screen"
 >
   <View
     style={
