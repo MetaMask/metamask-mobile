@@ -84,6 +84,7 @@ exports[`Browser should render correctly 1`] = `
           "paddingTop": 50,
         }
       }
+      testID="url-modal"
     >
       <TextInput
         allowFontScaling={true}
@@ -111,6 +112,7 @@ exports[`Browser should render correctly 1`] = `
             "textAlign": "left",
           }
         }
+        testID="url-input"
         underlineColorAndroid="transparent"
         value=""
       />
@@ -123,6 +125,7 @@ exports[`Browser should render correctly 1`] = `
             "marginTop": 7,
           }
         }
+        testID="cancel-url-button"
       >
         <Text
           style={
