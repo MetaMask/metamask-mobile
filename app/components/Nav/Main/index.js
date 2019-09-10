@@ -640,7 +640,7 @@ class Main extends PureComponent {
 		}
 		// Check if it's a payment channel deposit transaction to sign
 		const to = toChecksumAddress(transactionMeta.transaction.to);
-		const networkId = Networks[this.props.providerType].networkId.toString();
+		const networkId = Networks[this.props.providerType].networkId;
 		if (
 			this.props.paymentChannelsEnabled &&
 			AppConstants.CONNEXT.SUPPORTED_NETWORKS.includes(this.props.providerType) &&
