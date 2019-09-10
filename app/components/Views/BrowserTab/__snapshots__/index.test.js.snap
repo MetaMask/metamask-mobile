@@ -125,7 +125,7 @@ exports[`Browser should render correctly 1`] = `
             "marginTop": 7,
           }
         }
-        testID="cancel-url"
+        testID="cancel-url-button"
       >
         <Text
           style={

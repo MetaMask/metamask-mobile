@@ -150,7 +150,7 @@ export const TransactionNotification = props => {
 			>
 				<TouchableOpacity
 					style={[styles.defaultFlash, styles.defaultFlashFloating]}
-					testID={'press-notification'}
+					testID={'press-notification-button'}
 					onPress={this._onPress}
 					activeOpacity={0.8}
 				>

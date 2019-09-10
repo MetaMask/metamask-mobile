@@ -100,7 +100,7 @@ describe('Import seedphrase flow', () => {
 		// Tap to donate 1 ETH
 		await TestHelpers.tapAtPoint('browser-screen', { x: 76, y: 189 });
 		// Check that account approval is displayed with correct dapp name
-		await TestHelpers.checkIfHasText('dapp-name', ETH_Faucet);
+		await TestHelpers.checkIfHasText('dapp-name-title', ETH_Faucet);
 		// Tap on CONNECT button
 		await TestHelpers.tapByText('CONNECT');
 		// Check that we are on the confirm transaction screen
@@ -145,7 +145,7 @@ describe('Import seedphrase flow', () => {
 		// Tap on header URL
 		await TestHelpers.tapAtPoint('browser-screen', { x: 200, y: -5 });
 		// Tap cancel
-		await TestHelpers.waitAndTap('cancel-url');
+		await TestHelpers.waitAndTap('cancel-url-button');
 	});
 
 	it('should log out', async () => {

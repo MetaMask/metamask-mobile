@@ -1507,7 +1507,11 @@ export class BrowserTab extends PureComponent {
 							<MaterialIcon name="close" size={20} style={[styles.icon, styles.iconClose]} />
 						</TouchableOpacity>
 					) : (
-						<TouchableOpacity style={styles.cancelButton} testID={'cancel-url'} onPress={this.hideUrlModal}>
+						<TouchableOpacity
+							style={styles.cancelButton}
+							testID={'cancel-url-button'}
+							onPress={this.hideUrlModal}
+						>
 							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
 						</TouchableOpacity>
 					)}

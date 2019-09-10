@@ -91,7 +91,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 "textAlign": "center",
               }
             }
-            testID="dapp-name"
+            testID="dapp-name-title"
           />
           <Text
             numberOfLines={1}
