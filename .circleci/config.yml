@@ -93,7 +93,7 @@ jobs:
               brew update
               brew tap wix/brew
               brew install --HEAD applesimutils
-              yarn install -g detox-cli
+              yarn global add detox-cli
       - run: echo $IOS_ENV | tr "|" "\n" > .ios.env
       - run: detox clean-framework-cache && detox build-framework-cache
       - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
