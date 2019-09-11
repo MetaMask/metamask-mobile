@@ -185,14 +185,14 @@ workflows:
       - test-unit:
           requires:
             - prep-node-deps
-    #   - test-e2e-ios:
-    #       requires:
-    #         - test-unit
+      - test-e2e-ios:
+          requires:
+            - test-unit
       - all-tests-pass:
           requires:
             - lint
             - test-unit
-            # - test-e2e-ios
+            - test-e2e-ios
     #   - upload-coverage:
     #       requires:
     #         - test-unit
