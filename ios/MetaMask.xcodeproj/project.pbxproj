@@ -2315,7 +2315,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n#    export SKIP_BUNDLING=true\n#fi\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "#if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n#    export SKIP_BUNDLING=true\n#fi\n\nexport NODE_BINARY=${which node}\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		15A06E9922D94AA600DBAD25 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;

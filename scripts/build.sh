@@ -160,8 +160,7 @@ buildIosRelease(){
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
-		if [ ! -f "ios/release.xcconfig" ]
-		then
+		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo $IOS_ENV | tr "|" "\n" > ios/release.xcconfig
 		fi
 		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone X (12.2)"
