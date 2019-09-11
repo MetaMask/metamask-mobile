@@ -4,7 +4,7 @@ const getWindowInformation = `
 
     const siteName = document.querySelector('head > meta[property="og:site_name"]');
     const title = siteName || document.querySelector('head > meta[name="title"]');
-    window.postMessageToNative(
+    window.ReactNativeWebView.postMessage(
         {
             type: 'GET_TITLE_FOR_BOOKMARK',
             payload: {
@@ -25,7 +25,7 @@ export const SPA_urlChangeListener = `(function () {
 		const title = siteName || document.querySelector('head > meta[name="title"]') || document.title;
 		const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
 
-		window.postMessageToNative(
+		window.ReactNativeWebView.postMessage(
 			{
 				type: 'NAV_CHANGE',
 				payload: {
@@ -37,7 +37,7 @@ export const SPA_urlChangeListener = `(function () {
 
 		setTimeout(() => {
 			const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
-			window.postMessageToNative(
+			window.ReactNativeWebView.postMessage(
 			{
 				type: 'GET_HEIGHT',
 				payload: {
@@ -80,7 +80,7 @@ export const JS_WINDOW_INFORMATION_HEIGHT = os => `
 			os === 'ios'
 				? `setTimeout(() => {
                     const height = Math.max(document.documentElement.clientHeight, document.documentElement.scrollHeight, document.body.clientHeight, document.body.scrollHeight);
-                    window.postMessageToNative(
+                    window.ReactNativeWebView.postMessage(
                     {
                         type: 'GET_HEIGHT',
                         payload: {

@@ -217,7 +217,7 @@ class InpageBridge {
 	 * @param {Function} callback - Function called when operation completes
 	 */
 	sendAsync(payload, callback) {
-		if (!window.postMessageToNative) {
+		if (!window.ReactNativeWebView.postMessage) {
 			throw new Error('Bridge not ready');
 		}
 		const random = Math.floor(Math.random() * 100 + 1);
@@ -245,7 +245,7 @@ class InpageBridge {
 			}));
 		}
 		this._pending[`${payload.__mmID}`] = callback;
-		window.postMessageToNative({
+		window.ReactNativeWebView.postMessage({
 			payload,
 			type: 'INPAGE_REQUEST'
 		});
