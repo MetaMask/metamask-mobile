@@ -230,7 +230,7 @@ class TransactionElement extends PureComponent {
 
 	renderTxTime = () => {
 		const { tx, selectedAddress } = this.props;
-		const incoming = toChecksumAddress(tx.transaction.to) === selectedAddress;
+		const incoming = tx.transaction.to && toChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && toChecksumAddress(tx.transaction.from) === selectedAddress;
 		return (
 			<Text style={styles.date}>

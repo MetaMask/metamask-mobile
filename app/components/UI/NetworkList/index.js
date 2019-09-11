@@ -245,7 +245,7 @@ export class NetworkList extends PureComponent {
 	}
 
 	render = () => (
-		<SafeAreaView style={styles.wrapper} testID={'account-list'}>
+		<SafeAreaView style={styles.wrapper} testID={'networks-list'}>
 			<View style={styles.titleWrapper}>
 				<Text testID={'networks-list-title'} style={styles.title} onPress={this.closeSideBar}>
 					{strings('networks.title')}

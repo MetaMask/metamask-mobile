@@ -30,6 +30,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         "width": 24,
       }
     }
+    testID="go-back-button"
   >
     <Icon
       allowFontScaling={false}
@@ -61,6 +62,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         "width": 24,
       }
     }
+    testID="go-forward-button"
   >
     <Icon
       allowFontScaling={false}
@@ -93,6 +95,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         "width": 24,
       }
     }
+    testID="search-button"
   >
     <Icon
       allowFontScaling={false}
@@ -120,6 +123,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         "width": 24,
       }
     }
+    testID="show-tabs-button"
   >
     <Connect(TabCountIcon)
       style={
@@ -169,6 +173,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         "width": 24,
       }
     }
+    testID="options-button"
   >
     <Icon
       allowFontScaling={false}
