@@ -157,7 +157,7 @@ workflows:
   full_test:
     jobs:
       - prep-deps
-	  - lint:
+      - lint:
           requires:
             - prep-node-deps
       - test-unit:
