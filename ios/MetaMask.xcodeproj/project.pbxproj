@@ -25,42 +25,7 @@
 		153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
 		154BC3592238C164009AF026 /* libRNSVG.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BC3562238C135009AF026 /* libRNSVG.a */; };
 		15631CF9232A3ED400E3AC6C /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 008F07F21AC5B25A0029DE68 /* main.jsbundle */; };
-		15631DF4232A465900E3AC6C /* wallet-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DC7232A465900E3AC6C /* wallet-icon.png */; };
-		15631DF5232A465900E3AC6C /* astronaut.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DC8232A465900E3AC6C /* astronaut.png */; };
-		15631DF6232A465900E3AC6C /* metamask-name.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DC9232A465900E3AC6C /* metamask-name.png */; };
-		15631DF7232A465900E3AC6C /* lock.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DCA232A465900E3AC6C /* lock.png */; };
-		15631DF8232A465900E3AC6C /* eth-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DCB232A465900E3AC6C /* eth-logo.png */; };
-		15631DF9232A465900E3AC6C /* welcome-bg2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 15631DCC232A465900E3AC6C /* welcome-bg2.jpg */; };
-		15631DFA232A465900E3AC6C /* selected-wallet-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DCD232A465900E3AC6C /* selected-wallet-icon.png */; };
-		15631DFB232A465900E3AC6C /* welcome-bg2@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 15631DCE232A465900E3AC6C /* welcome-bg2@2x.jpg */; };
-		15631DFC232A465900E3AC6C /* payment-channel-watermark.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DCF232A465900E3AC6C /* payment-channel-watermark.png */; };
-		15631DFD232A465900E3AC6C /* welcome-bg1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD0232A465900E3AC6C /* welcome-bg1.jpg */; };
-		15631DFE232A465900E3AC6C /* welcome-bg2@3x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD1232A465900E3AC6C /* welcome-bg2@3x.jpg */; };
-		15631DFF232A465900E3AC6C /* mm-instapay.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD2232A465900E3AC6C /* mm-instapay.png */; };
-		15631E00232A465900E3AC6C /* fox-badge.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD3232A465900E3AC6C /* fox-badge.png */; };
-		15631E01232A465900E3AC6C /* opensea-logo-flat-colored-blue.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD4232A465900E3AC6C /* opensea-logo-flat-colored-blue.png */; };
-		15631E02232A465900E3AC6C /* mm-instapay-selected.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD5232A465900E3AC6C /* mm-instapay-selected.png */; };
-		15631E03232A465900E3AC6C /* frame.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD6232A465900E3AC6C /* frame.png */; };
-		15631E04232A465900E3AC6C /* welcome-bg1@3x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD7232A465900E3AC6C /* welcome-bg1@3x.jpg */; };
-		15631E05232A465900E3AC6C /* payment-channel-welcome.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD8232A465900E3AC6C /* payment-channel-welcome.png */; };
-		15631E06232A465900E3AC6C /* fox.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DD9232A465900E3AC6C /* fox.png */; };
-		15631E07232A465900E3AC6C /* welcome-bg1@2x.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 15631DDA232A465900E3AC6C /* welcome-bg1@2x.jpg */; };
-		15631E08232A465900E3AC6C /* back-icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DE1232A465900E3AC6C /* back-icon@3x.png */; };
-		15631E09232A465900E3AC6C /* back-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DE2232A465900E3AC6C /* back-icon@2x.png */; };
-		15631E0A232A465900E3AC6C /* back-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DE3232A465900E3AC6C /* back-icon.png */; };
-		15631E0B232A465900E3AC6C /* back-icon-mask.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DE4232A465900E3AC6C /* back-icon-mask.png */; };
-		15631E0C232A465900E3AC6C /* fm_icon_danger@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DE8232A465900E3AC6C /* fm_icon_danger@3x.png */; };
-		15631E0D232A465900E3AC6C /* fm_icon_success@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DE9232A465900E3AC6C /* fm_icon_success@2x.png */; };
-		15631E0E232A465900E3AC6C /* fm_icon_info.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DEA232A465900E3AC6C /* fm_icon_info.png */; };
-		15631E0F232A465900E3AC6C /* fm_icon_warning@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DEB232A465900E3AC6C /* fm_icon_warning@2x.png */; };
-		15631E10232A465900E3AC6C /* fm_icon_warning@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DEC232A465900E3AC6C /* fm_icon_warning@3x.png */; };
-		15631E11232A465900E3AC6C /* fm_icon_success.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DED232A465900E3AC6C /* fm_icon_success.png */; };
-		15631E12232A465900E3AC6C /* fm_icon_success@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DEE232A465900E3AC6C /* fm_icon_success@3x.png */; };
-		15631E13232A465900E3AC6C /* fm_icon_danger@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DEF232A465900E3AC6C /* fm_icon_danger@2x.png */; };
-		15631E14232A465900E3AC6C /* fm_icon_warning.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DF0232A465900E3AC6C /* fm_icon_warning.png */; };
-		15631E15232A465900E3AC6C /* fm_icon_danger.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DF1232A465900E3AC6C /* fm_icon_danger.png */; };
-		15631E16232A465900E3AC6C /* fm_icon_info@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DF2232A465900E3AC6C /* fm_icon_info@3x.png */; };
-		15631E17232A465900E3AC6C /* fm_icon_info@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15631DF3232A465900E3AC6C /* fm_icon_info@2x.png */; };
+		15631E91232AB1DC00E3AC6C /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 15631E8F232AB1C400E3AC6C /* assets */; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		158B063C211A72F500DF3C74 /* InpageBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B063A211A72F500DF3C74 /* InpageBridge.js */; };
 		1597299D2329EE940086AFAE /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1597299C2329EE850086AFAE /* Branch.framework */; };
@@ -773,42 +738,7 @@
 		15205D6221596AD90049EA93 /* MetaMask.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMask.entitlements; path = MetaMask/MetaMask.entitlements; sourceTree = "<group>"; };
 		153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		154BC3502238C12E009AF026 /* RNSVG.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNSVG.xcodeproj; path = "../node_modules/react-native-svg/ios/RNSVG.xcodeproj"; sourceTree = "<group>"; };
-		15631DC7232A465900E3AC6C /* wallet-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "wallet-icon.png"; sourceTree = "<group>"; };
-		15631DC8232A465900E3AC6C /* astronaut.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = astronaut.png; sourceTree = "<group>"; };
-		15631DC9232A465900E3AC6C /* metamask-name.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "metamask-name.png"; sourceTree = "<group>"; };
-		15631DCA232A465900E3AC6C /* lock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lock.png; sourceTree = "<group>"; };
-		15631DCB232A465900E3AC6C /* eth-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "eth-logo.png"; sourceTree = "<group>"; };
-		15631DCC232A465900E3AC6C /* welcome-bg2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "welcome-bg2.jpg"; sourceTree = "<group>"; };
-		15631DCD232A465900E3AC6C /* selected-wallet-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "selected-wallet-icon.png"; sourceTree = "<group>"; };
-		15631DCE232A465900E3AC6C /* welcome-bg2@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "welcome-bg2@2x.jpg"; sourceTree = "<group>"; };
-		15631DCF232A465900E3AC6C /* payment-channel-watermark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "payment-channel-watermark.png"; sourceTree = "<group>"; };
-		15631DD0232A465900E3AC6C /* welcome-bg1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "welcome-bg1.jpg"; sourceTree = "<group>"; };
-		15631DD1232A465900E3AC6C /* welcome-bg2@3x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "welcome-bg2@3x.jpg"; sourceTree = "<group>"; };
-		15631DD2232A465900E3AC6C /* mm-instapay.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mm-instapay.png"; sourceTree = "<group>"; };
-		15631DD3232A465900E3AC6C /* fox-badge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fox-badge.png"; sourceTree = "<group>"; };
-		15631DD4232A465900E3AC6C /* opensea-logo-flat-colored-blue.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "opensea-logo-flat-colored-blue.png"; sourceTree = "<group>"; };
-		15631DD5232A465900E3AC6C /* mm-instapay-selected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mm-instapay-selected.png"; sourceTree = "<group>"; };
-		15631DD6232A465900E3AC6C /* frame.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = frame.png; sourceTree = "<group>"; };
-		15631DD7232A465900E3AC6C /* welcome-bg1@3x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "welcome-bg1@3x.jpg"; sourceTree = "<group>"; };
-		15631DD8232A465900E3AC6C /* payment-channel-welcome.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "payment-channel-welcome.png"; sourceTree = "<group>"; };
-		15631DD9232A465900E3AC6C /* fox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fox.png; sourceTree = "<group>"; };
-		15631DDA232A465900E3AC6C /* welcome-bg1@2x.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "welcome-bg1@2x.jpg"; sourceTree = "<group>"; };
-		15631DE1232A465900E3AC6C /* back-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon@3x.png"; sourceTree = "<group>"; };
-		15631DE2232A465900E3AC6C /* back-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon@2x.png"; sourceTree = "<group>"; };
-		15631DE3232A465900E3AC6C /* back-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon.png"; sourceTree = "<group>"; };
-		15631DE4232A465900E3AC6C /* back-icon-mask.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon-mask.png"; sourceTree = "<group>"; };
-		15631DE8232A465900E3AC6C /* fm_icon_danger@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_danger@3x.png"; sourceTree = "<group>"; };
-		15631DE9232A465900E3AC6C /* fm_icon_success@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_success@2x.png"; sourceTree = "<group>"; };
-		15631DEA232A465900E3AC6C /* fm_icon_info.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fm_icon_info.png; sourceTree = "<group>"; };
-		15631DEB232A465900E3AC6C /* fm_icon_warning@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_warning@2x.png"; sourceTree = "<group>"; };
-		15631DEC232A465900E3AC6C /* fm_icon_warning@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_warning@3x.png"; sourceTree = "<group>"; };
-		15631DED232A465900E3AC6C /* fm_icon_success.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fm_icon_success.png; sourceTree = "<group>"; };
-		15631DEE232A465900E3AC6C /* fm_icon_success@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_success@3x.png"; sourceTree = "<group>"; };
-		15631DEF232A465900E3AC6C /* fm_icon_danger@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_danger@2x.png"; sourceTree = "<group>"; };
-		15631DF0232A465900E3AC6C /* fm_icon_warning.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fm_icon_warning.png; sourceTree = "<group>"; };
-		15631DF1232A465900E3AC6C /* fm_icon_danger.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fm_icon_danger.png; sourceTree = "<group>"; };
-		15631DF2232A465900E3AC6C /* fm_icon_info@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_info@3x.png"; sourceTree = "<group>"; };
-		15631DF3232A465900E3AC6C /* fm_icon_info@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "fm_icon_info@2x.png"; sourceTree = "<group>"; };
+		15631E8F232AB1C400E3AC6C /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = "<group>"; };
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
 		158B063A211A72F500DF3C74 /* InpageBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridge.js; path = ../app/core/InpageBridge.js; sourceTree = "<group>"; };
 		159729972329EE840086AFAE /* BranchSDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = BranchSDK.xcodeproj; path = "ios-branch-deep-linking-attribution/carthage-files/BranchSDK.xcodeproj"; sourceTree = "<group>"; };
@@ -1037,7 +967,7 @@
 		13B07FAE1A68108700A75B9A /* MetaMask */ = {
 			isa = PBXGroup;
 			children = (
-				15631DC4232A465900E3AC6C /* assets */,
+				15631E8F232AB1C400E3AC6C /* assets */,
 				15F7796222A1BC1E00B1DF8C /* NativeModules */,
 				15205D6221596AD90049EA93 /* MetaMask.entitlements */,
 				158B063A211A72F500DF3C74 /* InpageBridge.js */,
@@ -1135,137 +1065,6 @@
 				154BC3412238BB17009AF026 /* libRNGestureHandler-tvOS.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		15631DC4232A465900E3AC6C /* assets */ = {
-			isa = PBXGroup;
-			children = (
-				15631DC5232A465900E3AC6C /* app */,
-				15631DDB232A465900E3AC6C /* node_modules */,
-			);
-			path = assets;
-			sourceTree = "<group>";
-		};
-		15631DC5232A465900E3AC6C /* app */ = {
-			isa = PBXGroup;
-			children = (
-				15631DC6232A465900E3AC6C /* images */,
-			);
-			path = app;
-			sourceTree = "<group>";
-		};
-		15631DC6232A465900E3AC6C /* images */ = {
-			isa = PBXGroup;
-			children = (
-				15631DC7232A465900E3AC6C /* wallet-icon.png */,
-				15631DC8232A465900E3AC6C /* astronaut.png */,
-				15631DC9232A465900E3AC6C /* metamask-name.png */,
-				15631DCA232A465900E3AC6C /* lock.png */,
-				15631DCB232A465900E3AC6C /* eth-logo.png */,
-				15631DCC232A465900E3AC6C /* welcome-bg2.jpg */,
-				15631DCD232A465900E3AC6C /* selected-wallet-icon.png */,
-				15631DCE232A465900E3AC6C /* welcome-bg2@2x.jpg */,
-				15631DCF232A465900E3AC6C /* payment-channel-watermark.png */,
-				15631DD0232A465900E3AC6C /* welcome-bg1.jpg */,
-				15631DD1232A465900E3AC6C /* welcome-bg2@3x.jpg */,
-				15631DD2232A465900E3AC6C /* mm-instapay.png */,
-				15631DD3232A465900E3AC6C /* fox-badge.png */,
-				15631DD4232A465900E3AC6C /* opensea-logo-flat-colored-blue.png */,
-				15631DD5232A465900E3AC6C /* mm-instapay-selected.png */,
-				15631DD6232A465900E3AC6C /* frame.png */,
-				15631DD7232A465900E3AC6C /* welcome-bg1@3x.jpg */,
-				15631DD8232A465900E3AC6C /* payment-channel-welcome.png */,
-				15631DD9232A465900E3AC6C /* fox.png */,
-				15631DDA232A465900E3AC6C /* welcome-bg1@2x.jpg */,
-			);
-			path = images;
-			sourceTree = "<group>";
-		};
-		15631DDB232A465900E3AC6C /* node_modules */ = {
-			isa = PBXGroup;
-			children = (
-				15631DDC232A465900E3AC6C /* react-navigation-stack */,
-				15631DE5232A465900E3AC6C /* react-native-flash-message */,
-			);
-			path = node_modules;
-			sourceTree = "<group>";
-		};
-		15631DDC232A465900E3AC6C /* react-navigation-stack */ = {
-			isa = PBXGroup;
-			children = (
-				15631DDD232A465900E3AC6C /* lib */,
-			);
-			path = "react-navigation-stack";
-			sourceTree = "<group>";
-		};
-		15631DDD232A465900E3AC6C /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				15631DDE232A465900E3AC6C /* module */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
-		15631DDE232A465900E3AC6C /* module */ = {
-			isa = PBXGroup;
-			children = (
-				15631DDF232A465900E3AC6C /* views */,
-			);
-			path = module;
-			sourceTree = "<group>";
-		};
-		15631DDF232A465900E3AC6C /* views */ = {
-			isa = PBXGroup;
-			children = (
-				15631DE0232A465900E3AC6C /* assets */,
-			);
-			path = views;
-			sourceTree = "<group>";
-		};
-		15631DE0232A465900E3AC6C /* assets */ = {
-			isa = PBXGroup;
-			children = (
-				15631DE1232A465900E3AC6C /* back-icon@3x.png */,
-				15631DE2232A465900E3AC6C /* back-icon@2x.png */,
-				15631DE3232A465900E3AC6C /* back-icon.png */,
-				15631DE4232A465900E3AC6C /* back-icon-mask.png */,
-			);
-			path = assets;
-			sourceTree = "<group>";
-		};
-		15631DE5232A465900E3AC6C /* react-native-flash-message */ = {
-			isa = PBXGroup;
-			children = (
-				15631DE6232A465900E3AC6C /* src */,
-			);
-			path = "react-native-flash-message";
-			sourceTree = "<group>";
-		};
-		15631DE6232A465900E3AC6C /* src */ = {
-			isa = PBXGroup;
-			children = (
-				15631DE7232A465900E3AC6C /* icons */,
-			);
-			path = src;
-			sourceTree = "<group>";
-		};
-		15631DE7232A465900E3AC6C /* icons */ = {
-			isa = PBXGroup;
-			children = (
-				15631DE8232A465900E3AC6C /* fm_icon_danger@3x.png */,
-				15631DE9232A465900E3AC6C /* fm_icon_success@2x.png */,
-				15631DEA232A465900E3AC6C /* fm_icon_info.png */,
-				15631DEB232A465900E3AC6C /* fm_icon_warning@2x.png */,
-				15631DEC232A465900E3AC6C /* fm_icon_warning@3x.png */,
-				15631DED232A465900E3AC6C /* fm_icon_success.png */,
-				15631DEE232A465900E3AC6C /* fm_icon_success@3x.png */,
-				15631DEF232A465900E3AC6C /* fm_icon_danger@2x.png */,
-				15631DF0232A465900E3AC6C /* fm_icon_warning.png */,
-				15631DF1232A465900E3AC6C /* fm_icon_danger.png */,
-				15631DF2232A465900E3AC6C /* fm_icon_info@3x.png */,
-				15631DF3232A465900E3AC6C /* fm_icon_info@2x.png */,
-			);
-			path = icons;
 			sourceTree = "<group>";
 		};
 		157135DA226FCEF60097C676 /* Products */ = {
@@ -2467,67 +2266,35 @@
 			buildActionMask = 2147483647;
 			files = (
 				15631CF9232A3ED400E3AC6C /* main.jsbundle in Resources */,
-				15631E02232A465900E3AC6C /* mm-instapay-selected.png in Resources */,
 				15205D6321596BAA0049EA93 /* MetaMask.entitlements in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				15631DF7232A465900E3AC6C /* lock.png in Resources */,
-				15631DF8232A465900E3AC6C /* eth-logo.png in Resources */,
+				15631E91232AB1DC00E3AC6C /* assets in Resources */,
 				657046E69A8E4E9CBC092A88 /* Entypo.ttf in Resources */,
-				15631E08232A465900E3AC6C /* back-icon@3x.png in Resources */,
 				158B063C211A72F500DF3C74 /* InpageBridge.js in Resources */,
-				15631E13232A465900E3AC6C /* fm_icon_danger@2x.png in Resources */,
 				F5C5F10C32974C2D94FEA3F3 /* EvilIcons.ttf in Resources */,
-				15631E03232A465900E3AC6C /* frame.png in Resources */,
 				123752B9768C469A85058888 /* Feather.ttf in Resources */,
 				C5AD5D88262D40E8AD14096C /* FontAwesome.ttf in Resources */,
 				F719B7ED64E3484FB94EE77B /* Foundation.ttf in Resources */,
-				15631E10232A465900E3AC6C /* fm_icon_warning@3x.png in Resources */,
-				15631E14232A465900E3AC6C /* fm_icon_warning.png in Resources */,
-				15631E0C232A465900E3AC6C /* fm_icon_danger@3x.png in Resources */,
-				15631E00232A465900E3AC6C /* fox-badge.png in Resources */,
-				15631DF5232A465900E3AC6C /* astronaut.png in Resources */,
-				15631DFA232A465900E3AC6C /* selected-wallet-icon.png in Resources */,
 				159878462231DF67001748EC /* AntDesign.ttf in Resources */,
 				4EC316415D2D4557B2DFB781 /* Ionicons.ttf in Resources */,
-				15631E11232A465900E3AC6C /* fm_icon_success.png in Resources */,
-				15631E09232A465900E3AC6C /* back-icon@2x.png in Resources */,
-				15631DF9232A465900E3AC6C /* welcome-bg2.jpg in Resources */,
 				3EA7CE27B8AB49009E49CFE6 /* MaterialCommunityIcons.ttf in Resources */,
-				15631DF6232A465900E3AC6C /* metamask-name.png in Resources */,
-				15631E0F232A465900E3AC6C /* fm_icon_warning@2x.png in Resources */,
 				158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */,
-				15631E0D232A465900E3AC6C /* fm_icon_success@2x.png in Resources */,
 				F0C672CC75F549ABBA1CF52A /* MaterialIcons.ttf in Resources */,
 				5992255DBD134582AE0C5AA5 /* Octicons.ttf in Resources */,
-				15631E12232A465900E3AC6C /* fm_icon_success@3x.png in Resources */,
-				15631DFC232A465900E3AC6C /* payment-channel-watermark.png in Resources */,
 				15D158ED210BD912006982B5 /* Metamask.ttf in Resources */,
-				15631E17232A465900E3AC6C /* fm_icon_info@2x.png in Resources */,
-				15631E07232A465900E3AC6C /* welcome-bg1@2x.jpg in Resources */,
 				F34655B90A524BB3B87EAB00 /* SimpleLineIcons.ttf in Resources */,
 				2348DAE74F344434A57B334F /* Zocial.ttf in Resources */,
-				15631E15232A465900E3AC6C /* fm_icon_danger.png in Resources */,
 				48AD4B0AABCB447B99B85DC4 /* Roboto-Black.ttf in Resources */,
 				CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */,
 				813214A2220E40C7BBB5ED9E /* Roboto-Bold.ttf in Resources */,
-				15631E06232A465900E3AC6C /* fox.png in Resources */,
-				15631E0B232A465900E3AC6C /* back-icon-mask.png in Resources */,
 				15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */,
 				298242C958524BB38FB44CAE /* Roboto-BoldItalic.ttf in Resources */,
-				15631E04232A465900E3AC6C /* welcome-bg1@3x.jpg in Resources */,
-				15631E0E232A465900E3AC6C /* fm_icon_info.png in Resources */,
-				15631DF4232A465900E3AC6C /* wallet-icon.png in Resources */,
 				2DB27BE39B164356A98A0FB1 /* Roboto-Italic.ttf in Resources */,
-				15631DFF232A465900E3AC6C /* mm-instapay.png in Resources */,
-				15631DFE232A465900E3AC6C /* welcome-bg2@3x.jpg in Resources */,
 				4CEFC9E34A8D4288BFE2F85A /* Roboto-Light.ttf in Resources */,
 				887E75FB64A54509A08D6C50 /* Roboto-LightItalic.ttf in Resources */,
 				15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */,
-				15631DFB232A465900E3AC6C /* welcome-bg2@2x.jpg in Resources */,
-				15631DFD232A465900E3AC6C /* welcome-bg1.jpg in Resources */,
 				EF65C42EA15B4774B1947A12 /* Roboto-Medium.ttf in Resources */,
 				DC6A024F56DD43E1A83B47B1 /* Roboto-MediumItalic.ttf in Resources */,
-				15631E01232A465900E3AC6C /* opensea-logo-flat-colored-blue.png in Resources */,
 				34CEE49BC79D411687B42FA9 /* Roboto-Regular.ttf in Resources */,
 				7E08FB90F3754D47994208B4 /* Roboto-Thin.ttf in Resources */,
 				7C0226ABD9694AEDBAF3016F /* Roboto-ThinItalic.ttf in Resources */,
@@ -2535,10 +2302,7 @@
 				F28A5A2E8839405D98BA5D91 /* FontAwesome5_Brands.ttf in Resources */,
 				DF4F8A5FCCCD40749BDD2E61 /* FontAwesome5_Regular.ttf in Resources */,
 				9AC52F22A86F4412BDE0EE7B /* FontAwesome5_Solid.ttf in Resources */,
-				15631E05232A465900E3AC6C /* payment-channel-welcome.png in Resources */,
 				44BE76F0F1AB44998CE4479B /* branch.json in Resources */,
-				15631E0A232A465900E3AC6C /* back-icon.png in Resources */,
-				15631E16232A465900E3AC6C /* fm_icon_info@3x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2649,7 +2413,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 295;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2717,7 +2481,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 295;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",

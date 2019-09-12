@@ -160,7 +160,7 @@ buildIosRelease(){
 	--dev false \
 	--reset-cache \
 	--bundle-output "$BUNDLE_FILE" \
-	--assets-dest "$DEST" \
+	--assets-dest "./" \
 	--sourcemap-output sourcemaps/ios/index.js.map
 
 	# Replace release.xcconfig with ENV vars
