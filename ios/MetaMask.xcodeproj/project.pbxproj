@@ -26,8 +26,9 @@
 		154BC3592238C164009AF026 /* libRNSVG.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BC3562238C135009AF026 /* libRNSVG.a */; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		158B063C211A72F500DF3C74 /* InpageBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B063A211A72F500DF3C74 /* InpageBridge.js */; };
-		1597299D2329EE940086AFAE /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1597299C2329EE850086AFAE /* Branch.framework */; };
-		1597299E2329EE940086AFAE /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1597299C2329EE850086AFAE /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		159065052329E47A00866C7C /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 159065042329E47A00866C7C /* Branch.framework */; };
+		159065062329E48800866C7C /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 159065042329E47A00866C7C /* Branch.framework */; };
+		159065072329E48800866C7C /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 159065042329E47A00866C7C /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		159878462231DF67001748EC /* AntDesign.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 159878012231DF67001748EC /* AntDesign.ttf */; };
 		15A06E9722D94A8900DBAD25 /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15A06E9522D94A8800DBAD25 /* Crashlytics.framework */; };
 		15A06E9822D94A8900DBAD25 /* Fabric.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15A06E9622D94A8900DBAD25 /* Fabric.framework */; };
@@ -335,20 +336,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = B3A3CC361C5B0A070016AC52;
 			remoteInfo = RNBranch;
-		};
-		1597299B2329EE850086AFAE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 159729972329EE840086AFAE /* BranchSDK.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = E298D0521C73D1B800589D22;
-			remoteInfo = Branch;
-		};
-		1597299F2329EE940086AFAE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 159729972329EE840086AFAE /* BranchSDK.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E298D0511C73D1B800589D22;
-			remoteInfo = Branch;
 		};
 		15A06F1022D94B7B00DBAD25 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -703,7 +690,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				15F7795F22A1B7B500B1DF8C /* Mixpanel.framework in Embed Frameworks */,
-				1597299E2329EE940086AFAE /* Branch.framework in Embed Frameworks */,
+				159065072329E48800866C7C /* Branch.framework in Embed Frameworks */,
 				15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -738,7 +725,7 @@
 		154BC3502238C12E009AF026 /* RNSVG.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNSVG.xcodeproj; path = "../node_modules/react-native-svg/ios/RNSVG.xcodeproj"; sourceTree = "<group>"; };
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
 		158B063A211A72F500DF3C74 /* InpageBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridge.js; path = ../app/core/InpageBridge.js; sourceTree = "<group>"; };
-		159729972329EE840086AFAE /* BranchSDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = BranchSDK.xcodeproj; path = "ios-branch-deep-linking-attribution/carthage-files/BranchSDK.xcodeproj"; sourceTree = "<group>"; };
+		159065042329E47A00866C7C /* Branch.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Branch.framework; sourceTree = "<group>"; };
 		159878012231DF67001748EC /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		15A06E9522D94A8800DBAD25 /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
 		15A06E9622D94A8900DBAD25 /* Fabric.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Fabric.framework; sourceTree = "<group>"; };
@@ -855,6 +842,7 @@
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
 				FD9BDCD5059C483EAE9C0160 /* libRNVectorIcons.a in Frameworks */,
 				2EE92764CB2942ACBE6EABC8 /* libRNFS.a in Frameworks */,
+				159065062329E48800866C7C /* Branch.framework in Frameworks */,
 				900DAC87A8AB4C8092EA3682 /* libRNRandomBytes.a in Frameworks */,
 				AB0011D0A1224FD09AB255D3 /* libRCTAes.a in Frameworks */,
 				81D9D3DB7A7244E184C9EA53 /* libRNKeychain.a in Frameworks */,
@@ -865,7 +853,7 @@
 				79B52D69E62442C597FE4D69 /* libRNScreens.a in Frameworks */,
 				5C0349CCAB9C4E179B04905D /* libRNGestureHandler.a in Frameworks */,
 				C017D5C2EDDF43E28281BE61 /* libRNDeviceInfo.a in Frameworks */,
-				1597299D2329EE940086AFAE /* Branch.framework in Frameworks */,
+				159065052329E47A00866C7C /* Branch.framework in Frameworks */,
 				03D91D70A389444797688056 /* libRNBackgroundTimer.a in Frameworks */,
 				BF4370F845E740D0A30CEC30 /* libRCTSearchApi.a in Frameworks */,
 				258B2C29C8CD42BBBF3E4872 /* libLottie.a in Frameworks */,
@@ -1116,14 +1104,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		159729982329EE840086AFAE /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1597299C2329EE850086AFAE /* Branch.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		15A06F0C22D94B7900DBAD25 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -1356,7 +1336,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				159729972329EE840086AFAE /* BranchSDK.xcodeproj */,
+				159065042329E47A00866C7C /* Branch.framework */,
 				15A06E9522D94A8800DBAD25 /* Crashlytics.framework */,
 				15A06E9622D94A8900DBAD25 /* Fabric.framework */,
 				15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */,
@@ -1465,7 +1445,6 @@
 			dependencies = (
 				15ACC9FF22655C3A0063978B /* PBXTargetDependency */,
 				15F7796122A1B7B500B1DF8C /* PBXTargetDependency */,
-				159729A02329EE940086AFAE /* PBXTargetDependency */,
 			);
 			name = MetaMask;
 			productName = "Hello World";
@@ -1508,10 +1487,6 @@
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
-				{
-					ProductGroup = 159729982329EE840086AFAE /* Products */;
-					ProjectRef = 159729972329EE840086AFAE /* BranchSDK.xcodeproj */;
-				},
 				{
 					ProductGroup = 15723E24225FD0B800A5B418 /* Products */;
 					ProjectRef = 4379F36F969347758D1A9F96 /* Lottie.xcodeproj */;
@@ -1916,13 +1891,6 @@
 			fileType = archive.ar;
 			path = "libreact-native-branch.a";
 			remoteRef = 159065022329E43C00866C7C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1597299C2329EE850086AFAE /* Branch.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = Branch.framework;
-			remoteRef = 1597299B2329EE850086AFAE /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		15A06F1122D94B7B00DBAD25 /* libSMXCrashlytics.a */ = {
@@ -2369,11 +2337,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		159729A02329EE940086AFAE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Branch;
-			targetProxy = 1597299F2329EE940086AFAE /* PBXContainerItemProxy */;
-		};
 		15ACC9FF22655C3A0063978B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Lottie_iOS;
