@@ -150,26 +150,14 @@ buildIosDevice(){
 buildIosRelease(){
 	prebuild_ios
 
-	echo "Generating new bundle...";
-	DEST="./ios"
-	BUNDLE_FILE="$DEST/main.jsbundle"
-
-	node_modules/.bin/react-native bundle \
-	--platform ios \
-	--entry-file index.js \
-	--dev false \
-	--reset-cache \
-	--bundle-output "$BUNDLE_FILE" \
-	--assets-dest "./" \
-	--sourcemap-output sourcemaps/ios/index.js.map
-
-	echo "Setting up env vars...";
-	echo $IOS_ENV | tr "|" "\n" > .ios.env
-	echo "Build started..."
-
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo $IOS_ENV | tr "|" "\n" > .ios.env
+		echo "Build started..."
 		cd ios && bundle install && bundle exec fastlane prerelease
+		# Generate sourcemaps
+		yarn sourcemaps:ios
 	else
 		react-native run-ios  --configuration Release
 	fi
