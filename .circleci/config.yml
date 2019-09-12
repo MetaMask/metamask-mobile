@@ -24,15 +24,16 @@ jobs:
       - checkout
       - run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
       - run:
-          name: Make nvm available
+          name: Install nvm, node 10 and yarn
           command:
             |
-              export NVM_DIR="$HOME/.nvm"
-              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-              [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-      - run: nvm install 10
-      - run: nvm alias default 10
-      - run: curl -o- -L https://yarnpkg.com/install.sh | bash
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+			  export NVM_DIR="$HOME/.nvm"
+			  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+			  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+			  nvm install 10
+			  nvm alias default 10
+			  curl -o- -L https://yarnpkg.com/install.sh | bash
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
