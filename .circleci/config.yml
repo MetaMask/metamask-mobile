@@ -1,15 +1,25 @@
 aliases:
-  - &restore-node-cache
+  - &restore-cache
     keys:
-      - v1.0.8-node-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.8-node-{{ .Branch }}
-  - &save-node-cache
-    key: v1.0.8-node-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.7-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.7-{{ .Branch }}
+
+  - &save-cache
+    key: v1.0.7-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
+  - &restore-node-cache
+    keys:
+      - v1.0.7-node-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.7-node-{{ .Branch }}
+  - &save-node-cache
+    key: v1.0.7-node-{{ .Branch }}-{{ checksum "package.json" }}
+    paths:
+      - node_modules
+
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -19,30 +29,16 @@ jobs:
   prep-deps:
     <<: *defaults
     macos:
-      xcode: 10.3.0
+      xcode: 10.2.0
     steps:
-      - checkout:
-          path: ~/MetaMask
-      - run:
-          name: Install nvm, node and yarn
-          command:
-            |
-              set +e
-              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-              export NVM_DIR="$HOME/.nvm"
-              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-              [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-              nvm install 10
-              nvm alias default 10
-              curl -o- -L https://yarnpkg.com/install.sh | bash
-              echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
-              source ~/.nvm/nvm.sh
-              source ~/.bashrc
+      - checkout
+      - restore_cache: *restore-cache
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
           paths:
           - node_modules
+      - save_cache: *save-cache
   prep-node-deps:
     <<: *defaults
     docker:
@@ -85,7 +81,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 10.3.0
+      xcode: 10.2.0
     steps:
       - checkout
       - attach_workspace:
@@ -151,7 +147,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 10.3.0
+      xcode: 10.2.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
@@ -171,24 +167,35 @@ workflows:
   version: 2
   full_test:
     jobs:
-      - prep-deps
-    #   - lint:
+      - prep-deps:
+          filters:
+            branches:
+              only:
+                - master
+                - develop
+      - prep-node-deps:
+          filters:
+            branches:
+              ignore:
+                - master
+                - develop
+      - lint:
+          requires:
+            - prep-node-deps
+      - test-unit:
+          requires:
+            - prep-node-deps
+    #   - test-e2e-ios:
     #       requires:
-    #         - prep-node-deps
-    #   - test-unit:
-    #       requires:
-    #         - prep-node-deps
-    # #   - test-e2e-ios:
-    # #       requires:
-    # #         - test-unit
-    #   - all-tests-pass:
-    #       requires:
-    #         - lint
     #         - test-unit
-    #         # - test-e2e-ios
-    # #   - upload-coverage:
-    # #       requires:
-    # #         - test-unit
+      - all-tests-pass:
+          requires:
+            - lint
+            - test-unit
+            # - test-e2e-ios
+    #   - upload-coverage:
+    #       requires:
+    #         - test-unit
       - publish-pre-release-ios:
           requires:
             - prep-deps
