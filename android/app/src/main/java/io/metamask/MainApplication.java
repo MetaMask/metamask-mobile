@@ -48,7 +48,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            new RNBranchPackage(),
+            	new RNBranchPackage(),
             	new FabricPackage(),
 				new NetInfoPackage(),
             	new RNViewShotPackage(),
@@ -60,7 +60,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new SvgPackage(),
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),
-				new RNBranchPackage(),
 				new KeychainPackage(),
 				new RandomBytesPackage(),
 				new RCTAesPackage(),
