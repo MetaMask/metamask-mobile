@@ -140,10 +140,11 @@ fi
 
 echo "14. Remove UIWebview deps"
 rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebView.h
-rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebView.h
 rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebView.m
 rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebViewManager.h
 rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebViewManager.m
 
 echo "15. Remove Branch examples"
 rm -rf node_modules/react-native-branch/examples/
+rm -rf node_modules/react-native-branch/native-tests/
+
