@@ -156,19 +156,8 @@ workflows:
   version: 2
   full_test:
     jobs:
-      - prep-deps:
-          filters:
-            branches:
-              only:
-                - master
-                - develop
-      - prep-node-deps:
-          filters:
-            branches:
-              ignore:
-                - master
-                - develop
-      - lint:
+      - prep-deps
+	  - lint:
           requires:
             - prep-node-deps
       - test-unit:
