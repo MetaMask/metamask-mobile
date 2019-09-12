@@ -1,6 +1,0 @@
-framework module Branch {
-  umbrella header "Branch.h"
-
-  export *
-  module * { export * }
-}

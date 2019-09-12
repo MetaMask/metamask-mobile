@@ -1,7 +1,6 @@
 package io.metamask;
 
 import com.facebook.react.ReactApplication;
-import io.branch.rnbranch.RNBranchPackage;
 import com.smixx.fabric.FabricPackage;
 import com.reactnativecommunity.netinfo.NetInfoPackage;
 import fr.greweb.reactnativeviewshot.RNViewShotPackage;
@@ -12,6 +11,7 @@ import com.ocetnik.timer.BackgroundTimerPackage;
 import com.learnium.RNDeviceInfo.RNDeviceInfo;
 import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
+import io.branch.rnbranch.RNBranchPackage;
 import io.branch.rnbranch.RNBranchModule;
 import com.web3webview.Web3WebviewPackage;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
@@ -48,7 +48,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            	new RNBranchPackage(),
             	new FabricPackage(),
 				new NetInfoPackage(),
             	new RNViewShotPackage(),
@@ -60,6 +59,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new SvgPackage(),
 				new RNGestureHandlerPackage(),
 				new RNScreensPackage(),
+				new RNBranchPackage(),
 				new KeychainPackage(),
 				new RandomBytesPackage(),
 				new RCTAesPackage(),
