@@ -1,10 +1,10 @@
 aliases:
   - &restore-node-cache
     keys:
-      - v1.0.7-node-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.7-node-{{ .Branch }}
+      - v1.0.8-node-{{ .Branch }}-{{ checksum "package.json" }}
+      - v1.0.8-node-{{ .Branch }}
   - &save-node-cache
-    key: v1.0.7-node-{{ .Branch }}-{{ checksum "package.json" }}
+    key: v1.0.8-node-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
 
@@ -20,7 +20,7 @@ jobs:
   prep-deps:
     <<: *defaults
     macos:
-      xcode: 10.2.0
+      xcode: 10.3.0
     steps:
       - checkout
       - run: *install-node-dependencies
@@ -70,7 +70,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 10.2.0
+      xcode: 10.3.0
     steps:
       - checkout
       - attach_workspace:
@@ -136,7 +136,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 10.2.0
+      xcode: 10.3.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
