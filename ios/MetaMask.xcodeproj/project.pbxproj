@@ -26,6 +26,9 @@
 		154BC3592238C164009AF026 /* libRNSVG.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BC3562238C135009AF026 /* libRNSVG.a */; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		158B063C211A72F500DF3C74 /* InpageBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B063A211A72F500DF3C74 /* InpageBridge.js */; };
+		159065052329E47A00866C7C /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 159065042329E47A00866C7C /* Branch.framework */; };
+		159065062329E48800866C7C /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 159065042329E47A00866C7C /* Branch.framework */; };
+		159065072329E48800866C7C /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 159065042329E47A00866C7C /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		159878462231DF67001748EC /* AntDesign.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 159878012231DF67001748EC /* AntDesign.ttf */; };
 		15A06E9722D94A8900DBAD25 /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15A06E9522D94A8800DBAD25 /* Crashlytics.framework */; };
 		15A06E9822D94A8900DBAD25 /* Fabric.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15A06E9622D94A8900DBAD25 /* Fabric.framework */; };
@@ -687,6 +690,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				15F7795F22A1B7B500B1DF8C /* Mixpanel.framework in Embed Frameworks */,
+				159065072329E48800866C7C /* Branch.framework in Embed Frameworks */,
 				15ACC9FD22655C3A0063978B /* Lottie.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -721,6 +725,7 @@
 		154BC3502238C12E009AF026 /* RNSVG.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNSVG.xcodeproj; path = "../node_modules/react-native-svg/ios/RNSVG.xcodeproj"; sourceTree = "<group>"; };
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
 		158B063A211A72F500DF3C74 /* InpageBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridge.js; path = ../app/core/InpageBridge.js; sourceTree = "<group>"; };
+		159065042329E47A00866C7C /* Branch.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Branch.framework; sourceTree = "<group>"; };
 		159878012231DF67001748EC /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		15A06E9522D94A8800DBAD25 /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
 		15A06E9622D94A8900DBAD25 /* Fabric.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Fabric.framework; sourceTree = "<group>"; };
@@ -837,6 +842,7 @@
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
 				FD9BDCD5059C483EAE9C0160 /* libRNVectorIcons.a in Frameworks */,
 				2EE92764CB2942ACBE6EABC8 /* libRNFS.a in Frameworks */,
+				159065062329E48800866C7C /* Branch.framework in Frameworks */,
 				900DAC87A8AB4C8092EA3682 /* libRNRandomBytes.a in Frameworks */,
 				AB0011D0A1224FD09AB255D3 /* libRCTAes.a in Frameworks */,
 				81D9D3DB7A7244E184C9EA53 /* libRNKeychain.a in Frameworks */,
@@ -847,6 +853,7 @@
 				79B52D69E62442C597FE4D69 /* libRNScreens.a in Frameworks */,
 				5C0349CCAB9C4E179B04905D /* libRNGestureHandler.a in Frameworks */,
 				C017D5C2EDDF43E28281BE61 /* libRNDeviceInfo.a in Frameworks */,
+				159065052329E47A00866C7C /* Branch.framework in Frameworks */,
 				03D91D70A389444797688056 /* libRNBackgroundTimer.a in Frameworks */,
 				BF4370F845E740D0A30CEC30 /* libRCTSearchApi.a in Frameworks */,
 				258B2C29C8CD42BBBF3E4872 /* libLottie.a in Frameworks */,
@@ -1329,6 +1336,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				159065042329E47A00866C7C /* Branch.framework */,
 				15A06E9522D94A8800DBAD25 /* Crashlytics.framework */,
 				15A06E9622D94A8900DBAD25 /* Fabric.framework */,
 				15F7794F22A1B79400B1DF8C /* Mixpanel.xcodeproj */,
