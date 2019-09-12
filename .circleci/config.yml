@@ -32,7 +32,6 @@ jobs:
       xcode: 10.2.0
     steps:
       - checkout
-      - restore_cache: *restore-cache
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
