@@ -24,6 +24,7 @@
 		15205D6321596BAA0049EA93 /* MetaMask.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 15205D6221596AD90049EA93 /* MetaMask.entitlements */; };
 		153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
 		154BC3592238C164009AF026 /* libRNSVG.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 154BC3562238C135009AF026 /* libRNSVG.a */; };
+		15631CF9232A3ED400E3AC6C /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 008F07F21AC5B25A0029DE68 /* main.jsbundle */; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		158B063C211A72F500DF3C74 /* InpageBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B063A211A72F500DF3C74 /* InpageBridge.js */; };
 		1597299D2329EE940086AFAE /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1597299C2329EE850086AFAE /* Branch.framework */; };
@@ -2261,6 +2262,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15631CF9232A3ED400E3AC6C /* main.jsbundle in Resources */,
 				15205D6321596BAA0049EA93 /* MetaMask.entitlements in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				657046E69A8E4E9CBC092A88 /* Entypo.ttf in Resources */,
@@ -2315,7 +2317,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n#    export SKIP_BUNDLING=true\n#fi\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n    export NODE_BINARY=node\n    ../node_modules/react-native/scripts/react-native-xcode.sh\nfi\n";
 		};
 		15A06E9922D94AA600DBAD25 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;

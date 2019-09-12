@@ -21,6 +21,7 @@ DerivedData
 project.xcworkspace
 ios/debug.xcconfig
 ios/release.xcconfig
+ios/assets/
 
 # android / intellij
 build/
