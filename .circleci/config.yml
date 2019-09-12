@@ -21,10 +21,10 @@ jobs:
     macos:
       xcode: 10.3.0
     steps:
-      - checkout
-      - run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+      - checkout:
+          path: ~/MetaMask
       - run:
-          name: Install nvm, node 10 and yarn
+          name: Install nvm, node and yarn
           command:
             |
               curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
