@@ -9444,9 +9444,10 @@ react-native-crypto@2.1.2:
     pbkdf2 "3.0.8"
     public-encrypt "^4.0.0"
 
-"react-native-device-info@github:react-native-community/react-native-device-info#a3cff963641280326b0b1205f1f6b56a537355e3":
-  version "2.3.2"
-  resolved "https://codeload.github.com/react-native-community/react-native-device-info/tar.gz/a3cff963641280326b0b1205f1f6b56a537355e3"
+react-native-device-info@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-3.0.0.tgz#3eb6c4c9427e337268074e6a3e27230d1d0c4178"
+  integrity sha512-GdCIp6SBiOhxhkWcUcFy7RIn9elaJ4DC8UEcs7KBC3bwfZyx/jHwqQc7jk6IFYiI3/+7/rnJletVy8DkSkVOUw==
 
 react-native-elevated-view@0.0.6:
   version "0.0.6"
