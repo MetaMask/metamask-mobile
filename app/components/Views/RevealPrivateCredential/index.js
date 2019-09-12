@@ -53,9 +53,6 @@ const styles = StyleSheet.create({
 	rowWrapper: {
 		padding: 20
 	},
-	contentWrapper: {
-		paddingVertical: 20
-	},
 	warningWrapper: {
 		backgroundColor: colors.red000
 	},
@@ -284,7 +281,7 @@ class RevealPrivateCredential extends PureComponent {
 							</View>
 						</View>
 
-						<View style={styles.contentWrapper}>
+						<View style={styles.rowWrapper}>
 							{unlocked ? (
 								<ScrollableTabView renderTabBar={this.renderTabBar}>
 									<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
