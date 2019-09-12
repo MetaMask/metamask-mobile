@@ -157,23 +157,23 @@ workflows:
   full_test:
     jobs:
       - prep-deps
-      - lint:
-          requires:
-            - prep-node-deps
-      - test-unit:
-          requires:
-            - prep-node-deps
-    #   - test-e2e-ios:
+    #   - lint:
     #       requires:
-    #         - test-unit
-      - all-tests-pass:
-          requires:
-            - lint
-            - test-unit
-            # - test-e2e-ios
-    #   - upload-coverage:
+    #         - prep-node-deps
+    #   - test-unit:
     #       requires:
+    #         - prep-node-deps
+    # #   - test-e2e-ios:
+    # #       requires:
+    # #         - test-unit
+    #   - all-tests-pass:
+    #       requires:
+    #         - lint
     #         - test-unit
+    #         # - test-e2e-ios
+    # #   - upload-coverage:
+    # #       requires:
+    # #         - test-unit
       - publish-pre-release-ios:
           requires:
             - prep-deps
