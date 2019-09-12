@@ -7,23 +7,6 @@ aliases:
     key: v1.0.8-node-{{ .Branch }}-{{ checksum "package.json" }}
     paths:
       - node_modules
-  - &install-nvm
-      |
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-  - &make-nvm-available
-      |
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-  - &install-node-10
-      |
-        nvm install 10
-  - &select-node-10
-      |
-        nvm alias default 10
-  - &install-yarn
-      |
-        curl -o- -L https://yarnpkg.com/install.sh | bash
   - &install-node-dependencies
       |
         rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile
@@ -39,11 +22,17 @@ jobs:
       xcode: 10.3.0
     steps:
       - checkout
-      - run: *install-nvm
-      - run: *make-nvm-available
-      - run: *install-node-10
-      - run: *select-node-10
-      - run: *install-yarn
+      - run: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+      - run:
+          name: Make nvm available
+          command:
+            |
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+      - run: nvm install 10
+      - run: nvm alias default 10
+      - run: curl -o- -L https://yarnpkg.com/install.sh | bash
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
