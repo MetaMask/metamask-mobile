@@ -11,6 +11,15 @@ aliases:
   - &install-node-dependencies
       |
         rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile
+  - &install-node-10
+      |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+		nvm install 10
+		nvm alias default 10
+		curl -o- -L https://yarnpkg.com/install.sh | bash
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -23,6 +32,7 @@ jobs:
       xcode: 10.3.0
     steps:
       - checkout
+      - run: *install-node-10
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
