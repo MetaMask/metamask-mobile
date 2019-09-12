@@ -1,13 +1,4 @@
 aliases:
-  - &restore-cache
-    keys:
-      - v1.0.7-{{ .Branch }}-{{ checksum "package.json" }}
-      - v1.0.7-{{ .Branch }}
-
-  - &save-cache
-    key: v1.0.7-{{ .Branch }}-{{ checksum "package.json" }}
-    paths:
-      - node_modules
   - &restore-node-cache
     keys:
       - v1.0.7-node-{{ .Branch }}-{{ checksum "package.json" }}
@@ -19,7 +10,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -32,13 +23,11 @@ jobs:
       xcode: 10.3.0
     steps:
       - checkout
-      - restore_cache: *restore-cache
       - run: *install-node-dependencies
       - persist_to_workspace:
           root: .
           paths:
           - node_modules
-      - save_cache: *save-cache
   prep-node-deps:
     <<: *defaults
     docker:
