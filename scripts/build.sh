@@ -151,7 +151,7 @@ buildIosRelease(){
 	prebuild_ios
 
 	echo "Generating new bundle...";
-	DEST="./ios/"
+	DEST="./ios"
 	BUNDLE_FILE="$DEST/main.jsbundle"
 
 	node_modules/.bin/react-native bundle \
