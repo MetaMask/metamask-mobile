@@ -169,7 +169,11 @@ buildIosRelease(){
 		[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
 		[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"
 		nvm install v10.16.3
-		cd MetaMask/ && nvm use
+		echo $NVM_DIR
+		npm config delete prefix
+		npm config set prefix $NVM_DIR/versions/node/v10.16.3
+		echo npm config get prefix
+		nvm use
 		cd ios && bundle install && cd ../
 		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone X (12.4)"
 	fi
