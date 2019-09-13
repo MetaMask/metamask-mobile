@@ -163,19 +163,8 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo $IOS_ENV | tr "|" "\n" > ios/release.xcconfig
 		fi
-		brew install nvm
-		mkdir ~/.nvm
-		export NVM_DIR="$HOME/.nvm"
-		[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
-		[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"
-		nvm install v10.16.3
-		echo $NVM_DIR
-		npm config delete prefix
-		npm config set prefix $NVM_DIR/versions/node/v10.16.3
-		echo npm config get prefix
-		nvm use
-		cd ios && bundle install && cd ../
-		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone X (12.4)"
+
+		cd ios && bundle install && bundle exec fastlane e2e
 	fi
 }
 

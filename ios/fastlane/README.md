@@ -21,6 +21,16 @@ or alternatively using `brew cask install fastlane`
 fastlane ios beta
 ```
 Submit a new Beta Build to Testflight
+### ios prerelease
+```
+fastlane ios prerelease
+```
+Pre-release via CircleCI
+### ios e2e
+```
+fastlane ios e2e
+```
+E2E build via CircleCI
 
 ----
 

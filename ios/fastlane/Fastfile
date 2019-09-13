@@ -63,4 +63,17 @@ platform :ios do
     	)
 
 	end
+
+	desc "E2E build via CircleCI"
+    lane :e2e do
+        setup_circle_ci
+		
+        match(type: "adhoc", readonly: true)
+        gym(
+            clean: true,
+            scheme: "MetaMask",
+            configuration: "Release",
+            output_name: "MetaMask"
+        )
+    end
 end
