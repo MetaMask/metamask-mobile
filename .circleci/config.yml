@@ -19,7 +19,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -29,7 +29,7 @@ jobs:
   prep-deps:
     <<: *defaults
     macos:
-      xcode: 10.1.0
+      xcode: 10.3.0
     steps:
       - checkout
       - restore_cache: *restore-cache
@@ -81,7 +81,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 10.1.0
+      xcode: 10.3.0
     steps:
       - checkout
       - attach_workspace:
@@ -147,7 +147,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 10.1.0
+      xcode: 10.3.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
