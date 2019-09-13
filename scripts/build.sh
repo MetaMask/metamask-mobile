@@ -163,6 +163,14 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo $IOS_ENV | tr "|" "\n" > ios/release.xcconfig
 		fi
+		brew install nvm
+		mkdir ~/.nvm
+		export NVM_DIR="$HOME/.nvm"
+		[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"
+		[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"
+		nvm install v10.16.3
+		cd MetaMask/ && nvm use
+		cd ios && bundle install && cd ../
 		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone X (12.4)"
 	fi
 }
