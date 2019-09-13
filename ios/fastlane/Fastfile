@@ -67,8 +67,8 @@ platform :ios do
 	desc "E2E build via CircleCI"
     lane :e2e do
         setup_circle_ci
-		
-        match(type: "adhoc", readonly: true)
+
+        match(type: "development", readonly: true)
         gym(
             clean: true,
             scheme: "MetaMask",
