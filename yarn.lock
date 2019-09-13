@@ -9397,9 +9397,9 @@ react-native-background-timer@2.1.1:
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-2.1.1.tgz#9a2489681ab2f8033c213c73272e9d4c47572cd5"
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
-"react-native-branch@github:brunobar79/react-native-branch-deep-linking-attribution#6abb7e34a8f77f624013bb148aed87f50e72bf8f":
+"react-native-branch@github:brunobar79/react-native-branch-deep-linking-attribution#f455eb7fa317644978ebddd8a3afb80c73951f85":
   version "3.1.1"
-  resolved "https://codeload.github.com/brunobar79/react-native-branch-deep-linking-attribution/tar.gz/6abb7e34a8f77f624013bb148aed87f50e72bf8f"
+  resolved "https://codeload.github.com/brunobar79/react-native-branch-deep-linking-attribution/tar.gz/f455eb7fa317644978ebddd8a3afb80c73951f85"
 
 react-native-browser-polyfill@0.1.2:
   version "0.1.2"
@@ -9444,10 +9444,9 @@ react-native-crypto@2.1.2:
     pbkdf2 "3.0.8"
     public-encrypt "^4.0.0"
 
-react-native-device-info@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-3.0.0.tgz#3eb6c4c9427e337268074e6a3e27230d1d0c4178"
-  integrity sha512-GdCIp6SBiOhxhkWcUcFy7RIn9elaJ4DC8UEcs7KBC3bwfZyx/jHwqQc7jk6IFYiI3/+7/rnJletVy8DkSkVOUw==
+"react-native-device-info@github:react-native-community/react-native-device-info#a3cff963641280326b0b1205f1f6b56a537355e3":
+  version "2.3.2"
+  resolved "https://codeload.github.com/react-native-community/react-native-device-info/tar.gz/a3cff963641280326b0b1205f1f6b56a537355e3"
 
 react-native-elevated-view@0.0.6:
   version "0.0.6"
