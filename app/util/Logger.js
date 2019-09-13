@@ -1,5 +1,6 @@
 'use strict';
-import { Crashlytics } from 'react-native-fabric';
+// eslint-disable-next-line import/default
+import Fabric from 'react-native-fabric';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -24,7 +25,7 @@ export default class Logger {
 			args.unshift('[MetaMask DEBUG]:');
 			console.log.apply(null, args); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
-			Crashlytics.log(JSON.stringify(args));
+			Fabric.Crashlytics.log(JSON.stringify(args));
 		}
 	}
 
@@ -43,9 +44,9 @@ export default class Logger {
 			console.warn(args); // eslint-disable-line no-console
 		} else if (metricsOptIn === 'agreed') {
 			if (Platform.OS === 'android') {
-				Crashlytics.logException(JSON.stringify(args));
+				Fabric.Crashlytics.logException(JSON.stringify(args));
 			} else {
-				Crashlytics.recordError(JSON.stringify(args));
+				Fabric.Crashlytics.recordError(JSON.stringify(args));
 			}
 		}
 	}
