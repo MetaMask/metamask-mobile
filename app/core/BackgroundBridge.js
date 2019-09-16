@@ -7,19 +7,22 @@ export class BackgroundBridge {
 	_webview;
 	_accounts;
 
-	_onInpageRequest(payload) {
+	_postMessageToProvider(message) {
 		const current = this._webview.current;
+		current && current.injectJavaScript(`window.ethereum._onMessage(${JSON.stringify(message)})`);
+	}
+
+	_onInpageRequest(payload) {
 		const { provider } = this._engine.context.NetworkController;
 		const override = this._rpcOverrides && this._rpcOverrides[payload.method];
 		const __mmID = payload.__mmID + '';
 		const done = (error, response) => {
-			current &&
-				current.postMessage(
-					JSON.stringify({
-						type: 'INPAGE_RESPONSE',
-						payload: { error, response, __mmID }
-					})
-				);
+			this._postMessageToProvider(
+				JSON.stringify({
+					type: 'INPAGE_RESPONSE',
+					payload: { error, response, __mmID }
+				})
+			);
 		};
 		if (override) {
 			override(payload)
@@ -70,19 +73,17 @@ export class BackgroundBridge {
 	 * Sends updated state to the InpageBridge provider
 	 */
 	sendStateUpdate = () => {
-		const current = this._webview.current;
 		const { network, selectedAddress } = this._engine.datamodel.flatState;
 		const payload = { network };
 		if (this._accounts) {
 			payload.selectedAddress = selectedAddress;
 		}
-		current &&
-			current.postMessage(
-				JSON.stringify({
-					type: 'STATE_UPDATE',
-					payload
-				})
-			);
+		this._postMessageToProvider(
+			JSON.stringify({
+				type: 'STATE_UPDATE',
+				payload
+			})
+		);
 	};
 
 	/**

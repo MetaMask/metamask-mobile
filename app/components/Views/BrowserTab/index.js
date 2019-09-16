@@ -414,10 +414,7 @@ export class BrowserTab extends PureComponent {
 		if (!currentPageTitle || currentPageTitle !== {}) {
 			// We need to get the title to add bookmark
 			const { current } = this.webview;
-			current &&
-				(Platform.OS === 'ios'
-					? current.evaluateJavaScript(JS_WINDOW_INFORMATION)
-					: current.injectJavaScript(JS_WINDOW_INFORMATION));
+			current && current.injectJavaScript(JS_WINDOW_INFORMATION);
 		}
 		setTimeout(() => {
 			callback();
@@ -1296,7 +1293,7 @@ export class BrowserTab extends PureComponent {
 		// Inject favorites on the homepage
 		if (this.isHomepage() && current) {
 			const js = this.state.homepageScripts;
-			Platform.OS === 'ios' ? current.evaluateJavaScript(js) : current.injectJavaScript(js);
+			current.injectJavaScript(js);
 		}
 	};
 
@@ -1438,7 +1435,7 @@ export class BrowserTab extends PureComponent {
 		if (this.isHomepage()) {
 			const { current } = this.webview;
 			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-			current && (Platform.OS === 'ios' ? current.evaluateJavaScript(blur) : current.injectJavaScript(blur));
+			current && current.injectJavaScript(blur);
 		}
 	};
 
@@ -1714,7 +1711,7 @@ export class BrowserTab extends PureComponent {
 							renderError={() => (
 								<WebviewError error={this.state.lastError} onReload={this.forceReload} />
 							)}
-							injectedOnStartLoadingJavaScript={entryScriptWeb3}
+							injectedJavaScript={entryScriptWeb3}
 							onProgress={this.onLoadProgress}
 							onLoadStart={this.onLoadStart}
 							onLoadEnd={this.onLoadEnd}
