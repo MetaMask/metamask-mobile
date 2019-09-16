@@ -72,7 +72,7 @@ platform :ios do
         gym(
             clean: true,
             scheme: "MetaMask",
-            configuration: "Release",
+            configuration: "Debug",
             export_method: "development",
 			output_name: "MetaMask"
         )
