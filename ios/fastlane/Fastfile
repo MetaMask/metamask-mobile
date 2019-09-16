@@ -73,7 +73,8 @@ platform :ios do
             clean: true,
             scheme: "MetaMask",
             configuration: "Release",
-            output_name: "MetaMask"
+            export_method: "development",
+			output_name: "MetaMask"
         )
     end
 end
