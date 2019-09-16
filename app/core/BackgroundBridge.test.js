@@ -28,7 +28,7 @@ const MOCK_ENGINE = {
 
 const MOCK_WEBVIEW = {
 	current: {
-		postMessage() {
+		injectJavaScript() {
 			/* eslint-disable-line no-empty */
 		}
 	}
@@ -47,26 +47,28 @@ describe('BackgroundBridge', () => {
 	it('should relay response from provider', () =>
 		new Promise(resolve => {
 			const bridge = new BackgroundBridge(MOCK_ENGINE, MOCK_WEBVIEW);
-			const stub = spyOn(MOCK_WEBVIEW.current, 'postMessage');
+			const stub = spyOn(MOCK_WEBVIEW.current, 'injectJavaScript');
 			bridge.onMessage({ type: 'INPAGE_REQUEST', payload: { method: 'net_version' } });
 			setTimeout(() => {
-				expect(stub).toBeCalledWith(
-					JSON.stringify({ type: 'INPAGE_RESPONSE', payload: { response: true, __mmID: 'undefined' } })
-				);
+				const msg = JSON.stringify({
+					type: 'INPAGE_RESPONSE',
+					payload: { response: true, __mmID: 'undefined' }
+				});
+				expect(stub).toBeCalledWith(`window.ethereum._onMessage(${JSON.stringify(msg)})`);
 				resolve();
 			}, 250);
 		}));
 
 	it('should emit state update', () => {
-		const stub = spyOn(MOCK_WEBVIEW.current, 'postMessage');
+		const stub = spyOn(MOCK_WEBVIEW.current, 'injectJavaScript');
 		new BackgroundBridge(MOCK_ENGINE, MOCK_WEBVIEW);
-		expect(stub).toBeCalledWith(
-			JSON.stringify({
-				type: 'STATE_UPDATE',
-				payload: {
-					network: 'bar'
-				}
-			})
-		);
+		const msg = JSON.stringify({
+			type: 'STATE_UPDATE',
+			payload: {
+				network: 'bar'
+			}
+		});
+
+		expect(stub).toBeCalledWith(`window.ethereum._onMessage(${JSON.stringify(msg)})`);
 	});
 });
