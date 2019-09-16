@@ -58,6 +58,10 @@ export default class TestHelpers {
 		return element(by.id(elementId)).longPress();
 	}
 
+	static async replaceTextInField(elementId, text) {
+		return element(by.id(elementId)).replaceText(text);
+	}
+
 	static tapAlertWithButton(text) {
 		if (device.getPlatform() === 'android') {
 			return element(by.text(text))
@@ -103,7 +107,13 @@ export default class TestHelpers {
 	}
 
 	static checkIfElementByTextIsVisible(text) {
-		return expect(element(by.text(text))).toBeVisible();
+		return waitFor(element(by.text(text)))
+			.toBeVisible()
+			.withTimeout(25000);
+	}
+
+	static checkIfElementHasString(elementID, text) {
+		return expect(element(by.id(elementID))).toString(text);
 	}
 
 	static relaunchApp() {

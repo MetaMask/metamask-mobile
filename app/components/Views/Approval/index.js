@@ -240,7 +240,7 @@ class Approval extends PureComponent {
 		const { transaction } = this.props;
 		const { mode } = this.state;
 		return (
-			<SafeAreaView style={styles.wrapper}>
+			<SafeAreaView style={styles.wrapper} testID={'confirm-transaction-screen'}>
 				<TransactionEditor
 					mode={mode}
 					onCancel={this.onCancel}

@@ -147,3 +147,4 @@ rm -rf node_modules/Libraries/React.xcodeproj/React/Views/RCTWebViewManager.m
 
 echo "15. Remove Branch examples"
 rm -rf node_modules/react-native-branch/examples/
+rm -rf node_modules/react-native-branch/native-tests/

@@ -158,6 +158,7 @@ class Tokens extends PureComponent {
 		return (
 			<AssetElement
 				key={itemAddress || '0x'}
+				testID={'asset'}
 				onPress={this.onItemPress}
 				onLongPress={asset.isETH ? null : this.showRemoveMenu}
 				asset={asset}
@@ -170,7 +171,7 @@ class Tokens extends PureComponent {
 					<TokenImage asset={asset} containerStyle={styles.ethLogo} />
 				)}
 
-				<View style={styles.balances}>
+				<View style={styles.balances} testID={'balance'}>
 					<Text style={styles.balance}>{mainBalance}</Text>
 					{secondaryBalance ? <Text style={styles.balanceFiat}>{secondaryBalance}</Text> : null}
 				</View>
