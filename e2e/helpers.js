@@ -82,6 +82,10 @@ export default class TestHelpers {
 		await element(by.id(scrollviewId)).scrollTo(edge);
 	}
 
+	static async goToURL(inputURL) {
+		await device.openURL({ url: inputURL, sourceApp: 'io.metamask' });
+	}
+
 	static checkIfVisible(elementId) {
 		return waitFor(element(by.id(elementId)))
 			.toBeVisible()
