@@ -189,7 +189,7 @@ workflows:
       - test-e2e-ios:
           requires:
             - prep-node-deps
-            # - test-unit
+            - test-unit
       - all-tests-pass:
           requires:
             - lint
