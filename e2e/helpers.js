@@ -83,7 +83,7 @@ export default class TestHelpers {
 	}
 
 	static async goToURL(inputURL) {
-		await device.openURL({ url: inputURL, sourceApp: 'com.metamask' });
+		await device.openURL({ url: inputURL, sourceApp: 'io.metamask' });
 	}
 
 	static checkIfVisible(elementId) {
