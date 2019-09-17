@@ -5,7 +5,6 @@ const Correct_Seed_Words = 'fold media south add since false relax immense pause
 const Correct_Password = `12345678`;
 const Ropsten = 'Ropsten Test Network';
 const Ropsten_Faucet = 'https://faucet.metamask.io';
-const Crypto_K = 'https://www.cryptokitties.co';
 const ETH_Faucet = 'Test Ether Faucet';
 
 describe('Import seedphrase flow', () => {
@@ -66,34 +65,12 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.tapByText('Browser');
 		// Check that we are on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on search in bottom navbar
-		await TestHelpers.tap('search-button');
 		// Navigate to URL
-		await TestHelpers.typeTextAndHideKeyboard('url-input', Ropsten_Faucet);
+		await TestHelpers.goToURL(Ropsten_Faucet);
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on header URL
-		await TestHelpers.tapAtPoint('browser-screen', { x: 200, y: -5 });
-		// Clear text
-		await TestHelpers.replaceTextInField('url-input', Crypto_K);
-		// Tap on an autocomplete option
-		await element(by.text('CryptoKitties'))
-			.atIndex(1)
-			.tap();
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap on options
-		await TestHelpers.waitAndTap('options-button');
-		// Tap on New tab
-		await TestHelpers.tapByText('New tab');
-		// Tap on tabs on bottom navbar
-		await TestHelpers.tap('show-tabs-button');
-		// Tap on faucet tab
-		await TestHelpers.tapAtPoint('browser-screen', { x: 220, y: 120 });
-		// Check that we are still on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap back button
-		await TestHelpers.waitAndTap('go-back-button');
+		// If notificaiton pops up, wait for it to go away
+		await TestHelpers.delay(7000);
 	});
 
 	it('should donate ETH on MM Ropsten', async () => {
@@ -109,18 +86,12 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.tapByText('CONFIRM');
 		// Check that we are on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
-		// Open Drawer
-		await TestHelpers.tapAtPoint('browser-screen', { x: 30, y: -5 });
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on Transaction History
-		await TestHelpers.tapByText('Transaction History');
+		// Wait for enable notifications alert to show up
+		await TestHelpers.delay(10000);
 		// Dismiss alert
 		await TestHelpers.tapAlertWithButton('No, thanks');
-		// Check that we are on the transactions screen
-		await TestHelpers.checkIfVisible('transactions-screen');
 		// Open Drawer
-		await TestHelpers.tapAtPoint('transactions-screen', { x: 30, y: -5 });
+		await TestHelpers.tapAtPoint('browser-screen', { x: 30, y: -5 });
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Wallet
@@ -142,10 +113,8 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Tap to request 1 ETH
 		await TestHelpers.tapAtPoint('browser-screen', { x: 95, y: 95 });
-		// Tap on header URL
-		await TestHelpers.tapAtPoint('browser-screen', { x: 200, y: -5 });
-		// Tap cancel
-		await TestHelpers.waitAndTap('cancel-url-button');
+		// Give time for the txn to be initiated
+		await TestHelpers.delay(7000);
 	});
 
 	it('should log out', async () => {
