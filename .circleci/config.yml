@@ -19,7 +19,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile
 
 defaults: &defaults
   working_directory: ~/MetaMask
