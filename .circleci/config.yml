@@ -91,6 +91,7 @@ jobs:
           command:
             |
               brew update
+              brew install watchman
               brew tap wix/brew
               brew install --HEAD applesimutils
               yarn global add detox-cli

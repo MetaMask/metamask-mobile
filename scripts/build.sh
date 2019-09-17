@@ -164,8 +164,7 @@ buildIosRelease(){
 			echo $IOS_ENV | tr "|" "\n" > ios/release.xcconfig
 			echo $IOS_ENV | tr "|" "\n" > ios/debug.xcconfig
 		fi
-
-		cd ios && bundle install && bundle exec fastlane e2e
+		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone X (12.4)"
 	fi
 }
 

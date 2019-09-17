@@ -64,11 +64,4 @@ platform :ios do
 
 	end
 
-	desc "E2E build via CircleCI"
-    lane :e2e do
-        setup_circle_ci
-
-        match(type: "adhoc")
-   		gym(export_method: "ad-hoc")
-    end
 end
