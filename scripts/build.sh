@@ -162,7 +162,6 @@ buildIosRelease(){
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo $IOS_ENV | tr "|" "\n" > ios/release.xcconfig
-			echo $IOS_ENV | tr "|" "\n" > ios/debug.xcconfig
 		fi
 		./node_modules/.bin/react-native run-ios  --configuration Release --simulator "iPhone X (12.4)"
 	fi
