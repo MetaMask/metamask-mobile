@@ -68,13 +68,7 @@ platform :ios do
     lane :e2e do
         setup_circle_ci
 
-        match(type: "adhoc", readonly: true)
-        gym(
-            clean: true,
-            scheme: "MetaMask",
-            configuration: "Debug",
-            export_method: "ad-hoc",
-			output_name: "MetaMask"
-        )
+        match(type: "adhoc")
+   		gym(export_method: "ad-hoc")
     end
 end
