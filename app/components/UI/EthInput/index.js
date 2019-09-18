@@ -526,6 +526,7 @@ class EthInput extends PureComponent {
 							spellCheck={false}
 							style={styles.input}
 							value={readableValue}
+							testID={'amount-input'}
 						/>
 						<Text style={styles.eth} numberOfLines={1}>
 							{currency}
