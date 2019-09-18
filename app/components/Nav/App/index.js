@@ -7,6 +7,7 @@ import {
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
+import OnboardingCarousel from '../../Views/OnboardingCarousel';
 import CreateWallet from '../../Views/CreateWallet';
 import ImportWallet from '../../Views/ImportWallet';
 import ImportFromSeed from '../../Views/ImportFromSeed';
@@ -26,6 +27,9 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
  */
 const OnboardingNav = createStackNavigator(
 	{
+		OnboardingCarousel: {
+			screen: OnboardingCarousel
+		},
 		Onboarding: {
 			screen: Onboarding
 		},
@@ -46,7 +50,7 @@ const OnboardingNav = createStackNavigator(
 		}
 	},
 	{
-		initialRouteName: 'Onboarding'
+		initialRouteName: 'OnboardingCarousel'
 	}
 );
 
@@ -56,7 +60,7 @@ const OnboardingNav = createStackNavigator(
  */
 const OnboardingRootNav = createStackNavigator(
 	{
-		Onboarding: {
+		OnboardingNav: {
 			screen: OnboardingNav
 		},
 		SyncWithExtensionSuccess: {
