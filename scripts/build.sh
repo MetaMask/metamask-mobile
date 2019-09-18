@@ -149,13 +149,12 @@ buildIosDevice(){
 
 buildIosRelease(){
 	prebuild_ios
-
-	echo "Setting up env vars...";
-	echo $IOS_ENV | tr "|" "\n" > .ios.env
-	echo "Build started..."
 	
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo $IOS_ENV | tr "|" "\n" > .ios.env
+		echo "Build started..."
 		cd ios && bundle install && bundle exec fastlane prerelease
 		# Generate sourcemaps
 		yarn sourcemaps:ios
