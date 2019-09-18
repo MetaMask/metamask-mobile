@@ -241,12 +241,13 @@ exports[`App should render correctly 1`] = `
           "Login": null,
           "OnboardingRootNav": Object {
             "childRouters": Object {
-              "Onboarding": Object {
+              "OnboardingNav": Object {
                 "childRouters": Object {
                   "CreateWallet": null,
                   "ImportFromSeed": null,
                   "ImportWallet": null,
                   "Onboarding": null,
+                  "OnboardingCarousel": null,
                   "OptinMetrics": null,
                   "SyncWithExtension": null,
                 },
@@ -395,12 +396,11 @@ exports[`App should render correctly 1`] = `
                 "index": 0,
                 "isTransitioning": false,
                 "key": "id-123-6",
-                "routeName": "Onboarding",
+                "routeName": "OnboardingNav",
                 "routes": Array [
                   Object {
                     "key": "id-123-5",
-                    "params": undefined,
-                    "routeName": "Onboarding",
+                    "routeName": "OnboardingCarousel",
                   },
                 ],
               },
@@ -661,12 +661,13 @@ exports[`App should render correctly 1`] = `
             "Login": null,
             "OnboardingRootNav": Object {
               "childRouters": Object {
-                "Onboarding": Object {
+                "OnboardingNav": Object {
                   "childRouters": Object {
                     "CreateWallet": null,
                     "ImportFromSeed": null,
                     "ImportWallet": null,
                     "Onboarding": null,
+                    "OnboardingCarousel": null,
                     "OptinMetrics": null,
                     "SyncWithExtension": null,
                   },
@@ -815,12 +816,11 @@ exports[`App should render correctly 1`] = `
                   "index": 0,
                   "isTransitioning": false,
                   "key": "id-123-6",
-                  "routeName": "Onboarding",
+                  "routeName": "OnboardingNav",
                   "routes": Array [
                     Object {
                       "key": "id-123-5",
-                      "params": undefined,
-                      "routeName": "Onboarding",
+                      "routeName": "OnboardingCarousel",
                     },
                   ],
                 },
