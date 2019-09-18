@@ -14,7 +14,6 @@ import com.horcrux.svg.SvgPackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import io.branch.rnbranch.RNBranchPackage;
 import io.branch.rnbranch.RNBranchModule;
-import com.web3webview.Web3WebviewPackage;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import cl.json.RNSharePackage;
@@ -49,7 +48,7 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 		protected List<ReactPackage> getPackages() {
 		return Arrays.<ReactPackage>asList(
 				new MainReactPackage(),
-            new RNCWebViewPackage(),
+				new RNCWebViewPackage(),
             	new FabricPackage(),
 				new NetInfoPackage(),
             	new RNViewShotPackage(),
@@ -71,7 +70,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 				new RNOSModule(),
 				new RNSharePackage(),
 				new VectorIconsPackage(),
-				new Web3WebviewPackage(),
 				new RCTAnalyticsPackage()
 		);
 		}

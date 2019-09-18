@@ -245,10 +245,12 @@ class InpageBridge {
 			}));
 		}
 		this._pending[`${payload.__mmID}`] = callback;
-		window.ReactNativeWebView.postMessage({
-			payload,
-			type: 'INPAGE_REQUEST'
-		});
+		window.ReactNativeWebView.postMessage(
+			JSON.stringify({
+				payload,
+				type: 'INPAGE_REQUEST'
+			})
+		);
 	}
 
 	/**

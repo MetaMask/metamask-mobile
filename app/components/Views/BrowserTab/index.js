@@ -1264,7 +1264,7 @@ export class BrowserTab extends PureComponent {
 		this.backgroundBridge.sendStateUpdate();
 	};
 
-	onLoadProgress = progress => {
+	onLoadProgress = ({ nativeEvent: { progress } }) => {
 		this.setState({ progress });
 	};
 
@@ -1712,7 +1712,7 @@ export class BrowserTab extends PureComponent {
 								<WebviewError error={this.state.lastError} onReload={this.forceReload} />
 							)}
 							injectedJavaScript={entryScriptWeb3}
-							onProgress={this.onLoadProgress}
+							onLoadProgress={this.onLoadProgress}
 							onLoadStart={this.onLoadStart}
 							onLoadEnd={this.onLoadEnd}
 							onError={this.onError}

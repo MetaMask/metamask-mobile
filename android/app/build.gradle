@@ -275,7 +275,6 @@ dependencies {
     implementation project(':react-native-branch')
 	implementation "io.branch.sdk.android:library:3.0.4"
 
-    implementation project(':react-native-web3-webview')
     implementation project(':react-native-camera')
     implementation project(':react-native-share')
     implementation project(':react-native-i18n')
