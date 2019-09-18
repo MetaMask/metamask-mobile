@@ -23,7 +23,7 @@
     "test:unit": "jest ./app/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
-    "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
+    "test:e2e:ios": "detox build -c ios.sim.debug && detox test -c ios.sim.debug",
     "test:e2e:android": "detox build -c android.emu.debug && detox test -c android.emu.debug",
     "postinstall": "./scripts/postinstall.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
