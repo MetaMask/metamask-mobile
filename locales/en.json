@@ -11,7 +11,7 @@
 	"onboarding": {
 		"title": "Welcome to MetaMask",
 		"subtitle": "A browser that connects you to applications on the decentralized web",
-		"import_wallet_button": "Sync or import your wallet",
+		"import_wallet_button": "Sync or import wallet",
 		"start_exploring_now": "Start exploring",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
@@ -219,7 +219,7 @@
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
-		"description": "By clicking \"{{action}}\" you agree to these ",
+		"description": "By proceding, you agree to these ",
 		"terms": "Terms and Conditions"
 	},
 	"privacy_policy": {
