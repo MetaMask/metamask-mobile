@@ -19,6 +19,15 @@
 		"optin_back_title": "Aviso",
 		"optin_back_desc": "Por favor acepte o rechace el uso de análisis de datos. Puede actualizar esta opción en la configuración."
 	},
+	"onboarding_carousel": {
+		"title1": "Bienvenido a MetaMask",
+		"title2": "Saluda a tu billetera...",
+		"title3": "Explora aplicaciones decentralizadas",
+		"subtitle1": "Un navegador seguro, y mucho más. Desliza para ver que es posible.",
+		"subtitle2": "Almacene, gaste y envíe criptomonedas y activos.",
+		"subtitle3": "Use su MetaMask para iniciar sesión en aplicaciones descentralizadas, sin necesidad de registrarse.",
+		"get_started": "Empezar"
+	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Saltar Tutorial",
 		"coachmark": {
