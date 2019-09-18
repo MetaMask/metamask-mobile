@@ -131,7 +131,7 @@ export default class OnboardingCarousel extends PureComponent {
 	render() {
 		const { currentTab } = this.state;
 		return (
-			<View style={baseStyles.flexGrow} testID={'home-screen'}>
+			<View style={baseStyles.flexGrow} testID={'onboarding-carousel-screen'}>
 				<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 					<View style={styles.metamaskNameWrapper}>
 						<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
@@ -144,10 +144,8 @@ export default class OnboardingCarousel extends PureComponent {
 						>
 							<View key={'1'}>
 								<View>
-									<Text style={styles.title}>{strings('onboarding.title')}</Text>
-									<Text style={styles.subtitle}>
-										{'A secure browser – and so much more. Swipe to see what’s possible.'}
-									</Text>
+									<Text style={styles.title}>{strings('onboarding_carousel.title1')}</Text>
+									<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle1')}</Text>
 								</View>
 								<View style={styles.carouselImageWrapper}>
 									<Image
@@ -159,10 +157,8 @@ export default class OnboardingCarousel extends PureComponent {
 							</View>
 							<View key={'2'}>
 								<View>
-									<Text style={styles.title}>{'Say hello to your wallet...'}</Text>
-									<Text style={styles.subtitle}>
-										{'Store, spend and send crypto currencies and assets.'}
-									</Text>
+									<Text style={styles.title}>{strings('onboarding_carousel.title2')}</Text>
+									<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle2')}</Text>
 								</View>
 								<View style={styles.carouselImageWrapper}>
 									<Image
@@ -174,10 +170,8 @@ export default class OnboardingCarousel extends PureComponent {
 							</View>
 							<View key={'3'}>
 								<View>
-									<Text style={styles.title}>{'Explore decentralized apps'}</Text>
-									<Text style={styles.subtitle}>
-										{'Use your MetaMask to login to decentralized apps – no signup needed.'}
-									</Text>
+									<Text style={styles.title}>{strings('onboarding_carousel.title2')}</Text>
+									<Text style={styles.subtitle}>{strings('onboarding_carousel.subtitle3')}</Text>
 								</View>
 								<View style={styles.carouselImageWrapper}>
 									<Image
@@ -204,7 +198,7 @@ export default class OnboardingCarousel extends PureComponent {
 											onPress={this.onPresGetStarted}
 											testID={'onboarding-get-started-button'}
 										>
-											{'Get started'}
+											{strings('onboarding_carousel.get_started')}
 										</StyledButton>
 									</View>
 								</View>

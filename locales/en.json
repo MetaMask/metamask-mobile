@@ -19,6 +19,14 @@
 		"optin_back_title": "Heads up!",
 		"optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings."
 	},
+	"onboarding_carousel": {
+		"title1": "Welcome to MetaMask",
+		"title2": "Say hello to your wallet...",
+		"title3": "Explore decentralized apps",
+		"subtitle1": "A secure browser – and so much more. Swipe to see what’s possible.",
+		"subtitle2": "Store, spend and send crypto currencies and assets.",
+		"subtitle3": "Use your MetaMask to login to decentralized apps – no signup needed."
+	},
 	"onboarding_wizard": {
 		"skip_tutorial": "Skip Tutorial",
 		"coachmark": {
