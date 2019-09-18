@@ -149,7 +149,7 @@ buildIosDevice(){
 
 buildIosRelease(){
 	prebuild_ios
-	
+
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
