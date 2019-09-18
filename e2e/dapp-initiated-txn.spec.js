@@ -63,6 +63,8 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Browser
 		await TestHelpers.tapByText('Browser');
+		// Wait for page to load
+		await TestHelpers.delay(1000);
 		// Check that we are on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Navigate to URL
