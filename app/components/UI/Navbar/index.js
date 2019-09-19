@@ -124,9 +124,12 @@ const styles = StyleSheet.create({
 		width: 24,
 		height: 24
 	},
-	metamaskNameWrapper: {
+	metamaskNameTransparentWrapper: {
 		alignItems: 'center',
 		flex: 1
+	},
+	metamaskNameWrapper: {
+		marginLeft: Platform.OS === 'android' ? 20 : 0
 	}
 });
 
@@ -406,7 +409,7 @@ export function getTransparentOnboardingNavbarOptions() {
 	return {
 		headerTransparent: true,
 		headerTitle: (
-			<View style={styles.metamaskNameWrapper}>
+			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
@@ -418,13 +421,13 @@ export function getTransparentOnboardingNavbarOptions() {
 /**
  * Function that returns a transparent navigation options for our onboarding screens.
  *
- * @returns {Object} - Corresponding navbar options containing headerTitle
+ * @returns {Object} - Corresponding navbar options containing headerTitle and a back button
  */
 export function getTransparentBackOnboardingNavbarOptions() {
 	return {
 		headerTransparent: true,
 		headerTitle: (
-			<View style={styles.metamaskNameWrapper}>
+			<View style={styles.metamaskNameTransparentWrapper}>
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
