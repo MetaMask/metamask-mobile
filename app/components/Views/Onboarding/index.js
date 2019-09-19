@@ -182,13 +182,9 @@ class Onboarding extends PureComponent {
 						</View>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
-								<Text style={styles.title}>{'Get started!'}</Text>
+								<Text style={styles.title}>{strings('onboarding.title')}</Text>
 								<View style={styles.importWrapper}>
-									<Text style={styles.buttonDescription}>
-										{
-											'If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.'
-										}
-									</Text>
+									<Text style={styles.buttonDescription}>{strings('onboarding.sync_desc')}</Text>
 									<View style={styles.flexGrow}>
 										<StyledButton
 											type={'normal'}
@@ -200,18 +196,14 @@ class Onboarding extends PureComponent {
 									</View>
 								</View>
 								<View style={styles.createWrapper}>
-									<Text style={styles.buttonDescription}>
-										{
-											'New to crypto? Set up your first wallet and start exploring decentralized apps.'
-										}
-									</Text>
+									<Text style={styles.buttonDescription}>{strings('onboarding.create_desc')}</Text>
 									<View style={styles.flexGrow}>
 										<StyledButton
 											type={'blue'}
 											onPress={this.onPressCreate}
 											testID={'start-exploring-button'}
 										>
-											{'Create wallet'}
+											{strings('onboarding.start_exploring_now')}
 										</StyledButton>
 									</View>
 								</View>

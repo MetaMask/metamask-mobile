@@ -9,10 +9,11 @@
 		"info": "Info"
 	},
 	"onboarding": {
-		"title": "Welcome to MetaMask",
-		"subtitle": "A browser that connects you to applications on the decentralized web",
+		"title": "Get started!",
+		"sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
+		"create_desc": "New to crypto? Set up your first wallet and start exploring decentralized apps.",
 		"import_wallet_button": "Sync or import wallet",
-		"start_exploring_now": "Start exploring",
+		"start_exploring_now": "Create wallet",
 		"login": "Log in",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",

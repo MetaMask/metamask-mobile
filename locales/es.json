@@ -9,10 +9,11 @@
 		"info": "Información"
 	},
 	"onboarding": {
-		"title": "Bienvenido a MetaMask",
-		"subtitle": "Un navegador que te conecta a aplicaciones en la web decentralizada",
+		"title": "¡Empezar!",
+		"sync_desc": "Si ya tiene la extensión MetaMask u otra billetera, sincronícela o impórtela para administrar sus activos.",
+		"create_desc": "¿Nuevo en crypto? Configure su primera billetera y comience a explorar aplicaciones descentralizadas.",
 		"import_wallet_button": "Sincroniza o importa billetera",
-		"start_exploring_now": "Comenzar a explorar",
+		"start_exploring_now": "Crear billetera",
 		"login": "Ingresar",
 		"new_to_metamask": "Nuevo en MetaMask?",
 		"already_have_wallet": "Ya tienes una billetera?",
