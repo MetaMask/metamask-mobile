@@ -10,7 +10,7 @@ aliases:
 
   - &install-node-dependencies
       |
-        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000
+        rm -rf node_modules/websocket/.git && yarn install --network-timeout 300000 --frozen-lockfile
 
 defaults: &defaults
   working_directory: ~/MetaMask
@@ -20,7 +20,7 @@ jobs:
   prep-deps:
     <<: *defaults
     macos:
-      xcode: 10.1.0
+      xcode: 10.3.0
     steps:
       - checkout
       - run: *install-node-dependencies
@@ -70,7 +70,7 @@ jobs:
   test-e2e-ios:
     <<: *defaults
     macos:
-      xcode: 10.1.0
+      xcode: 10.3.0
     steps:
       - checkout
       - attach_workspace:
@@ -80,9 +80,10 @@ jobs:
           command:
             |
               brew update
+              brew install watchman
               brew tap wix/brew
               brew install --HEAD applesimutils
-              yarn install -g detox-cli
+              yarn global add detox-cli
       - run: echo $IOS_ENV | tr "|" "\n" > .ios.env
       - run: detox clean-framework-cache && detox build-framework-cache
       - run: detox build --configuration ios.sim.release && detox test --configuration ios.sim.release --cleanup
@@ -136,7 +137,7 @@ jobs:
           command: yarn build:announce
   publish-pre-release-ios:
     macos:
-      xcode: 10.1.0
+      xcode: 10.3.0
     working_directory:  ~/MetaMask
     environment:
       FL_OUTPUT_DIR: output
@@ -174,14 +175,15 @@ workflows:
       - test-unit:
           requires:
             - prep-node-deps
-    #   - test-e2e-ios:
-    #       requires:
-    #         - test-unit
+      - test-e2e-ios:
+          requires:
+            - prep-node-deps
+            - test-unit
       - all-tests-pass:
           requires:
             - lint
             - test-unit
-            # - test-e2e-ios
+            - test-e2e-ios
     #   - upload-coverage:
     #       requires:
     #         - test-unit
