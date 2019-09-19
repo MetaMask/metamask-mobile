@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { colors } from '../../../styles/common';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import Logger from '../../../util/Logger';
+
 /**
  * Entry Screen that decides which screen to show
  * depending on the state of the user
@@ -90,10 +91,15 @@ class Entry extends PureComponent {
 
 		setTimeout(async () => {
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-			if (existingUser !== null) {
+			// First session
+			const notFirstSession = await AsyncStorage.getItem('@MetaMask:firstSession');
+			if (!notFirstSession) {
+				await AsyncStorage.setItem('@MetaMask:firstSession', 'true');
+				this.animateAndGoTo('OnboardingRootNav');
+			} else if (existingUser !== null) {
 				await this.unlockKeychain();
 			} else {
-				this.animateAndGoTo('OnboardingRootNav');
+				this.animateAndGoTo('Onboarding');
 			}
 		}, 100);
 	}
@@ -132,6 +138,7 @@ class Entry extends PureComponent {
 	}
 
 	onAnimationFinished = () => {
+		const { viewToGo } = this.state;
 		setTimeout(() => {
 			Animated.timing(this.opacity, {
 				toValue: 0,
@@ -139,8 +146,14 @@ class Entry extends PureComponent {
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
-				if (this.state.viewToGo !== 'WalletView') {
-					this.props.navigation.navigate(this.state.viewToGo);
+				if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+					this.props.navigation.navigate(viewToGo);
+				} else if (viewToGo === 'Onboarding') {
+					this.props.navigation.navigate(
+						'OnboardingRootNav',
+						{},
+						NavigationActions.navigate({ routeName: 'Oboarding' })
+					);
 				} else {
 					this.props.navigation.navigate(
 						'HomeNav',
@@ -175,7 +188,7 @@ class Entry extends PureComponent {
 			} else if (this.props.passwordSet) {
 				this.animateAndGoTo('Login');
 			} else {
-				this.animateAndGoTo('OnboardingRootNav');
+				this.animateAndGoTo('Onboarding');
 			}
 		} catch (error) {
 			console.log(`Keychain couldn't be accessed`, error); // eslint-disable-line

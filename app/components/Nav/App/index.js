@@ -27,11 +27,11 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
  */
 const OnboardingNav = createStackNavigator(
 	{
-		OnboardingCarousel: {
-			screen: OnboardingCarousel
-		},
 		Onboarding: {
 			screen: Onboarding
+		},
+		OnboardingCarousel: {
+			screen: OnboardingCarousel
 		},
 		CreateWallet: {
 			screen: CreateWallet

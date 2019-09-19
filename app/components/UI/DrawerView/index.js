@@ -49,6 +49,7 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import URL from 'url-parse';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
 import EthereumAddress from '../EthereumAddress';
+import { NavigationActions } from 'react-navigation';
 
 const ANDROID_OFFSET = 30;
 const styles = StyleSheet.create({
@@ -542,7 +543,11 @@ class DrawerView extends PureComponent {
 					onPress: async () => {
 						await SecureKeychain.resetGenericPassword();
 						if (!passwordSet) {
-							this.props.navigation.navigate('Onboarding');
+							this.props.navigation.navigate(
+								'OnboardingRootNav',
+								{},
+								NavigationActions.navigate({ routeName: 'Onboarding' })
+							);
 						} else {
 							this.props.navigation.navigate('Login');
 						}

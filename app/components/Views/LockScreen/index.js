@@ -7,6 +7,7 @@ import Engine from '../../../core/Engine';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
+import { NavigationActions } from 'react-navigation';
 
 const LOGO_SIZE = 175;
 const styles = StyleSheet.create({
@@ -138,7 +139,11 @@ class LockScreen extends PureComponent {
 			} else if (this.props.passwordSet) {
 				this.props.navigation.navigate('Login');
 			} else {
-				this.props.navigation.navigate('OnboardingRootNav');
+				this.props.navigation.navigate(
+					'OnboardingRootNav',
+					{},
+					NavigationActions.navigate({ routeName: 'Onboarding' })
+				);
 			}
 		} catch (error) {
 			if (this.unlockAttempts <= 3) {
