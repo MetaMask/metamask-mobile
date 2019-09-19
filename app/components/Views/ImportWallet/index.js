@@ -36,15 +36,15 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		flex: 1,
-		paddingTop: 0,
 		paddingHorizontal: 30,
-		paddingBottom: 30
+		paddingBottom: 30,
+		alignItems: 'center'
 	},
 	foxWrapper: {
 		width: Platform.OS === 'ios' ? 90 : 45,
 		height: Platform.OS === 'ios' ? 90 : 45,
-		marginTop: 0,
-		marginBottom: 20
+		marginBottom: 25,
+		marginTop: 0
 	},
 	image: {
 		alignSelf: 'center',
@@ -55,34 +55,29 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		color: colors.fontPrimary,
 		justifyContent: 'center',
-		textAlign: 'left',
+		textAlign: 'center',
 		...fontStyles.bold
 	},
 	steps: {
-		marginTop: 50,
-		marginBottom: 30
+		marginVertical: 8
 	},
 	text: {
 		textAlign: 'left',
-		fontSize: 18,
+		fontSize: 16,
 		lineHeight: 30,
 		color: colors.fontPrimary,
 		...fontStyles.normal
 	},
-	separator: {
-		marginTop: 8,
-		marginBottom: 8,
-		textAlign: 'center'
-	},
 	ctas: {
 		flex: 1,
 		flexDirection: 'column',
-		marginBottom: 40,
-		marginTop: 24
+		marginBottom: 40
 	},
 	ctaWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end'
+		marginVertical: 16
+	},
+	ctaContainer: {
+		marginVertical: 25
 	},
 	loader: {
 		marginTop: 180,
@@ -426,50 +421,54 @@ class ImportWallet extends PureComponent {
 		);
 	}
 
-	renderInitialView() {
+	renderContent() {
 		return (
 			<View style={styles.ctas}>
-				<View>
+				<View style={styles.ctaContainer}>
+					<Text style={styles.title}>{strings('import_wallet.title')}</Text>
+					<Text style={styles.title}>{strings('import_wallet.sub_title')}</Text>
 					<View style={styles.steps}>
 						<Text style={styles.text}>{strings('import_wallet.sync_help_step_one')}</Text>
 						<Text style={styles.text}>{strings('import_wallet.sync_help_step_two')}</Text>
 						<Text style={styles.text}>{strings('import_wallet.sync_help_step_three')}</Text>
 						<Text style={styles.text}>{strings('import_wallet.sync_help_step_four')}</Text>
 					</View>
-				</View>
-				<View style={styles.ctaWrapper}>
-					<View style={styles.flexGrow}>
-						<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
-							{strings('import_wallet.sync_from_browser_extension_button')}
-						</StyledButton>
+					<View style={styles.ctaWrapper}>
+						<View style={styles.flexGrow}>
+							<StyledButton type={'blue'} onPress={this.safeSync} testID={'onboarding-import-button'}>
+								{strings('import_wallet.sync_from_browser_extension_button')}
+							</StyledButton>
+						</View>
 					</View>
-					<Text style={[styles.text, styles.separator]}>{strings('import_wallet.or')}</Text>
-					<View style={styles.flexGrow}>
-						<StyledButton
-							type={'normal'}
-							onPress={this.onPressImport}
-							testID={'import-wallet-import-from-seed-button'}
-						>
-							{strings('import_wallet.import_from_seed_button')}
-						</StyledButton>
+				</View>
+
+				<View style={styles.ctaContainer}>
+					<View style={styles.ctaWrapper}>
+						<Text style={styles.title}>{'Import another wallet'}</Text>
+						<Text style={styles.text}>{'You’ll need your 12-word seed phrase'}</Text>
+						<View style={styles.flexGrow}>
+							<StyledButton
+								type={'normal'}
+								onPress={this.onPressImport}
+								testID={'import-wallet-import-from-seed-button'}
+							>
+								{strings('import_wallet.import_from_seed_button')}
+							</StyledButton>
+						</View>
 					</View>
 				</View>
 			</View>
 		);
 	}
 
-	renderContent() {
-		if (this.state.loading) return this.renderLoader();
-		return this.renderInitialView();
-	}
-
 	render() {
+		const { loading } = this.state;
 		return (
 			<View style={baseStyles.flexGrow} testID={'import-wallet-screen'}>
 				<OnboardingScreenWithBg screen={'a'}>
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
-							{!this.state.loading && (
+							{!loading && (
 								<View style={styles.foxWrapper}>
 									{Platform.OS === 'android' ? (
 										<Image
@@ -482,13 +481,7 @@ class ImportWallet extends PureComponent {
 									)}
 								</View>
 							)}
-							{!this.state.loading && (
-								<React.Fragment>
-									<Text style={styles.title}>{strings('import_wallet.title')}</Text>
-									<Text style={styles.title}>{strings('import_wallet.sub_title')}</Text>
-								</React.Fragment>
-							)}
-							{this.renderContent()}
+							{loading ? this.renderLoader() : this.renderContent()}
 						</View>
 					</ScrollView>
 				</OnboardingScreenWithBg>
