@@ -69,8 +69,8 @@
 		}
 	},
 	"create_wallet": {
-		"title": "Creating your new wallet",
-		"subtitle": "Sit tight while we do some hard math! You will use your wallet to login & interact securely with decentralized applications"
+		"title": "Creating your wallet...",
+		"subtitle": "This shouldn’t take long"
 	},
 	"import_wallet": {
 		"title": "Already a MetaMask user?",

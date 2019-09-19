@@ -69,8 +69,8 @@
 		}
 	},
 	"create_wallet": {
-		"title": "Creando tu nueva billetera",
-		"subtitle": "Siéntate cómodo mientras hacemos unos cálculos complicados. Utilizaras tu billetera para ingresar y interactuar de forma segura con aplicaciones de la web decentralizada"
+		"title": "Creando tu billetera...",
+		"subtitle": "Esto no debería tomar mucho tiempo"
 	},
 	"import_wallet": {
 		"title": "Ya eres usuario de MetaMask?",
