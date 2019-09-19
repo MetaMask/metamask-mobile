@@ -29,6 +29,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import TermsAndConditions from '../TermsAndConditions';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -37,7 +38,6 @@ const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
 		paddingHorizontal: 30,
-		paddingBottom: 30,
 		alignItems: 'center'
 	},
 	foxWrapper: {
@@ -95,6 +95,10 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	termsAndConditions: {
+		paddingTop: 20,
+		paddingBottom: 30
 	}
 });
 
@@ -487,6 +491,9 @@ class ImportWallet extends PureComponent {
 							{loading ? this.renderLoader() : this.renderContent()}
 						</View>
 					</ScrollView>
+					<View style={styles.termsAndConditions}>
+						<TermsAndConditions navigation={this.props.navigation} />
+					</View>
 				</OnboardingScreenWithBg>
 			</View>
 		);

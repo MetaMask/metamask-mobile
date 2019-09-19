@@ -28,12 +28,13 @@ const styles = StyleSheet.create({
 const images = {
 	a: require('../../../images/welcome-bg1.jpg'),
 	b: require('../../../images/welcome-bg2.jpg'),
+	c: require('../../../images/welcome-bg3.jpg'),
 	carousel: null
 };
 
 const OnboardingScreenWithBg = props => (
 	<View style={styles.flex}>
-		<ImageBackground source={images[props.screen]} style={styles.wrapper} resizeMode={'stretch'}>
+		<ImageBackground source={images[props.screen]} style={styles.wrapper} resizeMode={'contain'}>
 			{props.children}
 		</ImageBackground>
 	</View>
