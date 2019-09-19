@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		position: 'absolute',
-		paddingTop: DeviceSize.isIphoneX() ? 90 : 30,
+		paddingTop: DeviceSize.isIphoneX() ? 90 : 50,
 		borderTopWidth: 0,
 		borderColor: colors.white,
 		backgroundColor: colors.white,

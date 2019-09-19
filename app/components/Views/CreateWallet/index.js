@@ -52,15 +52,15 @@ const styles = StyleSheet.create({
 		...fontStyles.normal
 	},
 	foxWrapper: {
-		width: 100,
+		width: Platform.OS === 'ios' ? 90 : 80,
+		height: Platform.OS === 'ios' ? 90 : 80,
 		marginTop: 30,
-		marginBottom: 30,
-		height: 100
+		marginBottom: 30
 	},
 	image: {
 		alignSelf: 'center',
-		width: 100,
-		height: 100
+		width: 80,
+		height: 80
 	}
 });
 

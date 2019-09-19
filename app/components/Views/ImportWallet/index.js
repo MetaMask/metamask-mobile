@@ -30,6 +30,9 @@ import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import TermsAndConditions from '../TermsAndConditions';
+import DeviceSize from '../../../util/DeviceSize';
+
+const SMALL_DEVICE = DeviceSize.isSmallDevice();
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -43,8 +46,7 @@ const styles = StyleSheet.create({
 	foxWrapper: {
 		width: Platform.OS === 'ios' ? 90 : 45,
 		height: Platform.OS === 'ios' ? 90 : 45,
-		marginBottom: 25,
-		marginTop: 0
+		marginVertical: 20
 	},
 	image: {
 		alignSelf: 'center',
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
 		marginVertical: 16
 	},
 	ctaContainer: {
-		marginVertical: 25
+		marginVertical: SMALL_DEVICE ? 8 : 25
 	},
 	loader: {
 		marginTop: 180,

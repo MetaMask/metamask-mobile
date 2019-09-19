@@ -52,9 +52,6 @@ const styles = StyleSheet.create({
 		height: 40,
 		marginRight: 10
 	},
-	metamaskNameWrapper: {
-		marginLeft: Platform.OS === 'android' ? 20 : 0
-	},
 	closeIcon: {
 		paddingLeft: Platform.OS === 'android' ? 22 : 18,
 		color: colors.blue
@@ -126,6 +123,10 @@ const styles = StyleSheet.create({
 		marginRight: 3,
 		width: 24,
 		height: 24
+	},
+	metamaskNameWrapper: {
+		alignItems: 'center',
+		flex: 1
 	}
 });
 
@@ -409,7 +410,8 @@ export function getTransparentOnboardingNavbarOptions() {
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
-		headerLeft: null
+		headerLeft: <View />,
+		headerRight: <View />
 	};
 }
 
@@ -426,7 +428,8 @@ export function getTransparentBackOnboardingNavbarOptions() {
 				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
 			</View>
 		),
-		headerBackTitle: strings('navigation.back')
+		headerBackTitle: strings('navigation.back'),
+		headerRight: <View />
 	};
 }
 
