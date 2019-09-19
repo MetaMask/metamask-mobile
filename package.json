@@ -96,7 +96,7 @@
     "react-native-aes-crypto": "git+ssh://git@github.com/brunobar79/react-native-aes.git#495bf43f119f6ee5998e7e42b9cb02bb39a5a524",
     "react-native-animated-fox": "git+ssh://git@github.com/brunobar79/react-native-animated-fox.git#4515395b0d8c3855630790ab3f806ed35579b23d",
     "react-native-background-timer": "2.1.1",
-    "react-native-branch": "git+ssh://git@github.com/brunobar79/react-native-branch-deep-linking-attribution.git#f455eb7fa317644978ebddd8a3afb80c73951f85",
+    "react-native-branch": "git+ssh://git@github.com/brunobar79/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f",
     "react-native-browser-polyfill": "0.1.2",
     "react-native-button": "git+ssh://git@github.com/brunobar79/react-native-button.git#fd79f4d6c8ced4086ba6e3021b6ed6d4a3e19cf7",
     "react-native-camera": "2.10.0",
