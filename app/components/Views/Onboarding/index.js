@@ -162,7 +162,7 @@ class Onboarding extends PureComponent {
 
 	render() {
 		return (
-			<View style={baseStyles.flexGrow} testID={'home-screen'}>
+			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
 				<OnboardingScreenWithBg screen={'c'}>
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
 						<View style={styles.wrapper}>
