@@ -397,6 +397,40 @@ export function getOnboardingNavbarOptions() {
 }
 
 /**
+ * Function that returns a transparent navigation options for our onboarding screens.
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle
+ */
+export function getTransparentOnboardingNavbarOptions() {
+	return {
+		headerTransparent: true,
+		headerTitle: (
+			<View style={styles.metamaskNameWrapper}>
+				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+			</View>
+		),
+		headerLeft: null
+	};
+}
+
+/**
+ * Function that returns a transparent navigation options for our onboarding screens.
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle
+ */
+export function getTransparentBackOnboardingNavbarOptions() {
+	return {
+		headerTransparent: true,
+		headerTitle: (
+			<View style={styles.metamaskNameWrapper}>
+				<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
+			</View>
+		),
+		headerBackTitle: strings('navigation.back')
+	};
+}
+
+/**
  * Function that returns the navigation options
  * for our metric opt-in screen
  *

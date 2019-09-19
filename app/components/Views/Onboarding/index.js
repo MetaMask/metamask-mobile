@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, ScrollView, StyleSheet, Image, Alert, InteractionManager } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Alert, InteractionManager } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
@@ -15,6 +15,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
 import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 
 const styles = StyleSheet.create({
 	scroll: {
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
 	},
 	wrapper: {
 		paddingHorizontal: 40,
-		paddingBottom: 30,
+		paddingVertical: 30,
 		flex: 1
 	},
 	termsAndConditions: {
@@ -36,8 +37,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center'
 	},
 	ctas: {
-		flex: 1,
-		marginTop: 30
+		flex: 1
 	},
 	footer: {
 		marginTop: -20,
@@ -60,26 +60,14 @@ const styles = StyleSheet.create({
 	},
 	createWrapper: {
 		marginVertical: 24
-	},
-	metamaskNameWrapper: {
-		alignContent: 'center',
-		alignItems: 'center'
-	},
-	metamaskName: {
-		width: 122,
-		height: 15
 	}
 });
-
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 
 /**
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = () => ({
-		header: null
-	});
+	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
@@ -177,9 +165,6 @@ class Onboarding extends PureComponent {
 			<View style={baseStyles.flexGrow} testID={'home-screen'}>
 				<OnboardingScreenWithBg screen={'b'}>
 					<ScrollView style={baseStyles.flexGrow} contentContainerStyle={styles.scroll}>
-						<View style={styles.metamaskNameWrapper}>
-							<Image source={metamask_name} style={styles.metamaskName} resizeMethod={'auto'} />
-						</View>
 						<View style={styles.wrapper}>
 							<View style={styles.ctas}>
 								<Text style={styles.title}>{strings('onboarding.title')}</Text>

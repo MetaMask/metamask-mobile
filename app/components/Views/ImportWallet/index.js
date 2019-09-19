@@ -19,7 +19,7 @@ import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getTransparentBackOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import StyledButton from '../../UI/StyledButton';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -59,7 +59,8 @@ const styles = StyleSheet.create({
 		...fontStyles.bold
 	},
 	steps: {
-		marginVertical: 8
+		marginVertical: 8,
+		marginHorizontal: 25
 	},
 	text: {
 		textAlign: 'left',
@@ -67,6 +68,10 @@ const styles = StyleSheet.create({
 		lineHeight: 30,
 		color: colors.fontPrimary,
 		...fontStyles.normal
+	},
+	textCentered: {
+		textAlign: 'center',
+		paddingTop: 8
 	},
 	ctas: {
 		flex: 1,
@@ -99,7 +104,7 @@ const PUB_KEY = process.env['MM_PUBNUB_PUB_KEY']; // eslint-disable-line dot-not
  * View where users can decide how to import their wallet
  */
 class ImportWallet extends PureComponent {
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
+	static navigationOptions = ({ navigation }) => getTransparentBackOnboardingNavbarOptions(navigation);
 
 	static propTypes = {
 		/**
@@ -145,8 +150,6 @@ class ImportWallet extends PureComponent {
 		loading: false,
 		existingUser: false
 	};
-
-	static navigationOptions = ({ navigation }) => getOnboardingNavbarOptions(navigation);
 
 	async checkIfExistingUser() {
 		const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
@@ -443,9 +446,9 @@ class ImportWallet extends PureComponent {
 				</View>
 
 				<View style={styles.ctaContainer}>
+					<Text style={styles.title}>{'Import another wallet'}</Text>
+					<Text style={[styles.text, styles.textCentered]}>{'You’ll need your 12-word seed phrase'}</Text>
 					<View style={styles.ctaWrapper}>
-						<Text style={styles.title}>{'Import another wallet'}</Text>
-						<Text style={styles.text}>{'You’ll need your 12-word seed phrase'}</Text>
 						<View style={styles.flexGrow}>
 							<StyledButton
 								type={'normal'}

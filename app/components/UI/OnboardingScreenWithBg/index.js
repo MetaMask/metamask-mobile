@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		position: 'absolute',
-		paddingTop: DeviceSize.isIphoneX() ? 30 : 30,
+		paddingTop: DeviceSize.isIphoneX() ? 90 : 30,
 		borderTopWidth: 0,
 		borderColor: colors.white,
 		backgroundColor: colors.white,
@@ -27,7 +27,8 @@ const styles = StyleSheet.create({
 
 const images = {
 	a: require('../../../images/welcome-bg1.jpg'),
-	b: require('../../../images/welcome-bg2.jpg')
+	b: require('../../../images/welcome-bg2.jpg'),
+	carousel: null
 };
 
 const OnboardingScreenWithBg = props => (
