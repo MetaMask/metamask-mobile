@@ -1724,6 +1724,8 @@ export class BrowserTab extends PureComponent {
 							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
+							allowsInlineMediaPlayback
+							useWebkit
 						/>
 					)}
 				</View>
