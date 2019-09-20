@@ -11,7 +11,7 @@ const Password_Warning = "Couldn't unlock your account. Please try again.";
 
 describe('Import seedphrase flow', () => {
 	beforeEach(() => {
-		jest.setTimeout(90000);
+		jest.setTimeout(150000);
 	});
 
 	it('should import via seed phrase and validate in settings', async () => {
