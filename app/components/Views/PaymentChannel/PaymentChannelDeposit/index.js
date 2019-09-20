@@ -62,13 +62,13 @@ const styles = StyleSheet.create({
 	buttonsWrapper: {
 		flex: 1,
 		flexDirection: 'row',
-		alignSelf: 'center',
-		marginBottom: 24
+		alignSelf: 'center'
 	},
 	buttonsContainer: {
 		flex: 1,
 		flexDirection: 'column',
-		alignSelf: 'flex-end'
+		alignSelf: 'flex-end',
+		marginBottom: 24
 	},
 	fiatValue: {
 		...fontStyles.normal,
@@ -473,7 +473,7 @@ class Deposit extends PureComponent {
 									)}
 								</StyledButton>
 								<StyledButton type={'transparent-blue'} onPress={this.openQrModal}>
-									{'View my address'}
+									{strings('payment_channel.view_address')}
 								</StyledButton>
 							</View>
 						</KeyboardAvoidingView>

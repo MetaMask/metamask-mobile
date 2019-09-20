@@ -952,7 +952,8 @@
 		"error_title": "Feature temporarily unavailable",
 		"error_desc": "Our Payment Channels provider is having issues, please try again later.",
 		"ask_a_friend": "Or you can also request from a friend",
-		"receive_funds_action": "Receive Funds"
+		"receive_funds_action": "Receive Funds",
+		"view_address": "View my address"
 	},
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
