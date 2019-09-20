@@ -8870,10 +8870,6 @@ react-native-background-timer@2.1.1:
   version "3.1.1"
   resolved "git+ssh://git@github.com/brunobar79/react-native-branch-deep-linking-attribution.git#6abb7e34a8f77f624013bb148aed87f50e72bf8f"
 
-"react-native-branch@git+ssh://git@github.com/brunobar79/react-native-branch-deep-linking-attribution.git#f455eb7fa317644978ebddd8a3afb80c73951f85":
-  version "3.1.1"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-branch-deep-linking-attribution.git#f455eb7fa317644978ebddd8a3afb80c73951f85"
-
 react-native-browser-polyfill@0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/react-native-browser-polyfill/-/react-native-browser-polyfill-0.1.2.tgz#d2c4e816e7a1d91bc314400a1b0a9795a91b8bcd"
@@ -9126,9 +9122,9 @@ react-native-vector-icons@6.4.2:
   version "2.6.0"
   resolved "git+ssh://git@github.com/brunobar79/react-native-view-shot.git#17a65dc27222a78ad8942de3d536d7171bb2eb76"
 
-"react-native-webview@git+ssh://git@github.com/brunobar79/react-native-webview.git":
+"react-native-webview@git+ssh://git@github.com/brunobar79/react-native-webview.git#1cb637ac5929c04507fb8e4de87548622e9040d4":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-webview.git#4783e7d37799f9f5d2265c101da771a5e95db756"
+  resolved "git+ssh://git@github.com/brunobar79/react-native-webview.git#1cb637ac5929c04507fb8e4de87548622e9040d4"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
