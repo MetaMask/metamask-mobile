@@ -1,16 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-	InteractionManager,
-	SafeAreaView,
-	Platform,
-	TouchableOpacity,
-	Dimensions,
-	StyleSheet,
-	View,
-	Text,
-	Clipboard
-} from 'react-native';
+import { InteractionManager, SafeAreaView, Platform, Dimensions, StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import ReceiveRequestAction from './ReceiveRequestAction';
 import Logger from '../../../util/Logger';
@@ -19,17 +9,15 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { toggleReceiveModal } from '../../../actions/modals';
 import Modal from 'react-native-modal';
-import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
 import ElevatedView from 'react-native-elevated-view';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DeviceSize from '../../../util/DeviceSize';
-import { showAlert } from '../../../actions/alert';
 import { generateUniversalLinkAddress } from '../../../util/payment-link-generator';
+import AddressQRCode from '../../Views/AddressQRCode';
 
 const TOTAL_PADDING = 64;
 const ACTION_WIDTH = (Dimensions.get('window').width - TOTAL_PADDING) / 2;
@@ -63,61 +51,14 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center'
 	},
-	detailsWrapper: {
-		padding: 10,
-		alignItems: 'center'
-	},
-	qrCode: {
-		marginBottom: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 36,
-		paddingBottom: 24,
-		paddingTop: 16,
-		backgroundColor: colors.grey000,
-		borderRadius: 8
-	},
-	qrCodeWrapper: {
-		borderColor: colors.grey300,
-		borderRadius: 8,
-		borderWidth: 1,
-		padding: 15
-	},
-	addressWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingHorizontal: 16,
-		paddingTop: 16,
-		marginTop: 10,
-		borderRadius: 5,
-		backgroundColor: colors.grey000
-	},
 	title: {
 		...fontStyles.normal,
 		fontSize: 18,
 		flexDirection: 'row',
 		alignSelf: 'center'
 	},
-	titleQr: {
-		flexDirection: 'row'
-	},
-	closeIcon: {
-		position: 'absolute',
-		right: DeviceSize.isSmallDevice() ? (Platform.OS === 'ios' ? -30 : -30) : Platform.OS === 'ios' ? -40 : -50,
-		bottom: Platform.OS === 'ios' ? 8 : 10
-	},
 	titleWrapper: {
 		marginVertical: 8
-	},
-	addressTitle: {
-		fontSize: 16,
-		marginBottom: 16,
-		...fontStyles.normal
-	},
-	address: {
-		...fontStyles.normal,
-		fontSize: Platform.OS === 'ios' ? 14 : 20,
-		textAlign: 'center'
 	},
 	modal: {
 		margin: 0,
@@ -169,11 +110,7 @@ class ReceiveRequest extends PureComponent {
 		/**
 		 * Action that toggles the receive modal
 		 */
-		toggleReceiveModal: PropTypes.func,
-		/**
-		/* Triggers global alert
-		*/
-		showAlert: PropTypes.func
+		toggleReceiveModal: PropTypes.func
 	};
 
 	state = {
@@ -217,17 +154,6 @@ class ReceiveRequest extends PureComponent {
 	 */
 	openQrModal = () => {
 		this.setState({ qrModalVisible: true });
-	};
-
-	copyAccountToClipboard = async () => {
-		const { selectedAddress } = this.props;
-		await Clipboard.setString(selectedAddress);
-		this.props.showAlert({
-			isVisible: true,
-			autodismiss: 1500,
-			content: 'clipboard-alert',
-			data: { msg: strings('account_details.account_copied_to_clipboard') }
-		});
 	};
 
 	actions = [
@@ -314,27 +240,7 @@ class ReceiveRequest extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 				>
-					<View style={styles.detailsWrapper}>
-						<View style={styles.qrCode}>
-							<View style={styles.titleQr}>
-								<Text style={styles.addressTitle}>
-									{strings('receive_request.public_address_qr_code')}
-								</Text>
-								<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal}>
-									<IonicIcon name={'ios-close'} size={28} color={colors.black} />
-								</TouchableOpacity>
-							</View>
-							<View style={styles.qrCodeWrapper}>
-								<QRCode
-									value={`ethereum:${this.props.selectedAddress}`}
-									size={Dimensions.get('window').width - 160}
-								/>
-							</View>
-							<TouchableOpacity style={styles.addressWrapper} onPress={this.copyAccountToClipboard}>
-								<Text style={styles.address}>{this.props.selectedAddress}</Text>
-							</TouchableOpacity>
-						</View>
-					</View>
+					<AddressQRCode closeQrModal={this.closeQrModal} />
 				</Modal>
 				<Modal
 					style={styles.modal}
@@ -364,8 +270,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-	showAlert: config => dispatch(showAlert(config))
+	toggleReceiveModal: () => dispatch(toggleReceiveModal())
 });
 
 export default connect(

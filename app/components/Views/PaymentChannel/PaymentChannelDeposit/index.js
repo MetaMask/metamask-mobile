@@ -37,6 +37,9 @@ import AssetIcon from '../../../UI/AssetIcon';
 import { hexToBN } from 'gaba/util';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { getTicker } from '../../../../util/transactions';
+import { SafeAreaView } from 'react-navigation';
+import Modal from 'react-native-modal';
+import AddressQRCode from '../../AddressQRCode';
 
 const TOO_LOW = 'too_low';
 const TOO_HIGH = 'too_high';
@@ -54,12 +57,13 @@ const styles = StyleSheet.create({
 		flexGrow: 1
 	},
 	button: {
-		marginBottom: 24
+		marginBottom: 8
 	},
 	buttonsWrapper: {
 		flex: 1,
 		flexDirection: 'row',
-		alignSelf: 'center'
+		alignSelf: 'center',
+		marginBottom: 24
 	},
 	buttonsContainer: {
 		flex: 1,
@@ -226,7 +230,8 @@ class Deposit extends PureComponent {
 		validAmount: false,
 		depositing: undefined,
 		invalidAmountType: undefined,
-		value: undefined
+		value: undefined,
+		qrModalVisible: false
 	};
 
 	amountInput = React.createRef();
@@ -264,6 +269,14 @@ class Deposit extends PureComponent {
 			this.setState({ depositing: false });
 			this.props.navigation.pop();
 		}
+	};
+
+	openQrModal = () => {
+		this.setState({ qrModalVisible: true });
+	};
+
+	closeQrModal = () => {
+		this.setState({ qrModalVisible: false });
 	};
 
 	updateAmount = async amount => {
@@ -391,7 +404,7 @@ class Deposit extends PureComponent {
 
 	render() {
 		const { conversionRate, currentCurrency, ticker, primaryCurrency } = this.props;
-		const { amount, validAmount, error, value } = this.state;
+		const { amount, validAmount, error, value, qrModalVisible } = this.state;
 		let secondaryAmount, currency, secondaryCurrency;
 		if (primaryCurrency === 'ETH') {
 			secondaryAmount = weiToFiatNumber(value, conversionRate).toString();
@@ -404,7 +417,7 @@ class Deposit extends PureComponent {
 		}
 		return (
 			<TouchableWithoutFeedback style={styles.root} onPress={Keyboard.dismiss}>
-				<View style={styles.root}>
+				<SafeAreaView style={styles.root}>
 					{this.renderTransactionDirection()}
 					<View style={styles.wrapper}>
 						<Text style={styles.title}>{strings('payment_channel.deposit_amount')}</Text>
@@ -459,10 +472,23 @@ class Deposit extends PureComponent {
 										strings('payment_channel.load_funds')
 									)}
 								</StyledButton>
+								<StyledButton type={'transparent-blue'} onPress={this.openQrModal}>
+									{'View my address'}
+								</StyledButton>
 							</View>
 						</KeyboardAvoidingView>
 					</View>
-				</View>
+					<Modal
+						isVisible={qrModalVisible}
+						onBackdropPress={this.closeQrModal}
+						onBackButtonPress={this.closeQrModal}
+						onSwipeComplete={this.closeQrModal}
+						swipeDirection={'down'}
+						propagateSwipe
+					>
+						<AddressQRCode closeQrModal={this.closeQrModal} />
+					</Modal>
+				</SafeAreaView>
 			</TouchableWithoutFeedback>
 		);
 	}
