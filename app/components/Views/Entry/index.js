@@ -91,15 +91,10 @@ class Entry extends PureComponent {
 
 		setTimeout(async () => {
 			const existingUser = await AsyncStorage.getItem('@MetaMask:existingUser');
-			// First session
-			const notFirstSession = await AsyncStorage.getItem('@MetaMask:firstSession');
-			if (!notFirstSession) {
-				await AsyncStorage.setItem('@MetaMask:firstSession', 'true');
-				this.animateAndGoTo('OnboardingRootNav');
-			} else if (existingUser !== null) {
+			if (existingUser !== null) {
 				await this.unlockKeychain();
 			} else {
-				this.animateAndGoTo('Onboarding');
+				this.animateAndGoTo('OnboardingRootNav');
 			}
 		}, 100);
 	}
