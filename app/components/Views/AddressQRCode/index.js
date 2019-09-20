@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 });
 
 /**
- * PureComponent that renders receive options
+ * PureComponent that renders a public address view
  */
 class AddressQRCode extends PureComponent {
 	static propTypes = {
