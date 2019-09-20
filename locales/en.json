@@ -862,7 +862,7 @@
 		"buy_title": "Buy",
 		"buy_description": "Buy Crypto with Credit Card",
 		"public_address": "Public Address",
-		"public_address_qr_code": "Public Address QR Code",
+		"public_address_qr_code": "Public Address",
 		"coming_soon": "Coming soon..."
 	},
 	"experimental_settings": {

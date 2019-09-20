@@ -845,7 +845,7 @@
 		"buy_title": "Comprar",
 		"buy_description": "Compre con tarjeta de crédito",
 		"public_address": "Dirección Pública",
-		"public_address_qr_code": "Código QR de Dirección Pública",
+		"public_address_qr_code": "Dirección Pública",
 		"coming_soon": "Pronto..."
 	},
 	"experimental_settings": {
