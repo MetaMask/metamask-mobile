@@ -9038,9 +9038,9 @@ react-native-randombytes@3.5.2:
     buffer "^4.9.1"
     sjcl "^1.0.3"
 
-"react-native-remote-svg@git+ssh://git@github.com/brunobar79/react-native-remote-svg.git#19e7d85fd23902d5d462be28036ed081c4991df2":
-  version "1.4.3"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-remote-svg.git#19e7d85fd23902d5d462be28036ed081c4991df2"
+"react-native-remote-svg@git+ssh://git@github.com/brunobar79/react-native-remote-svg.git#cc0ba8b1a0bd8fc73e10b3078751e362ddcb3aee":
+  version "2.0.6"
+  resolved "git+ssh://git@github.com/brunobar79/react-native-remote-svg.git#cc0ba8b1a0bd8fc73e10b3078751e362ddcb3aee"
 
 react-native-safe-area-view@^0.14.1:
   version "0.14.7"
