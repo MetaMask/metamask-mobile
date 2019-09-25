@@ -954,6 +954,6 @@
 		"amount_error_message": "El monto debe ser un número",
 		"address_error_message": "La dirección no es válida",
 		"balance_error_message": "Balance insuficiente",
-		"gas_error": "No tienes sufuciente ETH para pagar el gas."
+		"gas_error": "No tienes suficiente ETH para pagar el gas."
 	}
 }
