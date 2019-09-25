@@ -63,6 +63,8 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Browser
 		await TestHelpers.tapByText('Browser');
+		// Wait for page to load
+		await TestHelpers.delay(1000);
 		// Check that we are on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 		// Navigate to URL
@@ -70,7 +72,7 @@ describe('Import seedphrase flow', () => {
 		// Check that we are still on the browser screen
 		await TestHelpers.checkIfVisible('browser-screen');
 		// If notificaiton pops up, wait for it to go away
-		await TestHelpers.delay(7000);
+		await TestHelpers.delay(6000);
 	});
 
 	it('should donate ETH on MM Ropsten', async () => {
@@ -82,6 +84,12 @@ describe('Import seedphrase flow', () => {
 		await TestHelpers.tapByText('CONNECT');
 		// Check that we are on the confirm transaction screen
 		await TestHelpers.checkIfVisible('confirm-transaction-screen');
+		// Tap Edit
+		await TestHelpers.tapAtPoint('confirm-transaction-screen', { x: 30, y: -20 });
+		// Input Amount
+		await TestHelpers.replaceTextInField('amount-input', '0.000001');
+		// Tap on NEXT button
+		await TestHelpers.tapByText('NEXT');
 		// Tap on CONFIRM button
 		await TestHelpers.tapByText('CONFIRM');
 		// Check that we are on the browser screen
@@ -99,27 +107,12 @@ describe('Import seedphrase flow', () => {
 		// Check that we are on the wallet screen
 		await TestHelpers.checkIfVisible('wallet-screen');
 		// Ensure ETH Value is correct
-		await TestHelpers.checkIfElementHasString('balance', '0.9 ETH');
-	});
-
-	it('should go back to browser to request ETH', async () => {
-		// Open Drawer
-		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
-		// Check that the drawer is visbile
-		await TestHelpers.checkIfVisible('drawer-screen');
-		// Tap on Browser
-		await TestHelpers.tapByText('Browser');
-		// Check that we are on the browser screen
-		await TestHelpers.checkIfVisible('browser-screen');
-		// Tap to request 1 ETH
-		await TestHelpers.tapAtPoint('browser-screen', { x: 95, y: 95 });
-		// Give time for the txn to be initiated
-		await TestHelpers.delay(7000);
+		await TestHelpers.checkIfElementHasString('balance', '1.9 ETH');
 	});
 
 	it('should log out', async () => {
 		// Open Drawer
-		await TestHelpers.tapAtPoint('browser-screen', { x: 30, y: -5 });
+		await TestHelpers.tapAtPoint('wallet-screen', { x: 30, y: -5 });
 		// Check that the drawer is visbile
 		await TestHelpers.checkIfVisible('drawer-screen');
 		// Tap on Log Out
