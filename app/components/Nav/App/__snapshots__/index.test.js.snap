@@ -239,15 +239,15 @@ exports[`App should render correctly 1`] = `
           },
           "LockScreen": null,
           "Login": null,
+          "OnboardingCarousel": null,
           "OnboardingRootNav": Object {
             "childRouters": Object {
-              "OnboardingNav": Object {
+              "Onboarding": Object {
                 "childRouters": Object {
                   "CreateWallet": null,
                   "ImportFromSeed": null,
                   "ImportWallet": null,
                   "Onboarding": null,
-                  "OnboardingCarousel": null,
                   "OptinMetrics": null,
                   "SyncWithExtension": null,
                 },
@@ -396,11 +396,12 @@ exports[`App should render correctly 1`] = `
                 "index": 0,
                 "isTransitioning": false,
                 "key": "id-123-6",
-                "routeName": "OnboardingNav",
+                "routeName": "Onboarding",
                 "routes": Array [
                   Object {
                     "key": "id-123-5",
-                    "routeName": "OnboardingCarousel",
+                    "params": undefined,
+                    "routeName": "Onboarding",
                   },
                 ],
               },
@@ -410,6 +411,11 @@ exports[`App should render correctly 1`] = `
             "key": "Login",
             "params": undefined,
             "routeName": "Login",
+          },
+          Object {
+            "key": "OnboardingCarousel",
+            "params": undefined,
+            "routeName": "OnboardingCarousel",
           },
           Object {
             "key": "LockScreen",
@@ -659,15 +665,15 @@ exports[`App should render correctly 1`] = `
             },
             "LockScreen": null,
             "Login": null,
+            "OnboardingCarousel": null,
             "OnboardingRootNav": Object {
               "childRouters": Object {
-                "OnboardingNav": Object {
+                "Onboarding": Object {
                   "childRouters": Object {
                     "CreateWallet": null,
                     "ImportFromSeed": null,
                     "ImportWallet": null,
                     "Onboarding": null,
-                    "OnboardingCarousel": null,
                     "OptinMetrics": null,
                     "SyncWithExtension": null,
                   },
@@ -816,11 +822,12 @@ exports[`App should render correctly 1`] = `
                   "index": 0,
                   "isTransitioning": false,
                   "key": "id-123-6",
-                  "routeName": "OnboardingNav",
+                  "routeName": "Onboarding",
                   "routes": Array [
                     Object {
                       "key": "id-123-5",
-                      "routeName": "OnboardingCarousel",
+                      "params": undefined,
+                      "routeName": "Onboarding",
                     },
                   ],
                 },
@@ -830,6 +837,11 @@ exports[`App should render correctly 1`] = `
               "key": "Login",
               "params": undefined,
               "routeName": "Login",
+            },
+            Object {
+              "key": "OnboardingCarousel",
+              "params": undefined,
+              "routeName": "OnboardingCarousel",
             },
             Object {
               "key": "LockScreen",
