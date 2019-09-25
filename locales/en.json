@@ -573,7 +573,8 @@
 		"view_on": "VIEW ON",
 		"view_on_etherscan": "VIEW ON ETHERSCAN",
 		"hash_copied_to_clipboard": "Transaction hash copied to clipboard",
-		"address_copied_to_clipboard": "Address copied to clipboard"
+		"address_copied_to_clipboard": "Address copied to clipboard",
+		"transaction_error": "Transaction error"
 	},
 	"transaction_submitted": {
 		"title": "Transaction Submitted",
@@ -970,6 +971,7 @@
 		"error": "Error",
 		"amount_error_message": "The amount must be a number",
 		"address_error_message": "The address is invalid",
-		"balance_error_message": "Insufficient balance"
+		"balance_error_message": "Insufficient balance",
+		"gas_error": "You don't have enough ETH to pay for gas."
 	}
 }

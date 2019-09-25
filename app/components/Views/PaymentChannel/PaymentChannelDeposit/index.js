@@ -260,7 +260,7 @@ class Deposit extends PureComponent {
 			} else if (e.message.includes('Insufficient funds')) {
 				Alert.alert(
 					strings('payment_channel.heads_up'),
-					`You don't have enough ETH to pay for gas. ${strings('payment_channel.security_reasons')}`
+					`${strings('payment_channel.gas_error')} ${strings('payment_channel.security_reasons')}`
 				);
 			} else {
 				Alert.alert(strings('payment_channel.heads_up'), strings('payment_channel.security_reasons'));

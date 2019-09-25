@@ -635,7 +635,7 @@ class Main extends PureComponent {
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transactionMeta.id);
 		} catch (error) {
-			Alert.alert('Transaction error', error && error.message, [{ text: 'OK' }]);
+			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 			this.setState({ transactionHandled: false });
 		}
 	};
