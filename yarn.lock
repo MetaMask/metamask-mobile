@@ -9122,9 +9122,9 @@ react-native-vector-icons@6.4.2:
   version "2.6.0"
   resolved "git+ssh://git@github.com/brunobar79/react-native-view-shot.git#17a65dc27222a78ad8942de3d536d7171bb2eb76"
 
-"react-native-webview@git+ssh://git@github.com/brunobar79/react-native-webview.git#85d1e4cb6762e40ab834e4b98d7869a4d8974961":
+"react-native-webview@git+ssh://git@github.com/brunobar79/react-native-webview.git#e59c0dffac6e978fd5f9deac68a3eb60cdc932ca":
   version "7.0.5"
-  resolved "git+ssh://git@github.com/brunobar79/react-native-webview.git#85d1e4cb6762e40ab834e4b98d7869a4d8974961"
+  resolved "git+ssh://git@github.com/brunobar79/react-native-webview.git#e59c0dffac6e978fd5f9deac68a3eb60cdc932ca"
   dependencies:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
