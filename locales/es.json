@@ -935,7 +935,8 @@
 		"error_title": "Funcionalidad temporalmente no disponible",
 		"error_desc": "Nuestro proveedor de Canales de Pago tiene problemas, inténtalo de nuevo más tarde.",
 		"ask_a_friend": "O también puedes pedirle a un amigo",
-		"receive_funds_action": "Recibir Fondos"
+		"receive_funds_action": "Recibir Fondos",
+		"gas_error": "No tienes suficiente ETH para pagar el gas."
 	},
 	"webview_error": {
 		"title": "Ooops! algo salió mal...",
@@ -953,7 +954,6 @@
 		"error": "Error",
 		"amount_error_message": "El monto debe ser un número",
 		"address_error_message": "La dirección no es válida",
-		"balance_error_message": "Balance insuficiente",
-		"gas_error": "No tienes suficiente ETH para pagar el gas."
+		"balance_error_message": "Balance insuficiente"
 	}
 }
