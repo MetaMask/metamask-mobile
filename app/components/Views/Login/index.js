@@ -235,11 +235,7 @@ class Login extends PureComponent {
 	};
 
 	onPressGoBack = () => {
-		this.props.navigation.navigate(
-			'OnboardingRootNav',
-			{},
-			NavigationActions.navigate({ routeName: 'Onboarding' })
-		);
+		this.props.navigation.navigate('OnboardingRootNav');
 	};
 
 	updateBiometryChoice = async biometryChoice => {

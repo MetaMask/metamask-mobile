@@ -30,9 +30,6 @@ const OnboardingNav = createStackNavigator(
 		Onboarding: {
 			screen: Onboarding
 		},
-		OnboardingCarousel: {
-			screen: OnboardingCarousel
-		},
 		CreateWallet: {
 			screen: CreateWallet
 		},
@@ -50,7 +47,7 @@ const OnboardingNav = createStackNavigator(
 		}
 	},
 	{
-		initialRouteName: 'OnboardingCarousel'
+		initialRouteName: 'Onboarding'
 	}
 );
 
@@ -60,7 +57,7 @@ const OnboardingNav = createStackNavigator(
  */
 const OnboardingRootNav = createStackNavigator(
 	{
-		OnboardingNav: {
+		Onboarding: {
 			screen: OnboardingNav
 		},
 		SyncWithExtensionSuccess: {
@@ -131,6 +128,7 @@ const App = createSwitchNavigator(
 		HomeNav,
 		OnboardingRootNav,
 		Login,
+		OnboardingCarousel,
 		LockScreen
 	},
 	{

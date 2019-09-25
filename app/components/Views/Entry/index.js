@@ -94,7 +94,7 @@ class Entry extends PureComponent {
 			if (existingUser !== null) {
 				await this.unlockKeychain();
 			} else {
-				this.animateAndGoTo('OnboardingRootNav');
+				this.animateAndGoTo('OnboardingCarousel');
 			}
 		}, 100);
 	}
@@ -141,14 +141,8 @@ class Entry extends PureComponent {
 				useNativeDriver: true,
 				isInteraction: false
 			}).start(() => {
-				if (viewToGo !== 'WalletView' || viewToGo !== 'Onboarding') {
+				if (viewToGo !== 'WalletView') {
 					this.props.navigation.navigate(viewToGo);
-				} else if (viewToGo === 'Onboarding') {
-					this.props.navigation.navigate(
-						'OnboardingRootNav',
-						{},
-						NavigationActions.navigate({ routeName: 'Oboarding' })
-					);
 				} else {
 					this.props.navigation.navigate(
 						'HomeNav',
