@@ -84,6 +84,7 @@ import { isENS } from '../../../util/address';
 import Logger from '../../../util/Logger';
 import contractMap from 'eth-contract-metadata';
 import { BN } from 'gaba';
+import { BNToHex } from 'gaba/util';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -625,7 +626,12 @@ class Main extends PureComponent {
 			});
 
 			const fullTx = transactions.find(({ id }) => id === transactionMeta.id);
-			const updatedTx = { ...fullTx, transaction: transactionMeta.transaction };
+			const gasPrice = BNToHex(
+				hexToBN(transactionMeta.transaction.gasPrice)
+					.mul(new BN(12))
+					.div(new BN(10))
+			);
+			const updatedTx = { ...fullTx, transaction: { ...transactionMeta.transaction, gasPrice } };
 			await TransactionController.updateTransaction(updatedTx);
 			await TransactionController.approveTransaction(transactionMeta.id);
 		} catch (error) {
