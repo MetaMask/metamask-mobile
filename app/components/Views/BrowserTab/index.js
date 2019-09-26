@@ -32,7 +32,7 @@ import { colors, baseStyles, fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
-import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserSripts';
+import { SPA_urlChangeListener, JS_WINDOW_INFORMATION, JS_DESELECT_TEXT } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
