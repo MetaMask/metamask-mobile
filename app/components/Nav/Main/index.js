@@ -628,7 +628,7 @@ class Main extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transactionMeta.id);
 			const gasPrice = BNToHex(
 				hexToBN(transactionMeta.transaction.gasPrice)
-					.mul(new BN(12))
+					.mul(new BN(AppConstants.INSTAPAY_GAS_PONDERATOR * 10))
 					.div(new BN(10))
 			);
 			const updatedTx = { ...fullTx, transaction: { ...transactionMeta.transaction, gasPrice } };
