@@ -9,7 +9,8 @@ export class BackgroundBridge {
 
 	_postMessageToProvider(message) {
 		const current = this._webview.current;
-		current && current.injectJavaScript(`window.ethereum._onMessage(${JSON.stringify(message)})`);
+		current &&
+			current.injectJavaScript(`window.ethereum && window.ethereum._onMessage(${JSON.stringify(message)})`);
 	}
 
 	_onInpageRequest(payload) {

@@ -1260,10 +1260,6 @@ export class BrowserTab extends PureComponent {
 		this.setState({ autocompleteInputValue: inputValue });
 	};
 
-	sendStateUpdate = () => {
-		this.backgroundBridge.sendStateUpdate();
-	};
-
 	onLoadProgress = ({ nativeEvent: { progress } }) => {
 		this.setState({ progress });
 	};

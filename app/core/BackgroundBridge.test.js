@@ -54,7 +54,7 @@ describe('BackgroundBridge', () => {
 					type: 'INPAGE_RESPONSE',
 					payload: { response: true, __mmID: 'undefined' }
 				});
-				expect(stub).toBeCalledWith(`window.ethereum._onMessage(${JSON.stringify(msg)})`);
+				expect(stub).toBeCalledWith(`window.ethereum && window.ethereum._onMessage(${JSON.stringify(msg)})`);
 				resolve();
 			}, 250);
 		}));
@@ -69,6 +69,6 @@ describe('BackgroundBridge', () => {
 			}
 		});
 
-		expect(stub).toBeCalledWith(`window.ethereum._onMessage(${JSON.stringify(msg)})`);
+		expect(stub).toBeCalledWith(`window.ethereum && window.ethereum._onMessage(${JSON.stringify(msg)})`);
 	});
 });
