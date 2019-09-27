@@ -2,9 +2,13 @@
 import TestHelpers from './helpers';
 
 describe('Start Exploring', () => {
-	it('should show the home screen', async () => {
-		// Check that we are on the home screen
-		await TestHelpers.checkIfVisible('home-screen');
+	it('onboarding show the onboarding screen', async () => {
+		// Check that we are on the onboarding carousel screen
+		await TestHelpers.checkIfVisible('onboarding-carousel-screen');
+		// Check that Get started CTA is visible & tap it
+		await TestHelpers.waitAndTap('onboarding-get-started-button');
+		// Check that we are on the onboarding screen
+		await TestHelpers.checkIfVisible('onboarding-screen');
 	});
 
 	it('should allow you to create a new wallet', async () => {

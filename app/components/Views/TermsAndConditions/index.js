@@ -9,13 +9,13 @@ const TERMS_AND_CONDITIONS = 'https://metamask.io/terms.html';
 const styles = StyleSheet.create({
 	mainWrapper: {
 		backgroundColor: colors.transparent,
-		alignSelf: 'center',
-		width: 240
+		alignSelf: 'center'
 	},
 	text: {
 		...fontStyles.normal,
 		color: colors.grey500,
-		textAlign: 'center'
+		textAlign: 'center',
+		fontSize: 10
 	},
 	link: {
 		textDecorationLine: 'underline'
@@ -30,11 +30,7 @@ export default class TermsAndConditions extends PureComponent {
 		/**
 		/* navigation object required to push and pop other views
 		*/
-		navigation: PropTypes.object,
-		/**
-		 * Action string to be clicked to agree terms and conditions
-		 */
-		action: PropTypes.string
+		navigation: PropTypes.object
 	};
 
 	press = () => {
@@ -46,14 +42,11 @@ export default class TermsAndConditions extends PureComponent {
 	};
 
 	render() {
-		const { action } = this.props;
 		return (
 			<View style={styles.mainWrapper}>
 				<TouchableOpacity onPress={this.press}>
 					<Text style={styles.text}>
-						{strings('terms_and_conditions.description', {
-							action
-						})}
+						{strings('terms_and_conditions.description')}
 						<Text style={styles.link}>{strings('terms_and_conditions.terms')}</Text>.
 					</Text>
 				</TouchableOpacity>
