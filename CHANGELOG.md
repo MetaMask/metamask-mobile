@@ -3,6 +3,8 @@
 ## Current Develop Branch
 
 ## v0.2.5 - Sept 27 2019
+
+- [#1115](https://github.com/MetaMask/metamask-mobile/pull/1115): Bump react-native-device-info (#1115)
 - [#1113](https://github.com/MetaMask/metamask-mobile/pull/1113): Fix develop builds (#1113)
 - [#1112](https://github.com/MetaMask/metamask-mobile/pull/1112): bump to v0.2.5 (#1112)
 - [#1096](https://github.com/MetaMask/metamask-mobile/pull/1096): Webview rewrite (#1096)
